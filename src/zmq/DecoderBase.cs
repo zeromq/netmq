@@ -21,6 +21,7 @@
 
 using System;
 using NetMQ;
+using zmq;
 
 //  Helper base class for decoders that know the amount of data to read
 //  in advance at any moment. Knowing the amount in advance is a property
@@ -37,7 +38,7 @@ abstract public class DecoderBase : IDecoder
 {
 
     //  Where to store the read data.
-    private ArraySegment<byte> read_pos;
+    private ByteArraySegment read_pos;
 
     //  How much data to read before taking next step.
     protected int to_read;
@@ -59,7 +60,7 @@ abstract public class DecoderBase : IDecoder
 
 
     //  Returns a buffer to be filled with binary data.
-    public void get_buffer(ref ArraySegment<byte> data_)
+    public void get_buffer(ref ByteArraySegment data_, ref int size)
     {
         //  If we are expected to read large message, we'll opt for zero-
         //  copy, i.e. we'll ask caller to fill the data directly to the
@@ -72,11 +73,13 @@ abstract public class DecoderBase : IDecoder
 
         if (to_read >= bufsize)
         {
-            data_ = new ArraySegment<byte>(read_pos.Array, read_pos.Offset, to_read);
+            data_ = read_pos;
+            size = to_read;
             return;
         }
 
-        data_ = new ArraySegment<byte>(buf, 0, bufsize);
+        data_ = new ByteArraySegment(buf);
+        size = bufsize;
     }
 
 
@@ -84,7 +87,7 @@ abstract public class DecoderBase : IDecoder
     //  get_buffer function. size_ argument specifies nemuber of bytes
     //  actually filled into the buffer. Function returns number of
     //  bytes actually processed.
-    public int process_buffer(ArraySegment<byte> data)
+    public int process_buffer(ByteArraySegment data, int size)
     {
         //  Check if we had an error in previous attempt.
         if (state < 0)
@@ -95,10 +98,10 @@ abstract public class DecoderBase : IDecoder
         //  In case of zero-copy simply adjust the pointers, no copying
         //  is required. Also, run the state machine in case all the data
         //  were processed.
-        if (data.Array == read_pos.Array && data.Offset == read_pos.Offset)
+        if (data.Equals(read_pos))
         {
-            read_pos = new ArraySegment<byte>(read_pos.Array, read_pos.Offset + data.Count, read_pos.Count - data.Count);
-            to_read -= data.Count;
+            read_pos.AdvanceOffset(size);
+            to_read -= size;
 
             while (to_read == 0)
             {
@@ -108,10 +111,10 @@ abstract public class DecoderBase : IDecoder
                     {
                         return -1;
                     }
-                    return data.Count;
+                    return size;
                 }
             }
-            return data.Count;
+            return size;
         }
 
         int pos = 0;
@@ -134,19 +137,19 @@ abstract public class DecoderBase : IDecoder
             }
 
             //  If there are no more data in the buffer, return.
-            if (pos == data.Count)
+            if (pos == size)
                 return pos;
 
             //  Copy the data from buffer to the message.
-            int to_copy = Math.Min(to_read, data.Count - pos);
-            Buffer.BlockCopy(data.Array, data.Offset + pos, read_pos.Array, read_pos.Offset, to_copy);
-            read_pos = new ArraySegment<byte>(read_pos.Array, read_pos.Offset + to_copy, read_pos.Count - to_copy);
+            int to_copy = Math.Min(to_read, size - pos);
+            data.CopyTo(pos, read_pos, 0, to_copy);
+            read_pos.AdvanceOffset(to_copy);
             pos += to_copy;
             to_read -= to_copy;
         }
     }
 
-    protected void next_step(ArraySegment<byte> read_pos_, int to_read_, int state_)
+    protected void next_step(ByteArraySegment read_pos_, int to_read_, int state_)
     {
         read_pos = read_pos_;
         to_read = to_read_;

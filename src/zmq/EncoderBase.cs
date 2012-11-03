@@ -22,15 +22,17 @@
 using System;
 using NetMQ;
 using System.Runtime.InteropServices;
+using zmq;
 
-abstract public class EncoderBase : IEncoder {
+abstract public class EncoderBase : IEncoder
+{
 
     //  Where to get the data to write from.
-//    private byte[] write_array;
-    private ArraySegment<byte> write_pos;
-    
+    //    private byte[] write_array;
+    private ByteArraySegment write_pos;
+
     //  If true, first byte of the message is being written.
-//    @SuppressWarnings("unused")
+    //    @SuppressWarnings("unused")
     private bool beginning;
 
 
@@ -39,13 +41,14 @@ abstract public class EncoderBase : IEncoder {
 
     //  The buffer for encoded data.
     private byte[] buf;
-    
+
     private int buffersize;
 
 
     private bool error;
-    
-    protected EncoderBase (int bufsize_) {
+
+    protected EncoderBase(int bufsize_)
+    {
         buffersize = bufsize_;
         buf = new byte[bufsize_];
         error = false;
@@ -57,23 +60,20 @@ abstract public class EncoderBase : IEncoder {
     //  are filled to a supplied buffer. If no buffer is supplied (data_
     //  points to NULL) decoder object will provide buffer of its own.
 
-    public void get_data (ref ArraySegment<byte> data) 
+    public void get_data(ref ByteArraySegment data, ref int size)
     {
-        ArraySegment<byte> buffer = data;
-
-        if (buffer.Count == 0)
-            buffer = new ArraySegment<byte>(buf);
+        ByteArraySegment buffer = data == null ? new ByteArraySegment(buf) : data;
+        int bufferArraySize = data == null ? buffersize : size;
 
         int pos = 0;
-        
-//        int size;
 
-        while (pos < buffer.Count) {
-
+        while (pos < bufferArraySize)
+        {
             //  If there are no more data to return, run the state machine.
             //  If there are still no data, return what we already have
             //  in the buffer.
-            if (to_write == 0) {
+            if (to_write == 0)
+            {
                 //  If we are to encode the beginning of a new message,
                 //  adjust the message offset.
 
@@ -88,7 +88,7 @@ abstract public class EncoderBase : IEncoder {
                 if (!isNext())
                     break;
             }
-            
+
             //  If there are no data in the buffer yet and we are able to
             //  fill whole buffer in a single go, let's use zero-copy.
             //  There's no disadvantage to it as we cannot stuck multiple
@@ -99,23 +99,30 @@ abstract public class EncoderBase : IEncoder {
             //  As a consequence, large messages being sent won't block
             //  other engines running in the same I/O thread for excessive
             //  amounts of time.
-            if (pos == 0 && data == null && to_write >= buffersize) {
-                data = new ArraySegment<byte>(write_pos.Array, write_pos.Offset, to_write);
+            if (pos == 0 && data == null && to_write >= buffersize)
+            {
+                data = write_pos;
+                size = to_write;
 
-                write_pos = default(ArraySegment<byte>);
+                write_pos = null;
                 to_write = 0;
                 return;
             }
 
             //  Copy data to the buffer. If the buffer is full, return.
-            int to_copy = Math.Min (to_write, buffersize - pos);
-            Buffer.BlockCopy(write_pos.Array, write_pos.Offset, buffer.Array, buffer.Offset + pos, to_copy); 
-            pos += to_copy;
-            write_pos = new ArraySegment<byte>(write_pos.Array, write_pos.Offset + to_copy, write_pos.Count - to_copy);
-            to_write -= to_copy;            
+            int to_copy = Math.Min(to_write, buffersize - pos);
+
+            if (to_copy != 0)
+            {
+                write_pos.CopyTo(0,buffer, pos, to_copy);
+                pos += to_copy;
+                write_pos.AdvanceOffset(to_copy);
+                to_write -= to_copy;
+            }
         }
 
-        data = new ArraySegment<byte>(buffer.Array, buffer.Offset, pos);
+        data = buffer;
+        size = pos;
     }
 
     protected int state
@@ -123,16 +130,17 @@ abstract public class EncoderBase : IEncoder {
         get;
         private set;
     }
-              
-    protected void encoding_error ()
+
+    protected void encoding_error()
     {
         error = true;
     }
-    
-    public bool is_error() {
+
+    public bool is_error()
+    {
         return error;
     }
-    
+
     abstract protected bool isNext();
 
     //protected void next_step (Msg msg_, int state_, bool beginning_) {
@@ -141,8 +149,8 @@ abstract public class EncoderBase : IEncoder {
     //    else
     //        next_step(msg_.data(), msg_.size(), state_, beginning_);
     //}
-    
-    protected void next_step (ArraySegment<byte> write_pos_, int to_write_,
+
+    protected void next_step(ByteArraySegment write_pos_, int to_write_,
             int next_, bool beginning_)
     {
 
@@ -151,7 +159,7 @@ abstract public class EncoderBase : IEncoder {
         state = next_;
         beginning = beginning_;
     }
-    
+
     //protected void next_step (byte[] buf_, int to_write_,
     //        int next_, bool beginning_)
     //{
@@ -162,5 +170,5 @@ abstract public class EncoderBase : IEncoder {
     //    next = next_;
     //    beginning = beginning_;
     //}
-    
+
 }

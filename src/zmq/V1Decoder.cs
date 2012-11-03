@@ -25,7 +25,7 @@ public class V1Decoder : DecoderBase
         tmpbuf = new byte[8];
         
         //  At the beginning, read one byte and go to one_byte_size_ready state.
-        next_step(new ArraySegment<byte>(tmpbuf, 0, 1), 1, flags_ready);
+        next_step(tmpbuf, 1, flags_ready);
     }
 
     //  Set the receiver of decoded messages.
@@ -67,8 +67,7 @@ public class V1Decoder : DecoderBase
         in_progress = new Msg(tmpbuf [0]);
 
         in_progress.SetFlags (msg_flags);
-        next_step (new ArraySegment<byte>(in_progress.get_data ()), in_progress.size ,
-            message_ready);
+        next_step (in_progress.get_data (), in_progress.size ,message_ready);
 
         return true;
     }
@@ -98,8 +97,7 @@ public class V1Decoder : DecoderBase
         in_progress = new Msg ((int) msg_size);
 
         in_progress.SetFlags (msg_flags);
-        next_step (new ArraySegment<byte>(in_progress.get_data ()), in_progress.size,
-                message_ready);
+        next_step (in_progress.get_data (), in_progress.size, message_ready);
 
         return true;
     }
@@ -115,9 +113,9 @@ public class V1Decoder : DecoderBase
         //  The payload length is either one or eight bytes,
         //  depending on whether the 'large' bit is set.
         if ((first & V1Protocol.LARGE_FLAG) > 0)
-            next_step (new ArraySegment<byte>(tmpbuf, 0, 8), 8, eight_byte_size_ready);
+            next_step (tmpbuf, 8, eight_byte_size_ready);
         else
-            next_step (new ArraySegment<byte>(tmpbuf,0,1), 1, one_byte_size_ready);
+            next_step (tmpbuf,1, one_byte_size_ready);
         
         return true;
 
@@ -138,7 +136,7 @@ public class V1Decoder : DecoderBase
             return false;
         }
 
-        next_step(new ArraySegment<byte>(tmpbuf, 0, 1), 1, flags_ready);
+        next_step(tmpbuf, 1, flags_ready);
         
         return true;
     }

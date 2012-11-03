@@ -21,6 +21,7 @@
 */
 using System;
 using NetMQ;
+using zmq;
 
 
 public class Encoder : EncoderBase {
@@ -30,20 +31,17 @@ public class Encoder : EncoderBase {
     
 
     private Msg in_progress;
-    private byte[] tmpbuf;
-    private ArraySegment<byte> tmpbufArraySegment; 
+    private ByteArraySegment tmpbuf;
 
     private IMsgSource msg_source;
     
     public Encoder (int bufsize_) : base(bufsize_)
-    {
-
+    {        
         tmpbuf = new byte[10];
 
-        tmpbufArraySegment = new ArraySegment<byte>(tmpbuf);
 
         //  Write 0 bytes to the batch and go to message_ready state.
-        next_step(tmpbufArraySegment, 0, MessageReady, true);
+        next_step(tmpbuf, 0, MessageReady, true);
     }
 
     public override void set_msg_source (IMsgSource msg_source_)
@@ -66,8 +64,7 @@ public class Encoder : EncoderBase {
     private bool IsSizeReady ()
     {
         //  Write message body into the buffer.
-        next_step (new ArraySegment<byte>(in_progress.get_data()),
-            in_progress.size ,MessageReady, !in_progress.has_more());
+        next_step (in_progress.get_data(),in_progress.size ,MessageReady, !in_progress.has_more());
         return true;
     }
 
@@ -103,14 +100,14 @@ public class Encoder : EncoderBase {
         if (size < 255) {
             tmpbuf[0] = (byte)size;
             tmpbuf[1] = (byte) (in_progress.flags & Msg.more);
-            next_step (tmpbufArraySegment, 2, SizeReady, false);
+            next_step(tmpbuf, 2, SizeReady, false);
         }
         else {
             tmpbuf[0] = 0xff;
-            Buffer.BlockCopy(BitConverter.GetBytes((long)size), 0, tmpbuf, 1, 4);
+            tmpbuf.PutLong(size, 1);
             tmpbuf[9] = (byte)(in_progress.flags & Msg.more);
-            
-            next_step (tmpbufArraySegment, 10, SizeReady, false);
+
+            next_step(tmpbuf, 10, SizeReady, false);
         }
         
         return true;

@@ -1,5 +1,6 @@
 using System;
 using NetMQ;
+using zmq;
 
 // Encoder for 0MQ framing protocol. Converts messages into data stream.
 
@@ -9,11 +10,7 @@ public class V1Encoder : EncoderBase
     private const int message_ready = 1;
     
     private Msg in_progress;
-    private byte[] tmpbuf;
-    private ArraySegment<byte> tmpbufArraySegment;
-
-    private ArraySegment<byte> nullArraySegment = new ArraySegment<byte>(new byte[1], 0,0);
-
+    private ByteArraySegment tmpbuf;
 
     private IMsgSource msg_source;
     
@@ -22,10 +19,8 @@ public class V1Encoder : EncoderBase
         tmpbuf = new byte [9];
         msg_source = session;
 
-        tmpbufArraySegment = new ArraySegment<byte>(tmpbuf);
-
         //  Write 0 bytes to the batch and go to message_ready state.
-        next_step(tmpbufArraySegment, 0, message_ready, true);
+        next_step(tmpbuf, 0, message_ready, true);
     }
 
 
@@ -46,24 +41,10 @@ public class V1Encoder : EncoderBase
         }
     }
 
-    private ArraySegment<byte> GetMsgArraySegment(Msg msg)
-    {
-        byte[] data = msg.get_data();
-
-        if (data != null)
-        {
-            return new ArraySegment<byte>(data);
-        }
-        else
-        {
-            return nullArraySegment;
-        }
-    }
-    
     private bool get_size_ready ()
     {      
         //  Write message body into the buffer.
-        next_step(GetMsgArraySegment(in_progress), in_progress.size,
+        next_step(in_progress.get_data(), in_progress.size,
             message_ready, !in_progress.has_more());
         return true;
     }
@@ -96,13 +77,13 @@ public class V1Encoder : EncoderBase
         //  messages, 64-bit unsigned integer in network byte order is used.
         int size = in_progress.size;
         if (size > 255) {
-            Buffer.BlockCopy(BitConverter.GetBytes((long)size), 0, tmpbuf, 1, 8);
-                        
-            next_step (tmpbufArraySegment, 9, size_ready, false);
+            tmpbuf.PutLong(size, 1);
+
+            next_step(tmpbuf, 9, size_ready, false);
         }
         else {
             tmpbuf [1] = (byte) (size);
-            next_step(tmpbufArraySegment, 2, size_ready, false);
+            next_step(tmpbuf, 2, size_ready, false);
         }
         return true;
     }

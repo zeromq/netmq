@@ -21,6 +21,7 @@
 using System;
 using System.Threading;
 using System.Text;
+using zmq;
 
 
 public class ZMQ
@@ -184,22 +185,22 @@ public class ZMQ
 
             int pos = 0;
 
-            byte[] buffer = new byte[size];
-            Buffer.BlockCopy(BitConverter.GetBytes(@event), 0, buffer, pos, 4);
-
+            ByteArraySegment buffer = new byte[size];
+            buffer.PutInteger(@event, pos);
             pos += 4;
             buffer[pos++] = (byte)addr.Length;
 
             // was not here originally
-            Buffer.BlockCopy(Encoding.ASCII.GetBytes(addr), 0, buffer, pos, addr.Length);
+
+            buffer.PutString(addr, pos);
             pos += addr.Length;
 
             buffer[pos++] = ((byte)flag);
             if (flag == VALUE_INTEGER)
-                Buffer.BlockCopy(BitConverter.GetBytes((int)arg), 0, buffer, pos, 4);
+                buffer.PutInteger((int)arg, pos);
             pos += 4;
 
-            Msg msg = new Msg(buffer);
+            Msg msg = new Msg((byte[]) buffer);
             return s.send(msg, 0);
         }
 

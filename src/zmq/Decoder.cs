@@ -20,6 +20,7 @@
 */
 
 using System;
+using zmq;
 
 //  Helper base class for decoders that know the amount of data to read
 //  in advance at any moment. Knowing the amount in advance is a property
@@ -39,7 +40,8 @@ public class Decoder : DecoderBase {
     private const int flags_ready = 2;
     private const int message_ready = 3;
     
-    private byte[] tmpbuf;
+    private ByteArraySegment tmpbuf;
+    
     private Msg in_progress;
     private long maxmsgsize;
     private IMsgSink msg_sink;
@@ -47,10 +49,10 @@ public class Decoder : DecoderBase {
     public Decoder (int bufsize_, long maxmsgsize_) : base(bufsize_)
     {
         maxmsgsize = maxmsgsize_;
-        tmpbuf = new byte[8];
+        tmpbuf = new ByteArraySegment(new byte[8]);
            
         //  At the beginning, read one byte and go to one_byte_size_ready state.
-        next_step (new ArraySegment<byte>(tmpbuf,0,1), 1, one_byte_size_ready);
+        next_step (tmpbuf, 1, one_byte_size_ready);
     }
     
     //  Set the receiver of decoded messages.    
@@ -80,7 +82,7 @@ public class Decoder : DecoderBase {
         //  message data into it.
         byte first = tmpbuf[0];
         if (first == 0xff) {
-            next_step (new ArraySegment<byte>(tmpbuf, 0,8), 8, eight_byte_size_ready);
+            next_step (tmpbuf, 8, eight_byte_size_ready);
         } else {
 
             //  There has to be at least one byte (the flags) in the message).
@@ -101,7 +103,7 @@ public class Decoder : DecoderBase {
                 in_progress = new Msg(first-1);
             }
 
-            next_step (new ArraySegment<byte>(tmpbuf, 0, 1),1, flags_ready);
+            next_step (tmpbuf,1, flags_ready);
         }
         return true;
     }
@@ -109,8 +111,8 @@ public class Decoder : DecoderBase {
     private bool is_eight_byte_size_ready() {
         //  8-byte payload length is read. Allocate the buffer
         //  for message body and read the message data into it.
-        long payload_length = BitConverter.ToInt64(tmpbuf, 0);
-
+        long payload_length = tmpbuf.GetLong(0);
+        
         //  There has to be at least one byte (the flags) in the message).
         if (payload_length == 0) {
             decoding_error ();
@@ -135,7 +137,7 @@ public class Decoder : DecoderBase {
         //  message and thus we can treat it as uninitialized...
         in_progress = new Msg(msg_size);
         
-        next_step (new ArraySegment<byte>(tmpbuf, 0, 1), 1, flags_ready);
+        next_step (tmpbuf, 1, flags_ready);
         
         return true;
 
@@ -149,7 +151,7 @@ public class Decoder : DecoderBase {
         
         in_progress.SetFlags (first & Msg.more);
 
-        next_step (new ArraySegment<byte>(in_progress.get_data()),in_progress.size,message_ready);
+        next_step (in_progress.get_data(),in_progress.size,message_ready);
 
         return true;
     }
@@ -166,7 +168,7 @@ public class Decoder : DecoderBase {
             return false;
         }
         
-        next_step (new ArraySegment<byte>(tmpbuf, 0, 1), 1, one_byte_size_ready);
+        next_step (tmpbuf, 1, one_byte_size_ready);
         
         return true;
     }

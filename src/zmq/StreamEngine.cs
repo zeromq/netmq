@@ -21,10 +21,10 @@
 using System;
 using System.Net.Sockets;
 using System.Diagnostics;
+using zmq;
 
 public class StreamEngine : IEngine, IPollEvents, IMsgSink
 {
-
     //  Size of the greeting message:
     //  Preamble (10 bytes) + version (1 byte) + socket type (1 byte).
     private static int GREETING_SIZE = 12;
@@ -32,12 +32,12 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
     //private IOObject io_object;
     private Socket handle;
 
-    private ArraySegment<byte> inpos;
+    private ByteArraySegment inpos;
     private int insize;
     private DecoderBase decoder;
     private bool input_error;
 
-    private ArraySegment<byte> outpos;
+    private ByteArraySegment outpos;
     private int outsize;
     private EncoderBase encoder;
 
@@ -59,7 +59,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
 
     //  The send buffer holding the greeting message
     //  that we are sending to the peer.
-    private byte[] greeting_output_buffer = new byte[12];
+    private ByteArraySegment greeting_output_buffer = new byte[12];
 
     //  The session this engine is attached to.
     private SessionBase session;
@@ -203,13 +203,11 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         //  The 'length' field is encoded in the long format.
 
         greeting_output_buffer[outsize++] = ((byte)0xff);
-
-        Buffer.BlockCopy(BitConverter.GetBytes((long)options.identity_size + 1), 0, greeting_output_buffer, 1, 8);
+        greeting_output_buffer.PutLong((long)options.identity_size + 1,1);
         outsize += 8;
         greeting_output_buffer[outsize++] = ((byte)0x7f);
 
-        outpos = new ArraySegment<byte>(greeting_output_buffer,0, outsize);
-
+        outpos = new ByteArraySegment(greeting_output_buffer);                    
 
         io_object.set_pollin(handle);
         io_object.set_pollout(handle);
@@ -263,9 +261,8 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
             //  Note that buffer can be arbitrarily large. However, we assume
             //  the underlying TCP layer has fixed buffer size and thus the
             //  number of bytes read will be always limited.
-            decoder.get_buffer(ref inpos);
-            insize = inpos.Count;
-            insize = read(inpos);
+            decoder.get_buffer(ref inpos, ref insize);
+            insize = read(inpos, insize);
 
             //  Check whether the peer has closed the connection.
             if (insize == -1)
@@ -276,9 +273,8 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         }
 
         //  Push the data to the decoder.
-        int processed = decoder.process_buffer(
-            new ArraySegment<byte>(inpos.Array, inpos.Offset, insize));
-
+        int processed = decoder.process_buffer(inpos, insize);
+        
         if (processed == -1)
         {
             disconnection = true;
@@ -290,8 +286,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
             if (processed < insize)
                 io_object.reset_pollin(handle);
 
-            //  Adjust the buffer.
-            inpos = new ArraySegment<byte>(inpos.Array, inpos.Offset + processed, inpos.Count - processed);
+            inpos.AdvanceOffset(processed);
             insize -= processed;
         }
 
@@ -320,9 +315,8 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         //  If write buffer is empty, try to read new data from the encoder.
         if (outsize == 0)
         {
-            outpos = new ArraySegment<byte>(outpos.Array, 0 ,0);
-            encoder.get_data(ref outpos);
-            outsize = outpos.Count;
+            outpos = null;
+            encoder.get_data(ref outpos, ref outsize);
             
             //  If there is no data to send, stop polling for output.
             if (outsize == 0)
@@ -338,7 +332,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         //  arbitratily large. However, we assume that underlying TCP layer has
         //  limited transmission buffer and thus the actual number of bytes
         //  written should be reasonably modest.
-        int nbytes = write(outpos);
+        int nbytes = write(outpos, outsize);
 
         //  IO error has occurred. We stop waiting for output events.
         //  The engine is not terminated until we detect input error;
@@ -349,7 +343,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
             return;
         }
 
-        outpos = new ArraySegment<byte>(outpos.Array, outpos.Offset + nbytes, outpos.Count - nbytes); 
+        outpos.AdvanceOffset(nbytes); 
         outsize -= nbytes;
 
         //  If we are still handshaking and there are no data
@@ -383,7 +377,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
             //  There was an input error but the engine could not
             //  be terminated (due to the stalled decoder).
             //  Flush the pending message and terminate the engine now.
-            decoder.process_buffer(new ArraySegment<byte>(inpos.Array, inpos.Offset, 0));
+            decoder.process_buffer(inpos, 0);
             Debug.Assert(!decoder.stalled());
             session.flush();
             error();
@@ -403,10 +397,9 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         //  Receive the greeting.
         while (greeting_bytes_read < GREETING_SIZE)
         {
-            ArraySegment<byte> greetingSegment = 
-                new ArraySegment<byte>(greeting, greeting_bytes_read, greeting_size - greeting_bytes_read);
+            ByteArraySegment greetingSegment = new ByteArraySegment(greeting, greeting_bytes_read);
 
-            int n = read(greetingSegment);
+            int n = read(greetingSegment, greeting_size - greeting_bytes_read);
             if (n == -1)
             {
                 error();
@@ -436,16 +429,14 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
 
             //  The peer is using versioned protocol.
             //  Send the rest of the greeting, if necessary.
-            if (!(outpos.Array == greeting_output_buffer && 
+            if (!(((byte[])outpos) == ((byte[])greeting_output_buffer) && 
                 outpos.Offset + outsize == greeting_size))
             {
                 if (outsize == 0)
                     io_object.set_pollout(handle);
 
-                outpos.Array[outpos.Offset + outsize++] = 1; // Protocol version
-                outpos.Array[outpos.Offset + outsize++] = (byte)options.type;
-
-                outpos = new ArraySegment<byte>(outpos.Array, outpos.Offset, outsize);
+                outpos[outsize++] = 1; // Protocol version
+                outpos[outsize++] = (byte)options.type;
             }
         }
 
@@ -469,13 +460,16 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
             //  header data away.
             int header_size = options.identity_size + 1 >= 255 ? 10 : 2;
             byte[] tmp = new byte[10];
-            ArraySegment<byte> bufferp = new ArraySegment<byte>(tmp, 0, header_size);
-            encoder.get_data(ref bufferp);
+            ByteArraySegment bufferp = new ByteArraySegment(tmp);
+
+            int buffer_size = header_size;
+
+            encoder.get_data(ref bufferp, ref buffer_size);
             
-            Debug.Assert(bufferp.Count == header_size);
+            Debug.Assert(buffer_size == header_size);
 
             //  Make sure the decoder sees the data we have already received.
-            inpos = new ArraySegment<byte>( greeting, 0, greeting_bytes_read);            
+            inpos = new ByteArraySegment(greeting);            
             insize = greeting_bytes_read;
 
             //  To allow for interoperability with peers that do not forward
@@ -547,12 +541,12 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         destroy();
     }
 
-    private int write(ArraySegment<byte> data)
+    private int write(ByteArraySegment data, int size)
     {
         int nbytes = 0;
         try
         {
-            nbytes = handle.Send(data.Array, data.Offset, data.Count, SocketFlags.None);
+            nbytes = handle.Send((byte[])data, data.Offset, size, SocketFlags.None);
         }
         catch (SocketException ex)
         {
@@ -581,12 +575,12 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         return nbytes;
     }
 
-    private int read(ArraySegment<byte> data)
+    private int read(ByteArraySegment data, int size)
     {
         int nbytes = 0;
         try
         {
-            nbytes = handle.Receive(data.Array, data.Offset, data.Count, SocketFlags.None);
+            nbytes = handle.Receive((byte[])data, data.Offset, size, SocketFlags.None);
         }
         catch (SocketException ex)
         {

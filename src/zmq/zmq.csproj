@@ -46,6 +46,7 @@
     <Compile Include="Address.cs" />
     <Compile Include="AtomicInteger.cs" />
     <Compile Include="Blob.cs" />
+    <Compile Include="ByteArraySegment.cs" />
     <Compile Include="Clock.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="Config.cs" />

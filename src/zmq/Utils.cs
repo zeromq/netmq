@@ -79,11 +79,12 @@ public class Utils {
         }
         return dest;
     }
-    
-    public static void swap<T>(List<T> items, int index1_, int index2_) {
-        if (index1_ == index2_) 
+
+    public static void swap<T>(List<T> items, int index1_, int index2_)
+    {
+        if (index1_ == index2_)
             return;
-                    
+
         T item1 = items[index1_];
         T item2 = items[index2_];
         if (item1 != null)
@@ -91,12 +92,6 @@ public class Utils {
         if (item2 != null)
             items[index1_] = item2;
     }
-
-    //public static byte[] bytes(ByteBuffer buf) {
-    //    byte[] d = new byte[buf.limit()];
-    //    buf.get(d);
-    //    return d;
-    //}
 
     public static byte[] realloc(byte[] src, int size) {
 
