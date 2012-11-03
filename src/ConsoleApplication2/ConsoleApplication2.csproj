@@ -49,7 +49,7 @@
   <ItemGroup>
     <ProjectReference Include="..\zmq\zmq.csproj">
       <Project>{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}</Project>
-      <Name>NetMQ</Name>
+      <Name>zmq</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
