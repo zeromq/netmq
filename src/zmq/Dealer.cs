@@ -47,7 +47,7 @@ namespace zmq
 		public Dealer(Ctx parent, int tid, int sid) : base(parent, tid, sid) {
                 
 			m_prefetched = false;
-			m_options.SocketType = ZmqSocketType.ZMQ_DEALER;
+			m_options.SocketType = ZmqSocketType.Dealer;
         
 			m_fq = new FQ();
 			m_lb = new LB();
@@ -67,18 +67,18 @@ namespace zmq
 			m_lb.Attach (pipe);
 		}
 
-		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		protected override bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			return m_lb.Send (msg, flags);
 		}
 
 
-		protected override Msg XRecv(ZmqSendRecieveOptions flags)
+		protected override Msg XRecv(SendRecieveOptions flags)
 		{
 			return xxrecv(flags);
 		}
 
-		private Msg xxrecv(ZmqSendRecieveOptions flags_)
+		private Msg xxrecv(SendRecieveOptions flags_)
 		{
 			Msg msg_ = null;
 			//  If there is a prefetched message, return it.
@@ -107,7 +107,7 @@ namespace zmq
 				return true;
 
 			//  Try to read the next message to the pre-fetch buffer.
-			m_prefetchedMsg = xxrecv(ZmqSendRecieveOptions.ZMQ_DONTWAIT);
+			m_prefetchedMsg = xxrecv(SendRecieveOptions.DontWait);
 			if (m_prefetchedMsg == null && ZError.IsError(ErrorNumber.EAGAIN))
 				return false;
 			m_prefetched = true;

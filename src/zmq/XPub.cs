@@ -68,7 +68,7 @@ namespace zmq
             
 			                                               	XPub self = (XPub) arg;
 
-			                                               	if (self.m_options.SocketType != ZmqSocketType.ZMQ_PUB)
+			                                               	if (self.m_options.SocketType != ZmqSocketType.Pub)
 			                                               	{
 
 			                                               		//  Place the unsubscription to the queue of pending (un)sunscriptions
@@ -84,7 +84,7 @@ namespace zmq
     
 		public XPub(Ctx parent, int tid, int sid) : base(parent, tid, sid) {
 
-			m_options.SocketType = ZmqSocketType.ZMQ_XPUB;
+			m_options.SocketType = ZmqSocketType.Xpub;
 			m_verbose = false;
 			m_more = false;
         
@@ -126,7 +126,7 @@ namespace zmq
 
 					//  If the subscription is not a duplicate, store it so that it can be
 					//  passed to used on next recv call.
-					if (m_options.SocketType == ZmqSocketType.ZMQ_XPUB && (unique || m_verbose))
+					if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
 						m_pending.AddToBack(new Blob (sub.Data));
 				}
 			}
@@ -139,7 +139,7 @@ namespace zmq
 
 		protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
 		{
-			if (option != ZmqSocketOptions.ZMQ_XPUB_VERBOSE) {
+			if (option != ZmqSocketOptions.XpubVerbose) {
 				ZError.ErrorNumber = (ErrorNumber.EINVAL);
 				return false;
 			}
@@ -159,7 +159,7 @@ namespace zmq
 			m_dist.Terminated (pipe);
 		}
 
-		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		protected override bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			bool msgMore = msg.HasMore; 
 
@@ -188,7 +188,7 @@ namespace zmq
 			return m_dist.HasOut ();
 		}
 
-		protected override Msg XRecv(ZmqSendRecieveOptions flags)
+		protected override Msg XRecv(SendRecieveOptions flags)
 		{
 			//  If there is at least one 
 			if (m_pending.Count == 0) {

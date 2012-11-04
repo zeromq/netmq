@@ -40,7 +40,7 @@ namespace zmq
     
 		public Pull(Ctx parent, int tid, int sid) : base(parent, tid, sid){
 
-			m_options.SocketType = ZmqSocketType.ZMQ_PULL;
+			m_options.SocketType = ZmqSocketType.Pull;
         
 			m_fq = new FQ();
 		}
@@ -64,7 +64,7 @@ namespace zmq
 			}
 
 		override
-			protected Msg XRecv(ZmqSendRecieveOptions flags)
+			protected Msg XRecv(SendRecieveOptions flags)
 		{
 			return m_fq.Recv ();
 		}

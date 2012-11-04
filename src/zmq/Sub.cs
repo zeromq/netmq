@@ -36,7 +36,7 @@ namespace zmq
 		}
     
 		public Sub(Ctx parent, int tid, int sid) :base(parent, tid, sid){
-			m_options.SocketType = ZmqSocketType.ZMQ_SUB;
+			m_options.SocketType = ZmqSocketType.Sub;
 
 			//  Switch filtering messages on (as opposed to XSUB which where the
 			//  filtering is off).
@@ -45,7 +45,7 @@ namespace zmq
 
 		protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
 		{
-			if (option != ZmqSocketOptions.ZMQ_SUBSCRIBE && option != ZmqSocketOptions.ZMQ_UNSUBSCRIBE)
+			if (option != ZmqSocketOptions.Subscribe && option != ZmqSocketOptions.Unsubscribe)
 			{
 				ZError.ErrorNumber = (ErrorNumber.EINVAL);
 				return false;
@@ -62,9 +62,9 @@ namespace zmq
             
 			//  Create the subscription message.
 			Msg msg = new Msg(val.Length + 1);
-			if (option == ZmqSocketOptions.ZMQ_SUBSCRIBE)
+			if (option == ZmqSocketOptions.Subscribe)
 				msg.Put((byte)1);
-			else if (option == ZmqSocketOptions.ZMQ_UNSUBSCRIBE)
+			else if (option == ZmqSocketOptions.Unsubscribe)
 				msg.Put((byte)0);
 			msg.Put (val,1);
 
@@ -73,7 +73,7 @@ namespace zmq
 			return rc;
 		}
 
-		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		protected override bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			//  Overload the XSUB's send.
 			ZError.ErrorNumber = (ErrorNumber.ENOTSUP);

@@ -99,7 +99,7 @@ namespace zmq
 			m_nextPeerId = Utils.GenerateRandom (); 
 			m_mandatory = false;
 
-			m_options.SocketType = ZmqSocketType.ZMQ_ROUTER;
+			m_options.SocketType = ZmqSocketType.Router;
         
         
 			m_fq = new FQ();
@@ -132,7 +132,7 @@ namespace zmq
 
 		protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
 		{
-			if (option != ZmqSocketOptions.ZMQ_ROUTER_MANDATORY)
+			if (option != ZmqSocketOptions.RouterMandatory)
 			{
 				ZError.ErrorNumber = (ErrorNumber.EINVAL);
 				return false;
@@ -188,7 +188,7 @@ namespace zmq
 		}
 
 
-		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		protected override bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			//  If this is the first part of the message it's the ID of the
 			//  peer to send the message to.
@@ -247,7 +247,7 @@ namespace zmq
 
 
 
-		protected override Msg XRecv(ZmqSendRecieveOptions flags)
+		protected override Msg XRecv(SendRecieveOptions flags)
 		{
 			Msg msg = null;
 			if (m_prefetched) {

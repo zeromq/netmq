@@ -48,11 +48,11 @@ namespace zmq
 			m_sendingReply = false;
 			m_requestBegins = true;
 
-			m_options.SocketType = ZmqSocketType.ZMQ_REP;
+			m_options.SocketType = ZmqSocketType.Rep;
 		}
     
 		override
-			protected bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+			protected bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			//  If we are in the middle of receiving a request, we cannot send reply.
 			if (!m_sendingReply) {
@@ -74,7 +74,7 @@ namespace zmq
 		}
     
 		override
-			protected Msg XRecv(ZmqSendRecieveOptions flags)
+			protected Msg XRecv(SendRecieveOptions flags)
 		{
 			Msg msg;
 

@@ -70,7 +70,7 @@ namespace zmq
 		private SocketBase m_monitorSocket;
 
 		// Bitmask of events being monitored
-		private ZmqSocketEvent m_monitorEvents;
+		private SocketEvent m_monitorEvents;
 
 		protected SocketBase(Ctx parent, int tid, int sid)
 			: base(parent, tid)
@@ -113,39 +113,39 @@ namespace zmq
 			switch (type)
 			{
 
-				case ZmqSocketType.ZMQ_PAIR:
+				case ZmqSocketType.Pair:
 					s = new Pair(parent, tid, sid);
 					break;
-				case ZmqSocketType.ZMQ_PUB:
+				case ZmqSocketType.Pub:
 					s = new Pub(parent, tid, sid);
 					break;
-				case ZmqSocketType.ZMQ_SUB:
+				case ZmqSocketType.Sub:
 					s = new Sub(parent, tid, sid);
 					break;
-				case ZmqSocketType.ZMQ_REQ:
+				case ZmqSocketType.Req:
 					s = new Req(parent, tid, sid);
 					break;
-				case ZmqSocketType.ZMQ_REP:
+				case ZmqSocketType.Rep:
 					s = new Rep(parent, tid, sid);
 					break;
-				case ZmqSocketType.ZMQ_DEALER:
+				case ZmqSocketType.Dealer:
 					s = new Dealer(parent, tid, sid);
 					break;
-				case ZmqSocketType.ZMQ_ROUTER:
+				case ZmqSocketType.Router:
 					s = new Router(parent, tid, sid);
 					break;
-				case ZmqSocketType.ZMQ_PULL:
+				case ZmqSocketType.Pull:
 					s = new Pull(parent, tid, sid);
 					break;
-				case ZmqSocketType.ZMQ_PUSH:
+				case ZmqSocketType.Push:
 					s = new Push(parent, tid, sid);
 					break;
 
-				case ZmqSocketType.ZMQ_XPUB:
+				case ZmqSocketType.Xpub:
 					s = new XPub(parent, tid, sid);
 					break;
 
-				case ZmqSocketType.ZMQ_XSUB:
+				case ZmqSocketType.Xsub:
 					s = new XSub(parent, tid, sid);
 					break;
 
@@ -197,8 +197,8 @@ namespace zmq
 			//  Specifically, multicast protocols can't be combined with
 			//  bi-directional messaging patterns (socket types).
 			if ((protocol.Equals("pgm") || protocol.Equals("epgm")) &&
-					m_options.SocketType != ZmqSocketType.ZMQ_PUB && m_options.SocketType != ZmqSocketType.ZMQ_SUB &&
-					m_options.SocketType != ZmqSocketType.ZMQ_XPUB && m_options.SocketType != ZmqSocketType.ZMQ_XSUB)
+					m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
+					m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
 			{
 				ZError.ErrorNumber = (ErrorNumber.EPROTONOSUPPORT);
 				throw new NotSupportedException(protocol + ",type=" + m_options.SocketType);
@@ -262,11 +262,11 @@ namespace zmq
 				return -1;
 			}
 
-			if (option == ZmqSocketOptions.ZMQ_RCVMORE)
+			if (option == ZmqSocketOptions.ReceiveMore)
 			{
 				return m_rcvMore ? 1 : 0;
 			}
-			if (option == ZmqSocketOptions.ZMQ_EVENTS)
+			if (option == ZmqSocketOptions.Events)
 			{
 				bool rc = ProcessCommands(0, false);
 				if (!rc && (ZError.IsError(ErrorNumber.EINTR) || ZError.IsError(ErrorNumber.ETERM)))
@@ -291,17 +291,17 @@ namespace zmq
 				return null;
 			}
 
-			if (option == ZmqSocketOptions.ZMQ_RCVMORE)
+			if (option == ZmqSocketOptions.ReceiveMore)
 			{
 				return m_rcvMore ? 1 : 0;
 			}
 
-			if (option == ZmqSocketOptions.ZMQ_FD)
+			if (option == ZmqSocketOptions.FD)
 			{
 				return m_mailbox.FD;
 			}
 
-			if (option == ZmqSocketOptions.ZMQ_EVENTS)
+			if (option == ZmqSocketOptions.Events)
 			{
 				bool rc = ProcessCommands(0, false);
 				if (!rc && (ZError.IsError(ErrorNumber.EINTR) || ZError.IsError(ErrorNumber.ETERM)))
@@ -628,7 +628,7 @@ namespace zmq
 
 		}
 
-		public bool Send(Msg msg, ZmqSendRecieveOptions flags)
+		public bool Send(Msg msg, SendRecieveOptions flags)
 		{
 			if (m_ctxTerminated)
 			{
@@ -652,7 +652,7 @@ namespace zmq
 			msg.ResetFlags(MsgFlags.More);
 
 			//  At this point we impose the flags on the message.
-			if ((flags & ZmqSendRecieveOptions.ZMQ_SNDMORE) > 0)
+			if ((flags & SendRecieveOptions.SendMore) > 0)
 				msg.SetFlags(MsgFlags.More);
 
 			//  Try to send the message.
@@ -664,7 +664,7 @@ namespace zmq
 
 			//  In case of non-blocking send we'll simply propagate
 			//  the error - including EAGAIN - up the stack.
-			if ((flags & ZmqSendRecieveOptions.ZMQ_DONTWAIT) > 0 || m_options.SendTimeout == 0)
+			if ((flags & SendRecieveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
 				return false;
 
 			//  Compute the time when the timeout should occur.
@@ -701,7 +701,7 @@ namespace zmq
 		}
 
 
-		public Msg Recv(ZmqSendRecieveOptions flags)
+		public Msg Recv(SendRecieveOptions flags)
 		{
 
 			if (m_ctxTerminated)
@@ -741,7 +741,7 @@ namespace zmq
 			//  For non-blocking recv, commands are processed in case there's an
 			//  activate_reader command already waiting int a command pipe.
 			//  If it's not, return EAGAIN.
-			if ((flags & ZmqSendRecieveOptions.ZMQ_DONTWAIT) > 0 || m_options.ReceiveTimeout == 0)
+			if ((flags & SendRecieveOptions.DontWait) > 0 || m_options.ReceiveTimeout == 0)
 			{
 				if (!ProcessCommands(0, false))
 					return null;
@@ -952,7 +952,7 @@ namespace zmq
 			return false;
 		}
 
-		protected virtual bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		protected virtual bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			throw new NotSupportedException("Must Override");
 		}
@@ -963,7 +963,7 @@ namespace zmq
 		}
 
 
-		protected virtual Msg XRecv(ZmqSendRecieveOptions flags)
+		protected virtual Msg XRecv(SendRecieveOptions flags)
 		{
 			throw new NotSupportedException("Must Override");
 		}
@@ -1075,7 +1075,7 @@ namespace zmq
 		}
 
 
-		public bool Monitor(String addr, ZmqSocketEvent events)
+		public bool Monitor(String addr, SocketEvent events)
 		{
 			bool rc;
 			if (m_ctxTerminated)
@@ -1120,13 +1120,13 @@ namespace zmq
 			// Register events to monitor
 			m_monitorEvents = events;
 
-			m_monitorSocket = Ctx.CreateSocket(ZmqSocketType.ZMQ_PAIR);
+			m_monitorSocket = Ctx.CreateSocket(ZmqSocketType.Pair);
 			if (m_monitorSocket == null)
 				return false;
 
 			// Never block context termination on pending event messages
 			int linger = 0;
-			rc = m_monitorSocket.SetSocketOption(ZmqSocketOptions.ZMQ_LINGER, linger);
+			rc = m_monitorSocket.SetSocketOption(ZmqSocketOptions.Linger, linger);
 			if (!rc)
 				StopMonitor();
 
@@ -1139,82 +1139,82 @@ namespace zmq
 
 		public void EventConnected(String addr, Socket ch)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_CONNECTED) == 0)
+			if ((m_monitorEvents & SocketEvent.Connected) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CONNECTED, addr, ch));
+			MonitorEvent(new MonitorEvent(SocketEvent.Connected, addr, ch));
 		}
 
 		public void EventConnectDelayed(String addr, ErrorNumber errno)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_CONNECT_DELAYED) == 0)
+			if ((m_monitorEvents & SocketEvent.ConnectDelayed) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CONNECT_DELAYED, addr, errno));
+			MonitorEvent(new MonitorEvent(SocketEvent.ConnectDelayed, addr, errno));
 		}
 
 		public void EventConnectRetried(String addr, int interval)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_CONNECT_RETRIED) == 0)
+			if ((m_monitorEvents & SocketEvent.ConnectRetried) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CONNECT_RETRIED, addr, interval));
+			MonitorEvent(new MonitorEvent(SocketEvent.ConnectRetried, addr, interval));
 		}
 
 		public void EventListening(String addr, Socket ch)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_LISTENING) == 0)
+			if ((m_monitorEvents & SocketEvent.Listening) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_LISTENING, addr, ch));
+			MonitorEvent(new MonitorEvent(SocketEvent.Listening, addr, ch));
 		}
 
 		public void EventBindFailed(String addr, ErrorNumber errno)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_BIND_FAILED) == 0)
+			if ((m_monitorEvents & SocketEvent.BindFailed) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_BIND_FAILED, addr, errno));
+			MonitorEvent(new MonitorEvent(SocketEvent.BindFailed, addr, errno));
 		}
 
 		public void EventAccepted(String addr, Socket ch)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_ACCEPTED) == 0)
+			if ((m_monitorEvents & SocketEvent.Accepted) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_ACCEPTED, addr, ch));
+			MonitorEvent(new MonitorEvent(SocketEvent.Accepted, addr, ch));
 		}
 
 		public void EventAcceptFailed(String addr, ErrorNumber errno)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_ACCEPT_FAILED) == 0)
+			if ((m_monitorEvents & SocketEvent.AcceptFailed) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_ACCEPT_FAILED, addr, errno));
+			MonitorEvent(new MonitorEvent(SocketEvent.AcceptFailed, addr, errno));
 		}
 
 		public void EventClosed(String addr, Socket ch)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_CLOSED) == 0)
+			if ((m_monitorEvents & SocketEvent.Closed) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CLOSED, addr, ch));
+			MonitorEvent(new MonitorEvent(SocketEvent.Closed, addr, ch));
 		}
 
 		public void EventCloseFailed(String addr, ErrorNumber errno)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_CLOSE_FAILED) == 0)
+			if ((m_monitorEvents & SocketEvent.CloseFailed) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CLOSE_FAILED, addr, errno));
+			MonitorEvent(new MonitorEvent(SocketEvent.CloseFailed, addr, errno));
 		}
 
 		public void EventDisconnected(String addr, Socket ch)
 		{
-			if ((m_monitorEvents & ZmqSocketEvent.ZMQ_EVENT_DISCONNECTED) == 0)
+			if ((m_monitorEvents & SocketEvent.Disconnected) == 0)
 				return;
 
-			MonitorEvent(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_DISCONNECTED, addr, ch));
+			MonitorEvent(new MonitorEvent(SocketEvent.Disconnected, addr, ch));
 		}
 
 		protected void MonitorEvent(MonitorEvent monitorEvent)
@@ -1251,23 +1251,23 @@ namespace zmq
 		{
 			switch (m_options.SocketType)
 			{
-				case ZmqSocketType.ZMQ_PAIR:
+				case ZmqSocketType.Pair:
 					return "PAIR";
-				case ZmqSocketType.ZMQ_PUB:
+				case ZmqSocketType.Pub:
 					return "PUB";
-				case ZmqSocketType.ZMQ_SUB:
+				case ZmqSocketType.Sub:
 					return "SUB";
-				case ZmqSocketType.ZMQ_REQ:
+				case ZmqSocketType.Req:
 					return "REQ";
-				case ZmqSocketType.ZMQ_REP:
+				case ZmqSocketType.Rep:
 					return "REP";
-				case ZmqSocketType.ZMQ_DEALER:
+				case ZmqSocketType.Dealer:
 					return "DEALER";
-				case ZmqSocketType.ZMQ_ROUTER:
+				case ZmqSocketType.Router:
 					return "ROUTER";
-				case ZmqSocketType.ZMQ_PULL:
+				case ZmqSocketType.Pull:
 					return "PULL";
-				case ZmqSocketType.ZMQ_PUSH:
+				case ZmqSocketType.Push:
 					return "PUSH";
 				default:
 					return "UNKOWN";

@@ -130,14 +130,14 @@ namespace zmq
 		}
 
 		//  Send the message to all the outbound pipes.
-		public bool SendToAll(Msg msg, ZmqSendRecieveOptions flags)
+		public bool SendToAll(Msg msg, SendRecieveOptions flags)
 		{
 			m_matching = m_active;
 			return SendToMatching (msg, flags);
 		}
 
 		//  Send the message to the matching outbound pipes.
-		public bool SendToMatching(Msg msg, ZmqSendRecieveOptions flags)
+		public bool SendToMatching(Msg msg, SendRecieveOptions flags)
 		{
 			//  Is this end of a multipart message?
 			bool msg_more = msg.HasMore;
@@ -156,7 +156,7 @@ namespace zmq
 		}
 
 		//  Put the message to all active pipes.
-		private void Distribute(Msg msg, ZmqSendRecieveOptions flags)
+		private void Distribute(Msg msg, SendRecieveOptions flags)
 		{
 			//  If there are no matching pipes available, simply drop the message.
 			if (m_matching == 0) {

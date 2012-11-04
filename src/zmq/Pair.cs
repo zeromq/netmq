@@ -40,7 +40,7 @@ namespace zmq
 		public Pair(Ctx parent, int tid, int sid)
 			: base(parent, tid, sid)
 		{
-			m_options.SocketType = ZmqSocketType.ZMQ_PAIR;
+			m_options.SocketType = ZmqSocketType.Pair;
 		}
 
 		override
@@ -77,14 +77,14 @@ namespace zmq
 		}
     
 		override
-			protected bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+			protected bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			if (m_pipe == null || !m_pipe.write (msg)) {
 				ZError.ErrorNumber = (ErrorNumber.EAGAIN);
 				return false;
 			}
 
-			if ((flags & ZmqSendRecieveOptions.ZMQ_SNDMORE) == 0)
+			if ((flags & SendRecieveOptions.SendMore) == 0)
 				m_pipe.flush ();
 
 			//  Detach the original message from the data buffer.
@@ -93,7 +93,7 @@ namespace zmq
 		}
 
 		override
-			protected Msg XRecv(ZmqSendRecieveOptions flags)
+			protected Msg XRecv(SendRecieveOptions flags)
 		{
 			//  Deallocate old content of the message.
 

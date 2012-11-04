@@ -81,7 +81,7 @@ namespace zmq
     
 		public XSub (Ctx parent, int tid, int sid) : base(parent, tid, sid) {
 
-			m_options.SocketType = ZmqSocketType.ZMQ_XSUB;
+			m_options.SocketType = ZmqSocketType.Xsub;
 			m_hasMessage = false;
 			m_more = false;
         
@@ -128,7 +128,7 @@ namespace zmq
 			pipe.flush ();
 		}
 
-		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		protected override bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			byte[] data = msg.Data; 
 			// Malformed subscriptions.
@@ -154,7 +154,7 @@ namespace zmq
 			return true;
 		}
 
-		protected override Msg XRecv(ZmqSendRecieveOptions flags)
+		protected override Msg XRecv(SendRecieveOptions flags)
 		{
 			//  If there's already a message prepared by a previous call to zmq_poll,
 			//  return it straight ahead.

@@ -60,6 +60,7 @@
     <Compile Include="Encoder.cs" />
     <Compile Include="EncoderBase.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="ErrorNumber.cs" />
     <Compile Include="FQ.cs" />
     <Compile Include="IDecoder.cs" />
     <Compile Include="IEncoder.cs" />

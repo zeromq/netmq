@@ -69,7 +69,7 @@ namespace zmq
 		}
 
 
-		public static void CtxSet(Ctx ctx, ZmqContextOption option, int optval)
+		public static void CtxSet(Ctx ctx, ContextOption option, int optval)
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
@@ -78,7 +78,7 @@ namespace zmq
 			ctx.Set(option, optval);
 		}
 
-		public static int CtxGet(Ctx ctx, ZmqContextOption option)
+		public static int CtxGet(Ctx ctx, ContextOption option)
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
@@ -94,7 +94,7 @@ namespace zmq
 			if (ioThreads >= 0)
 			{
 				Ctx ctx = CtxNew();
-				CtxSet(ctx, ZmqContextOption.ZMQ_IO_THREADS, ioThreads);
+				CtxSet(ctx, ContextOption.IOThreads, ioThreads);
 				return ctx;
 			}
 			throw new ArgumentException("io_threds must not be negative");
@@ -153,7 +153,7 @@ namespace zmq
 			return s.GetSocketOption(opt);
 		}
 
-		public static bool SocketMonitor(SocketBase s, String addr, ZmqSocketEvent events)
+		public static bool SocketMonitor(SocketBase s, String addr, SocketEvent events)
 		{
 
 			if (s == null || !s.CheckTag())
@@ -206,13 +206,13 @@ namespace zmq
 		}
 
 		// Sending functions.
-		public static int Send(SocketBase s, String str, ZmqSendRecieveOptions flags)
+		public static int Send(SocketBase s, String str, SendRecieveOptions flags)
 		{
 			byte[] data = Encoding.ASCII.GetBytes(str);
 			return Send(s, data, data.Length, flags);
 		}
 
-		public static int Send(SocketBase s, Msg msg, ZmqSendRecieveOptions flags)
+		public static int Send(SocketBase s, Msg msg, SendRecieveOptions flags)
 		{
 
 			int rc = SendMsg(s, msg, flags);
@@ -224,7 +224,7 @@ namespace zmq
 			return rc;
 		}
 
-		public static int Send(SocketBase s, byte[] buf, int len, ZmqSendRecieveOptions flags)
+		public static int Send(SocketBase s, byte[] buf, int len, SendRecieveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
@@ -249,7 +249,7 @@ namespace zmq
 		// a single multi-part message, i.e. the last message has
 		// ZMQ_SNDMORE bit switched off.
 		//
-		public int SendIOv(SocketBase s, byte[][] a, int count, ZmqSendRecieveOptions flags)
+		public int SendIOv(SocketBase s, byte[][] a, int count, SendRecieveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
@@ -262,7 +262,7 @@ namespace zmq
 			{
 				msg = new Msg(a[i]);
 				if (i == count - 1)
-					flags = flags & ~ZmqSendRecieveOptions.ZMQ_SNDMORE;
+					flags = flags & ~SendRecieveOptions.SendMore;
 				rc = SendMsg(s, msg, flags);
 				if (rc < 0)
 				{
@@ -274,7 +274,7 @@ namespace zmq
 
 		}
 
-		private static int SendMsg(SocketBase s, Msg msg, ZmqSendRecieveOptions flags)
+		private static int SendMsg(SocketBase s, Msg msg, SendRecieveOptions flags)
 		{
 			int sz = MsgSize(msg);
 			bool rc = s.Send(msg, flags);
@@ -286,7 +286,7 @@ namespace zmq
 
 		// Receiving functions.
 
-		public static Msg Recv(SocketBase s, ZmqSendRecieveOptions flags)
+		public static Msg Recv(SocketBase s, SendRecieveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
@@ -325,7 +325,7 @@ namespace zmq
 		// We assume it is safe to steal these buffers by simply
 		// not closing the zmq::msg_t.
 		//
-		public int RecvIOv(SocketBase s, byte[][] a, int count, ZmqSendRecieveOptions flags)
+		public int RecvIOv(SocketBase s, byte[][] a, int count, SendRecieveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
@@ -356,7 +356,7 @@ namespace zmq
 		}
 
 
-		public static Msg RecvMsg(SocketBase s, ZmqSendRecieveOptions flags)
+		public static Msg RecvMsg(SocketBase s, SendRecieveOptions flags)
 		{
 			return s.Recv(flags);
 		}

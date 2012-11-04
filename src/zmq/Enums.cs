@@ -1,111 +1,107 @@
-﻿
-using System;
+﻿using System;
 
-public enum ZmqContextOption
+namespace zmq
 {
-	ZMQ_IO_THREADS = 1,
-	ZMQ_MAX_SOCKETS = 2,
-}
+	public enum ContextOption
+	{
+		IOThreads = 1,
+		MaxSockets = 2,
+	}
 
 
-public enum ZmqSocketType
-{
-	ZMQ_NONE = -1,
-	ZMQ_PAIR = 0,
-	ZMQ_PUB = 1,
-	ZMQ_SUB = 2,
-	ZMQ_REQ = 3,
-	ZMQ_REP = 4,
-	ZMQ_DEALER = 5,
-	ZMQ_ROUTER = 6,
-	ZMQ_PULL = 7,
-	ZMQ_PUSH = 8,
-	ZMQ_XPUB = 9,
-	ZMQ_XSUB = 10,
+	public enum ZmqSocketType
+	{
+		None = -1,
+		Pair = 0,
+		Pub = 1,
+		Sub = 2,
+		Req = 3,
+		Rep = 4,
+		Dealer = 5,
+		Router = 6,
+		Pull = 7,
+		Push = 8,
+		Xpub = 9,
+		Xsub = 10,	
+	}
 
-	[Obsolete]
-	ZMQ_XREQ = ZMQ_DEALER,
+	public enum ZmqSocketOptions
+	{
+		Affinity = 4,
+		Identity = 5,
+		Subscribe = 6,
+		Unsubscribe = 7,
+		Rate = 8,
+		RecoveryIvl = 9,
+		SendBuffer = 11,
+		ReceivevBuffer = 12,
+		ReceiveMore = 13,
+		FD = 14,
+		Events = 15,
+		Type = 16,
+		Linger = 17,
+		ReconnectIvl = 18,
+		Backlog = 19,
+		ReconnectIvlMax = 21,
+		Maxmsgsize = 22,
+		SendHighWatermark = 23,
+		ReceivevHightWatermark = 24,
+		MulticastHops = 25,
+		ReceiveTimeout = 27,
+		SendTimeout = 28,
+		IPv4Only = 31,
+		LastEndpoint = 32,
+		RouterMandatory = 33,
+		TcpKeepalive = 34,
+		TcpKeepaliveCnt = 35,
+		TcpKeepaliveIdle = 36,
+		TcpKeepaliveIntvl = 37,
+		TcpAcceptFilter = 38,
+		DelayAttachOnConnect = 39,
+		XpubVerbose = 40,
 
-	[Obsolete]
-	ZMQ_XREP = ZMQ_ROUTER
-}
+		[Obsolete]
+		FailUnroutable = RouterMandatory,
 
-public enum ZmqSocketOptions
-{
-	ZMQ_AFFINITY = 4,
-	ZMQ_IDENTITY = 5,
-	ZMQ_SUBSCRIBE = 6,
-	ZMQ_UNSUBSCRIBE = 7,
-	ZMQ_RATE = 8,
-	ZMQ_RECOVERY_IVL = 9,
-	ZMQ_SNDBUF = 11,
-	ZMQ_RCVBUF = 12,
-	ZMQ_RCVMORE = 13,
-	ZMQ_FD = 14,
-	ZMQ_EVENTS = 15,
-	ZMQ_TYPE = 16,
-	ZMQ_LINGER = 17,
-	ZMQ_RECONNECT_IVL = 18,
-	ZMQ_BACKLOG = 19,
-	ZMQ_RECONNECT_IVL_MAX = 21,
-	ZMQ_MAXMSGSIZE = 22,
-	ZMQ_SNDHWM = 23,
-	ZMQ_RCVHWM = 24,
-	ZMQ_MULTICAST_HOPS = 25,
-	ZMQ_RCVTIMEO = 27,
-	ZMQ_SNDTIMEO = 28,
-	ZMQ_IPV4ONLY = 31,
-	ZMQ_LAST_ENDPOINT = 32,
-	ZMQ_ROUTER_MANDATORY = 33,
-	ZMQ_TCP_KEEPALIVE = 34,
-	ZMQ_TCP_KEEPALIVE_CNT = 35,
-	ZMQ_TCP_KEEPALIVE_IDLE = 36,
-	ZMQ_TCP_KEEPALIVE_INTVL = 37,
-	ZMQ_TCP_ACCEPT_FILTER = 38,
-	ZMQ_DELAY_ATTACH_ON_CONNECT = 39,
-	ZMQ_XPUB_VERBOSE = 40,
+		[Obsolete]
+		RouterBehavior = RouterMandatory,
+	}
 
-	[Obsolete]
-	ZMQ_FAIL_UNROUTABLE = ZMQ_ROUTER_MANDATORY,
+	[Flags]
+	public enum SendRecieveOptions
+	{
+		DontWait = 1,
+		SendMore = 2,
 
-	[Obsolete]
-	ZMQ_ROUTER_BEHAVIOR = ZMQ_ROUTER_MANDATORY,
-}
-
-[Flags]
-public enum ZmqSendRecieveOptions
-{
-	ZMQ_DONTWAIT = 1,
-	ZMQ_SNDMORE = 2,
-
-	/*  Deprecated aliases                                                        */
-	[Obsolete]
-	ZMQ_NOBLOCK = ZMQ_DONTWAIT,
-}
+		/*  Deprecated aliases                                                        */
+		[Obsolete]
+		NoBlock = DontWait,
+	}
 
 /*  Socket transport events (tcp and ipc only)                                */	
 
-[Flags]
-public enum ZmqSocketEvent
-{
-	ZMQ_EVENT_CONNECTED = 1,
-	ZMQ_EVENT_CONNECT_DELAYED = 2,
-	ZMQ_EVENT_CONNECT_RETRIED = 4,
-	ZMQ_EVENT_CONNECT_FAILED = 1024,
+	[Flags]
+	public enum SocketEvent
+	{
+		Connected = 1,
+		ConnectDelayed = 2,
+		ConnectRetried = 4,
+		ConnectFailed = 1024,
 
-	ZMQ_EVENT_LISTENING = 8,
-	ZMQ_EVENT_BIND_FAILED = 16,
+		Listening = 8,
+		BindFailed = 16,
 
-	ZMQ_EVENT_ACCEPTED = 32,
-	ZMQ_EVENT_ACCEPT_FAILED = 64,
+		Accepted = 32,
+		AcceptFailed = 64,
 
-	ZMQ_EVENT_CLOSED = 128,
-	ZMQ_EVENT_CLOSE_FAILED = 256,
-	ZMQ_EVENT_DISCONNECTED = 512,
+		Closed = 128,
+		CloseFailed = 256,
+		Disconnected = 512,
 
-	ZMQ_EVENT_ALL = ZMQ_EVENT_CONNECTED | ZMQ_EVENT_CONNECT_DELAYED |
-							ZMQ_EVENT_CONNECT_RETRIED | ZMQ_EVENT_LISTENING |
-							ZMQ_EVENT_BIND_FAILED | ZMQ_EVENT_ACCEPTED |
-							ZMQ_EVENT_ACCEPT_FAILED | ZMQ_EVENT_CLOSED |
-							ZMQ_EVENT_CLOSE_FAILED | ZMQ_EVENT_DISCONNECTED,
+		All = Connected | ConnectDelayed |
+		                ConnectRetried | Listening |
+		                BindFailed | Accepted |
+		                AcceptFailed | Closed |
+		                CloseFailed | Disconnected,
+	}
 }

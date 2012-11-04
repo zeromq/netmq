@@ -18,57 +18,59 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
+
 using System.Diagnostics;
-using zmq;
 
-public class Push : SocketBase {
+namespace zmq
+{
+	public class Push : SocketBase {
 
-    public class PushSession : SessionBase {
-        public PushSession(IOThread ioThread, bool connect,
-            SocketBase socket, Options options,
-            Address addr) : base(ioThread, connect, socket, options, addr) {
-        }
-    }
+		public class PushSession : SessionBase {
+			public PushSession(IOThread ioThread, bool connect,
+			                   SocketBase socket, Options options,
+			                   Address addr) : base(ioThread, connect, socket, options, addr) {
+			                   }
+		}
     
-    //  Load balancer managing the outbound pipes.
-    private readonly LB lb;
+		//  Load balancer managing the outbound pipes.
+		private readonly LB lb;
     
-    public Push(Ctx parent, int tid, int sid) : base(parent, tid, sid) {
+		public Push(Ctx parent, int tid, int sid) : base(parent, tid, sid) {
 
-			m_options.SocketType = ZmqSocketType.ZMQ_PUSH;
+			m_options.SocketType = ZmqSocketType.Push;
         
-        lb = new LB();
-    }
+			lb = new LB();
+		}
 
-    override
-    protected void XAttachPipe(Pipe pipe, bool icanhasall) {
-        Debug.Assert(pipe != null);
-        lb.Attach (pipe);
-    }
+		override
+			protected void XAttachPipe(Pipe pipe, bool icanhasall) {
+			Debug.Assert(pipe != null);
+			lb.Attach (pipe);
+			}
     
-    override
-    protected void XWriteActivated (Pipe pipe)
-    {
-        lb.Activated (pipe);
-    }
+		override
+			protected void XWriteActivated (Pipe pipe)
+		{
+			lb.Activated (pipe);
+		}
 
 
-    override
-    protected void XTerminated(Pipe pipe) {
-        lb.Terminated (pipe);
-    }
+		override
+			protected void XTerminated(Pipe pipe) {
+			lb.Terminated (pipe);
+			}
 
-    override
-		protected bool XSend(Msg msg, ZmqSendRecieveOptions flags)
-    {
-        return lb.Send (msg, flags);
-    }
+		override
+			protected bool XSend(Msg msg, SendRecieveOptions flags)
+		{
+			return lb.Send (msg, flags);
+		}
     
-    override
-    protected bool XHasOut ()
-    {
-        return lb.HasOut ();
-    }
+		override
+			protected bool XHasOut ()
+		{
+			return lb.HasOut ();
+		}
 
+	}
 }

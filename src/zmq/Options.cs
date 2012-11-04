@@ -39,7 +39,7 @@ namespace zmq
 			MulticastHops = 1;
 			SendBuffer = 0;
 			ReceiveBuffer = 0;
-			SocketType = ZmqSocketType.ZMQ_NONE;
+			SocketType = ZmqSocketType.None;
 			Linger = -1;
 			ReconnectIvl = 100;
 			ReconnectIvlMax = 0;
@@ -155,20 +155,20 @@ namespace zmq
 		{
 			switch (option)
 			{
-				case ZmqSocketOptions.ZMQ_SNDHWM:
+				case ZmqSocketOptions.SendHighWatermark:
 					SendHighWatermark = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_RCVHWM:
+				case ZmqSocketOptions.ReceivevHightWatermark:
 					ReceiveHighWatermark = (int) optval;
 					return true;
 
 
-				case ZmqSocketOptions.ZMQ_AFFINITY:
+				case ZmqSocketOptions.Affinity:
 					Affinity = (long) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_IDENTITY:
+				case ZmqSocketOptions.Identity:
 					byte[] val;
 
 					if (optval is String)
@@ -191,27 +191,27 @@ namespace zmq
 					IdentitySize = (byte) Identity.Length;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_RATE:
+				case ZmqSocketOptions.Rate:
 					Rate = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_RECOVERY_IVL:
+				case ZmqSocketOptions.RecoveryIvl:
 					RecoveryIvl = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_SNDBUF:
+				case ZmqSocketOptions.SendBuffer:
 					SendBuffer = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_RCVBUF:
+				case ZmqSocketOptions.ReceivevBuffer:
 					ReceiveBuffer = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_LINGER:
+				case ZmqSocketOptions.Linger:
 					Linger = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_RECONNECT_IVL:
+				case ZmqSocketOptions.ReconnectIvl:
 					ReconnectIvl = (int) optval;
 
 					if (ReconnectIvl < -1)
@@ -222,7 +222,7 @@ namespace zmq
 
 					return true;
 
-				case ZmqSocketOptions.ZMQ_RECONNECT_IVL_MAX:
+				case ZmqSocketOptions.ReconnectIvlMax:
 					ReconnectIvlMax = (int) optval;
 
 					if (ReconnectIvlMax < 0)
@@ -233,28 +233,28 @@ namespace zmq
 
 					return true;
 
-				case ZmqSocketOptions.ZMQ_BACKLOG:
+				case ZmqSocketOptions.Backlog:
 					Backlog = (int) optval;
 					return true;
 
 
-				case ZmqSocketOptions.ZMQ_MAXMSGSIZE:
+				case ZmqSocketOptions.Maxmsgsize:
 					Maxmsgsize = (long) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_MULTICAST_HOPS:
+				case ZmqSocketOptions.MulticastHops:
 					MulticastHops = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_RCVTIMEO:
+				case ZmqSocketOptions.ReceiveTimeout:
 					ReceiveTimeout = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_SNDTIMEO:
+				case ZmqSocketOptions.SendTimeout:
 					SendTimeout = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ZMQ_IPV4ONLY:
+				case ZmqSocketOptions.IPv4Only:
 
 					IPv4Only = (int) optval;
 					if (IPv4Only != 0 && IPv4Only != 1)
@@ -264,7 +264,7 @@ namespace zmq
 					}
 					return true;
 
-				case ZmqSocketOptions.ZMQ_TCP_KEEPALIVE:
+				case ZmqSocketOptions.TcpKeepalive:
 
 					TcpKeepalive = (int) optval;
 					if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
@@ -274,7 +274,7 @@ namespace zmq
 					}
 					return true;
 
-				case ZmqSocketOptions.ZMQ_DELAY_ATTACH_ON_CONNECT:
+				case ZmqSocketOptions.DelayAttachOnConnect:
 
 					DelayAttachOnConnect = (int) optval;
 					if (DelayAttachOnConnect != 0 && DelayAttachOnConnect != 1)
@@ -284,13 +284,13 @@ namespace zmq
 					}
 					return true;
 
-				case ZmqSocketOptions.ZMQ_TCP_KEEPALIVE_CNT:
-				case ZmqSocketOptions.ZMQ_TCP_KEEPALIVE_IDLE:
-				case ZmqSocketOptions.ZMQ_TCP_KEEPALIVE_INTVL:
+				case ZmqSocketOptions.TcpKeepaliveCnt:
+				case ZmqSocketOptions.TcpKeepaliveIdle:
+				case ZmqSocketOptions.TcpKeepaliveIntvl:
 					// not supported
 					return true;
 
-				case ZmqSocketOptions.ZMQ_TCP_ACCEPT_FILTER:
+				case ZmqSocketOptions.TcpAcceptFilter:
 					String filterStr = (String) optval;
 					if (filterStr == null)
 					{
@@ -320,73 +320,73 @@ namespace zmq
 		{
 			switch (option)
 			{
-				case ZmqSocketOptions.ZMQ_SNDHWM:
+				case ZmqSocketOptions.SendHighWatermark:
 					return SendHighWatermark;
 
-				case ZmqSocketOptions.ZMQ_RCVHWM:
+				case ZmqSocketOptions.ReceivevHightWatermark:
 					return ReceiveHighWatermark;
 
-				case ZmqSocketOptions.ZMQ_AFFINITY:
+				case ZmqSocketOptions.Affinity:
 					return Affinity;
 
-				case ZmqSocketOptions.ZMQ_IDENTITY:
+				case ZmqSocketOptions.Identity:
 					return Identity;
 
-				case ZmqSocketOptions.ZMQ_RATE:
+				case ZmqSocketOptions.Rate:
 					return Rate;
 
-				case ZmqSocketOptions.ZMQ_RECOVERY_IVL:
+				case ZmqSocketOptions.RecoveryIvl:
 					return RecoveryIvl;
 
-				case ZmqSocketOptions.ZMQ_SNDBUF:
+				case ZmqSocketOptions.SendBuffer:
 					return SendBuffer;
 
-				case ZmqSocketOptions.ZMQ_RCVBUF:
+				case ZmqSocketOptions.ReceivevBuffer:
 					return ReceiveBuffer;
 
-				case ZmqSocketOptions.ZMQ_TYPE:
+				case ZmqSocketOptions.Type:
 					return SocketType;
 
-				case ZmqSocketOptions.ZMQ_LINGER:
+				case ZmqSocketOptions.Linger:
 					return Linger;
 
-				case ZmqSocketOptions.ZMQ_RECONNECT_IVL:
+				case ZmqSocketOptions.ReconnectIvl:
 					return ReconnectIvl;
 
-				case ZmqSocketOptions.ZMQ_RECONNECT_IVL_MAX:
+				case ZmqSocketOptions.ReconnectIvlMax:
 					return ReconnectIvlMax;
 
-				case ZmqSocketOptions.ZMQ_BACKLOG:
+				case ZmqSocketOptions.Backlog:
 					return Backlog;
 
-				case ZmqSocketOptions.ZMQ_MAXMSGSIZE:
+				case ZmqSocketOptions.Maxmsgsize:
 					return Maxmsgsize;
 
-				case ZmqSocketOptions.ZMQ_MULTICAST_HOPS:
+				case ZmqSocketOptions.MulticastHops:
 					return MulticastHops;
 
-				case ZmqSocketOptions.ZMQ_RCVTIMEO:
+				case ZmqSocketOptions.ReceiveTimeout:
 					return ReceiveTimeout;
 
-				case ZmqSocketOptions.ZMQ_SNDTIMEO:
+				case ZmqSocketOptions.SendTimeout:
 					return SendTimeout;
 
-				case ZmqSocketOptions.ZMQ_IPV4ONLY:
+				case ZmqSocketOptions.IPv4Only:
 					return IPv4Only;
 
-				case ZmqSocketOptions.ZMQ_TCP_KEEPALIVE:
+				case ZmqSocketOptions.TcpKeepalive:
 					return TcpKeepalive;
 
-				case ZmqSocketOptions.ZMQ_DELAY_ATTACH_ON_CONNECT:
+				case ZmqSocketOptions.DelayAttachOnConnect:
 					return DelayAttachOnConnect;
 
-				case ZmqSocketOptions.ZMQ_TCP_KEEPALIVE_CNT:
-				case ZmqSocketOptions.ZMQ_TCP_KEEPALIVE_IDLE:
-				case ZmqSocketOptions.ZMQ_TCP_KEEPALIVE_INTVL:
+				case ZmqSocketOptions.TcpKeepaliveCnt:
+				case ZmqSocketOptions.TcpKeepaliveIdle:
+				case ZmqSocketOptions.TcpKeepaliveIntvl:
 					// not supported
 					return 0;
 
-				case ZmqSocketOptions.ZMQ_LAST_ENDPOINT:
+				case ZmqSocketOptions.LastEndpoint:
 					return LastEndpoint;
 
 				default:

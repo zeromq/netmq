@@ -78,48 +78,48 @@ namespace zmq
         
 			SessionBase s;
 			switch (options.SocketType) {
-				case ZmqSocketType.ZMQ_REQ:
+				case ZmqSocketType.Req:
 					s = new  Req.ReqSession (ioThread, connect,
 					                         socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_DEALER:
+				case ZmqSocketType.Dealer:
 					s = new Dealer.DealerSession (ioThread, connect,
 					                              socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_REP:
+				case ZmqSocketType.Rep:
 					s = new Rep.RepSession (ioThread, connect,
 					                        socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_ROUTER:
+				case ZmqSocketType.Router:
 					s = new Router.RouterSession (ioThread, connect,
 					                              socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_PUB:
+				case ZmqSocketType.Pub:
 					s = new Pub.PubSession (ioThread, connect,
 					                        socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_XPUB:
+				case ZmqSocketType.Xpub:
 					s = new XPub.XPubSession(ioThread, connect,
 					                         socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_SUB:
+				case ZmqSocketType.Sub:
 					s = new  Sub.SubSession (ioThread, connect,
 					                         socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_XSUB:
+				case ZmqSocketType.Xsub:
 					s = new XSub.XSubSession (ioThread, connect,
 					                          socket, options, addr);
 					break;
 
-				case ZmqSocketType.ZMQ_PUSH:
+				case ZmqSocketType.Push:
 					s = new Push.PushSession (ioThread, connect,
 					                          socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_PULL:
+				case ZmqSocketType.Pull:
 					s = new Pull.PullSession (ioThread, connect,
 					                          socket, options, addr);
 					break;
-				case ZmqSocketType.ZMQ_PAIR:
+				case ZmqSocketType.Pair:
 					s = new Pair.PairSession (ioThread, connect,
 					                          socket, options, addr);
 					break;
@@ -448,7 +448,7 @@ namespace zmq
 
 			//  For subscriber sockets we hiccup the inbound pipe, which will cause
 			//  the socket object to resend all the subscriptions.
-			if (m_pipe != null && (m_options.SocketType == ZmqSocketType.ZMQ_SUB || m_options.SocketType == ZmqSocketType.ZMQ_XSUB))
+			if (m_pipe != null && (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub))
 				m_pipe.hiccup ();
 
 		}

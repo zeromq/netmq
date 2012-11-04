@@ -422,7 +422,7 @@ namespace zmq
 				//  message into the incomming message stream. To put this
 				//  message right after the identity message, we temporarily
 				//  divert the message stream from session to ourselves.
-				if (m_options.SocketType == ZmqSocketType.ZMQ_PUB || m_options.SocketType == ZmqSocketType.ZMQ_XPUB)
+				if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
 					m_decoder.SetMsgSink(this);
 			}
 			else if (m_greeting[VersionPos] == 0)
@@ -454,7 +454,7 @@ namespace zmq
 
 		public bool PushMsg(Msg msg)
 		{
-			Debug.Assert(m_options.SocketType == ZmqSocketType.ZMQ_PUB || m_options.SocketType == ZmqSocketType.ZMQ_XPUB);
+			Debug.Assert(m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub);
 
 			//  The first message is identity.
 			//  Let the session process it.

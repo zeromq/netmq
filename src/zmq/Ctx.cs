@@ -218,9 +218,9 @@ namespace zmq
 
 		}
 
-		public void Set(ZmqContextOption option, int optval)
+		public void Set(ContextOption option, int optval)
 		{
-			if (option == ZmqContextOption.ZMQ_MAX_SOCKETS && optval >= 1)
+			if (option == ContextOption.MaxSockets && optval >= 1)
 			{
 				lock (m_optSync)
 				{
@@ -228,7 +228,7 @@ namespace zmq
 				}
 			}
 			else
-				if (option == ZmqContextOption.ZMQ_IO_THREADS && optval >= 0)
+				if (option == ContextOption.IOThreads && optval >= 0)
 				{
 					lock (m_optSync)
 					{
@@ -241,13 +241,13 @@ namespace zmq
 				}
 		}
 
-		public int Get(ZmqContextOption option)
+		public int Get(ContextOption option)
 		{
 			int rc = 0;
-			if (option == ZmqContextOption.ZMQ_MAX_SOCKETS)
+			if (option == ContextOption.MaxSockets)
 				rc = m_maxSockets;
 			else
-				if (option == ZmqContextOption.ZMQ_IO_THREADS)
+				if (option == ContextOption.IOThreads)
 					rc = m_ioThreadCount;
 				else
 				{

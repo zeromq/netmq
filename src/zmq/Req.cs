@@ -44,11 +44,11 @@ namespace zmq
         
 			m_receivingReply = false;
 			m_messageBegins = true;
-			m_options.SocketType = ZmqSocketType.ZMQ_REQ;
+			m_options.SocketType = ZmqSocketType.Req;
 		}
 
 
-		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		protected override bool XSend(Msg msg, SendRecieveOptions flags)
 		{
 			//  If we've sent a request and we still haven't got the reply,
 			//  we can't send another request.
@@ -84,7 +84,7 @@ namespace zmq
 		}
 
 		override
-			protected Msg XRecv(ZmqSendRecieveOptions flags)
+			protected Msg XRecv(SendRecieveOptions flags)
 		{
 			Msg msg = null;
 			//  If request wasn't send, we can't wait for reply.

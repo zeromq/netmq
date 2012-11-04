@@ -84,7 +84,7 @@ namespace zmq
 			m_active++;
 		}
 
-		public bool Send(Msg msg, ZmqSendRecieveOptions flags)
+		public bool Send(Msg msg, SendRecieveOptions flags)
 		{
 			//  Drop the message if required. If we are at the end of the message
 			//  switch back to non-dropping mode.

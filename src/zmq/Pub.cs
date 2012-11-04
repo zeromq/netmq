@@ -34,10 +34,10 @@ namespace zmq
 
 		public Pub(Ctx parent, int tid, int sid):base(parent, tid, sid) {
 
-			m_options.SocketType = ZmqSocketType.ZMQ_PUB;
+			m_options.SocketType = ZmqSocketType.Pub;
 		}
 
-		protected override Msg XRecv(ZmqSendRecieveOptions flags)
+		protected override Msg XRecv(SendRecieveOptions flags)
 		{
 			//  Messages cannot be received from PUB socket.
 			ZError.ErrorNumber = (ErrorNumber.ENOTSUP);
