@@ -268,7 +268,7 @@ public class Pipe : ZObject {
         Msg msg;
         if (outpipe!= null) {
             while ((msg = outpipe.unwrite ()) != null) {
-                Debug.Assert((msg.flags & Msg.more) > 0);
+							Debug.Assert((msg.flags & MsgFlags.More) != 0);
                 //msg.close ();
             }
         }

@@ -79,12 +79,12 @@ public class XSub : SocketBase {
     }
     
     public XSub (Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_) {
-        
-        options.type = ZMQ.ZMQ_XSUB;
+
+			options.SocketType = ZmqSocketType.ZMQ_XSUB;
         has_message = false;
         more = false;
         
-        options.linger = 0;
+        options.Linger = 0;
         fq = new FQ();
         dist = new Dist();
         subscriptions = new Trie();
@@ -127,7 +127,7 @@ public class XSub : SocketBase {
         pipe_.flush ();
     }
 
-    protected override bool xsend (Msg msg_, int flags_)
+		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         byte[] data = msg_.get_data(); 
         // Malformed subscriptions.
@@ -153,7 +153,8 @@ public class XSub : SocketBase {
         return true;
     }
 
-    protected override Msg xrecv (int flags_) {
+		protected override Msg xrecv(ZmqSendRecieveOptions flags_)
+		{
         //  If there's already a message prepared by a previous call to zmq_poll,
         //  return it straight ahead.
         Msg msg_;
@@ -179,7 +180,7 @@ public class XSub : SocketBase {
 
             //  Check whether the message matches at least one subscription.
             //  Non-initial parts of the message are passed 
-            if (more || !options.filter || match (msg_)) {
+            if (more || !options.Filter || match (msg_)) {
                 more = msg_.has_more();
                 return msg_;
             }
@@ -218,7 +219,7 @@ public class XSub : SocketBase {
             }
 
             //  Check whether the message matches at least one subscription.
-            if (!options.filter || match (message)) {
+            if (!options.Filter || match (message)) {
                 has_message = true;
                 return true;
             }

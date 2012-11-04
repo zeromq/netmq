@@ -220,9 +220,9 @@ public class Ctx
 
     }
 
-    public void set(int option_, int optval_)
+		public void set(ZmqContextOption option_, int optval_)
     {
-        if (option_ == ZMQ.ZMQ_MAX_SOCKETS && optval_ >= 1)
+			if (option_ == ZmqContextOption.ZMQ_MAX_SOCKETS && optval_ >= 1)
         {
             lock (opt_sync)
             {
@@ -230,7 +230,7 @@ public class Ctx
             }
         }
         else
-            if (option_ == ZMQ.ZMQ_IO_THREADS && optval_ >= 0)
+					if (option_ == ZmqContextOption.ZMQ_IO_THREADS && optval_ >= 0)
             {
                 lock (opt_sync)
                 {
@@ -243,13 +243,13 @@ public class Ctx
             }
     }
 
-    public int get(int option_)
+		public int get(ZmqContextOption option_)
     {
         int rc = 0;
-        if (option_ == ZMQ.ZMQ_MAX_SOCKETS)
+				if (option_ == ZmqContextOption.ZMQ_MAX_SOCKETS)
             rc = max_sockets;
         else
-            if (option_ == ZMQ.ZMQ_IO_THREADS)
+					if (option_ == ZmqContextOption.ZMQ_IO_THREADS)
                 rc = io_thread_count;
             else
             {
@@ -258,7 +258,7 @@ public class Ctx
         return rc;
     }
 
-    public SocketBase create_socket(int type_)
+		public SocketBase create_socket(ZmqSocketType type_)
     {
         SocketBase s = null;
         lock (slot_sync)

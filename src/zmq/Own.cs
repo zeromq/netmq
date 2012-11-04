@@ -159,7 +159,7 @@ abstract public class Own : ZObject {
 
         //  Note that this object is the root of the (partial shutdown) thus, its
         //  value of linger is used, rather than the value stored by the children.
-        send_term (object_, options.linger);
+        send_term (object_, options.Linger);
     }
 
 
@@ -190,7 +190,7 @@ abstract public class Own : ZObject {
         //  As for the root of the ownership tree, there's noone to terminate it,
         //  so it has to terminate itself.
         if (owner == null) {
-            process_term (options.linger);
+            process_term (options.Linger);
             return;
         }
 

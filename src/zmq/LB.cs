@@ -82,7 +82,8 @@ public class LB {
         active++;
     }
 
-    public bool send(Msg msg_, int flags_) {
+		public bool send(Msg msg_, ZmqSendRecieveOptions flags_)
+		{
         //  Drop the message if required. If we are at the end of the message
         //  switch back to non-dropping mode.
         if (dropping) {

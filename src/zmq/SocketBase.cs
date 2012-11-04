@@ -66,7 +66,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
     private SocketBase monitor_socket;
 
     // Bitmask of events being monitored
-    private int monitor_events;
+		private ZmqSocketEvent monitor_events;
 
     protected SocketBase (Ctx parent_, int tid_, int sid_) :base(parent_, tid_)
     { 
@@ -79,7 +79,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         monitor_socket = null;
         monitor_events = 0;
         
-        options.socket_id = sid_;
+        options.SocketId = sid_;
         
         endpoints = new Dictionary<string,Own>();
         pipes = new List<Pipe>();
@@ -101,45 +101,45 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
 
     
     //  Create a socket of a specified type.
-    public static SocketBase create (int type_, Ctx parent_,
+		public static SocketBase create(ZmqSocketType type_, Ctx parent_,
         int tid_, int sid_)
     {
         SocketBase s = null;
         switch (type_) {
 
-        case ZMQ.ZMQ_PAIR:
+					case ZmqSocketType.ZMQ_PAIR:
             s = new Pair (parent_, tid_, sid_);
             break;
-        case ZMQ.ZMQ_PUB:
+					case ZmqSocketType.ZMQ_PUB:
             s = new Pub (parent_, tid_, sid_);
             break;
-        case ZMQ.ZMQ_SUB:
+					case ZmqSocketType.ZMQ_SUB:
             s = new Sub (parent_, tid_, sid_);
             break;
-        case ZMQ.ZMQ_REQ:
+					case ZmqSocketType.ZMQ_REQ:
             s = new Req (parent_, tid_, sid_);
             break;
-        case ZMQ.ZMQ_REP:
+					case ZmqSocketType.ZMQ_REP:
             s = new Rep (parent_, tid_, sid_);
             break;
-        case ZMQ.ZMQ_DEALER:
+					case ZmqSocketType.ZMQ_DEALER:
             s = new Dealer (parent_, tid_, sid_);
             break;
-        case ZMQ.ZMQ_ROUTER:
+					case ZmqSocketType.ZMQ_ROUTER:
             s = new Router (parent_, tid_, sid_);
-            break;     
-        case ZMQ.ZMQ_PULL:
+            break;
+					case ZmqSocketType.ZMQ_PULL:
             s = new Pull (parent_, tid_, sid_);
             break;
-        case ZMQ.ZMQ_PUSH:
+					case ZmqSocketType.ZMQ_PUSH:
             s = new Push (parent_, tid_, sid_);
             break;
-            
-        case ZMQ.ZMQ_XPUB:
+
+					case ZmqSocketType.ZMQ_XPUB:
             s = new XPub (parent_, tid_, sid_);
             break;
-            
-        case ZMQ.ZMQ_XSUB:
+
+					case ZmqSocketType.ZMQ_XSUB:
             s = new XSub (parent_, tid_, sid_);
             break;
         
@@ -187,10 +187,11 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         //  Specifically, multicast protocols can't be combined with
         //  bi-directional messaging patterns (socket types).
         if ((protocol_.Equals("pgm") || protocol_.Equals("epgm")) &&
-              options.type != ZMQ.ZMQ_PUB && options.type != ZMQ.ZMQ_SUB &&
-              options.type != ZMQ.ZMQ_XPUB && options.type != ZMQ.ZMQ_XSUB) {
+							options.SocketType != ZmqSocketType.ZMQ_PUB && options.SocketType != ZmqSocketType.ZMQ_SUB &&
+							options.SocketType != ZmqSocketType.ZMQ_XPUB && options.SocketType != ZmqSocketType.ZMQ_XSUB)
+				{
             ZError.errno = (ZError.EPROTONOSUPPORT);
-            throw new NotSupportedException (protocol_ + ",type=" + options.type);
+            throw new NotSupportedException (protocol_ + ",type=" + options.SocketType);
         }
 
         //  Protocol is available.
@@ -219,8 +220,9 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
             pipe_.terminate (false);
         }
     }
-    
-    public bool setsockopt(int option_, Object optval_) {
+
+		public bool setsockopt(ZmqSocketOptions option_, Object optval_)
+		{
         
         if (ctx_terminated) {
             ZError.errno = ZError.ETERM;
@@ -235,20 +237,23 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         //  If the socket type doesn't support the option, pass it to
         //  the generic option parser.
         ZError.clear();
-        return options.setsockopt (option_, optval_);
+        return options.SetSocketOption (option_, optval_);
     }
-    
-    public int getsockopt(int option_) {
+
+		public int getsockopt(ZmqSocketOptions option_)
+		{
         
         if (ctx_terminated) {
             ZError.errno=(ZError.ETERM);
             return -1;
         }
-        
-        if (option_ == ZMQ.ZMQ_RCVMORE) {
+
+				if (option_ == ZmqSocketOptions.ZMQ_RCVMORE)
+				{
             return rcvmore ? 1 : 0;
         }
-        if (option_ == ZMQ.ZMQ_EVENTS) {
+				if (option_ == ZmqSocketOptions.ZMQ_EVENTS)
+				{
             bool rc = process_commands (0, false);
             if (!rc && (ZError.IsError(ZError.EINTR) || ZError.IsError(ZError.ETERM)))
                 return -1;
@@ -263,22 +268,26 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         
         return (int) getsockoptx(option_);
     }
-    
-    public Object getsockoptx(int option_) {
+
+		public Object getsockoptx(ZmqSocketOptions option_)
+		{
         if (ctx_terminated) {
             ZError.errno = (ZError.ETERM);
             return null;
         }
 
-        if (option_ == ZMQ.ZMQ_RCVMORE) {
+				if (option_ == ZmqSocketOptions.ZMQ_RCVMORE)
+				{
             return rcvmore ? 1 : 0;
         }
-        
-        if (option_ == ZMQ.ZMQ_FD) {
+
+				if (option_ == ZmqSocketOptions.ZMQ_FD)
+				{
             return mailbox.get_fd();
         }
-        
-        if (option_ == ZMQ.ZMQ_EVENTS) {
+
+				if (option_ == ZmqSocketOptions.ZMQ_EVENTS)
+				{
             bool rc = process_commands (0, false);
             if (!rc && (ZError.IsError(ZError.EINTR) || ZError.IsError(ZError.ETERM)))
                 return -1;
@@ -292,7 +301,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         }
         //  If the socket type doesn't support the option, pass it to
         //  the generic option parser.
-        return options.getsockopt (option_);
+        return options.GetSocketOption (option_);
 
     }
     
@@ -327,7 +336,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
             bool rc = register_endpoint (addr_, endpoint);
             if (rc) {
                 // Save last endpoint URI
-                options.last_endpoint = addr_;
+                options.LastEndpoint = addr_;
             }
             return rc;
         }
@@ -339,7 +348,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
 
         //  Remaining trasnports require to be run in an I/O thread, so at this
         //  point we'll choose one.
-        IOThread io_thread = choose_io_thread (options.affinity);
+        IOThread io_thread = choose_io_thread (options.Affinity);
         if (io_thread == null) {
             ZError.errno = (ZError.EMTHREAD);
             return false;
@@ -357,7 +366,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
             }
 
             // Save last endpoint URI
-            options.last_endpoint = listener.get_address ();
+            options.LastEndpoint = listener.get_address ();
 
             add_endpoint (addr_, listener);
             return true;
@@ -374,7 +383,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
             }
 
             // Save last endpoint URI
-            options.last_endpoint = listener.get_address ();
+            options.LastEndpoint = listener.get_address ();
 
             add_endpoint (addr_, listener);
             return true;
@@ -426,40 +435,40 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
             // the binder's HWM and the connector's HWM.
             int  sndhwm;
             int  rcvhwm;
-            if (options.sndhwm == 0 || peer.options.rcvhwm == 0)
+            if (options.SendHighWatermark == 0 || peer.options.ReceiveHighWatermark == 0)
                 sndhwm = 0;
             else
-                sndhwm = options.sndhwm + peer.options.rcvhwm;
-            if (options.rcvhwm == 0 || peer.options.sndhwm == 0)
+                sndhwm = options.SendHighWatermark + peer.options.ReceiveHighWatermark;
+            if (options.ReceiveHighWatermark == 0 || peer.options.SendHighWatermark == 0)
                 rcvhwm = 0;
             else
-                rcvhwm = options.rcvhwm + peer.options.sndhwm;
+                rcvhwm = options.ReceiveHighWatermark + peer.options.SendHighWatermark;
 
             //  Create a bi-directional pipe to connect the peers.
             ZObject[] parents = {this, peer.socket};
             Pipe[] pipes = {null, null};
             int[] hwms = {sndhwm, rcvhwm};
-            bool[] delays = {options.delay_on_disconnect, options.delay_on_close};
+            bool[] delays = {options.DelayOnDisconnect, options.DelayOnClose};
             Pipe.pipepair (parents, pipes, hwms, delays);
 
             //  Attach local end of the pipe to this socket object.
             attach_pipe (pipes [0]);
 
             //  If required, send the identity of the peer to the local socket.
-            if (peer.options.recv_identity) {
-                Msg id = new Msg(peer.options.identity_size);
-                id.put(peer.options.identity, 0 , peer.options.identity_size);
-                id.SetFlags (Msg.identity);
+            if (peer.options.RecvIdentity) {
+                Msg id = new Msg(peer.options.IdentitySize);
+                id.put(peer.options.Identity, 0 , peer.options.IdentitySize);
+								id.SetFlags(MsgFlags.Identity);
                 bool written = pipes [0].write (id);
                 Debug.Assert(written);
                 pipes [0].flush ();
             }
             
             //  If required, send the identity of the local socket to the peer.
-            if (options.recv_identity) {
-                Msg id = new Msg(options.identity_size);
-                id.put(options.identity, 0 , options.identity_size);
-                id.SetFlags (Msg.identity);
+            if (options.RecvIdentity) {
+                Msg id = new Msg(options.IdentitySize);
+                id.put(options.Identity, 0 , options.IdentitySize);
+								id.SetFlags(MsgFlags.Identity);
                 bool written = pipes [1].write (id);
                 Debug.Assert(written);
                 pipes [1].flush ();
@@ -471,13 +480,13 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
             send_bind (peer.socket, pipes [1], false);
 
             // Save last endpoint URI
-            options.last_endpoint = addr_;
+            options.LastEndpoint = addr_;
 
             return true;
         }
 
         //  Choose the I/O thread to run the session in.
-        IOThread io_thread = choose_io_thread (options.affinity);
+        IOThread io_thread = choose_io_thread (options.Affinity);
         if (io_thread == null) {
             throw new ArgumentException("Empty IO Thread");
         }
@@ -487,7 +496,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         if (protocol.Equals("tcp")) {
             paddr.resolved = ( new  TcpAddress () );
             paddr.resolved.resolve (
-                address, options.ipv4only != 0 ? true : false);
+                address, options.IPv4Only != 0 ? true : false);
         } else if(protocol.Equals("Ipc")) {
             paddr.resolved = ( new IpcAddress () );
             paddr.resolved.resolve (address, true);
@@ -503,12 +512,12 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         if (protocol.Equals("pgm") || protocol.Equals("epgm"))
             icanhasall = true;
 
-        if (options.delay_attach_on_connect != 1 || icanhasall) {
+        if (options.DelayAttachOnConnect != 1 || icanhasall) {
             //  Create a bi-directional pipe.
             ZObject[] parents = {this, session};
             Pipe[] pipes = {null, null};
-            int[] hwms = {options.sndhwm, options.rcvhwm};
-            bool[] delays = {options.delay_on_disconnect, options.delay_on_close};
+            int[] hwms = {options.SendHighWatermark, options.ReceiveHighWatermark};
+            bool[] delays = {options.DelayOnDisconnect, options.DelayOnClose};
             Pipe.pipepair (parents, pipes, hwms, delays);
 
             //  Attach local end of the pipe to the socket object.
@@ -519,7 +528,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         }
         
         // Save last endpoint URI
-        options.last_endpoint = paddr.ToString ();
+        options.LastEndpoint = paddr.ToString ();
 
         add_endpoint (addr_, session);
         return true;
@@ -574,8 +583,8 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         return true;
 
     }
-    
-    public bool send (Msg msg_, int flags_)
+
+		public bool send(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         if (ctx_terminated) {
             ZError.errno = (ZError.ETERM);
@@ -594,11 +603,11 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
             return false;
 
         //  Clear any user-visible flags that are set on the message.
-        msg_.reset_flags (Msg.more);
+				msg_.reset_flags(MsgFlags.More);
 
         //  At this point we impose the flags on the message.
-        if ((flags_ & ZMQ.ZMQ_SNDMORE) > 0)
-            msg_.SetFlags (Msg.more);
+				if ((flags_ & ZmqSendRecieveOptions.ZMQ_SNDMORE) > 0)
+					msg_.SetFlags(MsgFlags.More);
 
         //  Try to send the message.
         rc = xsend (msg_, flags_);
@@ -609,12 +618,12 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
 
         //  In case of non-blocking send we'll simply propagate
         //  the error - including EAGAIN - up the stack.
-        if ((flags_ & ZMQ.ZMQ_DONTWAIT) > 0 || options.sndtimeo == 0)
+				if ((flags_ & ZmqSendRecieveOptions.ZMQ_DONTWAIT) > 0 || options.SendTimeout == 0)
             return false;
 
         //  Compute the time when the timeout should occur.
         //  If the timeout is infite, don't care. 
-        int timeout = options.sndtimeo;
+        int timeout = options.SendTimeout;
         long end = timeout < 0 ? 0 : (Clock.now_ms () + timeout);
 
         //  Oops, we couldn't send the message. Wait for the next
@@ -643,7 +652,8 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
     }
 
 
-    public Msg recv(int flags_) {
+		public Msg recv(ZmqSendRecieveOptions flags_)
+		{
         
         if (ctx_terminated) {
             ZError.errno=(ZError.ETERM);
@@ -679,7 +689,8 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         //  For non-blocking recv, commands are processed in case there's an
         //  activate_reader command already waiting int a command pipe.
         //  If it's not, return EAGAIN.
-        if ((flags_ & ZMQ.ZMQ_DONTWAIT) > 0 || options.rcvtimeo == 0) {
+				if ((flags_ & ZmqSendRecieveOptions.ZMQ_DONTWAIT) > 0 || options.ReceiveTimeout == 0)
+				{
             if (!process_commands (0, false))
                 return null;
             ticks = 0;
@@ -693,7 +704,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
 
         //  Compute the time when the timeout should occur.
         //  If the timeout is infite, don't care. 
-        int timeout = options.rcvtimeo;
+        int timeout = options.ReceiveTimeout;
         long end = timeout < 0 ? 0 : (Clock.now_ms () + timeout);
 
         //  In blocking scenario, commands are processed over and over again until
@@ -864,7 +875,8 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
     //  The default implementation assumes there are no specific socket
     //  options for the particular socket type. If not so, overload this
     //  method.
-    protected virtual bool xsetsockopt(int option_, Object optval_) {
+		protected virtual bool xsetsockopt(ZmqSocketOptions option_, Object optval_)
+		{
         ZError.errno = (ZError.EINVAL);
         return false;
     }
@@ -875,7 +887,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         return false;
     }
 
-    protected virtual bool xsend(Msg msg_, int flags_)
+		protected virtual bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         throw new NotSupportedException("Must Override");
     }
@@ -883,9 +895,9 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
     protected virtual bool xhas_in() {
         return false;
     }
-    
 
-    protected virtual Msg xrecv(int flags_)
+
+		protected virtual Msg xrecv(ZmqSendRecieveOptions flags_)
     {
         throw new NotSupportedException("Must Override");
     }
@@ -959,7 +971,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
 
     public void hiccuped (Pipe pipe_) 
     {
-        if (options.delay_attach_on_connect == 1)
+        if (options.DelayAttachOnConnect == 1)
             pipe_.terminate (false);
         else
             // Notify derived sockets of the hiccup
@@ -985,15 +997,16 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
     //  to be later retrieved by getsockopt.
     private void extract_flags(Msg msg_) {
         //  Test whether IDENTITY flag is valid for this socket type.
-        if ((msg_.flags & Msg.identity) > 0)
-            Debug.Assert(options.recv_identity);
+        if ((msg_.flags & MsgFlags.Identity) != 0)
+            Debug.Assert(options.RecvIdentity);
 
         //  Remove MORE flag.
         rcvmore = msg_.has_more();
     }
 
 
-    public bool monitor (String addr_, int events_) {
+		public bool monitor(String addr_, ZmqSocketEvent events_)
+		{
         bool rc;
         if (ctx_terminated) {
             ZError.errno = (ZError.ETERM);
@@ -1033,13 +1046,13 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
         // Register events to monitor
         monitor_events = events_;
 
-        monitor_socket = get_ctx ().create_socket(ZMQ.ZMQ_PAIR);
+				monitor_socket = get_ctx().create_socket(ZmqSocketType.ZMQ_PAIR);
         if (monitor_socket == null)
             return false;
 
         // Never block context termination on pending event messages
         int linger = 0;
-        rc = monitor_socket.setsockopt (ZMQ.ZMQ_LINGER, linger);
+				rc = monitor_socket.setsockopt(ZmqSocketOptions.ZMQ_LINGER, linger);
         if (!rc)
              stop_monitor ();
 
@@ -1052,91 +1065,91 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
     
     public void event_connected (String addr, System.Net.Sockets.Socket ch) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_CONNECTED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_CONNECTED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_CONNECTED, addr, ch));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CONNECTED, addr, ch));
     }
     
     public void event_connect_delayed (String addr, int errno) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_CONNECT_DELAYED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_CONNECT_DELAYED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_CONNECT_DELAYED, addr, errno));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CONNECT_DELAYED, addr, errno));
     }
     
     public void event_connect_retried (String addr, int interval) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_CONNECT_RETRIED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_CONNECT_RETRIED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_CONNECT_RETRIED, addr, interval));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CONNECT_RETRIED, addr, interval));
     }
         
     public void event_listening (String addr, System.Net.Sockets.Socket ch) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_LISTENING) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_LISTENING) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_LISTENING, addr, ch));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_LISTENING, addr, ch));
     }
     
     public void event_bind_failed (String addr, int errno) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_BIND_FAILED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_BIND_FAILED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_BIND_FAILED, addr, errno));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_BIND_FAILED, addr, errno));
     }
     
     public void event_accepted (String addr, System.Net.Sockets.Socket ch) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_ACCEPTED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_ACCEPTED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_ACCEPTED, addr, ch));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_ACCEPTED, addr, ch));
     }
     
     public void event_accept_failed (String addr, int errno) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_ACCEPT_FAILED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_ACCEPT_FAILED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_ACCEPT_FAILED, addr, errno));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_ACCEPT_FAILED, addr, errno));
     }
     
     public void event_closed (String addr, System.Net.Sockets.Socket ch) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_CLOSED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_CLOSED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_CLOSED, addr, ch));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CLOSED, addr, ch));
     }
     
     public void event_close_failed (String addr, int errno) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_CLOSE_FAILED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_CLOSE_FAILED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_CLOSE_FAILED, addr, errno));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_CLOSE_FAILED, addr, errno));
     }
     
     public void event_disconnected (String addr, System.Net.Sockets.Socket ch) 
     {
-        if ((monitor_events & ZMQ.ZMQ_EVENT_DISCONNECTED) == 0) 
+			if ((monitor_events & ZmqSocketEvent.ZMQ_EVENT_DISCONNECTED) == 0) 
             return;
-        
-        monitor_event (new ZMQ.Event (ZMQ.ZMQ_EVENT_DISCONNECTED, addr, ch));
+
+			monitor_event(new MonitorEvent(ZmqSocketEvent.ZMQ_EVENT_DISCONNECTED, addr, ch));
     }
     
-    protected void monitor_event (ZMQ.Event @event) 
+    protected void monitor_event (MonitorEvent monitorEvent) 
     {
         
         if (monitor_socket == null)
             return;
-        
-        @event.write (monitor_socket);
+
+				monitorEvent.write(monitor_socket);
     }
     
     protected void stop_monitor () 
@@ -1151,7 +1164,7 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
 
     public override String ToString()
     {
-        return base.ToString() + "[" + options.socket_id + "]";
+        return base.ToString() + "[" + options.SocketId + "]";
     }
 
     public System.Net.Sockets.Socket get_fd() {
@@ -1159,24 +1172,24 @@ public abstract class SocketBase : Own ,IPollEvents, Pipe.IPipeEvents {
     }
 
     public String typeString() {
-        switch (options.type) {
-        case ZMQ.ZMQ_PAIR:
+        switch (options.SocketType) {
+					case ZmqSocketType.ZMQ_PAIR:
             return "PAIR";
-        case ZMQ.ZMQ_PUB:
+					case ZmqSocketType.ZMQ_PUB:
             return "PUB";
-        case ZMQ.ZMQ_SUB:
+					case ZmqSocketType.ZMQ_SUB:
             return "SUB";
-        case ZMQ.ZMQ_REQ:
+					case ZmqSocketType.ZMQ_REQ:
             return "REQ";
-        case ZMQ.ZMQ_REP:
+					case ZmqSocketType.ZMQ_REP:
             return "REP";
-        case ZMQ.ZMQ_DEALER:
+					case ZmqSocketType.ZMQ_DEALER:
             return "DEALER";
-        case ZMQ.ZMQ_ROUTER:
+					case ZmqSocketType.ZMQ_ROUTER:
             return "ROUTER";
-        case ZMQ.ZMQ_PULL:
+					case ZmqSocketType.ZMQ_PULL:
             return "PULL";
-        case ZMQ.ZMQ_PUSH:
+					case ZmqSocketType.ZMQ_PUSH:
             return "PUSH";
         default:
             return "UNKOWN";

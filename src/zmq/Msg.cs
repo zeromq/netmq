@@ -23,24 +23,35 @@ using System;
 using NetMQ;
 using System.Text;
 
+[Flags]
+public enum MsgFlags
+{
+	None = 0,
+	More = 1,
+	Identity = 64,
+	Shared = 128,
+}
+
+[Flags]
+public enum MsgType : byte
+{
+	  Min = 101,
+    Vsm = 102,
+    LMsg = 103,
+    Delimiter = 104,
+    Max = 105
+}
+
+
 public class Msg
 {
 
     //  Size in bytes of the largest message that is still copied around
     //  rather than being reference-counted.
 
-    public static int more = 1;
-    public static int identity = 64;
-    public static int shared = 128;
-
-    private static byte type_min = 101;
-    private static byte type_vsm = 102;
-    private static byte type_lmsg = 103;
-    private static byte type_delimiter = 104;
-    private static byte type_max = 105;
-
+  
     //private byte type;
-    private int m_flags;
+    private MsgFlags m_flags;
     private int m_size;
     private byte[] header;
     private byte[] data;
@@ -48,29 +59,29 @@ public class Msg
 
     public Msg()
     {
-        init(type_vsm);
+        init(MsgType.Vsm);
     }
 
     public Msg(bool buffered)
     {
         if (buffered)
-            init(type_lmsg);
+					init(MsgType.LMsg);
         else
-            init(type_vsm);
+					init(MsgType.Vsm);
     }
 
     public Msg(int size_)
     {
-        init(type_vsm);
+			init(MsgType.Vsm);
         size = size_;
     }
 
     public Msg(int size_, bool buffered)
     {
         if (buffered)
-            init(type_lmsg);
+					init(MsgType.LMsg);
         else
-            init(type_vsm);
+					init(MsgType.Vsm);
         size = size_;
     }
 
@@ -120,24 +131,24 @@ public class Msg
 
     public bool is_identity()
     {
-        return (m_flags & identity) == identity;
+        return (m_flags & MsgFlags.Identity) == MsgFlags.Identity;
     }
 
     public bool is_delimiter()
     {
-        return type == type_delimiter;
+			return type == MsgType.Delimiter;
     }
 
 
     public bool check()
     {
-        return type >= type_min && type <= type_max;
+			return type >= MsgType.Min && type <= MsgType.Max;
     }
 
-    private void init(byte type_)
+    private void init(MsgType type_)
     {
         type = type_;
-        m_flags = 0;
+        m_flags = MsgFlags.None;
         size = 0;
         data = null;
         buf = null;
@@ -153,9 +164,9 @@ public class Msg
         set
         {
             m_size = value;
-            if (type == type_lmsg)
+						if (type == MsgType.LMsg)
             {
-                m_flags = 0;
+                m_flags = MsgFlags.None;
 
                 buf = new byte[value];
                 data = null;
@@ -173,16 +184,16 @@ public class Msg
 
     public bool has_more()
     {
-        return (m_flags & Msg.more) > 0;
+        return (m_flags & MsgFlags.More) == MsgFlags.More;
     }
 
-    public byte type
+		public MsgType type
     {
         get;
         set;
     }
 
-    public int flags
+		public MsgFlags flags
     {
         get
         {
@@ -190,21 +201,21 @@ public class Msg
         }
     }
 
-    public void SetFlags(int flags_)
+		public void SetFlags(MsgFlags flags_)
     {
         m_flags = m_flags | flags_;
     }
 
     public void init_delimiter()
     {
-        type = type_delimiter;
-        m_flags = 0;
+			type = MsgType.Delimiter;
+        m_flags = MsgFlags.None;
     }
 
 
     public byte[] get_data()
     {
-        if (data == null && type == type_lmsg)
+			if (data == null && type == MsgType.LMsg)
             data = buf;
         return data;
     }    
@@ -255,7 +266,7 @@ public class Msg
             throw new InvalidOperationException();
         }
 
-        init(type_vsm);
+				init(MsgType.Vsm);
     }
 
     public override String ToString()
@@ -272,7 +283,7 @@ public class Msg
         data = m.data;
     }
 
-    public void reset_flags(int f)
+    public void reset_flags(MsgFlags f)
     {
         m_flags = m_flags & ~f;
     }
@@ -296,7 +307,7 @@ public class Msg
 
     public bool is_vsm()
     {
-        return type == type_vsm;
+			return type == MsgType.Vsm;
     }
 
 

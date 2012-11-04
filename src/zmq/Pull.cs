@@ -37,8 +37,8 @@ public class Pull : SocketBase {
     private FQ fq;
     
     public Pull(Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_){
-        
-        options.type = ZMQ.ZMQ_PULL;
+
+			options.SocketType = ZmqSocketType.ZMQ_PULL;
         
         fq = new FQ();
     }
@@ -62,7 +62,7 @@ public class Pull : SocketBase {
     }
 
     override
-    protected Msg xrecv (int flags_)
+		protected Msg xrecv(ZmqSendRecieveOptions flags_)
     {
         return fq.recv ();
     }

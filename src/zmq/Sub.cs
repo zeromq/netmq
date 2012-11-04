@@ -33,17 +33,18 @@ public class Sub : XSub {
 
     }
     
-    public Sub(Ctx parent_, int tid_, int sid_) :base(parent_, tid_, sid_){               
-        options.type = ZMQ.ZMQ_SUB;
+    public Sub(Ctx parent_, int tid_, int sid_) :base(parent_, tid_, sid_){
+			options.SocketType = ZmqSocketType.ZMQ_SUB;
 
         //  Switch filtering messages on (as opposed to XSUB which where the
         //  filtering is off).
-        options.filter = true;
+        options.Filter = true;
     }
 
-    protected override bool xsetsockopt (int option_, Object optval_)
+		protected override bool xsetsockopt(ZmqSocketOptions option_, Object optval_)
     {
-        if (option_ != ZMQ.ZMQ_SUBSCRIBE && option_ != ZMQ.ZMQ_UNSUBSCRIBE) {
+			if (option_ != ZmqSocketOptions.ZMQ_SUBSCRIBE && option_ != ZmqSocketOptions.ZMQ_UNSUBSCRIBE)
+			{
             ZError.errno = (ZError.EINVAL);
             return false;
         }
@@ -59,9 +60,9 @@ public class Sub : XSub {
             
         //  Create the subscription message.
         Msg msg = new Msg(val.Length + 1);
-        if (option_ == ZMQ.ZMQ_SUBSCRIBE)
+				if (option_ == ZmqSocketOptions.ZMQ_SUBSCRIBE)
             msg.put((byte)1);
-        else if (option_ == ZMQ.ZMQ_UNSUBSCRIBE)
+				else if (option_ == ZmqSocketOptions.ZMQ_UNSUBSCRIBE)
             msg.put((byte)0);
         msg.put (val,1);
 
@@ -69,8 +70,8 @@ public class Sub : XSub {
         bool rc = base.xsend (msg, 0);
         return rc;
     }
-    
-    protected override bool xsend (Msg msg_, int flags_)
+
+		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         //  Overload the XSUB's send.
         ZError.errno = (ZError.ENOTSUP);

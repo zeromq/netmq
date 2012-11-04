@@ -32,11 +32,11 @@ public class Pub : XPub {
     }
 
     public Pub(Ctx parent_, int tid_, int sid_):base(parent_, tid_, sid_) {
-		
-		options.type = ZMQ.ZMQ_PUB;
+
+			options.SocketType = ZmqSocketType.ZMQ_PUB;
 	}
-    
-    protected override Msg xrecv (int flags_)
+
+		protected override Msg xrecv(ZmqSendRecieveOptions flags_)
     {
         //  Messages cannot be received from PUB socket.
         ZError.errno = (ZError.ENOTSUP);

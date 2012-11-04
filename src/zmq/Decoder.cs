@@ -149,7 +149,7 @@ public class Decoder : DecoderBase {
         
         int first = tmpbuf[0];
         
-        in_progress.SetFlags (first & Msg.more);
+        in_progress.SetFlags ((MsgFlags)first & MsgFlags.More);
 
         next_step (in_progress.get_data(),in_progress.size,message_ready);
 

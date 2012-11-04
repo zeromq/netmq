@@ -86,7 +86,7 @@ public class TcpListener : Own, IPollEvents
         {
             fd = accept();
             Utils.tune_tcp_socket(fd);
-            Utils.tune_tcp_keepalives(fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
+            Utils.tune_tcp_keepalives(fd, options.TcpKeepalive, options.TcpKeepaliveCnt, options.TcpKeepaliveIdle, options.TcpKeepaliveIntvl);
         }
         catch (Exception)
         {
@@ -113,7 +113,7 @@ public class TcpListener : Own, IPollEvents
         }
         //  Choose I/O thread to run connecter in. Given that we are already
         //  running in an I/O thread, there must be at least one available.
-        IOThread io_thread = choose_io_thread(options.affinity);
+        IOThread io_thread = choose_io_thread(options.Affinity);
 
         //  Create and launch a session object. 
         SessionBase session = SessionBase.create(io_thread, false, socket,
@@ -158,7 +158,7 @@ public class TcpListener : Own, IPollEvents
     //  Set address to listen on.
     public virtual bool set_address(String addr_)
     {
-        address.resolve(addr_, options.ipv4only > 0 ? true : false);
+        address.resolve(addr_, options.IPv4Only > 0 ? true : false);
 
         endpoint = address.ToString();
         try
@@ -172,7 +172,7 @@ public class TcpListener : Own, IPollEvents
             
             handle.ExclusiveAddressUse = false;
             handle.Bind((IPEndPoint)address.address);
-            handle.Listen(options.backlog);           
+            handle.Listen(options.Backlog);           
         }
         catch (SecurityException)
         {
@@ -215,10 +215,10 @@ public class TcpListener : Own, IPollEvents
 
         SetHandleInformation(sock.Handle, HANDLE_FLAG_INHERIT, 0);
 
-        if (options.tcp_accept_filters.Count > 0)
+        if (options.TcpAcceptFilters.Count > 0)
         {
             bool matched = false;
-            foreach (TcpAddress.TcpAddressMask am in options.tcp_accept_filters)
+            foreach (TcpAddress.TcpAddressMask am in options.TcpAcceptFilters)
             {
                 if (am.match_address(address.address))
                 {

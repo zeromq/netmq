@@ -34,8 +34,8 @@ public class Push : SocketBase {
     private LB lb;
     
     public Push(Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_) {
-        
-        options.type = ZMQ.ZMQ_PUSH;
+
+			options.SocketType = ZmqSocketType.ZMQ_PUSH;
         
         lb = new LB();
     }
@@ -59,7 +59,7 @@ public class Push : SocketBase {
     }
 
     override
-    protected bool xsend (Msg msg_, int flags_)
+		protected bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         return lb.send (msg_, flags_);
     }

@@ -75,54 +75,54 @@ public class SessionBase : Own ,
             SocketBase socket_, Options options_, Address addr_) {
         
         SessionBase s = null;
-        switch (options_.type) {
-        case ZMQ.ZMQ_REQ:
+        switch (options_.SocketType) {
+					case ZmqSocketType.ZMQ_REQ:
             s = new  Req.ReqSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_DEALER:
+					case ZmqSocketType.ZMQ_DEALER:
             s = new Dealer.DealerSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_REP:
+					case ZmqSocketType.ZMQ_REP:
             s = new Rep.RepSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_ROUTER:
+					case ZmqSocketType.ZMQ_ROUTER:
             s = new Router.RouterSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_PUB:
+					case ZmqSocketType.ZMQ_PUB:
             s = new Pub.PubSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_XPUB:
+					case ZmqSocketType.ZMQ_XPUB:
             s = new XPub.XPubSession(io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_SUB:
+					case ZmqSocketType.ZMQ_SUB:
             s = new  Sub.SubSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_XSUB:
+					case ZmqSocketType.ZMQ_XSUB:
             s = new XSub.XSubSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-            
-        case ZMQ.ZMQ_PUSH:
+
+					case ZmqSocketType.ZMQ_PUSH:
             s = new Push.PushSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_PULL:
+					case ZmqSocketType.ZMQ_PULL:
             s = new Pull.PullSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
-        case ZMQ.ZMQ_PAIR:
+					case ZmqSocketType.ZMQ_PAIR:
             s = new Pair.PairSession (io_thread_, connect_,
                 socket_, options_, addr_);
             break;
         default:
-            throw new ArgumentException("type=" + options_.type);
+            throw new ArgumentException("type=" + options_.SocketType);
         }
         return s;
     }
@@ -178,8 +178,8 @@ public class SessionBase : Own ,
         
         //  First message to send is identity
         if (!identity_sent) {
-            msg_ = new Msg(options.identity_size);
-            msg_.put(options.identity, 0, options.identity_size);
+            msg_ = new Msg(options.IdentitySize);
+            msg_.put(options.Identity, 0, options.IdentitySize);
             identity_sent = true;
             incomplete_in = false;
             
@@ -199,10 +199,10 @@ public class SessionBase : Own ,
     {
         //  First message to receive is identity (if required).
         if (!identity_received) {
-            msg_.SetFlags (Msg.identity);
+            msg_.SetFlags (MsgFlags.More);
             identity_received = true;
             
-            if (!options.recv_identity) {
+            if (!options.RecvIdentity) {
                 return true;
             }
         }
@@ -327,8 +327,8 @@ public class SessionBase : Own ,
         if (pipe == null && !is_terminating ()) {
             ZObject[] parents = {this, socket};
             Pipe[] pipes = {null, null};
-            int[] hwms = {options.rcvhwm, options.sndhwm};
-            bool[] delays = {options.delay_on_close, options.delay_on_disconnect};
+            int[] hwms = {options.ReceiveHighWatermark, options.SendHighWatermark};
+            bool[] delays = {options.DelayOnClose, options.DelayOnDisconnect};
             Pipe.pipepair (parents, pipes, hwms, delays);
 
             //  Plug the local end of the pipe.
@@ -430,7 +430,7 @@ public class SessionBase : Own ,
 
         //  For delayed connect situations, terminate the pipe
         //  and reestablish later on
-        if (pipe != null && options.delay_attach_on_connect == 1
+        if (pipe != null && options.DelayAttachOnConnect == 1
             && addr.protocol  != "pgm" && addr.protocol != "epgm") {
             pipe.hiccup ();
             pipe.terminate (false);
@@ -441,12 +441,12 @@ public class SessionBase : Own ,
         reset ();
 
         //  Reconnect.
-        if (options.reconnect_ivl != -1)
+        if (options.ReconnectIvl != -1)
             start_connecting (true);
 
         //  For subscriber sockets we hiccup the inbound pipe, which will cause
         //  the socket object to resend all the subscriptions.
-        if (pipe != null && (options.type == ZMQ.ZMQ_SUB || options.type == ZMQ.ZMQ_XSUB))
+				if (pipe != null && (options.SocketType == ZmqSocketType.ZMQ_SUB || options.SocketType == ZmqSocketType.ZMQ_XSUB))
             pipe.hiccup ();
 
     }
@@ -458,7 +458,7 @@ public class SessionBase : Own ,
 
         //  Choose I/O thread to run connecter in. Given that we are already
         //  running in an I/O thread, there must be at least one available.
-        IOThread io_thread = choose_io_thread (options.affinity);
+        IOThread io_thread = choose_io_thread (options.Affinity);
         Debug.Assert(io_thread != null);
 
         //  Create the connecter object.
@@ -483,7 +483,7 @@ public class SessionBase : Own ,
     }
     
     public override String ToString() {
-        return base.ToString() + "[" + options.socket_id + "]";
+        return base.ToString() + "[" + options.SocketId + "]";
     }
 
     public virtual void in_event() {

@@ -65,7 +65,8 @@ public class XPub : SocketBase {
             
                 XPub self = (XPub) arg_;
 
-                if (self.options.type != ZMQ.ZMQ_PUB) {
+								if (self.options.SocketType != ZmqSocketType.ZMQ_PUB)
+								{
 
                     //  Place the unsubscription to the queue of pending (un)sunscriptions
                     //  to be retrived by the user later on.
@@ -79,8 +80,8 @@ public class XPub : SocketBase {
     }
     
     public XPub(Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_) {
-        
-        options.type = ZMQ.ZMQ_XPUB;
+
+			options.SocketType = ZmqSocketType.ZMQ_XPUB;
         verbose = false;
         more = false;
         
@@ -122,7 +123,7 @@ public class XPub : SocketBase {
 
                 //  If the subscription is not a duplicate, store it so that it can be
                 //  passed to used on next recv call.
-                if (options.type == ZMQ.ZMQ_XPUB && (unique || verbose))
+								if (options.SocketType == ZmqSocketType.ZMQ_XPUB && (unique || verbose))
                     pending.AddToBack(new Blob (sub.get_data()));
             }
         }
@@ -133,9 +134,9 @@ public class XPub : SocketBase {
         dist.activated (pipe_);
     }
 
-    protected override bool xsetsockopt (int option_, Object optval_)
+		protected override bool xsetsockopt(ZmqSocketOptions option_, Object optval_)
     {
-        if (option_ != ZMQ.ZMQ_XPUB_VERBOSE) {
+        if (option_ != ZmqSocketOptions.ZMQ_XPUB_VERBOSE) {
             ZError.errno = (ZError.EINVAL);
             return false;
         }
@@ -155,7 +156,8 @@ public class XPub : SocketBase {
         dist.terminated (pipe_);
     }
 
-    protected override bool xsend(Msg msg_, int flags_) {
+		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
+		{
         bool msg_more = msg_.has_more(); 
 
         //  For the first part of multi-part message, find the matching pipes.
@@ -182,8 +184,9 @@ public class XPub : SocketBase {
     protected override bool xhas_out() {
         return dist.has_out ();
     }
-    
-    protected override Msg xrecv(int flags_) {
+
+		protected override Msg xrecv(ZmqSendRecieveOptions flags_)
+		{
         //  If there is at least one 
         if (pending.Count == 0) {
             ZError.errno = (ZError.EAGAIN);

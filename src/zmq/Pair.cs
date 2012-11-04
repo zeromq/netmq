@@ -37,8 +37,8 @@ public class Pair : SocketBase {
 
     public Pair(Ctx parent_, int tid_, int sid_)
         : base(parent_, tid_, sid_)
-    {	
-		options.type = ZMQ.ZMQ_PAIR;
+    {
+			options.SocketType = ZmqSocketType.ZMQ_PAIR;
 	}
 
 	override
@@ -75,14 +75,14 @@ public class Pair : SocketBase {
     }
     
     override
-    protected bool xsend (Msg msg_, int flags_)
+		protected bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         if (pipe == null || !pipe.write (msg_)) {
             ZError.errno = (ZError.EAGAIN);
             return false;
         }
 
-        if ((flags_ & ZMQ.ZMQ_SNDMORE) == 0)
+				if ((flags_ & ZmqSendRecieveOptions.ZMQ_SNDMORE) == 0)
             pipe.flush ();
 
         //  Detach the original message from the data buffer.
@@ -91,7 +91,7 @@ public class Pair : SocketBase {
     }
 
     override
-    protected Msg xrecv (int flags_)
+		protected Msg xrecv(ZmqSendRecieveOptions flags_)
     {
         //  Deallocate old content of the message.
 

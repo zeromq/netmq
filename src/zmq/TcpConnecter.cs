@@ -76,7 +76,7 @@ public class TcpConnecter : Own, IPollEvents
         delayed_start = delayed_start_;
         timer_started = false;
         session = session_;
-        current_reconnect_ivl = options.reconnect_ivl;
+        current_reconnect_ivl = options.ReconnectIvl;
 
         Debug.Assert(addr != null);
         endpoint = addr.ToString();
@@ -167,7 +167,7 @@ public class TcpConnecter : Own, IPollEvents
         {
 
             Utils.tune_tcp_socket(fd);
-            Utils.tune_tcp_keepalives(fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
+            Utils.tune_tcp_keepalives(fd, options.TcpKeepalive, options.TcpKeepaliveCnt, options.TcpKeepaliveIdle, options.TcpKeepaliveIntvl);
         }
         catch (SocketException)
         {
@@ -254,19 +254,19 @@ public class TcpConnecter : Own, IPollEvents
     {
         //  The new interval is the current interval + random value.
         int this_interval = current_reconnect_ivl +
-            (Utils.generate_random() % options.reconnect_ivl);
+            (Utils.generate_random() % options.ReconnectIvl);
 
         //  Only change the current reconnect interval  if the maximum reconnect
         //  interval was set and if it's larger than the reconnect interval.
-        if (options.reconnect_ivl_max > 0 &&
-            options.reconnect_ivl_max > options.reconnect_ivl)
+        if (options.ReconnectIvlMax > 0 &&
+            options.ReconnectIvlMax > options.ReconnectIvl)
         {
 
             //  Calculate the next interval
             current_reconnect_ivl = current_reconnect_ivl * 2;
-            if (current_reconnect_ivl >= options.reconnect_ivl_max)
+            if (current_reconnect_ivl >= options.ReconnectIvlMax)
             {
-                current_reconnect_ivl = options.reconnect_ivl_max;
+                current_reconnect_ivl = options.ReconnectIvlMax;
             }
         }
         return this_interval;

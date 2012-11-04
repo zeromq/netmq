@@ -45,7 +45,7 @@ public class Dealer : SocketBase {
     public Dealer(Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_) {
                 
         prefetched = false;
-        options.type = ZMQ.ZMQ_DEALER;
+				options.SocketType = ZmqSocketType.ZMQ_DEALER;
         
         fq = new FQ();
         lb = new LB();
@@ -55,7 +55,7 @@ public class Dealer : SocketBase {
         //  be noone to receive the replies anyway.
         //  options.delay_on_close = false;
             
-        options.recv_identity = true;
+        options.RecvIdentity = true;
     }
     
     protected override void xattach_pipe(Pipe pipe_, bool icanhasall_) {
@@ -64,19 +64,19 @@ public class Dealer : SocketBase {
         fq.attach (pipe_);
         lb.attach (pipe_);
     }
-    
-    protected override bool xsend (Msg msg_, int flags_)
+
+		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         return lb.send (msg_, flags_);
     }
 
-    
-    protected override Msg xrecv (int flags_)
+
+		protected override Msg xrecv(ZmqSendRecieveOptions flags_)
     {
         return xxrecv(flags_);
     }
-    
-    private Msg xxrecv (int flags_)
+
+		private Msg xxrecv(ZmqSendRecieveOptions flags_)
     {
         Msg msg_ = null;
         //  If there is a prefetched message, return it.
@@ -92,7 +92,7 @@ public class Dealer : SocketBase {
             msg_ = fq.recv ();
             if (msg_ == null)
                 return msg_;
-            if ((msg_.flags & Msg.identity) == 0)
+						if ((msg_.flags & MsgFlags.Identity) == 0)
                 break;
         }
         return msg_;
@@ -105,7 +105,7 @@ public class Dealer : SocketBase {
             return true;
 
         //  Try to read the next message to the pre-fetch buffer.
-        prefetched_msg = xxrecv (ZMQ.ZMQ_DONTWAIT);
+				prefetched_msg = xxrecv(ZmqSendRecieveOptions.ZMQ_DONTWAIT);
         if (prefetched_msg == null && ZError.IsError(ZError.EAGAIN))
             return false;
         prefetched = true;

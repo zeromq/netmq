@@ -94,8 +94,8 @@ public class Router : SocketBase {
         more_out = false;
         next_peer_id = Utils.generate_random (); 
         mandatory = false;
-        
-        options.type = ZMQ.ZMQ_ROUTER;
+
+				options.SocketType = ZmqSocketType.ZMQ_ROUTER;
         
         
         fq = new FQ();
@@ -111,7 +111,7 @@ public class Router : SocketBase {
         //  all the outstanding requests from that peer.
         //  options.delay_on_disconnect = false;
             
-        options.recv_identity = true;
+        options.RecvIdentity = true;
             
     }
     
@@ -126,9 +126,10 @@ public class Router : SocketBase {
     }
 
 
-    protected override bool xsetsockopt(int option_, Object optval_)
+		protected override bool xsetsockopt(ZmqSocketOptions option_, Object optval_)
     {
-        if (option_ != ZMQ.ZMQ_ROUTER_MANDATORY) {
+			if (option_ != ZmqSocketOptions.ZMQ_ROUTER_MANDATORY)
+			{
             ZError.errno = (ZError.EINVAL);
             return false;
         }
@@ -181,9 +182,9 @@ public class Router : SocketBase {
         }
         Debug.Assert(false);
     }
-    
-    
-    protected override  bool xsend (Msg msg_, int flags_)
+
+
+		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         //  If this is the first part of the message it's the ID of the
         //  peer to send the message to.
@@ -241,8 +242,8 @@ public class Router : SocketBase {
     }
 
 
-    
-    protected override  Msg xrecv (int flags_)
+
+		protected override Msg xrecv(ZmqSendRecieveOptions flags_)
     {
         Msg msg_ = null;
         if (prefetched) {
@@ -288,7 +289,7 @@ public class Router : SocketBase {
 
             Blob identity = pipe[0].get_identity ();
             msg_ = new Msg(identity.data());
-            msg_.SetFlags (Msg.more);
+						msg_.SetFlags(MsgFlags.More);
             identity_sent = true;
         }
 
@@ -336,7 +337,7 @@ public class Router : SocketBase {
         
         Blob identity = pipe[0].get_identity ();
         prefetched_id = new Msg(identity.data());
-        prefetched_id.SetFlags (Msg.more);
+				prefetched_id.SetFlags(MsgFlags.More);
 
         prefetched = true;
         identity_sent = false;

@@ -42,11 +42,11 @@ public class Req : Dealer {
         
         receiving_reply = false;
         message_begins = true;
-        options.type = ZMQ.ZMQ_REQ;
+				options.SocketType = ZmqSocketType.ZMQ_REQ;
     }
-    
-    
-    protected override bool xsend (Msg msg_, int flags_)
+
+
+		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         //  If we've sent a request and we still haven't got the reply,
         //  we can't send another request.
@@ -59,7 +59,7 @@ public class Req : Dealer {
         //  First part of the request is the request identity.
         if (message_begins) {
             Msg bottom = new Msg();
-            bottom.SetFlags (Msg.more);
+            bottom.SetFlags (MsgFlags.More);
             rc = base.xsend (bottom, 0);
             if (!rc)
                 return false;
@@ -82,7 +82,7 @@ public class Req : Dealer {
     }
 
     override
-    protected Msg xrecv (int flags_)
+		protected Msg xrecv(ZmqSendRecieveOptions flags_)
     {
         Msg msg_ = null;
         //  If request wasn't send, we can't wait for reply.
@@ -169,13 +169,13 @@ public class Req : Dealer {
         {
             switch (state) {
                 case State.bottom:
-                if (msg_.flags == Msg.more && msg_.size == 0) {
+                if (msg_.flags == MsgFlags.More && msg_.size == 0) {
                     state = State.body;
                     return base.push_msg (msg_);
                 }
                 break;
                 case State.body:
-                if (msg_.flags == Msg.more)
+                if (msg_.flags == MsgFlags.More)
                     return base.push_msg (msg_);
                 if (msg_.flags == 0) {
                     state = State.bottom;

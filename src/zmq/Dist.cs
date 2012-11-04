@@ -129,13 +129,15 @@ public class Dist {
     }
 
     //  Send the message to all the outbound pipes.
-    public bool send_to_all(Msg msg_, int flags_) {
+		public bool send_to_all(Msg msg_, ZmqSendRecieveOptions flags_)
+		{
         matching = active;
         return send_to_matching (msg_, flags_);
     }
 
     //  Send the message to the matching outbound pipes.
-    public bool send_to_matching(Msg msg_, int flags_) {
+		public bool send_to_matching(Msg msg_, ZmqSendRecieveOptions flags_)
+		{
         //  Is this end of a multipart message?
         bool msg_more = msg_.has_more();
 
@@ -153,7 +155,8 @@ public class Dist {
     }
 
     //  Put the message to all active pipes.
-    private void distribute(Msg msg_, int flags_) {
+		private void distribute(Msg msg_, ZmqSendRecieveOptions flags_)
+		{
         //  If there are no matching pipes available, simply drop the message.
         if (matching == 0) {
             return;

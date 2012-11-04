@@ -101,13 +101,13 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         Utils.unblock_socket(handle);
 
         //  Set the socket buffer limits for the underlying socket.
-        if (options.sndbuf != 0)
+        if (options.SendBuffer != 0)
         {
-            handle.SendBufferSize = ((int)options.sndbuf);
+            handle.SendBufferSize = ((int)options.SendBuffer);
         }
-        if (options.rcvbuf != 0)
+        if (options.ReceiveBuffer != 0)
         {
-            handle.ReceiveBufferSize = ((int)options.rcvbuf);
+            handle.ReceiveBufferSize = ((int)options.ReceiveBuffer);
         }
 
 
@@ -203,7 +203,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
         //  The 'length' field is encoded in the long format.
 
         greeting_output_buffer[outsize++] = ((byte)0xff);
-        greeting_output_buffer.PutLong((long)options.identity_size + 1,1);
+        greeting_output_buffer.PutLong((long)options.IdentitySize + 1,1);
         outsize += 8;
         greeting_output_buffer[outsize++] = ((byte)0x7f);
 
@@ -436,7 +436,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
                     io_object.set_pollout(handle);
 
                 outpos[outsize++] = 1; // Protocol version
-                outpos[outsize++] = (byte)options.type;
+                outpos[outsize++] = (byte)options.SocketType;
             }
         }
 
@@ -451,14 +451,14 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
             encoder = new_encoder(Config.out_batch_size);
             encoder.set_msg_source(session);
 
-            decoder = new_decoder(Config.in_batch_size, options.maxmsgsize);
+            decoder = new_decoder(Config.in_batch_size, options.Maxmsgsize);
             decoder.set_msg_sink(session);
 
             //  We have already sent the message header.
             //  Since there is no way to tell the encoder to
             //  skip the message header, we simply throw that
             //  header data away.
-            int header_size = options.identity_size + 1 >= 255 ? 10 : 2;
+            int header_size = options.IdentitySize + 1 >= 255 ? 10 : 2;
             byte[] tmp = new byte[10];
             ByteArraySegment bufferp = new ByteArraySegment(tmp);
 
@@ -477,7 +477,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
             //  message into the incomming message stream. To put this
             //  message right after the identity message, we temporarily
             //  divert the message stream from session to ourselves.
-            if (options.type == ZMQ.ZMQ_PUB || options.type == ZMQ.ZMQ_XPUB)
+						if (options.SocketType == ZmqSocketType.ZMQ_PUB || options.SocketType == ZmqSocketType.ZMQ_XPUB)
                 decoder.set_msg_sink(this);
         }
         else
@@ -487,7 +487,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
                 encoder = new_encoder(Config.out_batch_size);
                 encoder.set_msg_source(session);
 
-                decoder = new_decoder(Config.in_batch_size, options.maxmsgsize);
+                decoder = new_decoder(Config.in_batch_size, options.Maxmsgsize);
                 decoder.set_msg_sink(session);
             }
             else
@@ -495,7 +495,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
                 //  v1 framing protocol.
                 encoder = new V1Encoder(Config.out_batch_size, session);
 
-                decoder = new V1Decoder(Config.in_batch_size, options.maxmsgsize, session);
+                decoder = new V1Decoder(Config.in_batch_size, options.Maxmsgsize, session);
             }
         // Start polling for output if necessary.
         if (outsize == 0)
@@ -510,7 +510,7 @@ public class StreamEngine : IEngine, IPollEvents, IMsgSink
 
     public bool push_msg(Msg msg_)
     {
-        Debug.Assert(options.type == ZMQ.ZMQ_PUB || options.type == ZMQ.ZMQ_XPUB);
+			Debug.Assert(options.SocketType == ZmqSocketType.ZMQ_PUB || options.SocketType == ZmqSocketType.ZMQ_XPUB);
 
         //  The first message is identity.
         //  Let the session process it.

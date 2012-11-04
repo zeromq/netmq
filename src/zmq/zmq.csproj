@@ -58,6 +58,7 @@
     <Compile Include="Dist.cs" />
     <Compile Include="Encoder.cs" />
     <Compile Include="EncoderBase.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="FQ.cs" />
     <Compile Include="IDecoder.cs" />
     <Compile Include="IEncoder.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="IZmqMonitor.cs" />
     <Compile Include="LB.cs" />
     <Compile Include="Mailbox.cs" />
+    <Compile Include="MonitorEvent.cs" />
     <Compile Include="Msg.cs" />
     <Compile Include="Mtrie.cs" />
     <Compile Include="Options.cs" />

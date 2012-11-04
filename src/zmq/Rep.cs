@@ -45,12 +45,12 @@ public class Rep : Router {
         
         sending_reply = false;
         request_begins = true;
-        
-        options.type = ZMQ.ZMQ_REP;
+
+				options.SocketType = ZmqSocketType.ZMQ_REP;
     }
     
     override
-    protected bool xsend (Msg msg_, int flags_)
+		protected bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
     {
         //  If we are in the middle of receiving a request, we cannot send reply.
         if (!sending_reply) {
@@ -72,7 +72,7 @@ public class Rep : Router {
     }
     
     override
-    protected Msg xrecv (int flags_)
+		protected Msg xrecv(ZmqSendRecieveOptions flags_)
     {
         //  If we are in middle of sending a reply, we cannot receive next request.
         if (sending_reply) {

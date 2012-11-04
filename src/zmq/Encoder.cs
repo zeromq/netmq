@@ -99,13 +99,13 @@ public class Encoder : EncoderBase {
         
         if (size < 255) {
             tmpbuf[0] = (byte)size;
-            tmpbuf[1] = (byte) (in_progress.flags & Msg.more);
+            tmpbuf[1] = (byte) (in_progress.flags & MsgFlags.More);
             next_step(tmpbuf, 2, SizeReady, false);
         }
         else {
             tmpbuf[0] = 0xff;
             tmpbuf.PutLong(size, 1);
-            tmpbuf[9] = (byte)(in_progress.flags & Msg.more);
+						tmpbuf[9] = (byte)(in_progress.flags & MsgFlags.More);
 
             next_step(tmpbuf, 10, SizeReady, false);
         }

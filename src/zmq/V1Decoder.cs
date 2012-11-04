@@ -14,7 +14,7 @@ public class V1Decoder : DecoderBase
     private Msg in_progress;
     private IMsgSink msg_sink;
     private long maxmsgsize;
-    private int msg_flags;
+    private MsgFlags msg_flags;
     
     public V1Decoder (int bufsize_, long maxmsgsize_, IMsgSink session) : base(bufsize_)
     {
@@ -108,7 +108,7 @@ public class V1Decoder : DecoderBase
         msg_flags = 0;
         int first = tmpbuf[0];
         if ((first & V1Protocol.MORE_FLAG) > 0)
-            msg_flags |= Msg.more;
+            msg_flags |= MsgFlags.More;
         
         //  The payload length is either one or eight bytes,
         //  depending on whether the 'large' bit is set.
