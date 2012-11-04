@@ -18,13 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-
-public class IpcConnecter : TcpConnecter {
+namespace zmq
+{
+	public class IpcConnecter : TcpConnecter {
     
-    public IpcConnecter (IOThread io_thread_,
-            SessionBase session_, Options options_,
-            Address addr_, bool wait_) : base(io_thread_, session_, options_, addr_, wait_)  {
+		public IpcConnecter (IOThread ioThread,
+		                     SessionBase session, Options options,
+		                     Address addr, bool wait) : base(ioThread, session, options, addr, wait)  {
 
-    }
+		                     }
+	}
 }

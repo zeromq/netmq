@@ -1,7 +1,8 @@
-using System;
-
-public interface IMsgSource
+namespace zmq
 {
-    //  Fetch a message. Returns a Msg instance if successful; null otherwise.
-    Msg pull_msg ();
+	public interface IMsgSource
+	{
+		//  Fetch a message. Returns a Msg instance if successful; null otherwise.
+		Msg PullMsg ();
+	}
 }

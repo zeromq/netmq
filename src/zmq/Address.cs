@@ -21,85 +21,88 @@
 using System;
 using System.Net;
 
-public class Address
+namespace zmq
 {
+	public class Address
+	{
 
-    public interface IZAddress
-    {
-        //String ToString();
-        void resolve(String name_, bool ip4only_);
-        IPEndPoint address{get;}        
-    };
-
-
-    public Address(String protocol_, String address_)
-    {
-        protocol = protocol_;
-        address = address_;
-        resolved = null;
-    }
-
-    public Address(EndPoint endpoint)
-    {
-        protocol = "tcp";
-
-        if (endpoint is DnsEndPoint)
-        {
-            DnsEndPoint dnsEndpoint = endpoint as DnsEndPoint;
-            address = dnsEndpoint.Host + ":" + dnsEndpoint.Port.ToString();
-        }
-        else if (endpoint is IPEndPoint)
-        {
-            IPEndPoint ipEndpoint = endpoint as IPEndPoint;
-            address = ipEndpoint.Address.ToString() + ":" + ipEndpoint.Port.ToString();
-        }
-        else
-        {
-            address = endpoint.ToString();
-        }
-    }
+		public interface IZAddress
+		{
+			//String ToString();
+			void Resolve(String name, bool ip4Only);
+			IPEndPoint Address{get;}        
+		};
 
 
-    public override String ToString()
-    {
-        if (protocol.Equals("tcp"))
-        {
-            if (resolved != null)
-            {
-                return resolved.ToString();
-            }
-        }
-        else if (protocol.Equals("ipc"))
-        {
-            if (resolved != null)
-            {
-                return resolved.ToString();
-            }
-        }
+		public Address(String protocol, String address)
+		{
+			Protocol = protocol;
+			AddressString = address;
+			Resolved = null;
+		}
 
-        if (!string.IsNullOrEmpty(protocol) && !string.IsNullOrEmpty(address))
-        {
-            return protocol + "://" + address;
-        }
+		public Address(EndPoint endpoint)
+		{
+			Protocol = "tcp";
 
-        return null;
-    }
+			if (endpoint is DnsEndPoint)
+			{
+				DnsEndPoint dnsEndpoint = endpoint as DnsEndPoint;
+				AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port.ToString();
+			}
+			else if (endpoint is IPEndPoint)
+			{
+				IPEndPoint ipEndpoint = endpoint as IPEndPoint;
+				AddressString = ipEndpoint.Address.ToString() + ":" + ipEndpoint.Port.ToString();
+			}
+			else
+			{
+				AddressString = endpoint.ToString();
+			}
+		}
 
-    public String protocol
-    {
-        get;
-        private set;
-    }
 
-    public String address
-    {
-        get;
-        private set;
-    }
+		public override String ToString()
+		{
+			if (Protocol.Equals("tcp"))
+			{
+				if (Resolved != null)
+				{
+					return Resolved.ToString();
+				}
+			}
+			else if (Protocol.Equals("ipc"))
+			{
+				if (Resolved != null)
+				{
+					return Resolved.ToString();
+				}
+			}
 
-    public IZAddress resolved
-    {
-        get;
-        set;
-    }
+			if (!string.IsNullOrEmpty(Protocol) && !string.IsNullOrEmpty(AddressString))
+			{
+				return Protocol + "://" + AddressString;
+			}
+
+			return null;
+		}
+
+		public String Protocol
+		{
+			get;
+			private set;
+		}
+
+		public String AddressString
+		{
+			get;
+			private set;
+		}
+
+		public IZAddress Resolved
+		{
+			get;
+			set;
+		}
+	}
 }

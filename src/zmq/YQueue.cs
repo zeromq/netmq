@@ -18,153 +18,177 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
+
 using System.Diagnostics;
 
-public class YQueue<T> where T: class{
+namespace zmq
+{
+	public class YQueue<T> where T : class
+	{
 
-    //  Individual memory chunk to hold N elements.
-    private class Chunk
-    {
-         public T []values;
-         public int[] pos;
-         public Chunk prev;
-         public Chunk next;
-         
-         //@SuppressWarnings("unchecked")
-         public Chunk(int size, int memory_ptr)
-         {
-             values = (T[])(new T[size]);
-             pos = new int[size];
-             Debug.Assert(values != null);
-             prev = next = null;
-             for (int i=0; i != values.Length; i++) {
-                 pos[i] = memory_ptr;
-                 memory_ptr++;
-             }
-            
-         }
-    }
+		//  Individual memory chunk to hold N elements.
+		private class Chunk
+		{
+			public Chunk(int size, int memoryPtr)
+			{
+				Values = new T[size];
+				Pos = new int[size];
+				Debug.Assert(Values != null);
+				Prev = Next = null;
+				for (int i = 0; i != Values.Length; i++)
+				{
+					Pos[i] = memoryPtr;
+					memoryPtr++;
+				}
 
-    //  Back position may point to invalid memory if the queue is empty,
-    //  while begin & end positions are always valid. Begin position is
-    //  accessed exclusively be queue reader (front/pop), while back and
-    //  end positions are accessed exclusively by queue writer (back/push).
-    private volatile Chunk begin_chunk;
-    private int begin_pos;
-    private Chunk back_chunk;
-    private int back_pos;
-    private Chunk end_chunk;
-    private int end_pos;
-    private Chunk spare_chunk;
-    private int size;
+			}
 
-    //  People are likely to produce and consume at similar rates.  In
-    //  this scenario holding onto the most recently freed chunk saves
-    //  us from having to call malloc/free.
-    
-    private int memory_ptr;
-    
+			public T[] Values { get; private set; }
+			public int[] Pos { get; private set; }
+			public Chunk Prev { get; set; }
+			public Chunk Next { get; set; }
+		}
 
-    public YQueue(int size) {
-        
-        this.size = size;
-        memory_ptr = 0;
-        begin_chunk = new Chunk(size, memory_ptr);
-        memory_ptr += size;
-        begin_pos = 0;
-        back_pos = 0;
-        back_chunk = begin_chunk;
-        spare_chunk = begin_chunk;
-        end_chunk = begin_chunk;
-        end_pos = 1;
-    }
-    
-    public int front_pos() {
-        return begin_chunk.pos[begin_pos];
-    }
-    
-    //  Returns reference to the front element of the queue.
-    //  If the queue is empty, behaviour is undefined.
-    public T front() {
-        return begin_chunk.values [begin_pos];
-    }
+		//  Back position may point to invalid memory if the queue is empty,
+		//  while begin & end positions are always valid. Begin position is
+		//  accessed exclusively be queue reader (front/pop), while back and
+		//  end positions are accessed exclusively by queue writer (back/push).
+		private volatile Chunk m_beginChunk;
+		private int m_beginPos;
+		private Chunk m_backChunk;
+		private int m_backPos;
+		private Chunk m_endChunk;
+		private int m_endPos;
+		private Chunk m_spareChunk;
+		private readonly int m_size;
 
-    public int get_back_pos() {
-        return back_chunk.pos [back_pos];
-    }
+		//  People are likely to produce and consume at similar rates.  In
+		//  this scenario holding onto the most recently freed chunk saves
+		//  us from having to call malloc/free.
 
-    //  Returns reference to the back element of the queue.
-    //  If the queue is empty, behaviour is undefined.
-    public T back() {
-        return back_chunk.values [back_pos];
-    }
-    
-    public T pop() {
-        T val = begin_chunk.values [begin_pos];
-        begin_chunk.values [begin_pos] = null;
-        begin_pos++;
-        if (begin_pos == size) {
-            begin_chunk = begin_chunk.next;
-            begin_chunk.prev = null;
-            begin_pos = 0;
-        }
-        return val;
-    }
-
-    //  Adds an element to the back end of the queue.
-    public void push(T val) {
-        back_chunk.values [back_pos] = val;
-        back_chunk = end_chunk;
-        back_pos = end_pos;
-
-        end_pos ++;
-        if (end_pos != size)
-            return;
-
-        Chunk sc = spare_chunk;
-        if (sc != begin_chunk) {
-            spare_chunk = spare_chunk.next;
-            end_chunk.next = sc;
-            sc.prev = end_chunk;
-        } else {
-            end_chunk.next =  new Chunk(size, memory_ptr);
-            memory_ptr += size;
-            end_chunk.next.prev = end_chunk;
-        }
-        end_chunk = end_chunk.next;
-        end_pos = 0;
-    }
-
-    //  Removes element from the back end of the queue. In other words
-    //  it rollbacks last push to the queue. Take care: Caller is
-    //  responsible for destroying the object being unpushed.
-    //  The caller must also guarantee that the queue isn't empty when
-    //  unpush is called. It cannot be done automatically as the read
-    //  side of the queue can be managed by different, completely
-    //  unsynchronised thread.
-    public void unpush() {
-        //  First, move 'back' one position backwards.
-        if (back_pos > 0)
-            back_pos--;
-        else {
-            back_pos = size - 1;
-            back_chunk = back_chunk.prev;
-        }
-
-        //  Now, move 'end' position backwards. Note that obsolete end chunk
-        //  is not used as a spare chunk. The analysis shows that doing so
-        //  would require free and atomic operation per chunk deallocated
-        //  instead of a simple free.
-        if (end_pos > 0)
-            end_pos--;
-        else {
-            end_pos = size - 1;
-            end_chunk = end_chunk.prev;
-            end_chunk.next = null;
-        }
-    }
+		private int m_memoryPtr;
 
 
+		public YQueue(int size)
+		{
 
+			this.m_size = size;
+			m_memoryPtr = 0;
+			m_beginChunk = new Chunk(size, m_memoryPtr);
+			m_memoryPtr += size;
+			m_beginPos = 0;
+			m_backPos = 0;
+			m_backChunk = m_beginChunk;
+			m_spareChunk = m_beginChunk;
+			m_endChunk = m_beginChunk;
+			m_endPos = 1;
+		}
+
+		public int FrontPos
+		{
+			get
+			{
+				return m_beginChunk.Pos[m_beginPos];
+			}
+		}
+
+		//  Returns reference to the front element of the queue.
+		//  If the queue is empty, behaviour is undefined.
+		public T Front
+		{
+			get { return m_beginChunk.Values[m_beginPos]; }
+		}
+
+		public int BackPos
+		{
+			get { return m_backChunk.Pos[m_backPos]; }
+		}
+
+		//  Returns reference to the back element of the queue.
+		//  If the queue is empty, behaviour is undefined.
+		public T Back
+		{
+			get
+			{
+				return m_backChunk.Values[m_backPos];
+			}
+		}
+
+		public T Pop()
+		{
+			T val = m_beginChunk.Values[m_beginPos];
+			m_beginChunk.Values[m_beginPos] = null;
+			m_beginPos++;
+			if (m_beginPos == m_size)
+			{
+				m_beginChunk = m_beginChunk.Next;
+				m_beginChunk.Prev = null;
+				m_beginPos = 0;
+			}
+			return val;
+		}
+
+		//  Adds an element to the back end of the queue.
+		public void Push(T val)
+		{
+			m_backChunk.Values[m_backPos] = val;
+			m_backChunk = m_endChunk;
+			m_backPos = m_endPos;
+
+			m_endPos++;
+			if (m_endPos != m_size)
+				return;
+
+			Chunk sc = m_spareChunk;
+			if (sc != m_beginChunk)
+			{
+				m_spareChunk = m_spareChunk.Next;
+				m_endChunk.Next = sc;
+				sc.Prev = m_endChunk;
+			}
+			else
+			{
+				m_endChunk.Next = new Chunk(m_size, m_memoryPtr);
+				m_memoryPtr += m_size;
+				m_endChunk.Next.Prev = m_endChunk;
+			}
+			m_endChunk = m_endChunk.Next;
+			m_endPos = 0;
+		}
+
+		//  Removes element from the back end of the queue. In other words
+		//  it rollbacks last push to the queue. Take care: Caller is
+		//  responsible for destroying the object being unpushed.
+		//  The caller must also guarantee that the queue isn't empty when
+		//  unpush is called. It cannot be done automatically as the read
+		//  side of the queue can be managed by different, completely
+		//  unsynchronised thread.
+		public void Unpush()
+		{
+			//  First, move 'back' one position backwards.
+			if (m_backPos > 0)
+				m_backPos--;
+			else
+			{
+				m_backPos = m_size - 1;
+				m_backChunk = m_backChunk.Prev;
+			}
+
+			//  Now, move 'end' position backwards. Note that obsolete end chunk
+			//  is not used as a spare chunk. The analysis shows that doing so
+			//  would require free and atomic operation per chunk deallocated
+			//  instead of a simple free.
+			if (m_endPos > 0)
+				m_endPos--;
+			else
+			{
+				m_endPos = m_size - 1;
+				m_endChunk = m_endChunk.Prev;
+				m_endChunk.Next = null;
+			}
+		}
+
+
+
+	}
 }

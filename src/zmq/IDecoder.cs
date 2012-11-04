@@ -1,15 +1,13 @@
-using System;
-using NetMQ;
-using zmq;
-
-
-public interface IDecoder
+namespace zmq
 {
-    void set_msg_sink (IMsgSink msg_sink);
+	public interface IDecoder
+	{
+		void SetMsgSink (IMsgSink msgSink);
 
-    void get_buffer(ref ByteArraySegment data_, ref int size);
+		void GetBuffer(ref ByteArraySegment data, ref int size);
 
-    int process_buffer(ByteArraySegment data, int size);
+		int ProcessBuffer(ByteArraySegment data, int size);
     
-    bool stalled ();
+		bool Stalled ();
+	}
 }

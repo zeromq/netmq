@@ -16,84 +16,93 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
+
 using System.Threading;
 
+public struct ErrorNumber
+{
+	public ErrorNumber(int value)
+		: this()
+	{
+		Value = value;
+	}
 
-public class ZError  {
-    
-    private static ThreadLocal<int> s_errno = new ThreadLocal<int>(() => 0);
-    
-    //private static ThreadLocal<Throwable> s_exc = new ThreadLocal<Throwable>();
+	public int Value { get; private set; }
+
+	public static implicit operator ErrorNumber(int code)
+	{
+		return new ErrorNumber(code);
+	}
+
+	public static readonly ErrorNumber EINTR = 4;
+	public static readonly ErrorNumber EACCESS = 13;
+	public static readonly ErrorNumber EFAULT = 14;
+	public static readonly ErrorNumber EINVAL = 22;
+	public static readonly ErrorNumber EAGAIN = 35;
+	public static readonly ErrorNumber EINPROGRESS = 36;
+	public static readonly ErrorNumber EPROTONOSUPPORT = 43;
+	public static readonly ErrorNumber ENOTSUP = 45;
+	public static readonly ErrorNumber EADDRINUSE = 48;
+	public static readonly ErrorNumber EADDRNOTAVAIL = 49;
+	public static readonly ErrorNumber ENETDOWN = 50;
+	public static readonly ErrorNumber ENOBUFS = 55;
+	public static readonly ErrorNumber EISCONN = 56;
+	public static readonly ErrorNumber ENOTCONN = 57;
+	public static readonly ErrorNumber ECONNREFUSED = 61;
+	public static readonly ErrorNumber EHOSTUNREACH = 65;
+
+	private static readonly ErrorNumber ZMQ_HAUSNUMERO = 156384712;
+
+	public static readonly ErrorNumber EFSM = new ErrorNumber(ZMQ_HAUSNUMERO.Value + 51);
+	public static readonly ErrorNumber ENOCOMPATPROTO = new ErrorNumber(ZMQ_HAUSNUMERO.Value + 52);
+	public static readonly ErrorNumber ETERM = new ErrorNumber(ZMQ_HAUSNUMERO.Value + 53);
+	public static readonly ErrorNumber EMTHREAD = new ErrorNumber(ZMQ_HAUSNUMERO.Value + 54);
+
+	public static readonly ErrorNumber EIOEXC = new ErrorNumber(ZMQ_HAUSNUMERO.Value + 105);
+	public static readonly ErrorNumber ESOCKET = new ErrorNumber(ZMQ_HAUSNUMERO.Value + 106);
+	public static readonly ErrorNumber EMFILE = new ErrorNumber(ZMQ_HAUSNUMERO.Value + 107);
+}
+
+namespace zmq
+{
+	public class ZError
+	{
+		private static ThreadLocal<ErrorNumber> s_errno = new ThreadLocal<ErrorNumber>(() => 0);
+	
+		public static ErrorNumber ErrorNumber
+		{
+			get
+			{
+				return s_errno.Value;
+			}
+			set
+			{
+				s_errno.Value = value;
+			}
+		}
+
+		public static bool IsError(int code)
+		{
+			if (code == ErrorNumber.EINTR.Value)
+			{
+				return false;
+			}
+			else
+			{
+				return ErrorNumber.Value == code;
+			}
+		}
+
+		public static bool IsError(ErrorNumber code)
+		{
+			return IsError(code.Value);
+		}
+
+		public static void Clear()
+		{
+			ErrorNumber = 0;
+		}
 
 
-    public const int EINTR = 4;
-    public const  int EACCESS = 13;
-    public const  int EFAULT = 14;
-    public const  int EINVAL = 22;
-    public const  int EAGAIN = 35;
-    public const  int EINPROGRESS = 36;
-    public const  int EPROTONOSUPPORT = 43;
-    public const  int ENOTSUP = 45;
-    public const  int EADDRINUSE = 48;
-    public const  int EADDRNOTAVAIL = 49;
-    public const  int ENETDOWN = 50;
-    public const  int ENOBUFS = 55;
-    public const  int EISCONN = 56;
-    public const  int ENOTCONN = 57;
-    public const  int ECONNREFUSED = 61;
-    public const  int EHOSTUNREACH = 65;
-    
-    private const  int ZMQ_HAUSNUMERO = 156384712;
-
-    public const  int EFSM = ZMQ_HAUSNUMERO + 51;
-    public const  int ENOCOMPATPROTO = ZMQ_HAUSNUMERO + 52;
-    public const  int ETERM = ZMQ_HAUSNUMERO + 53;
-    public const  int EMTHREAD = ZMQ_HAUSNUMERO + 54;
-
-    public const  int EIOEXC = ZMQ_HAUSNUMERO + 105;
-    public const  int ESOCKET = ZMQ_HAUSNUMERO + 106;
-    public const  int EMFILE = ZMQ_HAUSNUMERO + 107;
-        
-    public static int errno {
-        get
-        {
-            return s_errno.Value;
-        }
-        set
-        {
-            s_errno.Value = value;
-        }
-    }
-    
-    //public static Throwable exc () {
-    //    return exc.get();
-    //}
-    
-    //public static void exc (java.io.IOException e) {
-    //    if (e is SocketException) {
-    //        errno.set(ESOCKET);
-    //    } else if (e is ClosedChannelException) {
-    //        errno.set(ENOTCONN);
-    //    } else {
-    //        errno.set(EIOEXC);
-    //    }
-    //    exc.set(e);
-    //}
-    
-    public static bool IsError (int code) {
-        switch(code) {
-        case EINTR:
-            return false;
-        default:
-            return errno == code;
-        }
-        
-    }
-
-    public static void clear () {
-        errno=0;
-    }
-    
-
+	}
 }

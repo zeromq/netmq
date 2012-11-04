@@ -18,34 +18,36 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
 
-public class Pub : XPub {
+namespace zmq
+{
+	public class Pub : XPub {
 
-	public class PubSession : XPub.XPubSession {
+		public class PubSession : XPub.XPubSession {
 
-        public PubSession(IOThread io_thread_, bool connect_,
-                SocketBase socket_, Options options_, Address addr_):base(io_thread_, connect_, socket_, options_, addr_) {
+			public PubSession(IOThread ioThread, bool connect,
+			                  SocketBase socket, Options options, Address addr):base(ioThread, connect, socket, options, addr) {
             
-        }
+			                  }
 
-    }
+		}
 
-    public Pub(Ctx parent_, int tid_, int sid_):base(parent_, tid_, sid_) {
+		public Pub(Ctx parent, int tid, int sid):base(parent, tid, sid) {
 
-			options.SocketType = ZmqSocketType.ZMQ_PUB;
+			m_options.SocketType = ZmqSocketType.ZMQ_PUB;
+		}
+
+		protected override Msg XRecv(ZmqSendRecieveOptions flags)
+		{
+			//  Messages cannot be received from PUB socket.
+			ZError.ErrorNumber = (ErrorNumber.ENOTSUP);
+			return null;
+		}
+
+		protected override bool XHasIn()
+		{
+			return false;
+		}
+
 	}
-
-		protected override Msg xrecv(ZmqSendRecieveOptions flags_)
-    {
-        //  Messages cannot be received from PUB socket.
-        ZError.errno = (ZError.ENOTSUP);
-        return null;
-    }
-
-    protected override bool xhas_in()
-    {
-        return false;
-    }
-
 }

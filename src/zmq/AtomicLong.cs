@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 
-namespace NetMQ
+namespace zmq
 {
     class AtomicLong
     {
@@ -15,27 +11,27 @@ namespace NetMQ
             m_value = value;
         }
 
-        public long incrementAndGet()
+        public long IncrementAndGet()
         {
             return Interlocked.Increment(ref m_value);
         }
 
-        public long get()
+        public long Get()
         {
             return Interlocked.Read(ref m_value);
         }
 
-        public void set(long value)
+        public void Set(long value)
         {
             Interlocked.Exchange(ref m_value, value);
         }
 
-        public long addAndGet(long amount)
+        public long AddAndGet(long amount)
         {
             return Interlocked.Add(ref m_value, amount); 
         }
 
-        internal bool compareAndSet(long expect, long update)
+        internal bool CompareAndSet(long expect, long update)
         {
             return Interlocked.CompareExchange(ref m_value, update, expect) == expect;
         }

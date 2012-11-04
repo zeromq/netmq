@@ -20,316 +20,318 @@
 */
 
 using System;
-using NetMQ;
 using System.Text;
 
-[Flags]
-public enum MsgFlags
+namespace zmq
 {
-	None = 0,
-	More = 1,
-	Identity = 64,
-	Shared = 128,
-}
+	[Flags]
+	public enum MsgFlags
+	{
+		None = 0,
+		More = 1,
+		Identity = 64,
+		Shared = 128,
+	}
 
-[Flags]
-public enum MsgType : byte
-{
-	  Min = 101,
-    Vsm = 102,
-    LMsg = 103,
-    Delimiter = 104,
-    Max = 105
-}
+	[Flags]
+	public enum MsgType : byte
+	{
+		Min = 101,
+		Vsm = 102,
+		LMsg = 103,
+		Delimiter = 104,
+		Max = 105
+	}
 
+	public class Msg
+	{
 
-public class Msg
-{
-
-    //  Size in bytes of the largest message that is still copied around
-    //  rather than being reference-counted.
-
-  
-    //private byte type;
-    private MsgFlags m_flags;
-    private int m_size;
-    private byte[] header;
-    private byte[] data;
-    private byte[] buf;
-
-    public Msg()
-    {
-        init(MsgType.Vsm);
-    }
-
-    public Msg(bool buffered)
-    {
-        if (buffered)
-					init(MsgType.LMsg);
-        else
-					init(MsgType.Vsm);
-    }
-
-    public Msg(int size_)
-    {
-			init(MsgType.Vsm);
-        size = size_;
-    }
-
-    public Msg(int size_, bool buffered)
-    {
-        if (buffered)
-					init(MsgType.LMsg);
-        else
-					init(MsgType.Vsm);
-        size = size_;
-    }
+		//  Size in bytes of the largest message that is still copied around
+		//  rather than being reference-counted.
 
 
-    public Msg(Msg m)
-    {
-        clone(m);
-    }
+		//private byte type;
+		private MsgFlags m_flags;
+		private int m_size;
+		private byte[] m_header;
+		private byte[] m_data;
+		private byte[] m_buf;
 
-    public Msg(byte[] src)
-        : this(src, false)
-    {
+		public Msg()
+		{
+			Init(MsgType.Vsm);
+		}
 
-    }
+		public Msg(bool buffered)
+		{
+			if (buffered)
+				Init(MsgType.LMsg);
+			else
+				Init(MsgType.Vsm);
+		}
 
-    public Msg(String src)
-        : this(Encoding.ASCII.GetBytes(src), false)
-    {
+		public Msg(int size)
+		{
+			Init(MsgType.Vsm);
+			size = size;
+		}
 
-    }
-
-    public Msg(byte[] src, bool copy)
-        : this()
-    {
-        if (src != null)
-        {
-            size = src.Length;
-            if (copy)
-            {
-                data = new byte[src.Length];
-                Buffer.BlockCopy(src, 0, data, 0, src.Length);
-            }
-            else
-            {
-                data = src;
-            }
-        }
-    }
-
-    //public Msg (ByteBuffer src) 
-    //{
-    //    init (type_lmsg);
-    //    buf = src.duplicate ();
-    //    buf.rewind ();
-    //    size = buf.remaining ();
-    //}
-
-    public bool is_identity()
-    {
-        return (m_flags & MsgFlags.Identity) == MsgFlags.Identity;
-    }
-
-    public bool is_delimiter()
-    {
-			return type == MsgType.Delimiter;
-    }
+		public Msg(int size, bool buffered)
+		{
+			if (buffered)
+				Init(MsgType.LMsg);
+			else
+				Init(MsgType.Vsm);
+			size = size;
+		}
 
 
-    public bool check()
-    {
-			return type >= MsgType.Min && type <= MsgType.Max;
-    }
+		public Msg(Msg m)
+		{
+			Clone(m);
+		}
 
-    private void init(MsgType type_)
-    {
-        type = type_;
-        m_flags = MsgFlags.None;
-        size = 0;
-        data = null;
-        buf = null;
-        header = null;
-    }
+		public Msg(byte[] src)
+			: this(src, false)
+		{
 
-    public int size
-    {
-        get
-        {
-            return m_size;
-        }
-        set
-        {
-            m_size = value;
-						if (type == MsgType.LMsg)
-            {
-                m_flags = MsgFlags.None;
+		}
 
-                buf = new byte[value];
-                data = null;
-            }
-            else
-            {
-                m_flags = 0;
-                data = new byte[value];
-                buf = null;
-            }
-        }
-    }
+		public Msg(String src)
+			: this(Encoding.ASCII.GetBytes(src), false)
+		{
 
- 
+		}
 
-    public bool has_more()
-    {
-        return (m_flags & MsgFlags.More) == MsgFlags.More;
-    }
+		public Msg(byte[] src, bool copy)
+			: this()
+		{
+			if (src != null)
+			{
+				Size = src.Length;
+				if (copy)
+				{
+					m_data = new byte[src.Length];
+					Buffer.BlockCopy(src, 0, m_data, 0, src.Length);
+				}
+				else
+				{
+					m_data = src;
+				}
+			}
+		}
 
-		public MsgType type
-    {
-        get;
-        set;
-    }
+		public bool IsIdentity
+		{
+			get { return (m_flags & MsgFlags.Identity) == MsgFlags.Identity; }
+		}
 
-		public MsgFlags flags
-    {
-        get
-        {
-            return m_flags;
-        }
-    }
+		public bool IsDelimiter
+		{
+			get { return MsgType == MsgType.Delimiter; }
+		}
 
-		public void SetFlags(MsgFlags flags_)
-    {
-        m_flags = m_flags | flags_;
-    }
+		public bool Check()
+		{
+			return MsgType >= MsgType.Min && MsgType <= MsgType.Max;
+		}
 
-    public void init_delimiter()
-    {
-			type = MsgType.Delimiter;
-        m_flags = MsgFlags.None;
-    }
+		private void Init(MsgType type)
+		{
+			this.MsgType = type;
+			m_flags = MsgFlags.None;
+			Size = 0;
+			m_data = null;
+			m_buf = null;
+			m_header = null;
+		}
 
+		public int Size
+		{
+			get
+			{
+				return m_size;
+			}
+			set
+			{
+				m_size = value;
+				if (MsgType == MsgType.LMsg)
+				{
+					m_flags = MsgFlags.None;
 
-    public byte[] get_data()
-    {
-			if (data == null && type == MsgType.LMsg)
-            data = buf;
-        return data;
-    }    
-
-    public int header_size()
-    {
-        if (header == null)
-        {
-            if (size < 255)
-                return 2;
-            else
-                return 10;
-        }
-        else if (header[0] == 0xff)
-            return 10;
-        else
-            return 2;
-    }
-
-    public byte[] get_header()
-    {
-        if (header == null)
-        {
-            if (size < 255)
-            {
-                header = new byte[2];
-                header[0] = (byte)size;
-                header[1] = (byte)m_flags;
-            }
-            else
-            {
-                header = new byte[10];
-                
-                header[0] = 0xff;
-                header[1] = (byte)m_flags;
-                
-                Buffer.BlockCopy(BitConverter.GetBytes((long)size), 0, header, 2,  8);
-            }
-        }
-        return header;
-
-    }    
-
-    public void close()
-    {
-        if (!check())
-        {
-            throw new InvalidOperationException();
-        }
-
-				init(MsgType.Vsm);
-    }
-
-    public override String ToString()
-    {
-        return base.ToString() + "[" + type + "," + size + "," + m_flags + "]";
-    }
-
-    private void clone(Msg m)
-    {
-        type = m.type;
-        m_flags = m.m_flags;
-        size = m.size;
-        buf = m.buf;
-        data = m.data;
-    }
-
-    public void reset_flags(MsgFlags f)
-    {
-        m_flags = m_flags & ~f;
-    }
-
-    public void put(byte[] src, int i)
-    {
-        if (src == null)
-            return;
-
-        Buffer.BlockCopy(src, 0, data, i, src.Length);
-    }
-
-    public void put(byte[] src, int i, int len_)
-    {
-
-        if (len_ == 0 || src == null)
-            return;
-
-        Buffer.BlockCopy(src, 0, data, i, len_);
-    }
-
-    public bool is_vsm()
-    {
-			return type == MsgType.Vsm;
-    }
+					m_buf = new byte[value];
+					m_data = null;
+				}
+				else
+				{
+					m_flags = 0;
+					m_data = new byte[value];
+					m_buf = null;
+				}
+			}
+		}
 
 
-    public void put(byte b)
-    {
-        data[0] = b;
-    }
 
-    public void put(byte b, int i)
-    {
-        data[i] = b;
-    }
+		public bool HasMore
+		{
+			get { return (m_flags & MsgFlags.More) == MsgFlags.More; }
+		}
 
-    public void put(String str, int i)
-    {
-        put(Encoding.ASCII.GetBytes(str), i);
-    }
+		public MsgType MsgType
+		{
+			get;
+			set;
+		}
 
-    public void put(Msg data, int i)
-    {
-        put(data.data, i);
-    }
+		public MsgFlags Flags
+		{
+			get
+			{
+				return m_flags;
+			}
+		}
+
+		public void SetFlags(MsgFlags flags)
+		{
+			m_flags = m_flags | flags;
+		}
+
+		public void InitDelimiter()
+		{
+			MsgType = MsgType.Delimiter;
+			m_flags = MsgFlags.None;
+		}
 
 
+		public byte[] Data
+		{
+			get
+			{
+				if (m_data == null && MsgType == MsgType.LMsg)
+					m_data = m_buf;
+				return m_data;
+			}
+		}
+
+		public int HeaderSize
+		{
+			get
+			{
+				if (m_header == null)
+				{
+					if (Size < 255)
+						return 2;
+					else
+						return 10;
+				}
+				else if (m_header[0] == 0xff)
+					return 10;
+				else
+					return 2;
+			}
+		}
+
+		public byte[] Header
+		{
+			get
+			{
+				if (m_header == null)
+				{
+					if (Size < 255)
+					{
+						m_header = new byte[2];
+						m_header[0] = (byte)Size;
+						m_header[1] = (byte)m_flags;
+					}
+					else
+					{
+						m_header = new byte[10];
+
+						m_header[0] = 0xff;
+						m_header[1] = (byte)m_flags;
+
+						Buffer.BlockCopy(BitConverter.GetBytes((long)Size), 0, m_header, 2, 8);
+					}
+				}
+				return m_header;
+			}
+		}
+
+		public void Close()
+		{
+			if (!Check())
+			{
+				throw new InvalidOperationException();
+			}
+
+			Init(MsgType.Vsm);
+		}
+
+		public override String ToString()
+		{
+			return base.ToString() + "[" + MsgType + "," + Size + "," + m_flags + "]";
+		}
+
+		private void Clone(Msg m)
+		{
+			MsgType = m.MsgType;
+			m_flags = m.m_flags;
+			Size = m.Size;
+			m_buf = m.m_buf;
+			m_data = m.m_data;
+		}
+
+		public void ResetFlags(MsgFlags f)
+		{
+			m_flags = m_flags & ~f;
+		}
+
+		public void Put(byte[] src, int i)
+		{
+			if (src == null)
+				return;
+
+			Buffer.BlockCopy(src, 0, m_data, i, src.Length);
+		}
+
+		public void Put(byte[] src, int i, int len)
+		{
+			if (len == 0 || src == null)
+				return;
+
+			Buffer.BlockCopy(src, 0, m_data, i, len);
+		}
+
+		public bool IsVsm
+		{
+			get
+			{
+				return MsgType == MsgType.Vsm;
+			}
+		}
+
+
+		public void Put(byte b)
+		{
+			m_data[0] = b;
+		}
+
+		public void Put(byte b, int i)
+		{
+			m_data[i] = b;
+		}
+
+		public void Put(String str, int i)
+		{
+			Put(Encoding.ASCII.GetBytes(str), i);
+		}
+
+		public void Put(Msg data, int i)
+		{
+			Put(data.m_data, i);
+		}
+
+
+	}
 }

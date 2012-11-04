@@ -19,131 +19,134 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 
-public class LB {
+namespace zmq
+{
+	public class LB {
 
-    //  List of outbound pipes.
-    private List<Pipe> pipes;
+		//  List of outbound pipes.
+		private readonly List<Pipe> m_pipes;
     
-    //  Number of active pipes. All the active pipes are located at the
-    //  beginning of the pipes array.
-    private int active;
+		//  Number of active pipes. All the active pipes are located at the
+		//  beginning of the pipes array.
+		private int m_active;
 
-    //  Points to the last pipe that the most recent message was sent to.
-    private int current;
+		//  Points to the last pipe that the most recent message was sent to.
+		private int m_current;
 
-    //  True if last we are in the middle of a multipart message.
-    private bool more;
+		//  True if last we are in the middle of a multipart message.
+		private bool m_more;
 
-    //  True if we are dropping current message.
-    private bool dropping;
+		//  True if we are dropping current message.
+		private bool m_dropping;
     
-    public LB() {
-        active = 0;
-        current = 0;
-        more = false;
-        dropping = false;
+		public LB() {
+			m_active = 0;
+			m_current = 0;
+			m_more = false;
+			m_dropping = false;
         
-        pipes = new List<Pipe>();
-    }
+			m_pipes = new List<Pipe>();
+		}
 
-    public void attach (Pipe pipe_) 
-    {
-        pipes.Add (pipe_);
-        activated (pipe_);
-    }
-
-    public void terminated(Pipe pipe_) {
-        int index = pipes.IndexOf (pipe_);
-
-        //  If we are in the middle of multipart message and current pipe
-        //  have disconnected, we have to drop the remainder of the message.
-        if (index == current && more)
-            dropping = true;
-
-        //  Remove the pipe from the list; adjust number of active pipes
-        //  accordingly.
-        if (index < active) {
-            active--;
-            Utils.swap (pipes, index, active);
-            if (current == active)
-                current = 0;
-        }
-        pipes.Remove (pipe_);
-
-    }
-
-    public void activated(Pipe pipe_) {
-        //  Move the pipe to the list of active pipes.
-        Utils.swap (pipes, pipes.IndexOf (pipe_), active);
-        active++;
-    }
-
-		public bool send(Msg msg_, ZmqSendRecieveOptions flags_)
+		public void Attach (Pipe pipe) 
 		{
-        //  Drop the message if required. If we are at the end of the message
-        //  switch back to non-dropping mode.
-        if (dropping) {
+			m_pipes.Add (pipe);
+			Activated (pipe);
+		}
 
-            more = msg_.has_more();
-            dropping = more;
+		public void Terminated(Pipe pipe) {
+			int index = m_pipes.IndexOf (pipe);
 
-            msg_.close ();
-            return true;
-        }
+			//  If we are in the middle of multipart message and current pipe
+			//  have disconnected, we have to drop the remainder of the message.
+			if (index == m_current && m_more)
+				m_dropping = true;
 
-        while (active > 0) {
-            if (pipes[current].write (msg_))
-                break;
+			//  Remove the pipe from the list; adjust number of active pipes
+			//  accordingly.
+			if (index < m_active) {
+				m_active--;
+				Utils.Swap (m_pipes, index, m_active);
+				if (m_current == m_active)
+					m_current = 0;
+			}
+			m_pipes.Remove (pipe);
 
-            Debug.Assert(!more);
-            active--;
-            if (current < active)
-                Utils.swap (pipes, current, active);
-            else
-                current = 0;
-        }
+		}
 
-        //  If there are no pipes we cannot send the message.
-        if (active == 0) {
-            ZError.errno = ZError.EAGAIN;
-            return false;
-        }
+		public void Activated(Pipe pipe) {
+			//  Move the pipe to the list of active pipes.
+			Utils.Swap (m_pipes, m_pipes.IndexOf (pipe), m_active);
+			m_active++;
+		}
 
-        //  If it's part of the message we can fluch it downstream and
-        //  continue round-robinning (load balance).
-        more = msg_.has_more();
-        if (!more) {
-            pipes[current].flush();
-            if (active > 1)
-                current = (current + 1) % active;
-        }
+		public bool Send(Msg msg, ZmqSendRecieveOptions flags)
+		{
+			//  Drop the message if required. If we are at the end of the message
+			//  switch back to non-dropping mode.
+			if (m_dropping) {
 
-        return true;
-    }
+				m_more = msg.HasMore;
+				m_dropping = m_more;
 
-    public bool has_out() {
-        //  If one part of the message was already written we can definitely
-        //  write the rest of the message.
-        if (more)
-            return true;
+				msg.Close ();
+				return true;
+			}
 
-        while (active > 0) {
+			while (m_active > 0) {
+				if (m_pipes[m_current].write (msg))
+					break;
 
-            //  Check whether a pipe has room for another message.
-            if (pipes[current].check_write())
-                return true;
+				Debug.Assert(!m_more);
+				m_active--;
+				if (m_current < m_active)
+					Utils.Swap (m_pipes, m_current, m_active);
+				else
+					m_current = 0;
+			}
 
-            //  Deactivate the pipe.
-            active--;
-            Utils.swap (pipes, current, active);
-            if (current == active)
-                current = 0;
-        }
+			//  If there are no pipes we cannot send the message.
+			if (m_active == 0) {
+				ZError.ErrorNumber = ErrorNumber.EAGAIN;
+				return false;
+			}
 
-        return false;
-    }
+			//  If it's part of the message we can fluch it downstream and
+			//  continue round-robinning (load balance).
+			m_more = msg.HasMore;
+			if (!m_more) {
+				m_pipes[m_current].flush();
+				if (m_active > 1)
+					m_current = (m_current + 1) % m_active;
+			}
+
+			return true;
+		}
+
+		public bool HasOut() {
+			//  If one part of the message was already written we can definitely
+			//  write the rest of the message.
+			if (m_more)
+				return true;
+
+			while (m_active > 0) {
+
+				//  Check whether a pipe has room for another message.
+				if (m_pipes[m_current].check_write())
+					return true;
+
+				//  Deactivate the pipe.
+				m_active--;
+				Utils.Swap (m_pipes, m_current, m_active);
+				if (m_current == m_active)
+					m_current = 0;
+			}
+
+			return false;
+		}
+	}
 }

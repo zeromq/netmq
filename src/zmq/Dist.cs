@@ -19,180 +19,182 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
+
 using System.Collections.Generic;
 
-public class Dist {
-    //  List of outbound pipes.
-    //typedef array_t <zmq::pipe_t, 2> pipes_t;
-    private List<Pipe> pipes;
+namespace zmq
+{
+	public class Dist {
+		//  List of outbound pipes.		
+		private readonly List<Pipe> m_pipes;
 
-    //  Number of all the pipes to send the next message to.
-    private int matching;
+		//  Number of all the pipes to send the next message to.
+		private int m_matching;
 
-    //  Number of active pipes. All the active pipes are located at the
-    //  beginning of the pipes array. These are the pipes the messages
-    //  can be sent to at the moment.
-    private int active;
+		//  Number of active pipes. All the active pipes are located at the
+		//  beginning of the pipes array. These are the pipes the messages
+		//  can be sent to at the moment.
+		private int m_active;
 
-    //  Number of pipes eligible for sending messages to. This includes all
-    //  the active pipes plus all the pipes that we can in theory send
-    //  messages to (the HWM is not yet reached), but sending a message
-    //  to them would result in partial message being delivered, ie. message
-    //  with initial parts missing.
-    private int eligible;
+		//  Number of pipes eligible for sending messages to. This includes all
+		//  the active pipes plus all the pipes that we can in theory send
+		//  messages to (the HWM is not yet reached), but sending a message
+		//  to them would result in partial message being delivered, ie. message
+		//  with initial parts missing.
+		private int m_eligible;
 
-    //  True if last we are in the middle of a multipart message.
-    private bool more;
+		//  True if last we are in the middle of a multipart message.
+		private bool m_more;
     
-    public Dist() {
-    	matching = 0;
-    	active = 0;
-    	eligible = 0;
-    	more = false;
-    	pipes = new List<Pipe>();
-    }
+		public Dist() {
+			m_matching = 0;
+			m_active = 0;
+			m_eligible = 0;
+			m_more = false;
+			m_pipes = new List<Pipe>();
+		}
     
-    //  Adds the pipe to the distributor object.
-    public void attach (Pipe pipe_)
-    {   
-        //  If we are in the middle of sending a message, we'll add new pipe
-        //  into the list of eligible pipes. Otherwise we add it to the list
-        //  of active pipes. 
-        if (more) {
-            pipes.Add (pipe_); 
-            //pipes.swap (eligible, pipes.size () - 1);
-            Utils.swap(pipes, eligible, pipes.Count - 1);
-            eligible++;
-        }
-        else {
-            pipes.Add (pipe_);
-            //pipes.swap (active, pipes.size () - 1);
-            Utils.swap(pipes, active, pipes.Count - 1);
-            active++;
-            eligible++;
-        }
-    }
+		//  Adds the pipe to the distributor object.
+		public void Attach (Pipe pipe)
+		{   
+			//  If we are in the middle of sending a message, we'll add new pipe
+			//  into the list of eligible pipes. Otherwise we add it to the list
+			//  of active pipes. 
+			if (m_more) {
+				m_pipes.Add (pipe); 
+				//pipes.swap (eligible, pipes.size () - 1);
+				Utils.Swap(m_pipes, m_eligible, m_pipes.Count - 1);
+				m_eligible++;
+			}
+			else {
+				m_pipes.Add (pipe);
+				//pipes.swap (active, pipes.size () - 1);
+				Utils.Swap(m_pipes, m_active, m_pipes.Count - 1);
+				m_active++;
+				m_eligible++;
+			}
+		}
     
-    //  Mark the pipe as matching. Subsequent call to send_to_matching
-    //  will send message also to this pipe.
-    public void match(Pipe pipe_) {
+		//  Mark the pipe as matching. Subsequent call to send_to_matching
+		//  will send message also to this pipe.
+		public void Match(Pipe pipe) {
         
-        int idx = pipes.IndexOf (pipe_);
-        //  If pipe is already matching do nothing.
-        if (idx < matching)
-            return;
+			int idx = m_pipes.IndexOf (pipe);
+			//  If pipe is already matching do nothing.
+			if (idx < m_matching)
+				return;
 
-        //  If the pipe isn't eligible, ignore it.
-        if (idx >= eligible)
-            return;
+			//  If the pipe isn't eligible, ignore it.
+			if (idx >= m_eligible)
+				return;
 
-        //  Mark the pipe as matching.
-        Utils.swap( pipes, idx, matching);
-        matching++;
+			//  Mark the pipe as matching.
+			Utils.Swap( m_pipes, idx, m_matching);
+			m_matching++;
 
-    }
+		}
     
 
-    //  Mark all pipes as non-matching.
-    public void unmatch() {
-        matching = 0;
-    }
+		//  Mark all pipes as non-matching.
+		public void Unmatch() {
+			m_matching = 0;
+		}
 
 
-    //  Removes the pipe from the distributor object.
-    public void terminated(Pipe pipe_) {
-        //  Remove the pipe from the list; adjust number of matching, active and/or
-        //  eligible pipes accordingly.
-        if (pipes.IndexOf (pipe_) < matching)
-            matching--;
-        if (pipes.IndexOf (pipe_) < active)
-            active--;
-        if (pipes.IndexOf (pipe_) < eligible)
-            eligible--;
-        pipes.Remove(pipe_);
-    }
+		//  Removes the pipe from the distributor object.
+		public void Terminated(Pipe pipe) {
+			//  Remove the pipe from the list; adjust number of matching, active and/or
+			//  eligible pipes accordingly.
+			if (m_pipes.IndexOf (pipe) < m_matching)
+				m_matching--;
+			if (m_pipes.IndexOf (pipe) < m_active)
+				m_active--;
+			if (m_pipes.IndexOf (pipe) < m_eligible)
+				m_eligible--;
+			m_pipes.Remove(pipe);
+		}
 
-    //  Activates pipe that have previously reached high watermark.
-    public void activated(Pipe pipe_) {
-        //  Move the pipe from passive to eligible state.
-        Utils.swap (pipes, pipes.IndexOf (pipe_), eligible);
-        eligible++;
+		//  Activates pipe that have previously reached high watermark.
+		public void Activated(Pipe pipe) {
+			//  Move the pipe from passive to eligible state.
+			Utils.Swap (m_pipes, m_pipes.IndexOf (pipe), m_eligible);
+			m_eligible++;
 
-        //  If there's no message being sent at the moment, move it to
-        //  the active state.
-        if (!more) {
-            Utils.swap (pipes, eligible - 1, active);
-            active++;
-        }
+			//  If there's no message being sent at the moment, move it to
+			//  the active state.
+			if (!m_more) {
+				Utils.Swap (m_pipes, m_eligible - 1, m_active);
+				m_active++;
+			}
 
-    }
+		}
 
-    //  Send the message to all the outbound pipes.
-		public bool send_to_all(Msg msg_, ZmqSendRecieveOptions flags_)
+		//  Send the message to all the outbound pipes.
+		public bool SendToAll(Msg msg, ZmqSendRecieveOptions flags)
 		{
-        matching = active;
-        return send_to_matching (msg_, flags_);
-    }
+			m_matching = m_active;
+			return SendToMatching (msg, flags);
+		}
 
-    //  Send the message to the matching outbound pipes.
-		public bool send_to_matching(Msg msg_, ZmqSendRecieveOptions flags_)
+		//  Send the message to the matching outbound pipes.
+		public bool SendToMatching(Msg msg, ZmqSendRecieveOptions flags)
 		{
-        //  Is this end of a multipart message?
-        bool msg_more = msg_.has_more();
+			//  Is this end of a multipart message?
+			bool msg_more = msg.HasMore;
 
-        //  Push the message to matching pipes.
-        distribute (msg_, flags_);
+			//  Push the message to matching pipes.
+			Distribute (msg, flags);
 
-        //  If mutlipart message is fully sent, activate all the eligible pipes.
-        if (!msg_more)
-            active = eligible;
+			//  If mutlipart message is fully sent, activate all the eligible pipes.
+			if (!msg_more)
+				m_active = m_eligible;
 
-        more = msg_more;
+			m_more = msg_more;
 
-        return true;
+			return true;
 
-    }
+		}
 
-    //  Put the message to all active pipes.
-		private void distribute(Msg msg_, ZmqSendRecieveOptions flags_)
+		//  Put the message to all active pipes.
+		private void Distribute(Msg msg, ZmqSendRecieveOptions flags)
 		{
-        //  If there are no matching pipes available, simply drop the message.
-        if (matching == 0) {
-            return;
-        }
+			//  If there are no matching pipes available, simply drop the message.
+			if (m_matching == 0) {
+				return;
+			}
         
-        for (int i = 0; i < matching; ++i)
-            if(!write (pipes[i], msg_))
-                --i; //  Retry last write because index will have been swapped
-        return;
+			for (int i = 0; i < m_matching; ++i)
+				if(!Write (m_pipes[i], msg))
+					--i; //  Retry last write because index will have been swapped
+			return;
         
-    }
+		}
     
-    public bool has_out ()
-    {
-        return true;
-    }
+		public bool HasOut ()
+		{
+			return true;
+		}
 
-    //  Write the message to the pipe. Make the pipe inactive if writing
-    //  fails. In such a case false is returned.
-    private bool write (Pipe pipe_, Msg msg_)
-    {
-        if (!pipe_.write (msg_)) {
-            Utils.swap(pipes, pipes.IndexOf (pipe_), matching - 1);
-            matching--;
-            Utils.swap(pipes, pipes.IndexOf (pipe_), active - 1);
-            active--;
-            Utils.swap(pipes, active, eligible - 1);
-            eligible--;
-            return false;
-        }
-        if (!msg_.has_more())
-            pipe_.flush ();
-        return true;
-    }
-
-
+		//  Write the message to the pipe. Make the pipe inactive if writing
+		//  fails. In such a case false is returned.
+		private bool Write (Pipe pipe, Msg msg)
+		{
+			if (!pipe.write (msg)) {
+				Utils.Swap(m_pipes, m_pipes.IndexOf (pipe), m_matching - 1);
+				m_matching--;
+				Utils.Swap(m_pipes, m_pipes.IndexOf (pipe), m_active - 1);
+				m_active--;
+				Utils.Swap(m_pipes, m_active, m_eligible - 1);
+				m_eligible--;
+				return false;
+			}
+			if (!msg.HasMore)
+				pipe.flush ();
+			return true;
+		}
 
 
+
+
+	}
 }

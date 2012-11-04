@@ -23,359 +23,363 @@ using System;
 
 //  Base class for all objects that participate in inter-thread
 //  communication.
-public abstract class ZObject {
+namespace zmq
+{
+	public abstract class ZObject {
 
 
-    //  Context provides access to the global state.
-    private Ctx ctx;
+		//  Context provides access to the global state.
+		private readonly Ctx m_ctx;
 
-    //  Thread ID of the thread the object belongs to.
-    public int tid;
+		//  Thread ID of the thread the object belongs to.
+		private int m_tid;
     
-    protected ZObject(Ctx ctx, int tid) {
-    	this.ctx = ctx;
-    	this.tid = tid;
-    }
+		protected ZObject(Ctx ctx, int tid) {
+			this.m_ctx = ctx;
+			this.m_tid = tid;
+		}
     
-    protected ZObject (ZObject parent_) :this(parent_.ctx, parent_.tid){
+		protected ZObject (ZObject parent) :this(parent.m_ctx, parent.m_tid){
     	
-    }    
+		}    
     
-    protected int get_tid ()
-    {
-        return tid;
-    }
+		public int Tid
+		{
+			get { return m_tid; }
+		}
     
-    protected Ctx get_ctx ()
-    {
-        return ctx;
-    }
+		protected Ctx Ctx 
+		{
+			get { return m_ctx; }
+		}
     
-    public void process_command(Command cmd_) {
-        switch (cmd_.type) {
+		public void ProcessCommand(Command cmd) {
+			switch (cmd.CommandType) {
 
-        case Command.CommandType.activate_read:
-            process_activate_read ();
-            break;
+				case CommandType.ActivateRead:
+					ProcessActivateRead ();
+					break;
 
-        case Command.CommandType.activate_write:
-            process_activate_write ((long)cmd_.arg);
-            break;
+				case CommandType.ActivateWrite:
+					ProcessActivateWrite ((long)cmd.Arg);
+					break;
 
-        case Command.CommandType.stop:
-            process_stop ();
-            break;
+				case CommandType.Stop:
+					ProcessStop ();
+					break;
 
-        case Command.CommandType.plug:
-            process_plug ();
-            process_seqnum ();
-            break;
+				case CommandType.Plug:
+					ProcessPlug ();
+					ProcessSeqnum ();
+					break;
 
-        case Command.CommandType.own:
-            process_own ((Own)cmd_.arg);
-            process_seqnum ();
-            break;
+				case CommandType.Own:
+					ProcessOwn ((Own)cmd.Arg);
+					ProcessSeqnum ();
+					break;
 
-        case Command.CommandType.attach:
-            process_attach ((IEngine)cmd_.arg);
-            process_seqnum ();
-            break;
+				case CommandType.Attach:
+					ProcessAttach ((IEngine)cmd.Arg);
+					ProcessSeqnum ();
+					break;
 
-        case Command.CommandType.bind:
-            process_bind ((Pipe)cmd_.arg);
-            process_seqnum ();
-            break;
+				case CommandType.Bind:
+					ProcessBind ((Pipe)cmd.Arg);
+					ProcessSeqnum ();
+					break;
 
-        case Command.CommandType.hiccup:
-            process_hiccup (cmd_.arg);
-            break;
+				case CommandType.Hiccup:
+					ProcessHiccup (cmd.Arg);
+					break;
     
-        case Command.CommandType.pipe_term:
-            process_pipe_term ();
-            break;
+				case CommandType.PipeTerm:
+					ProcessPipeTerm ();
+					break;
     
-        case Command.CommandType.pipe_term_ack:
-            process_pipe_term_ack ();
-            break;
+				case CommandType.PipeTermAck:
+					ProcessPipeTermAck ();
+					break;
     
-        case Command.CommandType.term_req:
-            process_term_req ((Own)cmd_.arg);
-            break;
+				case CommandType.TermReq:
+					ProcessTermReq ((Own)cmd.Arg);
+					break;
     
-        case Command.CommandType.term:
-            process_term ((int)cmd_.arg);
-            break;
+				case CommandType.Term:
+					ProcessTerm ((int)cmd.Arg);
+					break;
     
-        case Command.CommandType.term_ack:
-            process_term_ack ();
-            break;
+				case CommandType.TermAck:
+					ProcessTermAck ();
+					break;
     
-        case Command.CommandType.reap:
-            process_reap ((SocketBase)cmd_.arg);
-            break;
+				case CommandType.Reap:
+					ProcessReap ((SocketBase)cmd.Arg);
+					break;
             
-        case Command.CommandType.reaped:
-            process_reaped ();
-            break;
+				case CommandType.Reaped:
+					ProcessReaped ();
+					break;
     
-        default:
-            throw new ArgumentException();
-        }
+				default:
+					throw new ArgumentException();
+			}
 
-    }
+		}
     
-    protected bool register_endpoint (String addr_, Ctx.Endpoint endpoint_)
-    {
-        return ctx.register_endpoint (addr_, endpoint_);
-    }
+		protected bool RegisterEndpoint (String addr, Ctx.Endpoint endpoint)
+		{
+			return m_ctx.RegisterEndpoint (addr, endpoint);
+		}
     
-    protected void unregister_endpoints (SocketBase socket_)
-    {
-        ctx.unregister_endpoints (socket_);
-    }
+		protected void UnregisterEndpoints (SocketBase socket)
+		{
+			m_ctx.UnregisterEndpoints (socket);
+		}
     
-    protected Ctx.Endpoint find_endpoint (String addr_)
-    {
-        return ctx.find_endpoint (addr_);
-    }
+		protected Ctx.Endpoint FindEndpoint (String addr)
+		{
+			return m_ctx.FindEndpoint (addr);
+		}
     
-    protected void destroy_socket (SocketBase socket_)
-    {
-        ctx.destroy_socket (socket_);
-    }
+		protected void DestroySocket (SocketBase socket)
+		{
+			m_ctx.DestroySocket (socket);
+		}
 
-    //  Chooses least loaded I/O thread.
-    protected IOThread choose_io_thread (long affinity_)
-    {
-        return ctx.choose_io_thread (affinity_);
-    }
+		//  Chooses least loaded I/O thread.
+		protected IOThread ChooseIOThread (long affinity)
+		{
+			return m_ctx.ChooseIOThread (affinity);
+		}
     
-    protected void send_stop ()
-    {
-        //  'stop' command goes always from administrative thread to
-        //  the current object. 
-        Command cmd = new Command(this, Command.CommandType.stop);
-        ctx.send_command (tid, cmd);
-    }
-    
-    
-    protected void send_plug (Own destination_) {
-        send_plug(destination_, true);
-    }
-
-    protected void send_plug (Own destination_, bool inc_seqnum_)
-    {
-        if (inc_seqnum_)
-            destination_.inc_seqnum ();
-
-        Command cmd = new Command(destination_, Command.CommandType.plug);
-        send_command (cmd);
-    }
+		protected void SendStop ()
+		{
+			//  'stop' command goes always from administrative thread to
+			//  the current object. 
+			Command cmd = new Command(this, CommandType.Stop);
+			m_ctx.SendCommand (m_tid, cmd);
+		}
     
     
-    protected void send_own (Own destination_, Own object_)
-    {
-        destination_.inc_seqnum ();
-        Command cmd = new Command(destination_, Command.CommandType.own, object_);
-        send_command (cmd);
-    }
+		protected void SendPlug (Own destination) {
+			SendPlug(destination, true);
+		}
+
+		protected void SendPlug (Own destination, bool incSeqnum)
+		{
+			if (incSeqnum)
+				destination.IncSeqnum ();
+
+			Command cmd = new Command(destination, CommandType.Plug);
+			SendCommand (cmd);
+		}
     
-    protected void send_attach (SessionBase destination_, IEngine engine_) {
-        send_attach(destination_, engine_, true);
-    }
     
-    protected void send_attach (SessionBase destination_,
-            IEngine engine_, bool inc_seqnum_)
-    {
-        if (inc_seqnum_)
-            destination_.inc_seqnum ();
-
-        Command cmd = new Command(destination_, Command.CommandType.attach, engine_);
-        send_command (cmd);
-    }
-
+		protected void SendOwn (Own destination, Own obj)
+		{
+			destination.IncSeqnum ();
+			Command cmd = new Command(destination, CommandType.Own, obj);
+			SendCommand (cmd);
+		}
     
-    protected void send_bind (Own destination_, Pipe pipe_)
-    {
-        send_bind(destination_, pipe_, true);
-    }
+		protected void SendAttach (SessionBase destination, IEngine engine) 
+		{
+			SendAttach(destination, engine, true);
+		}
     
-    protected void send_bind (Own destination_, Pipe pipe_,
-            bool inc_seqnum_)
-    {
-        if (inc_seqnum_)
-            destination_.inc_seqnum ();
+		protected void SendAttach (SessionBase destination,
+		                            IEngine engine, bool incSeqnum)
+		{
+			if (incSeqnum)
+				destination.IncSeqnum ();
 
-        Command cmd = new Command(destination_, Command.CommandType.bind, pipe_);
-        send_command (cmd);
-    }
-
-
-    protected void send_activate_read(Pipe destination_)
-    {
-        Command cmd = new Command(destination_, Command.CommandType.activate_read);
-        send_command (cmd);
-    }
-
-    protected void send_activate_write (Pipe destination_,
-            long msgs_read_)
-    {
-        Command cmd = new Command(destination_, Command.CommandType.activate_write, msgs_read_);
-        send_command (cmd);
-    }
-
-    protected void send_hiccup (Pipe destination_, Object pipe_)
-    {
-        Command cmd = new Command(destination_, Command.CommandType.hiccup, pipe_);
-        send_command (cmd);
-    }
+			Command cmd = new Command(destination, CommandType.Attach, engine);
+			SendCommand (cmd);
+		}
 
     
-    protected void send_pipe_term (Pipe destination_)
-    {
-        Command cmd = new Command(destination_, Command.CommandType.pipe_term);
-        send_command (cmd);
-    }
+		protected void SendBind (Own destination, Pipe pipe)
+		{
+			SendBind(destination, pipe, true);
+		}
+    
+		protected void SendBind (Own destination, Pipe pipe,
+		                          bool incSeqnum)
+		{
+			if (incSeqnum)
+				destination.IncSeqnum ();
+
+			Command cmd = new Command(destination, CommandType.Bind, pipe);
+			SendCommand (cmd);
+		}
 
 
-    protected void send_pipe_term_ack (Pipe destination_)
-    {
-        Command cmd = new Command(destination_, Command.CommandType.pipe_term_ack);
-        send_command (cmd);
-    }
+		protected void SendActivateRead(Pipe destination)
+		{
+			Command cmd = new Command(destination, CommandType.ActivateRead);
+			SendCommand (cmd);
+		}
+
+		protected void SendActivateWrite (Pipe destination,
+		                                    long msgsRead)
+		{
+			Command cmd = new Command(destination, CommandType.ActivateWrite, msgsRead);
+			SendCommand (cmd);
+		}
+
+		protected void SendHiccup (Pipe destination, Object pipe)
+		{
+			Command cmd = new Command(destination, CommandType.Hiccup, pipe);
+			SendCommand (cmd);
+		}
+
+    
+		protected void SendPipeTerm (Pipe destination)
+		{
+			Command cmd = new Command(destination, CommandType.PipeTerm);
+			SendCommand (cmd);
+		}
 
 
-    protected void send_term_req (Own destination_,
-            Own object_)
-    {
-        Command cmd = new Command(destination_, Command.CommandType.term_req, object_);
-        send_command (cmd);
-    }
+		protected void SendPipeTermAck (Pipe destination)
+		{
+			Command cmd = new Command(destination, CommandType.PipeTermAck);
+			SendCommand (cmd);
+		}
+
+
+		protected void SendTermReq (Own destination,
+		                              Own object_)
+		{
+			Command cmd = new Command(destination, CommandType.TermReq, object_);
+			SendCommand (cmd);
+		}
     
 
-    protected void send_term (Own destination_, int linger_)
-    {
-        Command cmd = new Command(destination_, Command.CommandType.term, linger_);
-        send_command (cmd);
+		protected void SendTerm (Own destination, int linger)
+		{
+			Command cmd = new Command(destination, CommandType.Term, linger);
+			SendCommand (cmd);
         
-    }
+		}
     
 
-    protected void send_term_ack (Own destination_)
-    {   
-        Command cmd = new Command(destination_, Command.CommandType.term_ack);
-        send_command (cmd);
-    }   
+		protected void SendTermAck (Own destination)
+		{   
+			Command cmd = new Command(destination, CommandType.TermAck);
+			SendCommand (cmd);
+		}   
 
-    protected void send_reap (SocketBase socket_)
-    {
-        Command cmd = new Command(ctx.get_reaper (), Command.CommandType.reap, socket_);
-        send_command (cmd);
-    }
+		protected void SendReap (SocketBase socket)
+		{
+			Command cmd = new Command(m_ctx.GetReaper (), CommandType.Reap, socket);
+			SendCommand (cmd);
+		}
     
     
-    protected void send_reaped ()
-    {
-        Command cmd = new Command(ctx.get_reaper(), Command.CommandType.reaped);
-        send_command (cmd);
-    }
+		protected void SendReaped ()
+		{
+			Command cmd = new Command(m_ctx.GetReaper(), CommandType.Reaped);
+			SendCommand (cmd);
+		}
 
 
 
-    protected void send_done ()
-    {
-        Command cmd = new Command(null, Command.CommandType.done);
-        ctx.send_command(Ctx.term_tid, cmd);
-    }
+		protected void SendDone ()
+		{
+			Command cmd = new Command(null, CommandType.Done);
+			m_ctx.SendCommand(Ctx.TermTid, cmd);
+		}
 
 
-    protected virtual void process_stop() {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessStop() {
+			throw new NotSupportedException();
+		}
     
-    protected virtual void process_plug() {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessPlug() {
+			throw new NotSupportedException();
+		}
 
 
-    protected virtual void process_own(Own obj)
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessOwn(Own obj)
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_attach(IEngine engine)
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessAttach(IEngine engine)
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_bind(Pipe pipe)
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessBind(Pipe pipe)
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_activate_read()
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessActivateRead()
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_activate_write(long msgs_read_)
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessActivateWrite(long msgs_read_)
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_hiccup(Object hiccup_pipe)
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessHiccup(Object hiccup_pipe)
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_pipe_term()
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessPipeTerm()
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_pipe_term_ack()
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessPipeTermAck()
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_term_req(Own obj)
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessTermReq(Own obj)
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_term(int linger)
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessTerm(int linger)
+		{
+			throw new NotSupportedException();
+		}
 
 
-    protected virtual void process_term_ack()
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessTermAck()
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_reap(SocketBase socket)
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessReap(SocketBase socket)
+		{
+			throw new NotSupportedException();
+		}
 
-    protected virtual void process_reaped()
-    {
-        throw new NotSupportedException();
-    }
+		protected virtual void ProcessReaped()
+		{
+			throw new NotSupportedException();
+		}
     
-    //  Special handler called after a command that requires a seqnum
-    //  was processed. The implementation should catch up with its counter
-    //  of processed commands here.
-    protected virtual void process_seqnum()
-    {
-        throw new NotSupportedException();
-    }
+		//  Special handler called after a command that requires a seqnum
+		//  was processed. The implementation should catch up with its counter
+		//  of processed commands here.
+		protected virtual void ProcessSeqnum()
+		{
+			throw new NotSupportedException();
+		}
     
     
-    private void send_command (Command cmd_)
-    {
-        ctx.send_command (cmd_.destination.get_tid (), cmd_);
-    }
+		private void SendCommand (Command cmd)
+		{
+			m_ctx.SendCommand (cmd.Destination.Tid , cmd);
+		}
 
+	}
 }

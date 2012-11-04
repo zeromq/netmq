@@ -17,124 +17,128 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
+using System.Net.Sockets;
 
+namespace zmq
+{
+	public class Reaper : ZObject , IPollEvents {
 
-public class Reaper : ZObject , IPollEvents {
+		//  Reaper thread accesses incoming commands via this mailbox.
+		private readonly Mailbox mailbox;
 
-    //  Reaper thread accesses incoming commands via this mailbox.
-    private Mailbox mailbox;
+		//  Handle associated with mailbox' file descriptor.
+		private readonly Socket m_mailboxHandle;
 
-    //  Handle associated with mailbox' file descriptor.
-    private System.Net.Sockets.Socket mailbox_handle;
+		//  I/O multiplexing is performed using a poller object.
+		private readonly Poller m_poller;
 
-    //  I/O multiplexing is performed using a poller object.
-    private Poller poller;
+		//  Number of sockets being reaped at the moment.
+		private int m_sockets;
 
-    //  Number of sockets being reaped at the moment.
-    private int sockets;
-
-    //  If true, we were already asked to terminate.
-    private volatile bool terminating;
+		//  If true, we were already asked to terminate.
+		private volatile bool m_terminating;
     
-    private String name;
+		private readonly String m_name;
 
-    public Reaper(Ctx ctx_, int tid_)
-        : base(ctx_, tid_)
-    {
+		public Reaper(Ctx ctx, int tid)
+			: base(ctx, tid)
+		{
 
-        sockets = 0;
-        terminating = false;
-        name = "reaper-" + tid_;
-        poller = new Poller(name);
+			m_sockets = 0;
+			m_terminating = false;
+			m_name = "reaper-" + tid;
+			m_poller = new Poller(m_name);
 
-        mailbox = new Mailbox(name);
+			mailbox = new Mailbox(m_name);
         
-        mailbox_handle = mailbox.get_fd();
-        poller.add_fd (mailbox_handle, this);
-        poller.set_pollin (mailbox_handle);
-    }
+			m_mailboxHandle = mailbox.FD;
+			m_poller.AddFD (m_mailboxHandle, this);
+			m_poller.SetPollin (m_mailboxHandle);
+		}
 
-    public void destroy () {
-        poller.destroy();
-        mailbox.close();
-    }
+		public void Destroy () {
+			m_poller.Destroy();
+			mailbox.Close();
+		}
     
-    public Mailbox get_mailbox() {
-        return mailbox;
-    }
+		public Mailbox Mailbox {
+			get { return mailbox; }
+		}
     
-    public void start() {
-        poller.start();
+		public void Start() {
+			m_poller.Start();
         
-    }
+		}
 
-    public void stop() {
-        if (!terminating)
-            send_stop ();
-    }
+		public void Stop() {
+			if (!m_terminating)
+				SendStop ();
+		}
     
-    public void in_event() {
+		public void InEvent() {
 
-        while (true) {
+			while (true) {
 
-            //  Get the next command. If there is none, exit.
-            Command cmd = mailbox.recv (0);
-            if (cmd == null)
-                break;
+				//  Get the next command. If there is none, exit.
+				Command cmd = mailbox.Recv (0);
+				if (cmd == null)
+					break;
                 
-            //  Process the command.
-            cmd.destination.process_command (cmd);
-        }
+				//  Process the command.
+				cmd.Destination.ProcessCommand (cmd);
+			}
 
-    }
+		}
     
-    public void out_event() {
-        throw new NotSupportedException();    
-    }
+		public void OutEvent() {
+			throw new NotSupportedException();    
+		}
     
-    public void timer_event(int id_) {
-        throw new NotSupportedException();
-    }
+		public void TimerEvent(int id) {
+			throw new NotSupportedException();
+		}
 
-    override
-    protected void process_stop ()
-    {
-        terminating = true;
+		override
+			protected void ProcessStop ()
+		{
+			m_terminating = true;
 
-        //  If there are no sockets being reaped finish immediately.
-        if (sockets == 0) {
-            send_done ();
-            poller.rm_fd (mailbox_handle);
-            poller.stop ();
-        }
-    }
+			//  If there are no sockets being reaped finish immediately.
+			if (m_sockets == 0) {
+				SendDone ();
+				m_poller.RemoveFD (m_mailboxHandle);
+				m_poller.Stop ();
+			}
+		}
     
-    override
-    protected void process_reap (SocketBase socket_)
-    {   
-        //  Add the socket to the poller.
-        socket_.start_reaping (poller);
+		override
+			protected void ProcessReap (SocketBase socket)
+		{   
+			//  Add the socket to the poller.
+			socket.StartReaping (m_poller);
 
-        ++sockets;
-    }
+			++m_sockets;
+		}
 
 
 
-    override
-    protected void process_reaped ()
-    {
-        --sockets;
+		override
+			protected void ProcessReaped ()
+		{
+			--m_sockets;
 
-        //  If reaped was already asked to terminate and there are no more sockets,
-        //  finish immediately.
-        if (sockets == 0 && terminating) {
-            send_done ();
-            poller.rm_fd (mailbox_handle);
-            poller.stop ();
+			//  If reaped was already asked to terminate and there are no more sockets,
+			//  finish immediately.
+			if (m_sockets == 0 && m_terminating) {
+				SendDone ();
+				m_poller.RemoveFD (m_mailboxHandle);
+				m_poller.Stop ();
             
-        }
-    }
+			}
+		}
 
 
+	}
 }

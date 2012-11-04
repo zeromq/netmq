@@ -16,102 +16,91 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using NetMQ;
-using System.IO;
 
-public class Utils {
+namespace zmq
+{
+	public static class Utils {
 
-    private static Random random = new Random();
+		private static readonly Random s_random = new Random();
 
-    public static int generate_random()
-    {
-        return random.Next();
-    }
+		public static int GenerateRandom()
+		{
+			return s_random.Next();
+		}
 
    
-    public static void tune_tcp_socket(Socket fd) 
-    {
-        //  Disable Nagle's algorithm. We are doing data batching on 0MQ level,
-        //  so using Nagle wouldn't improve throughput in anyway, but it would
-        //  hurt latency.
-        try {
-            fd.NoDelay = (true);
-        } catch (SocketException) {
-        }
-    }   
+		public static void TuneTcpSocket(Socket fd) 
+		{
+			//  Disable Nagle's algorithm. We are doing data batching on 0MQ level,
+			//  so using Nagle wouldn't improve throughput in anyway, but it would
+			//  hurt latency.
+			try {
+				fd.NoDelay = (true);
+			} catch (SocketException) {
+			}
+		}   
     
-    public static void tune_tcp_keepalives(Socket fd, int tcp_keepalive,
-            int tcp_keepalive_cnt, int tcp_keepalive_idle,
-            int tcp_keepalive_intvl) {
+		public static void TuneTcpKeepalives(Socket fd, int tcpKeepalive,
+		                                       int tcpKeepaliveCnt, int tcpKeepaliveIdle,
+		                                       int tcpKeepaliveIntvl) {
 
-        if (tcp_keepalive != -1) {
-            //fd.setKeepAlive(true);           
-        }
-    }
+			if (tcpKeepalive != -1) {
+				//fd.setKeepAlive(true);           
+			}
+		                                       }
     
-    public static void unblock_socket(System.Net.Sockets.Socket s) {
-        s.Blocking = false;
-    }
+		public static void UnblockSocket(Socket s) {
+			s.Blocking = false;
+		}
     
-    //@SuppressWarnings("unchecked")
-    public static T[] realloc<T>(T[] src, int size, bool ended) {
-        T[] dest;
+		//@SuppressWarnings("unchecked")
+		public static T[] Realloc<T>(T[] src, int size, bool ended) {
+			T[] dest;
         
-        if (size > src.Length) {
-            dest = new T[ size];
-            if (ended)
+			if (size > src.Length) {
+				dest = new T[ size];
+				if (ended)
 
-                Buffer.BlockCopy(src, 0, dest, 0, src.Length);
-            else
-                Buffer.BlockCopy(src, 0, dest, size - src.Length, src.Length);
-        } else if (size < src.Length) {
-            dest = new T[ size];
-            if (ended)
-                Buffer.BlockCopy(src, 0, dest, 0, size);
-            else
-                Buffer.BlockCopy(src, src.Length - size, dest, 0, size);
+					Buffer.BlockCopy(src, 0, dest, 0, src.Length);
+				else
+					Buffer.BlockCopy(src, 0, dest, size - src.Length, src.Length);
+			} else if (size < src.Length) {
+				dest = new T[ size];
+				if (ended)
+					Buffer.BlockCopy(src, 0, dest, 0, size);
+				else
+					Buffer.BlockCopy(src, src.Length - size, dest, 0, size);
 
-        } else {
-            dest = src;
-        }
-        return dest;
-    }
+			} else {
+				dest = src;
+			}
+			return dest;
+		}
 
-    public static void swap<T>(List<T> items, int index1_, int index2_)
-    {
-        if (index1_ == index2_)
-            return;
+		public static void Swap<T>(List<T> items, int index1, int index2) where T : class
+		{
+			if (index1 == index2)
+				return;
 
-        T item1 = items[index1_];
-        T item2 = items[index2_];
-        if (item1 != null)
-            items[index2_] = item1;
-        if (item2 != null)
-            items[index1_] = item2;
-    }
+			T item1 = items[index1];
+			T item2 = items[index2];
+			if (item1 != null)
+				items[index2] = item1;
+			if (item2 != null)
+				items[index1] = item2;
+		}
 
-    public static byte[] realloc(byte[] src, int size) {
+		public static byte[] Realloc(byte[] src, int size) {
 
-        byte[] dest = new byte[size];
-        if (src != null)
-            Buffer.BlockCopy(src, 0, dest, 0, src.Length);
+			byte[] dest = new byte[size];
+			if (src != null)
+				Buffer.BlockCopy(src, 0, dest, 0, src.Length);
         
-        return dest;
-    }    
-
-    //public static bool delete(File path) {
-    //    if (!path.exists())
-    //        return false; 
-    //    bool ret = true;
-    //    if (path.isDirectory()){
-    //        foreach (File f in path.listFiles()){
-    //            ret = ret && delete(f);
-    //        }
-    //    }
-    //    return ret && path.delete();
-    //}
-
+			return dest;
+		}    		
+	}
 }

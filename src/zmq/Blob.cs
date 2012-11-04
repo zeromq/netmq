@@ -17,77 +17,84 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 using System.Runtime.InteropServices;
 
-public class Blob {
+namespace zmq
+{
+	public class Blob
+	{
 
-    private byte[] buf;
-    private int hash = 0;
-    
-    public Blob(byte[] data_) {
-        buf = new byte[data_.Length];
-        data_.CopyTo(buf, 0);
-    }
-    
-    public Blob(int size) {
-       buf = new byte[size];
-    }
-    
-    //public Blob(ByteBuffer buf_) {
-    //   buf = Utils.bytes(buf_);
-    //}
+		private readonly byte[] m_buf;
+		private int m_hash = 0;
 
-    public Blob put(int pos, byte b) {
-        buf[pos] = b;
-        hash = 0;
-        return this;
-    }
-    
-    public Blob put(int pos, byte[] data) {
-        //System.arraycopy(data, 0, buf, pos, data.Length);
-        
-        for (int i = 0; i < data.Length; i++)
+		public Blob(byte[] data)
+		{
+			m_buf = new byte[data.Length];
+			data.CopyTo(m_buf, 0);
+		}
+
+		public Blob(int size)
+		{
+			m_buf = new byte[size];
+		}
+
+		public Blob Put(int pos, byte b)
+		{
+			m_buf[pos] = b;
+			m_hash = 0;
+			return this;
+		}
+
+		public Blob Put(int pos, byte[] data)
+		{
+
+			Buffer.BlockCopy(data, 0, m_buf, pos, data.Length);
+
+			m_hash = 0;
+			return this;
+		}
+
+		public int Size
+		{
+			get { return m_buf.Length; }
+		}
+
+		public byte[] Data
+		{
+			get { return m_buf; }
+		}
+
+		[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+		static extern int memcmp(byte[] b1, byte[] b2, long count);
+
+		public override bool Equals(Object t)
+		{
+
+			if (t is Blob)
 			{
-                buf[i+pos]= data[i];
+				Blob b = (Blob)t;
+				if (b.m_buf.Length != m_buf.Length)
+				{
+					return false;
+				}
+
+				return memcmp(m_buf, b.m_buf, m_buf.Length) == 0;
 			}
-        
-        hash = 0;
-        return this;
-    }
+			return false;
+		}
 
-    public int size() {
-        return buf.Length;
-    }
-
-    public byte[] data() {
-        return buf;
-    }
-
-    [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-    static extern int memcmp(byte[] b1, byte[] b2, long count);
-    
-    public override bool Equals(Object t) {
-
-        if (t is Blob)
-        {
-            Blob b = (Blob)t;
-            if (b.buf.Length != buf.Length)
-            {
-                return false;
-            }
-
-            return memcmp(buf, b.buf, buf.Length) == 0;
-        }
-            return false;
-    }
-    
-    public override int GetHashCode() {
-        if (hash == 0) {
-            foreach (byte b in buf) {
-                hash = 31 * hash + b;
-            }
-        }
-        return hash;
-    }
+		public override int GetHashCode()
+		{
+			if (m_hash == 0)
+			{
+				foreach (byte b in m_buf)
+				{
+					m_hash = 31 * m_hash + b;
+				}
+			}
+			return m_hash;
+		}
+	}
 }

@@ -20,26 +20,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-
 //  Abstract interface to be implemented by various engines.
-public interface IEngine {
+namespace zmq
+{
+	public interface IEngine {
 
-    //  Plug the engine to the session.
-    void plug(IOThread io_thread_, SessionBase session_);
+		//  Plug the engine to the session.
+		void Plug(IOThread ioThread, SessionBase session);
 
-    //  Terminate and deallocate the engine. Note that 'detached'
-    //  events are not fired on termination.
-    void terminate();
+		//  Terminate and deallocate the engine. Note that 'detached'
+		//  events are not fired on termination.
+		void Terminate();
 
 
-    //  This method is called by the session to signalise that more
-    //  messages can be written to the pipe.
-    void activate_in();
+		//  This method is called by the session to signalise that more
+		//  messages can be written to the pipe.
+		void ActivateIn();
     
-    //  This method is called by the session to signalise that there
-    //  are messages to send available.
-    void activate_out();
+		//  This method is called by the session to signalise that there
+		//  are messages to send available.
+		void ActivateOut();
 
 
+	}
 }

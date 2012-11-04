@@ -18,60 +18,63 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
+
 using System.Diagnostics;
 
-public class Pull : SocketBase {
+namespace zmq
+{
+	public class Pull : SocketBase {
 
-    public class PullSession : SessionBase {
-        public PullSession(IOThread io_thread_, bool connect_,
-            SocketBase socket_, Options options_,
-            Address addr_)
-            : base(io_thread_, connect_, socket_, options_, addr_)
-        {
+		public class PullSession : SessionBase {
+			public PullSession(IOThread ioThread, bool connect,
+			                   SocketBase socket, Options options,
+			                   Address addr)
+				: base(ioThread, connect, socket, options, addr)
+			{
             
-        }
-    }
+			}
+		}
     
-    //  Fair queueing object for inbound pipes.
-    private FQ fq;
+		//  Fair queueing object for inbound pipes.
+		private readonly FQ m_fq;
     
-    public Pull(Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_){
+		public Pull(Ctx parent, int tid, int sid) : base(parent, tid, sid){
 
-			options.SocketType = ZmqSocketType.ZMQ_PULL;
+			m_options.SocketType = ZmqSocketType.ZMQ_PULL;
         
-        fq = new FQ();
-    }
+			m_fq = new FQ();
+		}
 
-    override
-    protected void xattach_pipe(Pipe pipe_, bool icanhasall_) {
-        Debug.Assert(pipe_!=null);
-        fq.attach (pipe_);
-    }
+		override
+			protected void XAttachPipe(Pipe pipe, bool icanhasall) {
+			Debug.Assert(pipe!=null);
+			m_fq.Attach (pipe);
+			}
 
     
-    override
-    protected void xread_activated (Pipe pipe_)
-    {       
-        fq.activated (pipe_);
-    }   
+		override
+			protected void XReadActivated (Pipe pipe)
+		{       
+			m_fq.Activated (pipe);
+		}   
 
-    override
-    protected void xterminated(Pipe pipe_) {
-        fq.terminated (pipe_);
-    }
+		override
+			protected void XTerminated(Pipe pipe) {
+			m_fq.Terminated (pipe);
+			}
 
-    override
-		protected Msg xrecv(ZmqSendRecieveOptions flags_)
-    {
-        return fq.recv ();
-    }
+		override
+			protected Msg XRecv(ZmqSendRecieveOptions flags)
+		{
+			return m_fq.Recv ();
+		}
     
-    override
-    protected bool xhas_in ()
-    {
-        return fq.has_in ();
-    }       
+		override
+			protected bool XHasIn ()
+		{
+			return m_fq.HasIn ();
+		}       
 
 
+	}
 }

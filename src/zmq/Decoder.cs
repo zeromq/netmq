@@ -19,9 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-using zmq;
-
 //  Helper base class for decoders that know the amount of data to read
 //  in advance at any moment. Knowing the amount in advance is a property
 //  of the protocol used. 0MQ framing protocol is based size-prefixed
@@ -33,154 +30,157 @@ using zmq;
 //  This class , the state machine that parses the incoming buffer.
 //  Derived class should implement individual state machine actions.
 
-public class Decoder : DecoderBase {
+namespace zmq
+{
+	public class Decoder : DecoderBase {
     
-    private const int one_byte_size_ready = 0;
-    private const int eight_byte_size_ready = 1;
-    private const int flags_ready = 2;
-    private const int message_ready = 3;
+		private const int OneByteSizeReadyState = 0;
+		private const int EightByteSizeReadyState = 1;
+		private const int FlagsReadyState = 2;
+		private const int MessageReadyState = 3;
     
-    private ByteArraySegment tmpbuf;
+		private readonly ByteArraySegment m_tmpbuf;
     
-    private Msg in_progress;
-    private long maxmsgsize;
-    private IMsgSink msg_sink;
+		private Msg m_inProgress;
+		private readonly long m_maxmsgsize;
+		private IMsgSink m_msgSink;
 
-    public Decoder (int bufsize_, long maxmsgsize_) : base(bufsize_)
-    {
-        maxmsgsize = maxmsgsize_;
-        tmpbuf = new ByteArraySegment(new byte[8]);
+		public Decoder (int bufsize, long maxmsgsize) : base(bufsize)
+		{
+			m_maxmsgsize = maxmsgsize;
+			m_tmpbuf = new ByteArraySegment(new byte[8]);
            
-        //  At the beginning, read one byte and go to one_byte_size_ready state.
-        next_step (tmpbuf, 1, one_byte_size_ready);
-    }
+			//  At the beginning, read one byte and go to one_byte_size_ready state.
+			NextStep (m_tmpbuf, 1, OneByteSizeReadyState);
+		}
     
-    //  Set the receiver of decoded messages.    
-    public override void set_msg_sink(IMsgSink msg_sink_) 
-    {
-        msg_sink = msg_sink_;
-    }
+		//  Set the receiver of decoded messages.    
+		public override void SetMsgSink(IMsgSink msgSink) 
+		{
+			m_msgSink = msgSink;
+		}
 
-    protected override bool IsNext() {
-        switch(state) {
-        case one_byte_size_ready:
-            return is_one_byte_size_ready ();
-        case eight_byte_size_ready:
-            return is_eight_byte_size_ready ();
-        case flags_ready:
-            return is_flags_ready ();
-        case message_ready:
-            return is_message_ready ();
-        default:
-            return false;
-        }
-    }
+		protected override bool Next() {
+			switch(State) {
+				case OneByteSizeReadyState:
+					return OneByteSizeReady ();
+				case EightByteSizeReadyState:
+					return EightByteSizeReady ();
+				case FlagsReadyState:
+					return FlagsReady ();
+				case MessageReadyState:
+					return MessageReady ();
+				default:
+					return false;
+			}
+		}
 
-    private bool is_one_byte_size_ready() {
-        //  First byte of size is read. If it is 0xff read 8-byte size.
-        //  Otherwise allocate the buffer for message data and read the
-        //  message data into it.
-        byte first = tmpbuf[0];
-        if (first == 0xff) {
-            next_step (tmpbuf, 8, eight_byte_size_ready);
-        } else {
+		private bool OneByteSizeReady() {
+			//  First byte of size is read. If it is 0xff read 8-byte size.
+			//  Otherwise allocate the buffer for message data and read the
+			//  message data into it.
+			byte first = m_tmpbuf[0];
+			if (first == 0xff) {
+				NextStep (m_tmpbuf, 8, EightByteSizeReadyState);
+			} else {
 
-            //  There has to be at least one byte (the flags) in the message).
-            if (first == 0) {
-                decoding_error ();
-                return false;
-            }                       
+				//  There has to be at least one byte (the flags) in the message).
+				if (first == 0) {
+					DecodingError ();
+					return false;
+				}                       
 
-            //  in_progress is initialised at this point so in theory we should
-            //  close it before calling zmq_msg_init_size, however, it's a 0-byte
-            //  message and thus we can treat it as uninitialised...
-            if (maxmsgsize >= 0 && (long) (first -1) > maxmsgsize) {
-                decoding_error ();
-                return false;
+				//  in_progress is initialised at this point so in theory we should
+				//  close it before calling zmq_msg_init_size, however, it's a 0-byte
+				//  message and thus we can treat it as uninitialised...
+				if (m_maxmsgsize >= 0 && (long) (first -1) > m_maxmsgsize) {
+					DecodingError ();
+					return false;
 
-            }
-            else {
-                in_progress = new Msg(first-1);
-            }
+				}
+				else {
+					m_inProgress = new Msg(first-1);
+				}
 
-            next_step (tmpbuf,1, flags_ready);
-        }
-        return true;
-    }
+				NextStep (m_tmpbuf,1, FlagsReadyState);
+			}
+			return true;
+		}
     
-    private bool is_eight_byte_size_ready() {
-        //  8-byte payload length is read. Allocate the buffer
-        //  for message body and read the message data into it.
-        long payload_length = tmpbuf.GetLong(0);
+		private bool EightByteSizeReady() {
+			//  8-byte payload length is read. Allocate the buffer
+			//  for message body and read the message data into it.
+			long payloadLength = m_tmpbuf.GetLong(0);
         
-        //  There has to be at least one byte (the flags) in the message).
-        if (payload_length == 0) {
-            decoding_error ();
-            return false;
-        }
+			//  There has to be at least one byte (the flags) in the message).
+			if (payloadLength == 0) {
+				DecodingError ();
+				return false;
+			}
 
-        //  Message size must not exceed the maximum allowed size.
-        if (maxmsgsize >= 0 && payload_length - 1 > maxmsgsize) {
-            decoding_error ();
-            return false;
-        }
+			//  Message size must not exceed the maximum allowed size.
+			if (m_maxmsgsize >= 0 && payloadLength - 1 > m_maxmsgsize) {
+				DecodingError ();
+				return false;
+			}
 
-        //  Message size must fit within range of size_t data type.
-        if (payload_length - 1 > int.MaxValue) {
-            decoding_error ();
-            return false;
-        }
+			//  Message size must fit within range of size_t data type.
+			if (payloadLength - 1 > int.MaxValue) {
+				DecodingError ();
+				return false;
+			}
 
-        int msg_size =  (int)(payload_length - 1);
-        //  in_progress is initialized at this point so in theory we should
-        //  close it before calling init_size, however, it's a 0-byte
-        //  message and thus we can treat it as uninitialized...
-        in_progress = new Msg(msg_size);
+			int msgSize =  (int)(payloadLength - 1);
+			//  in_progress is initialized at this point so in theory we should
+			//  close it before calling init_size, however, it's a 0-byte
+			//  message and thus we can treat it as uninitialized...
+			m_inProgress = new Msg(msgSize);
         
-        next_step (tmpbuf, 1, flags_ready);
+			NextStep (m_tmpbuf, 1, FlagsReadyState);
         
-        return true;
+			return true;
 
-    }
+		}
     
-    private bool is_flags_ready() {
+		private bool FlagsReady() {
 
-        //  Store the flags from the wire into the message structure.
+			//  Store the flags from the wire into the message structure.
         
-        int first = tmpbuf[0];
+			int first = m_tmpbuf[0];
         
-        in_progress.SetFlags ((MsgFlags)first & MsgFlags.More);
+			m_inProgress.SetFlags ((MsgFlags)first & MsgFlags.More);
 
-        next_step (in_progress.get_data(),in_progress.size,message_ready);
+			NextStep (m_inProgress.Data,m_inProgress.Size,MessageReadyState);
 
-        return true;
-    }
+			return true;
+		}
     
-    private bool is_message_ready() {
-        //  Message is completely read. Push it further and start reading
-        //  new message. (in_progress is a 0-byte message after this point.)
+		private bool MessageReady() {
+			//  Message is completely read. Push it further and start reading
+			//  new message. (in_progress is a 0-byte message after this point.)
         
-        if (msg_sink == null)
-            return false;
+			if (m_msgSink == null)
+				return false;
         
-        bool rc = msg_sink.push_msg (in_progress);
-        if (!rc) {
-            return false;
-        }
+			bool rc = m_msgSink.PushMsg (m_inProgress);
+			if (!rc) {
+				return false;
+			}
         
-        next_step (tmpbuf, 1, one_byte_size_ready);
+			NextStep (m_tmpbuf, 1, OneByteSizeReadyState);
         
-        return true;
-    }
+			return true;
+		}
 
 
-    //  Returns true if there is a decoded message
-    //  waiting to be delivered to the session.
+		//  Returns true if there is a decoded message
+		//  waiting to be delivered to the session.
     
-    public override bool  stalled ()
-    {
-        return state == message_ready;
-    }
+		public override bool  Stalled ()
+		{
+			return State == MessageReadyState;
+		}
 
 
+	}
 }

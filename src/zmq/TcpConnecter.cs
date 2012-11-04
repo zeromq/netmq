@@ -18,317 +18,321 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 using System.Net.Sockets;
 using System.Diagnostics;
 
 //  If 'delay' is true connecter first waits for a while, then starts
 //  connection process.
-public class TcpConnecter : Own, IPollEvents
+namespace zmq
 {
+	public class TcpConnecter : Own, IPollEvents
+	{
 
-    //private static Logger LOG = LoggerFactory.getLogger(TcpConnecter.class);
+		//private static Logger LOG = LoggerFactory.getLogger(TcpConnecter.class);
 
-    //  ID of the timer used to delay the reconnection.
-    private static int reconnect_timer_id = 1;
+		//  ID of the timer used to delay the reconnection.
+		private const int ReconnectTimerId = 1;
 
-    private IOObject io_object;
+		private readonly IOObject m_ioObject;
 
-    //  Address to connect to. Owned by session_base_t.
-    private Address addr;
+		//  Address to connect to. Owned by session_base_t.
+		private readonly Address m_addr;
 
-    //  Underlying socket.
-    private Socket handle;
+		//  Underlying socket.
+		private Socket m_handle;
 
-    //  If true file descriptor is registered with the poller and 'handle'
-    //  contains valid value.
-    private bool handle_valid;
+		//  If true file descriptor is registered with the poller and 'handle'
+		//  contains valid value.
+		private bool m_handleValid;
 
-    //  If true, connecter is waiting a while before trying to connect.
-    private bool delayed_start;
+		//  If true, connecter is waiting a while before trying to connect.
+		private readonly bool m_delayedStart;
 
-    //  True iff a timer has been started.
-    private bool timer_started;
+		//  True iff a timer has been started.
+		private bool m_timerStarted;
 
-    //  Reference to the session we belong to.
-    private SessionBase session;
+		//  Reference to the session we belong to.
+		private readonly SessionBase m_session;
 
-    //  Current reconnect ivl, updated for backoff strategy
-    private int current_reconnect_ivl;
+		//  Current reconnect ivl, updated for backoff strategy
+		private int m_currentReconnectIvl;
 
-    // String representation of endpoint to connect to
-    private String endpoint;
+		// String representation of endpoint to connect to
+		private readonly String m_endpoint;
 
-    // Socket
-    private SocketBase socket;
+		// Socket
+		private readonly SocketBase m_socket;
 
-    public TcpConnecter(IOThread io_thread_,
-      SessionBase session_, Options options_,
-      Address addr_, bool delayed_start_)
-        : base(io_thread_, options_)
-    {
-
-
-        io_object = new IOObject(io_thread_);
-        addr = addr_;
-        handle = null;
-        handle_valid = false;
-        delayed_start = delayed_start_;
-        timer_started = false;
-        session = session_;
-        current_reconnect_ivl = options.ReconnectIvl;
-
-        Debug.Assert(addr != null);
-        endpoint = addr.ToString();
-        socket = session_.get_soket();
-    }
-
-    public override void destroy()
-    {
-        Debug.Assert(!timer_started);
-        Debug.Assert(!handle_valid);
-        Debug.Assert(handle == null);
-    }
+		public TcpConnecter(IOThread ioThread,
+		                    SessionBase session, Options options,
+		                    Address addr, bool delayedStart)
+			: base(ioThread, options)
+		{
 
 
-    protected override void process_plug()
-    {
-        io_object.set_handler(this);
-        if (delayed_start)
-            add_reconnect_timer();
-        else
-        {
-            start_connecting();
-        }
-    }
+			m_ioObject = new IOObject(ioThread);
+			m_addr = addr;
+			m_handle = null;
+			m_handleValid = false;
+			m_delayedStart = delayedStart;
+			m_timerStarted = false;
+			m_session = session;
+			m_currentReconnectIvl = m_options.ReconnectIvl;
+
+			Debug.Assert(m_addr != null);
+			m_endpoint = m_addr.ToString();
+			m_socket = session.Socket;
+		}
+
+		public override void Destroy()
+		{
+			Debug.Assert(!m_timerStarted);
+			Debug.Assert(!m_handleValid);
+			Debug.Assert(m_handle == null);
+		}
 
 
-    protected override void process_term(int linger_)
-    {
-        if (timer_started)
-        {
-            io_object.cancel_timer(reconnect_timer_id);
-            timer_started = false;
-        }
+		protected override void ProcessPlug()
+		{
+			m_ioObject.SetHandler(this);
+			if (m_delayedStart)
+				AddReconnectTimer();
+			else
+			{
+				StartConnecting();
+			}
+		}
 
-        if (handle_valid)
-        {
-            io_object.rm_fd(handle);
-            handle_valid = false;
-        }
 
-        if (handle != null)
-            close();
+		protected override void ProcessTerm(int linger)
+		{
+			if (m_timerStarted)
+			{
+				m_ioObject.CancelTimer(ReconnectTimerId);
+				m_timerStarted = false;
+			}
 
-        base.process_term(linger_);
-    }
+			if (m_handleValid)
+			{
+				m_ioObject.RmFd(m_handle);
+				m_handleValid = false;
+			}
 
-    public void in_event()
-    {
-        // connected but attaching to stream engine is not completed. do nothing
-        out_event();
-    }
+			if (m_handle != null)
+				Close();
 
-    public void out_event()
-    {
-        // connected but attaching to stream engine is not completed. do nothing
+			base.ProcessTerm(linger);
+		}
 
-        bool err = false;
-        Socket fd = null;
-        try
-        {
-            fd = connect();
-        }
-        //catch (ConnectException e) {
-        //    err = true;
-        //} 
-        catch (SocketException)
-        {
-            err = true;
-        }
-        //catch (IOException e) {
-        //    throw new ZError.IOException(e);
-        //}
+		public void InEvent()
+		{
+			// connected but attaching to stream engine is not completed. do nothing
+			OutEvent();
+		}
 
-        io_object.rm_fd(handle);
-        handle_valid = false;
+		public void OutEvent()
+		{
+			// connected but attaching to stream engine is not completed. do nothing
 
-        if (err)
-        {
-            //  Handle the error condition by attempt to reconnect.
-            close();
-            add_reconnect_timer();
-            return;
-        }
+			bool err = false;
+			Socket fd = null;
+			try
+			{
+				fd = Connect();
+			}
+				//catch (ConnectException e) {
+				//    err = true;
+				//} 
+			catch (SocketException)
+			{
+				err = true;
+			}
+			//catch (IOException e) {
+			//    throw new ZError.IOException(e);
+			//}
 
-        handle = null;
+			m_ioObject.RmFd(m_handle);
+			m_handleValid = false;
 
-        try
-        {
+			if (err)
+			{
+				//  Handle the error condition by attempt to reconnect.
+				Close();
+				AddReconnectTimer();
+				return;
+			}
 
-            Utils.tune_tcp_socket(fd);
-            Utils.tune_tcp_keepalives(fd, options.TcpKeepalive, options.TcpKeepaliveCnt, options.TcpKeepaliveIdle, options.TcpKeepaliveIntvl);
-        }
-        catch (SocketException)
-        {
-            throw new Exception();
-        }
+			m_handle = null;
 
-        //  Create the engine object for this connection.
-        StreamEngine engine = null;
-        try
-        {
-            engine = new StreamEngine(fd, options, endpoint);
-        }
-        catch (SocketException)
-        {
-            //LOG.error("Failed to initialize StreamEngine", e.getCause());
-            socket.event_connect_delayed(endpoint, ZError.errno);
-            return;
-        }
-        //alloc_Debug.Assert(engine);
+			try
+			{
 
-        //  Attach the engine to the corresponding session object.
-        send_attach(session, engine);
+				Utils.TuneTcpSocket(fd);
+				Utils.TuneTcpKeepalives(fd, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
+			}
+			catch (SocketException)
+			{
+				throw new Exception();
+			}
 
-        //  Shut the connecter down.
-        terminate();
+			//  Create the engine object for this connection.
+			StreamEngine engine;
+			try
+			{
+				engine = new StreamEngine(fd, m_options, m_endpoint);
+			}
+			catch (SocketException)
+			{
+				//LOG.error("Failed to initialize StreamEngine", e.getCause());
+				m_socket.EventConnectDelayed(m_endpoint, ZError.ErrorNumber);
+				return;
+			}
+			//alloc_Debug.Assert(engine);
 
-        socket.event_connected(endpoint, fd);
-    }
+			//  Attach the engine to the corresponding session object.
+			SendAttach(m_session, engine);
 
-    public void timer_event(int id_)
-    {
-        timer_started = false;
-        start_connecting();
-    }
+			//  Shut the connecter down.
+			Terminate();
 
-    //  Internal function to start the actual connection establishment.
-    private void start_connecting()
-    {
-        //  Open the connecting socket.
+			m_socket.EventConnected(m_endpoint, fd);
+		}
 
-        try
-        {
-            bool rc = open();
+		public void TimerEvent(int id)
+		{
+			m_timerStarted = false;
+			StartConnecting();
+		}
 
-            //  Connect may succeed in synchronous manner.
-            if (rc)
-            {
-                io_object.add_fd(handle);
-                handle_valid = true;
-                io_object.out_event();
-            }
+		//  Internal function to start the actual connection establishment.
+		private void StartConnecting()
+		{
+			//  Open the connecting socket.
 
-            //  Connection establishment may be delayed. Poll for its completion.
-            else
-            {
-                io_object.add_fd(handle);
-                handle_valid = true;
-                io_object.set_pollout(handle);
-                socket.event_connect_delayed(endpoint, ZError.errno);
-            }
-        }
-        catch (SocketException)
-        {
-            //  Handle any other error condition by eventual reconnect.
-            if (handle != null)
-                close();
-            add_reconnect_timer();
-        }
-    }
+			try
+			{
+				bool rc = Open();
 
-    //  Internal function to add a reconnect timer
-    private void add_reconnect_timer()
-    {
-        int rc_ivl = get_new_reconnect_ivl();
-        io_object.add_timer(rc_ivl, reconnect_timer_id);
-        socket.event_connect_retried(endpoint, rc_ivl);
-        timer_started = true;
-    }
+				//  Connect may succeed in synchronous manner.
+				if (rc)
+				{
+					m_ioObject.AddFd(m_handle);
+					m_handleValid = true;
+					m_ioObject.OutEvent();
+				}
 
-    //  Internal function to return a reconnect backoff delay.
-    //  Will modify the current_reconnect_ivl used for next call
-    //  Returns the currently used interval
-    private int get_new_reconnect_ivl()
-    {
-        //  The new interval is the current interval + random value.
-        int this_interval = current_reconnect_ivl +
-            (Utils.generate_random() % options.ReconnectIvl);
+					//  Connection establishment may be delayed. Poll for its completion.
+				else
+				{
+					m_ioObject.AddFd(m_handle);
+					m_handleValid = true;
+					m_ioObject.SetPollout(m_handle);
+					m_socket.EventConnectDelayed(m_endpoint, ZError.ErrorNumber);
+				}
+			}
+			catch (SocketException)
+			{
+				//  Handle any other error condition by eventual reconnect.
+				if (m_handle != null)
+					Close();
+				AddReconnectTimer();
+			}
+		}
 
-        //  Only change the current reconnect interval  if the maximum reconnect
-        //  interval was set and if it's larger than the reconnect interval.
-        if (options.ReconnectIvlMax > 0 &&
-            options.ReconnectIvlMax > options.ReconnectIvl)
-        {
+		//  Internal function to add a reconnect timer
+		private void AddReconnectTimer()
+		{
+			int rcIvl = GetNewReconnectIvl();
+			m_ioObject.AddTimer(rcIvl, ReconnectTimerId);
+			m_socket.EventConnectRetried(m_endpoint, rcIvl);
+			m_timerStarted = true;
+		}
 
-            //  Calculate the next interval
-            current_reconnect_ivl = current_reconnect_ivl * 2;
-            if (current_reconnect_ivl >= options.ReconnectIvlMax)
-            {
-                current_reconnect_ivl = options.ReconnectIvlMax;
-            }
-        }
-        return this_interval;
-    }
+		//  Internal function to return a reconnect backoff delay.
+		//  Will modify the current_reconnect_ivl used for next call
+		//  Returns the currently used interval
+		private int GetNewReconnectIvl()
+		{
+			//  The new interval is the current interval + random value.
+			int thisInterval = m_currentReconnectIvl +
+			                    (Utils.GenerateRandom() % m_options.ReconnectIvl);
 
-    //  Open TCP connecting socket. Returns -1 in case of error,
-    //  true if connect was successfull immediately. Returns false with
-    //  if async connect was launched.
-    private bool open()
-    {
-        Debug.Assert(handle == null);
+			//  Only change the current reconnect interval  if the maximum reconnect
+			//  interval was set and if it's larger than the reconnect interval.
+			if (m_options.ReconnectIvlMax > 0 &&
+			    m_options.ReconnectIvlMax > m_options.ReconnectIvl)
+			{
 
-        //  Create the socket.
-        handle = new Socket(addr.resolved.address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        handle.Blocking = false;
+				//  Calculate the next interval
+				m_currentReconnectIvl = m_currentReconnectIvl * 2;
+				if (m_currentReconnectIvl >= m_options.ReconnectIvlMax)
+				{
+					m_currentReconnectIvl = m_options.ReconnectIvlMax;
+				}
+			}
+			return thisInterval;
+		}
 
-        // Set the socket to non-blocking mode so that we get async connect().
-        //Utils.unblock_socket(handle);
+		//  Open TCP connecting socket. Returns -1 in case of error,
+		//  true if connect was successfull immediately. Returns false with
+		//  if async connect was launched.
+		private bool Open()
+		{
+			Debug.Assert(m_handle == null);
 
-        //  Connect to the remote peer.
-        try
-        {
-            handle.Connect(addr.resolved.address.Address.ToString(), addr.resolved.address.Port);
-        }
-        catch (SocketException ex)
-        {
-            if (ex.SocketErrorCode == SocketError.WouldBlock || ex.SocketErrorCode == SocketError.InProgress)
-            {
-                ZError.errno = ZError.EINPROGRESS;
-            }
+			//  Create the socket.
+			m_handle = new Socket(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+			m_handle.Blocking = false;
 
-            return false;
-        }
-        return true;
-    }
+			// Set the socket to non-blocking mode so that we get async connect().
+			//Utils.unblock_socket(handle);
 
-    //  Get the file descriptor of newly created connection. Returns
-    //  retired_fd if the connection was unsuccessfull.
-    private Socket connect()
-    {
-        bool finished = handle.Connected;
-        Debug.Assert(finished);
-        //SocketChannel ret = handle;
+			//  Connect to the remote peer.
+			try
+			{
+				m_handle.Connect(m_addr.Resolved.Address.Address.ToString(), m_addr.Resolved.Address.Port);
+			}
+			catch (SocketException ex)
+			{
+				if (ex.SocketErrorCode == SocketError.WouldBlock || ex.SocketErrorCode == SocketError.InProgress)
+				{
+					ZError.ErrorNumber = ErrorNumber.EINPROGRESS;
+				}
 
-        return handle;
-    }
+				return false;
+			}
+			return true;
+		}
 
-    //  Close the connecting socket.
-    private void close()
-    {
-        Debug.Assert(handle != null);
-        try
-        {
-            handle.Close();
-            socket.event_closed(endpoint, handle);
-            handle = null;
-        }
-        catch (SocketException)
-        {
-            //ZError.exc (e);
-            socket.event_close_failed(endpoint, ZError.errno);
-        }
+		//  Get the file descriptor of newly created connection. Returns
+		//  retired_fd if the connection was unsuccessfull.
+		private Socket Connect()
+		{
+			bool finished = m_handle.Connected;
+			Debug.Assert(finished);
+			//SocketChannel ret = handle;
 
-    }
+			return m_handle;
+		}
+
+		//  Close the connecting socket.
+		private void Close()
+		{
+			Debug.Assert(m_handle != null);
+			try
+			{
+				m_handle.Close();
+				m_socket.EventClosed(m_endpoint, m_handle);
+				m_handle = null;
+			}
+			catch (SocketException)
+			{
+				//ZError.exc (e);
+				m_socket.EventCloseFailed(m_endpoint, ZError.ErrorNumber);
+			}
+
+		}
+	}
 }

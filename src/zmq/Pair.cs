@@ -17,109 +17,112 @@
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/ 
-using System;
+*/
+
 using System.Diagnostics;
 
-public class Pair : SocketBase {
+namespace zmq
+{
+	public class Pair : SocketBase {
     
-    public class PairSession : SessionBase {
-        public PairSession(IOThread io_thread_, bool connect_,
-            SocketBase socket_, Options options_,
-            Address addr_)
-            : base(io_thread_, connect_, socket_, options_, addr_)
-        {
+		public class PairSession : SessionBase {
+			public PairSession(IOThread ioThread, bool connect,
+			                   SocketBase socket, Options options,
+			                   Address addr)
+				: base(ioThread, connect, socket, options, addr)
+			{
         
-        }
-    }
+			}
+		}
 
-    private Pipe pipe;
+		private Pipe m_pipe;
 
-    public Pair(Ctx parent_, int tid_, int sid_)
-        : base(parent_, tid_, sid_)
-    {
-			options.SocketType = ZmqSocketType.ZMQ_PAIR;
-	}
+		public Pair(Ctx parent, int tid, int sid)
+			: base(parent, tid, sid)
+		{
+			m_options.SocketType = ZmqSocketType.ZMQ_PAIR;
+		}
 
-	override
-	protected void xattach_pipe (Pipe pipe_, bool icanhasall_)
-	{     
-	    Debug.Assert(pipe_ != null);
+		override
+			protected void XAttachPipe (Pipe pipe, bool icanhasall)
+		{     
+			Debug.Assert(pipe != null);
 	          
-	    //  ZMQ_PAIR socket can only be connected to a single peer.
-	    //  The socket rejects any further connection requests.
-	    if (pipe == null)
-	        pipe = pipe_;
-	    else
-	        pipe_.terminate (false);
-	}
+			//  ZMQ_PAIR socket can only be connected to a single peer.
+			//  The socket rejects any further connection requests.
+			if (m_pipe == null)
+				m_pipe = pipe;
+			else
+				pipe.terminate (false);
+		}
 	
-	override
-	protected void xterminated (Pipe pipe_) {
-	    if (pipe_ == pipe)
-	        pipe = null;
+		override
+			protected void XTerminated (Pipe pipe) {
+			if (pipe == m_pipe)
+				m_pipe = null;
+			}
+
+		override
+			protected void XReadActivated(Pipe pipe) {
+			//  There's just one pipe. No lists of active and inactive pipes.
+			//  There's nothing to do here.
+			}
+
+    
+		override
+			protected void XWriteActivated (Pipe pipe)
+		{
+			//  There's just one pipe. No lists of active and inactive pipes.
+			//  There's nothing to do here.
+		}
+    
+		override
+			protected bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		{
+			if (m_pipe == null || !m_pipe.write (msg)) {
+				ZError.ErrorNumber = (ErrorNumber.EAGAIN);
+				return false;
+			}
+
+			if ((flags & ZmqSendRecieveOptions.ZMQ_SNDMORE) == 0)
+				m_pipe.flush ();
+
+			//  Detach the original message from the data buffer.
+
+			return true;
+		}
+
+		override
+			protected Msg XRecv(ZmqSendRecieveOptions flags)
+		{
+			//  Deallocate old content of the message.
+
+			Msg msg = null;
+			if (m_pipe == null || (msg = m_pipe.read ()) == null) {
+				ZError.ErrorNumber = (ErrorNumber.EAGAIN);
+				//  Initialise the output parameter to be a 0-byte message.
+				return null;
+			}
+			return msg;
+		}
+
+
+		override
+			protected bool XHasIn() {
+			if (m_pipe == null)
+				return false;
+
+			return m_pipe.check_read ();
+			}
+    
+		override
+			protected bool XHasOut ()
+		{
+			if (m_pipe == null)
+				return false;
+
+			return m_pipe.check_write ();
+		}
+
 	}
-
-    override
-    protected void xread_activated(Pipe pipe_) {
-        //  There's just one pipe. No lists of active and inactive pipes.
-        //  There's nothing to do here.
-    }
-
-    
-    override
-    protected void xwrite_activated (Pipe pipe_)
-    {
-        //  There's just one pipe. No lists of active and inactive pipes.
-        //  There's nothing to do here.
-    }
-    
-    override
-		protected bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
-    {
-        if (pipe == null || !pipe.write (msg_)) {
-            ZError.errno = (ZError.EAGAIN);
-            return false;
-        }
-
-				if ((flags_ & ZmqSendRecieveOptions.ZMQ_SNDMORE) == 0)
-            pipe.flush ();
-
-        //  Detach the original message from the data buffer.
-
-        return true;
-    }
-
-    override
-		protected Msg xrecv(ZmqSendRecieveOptions flags_)
-    {
-        //  Deallocate old content of the message.
-
-        Msg msg_ = null;
-        if (pipe == null || (msg_ = pipe.read ()) == null) {
-            ZError.errno = (ZError.EAGAIN);
-            //  Initialise the output parameter to be a 0-byte message.
-            return null;
-        }
-        return msg_;
-    }
-
-
-    override
-    protected bool xhas_in() {
-        if (pipe == null)
-            return false;
-
-        return pipe.check_read ();
-    }
-    
-    override
-    protected bool xhas_out ()
-    {
-        if (pipe == null)
-            return false;
-
-        return pipe.check_write ();
-    }
-
 }

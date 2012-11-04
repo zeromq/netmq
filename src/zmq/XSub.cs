@@ -19,223 +19,226 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
 
-public class XSub : SocketBase {
+namespace zmq
+{
+	public class XSub : SocketBase {
     
-    public  class XSubSession : SessionBase {
+		public  class XSubSession : SessionBase {
 
-        public XSubSession(IOThread io_thread_, bool connect_,
-                SocketBase socket_, Options options_, Address addr_) : 
-            base(io_thread_, connect_, socket_, options_, addr_) {
-            }
+			public XSubSession(IOThread ioThread, bool connect,
+			                   SocketBase socket, Options options, Address addr) : 
+			                   	base(ioThread, connect, socket, options, addr) {
+			                   	}
         
-    }
+		}
     
-    //  Fair queueing object for inbound pipes.
-    private FQ fq;
+		//  Fair queueing object for inbound pipes.
+		private readonly FQ m_fq;
 
-    //  Object for distributing the subscriptions upstream.
-    private Dist dist;
+		//  Object for distributing the subscriptions upstream.
+		private readonly Dist m_dist;
 
-    //  The repository of subscriptions.
-    private Trie subscriptions;
+		//  The repository of subscriptions.
+		private readonly Trie m_subscriptions;
 
-    //  If true, 'message' contains a matching message to return on the
-    //  next recv call.
-    private bool has_message;
-    private Msg message;
+		//  If true, 'message' contains a matching message to return on the
+		//  next recv call.
+		private bool m_hasMessage;
+		private Msg m_message;
 
-    //  If true, part of a multipart message was already received, but
-    //  there are following parts still waiting.
-    private bool more;
-    private static Trie.ITrieDelegate send_subscription;
+		//  If true, part of a multipart message was already received, but
+		//  there are following parts still waiting.
+		private bool m_more;
+		private static readonly Trie.TrieDelegate s_sendSubscription;
 
-    static XSub ()
-	{
-        send_subscription = (data_, size, arg_) => {
+		static XSub ()
+		{
+			s_sendSubscription = (data, size, arg) => {
             
  
                 
-                Pipe pipe = (Pipe) arg_;
+			                                           	Pipe pipe = (Pipe) arg;
 
-                //  Create the subsctription message.
-                Msg msg = new Msg(size + 1);
-                msg.put((byte)1);
-                msg.put(data_,1, size);
+			                                           	//  Create the subsctription message.
+			                                           	Msg msg = new Msg(size + 1);
+			                                           	msg.Put((byte)1);
+			                                           	msg.Put(data,1, size);
 
-                //  Send it to the pipe.
-                bool sent = pipe.write (msg);
-                //  If we reached the SNDHWM, and thus cannot send the subscription, drop
-                //  the subscription message instead. This matches the behaviour of
-                //  zmq_setsockopt(ZMQ_SUBSCRIBE, ...), which also drops subscriptions
-                //  when the SNDHWM is reached.
-                if (!sent)
-                    msg.close ();
+			                                           	//  Send it to the pipe.
+			                                           	bool sent = pipe.write (msg);
+			                                           	//  If we reached the SNDHWM, and thus cannot send the subscription, drop
+			                                           	//  the subscription message instead. This matches the behaviour of
+			                                           	//  zmq_setsockopt(ZMQ_SUBSCRIBE, ...), which also drops subscriptions
+			                                           	//  when the SNDHWM is reached.
+			                                           	if (!sent)
+			                                           		msg.Close ();
 
             
-        };
-    }
+			};
+		}
     
-    public XSub (Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_) {
+		public XSub (Ctx parent, int tid, int sid) : base(parent, tid, sid) {
 
-			options.SocketType = ZmqSocketType.ZMQ_XSUB;
-        has_message = false;
-        more = false;
+			m_options.SocketType = ZmqSocketType.ZMQ_XSUB;
+			m_hasMessage = false;
+			m_more = false;
         
-        options.Linger = 0;
-        fq = new FQ();
-        dist = new Dist();
-        subscriptions = new Trie();
+			m_options.Linger = 0;
+			m_fq = new FQ();
+			m_dist = new Dist();
+			m_subscriptions = new Trie();
         
         
-    }
+		}
         
-    protected override void xattach_pipe (Pipe pipe_, bool icanhasall_)
-    {
-        Debug.Assert(pipe_ != null);
-        fq.attach (pipe_);
-        dist.attach (pipe_);
-
-        //  Send all the cached subscriptions to the new upstream peer.
-        subscriptions.apply (send_subscription, pipe_);
-        pipe_.flush ();
-    }
-    
-    
-
-    protected override void xread_activated (Pipe pipe_) {
-        fq.activated (pipe_);
-    }
-    
-    protected override void xwrite_activated (Pipe pipe_)
-    {
-        dist.activated (pipe_);
-    }
-    
-    protected override void xterminated (Pipe pipe_)
-    {
-        fq.terminated (pipe_);
-        dist.terminated (pipe_);
-    }
-    
-    protected override void xhiccuped (Pipe pipe_)
-    {
-        //  Send all the cached subscriptions to the hiccuped pipe.
-        subscriptions.apply (send_subscription, pipe_);
-        pipe_.flush ();
-    }
-
-		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
-    {
-        byte[] data = msg_.get_data(); 
-        // Malformed subscriptions.
-        if (data.Length < 1 || (data[0] != 0 && data[0] != 1)) {
-            return false;
-        }
-        
-        // Process the subscription.
-        if (data[0] == 1) {
-            if (subscriptions.add (data , 1))
-                return dist.send_to_all (msg_, flags_);
-        }
-        else {
-            if (subscriptions.rm (data, 1))
-                return dist.send_to_all (msg_, flags_);
-        }
-
-        return true;
-    }
-
-    protected override bool xhas_out () {
-        //  Subscription can be added/removed anytime.
-        return true;
-    }
-
-		protected override Msg xrecv(ZmqSendRecieveOptions flags_)
+		protected override void XAttachPipe (Pipe pipe, bool icanhasall)
 		{
-        //  If there's already a message prepared by a previous call to zmq_poll,
-        //  return it straight ahead.
-        Msg msg_;
-        if (has_message) {
-            msg_ = new Msg(message);
-            has_message = false;
-            more = msg_.has_more();
-            return msg_;
-        }
+			Debug.Assert(pipe != null);
+			m_fq.Attach (pipe);
+			m_dist.Attach (pipe);
 
-        //  TODO: This can result in infinite loop in the case of continuous
-        //  stream of non-matching messages which breaks the non-blocking recv
-        //  semantics.
-        while (true) {
-
-            //  Get a message using fair queueing algorithm.
-            msg_ = fq.recv ();
-
-            //  If there's no message available, return immediately.
-            //  The same when error occurs.
-            if (msg_ == null)
-                return null;
-
-            //  Check whether the message matches at least one subscription.
-            //  Non-initial parts of the message are passed 
-            if (more || !options.Filter || match (msg_)) {
-                more = msg_.has_more();
-                return msg_;
-            }
-
-            //  Message doesn't match. Pop any remaining parts of the message
-            //  from the pipe.
-            while (msg_.has_more()) {
-                msg_ = fq.recv ();
-                Debug.Assert(msg_ != null);
-            }
-        }
-    }
+			//  Send all the cached subscriptions to the new upstream peer.
+			m_subscriptions.Apply (s_sendSubscription, pipe);
+			pipe.flush ();
+		}
     
-    protected override bool xhas_in () {
-        //  There are subsequent parts of the partly-read message available.
-        if (more)
-            return true;
+    
 
-        //  If there's already a message prepared by a previous call to zmq_poll,
-        //  return straight ahead.
-        if (has_message)
-            return true;
+		protected override void XReadActivated (Pipe pipe) {
+			m_fq.Activated (pipe);
+		}
+    
+		protected override void XWriteActivated (Pipe pipe)
+		{
+			m_dist.Activated (pipe);
+		}
+    
+		protected override void XTerminated (Pipe pipe)
+		{
+			m_fq.Terminated (pipe);
+			m_dist.Terminated (pipe);
+		}
+    
+		protected override void XHiccuped (Pipe pipe)
+		{
+			//  Send all the cached subscriptions to the hiccuped pipe.
+			m_subscriptions.Apply (s_sendSubscription, pipe);
+			pipe.flush ();
+		}
 
-        //  TODO: This can result in infinite loop in the case of continuous
-        //  stream of non-matching messages.
-        while (true) {
+		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		{
+			byte[] data = msg.Data; 
+			// Malformed subscriptions.
+			if (data.Length < 1 || (data[0] != 0 && data[0] != 1)) {
+				return false;
+			}
+        
+			// Process the subscription.
+			if (data[0] == 1) {
+				if (m_subscriptions.Add (data , 1))
+					return m_dist.SendToAll (msg, flags);
+			}
+			else {
+				if (m_subscriptions.Remove (data, 1))
+					return m_dist.SendToAll (msg, flags);
+			}
 
-            //  Get a message using fair queueing algorithm.
-            message = fq.recv ();
+			return true;
+		}
 
-            //  If there's no message available, return immediately.
-            //  The same when error occurs.
-            if (message == null) {
-                Debug.Assert(ZError.IsError(ZError.EAGAIN));
-                return false;
-            }
+		protected override bool XHasOut () {
+			//  Subscription can be added/removed anytime.
+			return true;
+		}
 
-            //  Check whether the message matches at least one subscription.
-            if (!options.Filter || match (message)) {
-                has_message = true;
-                return true;
-            }
+		protected override Msg XRecv(ZmqSendRecieveOptions flags)
+		{
+			//  If there's already a message prepared by a previous call to zmq_poll,
+			//  return it straight ahead.
+			Msg msg;
+			if (m_hasMessage) {
+				msg = new Msg(m_message);
+				m_hasMessage = false;
+				m_more = msg.HasMore;
+				return msg;
+			}
 
-            //  Message doesn't match. Pop any remaining parts of the message
-            //  from the pipe.
-            while (message.has_more()) {
-                message = fq.recv ();
-                Debug.Assert(message != null);
-            }
-        }
+			//  TODO: This can result in infinite loop in the case of continuous
+			//  stream of non-matching messages which breaks the non-blocking recv
+			//  semantics.
+			while (true) {
 
-    }
-    private bool match(Msg msg_) {
-        return subscriptions.check(msg_.get_data());
-    }
+				//  Get a message using fair queueing algorithm.
+				msg = m_fq.Recv ();
+
+				//  If there's no message available, return immediately.
+				//  The same when error occurs.
+				if (msg == null)
+					return null;
+
+				//  Check whether the message matches at least one subscription.
+				//  Non-initial parts of the message are passed 
+				if (m_more || !m_options.Filter || Match (msg)) {
+					m_more = msg.HasMore;
+					return msg;
+				}
+
+				//  Message doesn't match. Pop any remaining parts of the message
+				//  from the pipe.
+				while (msg.HasMore) {
+					msg = m_fq.Recv ();
+					Debug.Assert(msg != null);
+				}
+			}
+		}
+    
+		protected override bool XHasIn () {
+			//  There are subsequent parts of the partly-read message available.
+			if (m_more)
+				return true;
+
+			//  If there's already a message prepared by a previous call to zmq_poll,
+			//  return straight ahead.
+			if (m_hasMessage)
+				return true;
+
+			//  TODO: This can result in infinite loop in the case of continuous
+			//  stream of non-matching messages.
+			while (true) {
+
+				//  Get a message using fair queueing algorithm.
+				m_message = m_fq.Recv ();
+
+				//  If there's no message available, return immediately.
+				//  The same when error occurs.
+				if (m_message == null) {
+					Debug.Assert(ZError.IsError(ErrorNumber.EAGAIN));
+					return false;
+				}
+
+				//  Check whether the message matches at least one subscription.
+				if (!m_options.Filter || Match (m_message)) {
+					m_hasMessage = true;
+					return true;
+				}
+
+				//  Message doesn't match. Pop any remaining parts of the message
+				//  from the pipe.
+				while (m_message.HasMore) {
+					m_message = m_fq.Recv ();
+					Debug.Assert(m_message != null);
+				}
+			}
+
+		}
+
+		private bool Match(Msg msg) {
+			return m_subscriptions.Check(msg.Data);
+		}
 
     
+	}
 }

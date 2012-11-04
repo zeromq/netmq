@@ -22,67 +22,70 @@
 using System;
 using System.Text;
 
-public class Sub : XSub {
+namespace zmq
+{
+	public class Sub : XSub {
 
-    public class SubSession :XSub.XSubSession {
+		public class SubSession :XSub.XSubSession {
 
-        public SubSession(IOThread io_thread_, bool connect_,
-                SocketBase socket_, Options options_, Address addr_):base(io_thread_, connect_, socket_, options_, addr_) {
+			public SubSession(IOThread ioThread, bool connect,
+			                  SocketBase socket, Options options, Address addr):base(ioThread, connect, socket, options, addr) {
 
-        }
+			                  }
 
-    }
+		}
     
-    public Sub(Ctx parent_, int tid_, int sid_) :base(parent_, tid_, sid_){
-			options.SocketType = ZmqSocketType.ZMQ_SUB;
+		public Sub(Ctx parent, int tid, int sid) :base(parent, tid, sid){
+			m_options.SocketType = ZmqSocketType.ZMQ_SUB;
 
-        //  Switch filtering messages on (as opposed to XSUB which where the
-        //  filtering is off).
-        options.Filter = true;
-    }
+			//  Switch filtering messages on (as opposed to XSUB which where the
+			//  filtering is off).
+			m_options.Filter = true;
+		}
 
-		protected override bool xsetsockopt(ZmqSocketOptions option_, Object optval_)
-    {
-			if (option_ != ZmqSocketOptions.ZMQ_SUBSCRIBE && option_ != ZmqSocketOptions.ZMQ_UNSUBSCRIBE)
+		protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+		{
+			if (option != ZmqSocketOptions.ZMQ_SUBSCRIBE && option != ZmqSocketOptions.ZMQ_UNSUBSCRIBE)
 			{
-            ZError.errno = (ZError.EINVAL);
-            return false;
-        }
+				ZError.ErrorNumber = (ErrorNumber.EINVAL);
+				return false;
+			}
 
-        byte[] val;
+			byte[] val;
         
-        if (optval_ is String)
-            val =  Encoding.ASCII.GetBytes ((String)optval_);
-        else if (optval_ is byte[])
-            val = (byte[]) optval_;
-        else
-            throw new ArgumentException();
+			if (optval is String)
+				val =  Encoding.ASCII.GetBytes ((String)optval);
+			else if (optval is byte[])
+				val = (byte[]) optval;
+			else
+				throw new ArgumentException();
             
-        //  Create the subscription message.
-        Msg msg = new Msg(val.Length + 1);
-				if (option_ == ZmqSocketOptions.ZMQ_SUBSCRIBE)
-            msg.put((byte)1);
-				else if (option_ == ZmqSocketOptions.ZMQ_UNSUBSCRIBE)
-            msg.put((byte)0);
-        msg.put (val,1);
+			//  Create the subscription message.
+			Msg msg = new Msg(val.Length + 1);
+			if (option == ZmqSocketOptions.ZMQ_SUBSCRIBE)
+				msg.Put((byte)1);
+			else if (option == ZmqSocketOptions.ZMQ_UNSUBSCRIBE)
+				msg.Put((byte)0);
+			msg.Put (val,1);
 
-        //  Pass it further on in the stack.
-        bool rc = base.xsend (msg, 0);
-        return rc;
-    }
+			//  Pass it further on in the stack.
+			bool rc = base.XSend (msg, 0);
+			return rc;
+		}
 
-		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
-    {
-        //  Overload the XSUB's send.
-        ZError.errno = (ZError.ENOTSUP);
-        return false;
-    }
+		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		{
+			//  Overload the XSUB's send.
+			ZError.ErrorNumber = (ErrorNumber.ENOTSUP);
+			return false;
+		}
 
-    protected override bool xhas_out()
-    {
-        //  Overload the XSUB's send.
-        return false;
-    }
+		protected override bool XHasOut()
+		{
+			//  Overload the XSUB's send.
+			return false;
+		}
 
 
+	}
 }

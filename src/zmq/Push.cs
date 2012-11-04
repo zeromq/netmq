@@ -20,54 +20,55 @@
 */
 using System;
 using System.Diagnostics;
+using zmq;
 
 public class Push : SocketBase {
 
     public class PushSession : SessionBase {
-        public PushSession(IOThread io_thread_, bool connect_,
-            SocketBase socket_, Options options_,
-            Address addr_) : base(io_thread_, connect_, socket_, options_, addr_) {
+        public PushSession(IOThread ioThread, bool connect,
+            SocketBase socket, Options options,
+            Address addr) : base(ioThread, connect, socket, options, addr) {
         }
     }
     
     //  Load balancer managing the outbound pipes.
-    private LB lb;
+    private readonly LB lb;
     
-    public Push(Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_) {
+    public Push(Ctx parent, int tid, int sid) : base(parent, tid, sid) {
 
-			options.SocketType = ZmqSocketType.ZMQ_PUSH;
+			m_options.SocketType = ZmqSocketType.ZMQ_PUSH;
         
         lb = new LB();
     }
 
     override
-    protected void xattach_pipe(Pipe pipe_, bool icanhasall_) {
-        Debug.Assert(pipe_ != null);
-        lb.attach (pipe_);
+    protected void XAttachPipe(Pipe pipe, bool icanhasall) {
+        Debug.Assert(pipe != null);
+        lb.Attach (pipe);
     }
     
     override
-    protected void xwrite_activated (Pipe pipe_)
+    protected void XWriteActivated (Pipe pipe)
     {
-        lb.activated (pipe_);
+        lb.Activated (pipe);
     }
 
 
     override
-    protected void xterminated(Pipe pipe_) {
-        lb.terminated (pipe_);
+    protected void XTerminated(Pipe pipe) {
+        lb.Terminated (pipe);
     }
 
     override
-		protected bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
+		protected bool XSend(Msg msg, ZmqSendRecieveOptions flags)
     {
-        return lb.send (msg_, flags_);
+        return lb.Send (msg, flags);
     }
     
     override
-    protected bool xhas_out ()
+    protected bool XHasOut ()
     {
-        return lb.has_out ();
+        return lb.HasOut ();
     }
 
 }

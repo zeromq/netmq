@@ -18,107 +18,111 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 using System.Net;
 
-public class TcpAddress : Address.IZAddress {
+namespace zmq
+{
+	public class TcpAddress : Address.IZAddress {
 
-    public class TcpAddressMask : TcpAddress {
-        public bool match_address(IPEndPoint addr_) {
-            return address.Equals(addr_); 
-        }
-    }
+		public class TcpAddressMask : TcpAddress {
+			public bool MatchAddress(IPEndPoint addr) {
+				return Address.Equals(addr); 
+			}
+		}
 
-    //protected IPEndPoint address;
+		//protected IPEndPoint address;
     
-    public TcpAddress(String addr_) {
-        resolve(addr_, false);
-    }
-    public TcpAddress() {
-    }
+		public TcpAddress(String addr) {
+			Resolve(addr, false);
+		}
+		public TcpAddress() {
+		}
     
-    public override String ToString() {
-        if (address == null) {
-            return null;
-        }
+		public override String ToString() {
+			if (Address == null) {
+				return string.Empty;
+			}
 
-                IPEndPoint endpoint = (IPEndPoint)address;
+			IPEndPoint endpoint = Address;
         
-        if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6) {
-            return "tcp://[" + endpoint .AddressFamily.ToString() + "]:" + endpoint.Port;
-        } else {
-            return "tcp://" + endpoint.Address.ToString() + ":" + endpoint.Port;
-        }
-    }
+			if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6) {
+				return "tcp://[" + endpoint .AddressFamily.ToString() + "]:" + endpoint.Port;
+			} else {
+				return "tcp://" + endpoint.Address.ToString() + ":" + endpoint.Port;
+			}
+		}
     
 
-    public void resolve(String name_, bool ipv4only_) {
-        //  Find the ':' at end that separates address from the port number.
-        int delimiter = name_.LastIndexOf(':');
-        if (delimiter < 0) {
-            throw new ArgumentException(name_);
-        }
+		public void Resolve(String name, bool ip4Only) {
+			//  Find the ':' at end that separates address from the port number.
+			int delimiter = name.LastIndexOf(':');
+			if (delimiter < 0) {
+				throw new ArgumentException(name);
+			}
 
-        //  Separate the address/port.
-        String addr_str = name_.Substring(0, delimiter); 
-        String port_str = name_.Substring(delimiter+1);
+			//  Separate the address/port.
+			String addrStr = name.Substring(0, delimiter); 
+			String portStr = name.Substring(delimiter+1);
         
-        //  Remove square brackets around the address, if any.
-        if (addr_str.Length >= 2 && addr_str[0] == '[' &&
-              addr_str[addr_str.Length - 1] == ']')
-            addr_str = addr_str.Substring (1, addr_str.Length - 2);
+			//  Remove square brackets around the address, if any.
+			if (addrStr.Length >= 2 && addrStr[0] == '[' &&
+			    addrStr[addrStr.Length - 1] == ']')
+				addrStr = addrStr.Substring (1, addrStr.Length - 2);
 
-        int port;
-        //  Allow 0 specifically, to detect invalid port error in atoi if not
-        if (port_str.Equals("*") || port_str.Equals("0"))
-            //  Resolve wildcard to 0 to allow autoselection of port
-            port = 0;
-        else {
-            //  Parse the port number (0 is not a valid port).
-            port = Convert.ToInt32(port_str);
-            if (port == 0) {
-                throw new ArgumentException(name_);
-            }
-        }
+			int port;
+			//  Allow 0 specifically, to detect invalid port error in atoi if not
+			if (portStr.Equals("*") || portStr.Equals("0"))
+				//  Resolve wildcard to 0 to allow autoselection of port
+				port = 0;
+			else {
+				//  Parse the port number (0 is not a valid port).
+				port = Convert.ToInt32(portStr);
+				if (port == 0) {
+					throw new ArgumentException(name);
+				}
+			}
 
-        IPEndPoint addr_net = null;
+			IPEndPoint addrNet = null;
 
-        if (addr_str.Equals("*")) {
-            addr_str = "0.0.0.0";
-        }
-        //try {
-        //    for(InetAddress ia: IPEndPoint .getAllByName(addr_str)) {
-        //        if (ipv4only_ && (ia is Inet6Address)) {
-        //            continue;
-        //        }
-        //        addr_net = ia;
-        //        break;
-        //    }
-        //} catch (UnknownHostException e) {
-        //    throw new ArgumentException(e);
-        //}
+			if (addrStr.Equals("*")) {
+				addrStr = "0.0.0.0";
+			}
+			//try {
+			//    for(InetAddress ia: IPEndPoint .getAllByName(addr_str)) {
+			//        if (ipv4only_ && (ia is Inet6Address)) {
+			//            continue;
+			//        }
+			//        addr_net = ia;
+			//        break;
+			//    }
+			//} catch (UnknownHostException e) {
+			//    throw new ArgumentException(e);
+			//}
 
-        IPAddress ipAddress;
+			IPAddress ipAddress;
 
-        if (!IPAddress.TryParse(addr_str, out ipAddress))
-        {
-            throw new ArgumentException();
-        }
+			if (!IPAddress.TryParse(addrStr, out ipAddress))
+			{
+				throw new ArgumentException();
+			}
 
-        addr_net  = new IPEndPoint(ipAddress, port);
+			addrNet  = new IPEndPoint(ipAddress, port);
         
-        //if (addr_net == null) {
-        //    throw new ArgumentException(name_);
-        //}
+			//if (addr_net == null) {
+			//    throw new ArgumentException(name_);
+			//}
             
-        address = addr_net;
+			Address = addrNet;
 
-    }
+		}
 
-    public IPEndPoint address
-    {
-        get;
-        private set;
-    }
+		public IPEndPoint Address
+		{
+			get;
+			private set;
+		}
 
+	}
 }

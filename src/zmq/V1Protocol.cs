@@ -1,9 +1,10 @@
-using System;
-
-public class V1Protocol
+namespace zmq
 {
+	public static class V1Protocol
+	{
 
-    public static int MORE_FLAG = 1;
-    public static int LARGE_FLAG = 2;
+		public const int MoreFlag = 1;
+		public const int LargeFlag = 2;
 
+	}
 }

@@ -22,121 +22,126 @@
 using System;
 using System.Diagnostics;
 
-public class Rep : Router {
+namespace zmq
+{
+	public class Rep : Router {
 
-    public class RepSession : Router.RouterSession {
-        public RepSession(IOThread io_thread_, bool connect_,
-            SocketBase socket_, Options options_,
-            Address addr_) : base(io_thread_, connect_, socket_, options_, addr_)
-         {
-        }
-    }
-    //  If true, we are in process of sending the reply. If false we are
-    //  in process of receiving a request.
-    private bool sending_reply;
+		public class RepSession : Router.RouterSession {
+			public RepSession(IOThread ioThread, bool connect,
+			                  SocketBase socket, Options options,
+			                  Address addr) : base(ioThread, connect, socket, options, addr)
+			{
+			}
+		}
+		//  If true, we are in process of sending the reply. If false we are
+		//  in process of receiving a request.
+		private bool m_sendingReply;
 
-    //  If true, we are starting to receive a request. The beginning
-    //  of the request is the backtrace stack.
-    private bool request_begins;
+		//  If true, we are starting to receive a request. The beginning
+		//  of the request is the backtrace stack.
+		private bool m_requestBegins;
     
     
-    public Rep(Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_)
-    {
+		public Rep(Ctx parent, int tid, int sid) : base(parent, tid, sid)
+		{
         
-        sending_reply = false;
-        request_begins = true;
+			m_sendingReply = false;
+			m_requestBegins = true;
 
-				options.SocketType = ZmqSocketType.ZMQ_REP;
-    }
+			m_options.SocketType = ZmqSocketType.ZMQ_REP;
+		}
     
-    override
-		protected bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
-    {
-        //  If we are in the middle of receiving a request, we cannot send reply.
-        if (!sending_reply) {
-            throw new InvalidOperationException ("Cannot send another reply");
-        }
+		override
+			protected bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		{
+			//  If we are in the middle of receiving a request, we cannot send reply.
+			if (!m_sendingReply) {
+				throw new InvalidOperationException ("Cannot send another reply");
+			}
 
-        bool more = msg_.has_more();
+			bool more = msg.HasMore;
 
-        //  Push message to the reply pipe.
-        bool rc = base.xsend (msg_, flags_);
-        if (!rc)
-            return rc;
+			//  Push message to the reply pipe.
+			bool rc = base.XSend (msg, flags);
+			if (!rc)
+				return rc;
 
-        //  If the reply is complete flip the FSM back to request receiving state.
-        if (!more)
-            sending_reply = false;
+			//  If the reply is complete flip the FSM back to request receiving state.
+			if (!more)
+				m_sendingReply = false;
 
-        return true;
-    }
+			return true;
+		}
     
-    override
-		protected Msg xrecv(ZmqSendRecieveOptions flags_)
-    {
-        //  If we are in middle of sending a reply, we cannot receive next request.
-        if (sending_reply) {
-            throw new InvalidOperationException("Cannot receive another request");
-        }
+		override
+			protected Msg XRecv(ZmqSendRecieveOptions flags)
+		{
+			Msg msg;
 
-        //  First thing to do when receiving a request is to copy all the labels
-        //  to the reply pipe.
-        if (request_begins) {
-            while (true) {
-                Msg msg_ = base.xrecv (flags_);
-                if (msg_ == null)
-                    return null;
+			//  If we are in middle of sending a reply, we cannot receive next request.
+			if (m_sendingReply) {
+				throw new InvalidOperationException("Cannot receive another request");
+			}
+
+			//  First thing to do when receiving a request is to copy all the labels
+			//  to the reply pipe.
+			if (m_requestBegins) {
+				while (true) {
+					msg = base.XRecv (flags);
+					if (msg == null)
+						return null;
                 
-                if (msg_.has_more()) {
-                    //  Empty message part delimits the traceback stack.
-                    bool bottom = (msg_.size == 0);
+					if (msg.HasMore) {
+						//  Empty message part delimits the traceback stack.
+						bool bottom = (msg.Size == 0);
                     
-                    //  Push it to the reply pipe.
-                    bool rc = base.xsend (msg_, flags_);
-                    Debug.Assert(rc);
-                    if (bottom)
-                        break;
-                } else {
-                    //  If the traceback stack is malformed, discard anything
-                    //  already sent to pipe (we're at end of invalid message).
-                    base.rollback();
-                }
-            }
-            request_begins = false;
-        }
+						//  Push it to the reply pipe.
+						bool rc = base.XSend (msg, flags);
+						Debug.Assert(rc);
+						if (bottom)
+							break;
+					} else {
+						//  If the traceback stack is malformed, discard anything
+						//  already sent to pipe (we're at end of invalid message).
+						base.Rollback();
+					}
+				}
+				m_requestBegins = false;
+			}
 
-        //  Get next message part to return to the user.
-        Msg msg__ = base.xrecv (flags_);
-        if (msg__ == null)
-           return null;
+			//  Get next message part to return to the user.
+			msg = base.XRecv (flags);
+			if (msg == null)
+				return null;
 
-        //  If whole request is read, flip the FSM to reply-sending state.
-        if (!msg__.has_more()) {
-            sending_reply = true;
-            request_begins = true;
-        }
+			//  If whole request is read, flip the FSM to reply-sending state.
+			if (!msg.HasMore) {
+				m_sendingReply = true;
+				m_requestBegins = true;
+			}
 
-        return msg__;
-    }
+			return msg;
+		}
 
-    override
-    protected bool xhas_in ()
-    {
-        if (sending_reply)
-            return false;
+		override
+			protected bool XHasIn ()
+		{
+			if (m_sendingReply)
+				return false;
 
-        return base.xhas_in ();
-    }
+			return base.XHasIn ();
+		}
     
-    override
-    protected bool xhas_out ()
-    {
-        if (!sending_reply)
-            return false;
+		override
+			protected bool XHasOut ()
+		{
+			if (!m_sendingReply)
+				return false;
 
-        return base.xhas_out ();
-    }
+			return base.XHasOut ();
+		}
 
 
 
+	}
 }

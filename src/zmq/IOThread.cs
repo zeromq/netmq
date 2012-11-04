@@ -21,96 +21,102 @@
 
 using System;
 using System.Diagnostics;
+using System.Net.Sockets;
 
+namespace zmq
+{
+	public class IOThread : ZObject, IPollEvents {
 
-public class IOThread : ZObject, IPollEvents {
+		//  I/O thread accesses incoming commands via this mailbox.
+		private readonly Mailbox m_mailbox;
 
-    //  I/O thread accesses incoming commands via this mailbox.
-    private Mailbox mailbox;
+		//  Handle associated with mailbox' file descriptor.
+		private readonly Socket m_mailboxHandle;
 
-    //  Handle associated with mailbox' file descriptor.
-    private System.Net.Sockets.Socket mailbox_handle;
+		//  I/O multiplexing is performed using a poller object.
+		private readonly Poller m_poller;
 
-    //  I/O multiplexing is performed using a poller object.
-    private Poller poller;
+		readonly String m_name;
     
-    String name;
-    
-    public IOThread(Ctx ctx_, int tid_) :base(ctx_, tid_){
+		public IOThread(Ctx ctx, int tid) :base(ctx, tid){			
+
+			m_name = "iothread-" + tid;
+			m_poller = new Poller(m_name);
+
+			m_mailbox = new Mailbox(m_name);
+			m_mailboxHandle = m_mailbox.FD;
+			m_poller.AddFD (m_mailboxHandle, this);
+			m_poller.SetPollin (m_mailboxHandle);
         
-        name = "iothread-" + tid_;
-        poller = new Poller(name);
-
-        mailbox = new Mailbox(name);
-        mailbox_handle = mailbox.get_fd();
-        poller.add_fd (mailbox_handle, this);
-        poller.set_pollin (mailbox_handle);
-        
-    }
+		}
     
-    public void start() {
-        poller.start();
-    }
+		public void Start() {
+			m_poller.Start();
+		}
     
-    public void destroy() {
-        poller.destroy();
-        mailbox.close();
-    }
-    public void stop ()
-    {
-        send_stop ();
-    }
+		public void Destroy() {
+			m_poller.Destroy();
+			m_mailbox.Close();
+		}
+		public void Stop ()
+		{
+			SendStop ();
+		}
 
-    public Mailbox get_mailbox() {
-        return mailbox;
-    }
+		public Mailbox Mailbox {
+			get
+			{
+				return m_mailbox;
+			}
+		}
 
     
-    public int get_load ()
-    {
-        return poller.get_load ();
-    }
+		public int Load 
+		{
+			get { return m_poller.Load; }
+		}
 
-    public void in_event() {
-        //  TODO: Do we want to limit number of commands I/O thread can
-        //  process in a single go?
+		public void InEvent() {
+			//  TODO: Do we want to limit number of commands I/O thread can
+			//  process in a single go?
 
-        while (true) {
+			while (true) {
 
-            //  Get the next command. If there is none, exit.
-            Command cmd = mailbox.recv (0);
-            if (cmd == null)
-                break;
+				//  Get the next command. If there is none, exit.
+				Command cmd = m_mailbox.Recv (0);
+				if (cmd == null)
+					break;
 
-            //  Process the command.
+				//  Process the command.
             
-            cmd.destination.process_command (cmd);
-        }
+				cmd.Destination.ProcessCommand (cmd);
+			}
 
-    }
+		}
     
-    public virtual void out_event() {
-        throw new NotSupportedException();
-    }  
+		public virtual void OutEvent() {
+			throw new NotSupportedException();
+		}  
 
-    public virtual void timer_event(int id_)
-    {
-        throw new NotSupportedException();
-    }
+		public virtual void TimerEvent(int id)
+		{
+			throw new NotSupportedException();
+		}
 
 
-    public Poller get_poller() {
-        Debug.Assert(poller != null);
-        return poller;
-    }
+		public Poller GetPoller() {
+			Debug.Assert(m_poller != null);
+			return m_poller;
+		}
     
-    protected override void process_stop ()
-    {
-        poller.rm_fd (mailbox_handle);
+		protected override void ProcessStop ()
+		{
+			m_poller.RemoveFD (m_mailboxHandle);
         
-        poller.stop ();
+			m_poller.Stop ();
 
-    }
+		}
 
 
+	}
 }

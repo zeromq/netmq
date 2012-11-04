@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 
-namespace NetMQ
+namespace zmq
 {
     class AtomicInteger
     {
@@ -15,28 +11,28 @@ namespace NetMQ
             m_value = value;
         }
 
-        public int incrementAndGet()
+        public int IncrementAndGet()
         {
             return Interlocked.Increment(ref m_value);
         }
 
-        public int get()
+        public int Get()
         {
             Thread.MemoryBarrier();
             return  m_value;
         }
 
-        public void set(int value)
+        public void Set(int value)
         {
             Interlocked.Exchange(ref m_value, value);
         }
 
-        public int addAndGet(int amount)
+        public int AddAndGet(int amount)
         {
             return Interlocked.Add(ref m_value, amount); 
         }
 
-        internal bool compareAndSet(int expect, int update)
+        internal bool CompareAndSet(int expect, int update)
         {
             return Interlocked.CompareExchange(ref m_value, update, expect) == expect;
         }

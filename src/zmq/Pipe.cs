@@ -29,529 +29,532 @@ using System.Diagnostics;
 //  Note that pipe can be stored in three different arrays.
 //  The array of inbound pipes (1), the array of outbound pipes (2) and
 //  the generic array of pipes to deallocate (3).
-public class Pipe : ZObject {
+namespace zmq
+{
+	public class Pipe : ZObject {
 
-    //private static Logger LOG = LoggerFactory.getLogger(Pipe.class);
+		//private static Logger LOG = LoggerFactory.getLogger(Pipe.class);
     
-    public interface IPipeEvents {
+		public interface IPipeEvents {
 
-        void read_activated(Pipe pipe);
-        void write_activated(Pipe pipe);
-        void hiccuped(Pipe pipe);
-        void terminated(Pipe pipe);
+			void ReadActivated(Pipe pipe);
+			void WriteActivated(Pipe pipe);
+			void Hiccuped(Pipe pipe);
+			void Terminated(Pipe pipe);
         
 
-    }
-    //  Underlying pipes for both directions.
-    private YPipe<Msg> inpipe;
-    private YPipe<Msg> outpipe;
+		}
+		//  Underlying pipes for both directions.
+		private YPipe<Msg> m_inpipe;
+		private YPipe<Msg> m_outpipe;
 
-    //  Can the pipe be read from / written to?
-    private bool in_active;
-    private bool out_active;
+		//  Can the pipe be read from / written to?
+		private bool m_inActive;
+		private bool m_outActive;
 
-    //  High watermark for the outbound pipe.
-    private int hwm;
+		//  High watermark for the outbound pipe.
+		private readonly int m_hwm;
 
-    //  Low watermark for the inbound pipe.
-    private int lwm;
+		//  Low watermark for the inbound pipe.
+		private readonly int m_lwm;
 
-    //  Number of messages read and written so far.
-    private long msgs_read;
-    private long msgs_written;
+		//  Number of messages read and written so far.
+		private long m_msgsRead;
+		private long m_msgsWritten;
 
-    //  Last received peer's msgs_read. The actual number in the peer
-    //  can be higher at the moment.
-    private long peers_msgs_read;
+		//  Last received peer's msgs_read. The actual number in the peer
+		//  can be higher at the moment.
+		private long m_peersMsgsRead;
 
-    //  The pipe object on the other side of the pipepair.
-    private Pipe peer;
+		//  The pipe object on the other side of the pipepair.
+		private Pipe m_peer;
 
-    //  Sink to send events to.
-    private IPipeEvents sink;
+		//  Sink to send events to.
+		private IPipeEvents m_sink;
     
-    //  State of the pipe endpoint. Active is common state before any
-    //  termination begins. Delimited means that delimiter was read from
-    //  pipe before term command was received. Pending means that term
-    //  command was already received from the peer but there are still
-    //  pending messages to read. Terminating means that all pending
-    //  messages were already read and all we are waiting for is ack from
-    //  the peer. Terminated means that 'terminate' was explicitly called
-    //  by the user. Double_terminated means that user called 'terminate'
-    //  and then we've got term command from the peer as well.
-    enum State {
-        active,
-        delimited,
-        pending,
-        terminating,
-        terminated,
-        double_terminated
-    } ;
-    private State state;
+		//  State of the pipe endpoint. Active is common state before any
+		//  termination begins. Delimited means that delimiter was read from
+		//  pipe before term command was received. Pending means that term
+		//  command was already received from the peer but there are still
+		//  pending messages to read. Terminating means that all pending
+		//  messages were already read and all we are waiting for is ack from
+		//  the peer. Terminated means that 'terminate' was explicitly called
+		//  by the user. Double_terminated means that user called 'terminate'
+		//  and then we've got term command from the peer as well.
+		enum State {
+			Active,
+			Delimited,
+			Pending,
+			Terminating,
+			Terminated,
+			DoubleTerminated
+		} ;
+		private State m_state;
 
-    //  If true, we receive all the pending inbound messages before
-    //  terminating. If false, we terminate immediately when the peer
-    //  asks us to.
-    private bool delay;
+		//  If true, we receive all the pending inbound messages before
+		//  terminating. If false, we terminate immediately when the peer
+		//  asks us to.
+		private bool m_delay;
 
-    //  Identity of the writer. Used uniquely by the reader side.
-    private Blob identity;
-    
-    // JeroMQ only
-    private ZObject parent;
-    
-    //  Constructor is private. Pipe can only be created using
-    //  pipepair function.
-	private Pipe (ZObject parent_, YPipe<Msg> inpipe_, YPipe<Msg> outpipe_,
-		      int inhwm_, int outhwm_, bool delay_) : base(parent_){
-
-		inpipe = inpipe_;
-		outpipe = outpipe_;
-		in_active = true;
-		out_active = true;
-		hwm = outhwm_;
-		lwm = compute_lwm (inhwm_);
-		msgs_read = 0;
-		msgs_written = 0;
-		peers_msgs_read = 0;
-		peer = null ;
-		sink = null ;
-		state = State.active;
-		delay = delay_;
-		
-		parent = parent_;
-	}
-	
-	//  Create a pipepair for bi-directional transfer of messages.
-    //  First HWM is for messages passed from first pipe to the second pipe.
-    //  Second HWM is for messages passed from second pipe to the first pipe.
-    //  Delay specifies how the pipe behaves when the peer terminates. If true
-    //  pipe receives all the pending messages before terminating, otherwise it
-    //  terminates straight away.
-	public static void pipepair(ZObject[] parents_, Pipe[] pipes_, int[] hwms_,
-			bool[] delays_) {
-		
-	    //   Creates two pipe objects. These objects are connected by two ypipes,
-	    //   each to pass messages in one direction.
-	            
-		YPipe<Msg> upipe1 = new YPipe<Msg>(Config.message_pipe_granularity);
-		YPipe<Msg> upipe2 = new YPipe<Msg>(Config.message_pipe_granularity);
-	            
-	    pipes_ [0] = new Pipe(parents_ [0], upipe1, upipe2,
-	        hwms_ [1], hwms_ [0], delays_ [0]);
-	    pipes_ [1] = new Pipe(parents_ [1], upipe2, upipe1,
-	        hwms_ [0], hwms_ [1], delays_ [1]);
-	            
-	    pipes_ [0].set_peer (pipes_ [1]);
-	    pipes_ [1].set_peer (pipes_ [0]);
-
-	}
-	
-	//  Pipepair uses this function to let us know about
-    //  the peer pipe object.
-    private void set_peer (Pipe peer_)
-    {
-        //  Peer can be set once only.
-        Debug.Assert(peer_ != null);
-        peer = peer_;
-    }
-    
-    //  Specifies the object to send events to.
-    public void set_event_sink(IPipeEvents sink_) {
-        Debug.Assert(sink == null);
-        sink = sink_;
-    }
-    
-    //  Pipe endpoint can store an opaque ID to be used by its clients.
-    public void set_identity(Blob identity_) {
-        identity = identity_;
-    }
-    
-    public Blob get_identity() {
-        return identity;
-    }
-
-
-    //  Returns true if there is at least one message to read in the pipe.
-    public bool check_read() {
-        if (!in_active || (state != State.active && state != State.pending))
-            return false;
-
-        //  Check if there's an item in the pipe.
-        if (!inpipe.check_read ()) {
-            in_active = false;
-            return false;
-        }
-
-        //  If the next item in the pipe is message delimiter,
-        //  initiate termination process.
-        if (is_delimiter(inpipe.probe ())) {
-            Msg msg = inpipe.read ();
-            Debug.Assert(msg != null);
-            delimit ();
-            return false;
-        }
-
-        return true;
-    }
-    
-
-    //  Reads a message to the underlying pipe.
-    public Msg read()
-    {
-        if (!in_active || (state != State.active && state != State.pending))
-            return null;
-
-        Msg msg_ = inpipe.read ();
-
-        if (msg_ == null) {
-            in_active = false;
-            return null;
-        }
-
-        //  If delimiter was read, start termination process of the pipe.
-        if (msg_.is_delimiter ()) {
-            delimit ();
-            return null;
-        }
-
-        if (!msg_.has_more())
-            msgs_read++;
-
-        if (lwm > 0 && msgs_read % lwm == 0)
-            send_activate_write (peer, msgs_read);
-
-        return msg_;
-    }
-    
-    //  Checks whether messages can be written to the pipe. If writing
-    //  the message would cause high watermark the function returns false.
-    public bool check_write ()
-    {
-        if (!out_active || state != State.active)
-            return false;
-
-        bool full = hwm > 0 && msgs_written - peers_msgs_read == (long) (hwm);
-
-        if (full) {
-            out_active = false;
-            return false;
-        }
-
-        return true;
-    }
-
-    //  Writes a message to the underlying pipe. Returns false if the
-    //  message cannot be written because high watermark was reached.
-    public bool write (Msg msg_)
-    {
-        if (!check_write ())
-            return false;
-
-        bool more = msg_.has_more();
-        outpipe.write (msg_, more);
-        //if (LOG.isDebugEnabled()) {
-        //    LOG.debug(parent.ToString() + " write " + msg_);
-        //}
-
-        if (!more)
-            msgs_written++;
-
-        return true;
-    }
-
-
-    //  Remove unfinished parts of the outbound message from the pipe.
-    public void rollback ()
-    {
-        //  Remove incomplete message from the outbound pipe.
-        Msg msg;
-        if (outpipe!= null) {
-            while ((msg = outpipe.unwrite ()) != null) {
-							Debug.Assert((msg.flags & MsgFlags.More) != 0);
-                //msg.close ();
-            }
-        }
-    }
-    
-    //  Flush the messages downsteam.
-    public void flush ()
-    {
-        //  The peer does not exist anymore at this point.
-        if (state == State.terminating)
-            return;
-
-        if (outpipe != null && !outpipe.flush ()) {
-            send_activate_read (peer);
-        } 
-    }
-
-
-    override
-    protected void process_activate_read ()
-    {
-        if (!in_active && (state == State.active || state == State.pending)) {
-            in_active = true;
-            sink.read_activated (this);
-        }
-    }
-
-    override
-    protected void process_activate_write (long msgs_read_)
-    {
-        //  Remember the peers's message sequence number.
-        peers_msgs_read = msgs_read_;
-
-        if (!out_active && state == State.active) {
-            out_active = true;
-            sink.write_activated (this);
-        }
-    }
-
-
-    protected override void process_hiccup(Object pipe_)
-    {
-        //  Destroy old outpipe. Note that the read end of the pipe was already
-        //  migrated to this thread.
-        Debug.Assert(outpipe != null);
-        outpipe.flush ();
-        while (outpipe.read () !=null) {
-        }
-
-        //  Plug in the new outpipe.
-        Debug.Assert(pipe_ != null);
-        outpipe = (YPipe<Msg>) pipe_;
-        out_active = true;
-
-        //  If appropriate, notify the user about the hiccup.
-        if (state == State.active)
-            sink.hiccuped (this);
-    }
-    
-    override
-    protected void process_pipe_term ()
-    {
-        //  This is the simple case of peer-induced termination. If there are no
-        //  more pending messages to read, or if the pipe was configured to drop
-        //  pending messages, we can move directly to the terminating state.
-        //  Otherwise we'll hang up in pending state till all the pending messages
-        //  are sent.
-        if (state == State.active) {
-            if (!delay) {
-                state = State.terminating;
-                outpipe = null;
-                send_pipe_term_ack (peer);
-            }
-            else
-                state = State.pending;
-            return;
-        }
-
-        //  Delimiter happened to arrive before the term command. Now we have the
-        //  term command as well, so we can move straight to terminating state.
-        if (state == State.delimited) {
-            state = State.terminating;
-            outpipe = null;
-            send_pipe_term_ack (peer);
-            return;
-        }
-
-        //  This is the case where both ends of the pipe are closed in parallel.
-        //  We simply reply to the request by ack and continue waiting for our
-        //  own ack.
-        if (state == State.terminated) {
-            state = State.double_terminated;
-            outpipe = null;
-            send_pipe_term_ack (peer);
-            return;
-        }
-
-        //  pipe_term is invalid in other states.
-        Debug.Assert(false);
-    }
-    
-    override
-    protected void process_pipe_term_ack ()
-    {
-        //  Notify the user that all the references to the pipe should be dropped.
-        Debug.Assert(sink!=null);
-        sink.terminated (this);
-
-        //  In terminating and double_terminated states there's nothing to do.
-        //  Simply deallocate the pipe. In terminated state we have to ack the
-        //  peer before deallocating this side of the pipe. All the other states
-        //  are invalid.
-        if (state == State.terminated) {
-            outpipe = null;
-            send_pipe_term_ack (peer);
-        }
-        else
-            Debug.Assert(state == State.terminating || state == State.double_terminated);
-
-        //  We'll deallocate the inbound pipe, the peer will deallocate the outbound
-        //  pipe (which is an inbound pipe from its point of view).
-        //  First, delete all the unread messages in the pipe. We have to do it by
-        //  hand because msg_t doesn't have automatic destructor. Then deallocate
-        //  the ypipe itself.
-        while (inpipe.read () != null) {
-        }
+		//  Identity of the writer. Used uniquely by the reader side.
+		private Blob m_identity;
         
-        inpipe = null;
+		private readonly ZObject m_parent;
+    
+		//  Constructor is private. Pipe can only be created using
+		//  pipepair function.
+		private Pipe (ZObject parent, YPipe<Msg> inpipe, YPipe<Msg> outpipe,
+		              int inhwm, int outhwm, bool delay) : base(parent)
+		{
+			m_parent = parent;
+			m_inpipe = inpipe;
+			m_outpipe = outpipe;
+			m_inActive = true;
+			m_outActive = true;
+			m_hwm = outhwm;
+			m_lwm = compute_lwm (inhwm);
+			m_msgsRead = 0;
+			m_msgsWritten = 0;
+			m_peersMsgsRead = 0;
+			m_peer = null ;
+			m_sink = null ;
+			m_state = State.Active;
+			m_delay = delay;
+		
+			parent = parent;
+		}
+	
+		//  Create a pipepair for bi-directional transfer of messages.
+		//  First HWM is for messages passed from first pipe to the second pipe.
+		//  Second HWM is for messages passed from second pipe to the first pipe.
+		//  Delay specifies how the pipe behaves when the peer terminates. If true
+		//  pipe receives all the pending messages before terminating, otherwise it
+		//  terminates straight away.
+		public static void pipepair(ZObject[] parents_, Pipe[] pipes_, int[] hwms_,
+		                            bool[] delays_) {
+		
+			//   Creates two pipe objects. These objects are connected by two ypipes,
+			//   each to pass messages in one direction.
+	            
+			YPipe<Msg> upipe1 = new YPipe<Msg>(Config.MessagePipeGranularity);
+			YPipe<Msg> upipe2 = new YPipe<Msg>(Config.MessagePipeGranularity);
+	            
+			pipes_ [0] = new Pipe(parents_ [0], upipe1, upipe2,
+			                      hwms_ [1], hwms_ [0], delays_ [0]);
+			pipes_ [1] = new Pipe(parents_ [1], upipe2, upipe1,
+			                      hwms_ [0], hwms_ [1], delays_ [1]);
+	            
+			pipes_ [0].set_peer (pipes_ [1]);
+			pipes_ [1].set_peer (pipes_ [0]);
 
-        //  Deallocate the pipe object
-    }
+		                            }
+	
+		//  Pipepair uses this function to let us know about
+		//  the peer pipe object.
+		private void set_peer (Pipe peer_)
+		{
+			//  Peer can be set once only.
+			Debug.Assert(peer_ != null);
+			m_peer = peer_;
+		}
+    
+		//  Specifies the object to send events to.
+		public void set_event_sink(IPipeEvents sink_) {
+			Debug.Assert(m_sink == null);
+			m_sink = sink_;
+		}
+    
+		//  Pipe endpoint can store an opaque ID to be used by its clients.
+		public void set_identity(Blob identity_) {
+			m_identity = identity_;
+		}
+    
+		public Blob get_identity() {
+			return m_identity;
+		}
 
-    //  Ask pipe to terminate. The termination will happen asynchronously
-    //  and user will be notified about actual deallocation by 'terminated'
-    //  event. If delay is true, the pending messages will be processed
-    //  before actual shutdown.
-    public void terminate (bool delay_)
-    {
-        //  Overload the value specified at pipe creation.
-        delay = delay_;
 
-        //  If terminate was already called, we can ignore the duplicit invocation.
-        if (state == State.terminated || state == State.double_terminated)
-            return;
+		//  Returns true if there is at least one message to read in the pipe.
+		public bool check_read() {
+			if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
+				return false;
 
-        //  If the pipe is in the phase of async termination, it's going to
-        //  closed anyway. No need to do anything special here.
-        else if (state == State.terminating)
-            return;
+			//  Check if there's an item in the pipe.
+			if (!m_inpipe.CheckRead ()) {
+				m_inActive = false;
+				return false;
+			}
 
-        //  The simple sync termination case. Ask the peer to terminate and wait
-        //  for the ack.
-        else if (state == State.active) {
-            send_pipe_term (peer);
-            state = State.terminated;
-        }
+			//  If the next item in the pipe is message delimiter,
+			//  initiate termination process.
+			if (is_delimiter(m_inpipe.Probe ())) {
+				Msg msg = m_inpipe.Read ();
+				Debug.Assert(msg != null);
+				delimit ();
+				return false;
+			}
 
-        //  There are still pending messages available, but the user calls
-        //  'terminate'. We can act as if all the pending messages were read.
-        else if (state == State.pending && !delay) {
-            outpipe = null;
-            send_pipe_term_ack (peer);
-            state = State.terminating;
-        }
-
-        //  If there are pending messages still availabe, do nothing.
-        else if (state == State.pending) {
-        }
-
-        //  We've already got delimiter, but not term command yet. We can ignore
-        //  the delimiter and ack synchronously terminate as if we were in
-        //  active state.
-        else if (state == State.delimited) {
-            send_pipe_term (peer);
-            state = State.terminated;
-        }
-
-        //  There are no other states.
-        else
-            Debug.Assert(false);
-
-        //  Stop outbound flow of messages.
-        out_active = false;
-
-        if (outpipe != null) {
-
-            //  Drop any unfinished outbound messages.
-            rollback ();
-
-            //  Write the delimiter into the pipe. Note that watermarks are not
-            //  checked; thus the delimiter can be written even when the pipe is full.
-            
-            Msg msg = new Msg();
-            msg.init_delimiter ();
-            outpipe.write (msg, false);
-            flush ();
-            
-        }
-    }
+			return true;
+		}
     
 
-    //  Returns true if the message is delimiter; false otherwise.
-    private static bool is_delimiter(Msg msg_) {
-        return msg_.is_delimiter ();
-    }
+		//  Reads a message to the underlying pipe.
+		public Msg read()
+		{
+			if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
+				return null;
 
-	//  Computes appropriate low watermark from the given high watermark.
-	private static int compute_lwm (int hwm_)
-	{
-	    //  Compute the low water mark. Following point should be taken
-	    //  into consideration:
-	    //
-	    //  1. LWM has to be less than HWM.
-	    //  2. LWM cannot be set to very low value (such as zero) as after filling
-	    //     the queue it would start to refill only after all the messages are
-	    //     read from it and thus unnecessarily hold the progress back.
-	    //  3. LWM cannot be set to very high value (such as HWM-1) as it would
-	    //     result in lock-step filling of the queue - if a single message is
-	    //     read from a full queue, writer thread is resumed to write exactly one
-	    //     message to the queue and go back to sleep immediately. This would
-	    //     result in low performance.
-	    //
-	    //  Given the 3. it would be good to keep HWM and LWM as far apart as
-	    //  possible to reduce the thread switching overhead to almost zero,
-	    //  say HWM-LWM should be max_wm_delta.
-	    //
-	    //  That done, we still we have to account for the cases where
-	    //  HWM < max_wm_delta thus driving LWM to negative numbers.
-	    //  Let's make LWM 1/2 of HWM in such cases.
-	    int result = (hwm_ > Config.max_wm_delta * 2) ?
-	        hwm_ - Config.max_wm_delta : (hwm_ + 1) / 2;
+			Msg msg_ = m_inpipe.Read ();
 
-	    return result;
-	}
+			if (msg_ == null) {
+				m_inActive = false;
+				return null;
+			}
+
+			//  If delimiter was read, start termination process of the pipe.
+			if (msg_.IsDelimiter ) {
+				delimit ();
+				return null;
+			}
+
+			if (!msg_.HasMore)
+				m_msgsRead++;
+
+			if (m_lwm > 0 && m_msgsRead % m_lwm == 0)
+				SendActivateWrite (m_peer, m_msgsRead);
+
+			return msg_;
+		}
+    
+		//  Checks whether messages can be written to the pipe. If writing
+		//  the message would cause high watermark the function returns false.
+		public bool check_write ()
+		{
+			if (!m_outActive || m_state != State.Active)
+				return false;
+
+			bool full = m_hwm > 0 && m_msgsWritten - m_peersMsgsRead == (long) (m_hwm);
+
+			if (full) {
+				m_outActive = false;
+				return false;
+			}
+
+			return true;
+		}
+
+		//  Writes a message to the underlying pipe. Returns false if the
+		//  message cannot be written because high watermark was reached.
+		public bool write (Msg msg_)
+		{
+			if (!check_write ())
+				return false;
+
+			bool more = msg_.HasMore;
+			m_outpipe.Write (msg_, more);
+			//if (LOG.isDebugEnabled()) {
+			//    LOG.debug(parent.ToString() + " write " + msg_);
+			//}
+
+			if (!more)
+				m_msgsWritten++;
+
+			return true;
+		}
+
+
+		//  Remove unfinished parts of the outbound message from the pipe.
+		public void rollback ()
+		{
+			//  Remove incomplete message from the outbound pipe.
+			Msg msg;
+			if (m_outpipe!= null) {
+				while ((msg = m_outpipe.Unwrite ()) != null) {
+					Debug.Assert((msg.Flags & MsgFlags.More) != 0);
+					//msg.close ();
+				}
+			}
+		}
+    
+		//  Flush the messages downsteam.
+		public void flush ()
+		{
+			//  The peer does not exist anymore at this point.
+			if (m_state == State.Terminating)
+				return;
+
+			if (m_outpipe != null && !m_outpipe.Flush ()) {
+				SendActivateRead (m_peer);
+			} 
+		}
+
+
+		override
+			protected void ProcessActivateRead ()
+		{
+			if (!m_inActive && (m_state == State.Active || m_state == State.Pending)) {
+				m_inActive = true;
+				m_sink.ReadActivated (this);
+			}
+		}
+
+		override
+			protected void ProcessActivateWrite (long msgs_read_)
+		{
+			//  Remember the peers's message sequence number.
+			m_peersMsgsRead = msgs_read_;
+
+			if (!m_outActive && m_state == State.Active) {
+				m_outActive = true;
+				m_sink.WriteActivated (this);
+			}
+		}
+
+
+		protected override void ProcessHiccup(Object pipe_)
+		{
+			//  Destroy old outpipe. Note that the read end of the pipe was already
+			//  migrated to this thread.
+			Debug.Assert(m_outpipe != null);
+			m_outpipe.Flush ();
+			while (m_outpipe.Read () !=null) {
+			}
+
+			//  Plug in the new outpipe.
+			Debug.Assert(pipe_ != null);
+			m_outpipe = (YPipe<Msg>) pipe_;
+			m_outActive = true;
+
+			//  If appropriate, notify the user about the hiccup.
+			if (m_state == State.Active)
+				m_sink.Hiccuped (this);
+		}
+    
+		override
+			protected void ProcessPipeTerm ()
+		{
+			//  This is the simple case of peer-induced termination. If there are no
+			//  more pending messages to read, or if the pipe was configured to drop
+			//  pending messages, we can move directly to the terminating state.
+			//  Otherwise we'll hang up in pending state till all the pending messages
+			//  are sent.
+			if (m_state == State.Active) {
+				if (!m_delay) {
+					m_state = State.Terminating;
+					m_outpipe = null;
+					SendPipeTermAck (m_peer);
+				}
+				else
+					m_state = State.Pending;
+				return;
+			}
+
+			//  Delimiter happened to arrive before the term command. Now we have the
+			//  term command as well, so we can move straight to terminating state.
+			if (m_state == State.Delimited) {
+				m_state = State.Terminating;
+				m_outpipe = null;
+				SendPipeTermAck (m_peer);
+				return;
+			}
+
+			//  This is the case where both ends of the pipe are closed in parallel.
+			//  We simply reply to the request by ack and continue waiting for our
+			//  own ack.
+			if (m_state == State.Terminated) {
+				m_state = State.DoubleTerminated;
+				m_outpipe = null;
+				SendPipeTermAck (m_peer);
+				return;
+			}
+
+			//  pipe_term is invalid in other states.
+			Debug.Assert(false);
+		}
+    
+		override
+			protected void ProcessPipeTermAck ()
+		{
+			//  Notify the user that all the references to the pipe should be dropped.
+			Debug.Assert(m_sink!=null);
+			m_sink.Terminated (this);
+
+			//  In terminating and double_terminated states there's nothing to do.
+			//  Simply deallocate the pipe. In terminated state we have to ack the
+			//  peer before deallocating this side of the pipe. All the other states
+			//  are invalid.
+			if (m_state == State.Terminated) {
+				m_outpipe = null;
+				SendPipeTermAck (m_peer);
+			}
+			else
+				Debug.Assert(m_state == State.Terminating || m_state == State.DoubleTerminated);
+
+			//  We'll deallocate the inbound pipe, the peer will deallocate the outbound
+			//  pipe (which is an inbound pipe from its point of view).
+			//  First, delete all the unread messages in the pipe. We have to do it by
+			//  hand because msg_t doesn't have automatic destructor. Then deallocate
+			//  the ypipe itself.
+			while (m_inpipe.Read () != null) {
+			}
+        
+			m_inpipe = null;
+
+			//  Deallocate the pipe object
+		}
+
+		//  Ask pipe to terminate. The termination will happen asynchronously
+		//  and user will be notified about actual deallocation by 'terminated'
+		//  event. If delay is true, the pending messages will be processed
+		//  before actual shutdown.
+		public void terminate (bool delay_)
+		{
+			//  Overload the value specified at pipe creation.
+			m_delay = delay_;
+
+			//  If terminate was already called, we can ignore the duplicit invocation.
+			if (m_state == State.Terminated || m_state == State.DoubleTerminated)
+				return;
+
+				//  If the pipe is in the phase of async termination, it's going to
+				//  closed anyway. No need to do anything special here.
+			else if (m_state == State.Terminating)
+				return;
+
+				//  The simple sync termination case. Ask the peer to terminate and wait
+				//  for the ack.
+			else if (m_state == State.Active) {
+				SendPipeTerm (m_peer);
+				m_state = State.Terminated;
+			}
+
+				//  There are still pending messages available, but the user calls
+				//  'terminate'. We can act as if all the pending messages were read.
+			else if (m_state == State.Pending && !m_delay) {
+				m_outpipe = null;
+				SendPipeTermAck (m_peer);
+				m_state = State.Terminating;
+			}
+
+				//  If there are pending messages still availabe, do nothing.
+			else if (m_state == State.Pending) {
+			}
+
+				//  We've already got delimiter, but not term command yet. We can ignore
+				//  the delimiter and ack synchronously terminate as if we were in
+				//  active state.
+			else if (m_state == State.Delimited) {
+				SendPipeTerm (m_peer);
+				m_state = State.Terminated;
+			}
+
+				//  There are no other states.
+			else
+				Debug.Assert(false);
+
+			//  Stop outbound flow of messages.
+			m_outActive = false;
+
+			if (m_outpipe != null) {
+
+				//  Drop any unfinished outbound messages.
+				rollback ();
+
+				//  Write the delimiter into the pipe. Note that watermarks are not
+				//  checked; thus the delimiter can be written even when the pipe is full.
+            
+				Msg msg = new Msg();
+				msg.InitDelimiter ();
+				m_outpipe.Write (msg, false);
+				flush ();
+            
+			}
+		}
+    
+
+		//  Returns true if the message is delimiter; false otherwise.
+		private static bool is_delimiter(Msg msg_) {
+			return msg_.IsDelimiter ;
+		}
+
+		//  Computes appropriate low watermark from the given high watermark.
+		private static int compute_lwm (int hwm_)
+		{
+			//  Compute the low water mark. Following point should be taken
+			//  into consideration:
+			//
+			//  1. LWM has to be less than HWM.
+			//  2. LWM cannot be set to very low value (such as zero) as after filling
+			//     the queue it would start to refill only after all the messages are
+			//     read from it and thus unnecessarily hold the progress back.
+			//  3. LWM cannot be set to very high value (such as HWM-1) as it would
+			//     result in lock-step filling of the queue - if a single message is
+			//     read from a full queue, writer thread is resumed to write exactly one
+			//     message to the queue and go back to sleep immediately. This would
+			//     result in low performance.
+			//
+			//  Given the 3. it would be good to keep HWM and LWM as far apart as
+			//  possible to reduce the thread switching overhead to almost zero,
+			//  say HWM-LWM should be max_wm_delta.
+			//
+			//  That done, we still we have to account for the cases where
+			//  HWM < max_wm_delta thus driving LWM to negative numbers.
+			//  Let's make LWM 1/2 of HWM in such cases.
+			int result = (hwm_ > Config.MaxWatermarkDelta * 2) ?
+			                                                   	hwm_ - Config.MaxWatermarkDelta : (hwm_ + 1) / 2;
+
+			return result;
+		}
 	
 
-    //  Handler for delimiter read from the pipe.
-	private void delimit ()
-	{
-	    if (state == State.active) {
-	        state = State.delimited;
-	        return;
-	    }
+		//  Handler for delimiter read from the pipe.
+		private void delimit ()
+		{
+			if (m_state == State.Active) {
+				m_state = State.Delimited;
+				return;
+			}
 
-	    if (state == State.pending) {
-	        outpipe = null;
-	        send_pipe_term_ack (peer);
-	        state = State.terminating;
-	        return;
-	    }
+			if (m_state == State.Pending) {
+				m_outpipe = null;
+				SendPipeTermAck (m_peer);
+				m_state = State.Terminating;
+				return;
+			}
 
-	    //  Delimiter in any other state is invalid.
-	    Debug.Assert(false);
-	}
+			//  Delimiter in any other state is invalid.
+			Debug.Assert(false);
+		}
 
  
-    //  Temporaraily disconnects the inbound message stream and drops
-    //  all the messages on the fly. Causes 'hiccuped' event to be generated
-    //  in the peer.
-    public void hiccup() {
-        //  If termination is already under way do nothing.
-        if (state != State.active)
-            return;
+		//  Temporaraily disconnects the inbound message stream and drops
+		//  all the messages on the fly. Causes 'hiccuped' event to be generated
+		//  in the peer.
+		public void hiccup() {
+			//  If termination is already under way do nothing.
+			if (m_state != State.Active)
+				return;
 
-        //  We'll drop the pointer to the inpipe. From now on, the peer is
-        //  responsible for deallocating it.
-        inpipe = null;
+			//  We'll drop the pointer to the inpipe. From now on, the peer is
+			//  responsible for deallocating it.
+			m_inpipe = null;
 
-        //  Create new inpipe.
-        inpipe = new YPipe<Msg>(Config.message_pipe_granularity);
-        in_active = true;
+			//  Create new inpipe.
+			m_inpipe = new YPipe<Msg>(Config.MessagePipeGranularity);
+			m_inActive = true;
 
-        //  Notify the peer about the hiccup.
-        send_hiccup (peer, inpipe);
+			//  Notify the peer about the hiccup.
+			SendHiccup (m_peer, m_inpipe);
 
-    }
+		}
 
 
 
     
-    public override String ToString() {
-        return base.ToString() + "[" + parent + "]";
-    }
+		public override String ToString() {
+			return base.ToString() + "[" + m_parent + "]";
+		}
 
 
+	}
 }

@@ -18,110 +18,114 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 using System.Diagnostics;
 
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
-public class Mailbox {
+namespace zmq
+{
+	public class Mailbox {
 
-    //private static Logger LOG = LoggerFactory.getLogger(Mailbox.class);
+		//private static Logger LOG = LoggerFactory.getLogger(Mailbox.class);
     
-    //  The pipe to store actual commands.
-    private YPipe<Command> cpipe;
+		//  The pipe to store actual commands.
+		private readonly YPipe<Command> m_cpipe;
 
-    //  Signaler to pass signals from writer thread to reader thread.
-    private Signaler signaler;
+		//  Signaler to pass signals from writer thread to reader thread.
+		private readonly Signaler m_signaler;
 
-    //  There's only one thread receiving from the mailbox, but there
-    //  is arbitrary number of threads sending. Given that ypipe requires
-    //  synchronised access on both of its endpoints, we have to synchronise
-    //  the sending side.
-    private object sync;
+		//  There's only one thread receiving from the mailbox, but there
+		//  is arbitrary number of threads sending. Given that ypipe requires
+		//  synchronised access on both of its endpoints, we have to synchronise
+		//  the sending side.
+		private readonly object m_sync;
 
-    //  True if the underlying pipe is active, ie. when we are allowed to
-    //  read commands from it.
-    private bool active;
+		//  True if the underlying pipe is active, ie. when we are allowed to
+		//  read commands from it.
+		private bool m_active;
     
-    // mailbox name, for better debugging
-    private String name;
+		// mailbox name, for better debugging
+		private readonly String m_name;
 
-    public Mailbox(String name_) {
-        cpipe = new YPipe<Command>(Config.command_pipe_granularity);
-        sync = new object();
-        signaler = new Signaler();
+		public Mailbox(String name) {
+			m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity);
+			m_sync = new object();
+			m_signaler = new Signaler();
         
-        //  Get the pipe into passive state. That way, if the users starts by
-        //  polling on the associated file descriptor it will get woken up when
-        //  new command is posted.
+			//  Get the pipe into passive state. That way, if the users starts by
+			//  polling on the associated file descriptor it will get woken up when
+			//  new command is posted.
         
-        Command cmd = cpipe.read ();
-        Debug.Assert(cmd == null);
-        active = false;
+			Command cmd = m_cpipe.Read ();
+			Debug.Assert(cmd == null);
+			m_active = false;
         
-        name = name_;
-    }
+			m_name = name;
+		}
     
 
     
-    public System.Net.Sockets.Socket get_fd ()
-    {
-        return signaler.get_fd ();
-    }
+		public System.Net.Sockets.Socket FD 
+		{
+			get { return m_signaler.FD; }
+		}
     
-    public void send (Command cmd_)
-    {   
-        bool ok = false;
-        lock (sync){
-            cpipe.write (cmd_, false);
-            ok = cpipe.flush ();
-        }
+		public void Send (Command cmd)
+		{   
+			bool ok = false;
+			lock (m_sync){
+				m_cpipe.Write (cmd, false);
+				ok = m_cpipe.Flush ();
+			}
         
-        //if (LOG.isDebugEnabled())
-        //    LOG.debug( "{} -> {} / {} {}", new Object[] { Thread.currentThread().getName(), cmd_, cmd_.arg , !ok});
+			//if (LOG.isDebugEnabled())
+			//    LOG.debug( "{} -> {} / {} {}", new Object[] { Thread.currentThread().getName(), cmd_, cmd_.arg , !ok});
         
-        if (!ok) {
-            signaler.send ();
-        }
-    }
+			if (!ok) {
+				m_signaler.Send ();
+			}
+		}
     
-    public Command recv (int timeout_)
-    {
-        Command cmd_ = null;
-        //  Try to get the command straight away.
-        if (active) {
-            cmd_ = cpipe.read ();
-            if (cmd_ != null) {
+		public Command Recv (int timeout)
+		{
+			Command cmd_ = null;
+			//  Try to get the command straight away.
+			if (m_active) {
+				cmd_ = m_cpipe.Read ();
+				if (cmd_ != null) {
                 
-                return cmd_;
-            }
+					return cmd_;
+				}
 
-            //  If there are no more commands available, switch into passive state.
-            active = false;
-            signaler.recv ();
-        }
+				//  If there are no more commands available, switch into passive state.
+				m_active = false;
+				m_signaler.Recv ();
+			}
 
 
-        //  Wait for signal from the command sender.
-        bool rc = signaler.wait_event (timeout_);
-        if (!rc)
-            return null;
+			//  Wait for signal from the command sender.
+			bool rc = m_signaler.WaitEvent (timeout);
+			if (!rc)
+				return null;
 
-        //  We've got the signal. Now we can switch into active state.
-        active = true;
+			//  We've got the signal. Now we can switch into active state.
+			m_active = true;
 
-        //  Get a command.
-        cmd_ = cpipe.read ();
-        Debug.Assert(cmd_ != null);
+			//  Get a command.
+			cmd_ = m_cpipe.Read ();
+			Debug.Assert(cmd_ != null);
         
-        return cmd_;
-    }
+			return cmd_;
+		}
 
-    public void close () {
-        signaler.close();
-    }
+		public void Close () {
+			m_signaler.Close();
+		}
     
-    public override String ToString() {
-        return base.ToString() + "[" + name + "]";
-    }
+		public override String ToString() {
+			return base.ToString() + "[" + m_name + "]";
+		}
+	}
 }

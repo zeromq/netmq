@@ -18,6 +18,7 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -25,199 +26,202 @@ using System.Threading;
 using System.Collections;
 using System.Linq;
 
-public class Poller : PollerBase
+namespace zmq
 {
+	public class Poller : PollerBase
+	{
 
-    private class PollSet
-    {
-        public IPollEvents handler;
-        public bool cancelled;
+		private class PollSet
+		{
+			public IPollEvents Handler { get; private set; }
+			public bool Cancelled { get; set; }
 
-        public PollSet(IPollEvents handler)
-        {
-            this.handler = handler;
-            cancelled = false;
-        }
-    }
-    //  This table stores data for registered descriptors.
-    private Dictionary<Socket, PollSet> fd_table;
+			public PollSet(IPollEvents handler)
+			{
+				Handler = handler;
+				Cancelled = false;
+			}
+		}
+		//  This table stores data for registered descriptors.
+		private readonly Dictionary<Socket, PollSet> m_fdTable;
 
-    //  If true, there's at least one retired event source.
-    private bool retired;
+		//  If true, there's at least one retired event source.
+		private bool m_retired;
 
-    //  If true, thread is in the process of shutting down.
-    volatile private bool stopping;
-    volatile private bool stopped;
+		//  If true, thread is in the process of shutting down.
+		volatile private bool m_stopping;
+		volatile private bool m_stopped;
 
-    private Thread worker;
-    private String name;
+		private Thread m_worker;
+		private readonly String m_name;
 
-    HashSet<Socket> checkRead = new HashSet<Socket>();
-    HashSet<Socket> checkWrite = new HashSet<Socket>();
-    HashSet<Socket> checkError = new HashSet<Socket>();
+		readonly HashSet<Socket> m_checkRead = new HashSet<Socket>();
+		readonly HashSet<Socket> m_checkWrite = new HashSet<Socket>();
+		readonly HashSet<Socket> m_checkError = new HashSet<Socket>();
     
 
-    public Poller()
-        : this("poller")
-    {
+		public Poller()
+			: this("poller")
+		{
 
-    }
+		}
 
-    public Poller(String name_)
-    {
+		public Poller(String name)
+		{
 
-        name = name_;
-        retired = false;
-        stopping = false;
-        stopped = false;
+			m_name = name;
+			m_retired = false;
+			m_stopping = false;
+			m_stopped = false;
 
-        fd_table = new Dictionary<Socket, PollSet>();
-    }
+			m_fdTable = new Dictionary<Socket, PollSet>();
+		}
 
-    public void destroy()
-    {
-        if (!stopped)
-        {
-            try
-            {
-                worker.Join();
-            }
-            catch (Exception)
-            {
-            }
-        }
-    }
-    public void add_fd(Socket fd_, IPollEvents events_)
-    {
-        fd_table.Add(fd_, new PollSet(events_));
+		public void Destroy()
+		{
+			if (!m_stopped)
+			{
+				try
+				{
+					m_worker.Join();
+				}
+				catch (Exception)
+				{
+				}
+			}
+		}
+		public void AddFD(Socket fd, IPollEvents events)
+		{
+			m_fdTable.Add(fd, new PollSet(events));
 
-        checkError.Add(fd_);
+			m_checkError.Add(fd);
 
-        adjust_load(1);
-    }
-
-
-    public void rm_fd(Socket handle)
-    {
-        fd_table[handle].cancelled = true;
-        retired = true;
-
-        checkError.Remove(handle);
-        checkRead.Remove(handle);
-        checkWrite.Remove(handle);
-
-        //  Decrease the load metric of the thread.
-        adjust_load(-1);
-    }
+			AdjustLoad(1);
+		}
 
 
-    public void set_pollin(System.Net.Sockets.Socket handle_)
-    {
-        if (!checkRead.Contains(handle_))
-            checkRead.Add(handle_);
-    }
+		public void RemoveFD(Socket handle)
+		{
+			m_fdTable[handle].Cancelled = true;
+			m_retired = true;
+
+			m_checkError.Remove(handle);
+			m_checkRead.Remove(handle);
+			m_checkWrite.Remove(handle);
+
+			//  Decrease the load metric of the thread.
+			AdjustLoad(-1);
+		}
 
 
-    public void reset_pollin(System.Net.Sockets.Socket handle_)
-    {        
-        checkRead.Remove(handle_);
-    }
+		public void SetPollin(Socket handle)
+		{
+			if (!m_checkRead.Contains(handle))
+				m_checkRead.Add(handle);
+		}
 
-    public void set_pollout(System.Net.Sockets.Socket handle_)
-    {
-        if (!checkWrite.Contains(handle_))        
-            checkWrite.Add(handle_);
-    }
 
-    public void reset_pollout(System.Net.Sockets.Socket handle_)
-    {
-        checkWrite.Remove(handle_);
-    }           
+		public void ResetPollin(Socket handle)
+		{        
+			m_checkRead.Remove(handle);
+		}
+
+		public void SetPollout(Socket handle)
+		{
+			if (!m_checkWrite.Contains(handle))        
+				m_checkWrite.Add(handle);
+		}
+
+		public void ResetPollout(Socket handle)
+		{
+			m_checkWrite.Remove(handle);
+		}           
     
-    public void start()
-    {
-        worker = new Thread(loop);
-        worker.Name = name;
-        worker.Start();
-    }
+		public void Start()
+		{
+			m_worker = new Thread(Loop);
+			m_worker.Name = m_name;
+			m_worker.Start();
+		}
 
-    public void stop()
-    {
-        stopping = true;
-    }
+		public void Stop()
+		{
+			m_stopping = true;
+		}
 
 
-    public void loop()
-    {
-        ArrayList readList = new ArrayList();
-        ArrayList writeList = new ArrayList();
-        ArrayList errorList = new ArrayList();
+		public void Loop()
+		{
+			ArrayList readList = new ArrayList();
+			ArrayList writeList = new ArrayList();
+			ArrayList errorList = new ArrayList();
 
-        while (!stopping)
-        {
-            //  Execute any due timers.
-            int timeout = execute_timers();
+			while (!m_stopping)
+			{
+				//  Execute any due timers.
+				int timeout = ExecuteTimers();
 
-            readList.AddRange((ICollection)checkRead.ToArray());
-            writeList.AddRange((ICollection)checkWrite.ToArray());
-            errorList.AddRange((ICollection)checkError.ToArray());
+				readList.AddRange(m_checkRead.ToArray());
+				writeList.AddRange(m_checkWrite.ToArray());
+				errorList.AddRange(m_checkError.ToArray());
 
-            try
-            {
-                Socket.Select(readList, writeList, errorList, timeout != 0 ? timeout : -1);
-            }
-            catch (SocketException)
-            {
-                continue;
-            }
+				try
+				{
+					Socket.Select(readList, writeList, errorList, timeout != 0 ? timeout : -1);
+				}
+				catch (SocketException)
+				{
+					continue;
+				}
 
-            foreach (Socket socket in errorList)
-            {
-                PollSet item; 
+				foreach (Socket socket in errorList)
+				{
+					PollSet item; 
 
-                if (fd_table.TryGetValue(socket, out item) && !item.cancelled)
-                {
-                    item.handler.in_event();
-                }
-            }
-            errorList.Clear();
+					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
+					{
+						item.Handler.InEvent();
+					}
+				}
+				errorList.Clear();
             
 
-            foreach (Socket socket in writeList)
-            {
-                PollSet item;
+				foreach (Socket socket in writeList)
+				{
+					PollSet item;
 
-                if (fd_table.TryGetValue(socket, out item) && !item.cancelled)
-                {
-                    item.handler.out_event();
-                }
-            }
-            writeList.Clear();
+					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
+					{
+						item.Handler.OutEvent();
+					}
+				}
+				writeList.Clear();
             
 
-            foreach (Socket socket in readList)
-            {
-                PollSet item;
+				foreach (Socket socket in readList)
+				{
+					PollSet item;
 
-                if (fd_table.TryGetValue(socket, out item) && !item.cancelled)
-                {
-                    item.handler.in_event();
-                }
-            }
-            readList.Clear();
+					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
+					{
+						item.Handler.InEvent();
+					}
+				}
+				readList.Clear();
 
             
-            if (retired)
-            {
-                foreach (var item in fd_table.Where(k => k.Value.cancelled).ToList())
-                {
-                    fd_table.Remove(item.Key);
-                }
+				if (m_retired)
+				{
+					foreach (var item in m_fdTable.Where(k => k.Value.Cancelled).ToList())
+					{
+						m_fdTable.Remove(item.Key);
+					}
 
-                retired = false;
-            }                     
-        }
-    }
+					m_retired = false;
+				}                     
+			}
+		}
 
 
+	}
 }

@@ -17,8 +17,8 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
-using NetMQ;
 using System.Net.Sockets;
 using System.Threading;
 using System.Security.AccessControl;
@@ -31,119 +31,125 @@ using System.Runtime.InteropServices;
 //  given moment. Attempt to send a signal before receiving the previous
 //  one will result in undefined behaviour.
 
-public class Signaler
+namespace zmq
 {
-    //  Underlying write & read file descriptor.
-    private Socket w;
-    private Socket r;
+	public class Signaler
+	{
+		//  Underlying write & read file descriptor.
+		private Socket m_w;
+		private Socket m_r;
 
-    public Signaler()
-    {
-        //  Create the socketpair for signaling.
-        make_fdpair();
+		public Signaler()
+		{
+			//  Create the socketpair for signaling.
+			MakeFDpair();
 
-        //  Set both fds to non-blocking mode.
-        w.Blocking = false;
-        r.Blocking = false;
-    }
+			//  Set both fds to non-blocking mode.
+			m_w.Blocking = false;
+			m_r.Blocking = false;
+		}
 
-    public void close()
-    {
-        try
-        {
-            w.Close();
-        }
-        catch (Exception)
-        {
-        }
+		public void Close()
+		{
+			try
+			{
+				m_w.Close();
+			}
+			catch (Exception)
+			{
+			}
 
-        try
-        {
-            r.Close();
-        }
-        catch (Exception)
-        {
-        }
-    }
+			try
+			{
+				m_r.Close();
+			}
+			catch (Exception)
+			{
+			}
+		}
 
-    [DllImport("kernel32.dll")]
-    static extern bool SetHandleInformation(IntPtr hObject, int dwMask, uint dwFlags);
+		[DllImport("kernel32.dll")]
+		static extern bool SetHandleInformation(IntPtr hObject, int dwMask, uint dwFlags);
 
-    const int HANDLE_FLAG_INHERIT = 0x00000001;
+		const int HandleFlagInherit = 0x00000001;
 
-    //  Creates a pair of filedescriptors that will be used
-    //  to pass the signals.
-    private void make_fdpair()
-    {
-        Mutex sync;
+		//  Creates a pair of filedescriptors that will be used
+		//  to pass the signals.
+		private void MakeFDpair()
+		{
+			Mutex sync;
 
-        try
-        {
-            sync = new Mutex(false,"Global\\zmq-signaler-port-sync");
-        }
-        catch (UnauthorizedAccessException)
-        {
-            sync = Mutex.OpenExisting("Global\\zmq-signaler-port-sync", MutexRights.Synchronize | MutexRights.Modify);
-        }
+			try
+			{
+				sync = new Mutex(false, "Global\\zmq-signaler-port-sync");
+			}
+			catch (UnauthorizedAccessException)
+			{
+				sync = Mutex.OpenExisting("Global\\zmq-signaler-port-sync", MutexRights.Synchronize | MutexRights.Modify);
+			}
 
-        Debug.Assert(sync != null);
+			Debug.Assert(sync != null);
 
-        sync.WaitOne();
-       
-        Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
-        listner.NoDelay = true;
-        listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+			sync.WaitOne();
 
-        IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, Config.signaler_port);
+			Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
+			listner.NoDelay = true;
+			listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-        listner.Bind(endpoint);
-        listner.Listen(1);
+			IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, Config.SignalerPort);
 
-        w = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
+			listner.Bind(endpoint);
+			listner.Listen(1);
 
-        SetHandleInformation(w.Handle, HANDLE_FLAG_INHERIT, 0);
-        w.NoDelay = true;
+			m_w = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
 
-        w.Connect(endpoint);
+			SetHandleInformation(m_w.Handle, HandleFlagInherit, 0);
+			m_w.NoDelay = true;
 
-        r = listner.Accept();
+			m_w.Connect(endpoint);
 
-        SetHandleInformation(r.Handle, HANDLE_FLAG_INHERIT, 0);
+			m_r = listner.Accept();
 
-        listner.Close();
+			SetHandleInformation(m_r.Handle, HandleFlagInherit, 0);
 
-        sync.ReleaseMutex();
-    }
+			listner.Close();
 
-    public System.Net.Sockets.Socket get_fd()
-    {
-        return r;
-    }
+			sync.ReleaseMutex();
+		}
 
-    public void send()
-    {
-        byte[] dummy = new byte[1]{0};
-        int nbytes = w.Send(dummy);
+		public Socket FD
+		{
+			get
+			{
+				return m_r;
+			}
+		}
 
-        Debug.Assert(nbytes == 1);        
-    }
+		public void Send()
+		{
+			byte[] dummy = new byte[1] { 0 };
+			int nbytes = m_w.Send(dummy);
 
-    public bool wait_event(int timeout_)
-    {
-        return r.Poll(timeout_ % 1000 * 1000, SelectMode.SelectRead);           
-    }
+			Debug.Assert(nbytes == 1);
+		}
 
-    public void recv()
-    {
-        byte[] dummy = new byte[1];
+		public bool WaitEvent(int timeout)
+		{
+			return m_r.Poll(timeout % 1000 * 1000, SelectMode.SelectRead);
+		}
 
-        int nbytes = r.Receive(dummy);
+		public void Recv()
+		{
+			byte[] dummy = new byte[1];
 
-        Debug.Assert(nbytes == 1);
-        Debug.Assert(dummy[0] == 0);
-    }
+			int nbytes = m_r.Receive(dummy);
+
+			Debug.Assert(nbytes == 1);
+			Debug.Assert(dummy[0] == 0);
+		}
 
 
 
 
+	}
 }

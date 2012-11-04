@@ -17,375 +17,380 @@
                 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/ 
+*/
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 //Multi-trie. Each node in the trie is a set of pointers to pipes.
-public class Mtrie {
-    private HashSet<Pipe> pipes;
+namespace zmq
+{
+	public class Mtrie {
+		private HashSet<Pipe> m_pipes;
 
-    private int min;
-    private int count;
-    private int live_nodes;
-    private Mtrie[] next;
+		private int m_min;
+		private int m_count;
+		private int m_liveNodes;
+		private Mtrie[] m_next;
 
-    public delegate void IMtrieDelegate(Pipe pipe, byte[] data, Object arg);
+		public delegate void MtrieDelegate(Pipe pipe, byte[] data, Object arg);
     
-    public Mtrie() {
-        min = 0;
-        count = 0;
-        live_nodes = 0;
+		public Mtrie() {
+			m_min = 0;
+			m_count = 0;
+			m_liveNodes = 0;
         
-        pipes = null;
-        next = null;
-    }
+			m_pipes = null;
+			m_next = null;
+		}
     
-    public bool add (byte[] prefix_, Pipe pipe_)
-    {
-        return add_helper (prefix_, 0, pipe_);
-    }
+		public bool Add (byte[] prefix, Pipe pipe)
+		{
+			return AddHelper (prefix, 0, pipe);
+		}
 
-    //  Add key to the trie. Returns true if it's a new subscription
-    //  rather than a duplicate.
-    public bool add (byte[] prefix_, int start_, Pipe pipe_)
-    {
-        return add_helper (prefix_, start_, pipe_);
-    }
+		//  Add key to the trie. Returns true if it's a new subscription
+		//  rather than a duplicate.
+		public bool Add (byte[] prefix, int start, Pipe pipe)
+		{
+			return AddHelper (prefix, start, pipe);
+		}
 
 
-    private bool add_helper (byte[] prefix_, int start_, Pipe pipe_)
-    {
-        //  We are at the node corresponding to the prefix. We are done.
-        if (prefix_ == null || prefix_.Length == start_) {
-            bool result = pipes == null;
-            if (pipes == null)
-                pipes = new HashSet<Pipe>();
-            pipes.Add (pipe_);
-            return result;
-        }
+		private bool AddHelper (byte[] prefix, int start, Pipe pipe)
+		{
+			//  We are at the node corresponding to the prefix. We are done.
+			if (prefix == null || prefix.Length == start) {
+				bool result = m_pipes == null;
+				if (m_pipes == null)
+					m_pipes = new HashSet<Pipe>();
+				m_pipes.Add (pipe);
+				return result;
+			}
 
-        byte c = prefix_[start_];
-        if (c < min || c >= min + count) {
+			byte c = prefix[start];
+			if (c < m_min || c >= m_min + m_count) {
 
-            //  The character is out of range of currently handled
-            //  charcters. We have to extend the table.
-            if (count == 0) {
-                min = c;
-                count = 1;
-                next = null;
-            }
-            else if (count == 1) {
-                int oldc = min;
-                Mtrie oldp = next[0];
-                count = (min < c ? c - min : min - c) + 1;
-                next = new Mtrie[count];
-                min = Math.Min (min, c);
-                next[oldc - min] = oldp;
-            }
-            else if (min < c) {
+				//  The character is out of range of currently handled
+				//  charcters. We have to extend the table.
+				if (m_count == 0) {
+					m_min = c;
+					m_count = 1;
+					m_next = null;
+				}
+				else if (m_count == 1) {
+					int oldc = m_min;
+					Mtrie oldp = m_next[0];
+					m_count = (m_min < c ? c - m_min : m_min - c) + 1;
+					m_next = new Mtrie[m_count];
+					m_min = Math.Min (m_min, c);
+					m_next[oldc - m_min] = oldp;
+				}
+				else if (m_min < c) {
 
-                //  The new character is above the current character range.
-                count = c - min + 1;
-                next = realloc(next, count, true);
-            }
-            else {
+					//  The new character is above the current character range.
+					m_count = c - m_min + 1;
+					m_next = Realloc(m_next, m_count, true);
+				}
+				else {
 
-                //  The new character is below the current character range.
-                count = (min + count) - c;
-                next = realloc(next, count, false);
-                min = c;
-            }
-        }
+					//  The new character is below the current character range.
+					m_count = (m_min + m_count) - c;
+					m_next = Realloc(m_next, m_count, false);
+					m_min = c;
+				}
+			}
 
-        //  If next node does not exist, create one.
-        if (count == 1) {
-            if (next == null) {
-                next = new Mtrie[1];
-                next[0] = new Mtrie();
-                ++live_nodes;
-                //alloc_Debug.Assert(next.node);
-            }
-            return next[0].add_helper (prefix_, start_ + 1, pipe_);
-        }
-        else {
-            if (next[c - min] == null) {
-                next[c - min] = new Mtrie();
-                ++live_nodes;
-                //alloc_Debug.Assert(next.table [c - min]);
-            }
-            return next[c - min].add_helper (prefix_ , start_ + 1, pipe_);
-        }
-    }
+			//  If next node does not exist, create one.
+			if (m_count == 1) {
+				if (m_next == null) {
+					m_next = new Mtrie[1];
+					m_next[0] = new Mtrie();
+					++m_liveNodes;
+					//alloc_Debug.Assert(next.node);
+				}
+				return m_next[0].AddHelper (prefix, start + 1, pipe);
+			}
+			else {
+				if (m_next[c - m_min] == null) {
+					m_next[c - m_min] = new Mtrie();
+					++m_liveNodes;
+					//alloc_Debug.Assert(next.table [c - min]);
+				}
+				return m_next[c - m_min].AddHelper (prefix , start + 1, pipe);
+			}
+		}
     
-    private Mtrie[] realloc (Mtrie[] table, int size, bool ended) 
-    {
-        return Utils.realloc(table, size, ended);
-    }
+		private Mtrie[] Realloc (Mtrie[] table, int size, bool ended) 
+		{
+			return Utils.Realloc(table, size, ended);
+		}
     
-    //  Remove all subscriptions for a specific peer from the trie.
-    //  If there are no subscriptions left on some topics, invoke the
-    //  supplied callback function.
-    public bool rm (Pipe pipe_, IMtrieDelegate func, Object arg) {
-        return rm_helper(pipe_, new byte[0], 0, 0, func, arg );
-    }
+		//  Remove all subscriptions for a specific peer from the trie.
+		//  If there are no subscriptions left on some topics, invoke the
+		//  supplied callback function.
+		public bool RemoveHelper(Pipe pipe, MtrieDelegate func, Object arg)
+		{
+			return RemoveHelper(pipe, new byte[0], 0, 0, func, arg );
+		}
 
-    private bool rm_helper(Pipe pipe_, byte[] buff_, int buffsize_, int maxbuffsize_,
-            IMtrieDelegate func_, Object arg_) {
+		private bool RemoveHelper(Pipe pipe, byte[] buff, int buffsize, int maxbuffsize,
+		                       MtrieDelegate func, Object arg) {
         
-        //  Remove the subscription from this node.
-        if (pipes != null && pipes.Remove(pipe_) && pipes.Count == 0) {
-            func_(null, buff_, arg_);
-            pipes = null;
-        }
+			//  Remove the subscription from this node.
+			if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0) {
+				func(null, buff, arg);
+				m_pipes = null;
+			}
 
-        //  Adjust the buffer.
-        if (buffsize_ >= maxbuffsize_) {
-            maxbuffsize_ = buffsize_ + 256;
-            buff_ = Utils.realloc(buff_, maxbuffsize_);
-        }
+			//  Adjust the buffer.
+			if (buffsize >= maxbuffsize) {
+				maxbuffsize = buffsize + 256;
+				buff = Utils.Realloc(buff, maxbuffsize);
+			}
 
-        //  If there are no subnodes in the trie, return.
-        if (count == 0)
-            return true;
+			//  If there are no subnodes in the trie, return.
+			if (m_count == 0)
+				return true;
 
-        //  If there's one subnode (optimisation).
-        if (count == 1) {
-            buff_[buffsize_] = (byte) min;
-            buffsize_ ++;
-            next[0].rm_helper (pipe_, buff_, buffsize_, maxbuffsize_,
-                func_, arg_);
+			//  If there's one subnode (optimisation).
+			if (m_count == 1) {
+				buff[buffsize] = (byte) m_min;
+				buffsize ++;
+				m_next[0].RemoveHelper (pipe, buff, buffsize, maxbuffsize,
+				                   func, arg);
 
-            //  Prune the node if it was made redundant by the removal
-            if (next[0].is_redundant ()) {
-                next = null;
-                count = 0;
-                --live_nodes;
-                Debug.Assert(live_nodes == 0);
-            }
-            return true;
-        }
+				//  Prune the node if it was made redundant by the removal
+				if (m_next[0].IsRedundant ) {
+					m_next = null;
+					m_count = 0;
+					--m_liveNodes;
+					Debug.Assert(m_liveNodes == 0);
+				}
+				return true;
+			}
 
-        //  If there are multiple subnodes.
-        //
-        //  New min non-null character in the node table after the removal
-        int new_min = min + count - 1;
-        //  New max non-null character in the node table after the removal
-        int new_max = min;
-        for (int c = 0; c != count; c++) {
-            buff_[buffsize_] = (byte) (min + c);
-            if (next[c] != null) {
-                next[c].rm_helper (pipe_, buff_, buffsize_ + 1,
-                    maxbuffsize_, func_, arg_);
+			//  If there are multiple subnodes.
+			//
+			//  New min non-null character in the node table after the removal
+			int newMin = m_min + m_count - 1;
+			//  New max non-null character in the node table after the removal
+			int newMax = m_min;
+			for (int c = 0; c != m_count; c++) {
+				buff[buffsize] = (byte) (m_min + c);
+				if (m_next[c] != null) {
+					m_next[c].RemoveHelper (pipe, buff, buffsize + 1,
+					                   maxbuffsize, func, arg);
 
-                //  Prune redundant nodes from the mtrie
-                if (next[c].is_redundant ()) {
-                    next[c] = null;
+					//  Prune redundant nodes from the mtrie
+					if (m_next[c].IsRedundant ) {
+						m_next[c] = null;
 
-                    Debug.Assert(live_nodes > 0);
-                    --live_nodes;
-                }
-                else {
-                    //  The node is not redundant, so it's a candidate for being
-                    //  the new min/max node.
-                    //
-                    //  We loop through the node array from left to right, so the
-                    //  first non-null, non-redundant node encountered is the new
-                    //  minimum index. Conversely, the last non-redundant, non-null
-                    //  node encountered is the new maximum index.
-                    if (c + min < new_min)
-                        new_min = c + min;
-                    if (c + min > new_max)
-                        new_max = c + min;
-                }
-            }
-        }
+						Debug.Assert(m_liveNodes > 0);
+						--m_liveNodes;
+					}
+					else {
+						//  The node is not redundant, so it's a candidate for being
+						//  the new min/max node.
+						//
+						//  We loop through the node array from left to right, so the
+						//  first non-null, non-redundant node encountered is the new
+						//  minimum index. Conversely, the last non-redundant, non-null
+						//  node encountered is the new maximum index.
+						if (c + m_min < newMin)
+							newMin = c + m_min;
+						if (c + m_min > newMax)
+							newMax = c + m_min;
+					}
+				}
+			}
 
-        Debug.Assert(count > 1);
+			Debug.Assert(m_count > 1);
 
-        //  Free the node table if it's no longer used.
-        if (live_nodes == 0) {
-            next = null;
-            count = 0;
-        }
-        //  Compact the node table if possible
-        else if (live_nodes == 1) {
-            //  If there's only one live node in the table we can
-            //  switch to using the more compact single-node
-            //  representation
-            Debug.Assert(new_min == new_max);
-            Debug.Assert(new_min >= min && new_min < min + count);
-            Mtrie node = next [new_min - min];
-            Debug.Assert(node != null);
-            next = null;
-            next = new Mtrie[]{node};
-            count = 1;
-            min = new_min;
-        }
-        else if (live_nodes > 1 && (new_min > min || new_max < min + count - 1)) {
-            Debug.Assert(new_max - new_min + 1 > 1);
+			//  Free the node table if it's no longer used.
+			if (m_liveNodes == 0) {
+				m_next = null;
+				m_count = 0;
+			}
+				//  Compact the node table if possible
+			else if (m_liveNodes == 1) {
+				//  If there's only one live node in the table we can
+				//  switch to using the more compact single-node
+				//  representation
+				Debug.Assert(newMin == newMax);
+				Debug.Assert(newMin >= m_min && newMin < m_min + m_count);
+				Mtrie node = m_next [newMin - m_min];
+				Debug.Assert(node != null);
+				m_next = null;
+				m_next = new Mtrie[]{node};
+				m_count = 1;
+				m_min = newMin;
+			}
+			else if (m_liveNodes > 1 && (newMin > m_min || newMax < m_min + m_count - 1)) {
+				Debug.Assert(newMax - newMin + 1 > 1);
 
-            Mtrie[] old_table = next;
-            Debug.Assert(new_min > min || new_max < min + count - 1);
-            Debug.Assert(new_min >= min);
-            Debug.Assert(new_max <= min + count - 1);
-            Debug.Assert(new_max - new_min + 1 < count);
-            count = new_max - new_min + 1;
-            next = new Mtrie[count];
+				Mtrie[] old_table = m_next;
+				Debug.Assert(newMin > m_min || newMax < m_min + m_count - 1);
+				Debug.Assert(newMin >= m_min);
+				Debug.Assert(newMax <= m_min + m_count - 1);
+				Debug.Assert(newMax - newMin + 1 < m_count);
+				m_count = newMax - newMin + 1;
+				m_next = new Mtrie[m_count];
 
-            Buffer.BlockCopy(old_table, (new_min - min), next, 0, count);
+				Buffer.BlockCopy(old_table, (newMin - m_min), m_next, 0, m_count);
 
-            min = new_min;
-        }
-        return true;
-    }
+				m_min = newMin;
+			}
+			return true;
+		                       }
 
-    //  Remove specific subscription from the trie. Return true is it was
-    //  actually removed rather than de-duplicated.
-    public bool rm (byte[] prefix_, int start_, Pipe pipe_)
-    {
-        return rm_helper (prefix_, start_,  pipe_);
-    }
+		//  Remove specific subscription from the trie. Return true is it was
+		//  actually removed rather than de-duplicated.
+		public bool Remove (byte[] prefix, int start, Pipe pipe)
+		{
+			return RemovemHelper (prefix, start,  pipe);
+		}
 
 
-    private bool rm_helper (byte[] prefix_, int start_, Pipe pipe_)
-    {
-        if (prefix_ == null || prefix_.Length == start_) {
-            if (pipes != null) {
-                bool erased = pipes.Remove(pipe_);
-                Debug.Assert(erased);
-                if (pipes.Count == 0) {
-                    pipes = null;
-                }
-            }
-            return pipes == null;
-        }
+		private bool RemovemHelper (byte[] prefix, int start, Pipe pipe)
+		{
+			if (prefix == null || prefix.Length == start) {
+				if (m_pipes != null) {
+					bool erased = m_pipes.Remove(pipe);
+					Debug.Assert(erased);
+					if (m_pipes.Count == 0) {
+						m_pipes = null;
+					}
+				}
+				return m_pipes == null;
+			}
 
-        byte c = prefix_[ start_ ];
-        if (count == 0 || c < min || c >= min + count)
-            return false;
+			byte c = prefix[ start ];
+			if (m_count == 0 || c < m_min || c >= m_min + m_count)
+				return false;
 
-        Mtrie next_node =
-            count == 1 ? next[0] : next[c - min];
+			Mtrie nextNode =
+				m_count == 1 ? m_next[0] : m_next[c - m_min];
 
-        if (next_node == null)
-            return false;
+			if (nextNode == null)
+				return false;
 
-        bool ret = next_node.rm_helper (prefix_ , start_ + 1, pipe_);
-        if (next_node.is_redundant ()) {
-            Debug.Assert(count > 0);
+			bool ret = nextNode.RemovemHelper (prefix , start + 1, pipe);
+			if (nextNode.IsRedundant ) {
+				Debug.Assert(m_count > 0);
 
-            if (count == 1) {
-                next = null;
-                count = 0;
-                --live_nodes;
-                Debug.Assert(live_nodes == 0);
-            }
-            else {
-                next[c - min] = null ;
-                Debug.Assert(live_nodes > 1);
-                --live_nodes;
+				if (m_count == 1) {
+					m_next = null;
+					m_count = 0;
+					--m_liveNodes;
+					Debug.Assert(m_liveNodes == 0);
+				}
+				else {
+					m_next[c - m_min] = null ;
+					Debug.Assert(m_liveNodes > 1);
+					--m_liveNodes;
 
-                //  Compact the table if possible
-                if (live_nodes == 1) {
-                    //  If there's only one live node in the table we can
-                    //  switch to using the more compact single-node
-                    //  representation
-                    int i;
-                    for (i = 0; i < count; ++i) {
-                        if (next[i] != null) {
-                            break;
-                        }
-                    }
+					//  Compact the table if possible
+					if (m_liveNodes == 1) {
+						//  If there's only one live node in the table we can
+						//  switch to using the more compact single-node
+						//  representation
+						int i;
+						for (i = 0; i < m_count; ++i) {
+							if (m_next[i] != null) {
+								break;
+							}
+						}
 
-                    Debug.Assert(i < count);
-                    min += i;
-                    count = 1;
-                    Mtrie old = next [i];
-                    next = new Mtrie [] { old };
-                }
-                else if (c == min) {
-                    //  We can compact the table "from the left"
-                    int i;
-                    for (i = 1; i < count; ++i) {
-                        if (next[i] != null) {
-                            break;
-                        }
-                    }
+						Debug.Assert(i < m_count);
+						m_min += i;
+						m_count = 1;
+						Mtrie old = m_next [i];
+						m_next = new Mtrie [] { old };
+					}
+					else if (c == m_min) {
+						//  We can compact the table "from the left"
+						int i;
+						for (i = 1; i < m_count; ++i) {
+							if (m_next[i] != null) {
+								break;
+							}
+						}
 
-                    Debug.Assert(i < count);
-                    min += i;
-                    count -= i;
-                    next = realloc (next, count, true);
-                }
-                else if (c == min + count - 1) {
-                    //  We can compact the table "from the right"
-                    int i;
-                    for (i = 1; i < count; ++i) {
-                        if (next[count - 1 - i] != null) {
-                            break;
-                        }
-                    }
-                    Debug.Assert(i < count);
-                    count -= i;
-                    next = realloc(next, count, false);
-                }
-            }
-        }
+						Debug.Assert(i < m_count);
+						m_min += i;
+						m_count -= i;
+						m_next = Realloc (m_next, m_count, true);
+					}
+					else if (c == m_min + m_count - 1) {
+						//  We can compact the table "from the right"
+						int i;
+						for (i = 1; i < m_count; ++i) {
+							if (m_next[m_count - 1 - i] != null) {
+								break;
+							}
+						}
+						Debug.Assert(i < m_count);
+						m_count -= i;
+						m_next = Realloc(m_next, m_count, false);
+					}
+				}
+			}
 
-        return ret;
-    }
+			return ret;
+		}
 
-    //  Signal all the matching pipes.
-    public void match(byte[] data_, int size_, IMtrieDelegate func_, Object arg_) {
-        Mtrie current = this;
+		//  Signal all the matching pipes.
+		public void Match(byte[] data, int size, MtrieDelegate func, Object arg) {
+			Mtrie current = this;
         
-        int idx = 0;
+			int idx = 0;
         
-        while (true) {
+			while (true) {
             
             
-            //  Signal the pipes attached to this node.
-            if (current.pipes != null) {
-                foreach (Pipe it in current.pipes)
-                    func_(it, null, arg_);
-            }
+				//  Signal the pipes attached to this node.
+				if (current.m_pipes != null) {
+					foreach (Pipe it in current.m_pipes)
+						func(it, null, arg);
+				}
 
-            //  If we are at the end of the message, there's nothing more to match.
-            if (size_ == 0)
-                break;
+				//  If we are at the end of the message, there's nothing more to match.
+				if (size == 0)
+					break;
 
-            //  If there are no subnodes in the trie, return.
-            if (current.count == 0)
-                break;
+				//  If there are no subnodes in the trie, return.
+				if (current.m_count == 0)
+					break;
 
-            byte c = data_[idx];
-            //  If there's one subnode (optimisation).
-            if (current.count == 1) {
-                if (c != current.min)
-                    break;
-                current = current.next[0];
-                idx++;
-                size_--;
-                continue;
-            }
+				byte c = data[idx];
+				//  If there's one subnode (optimisation).
+				if (current.m_count == 1) {
+					if (c != current.m_min)
+						break;
+					current = current.m_next[0];
+					idx++;
+					size--;
+					continue;
+				}
 
-            //  If there are multiple subnodes.
-            if (c < current.min || c >=
-                  current.min + current.count)
-                break;
-            if (current.next [c - current.min] == null)
-                break;
-            current = current.next [c - current.min];
-            idx++;
-            size_--;
-        }
-    }
+				//  If there are multiple subnodes.
+				if (c < current.m_min || c >=
+				    current.m_min + current.m_count)
+					break;
+				if (current.m_next [c - current.m_min] == null)
+					break;
+				current = current.m_next [c - current.m_min];
+				idx++;
+				size--;
+			}
+		}
 
-    private bool is_redundant ()
-    {
-        return pipes == null && live_nodes == 0;
-    }
+		private bool IsRedundant 
+		{
+			get { return m_pipes == null && m_liveNodes == 0; }
+		}
 
+	}
 }

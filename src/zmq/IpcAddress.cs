@@ -17,43 +17,47 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 using System.Net;
 
-public class IpcAddress : Address.IZAddress {
+namespace zmq
+{
+	public class IpcAddress : Address.IZAddress {
 
-    private String name;
+		private String m_name;
     
-    public override String ToString() {
-        if (name == null) {
-            return null;
-        }
+		public override String ToString() {
+			if (m_name == null) {
+				return string.Empty;
+			}
         
-        return "ipc://" + name;
-    }
+			return "ipc://" + m_name;
+		}
 
-    public void resolve(String name_, bool ip4only_) {
+		public void Resolve(String name, bool ip4Only) {
         
-        name = name_;
+			this.m_name = name;
         
-        int hash = name_.GetHashCode();
-        if (hash < 0)
-            hash = -hash;
-        hash = hash % 55536;
-        hash += 10000;
+			int hash = name.GetHashCode();
+			if (hash < 0)
+				hash = -hash;
+			hash = hash % 55536;
+			hash += 10000;
         
         
-        try {
-            address = new IPEndPoint(IPAddress.Loopback, hash);
-        } catch (Exception ex) {
-            throw new ArgumentException("",ex);
-        }
-    }
+			try {
+				Address = new IPEndPoint(IPAddress.Loopback, hash);
+			} catch (Exception ex) {
+				throw new ArgumentException("",ex);
+			}
+		}
 
-    public IPEndPoint address
-    {
-        get;
-        private set;
-    }
+		public IPEndPoint Address
+		{
+			get;
+			private set;
+		}
 
+	}
 }

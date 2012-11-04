@@ -18,487 +18,490 @@
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/ 
+*/
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Wintellect.PowerCollections;
 
-public class SessionBase : Own ,
-                        Pipe.IPipeEvents, IPollEvents, 
-                        IMsgSink, IMsgSource 
+namespace zmq
 {
-    //  If true, this session (re)connects to the peer. Otherwise, it's
-    //  a transient session created by the listener.
-    private bool connect;
+	public class SessionBase : Own ,
+	                           Pipe.IPipeEvents, IPollEvents, 
+	                           IMsgSink, IMsgSource 
+	{
+		//  If true, this session (re)connects to the peer. Otherwise, it's
+		//  a transient session created by the listener.
+		private readonly bool m_connect;
     
-    //  Pipe connecting the session to its socket.
-    private Pipe pipe;
+		//  Pipe connecting the session to its socket.
+		private Pipe m_pipe;
 
-    //  This set is added to with pipes we are disconnecting, but haven't yet completed
-    private HashSet<Pipe> terminating_pipes;
+		//  This set is added to with pipes we are disconnecting, but haven't yet completed
+		private readonly HashSet<Pipe> m_terminatingPipes;
     
-    //  This flag is true if the remainder of the message being processed
-    //  is still in the in pipe.
-    private bool incomplete_in;
+		//  This flag is true if the remainder of the message being processed
+		//  is still in the in pipe.
+		private bool m_incompleteIn;
 
-    //  True if termination have been suspended to push the pending
-    //  messages to the network.
-    private bool pending;
+		//  True if termination have been suspended to push the pending
+		//  messages to the network.
+		private bool m_pending;
 
-    //  The protocol I/O engine connected to the session.
-    private IEngine engine;
+		//  The protocol I/O engine connected to the session.
+		private IEngine m_engine;
 
-    //  The socket the session belongs to.
-    private SocketBase socket;
+		//  The socket the session belongs to.
+		private readonly SocketBase m_socket;
 
-    //  I/O thread the session is living in. It will be used to plug in
-    //  the engines into the same thread.
-    private IOThread io_thread;
+		//  I/O thread the session is living in. It will be used to plug in
+		//  the engines into the same thread.
+		private readonly IOThread m_ioThread;
 
-    //  ID of the linger timer
-    private static int linger_timer_id = 0x20;
+		//  ID of the linger timer
+		private const int LingerTimerId = 0x20;
 
-    //  True is linger timer is running.
-    private bool has_linger_timer;
+		//  True is linger timer is running.
+		private bool m_hasLingerTimer;
 
-    //  If true, identity has been sent/received from the network.
-    private bool identity_sent;
-    private bool identity_received;
+		//  If true, identity has been sent/received from the network.
+		private bool m_identitySent;
+		private bool m_identityReceived;
     
-    //  Protocol and address to use when connecting.
-    private Address addr;
+		//  Protocol and address to use when connecting.
+		private readonly Address m_addr;
 
-    private IOObject io_object;
+		private readonly IOObject m_ioObject;
 
-    public static SessionBase create(IOThread io_thread_, bool connect_,
-            SocketBase socket_, Options options_, Address addr_) {
+		public static SessionBase Create(IOThread ioThread, bool connect,
+		                                 SocketBase socket, Options options, Address addr) {
         
-        SessionBase s = null;
-        switch (options_.SocketType) {
-					case ZmqSocketType.ZMQ_REQ:
-            s = new  Req.ReqSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_DEALER:
-            s = new Dealer.DealerSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_REP:
-            s = new Rep.RepSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_ROUTER:
-            s = new Router.RouterSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_PUB:
-            s = new Pub.PubSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_XPUB:
-            s = new XPub.XPubSession(io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_SUB:
-            s = new  Sub.SubSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_XSUB:
-            s = new XSub.XSubSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
+			SessionBase s;
+			switch (options.SocketType) {
+				case ZmqSocketType.ZMQ_REQ:
+					s = new  Req.ReqSession (ioThread, connect,
+					                         socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_DEALER:
+					s = new Dealer.DealerSession (ioThread, connect,
+					                              socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_REP:
+					s = new Rep.RepSession (ioThread, connect,
+					                        socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_ROUTER:
+					s = new Router.RouterSession (ioThread, connect,
+					                              socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_PUB:
+					s = new Pub.PubSession (ioThread, connect,
+					                        socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_XPUB:
+					s = new XPub.XPubSession(ioThread, connect,
+					                         socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_SUB:
+					s = new  Sub.SubSession (ioThread, connect,
+					                         socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_XSUB:
+					s = new XSub.XSubSession (ioThread, connect,
+					                          socket, options, addr);
+					break;
 
-					case ZmqSocketType.ZMQ_PUSH:
-            s = new Push.PushSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_PULL:
-            s = new Pull.PullSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-					case ZmqSocketType.ZMQ_PAIR:
-            s = new Pair.PairSession (io_thread_, connect_,
-                socket_, options_, addr_);
-            break;
-        default:
-            throw new ArgumentException("type=" + options_.SocketType);
-        }
-        return s;
-    }
+				case ZmqSocketType.ZMQ_PUSH:
+					s = new Push.PushSession (ioThread, connect,
+					                          socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_PULL:
+					s = new Pull.PullSession (ioThread, connect,
+					                          socket, options, addr);
+					break;
+				case ZmqSocketType.ZMQ_PAIR:
+					s = new Pair.PairSession (ioThread, connect,
+					                          socket, options, addr);
+					break;
+				default:
+					throw new ArgumentException("type=" + options.SocketType);
+			}
+			return s;
+		                                 }
 
-    public SessionBase(IOThread io_thread_, bool connect_,
-            SocketBase socket_, Options options_, Address addr_) : base(io_thread_, options_) {
-        io_object = new IOObject(io_thread_);
+		public SessionBase(IOThread ioThread, bool connect,
+		                   SocketBase socket, Options options, Address addr) : base(ioThread, options) {
+			m_ioObject = new IOObject(ioThread);
         
-        connect = connect_;
-        pipe = null;
-        incomplete_in = false;
-        pending = false;
-        engine = null;
-        socket = socket_;
-        io_thread = io_thread_;
-        has_linger_timer = false;
-        identity_sent = false;
-        identity_received = false;
-        addr = addr_;
+			m_connect = connect;
+			m_pipe = null;
+			m_incompleteIn = false;
+			m_pending = false;
+			m_engine = null;
+			m_socket = socket;
+			m_ioThread = ioThread;
+			m_hasLingerTimer = false;
+			m_identitySent = false;
+			m_identityReceived = false;
+			m_addr = addr;
      
-        terminating_pipes = new HashSet <Pipe> ();
-    }
+			m_terminatingPipes = new HashSet <Pipe> ();
+		                   }
 
-    public override void destroy () {
-        Debug.Assert(pipe == null);
+		public override void Destroy () {
+			Debug.Assert(m_pipe == null);
 
-        //  If there's still a pending linger timer, remove it.
-        if (has_linger_timer) {
-            io_object.cancel_timer (linger_timer_id);
-            has_linger_timer = false;
-        }
+			//  If there's still a pending linger timer, remove it.
+			if (m_hasLingerTimer) {
+				m_ioObject.CancelTimer (LingerTimerId);
+				m_hasLingerTimer = false;
+			}
 
-        //  Close the engine.
-        if (engine != null)
-            engine.terminate ();
+			//  Close the engine.
+			if (m_engine != null)
+				m_engine.Terminate ();
         
-    }
+		}
 
 
-    //  To be used once only, when creating the session.
-    public void attach_pipe(Pipe pipe_) {
-        Debug.Assert(!is_terminating ());
-        Debug.Assert(pipe == null);
-        Debug.Assert(pipe_ != null);
-        pipe = pipe_;
-        pipe.set_event_sink (this);
-    }
+		//  To be used once only, when creating the session.
+		public void AttachPipe(Pipe pipe) {
+			Debug.Assert(!IsTerminating);
+			Debug.Assert(m_pipe == null);
+			Debug.Assert(pipe != null);
+			m_pipe = pipe;
+			m_pipe.set_event_sink (this);
+		}
     
-    public virtual Msg pull_msg () 
-    {
+		public virtual Msg PullMsg () 
+		{
         
-        Msg msg_ = null;
+			Msg msg;
         
-        //  First message to send is identity
-        if (!identity_sent) {
-            msg_ = new Msg(options.IdentitySize);
-            msg_.put(options.Identity, 0, options.IdentitySize);
-            identity_sent = true;
-            incomplete_in = false;
+			//  First message to send is identity
+			if (!m_identitySent) {
+				msg = new Msg(m_options.IdentitySize);
+				msg.Put(m_options.Identity, 0, m_options.IdentitySize);
+				m_identitySent = true;
+				m_incompleteIn = false;
             
-            return msg_;
-        }
+				return msg;
+			}
 
-        if (pipe == null || (msg_ = pipe.read ()) == null ) {
-            return null;
-        }
-        incomplete_in = msg_.has_more();
+			if (m_pipe == null || (msg = m_pipe.read ()) == null ) {
+				return null;
+			}
+			m_incompleteIn = msg.HasMore;
 
-        return msg_;
+			return msg;
 
-    }
+		}
     
-    public virtual bool push_msg (Msg msg_)
-    {
-        //  First message to receive is identity (if required).
-        if (!identity_received) {
-            msg_.SetFlags (MsgFlags.More);
-            identity_received = true;
+		public virtual bool PushMsg (Msg msg)
+		{
+			//  First message to receive is identity (if required).
+			if (!m_identityReceived) {
+				msg.SetFlags (MsgFlags.More);
+				m_identityReceived = true;
             
-            if (!options.RecvIdentity) {
-                return true;
-            }
-        }
+				if (!m_options.RecvIdentity) {
+					return true;
+				}
+			}
         
-        if (pipe != null && pipe.write (msg_)) {
-            return true;
-        }
+			if (m_pipe != null && m_pipe.write (msg)) {
+				return true;
+			}
 
-        ZError.errno = (ZError.EAGAIN);
-        return false;
-    }
+			ZError.ErrorNumber = (ErrorNumber.EAGAIN);
+			return false;
+		}
     
 
-    protected virtual void reset() {
-        //  Restore identity flags.
-        identity_sent = false;
-        identity_received = false;
-    }
+		protected virtual void Reset() {
+			//  Restore identity flags.
+			m_identitySent = false;
+			m_identityReceived = false;
+		}
     
 
-    public void flush() {
-        if (pipe != null)
-            pipe.flush ();
-    }
+		public void Flush() {
+			if (m_pipe != null)
+				m_pipe.flush ();
+		}
     
 
-    //  Remove any half processed messages. Flush unflushed messages.
-    //  Call this function when engine disconnect to get rid of leftovers.
-    private void clean_pipes() 
-    {
-        if (pipe != null) {
+		//  Remove any half processed messages. Flush unflushed messages.
+		//  Call this function when engine disconnect to get rid of leftovers.
+		private void CleanPipes() 
+		{
+			if (m_pipe != null) {
 
-            //  Get rid of half-processed messages in the out pipe. Flush any
-            //  unflushed messages upstream.
-            pipe.rollback ();
-            pipe.flush ();
+				//  Get rid of half-processed messages in the out pipe. Flush any
+				//  unflushed messages upstream.
+				m_pipe.rollback ();
+				m_pipe.flush ();
 
-            //  Remove any half-read message from the in pipe.
-            while (incomplete_in) {
-                Msg msg = pull_msg ();
-                if (msg == null) {
-                    Debug.Assert(!incomplete_in);
-                    break;
-                }
-                msg.close ();
-            }
-        }
-    }
+				//  Remove any half-read message from the in pipe.
+				while (m_incompleteIn) {
+					Msg msg = PullMsg ();
+					if (msg == null) {
+						Debug.Assert(!m_incompleteIn);
+						break;
+					}
+					msg.Close ();
+				}
+			}
+		}
 
-    public void terminated(Pipe pipe_) 
-    {
-        //  Drop the reference to the deallocated pipe.
-        Debug.Assert(pipe == pipe_ || terminating_pipes.Contains (pipe_));
+		public void Terminated(Pipe pipe) 
+		{
+			//  Drop the reference to the deallocated pipe.
+			Debug.Assert(m_pipe == pipe || m_terminatingPipes.Contains (pipe));
         
-        if (pipe == pipe_)
-            // If this is our current pipe, remove it
-            pipe = null;
-        else
-            // Remove the pipe from the detached pipes set
-            terminating_pipes.Remove (pipe_);
+			if (m_pipe == pipe)
+				// If this is our current pipe, remove it
+				m_pipe = null;
+			else
+				// Remove the pipe from the detached pipes set
+				m_terminatingPipes.Remove (pipe);
         
-        //  If we are waiting for pending messages to be sent, at this point
-        //  we are sure that there will be no more messages and we can proceed
-        //  with termination safely.
-        if (pending && pipe == null && terminating_pipes.Count == 0)
-            proceed_with_term ();
-    }
+			//  If we are waiting for pending messages to be sent, at this point
+			//  we are sure that there will be no more messages and we can proceed
+			//  with termination safely.
+			if (m_pending && m_pipe == null && m_terminatingPipes.Count == 0)
+				ProceedWithTerm ();
+		}
 
-    public void read_activated(Pipe pipe_) 
-    {
-        // Skip activating if we're detaching this pipe
-        if (pipe != pipe_) {
-            Debug.Assert(terminating_pipes.Contains (pipe_));
-            return;
-        }
+		public void ReadActivated(Pipe pipe) 
+		{
+			// Skip activating if we're detaching this pipe
+			if (m_pipe != pipe) {
+				Debug.Assert(m_terminatingPipes.Contains (pipe));
+				return;
+			}
         
-        if (engine != null)
-            engine.activate_out ();
-        else
-            pipe.check_read ();
-    }
+			if (m_engine != null)
+				m_engine.ActivateOut ();
+			else
+				m_pipe.check_read ();
+		}
     
-    public void write_activated (Pipe pipe_)
-    {
-        // Skip activating if we're detaching this pipe
-        if (pipe != pipe_) {
-            Debug.Assert(terminating_pipes.Contains (pipe_));
-            return;
-        }
+		public void WriteActivated (Pipe pipe)
+		{
+			// Skip activating if we're detaching this pipe
+			if (m_pipe != pipe) {
+				Debug.Assert(m_terminatingPipes.Contains (pipe));
+				return;
+			}
 
 
-        if (engine != null)
-            engine.activate_in ();
-    }
+			if (m_engine != null)
+				m_engine.ActivateIn ();
+		}
 
-    public void hiccuped (Pipe pipe_)
-    {
-        //  Hiccups are always sent from session to socket, not the other
-        //  way round.
-        throw new NotSupportedException("Must Override");
+		public void Hiccuped (Pipe pipe)
+		{
+			//  Hiccups are always sent from session to socket, not the other
+			//  way round.
+			throw new NotSupportedException("Must Override");
 
-    }
+		}
 
-    public SocketBase get_soket ()
-    {
-        return socket;
-    }
+		public SocketBase Socket
+		{
+			get { return m_socket; }
+		}
 
-    protected override void process_plug ()
-    {
-        io_object.set_handler(this);
-        if (connect)
-            start_connecting (false);
-    }
+		protected override void ProcessPlug ()
+		{
+			m_ioObject.SetHandler(this);
+			if (m_connect)
+				StartConnecting (false);
+		}
 
 
-    protected override void process_attach (IEngine engine_)
-    {
-        Debug.Assert(engine_ != null);
+		protected override void ProcessAttach (IEngine engine)
+		{
+			Debug.Assert(engine != null);
 
-        //  Create the pipe if it does not exist yet.
-        if (pipe == null && !is_terminating ()) {
-            ZObject[] parents = {this, socket};
-            Pipe[] pipes = {null, null};
-            int[] hwms = {options.ReceiveHighWatermark, options.SendHighWatermark};
-            bool[] delays = {options.DelayOnClose, options.DelayOnDisconnect};
-            Pipe.pipepair (parents, pipes, hwms, delays);
+			//  Create the pipe if it does not exist yet.
+			if (m_pipe == null && !IsTerminating) {
+				ZObject[] parents = {this, m_socket};
+				Pipe[] pipes = {null, null};
+				int[] hwms = {m_options.ReceiveHighWatermark, m_options.SendHighWatermark};
+				bool[] delays = {m_options.DelayOnClose, m_options.DelayOnDisconnect};
+				Pipe.pipepair (parents, pipes, hwms, delays);
 
-            //  Plug the local end of the pipe.
-            pipes [0].set_event_sink (this);
+				//  Plug the local end of the pipe.
+				pipes [0].set_event_sink (this);
 
-            //  Remember the local end of the pipe.
-            Debug.Assert(pipe == null);
-            pipe = pipes [0];
+				//  Remember the local end of the pipe.
+				Debug.Assert(m_pipe == null);
+				m_pipe = pipes [0];
 
-            //  Ask socket to plug into the remote end of the pipe.
-            send_bind (socket, pipes [1]);
-        }
+				//  Ask socket to plug into the remote end of the pipe.
+				SendBind (m_socket, pipes [1]);
+			}
 
-        //  Plug in the engine.
-        Debug.Assert(engine == null);
-        engine = engine_;
-        engine.plug (io_thread, this);
-    }
+			//  Plug in the engine.
+			Debug.Assert(m_engine == null);
+			m_engine = engine;
+			m_engine.Plug (m_ioThread, this);
+		}
     
-    public void detach() 
-    {
-        //  Engine is dead. Let's forget about it.
-        engine = null;
+		public void Detach() 
+		{
+			//  Engine is dead. Let's forget about it.
+			m_engine = null;
 
-        //  Remove any half-done messages from the pipes.
-        clean_pipes ();
+			//  Remove any half-done messages from the pipes.
+			CleanPipes ();
 
-        //  Send the event to the derived class.
-        detached ();
+			//  Send the event to the derived class.
+			Detached ();
 
-        //  Just in case there's only a delimiter in the pipe.
-        if (pipe != null)
-            pipe.check_read ();
-    }
+			//  Just in case there's only a delimiter in the pipe.
+			if (m_pipe != null)
+				m_pipe.check_read ();
+		}
     
-    protected override void process_term (int linger_)
-    {
-        Debug.Assert(!pending);
+		protected override void ProcessTerm (int linger)
+		{
+			Debug.Assert(!m_pending);
 
-        //  If the termination of the pipe happens before the term command is
-        //  delivered there's nothing much to do. We can proceed with the
-        //  stadard termination immediately.
-        if (pipe == null) {
-            proceed_with_term ();
-            return;
-        }
+			//  If the termination of the pipe happens before the term command is
+			//  delivered there's nothing much to do. We can proceed with the
+			//  stadard termination immediately.
+			if (m_pipe == null) {
+				ProceedWithTerm ();
+				return;
+			}
 
-        pending = true;
+			m_pending = true;
 
-        //  If there's finite linger value, delay the termination.
-        //  If linger is infinite (negative) we don't even have to set
-        //  the timer.
-        if (linger_ > 0) {
-            Debug.Assert(!has_linger_timer);
-            io_object.add_timer (linger_, linger_timer_id);
-            has_linger_timer = true;
-        }
+			//  If there's finite linger value, delay the termination.
+			//  If linger is infinite (negative) we don't even have to set
+			//  the timer.
+			if (linger > 0) {
+				Debug.Assert(!m_hasLingerTimer);
+				m_ioObject.AddTimer (linger, LingerTimerId);
+				m_hasLingerTimer = true;
+			}
 
-        //  Start pipe termination process. Delay the termination till all messages
-        //  are processed in case the linger time is non-zero.
-        pipe.terminate (linger_ != 0);
+			//  Start pipe termination process. Delay the termination till all messages
+			//  are processed in case the linger time is non-zero.
+			m_pipe.terminate (linger != 0);
 
-        //  TODO: Should this go into pipe_t::terminate ?
-        //  In case there's no engine and there's only delimiter in the
-        //  pipe it wouldn't be ever read. Thus we check for it explicitly.
-        pipe.check_read ();
-    }
-    
-
-    //  Call this function to move on with the delayed process_term.
-    private void proceed_with_term() {
-        //  The pending phase have just ended.
-        pending = false;
-
-        //  Continue with standard termination.
-        base.process_term (0);
-    }
-
-
-    public void timer_event(int id_) {
-        
-        //  Linger period expired. We can proceed with termination even though
-        //  there are still pending messages to be sent.
-        Debug.Assert(id_ == linger_timer_id);
-        has_linger_timer = false;
-
-        //  Ask pipe to terminate even though there may be pending messages in it.
-        Debug.Assert(pipe != null);
-        pipe.terminate (false);
-    }
-
-
-    private void detached() {
-        //  Transient session self-destructs after peer disconnects.
-        if (!connect) {
-            terminate ();
-            return;
-        }
-
-        //  For delayed connect situations, terminate the pipe
-        //  and reestablish later on
-        if (pipe != null && options.DelayAttachOnConnect == 1
-            && addr.protocol  != "pgm" && addr.protocol != "epgm") {
-            pipe.hiccup ();
-            pipe.terminate (false);
-            terminating_pipes.Add (pipe);
-            pipe = null;
-        }
-        
-        reset ();
-
-        //  Reconnect.
-        if (options.ReconnectIvl != -1)
-            start_connecting (true);
-
-        //  For subscriber sockets we hiccup the inbound pipe, which will cause
-        //  the socket object to resend all the subscriptions.
-				if (pipe != null && (options.SocketType == ZmqSocketType.ZMQ_SUB || options.SocketType == ZmqSocketType.ZMQ_XSUB))
-            pipe.hiccup ();
-
-    }
-
-    
-    private void start_connecting (bool wait_)
-    {
-        Debug.Assert(connect);
-
-        //  Choose I/O thread to run connecter in. Given that we are already
-        //  running in an I/O thread, there must be at least one available.
-        IOThread io_thread = choose_io_thread (options.Affinity);
-        Debug.Assert(io_thread != null);
-
-        //  Create the connecter object.
-
-        if (addr.protocol.Equals("tcp")) {
-            TcpConnecter connecter = new TcpConnecter (
-                io_thread, this, options, addr, wait_);
-            //alloc_Debug.Assert(connecter);
-            launch_child (connecter);
-            return;
-        }
-        
-        if (addr.protocol.Equals("ipc")) {
-            IpcConnecter connecter = new IpcConnecter (
-                io_thread, this, options, addr, wait_);
-            //alloc_Debug.Assert(connecter);
-            launch_child (connecter);
-            return;
-        }
-        
-        Debug.Assert(false);
-    }
-    
-    public override String ToString() {
-        return base.ToString() + "[" + options.SocketId + "]";
-    }
-
-    public virtual void in_event() {
-        throw new NotSupportedException();
-        
-    }
-
-    public virtual void out_event()
-    {
-        throw new NotSupportedException();
-        
-    }
-
+			//  TODO: Should this go into pipe_t::terminate ?
+			//  In case there's no engine and there's only delimiter in the
+			//  pipe it wouldn't be ever read. Thus we check for it explicitly.
+			m_pipe.check_read ();
+		}
     
 
+		//  Call this function to move on with the delayed process_term.
+		private void ProceedWithTerm() {
+			//  The pending phase have just ended.
+			m_pending = false;
+
+			//  Continue with standard termination.
+			base.ProcessTerm (0);
+		}
 
 
+		public void TimerEvent(int id) {
+        
+			//  Linger period expired. We can proceed with termination even though
+			//  there are still pending messages to be sent.
+			Debug.Assert(id == LingerTimerId);
+			m_hasLingerTimer = false;
+
+			//  Ask pipe to terminate even though there may be pending messages in it.
+			Debug.Assert(m_pipe != null);
+			m_pipe.terminate (false);
+		}
+
+
+		private void Detached() {
+			//  Transient session self-destructs after peer disconnects.
+			if (!m_connect) {
+				Terminate ();
+				return;
+			}
+
+			//  For delayed connect situations, terminate the pipe
+			//  and reestablish later on
+			if (m_pipe != null && m_options.DelayAttachOnConnect == 1
+			    && m_addr.Protocol  != "pgm" && m_addr.Protocol != "epgm") {
+			    	m_pipe.hiccup ();
+			    	m_pipe.terminate (false);
+			    	m_terminatingPipes.Add (m_pipe);
+			    	m_pipe = null;
+			    }
+        
+			Reset ();
+
+			//  Reconnect.
+			if (m_options.ReconnectIvl != -1)
+				StartConnecting (true);
+
+			//  For subscriber sockets we hiccup the inbound pipe, which will cause
+			//  the socket object to resend all the subscriptions.
+			if (m_pipe != null && (m_options.SocketType == ZmqSocketType.ZMQ_SUB || m_options.SocketType == ZmqSocketType.ZMQ_XSUB))
+				m_pipe.hiccup ();
+
+		}
+
+    
+		private void StartConnecting (bool wait)
+		{
+			Debug.Assert(m_connect);
+
+			//  Choose I/O thread to run connecter in. Given that we are already
+			//  running in an I/O thread, there must be at least one available.
+			IOThread ioThread = ChooseIOThread (m_options.Affinity);
+			Debug.Assert(ioThread != null);
+
+			//  Create the connecter object.
+
+			if (m_addr.Protocol.Equals("tcp")) {
+				TcpConnecter connecter = new TcpConnecter (
+					ioThread, this, m_options, m_addr, wait);
+				//alloc_Debug.Assert(connecter);
+				LaunchChild (connecter);
+				return;
+			}
+        
+			if (m_addr.Protocol.Equals("ipc")) {
+				IpcConnecter connecter = new IpcConnecter (
+					ioThread, this, m_options, m_addr, wait);
+				//alloc_Debug.Assert(connecter);
+				LaunchChild (connecter);
+				return;
+			}
+        
+			Debug.Assert(false);
+		}
+    
+		public override String ToString() {
+			return base.ToString() + "[" + m_options.SocketId + "]";
+		}
+
+		public virtual void InEvent() {
+			throw new NotSupportedException();
+        
+		}
+
+		public virtual void OutEvent()
+		{
+			throw new NotSupportedException();
+        
+		}
+
+    
+
+
+
+	}
 }

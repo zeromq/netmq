@@ -18,240 +18,242 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 using System.Net.Sockets;
 using System.Diagnostics;
-using System.Net;
 using System.Security;
 using System.Runtime.InteropServices;
 
-
-public class TcpListener : Own, IPollEvents
+namespace zmq
 {
+	public class TcpListener : Own, IPollEvents
+	{
 
-    //private static Logger LOG = LoggerFactory.getLogger(TcpListener.class);
-    //  Address to listen on.
-    private TcpAddress address;
+		//private static Logger LOG = LoggerFactory.getLogger(TcpListener.class);
+		//  Address to listen on.
+		private readonly TcpAddress m_address;
 
-    //  Underlying socket.
-    private System.Net.Sockets.Socket handle;
+		//  Underlying socket.
+		private Socket m_handle;
 
-    //  Socket the listerner belongs to.
-    private SocketBase socket;
+		//  Socket the listerner belongs to.
+		private readonly SocketBase m_socket;
 
-    // String representation of endpoint to bind to
-    private String endpoint;
+		// String representation of endpoint to bind to
+		private String m_endpoint;
 
-    private IOObject io_object;
+		private readonly IOObject m_ioObject;
 
-    public TcpListener(IOThread io_thread_, SocketBase socket_, Options options_) :
-        base(io_thread_, options_)
-    {
+		public TcpListener(IOThread ioThread, SocketBase socket, Options options) :
+			base(ioThread, options)
+		{
 
-        io_object = new IOObject(io_thread_);
-        address = new TcpAddress();
-        handle = null;
-        socket = socket_;
-    }
+			m_ioObject = new IOObject(ioThread);
+			m_address = new TcpAddress();
+			m_handle = null;
+			m_socket = socket;
+		}
 
-    public override void destroy()
-    {
-        Debug.Assert(handle == null);
-    }
-
-
-    protected override void process_plug()
-    {
-        //  Start polling for incoming connections.
-        io_object.set_handler(this);
-        io_object.add_fd(handle);
-        io_object.set_pollin(handle);
-    }
+		public override void Destroy()
+		{
+			Debug.Assert(m_handle == null);
+		}
 
 
-    protected override void process_term(int linger_)
-    {
-        io_object.set_handler(this);
-        io_object.rm_fd(handle);
-        close();
-        base.process_term(linger_);
-    }
+		protected override void ProcessPlug()
+		{
+			//  Start polling for incoming connections.
+			m_ioObject.SetHandler(this);
+			m_ioObject.AddFd(m_handle);
+			m_ioObject.SetPollin(m_handle);
+		}
 
 
-    public void in_event()    
-    {
-        Socket fd = null;
-
-        try
-        {
-            fd = accept();
-            Utils.tune_tcp_socket(fd);
-            Utils.tune_tcp_keepalives(fd, options.TcpKeepalive, options.TcpKeepaliveCnt, options.TcpKeepaliveIdle, options.TcpKeepaliveIntvl);
-        }
-        catch (Exception)
-        {
-            //  If connection was reset by the peer in the meantime, just ignore it.
-            //  TODO: Handle specific errors like ENFILE/EMFILE etc.
-            //ZError.exc (e);
-            socket.event_accept_failed(endpoint, ZError.errno);
-            return;
-        }
+		protected override void ProcessTerm(int linger)
+		{
+			m_ioObject.SetHandler(this);
+			m_ioObject.RmFd(m_handle);
+			Close();
+			base.ProcessTerm(linger);
+		}
 
 
-        //  Create the engine object for this connection.
-        StreamEngine engine = null;
-        try
-        {
-            engine = new StreamEngine(fd, options, endpoint);
-        }
-        catch (SocketException)
-        {
-            //LOG.error("Failed to initialize StreamEngine", e.getCause());
-            ZError.errno = (ZError.EINVAL);
-            socket.event_accept_failed(endpoint, ZError.errno);
-            return;
-        }
-        //  Choose I/O thread to run connecter in. Given that we are already
-        //  running in an I/O thread, there must be at least one available.
-        IOThread io_thread = choose_io_thread(options.Affinity);
+		public void InEvent()    
+		{
+			Socket fd;
 
-        //  Create and launch a session object. 
-        SessionBase session = SessionBase.create(io_thread, false, socket,
-            options, new Address(handle.LocalEndPoint));
-        session.inc_seqnum();
-        launch_child(session);
-        send_attach(session, engine, false);
-        socket.event_accepted(endpoint, fd);
-    }
+			try
+			{
+				fd = Accept();
+				Utils.TuneTcpSocket(fd);
+				Utils.TuneTcpKeepalives(fd, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
+			}
+			catch (Exception)
+			{
+				//  If connection was reset by the peer in the meantime, just ignore it.
+				//  TODO: Handle specific errors like ENFILE/EMFILE etc.
+				//ZError.exc (e);
+				m_socket.EventAcceptFailed(m_endpoint, ZError.ErrorNumber);
+				return;
+			}
 
 
-    //  Close the listening socket.
-    private void close()
-    {
-        if (handle == null)
-            return;
+			//  Create the engine object for this connection.
+			StreamEngine engine;
+			try
+			{
+				engine = new StreamEngine(fd, m_options, m_endpoint);
+			}
+			catch (SocketException)
+			{
+				//LOG.error("Failed to initialize StreamEngine", e.getCause());
+				ZError.ErrorNumber = (ErrorNumber.EINVAL);
+				m_socket.EventAcceptFailed(m_endpoint, ZError.ErrorNumber);
+				return;
+			}
+			//  Choose I/O thread to run connecter in. Given that we are already
+			//  running in an I/O thread, there must be at least one available.
+			IOThread ioThread = ChooseIOThread(m_options.Affinity);
 
-        try
-        {
-            handle.Close();
-            socket.event_closed(endpoint, handle);
-        }
-        catch (Exception)
-        {
-            //ZError.exc (e);
-            socket.event_close_failed(endpoint, ZError.errno);
-        }
-        handle = null;
-    }
-
-    public virtual String get_address()
-    {
-        return address.ToString();
-    }
-
-    [DllImport("kernel32.dll")]
-    static extern bool SetHandleInformation(IntPtr hObject, int dwMask, uint dwFlags);
-
-    const int HANDLE_FLAG_INHERIT = 0x00000001;
+			//  Create and launch a session object. 
+			SessionBase session = SessionBase.Create(ioThread, false, m_socket,
+			                                         m_options, new Address(m_handle.LocalEndPoint));
+			session.IncSeqnum();
+			LaunchChild(session);
+			SendAttach(session, engine, false);
+			m_socket.EventAccepted(m_endpoint, fd);
+		}
 
 
-    //  Set address to listen on.
-    public virtual bool set_address(String addr_)
-    {
-        address.resolve(addr_, options.IPv4Only > 0 ? true : false);
+		//  Close the listening socket.
+		private void Close()
+		{
+			if (m_handle == null)
+				return;
 
-        endpoint = address.ToString();
-        try
-        {
-            handle =
-                new Socket(address.address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+			try
+			{
+				m_handle.Close();
+				m_socket.EventClosed(m_endpoint, m_handle);
+			}
+			catch (Exception)
+			{
+				//ZError.exc (e);
+				m_socket.EventCloseFailed(m_endpoint, ZError.ErrorNumber);
+			}
+			m_handle = null;
+		}
 
-            SetHandleInformation(handle.Handle, HANDLE_FLAG_INHERIT, 0); 
+		public virtual String Address
+		{
+			get { return m_address.ToString(); }
+		}
+
+		[DllImport("kernel32.dll")]
+		static extern bool SetHandleInformation(IntPtr hObject, int dwMask, uint dwFlags);
+
+		const int HandleFlagInherit = 0x00000001;
+
+
+		//  Set address to listen on.
+		public virtual bool SetAddress(String addr)
+		{
+			m_address.Resolve(addr, m_options.IPv4Only > 0);
+
+			m_endpoint = m_address.ToString();
+			try
+			{
+				m_handle =
+					new Socket(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+				SetHandleInformation(m_handle.Handle, HandleFlagInherit, 0); 
             
-            //handle.Blocking = false;
+				//handle.Blocking = false;
             
-            handle.ExclusiveAddressUse = false;
-            handle.Bind((IPEndPoint)address.address);
-            handle.Listen(options.Backlog);           
-        }
-        catch (SecurityException)
-        {
-            ZError.errno = (ZError.EACCESS);
-            close();
-            return false;
-        }
-        catch (ArgumentException)
-        {
-            ZError.errno = (ZError.ENOTSUP);
-            close();
-            return false;
-        }
-        catch (SocketException)
-        {
-            //ZError.exc(e);
-            close();
-            return false;
-        }
+				m_handle.ExclusiveAddressUse = false;
+				m_handle.Bind(m_address.Address);
+				m_handle.Listen(m_options.Backlog);           
+			}
+			catch (SecurityException)
+			{
+				ZError.ErrorNumber = (ErrorNumber.EACCESS);
+				Close();
+				return false;
+			}
+			catch (ArgumentException)
+			{
+				ZError.ErrorNumber = (ErrorNumber.ENOTSUP);
+				Close();
+				return false;
+			}
+			catch (SocketException)
+			{
+				//ZError.exc(e);
+				Close();
+				return false;
+			}
 
-        socket.event_listening(endpoint, handle);
-        return true;
-    }
+			m_socket.EventListening(m_endpoint, m_handle);
+			return true;
+		}
 
-    //  Accept the new connection. Returns the file descriptor of the
-    //  newly created connection. The function may return retired_fd
-    //  if the connection was dropped while waiting in the listen backlog
-    //  or was denied because of accept filters.
-    private Socket accept()
-    {
-        Socket sock = null;
-        try
-        {
-            sock = handle.Accept();
-        }
-        catch (SocketException)
-        {
-            return null;
-        }
+		//  Accept the new connection. Returns the file descriptor of the
+		//  newly created connection. The function may return retired_fd
+		//  if the connection was dropped while waiting in the listen backlog
+		//  or was denied because of accept filters.
+		private Socket Accept()
+		{
+			Socket sock = null;
+			try
+			{
+				sock = m_handle.Accept();
+			}
+			catch (SocketException)
+			{
+				return null;
+			}
 
-        SetHandleInformation(sock.Handle, HANDLE_FLAG_INHERIT, 0);
+			SetHandleInformation(sock.Handle, HandleFlagInherit, 0);
 
-        if (options.TcpAcceptFilters.Count > 0)
-        {
-            bool matched = false;
-            foreach (TcpAddress.TcpAddressMask am in options.TcpAcceptFilters)
-            {
-                if (am.match_address(address.address))
-                {
-                    matched = true;
-                    break;
-                }
-            }
-            if (!matched)
-            {
-                try
-                {
-                    sock.Close();
-                }
-                catch (SocketException)
-                {
-                }
-                return null;
-            }
-        }
-        return sock;
-    }
-
-    
-    
-
-    public void out_event()
-    {
-        throw new NotSupportedException();
-    }
+			if (m_options.TcpAcceptFilters.Count > 0)
+			{
+				bool matched = false;
+				foreach (TcpAddress.TcpAddressMask am in m_options.TcpAcceptFilters)
+				{
+					if (am.MatchAddress(m_address.Address))
+					{
+						matched = true;
+						break;
+					}
+				}
+				if (!matched)
+				{
+					try
+					{
+						sock.Close();
+					}
+					catch (SocketException)
+					{
+					}
+					return null;
+				}
+			}
+			return sock;
+		}
 
     
-    public void timer_event(int id_)
-    {
-        throw new NotSupportedException();
-    }
+    
+
+		public void OutEvent()
+		{
+			throw new NotSupportedException();
+		}
+
+    
+		public void TimerEvent(int id)
+		{
+			throw new NotSupportedException();
+		}
+	}
 }

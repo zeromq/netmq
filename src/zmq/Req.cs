@@ -23,182 +23,185 @@
 using System;
 using System.Diagnostics;
 
-public class Req : Dealer {
+namespace zmq
+{
+	public class Req : Dealer {
 
     
-    //  If true, request was already sent and reply wasn't received yet or
-    //  was raceived partially.
-    private bool receiving_reply;
+		//  If true, request was already sent and reply wasn't received yet or
+		//  was raceived partially.
+		private bool m_receivingReply;
 
-    //  If true, we are starting to send/recv a message. The first part
-    //  of the message must be empty message part (backtrace stack bottom).
-    private bool message_begins;
+		//  If true, we are starting to send/recv a message. The first part
+		//  of the message must be empty message part (backtrace stack bottom).
+		private bool m_messageBegins;
 
 
-    public Req(Ctx parent_, int tid_, int sid_)
-        : base(parent_, tid_, sid_)
-    {
+		public Req(Ctx parent, int tid, int sid)
+			: base(parent, tid, sid)
+		{
         
         
-        receiving_reply = false;
-        message_begins = true;
-				options.SocketType = ZmqSocketType.ZMQ_REQ;
-    }
+			m_receivingReply = false;
+			m_messageBegins = true;
+			m_options.SocketType = ZmqSocketType.ZMQ_REQ;
+		}
 
 
-		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
-    {
-        //  If we've sent a request and we still haven't got the reply,
-        //  we can't send another request.
-        if (receiving_reply) {
-            throw new InvalidOperationException("Cannot send another request");
-        }
+		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		{
+			//  If we've sent a request and we still haven't got the reply,
+			//  we can't send another request.
+			if (m_receivingReply) {
+				throw new InvalidOperationException("Cannot send another request");
+			}
 
-        bool rc;
+			bool rc;
 
-        //  First part of the request is the request identity.
-        if (message_begins) {
-            Msg bottom = new Msg();
-            bottom.SetFlags (MsgFlags.More);
-            rc = base.xsend (bottom, 0);
-            if (!rc)
-                return false;
-            message_begins = false;
-        }
+			//  First part of the request is the request identity.
+			if (m_messageBegins) {
+				Msg bottom = new Msg();
+				bottom.SetFlags (MsgFlags.More);
+				rc = base.XSend (bottom, 0);
+				if (!rc)
+					return false;
+				m_messageBegins = false;
+			}
 
-        bool more = msg_.has_more();
+			bool more = msg.HasMore;
 
-        rc = base.xsend (msg_, flags_);
-        if (!rc)
-            return rc;
+			rc = base.XSend (msg, flags);
+			if (!rc)
+				return rc;
 
-        //  If the request was fully sent, flip the FSM into reply-receiving state.
-        if (!more) {
-            receiving_reply = true;
-            message_begins = true;
-        }
+			//  If the request was fully sent, flip the FSM into reply-receiving state.
+			if (!more) {
+				m_receivingReply = true;
+				m_messageBegins = true;
+			}
 
-        return true;
-    }
+			return true;
+		}
 
-    override
-		protected Msg xrecv(ZmqSendRecieveOptions flags_)
-    {
-        Msg msg_ = null;
-        //  If request wasn't send, we can't wait for reply.
-        if (!receiving_reply) {
-            ZError.errno = (ZError.EFSM);
-            throw new InvalidOperationException("Cannot wait before send");
-        }
+		override
+			protected Msg XRecv(ZmqSendRecieveOptions flags)
+		{
+			Msg msg = null;
+			//  If request wasn't send, we can't wait for reply.
+			if (!m_receivingReply) {
+				ZError.ErrorNumber = (ErrorNumber.EFSM);
+				throw new InvalidOperationException("Cannot wait before send");
+			}
 
-        //  First part of the reply should be the original request ID.
-        if (message_begins) {
-            msg_ = base.xrecv (flags_);
-            if (msg_ == null)
-                return null;
+			//  First part of the reply should be the original request ID.
+			if (m_messageBegins) {
+				msg = base.XRecv (flags);
+				if (msg == null)
+					return null;
 
-            // TODO: This should also close the connection with the peer!
-            if ( !msg_.has_more() || msg_.size != 0) {
-                while (true) {
-                    msg_ = base.xrecv (flags_);
-                    Debug.Assert(msg_ != null);
-                    if (!msg_.has_more())
-                        break;
-                }
-                ZError.errno = (ZError.EAGAIN);
-                return null;
-            }
+				// TODO: This should also close the connection with the peer!
+				if ( !msg.HasMore || msg.Size != 0) {
+					while (true) {
+						msg = base.XRecv (flags);
+						Debug.Assert(msg != null);
+						if (!msg.HasMore)
+							break;
+					}
+					ZError.ErrorNumber = (ErrorNumber.EAGAIN);
+					return null;
+				}
 
-            message_begins = false;
-        }
+				m_messageBegins = false;
+			}
 
-        msg_ = base.xrecv (flags_);
-        if (msg_ == null)
-            return null;
+			msg = base.XRecv (flags);
+			if (msg == null)
+				return null;
 
-        //  If the reply is fully received, flip the FSM into request-sending state.
-        if (!msg_.has_more()) {
-            receiving_reply = false;
-            message_begins = true;
-        }
+			//  If the reply is fully received, flip the FSM into request-sending state.
+			if (!msg.HasMore) {
+				m_receivingReply = false;
+				m_messageBegins = true;
+			}
 
-        return msg_;
-    }
+			return msg;
+		}
     
-    override
-    protected bool xhas_in ()
-    {
-        //  TODO: Duplicates should be removed here.
+		override
+			protected bool XHasIn ()
+		{
+			//  TODO: Duplicates should be removed here.
 
-        if (!receiving_reply)
-            return false;
+			if (!m_receivingReply)
+				return false;
 
-        return base.xhas_in ();
-    }
+			return base.XHasIn ();
+		}
 
-    override
-    protected bool xhas_out()
-    {
-        if (receiving_reply)
-            return false;
+		override
+			protected bool XHasOut()
+		{
+			if (m_receivingReply)
+				return false;
 
-        return base.xhas_out ();
-    }
+			return base.XHasOut ();
+		}
 
     
-    public class ReqSession : Dealer.DealerSession {
+		public class ReqSession : Dealer.DealerSession {
         
         
-        enum State {
-            identity,
-            bottom,
-            body
-        };
+			enum State {
+				Identity,
+				Bottom,
+				Body
+			};
 
-        State state;
+			State m_state;
         
-        public ReqSession(IOThread io_thread_, bool connect_,
-            SocketBase socket_, Options options_,
-            Address addr_) :base(io_thread_, connect_, socket_, options_, addr_)
-        {            
-            state = State.identity;
-        }
+			public ReqSession(IOThread ioThread, bool connect,
+			                  SocketBase socket, Options options,
+			                  Address addr) :base(ioThread, connect, socket, options, addr)
+			{            
+				m_state = State.Identity;
+			}
         
-        override
-        public bool push_msg (Msg msg_)
-        {
-            switch (state) {
-                case State.bottom:
-                if (msg_.flags == MsgFlags.More && msg_.size == 0) {
-                    state = State.body;
-                    return base.push_msg (msg_);
-                }
-                break;
-                case State.body:
-                if (msg_.flags == MsgFlags.More)
-                    return base.push_msg (msg_);
-                if (msg_.flags == 0) {
-                    state = State.bottom;
-                    return base.push_msg (msg_);
-                }
-                break;
-                case State.identity:
-                if (msg_.flags == 0) {
-                    state = State.bottom;
-                    return base.push_msg (msg_);
-                }
-                break;
-            }
+			override
+				public bool PushMsg (Msg msg)
+			{
+				switch (m_state) {
+					case State.Bottom:
+						if (msg.Flags == MsgFlags.More && msg.Size == 0) {
+							m_state = State.Body;
+							return base.PushMsg (msg);
+						}
+						break;
+					case State.Body:
+						if (msg.Flags == MsgFlags.More)
+							return base.PushMsg (msg);
+						if (msg.Flags == 0) {
+							m_state = State.Bottom;
+							return base.PushMsg (msg);
+						}
+						break;
+					case State.Identity:
+						if (msg.Flags == 0) {
+							m_state = State.Bottom;
+							return base.PushMsg (msg);
+						}
+						break;
+				}
             
-            throw new InvalidOperationException(state.ToString());
-        }
+				throw new InvalidOperationException(m_state.ToString());
+			}
         
-        protected override void reset ()
-        {
-            base.reset ();
-            state = State.identity;
-        }
+			protected override void Reset ()
+			{
+				base.Reset ();
+				m_state = State.Identity;
+			}
 
-    }
+		}
 
+	}
 }

@@ -17,34 +17,41 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 using System;
 
 // fake Unix domain socket
-public class IpcListener : TcpListener {
+namespace zmq
+{
+	public class IpcListener : TcpListener {
 
-    private IpcAddress address;
+		private readonly IpcAddress m_address;
     
-    public IpcListener(IOThread io_thread_, SocketBase socket_, Options options_) :base(io_thread_, socket_, options_)
-    {
-        address = new IpcAddress();
-    }
+		public IpcListener(IOThread ioThread, SocketBase socket, Options options) :base(ioThread, socket, options)
+		{
+			m_address = new IpcAddress();
+		}
 
-    // Get the bound address for use with wildcards
-    public override String get_address() {
-        return address.ToString();
-    }
+		// Get the bound address for use with wildcards
+		public override String Address
+		{get
+			{
+				return m_address.ToString();
+			}
+		}
     
 
-    //  Set address to listen on.
-    public override bool set_address(String addr_)
-    {
+		//  Set address to listen on.
+		public override bool SetAddress(String addr)
+		{
         
-        address.resolve (addr_, false);
+			m_address.Resolve (addr, false);
         
-        String fake = address.address.Address + ":" + address.address.Port;
-        return base.set_address(fake);
-    }
+			String fake = m_address.Address.Address + ":" + m_address.Address.Port;
+			return base.SetAddress(fake);
+		}
 
 
     
+	}
 }

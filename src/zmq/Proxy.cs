@@ -18,6 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 using System;
+using zmq;
 
 public class Proxy {
     
@@ -37,8 +38,8 @@ public class Proxy {
         Msg msg;
         PollItem[] items = new PollItem[2];
         
-        items[0] = new PollItem (frontend_, ZMQ.ZMQ_POLLIN );
-        items[1] = new PollItem (backend_, ZMQ.ZMQ_POLLIN );
+        items[0] = new PollItem (frontend_, ZMQ.ZmqPollin );
+        items[1] = new PollItem (backend_, ZMQ.ZmqPollin );
         
         Selector selector;
         try {
@@ -57,7 +58,7 @@ public class Proxy {
                 //  Process a request.
                 if (items [0].isReadable()) {
                     while (true) {
-                        msg = frontend_.recv (0);
+                        msg = frontend_.Recv (0);
                         if (msg == null) {
                             return false;
                         }
@@ -70,13 +71,13 @@ public class Proxy {
                         //  Copy message to capture socket if any
                         if (capture_ != null) {
                             Msg ctrl = new Msg (msg);
-                            success = capture_.send (ctrl, more > 0 ? ZMQ.ZMQ_SNDMORE: 0);
+                            success = capture_.Send (ctrl, more > 0 ? ZMQ.ZMQ_SNDMORE: 0);
                             if (!success)
                                 return false;
                         }
 
     
-                        success = backend_.send (msg, more > 0 ? ZMQ.ZMQ_SNDMORE: 0);
+                        success = backend_.Send (msg, more > 0 ? ZMQ.ZMQ_SNDMORE: 0);
                         if (!success)
                             return false;
                         if (more == 0)
@@ -86,7 +87,7 @@ public class Proxy {
                 //  Process a reply.
                 if (items [1].isReadable()) {
                     while (true) {
-                        msg = backend_.recv (0);
+                        msg = backend_.Recv (0);
                         if (msg == null) {
                             return false;
                         }
@@ -99,12 +100,12 @@ public class Proxy {
                         //  Copy message to capture socket if any
                         if (capture_ != null) {
                             Msg ctrl = new Msg (msg);
-                            success = capture_.send (ctrl, more > 0 ? ZMQ.ZMQ_SNDMORE: 0);
+                            success = capture_.Send (ctrl, more > 0 ? ZMQ.ZMQ_SNDMORE: 0);
                             if (!success)
                                 return false;
                         }
     
-                        success = frontend_.send (msg, more > 0 ? ZMQ.ZMQ_SNDMORE: 0);
+                        success = frontend_.Send (msg, more > 0 ? ZMQ.ZMQ_SNDMORE: 0);
                         if (!success)
                             return false;
                         if (more == 0)

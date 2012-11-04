@@ -17,192 +17,196 @@
         
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/ 
+*/
+
 using System;
 using System.Diagnostics;
 using Wintellect.PowerCollections;
 
-public class XPub : SocketBase {
+namespace zmq
+{
+	public class XPub : SocketBase {
 
-    public class XPubSession : SessionBase {
+		public class XPubSession : SessionBase {
 
-        public XPubSession(IOThread io_thread_, bool connect_,
-                SocketBase socket_, Options options_, Address addr_):
-            base(io_thread_, connect_, socket_, options_, addr_) {
+			public XPubSession(IOThread ioThread, bool connect,
+			                   SocketBase socket, Options options, Address addr):
+			                   	base(ioThread, connect, socket, options, addr) {
 
-        }
+			                   	}
 
-    }
+		}
 
-    //  List of all subscriptions mapped to corresponding pipes.
-    private Mtrie subscriptions;
+		//  List of all subscriptions mapped to corresponding pipes.
+		private readonly Mtrie m_subscriptions;
 
-    //  Distributor of messages holding the list of outbound pipes.
-    private Dist dist;
+		//  Distributor of messages holding the list of outbound pipes.
+		private readonly Dist m_dist;
 
-    // If true, send all subscription messages upstream, not just
-    // unique ones
-    bool verbose;
+		// If true, send all subscription messages upstream, not just
+		// unique ones
+		bool m_verbose;
 
-    //  True if we are in the middle of sending a multi-part message.
-    private bool more;
+		//  True if we are in the middle of sending a multi-part message.
+		private bool m_more;
 
-    //  List of pending (un)subscriptions, ie. those that were already
-    //  applied to the trie, but not yet received by the user.
-    private Deque<Blob> pending;
+		//  List of pending (un)subscriptions, ie. those that were already
+		//  applied to the trie, but not yet received by the user.
+		private readonly Deque<Blob> m_pending;
     
-    private static Mtrie.IMtrieDelegate mark_as_matching;
-    private static Mtrie.IMtrieDelegate send_unsubscription;
+		private static readonly Mtrie.MtrieDelegate s_markAsMatching;
+		private static readonly Mtrie.MtrieDelegate s_SendUnsubscription;
     
-    static XPub ()
-	{
-        mark_as_matching = (pipe_,  data, arg_) => {
-                XPub self = (XPub) arg_;
-                self.dist.match (pipe_);            
-        };
+		static XPub ()
+		{
+			s_markAsMatching = (pipe,  data, arg) => {
+			                                           	XPub self = (XPub) arg;
+			                                           	self.m_dist.Match (pipe);            
+			};
         
-        send_unsubscription = (pipe_,  data_, arg_) => {
+			s_SendUnsubscription = (pipe,  data, arg) => {
             
-                XPub self = (XPub) arg_;
+			                                               	XPub self = (XPub) arg;
 
-								if (self.options.SocketType != ZmqSocketType.ZMQ_PUB)
-								{
+			                                               	if (self.m_options.SocketType != ZmqSocketType.ZMQ_PUB)
+			                                               	{
 
-                    //  Place the unsubscription to the queue of pending (un)sunscriptions
-                    //  to be retrived by the user later on.
-                    Blob unsub = new Blob (data_.Length + 1);
-                    unsub.put(0,(byte)0);
-                    unsub.put(1, data_);
-                    self.pending.AddToBack (unsub);
+			                                               		//  Place the unsubscription to the queue of pending (un)sunscriptions
+			                                               		//  to be retrived by the user later on.
+			                                               		Blob unsub = new Blob (data.Length + 1);
+			                                               		unsub.Put(0,(byte)0);
+			                                               		unsub.Put(1, data);
+			                                               		self.m_pending.AddToBack (unsub);
  
-            }
-        };
-    }
+			                                               	}
+			};
+		}
     
-    public XPub(Ctx parent_, int tid_, int sid_) : base(parent_, tid_, sid_) {
+		public XPub(Ctx parent, int tid, int sid) : base(parent, tid, sid) {
 
-			options.SocketType = ZmqSocketType.ZMQ_XPUB;
-        verbose = false;
-        more = false;
+			m_options.SocketType = ZmqSocketType.ZMQ_XPUB;
+			m_verbose = false;
+			m_more = false;
         
-        subscriptions = new Mtrie();
-        dist = new Dist();
-        pending = new Deque<Blob>();
-    }
+			m_subscriptions = new Mtrie();
+			m_dist = new Dist();
+			m_pending = new Deque<Blob>();
+		}
     
-    protected override void xattach_pipe (Pipe pipe_, bool icanhasall_)
-    {
-        Debug.Assert(pipe_ != null);
-        dist.attach (pipe_);
-
-        //  If icanhasall_ is specified, the caller would like to subscribe
-        //  to all data on this pipe, implicitly.
-        if (icanhasall_)
-            subscriptions.add (null, pipe_);
-
-        //  The pipe is active when attached. Let's read the subscriptions from
-        //  it, if any.
-        xread_activated (pipe_);
-    }
-
-    protected override void xread_activated (Pipe pipe_)
-    {
-        //  There are some subscriptions waiting. Let's process them.
-        Msg sub = null;
-        while ((sub = pipe_.read()) != null) {
-
-            //  Apply the subscription to the trie.
-            byte[] data = sub.get_data();
-            int size = sub.size;
-            if (size > 0 && (data[0] == 0 || data[0] == 1)) {
-                bool unique;
-                if (data[0] == 0)
-                    unique = subscriptions.rm (data , 1, pipe_);
-                else
-                    unique = subscriptions.add (data , 1, pipe_);
-
-                //  If the subscription is not a duplicate, store it so that it can be
-                //  passed to used on next recv call.
-								if (options.SocketType == ZmqSocketType.ZMQ_XPUB && (unique || verbose))
-                    pending.AddToBack(new Blob (sub.get_data()));
-            }
-        }
-    }
-        
-    protected override void xwrite_activated (Pipe pipe_)
-    {
-        dist.activated (pipe_);
-    }
-
-		protected override bool xsetsockopt(ZmqSocketOptions option_, Object optval_)
-    {
-        if (option_ != ZmqSocketOptions.ZMQ_XPUB_VERBOSE) {
-            ZError.errno = (ZError.EINVAL);
-            return false;
-        }
-        verbose = (int) optval_ == 1;
-        return true;
-    }
-
-    protected override void xterminated (Pipe pipe_)
-    {
-        //  Remove the pipe from the trie. If there are topics that nobody
-        //  is interested in anymore, send corresponding unsubscriptions
-        //  upstream.
-        
-        
-        subscriptions.rm (pipe_, send_unsubscription, this);
-
-        dist.terminated (pipe_);
-    }
-
-		protected override bool xsend(Msg msg_, ZmqSendRecieveOptions flags_)
+		protected override void XAttachPipe (Pipe pipe, bool icanhasall)
 		{
-        bool msg_more = msg_.has_more(); 
+			Debug.Assert(pipe != null);
+			m_dist.Attach (pipe);
 
-        //  For the first part of multi-part message, find the matching pipes.
-        if (!more)
-            subscriptions.match(msg_.get_data(), msg_.size,
-                mark_as_matching, this);
+			//  If icanhasall_ is specified, the caller would like to subscribe
+			//  to all data on this pipe, implicitly.
+			if (icanhasall)
+				m_subscriptions.Add (null, pipe);
 
-        //  Send the message to all the pipes that were marked as matching
-        //  in the previous step.
-        bool rc = dist.send_to_matching (msg_, flags_);
-        if (!rc)
-            return rc;
+			//  The pipe is active when attached. Let's read the subscriptions from
+			//  it, if any.
+			XReadActivated (pipe);
+		}
 
-        //  If we are at the end of multi-part message we can mark all the pipes
-        //  as non-matching.
-        if (!msg_more)
-            dist.unmatch ();
-
-        more = msg_more;
-        return true;
-    }
-
-
-    protected override bool xhas_out() {
-        return dist.has_out ();
-    }
-
-		protected override Msg xrecv(ZmqSendRecieveOptions flags_)
+		protected override void XReadActivated (Pipe pipe)
 		{
-        //  If there is at least one 
-        if (pending.Count == 0) {
-            ZError.errno = (ZError.EAGAIN);
-            return null;
-        }
+			//  There are some subscriptions waiting. Let's process them.
+			Msg sub;
+			while ((sub = pipe.read()) != null) {
 
-        Blob first = pending.RemoveFromFront();
-        Msg msg_ = new Msg(first.data());
-        return msg_;
+				//  Apply the subscription to the trie.
+				byte[] data = sub.Data;
+				int size = sub.Size;
+				if (size > 0 && (data[0] == 0 || data[0] == 1)) {
+					bool unique;
+					if (data[0] == 0)
+						unique = m_subscriptions.Remove (data , 1, pipe);
+					else
+						unique = m_subscriptions.Add (data , 1, pipe);
 
-    }
+					//  If the subscription is not a duplicate, store it so that it can be
+					//  passed to used on next recv call.
+					if (m_options.SocketType == ZmqSocketType.ZMQ_XPUB && (unique || m_verbose))
+						m_pending.AddToBack(new Blob (sub.Data));
+				}
+			}
+		}
+        
+		protected override void XWriteActivated (Pipe pipe)
+		{
+			m_dist.Activated (pipe);
+		}
 
-    protected override bool xhas_in()
-    {
-        return pending.Count != 0;
-    }
+		protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+		{
+			if (option != ZmqSocketOptions.ZMQ_XPUB_VERBOSE) {
+				ZError.ErrorNumber = (ErrorNumber.EINVAL);
+				return false;
+			}
+			m_verbose = (int) optval == 1;
+			return true;
+		}
+
+		protected override void XTerminated (Pipe pipe)
+		{
+			//  Remove the pipe from the trie. If there are topics that nobody
+			//  is interested in anymore, send corresponding unsubscriptions
+			//  upstream.
+        
+        
+			m_subscriptions.RemoveHelper (pipe, s_SendUnsubscription, this);
+
+			m_dist.Terminated (pipe);
+		}
+
+		protected override bool XSend(Msg msg, ZmqSendRecieveOptions flags)
+		{
+			bool msgMore = msg.HasMore; 
+
+			//  For the first part of multi-part message, find the matching pipes.
+			if (!m_more)
+				m_subscriptions.Match(msg.Data, msg.Size,
+				                    s_markAsMatching, this);
+
+			//  Send the message to all the pipes that were marked as matching
+			//  in the previous step.
+			bool rc = m_dist.SendToMatching (msg, flags);
+			if (!rc)
+				return rc;
+
+			//  If we are at the end of multi-part message we can mark all the pipes
+			//  as non-matching.
+			if (!msgMore)
+				m_dist.Unmatch ();
+
+			m_more = msgMore;
+			return true;
+		}
+
+
+		protected override bool XHasOut() {
+			return m_dist.HasOut ();
+		}
+
+		protected override Msg XRecv(ZmqSendRecieveOptions flags)
+		{
+			//  If there is at least one 
+			if (m_pending.Count == 0) {
+				ZError.ErrorNumber = (ErrorNumber.EAGAIN);
+				return null;
+			}
+
+			Blob first = m_pending.RemoveFromFront();
+			Msg msg = new Msg(first.Data);
+			return msg;
+
+		}
+
+		protected override bool XHasIn()
+		{
+			return m_pending.Count != 0;
+		}
     
 
+	}
 }

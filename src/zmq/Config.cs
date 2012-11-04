@@ -20,71 +20,64 @@
 */
 
 
-using System;
+namespace zmq
+{
+	public static class Config
+	{
 
-public static class Config {
-	
-    //  Number of new messages in message pipe needed to trigger new memory
-    //  allocation. Setting this parameter to 256 decreases the impact of
-    //  memory allocation by approximately 99.6%
-    public static int message_pipe_granularity = (256),
+		//  Number of new messages in message pipe needed to trigger new memory
+		//  allocation. Setting this parameter to 256 decreases the impact of
+		//  memory allocation by approximately 99.6%
+		public const int MessagePipeGranularity = (256);
 
-    //  Commands in pipe per allocation event.
-    command_pipe_granularity = (16),
+		//  Commands in pipe per allocation event.
+		public const int CommandPipeGranularity = (16);
 
-    //  Determines how often does socket poll for new commands when it
-        //  still has unprocessed messages to handle. Thus, if it is set to 100,
-        //  socket will process 100 inbound messages before doing the poll.
-        //  If there are no unprocessed messages available, poll is done
-        //  immediately. Decreasing the value trades overall latency for more
-        //  real-time behaviour (less latency peaks).
-    inbound_poll_rate = (100),
+		//  Determines how often does socket poll for new commands when it
+		//  still has unprocessed messages to handle. Thus, if it is set to 100,
+		//  socket will process 100 inbound messages before doing the poll.
+		//  If there are no unprocessed messages available, poll is done
+		//  immediately. Decreasing the value trades overall latency for more
+		//  real-time behaviour (less latency peaks).
+		public const int InboundPollRate = (100);
 
-    //  Maximal batching size for engines with receiving functionality.
-        //  So, if there are 10 messages that fit into the batch size, all of
-        //  them may be read by a single 'recv' system call, thus avoiding
-        //  unnecessary network stack traversals.
-    in_batch_size = (8192),
+		//  Maximal batching size for engines with receiving functionality.
+		//  So, if there are 10 messages that fit into the batch size, all of
+		//  them may be read by a single 'recv' system call, thus avoiding
+		//  unnecessary network stack traversals.
+		public const int InBatchSize = (8192);
 
-    //  Maximal batching size for engines with sending functionality.
-        //  So, if there are 10 messages that fit into the batch size, all of
-        //  them may be written by a single 'send' system call, thus avoiding
-        //  unnecessary network stack traversals.
-    out_batch_size = (8192),
+		//  Maximal batching size for engines with sending functionality.
+		//  So, if there are 10 messages that fit into the batch size, all of
+		//  them may be written by a single 'send' system call, thus avoiding
+		//  unnecessary network stack traversals.
+		public const int OutBatchSize = (8192);
 
-    //  Maximal delta between high and low watermark.
-    max_wm_delta = (1024),
+		//  Maximal delta between high and low watermark.
+		public const int MaxWatermarkDelta = (1024);
 
-    //  Maximum number of events the I/O thread can process in one go.
-    max_io_events = (256),
+		//  Maximum number of events the I/O thread can process in one go.
+		public const int MaxIOEvents = (256);
 
-    //  Maximal delay to process command in API thread (in CPU ticks).
-        //  3,000,000 ticks equals to 1 - 2 milliseconds on current CPUs.
-        //  Note that delay is only applied when there is continuous stream of
-        //  messages to process. If not so, commands are processed immediately.
-    max_command_delay = (3000000),
+		//  Maximal delay to process command in API thread (in CPU ticks).
+		//  3,000,000 ticks equals to 1 - 2 milliseconds on current CPUs.
+		//  Note that delay is only applied when there is continuous stream of
+		//  messages to process. If not so, commands are processed immediately.
+		public const int MaxCommandDelay = (3000000);
 
-    //  Low-precision clock precision in CPU ticks. 1ms. Value of 1000000
-        //  should be OK for CPU frequencies above 1GHz. If should work
-        //  reasonably well for CPU frequencies above 500MHz. For lower CPU
-        //  frequencies you may consider lowering this value to get best
-        //  possible latencies.
-    clock_precision = (1000000),
+		//  Low-precision clock precision in CPU ticks. 1ms. Value of 1000000
+		//  should be OK for CPU frequencies above 1GHz. If should work
+		//  reasonably well for CPU frequencies above 500MHz. For lower CPU
+		//  frequencies you may consider lowering this value to get best
+		//  possible latencies.
+		public const int ClockPrecision = (1000000);
 
-    //  Maximum transport data unit size for PGM (TPDU).
-    pgm_max_tpdu = (1500),
+		//  Maximum transport data unit size for PGM (TPDU).
+		public const int PgmMaxTPDU = (1500);
 
-    //  On some OSes the signaler has to be emulated using a TCP
-        //  connection. In such cases following port is used.
-    signaler_port = (5905);
+		//  On some OSes the signaler has to be emulated using a TCP
+		//  connection. In such cases following port is used.
+		public const int SignalerPort = (5905);
+	}
 }
 
-//private int value;
-
-//    private Config(int value) {
-//        this.value = value;
-//    }
-    
-//    public int getValue() {
-//        return value;
-//    }
