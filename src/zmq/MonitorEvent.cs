@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace zmq
@@ -13,6 +15,18 @@ namespace zmq
 		private readonly Object m_arg;
 		private readonly int m_flag;
 
+		private static readonly int SizeOfIntPtr;
+
+		static MonitorEvent()
+		{
+			SizeOfIntPtr = Marshal.SizeOf(typeof(IntPtr));
+
+			if (SizeOfIntPtr > 4)
+			{
+				SizeOfIntPtr = 8;
+			}
+		}
+
 		public MonitorEvent(SocketEvent monitorEvent, String addr, Object arg)
 		{
 			this.m_monitorEvent = monitorEvent;
@@ -26,12 +40,36 @@ namespace zmq
 				m_flag = 0;
 		}
 
-		public bool write(SocketBase s)
+		public string Addr
+		{
+			get { return m_addr; }
+		}
+
+		public object Arg
+		{
+			get { return m_arg; }
+		}
+
+		public int Flag
+		{
+			get { return m_flag; }
+		}
+
+		public SocketEvent Event
+		{
+			get { return m_monitorEvent; }
+		}
+
+		public bool Write(SocketBase s)
 		{
 			int size = 4 + 1 + m_addr.Length + 1; // event + len(addr) + addr + flag
 			if (m_flag == ValueInteger)
-				size += 4;
-
+			  size += 4;
+			else if (m_flag == ValueChannel)
+			{
+				size += SizeOfIntPtr;
+			}		
+			
 			int pos = 0;
 
 			ByteArraySegment buffer = new byte[size];
@@ -46,8 +84,20 @@ namespace zmq
 
 			buffer[pos++] = ((byte)m_flag);
 			if (m_flag == ValueInteger)
-				buffer.PutInteger((int)m_arg, pos);
-			pos += 4;
+			{
+				buffer.PutInteger((int) m_arg, pos);
+			}
+			else if (m_flag == ValueChannel)
+			{
+				if (SizeOfIntPtr == 4)
+				{
+					buffer.PutInteger(((Socket)m_arg).Handle.ToInt32(), pos);
+				}
+				else
+				{
+					buffer.PutLong(((Socket)m_arg).Handle.ToInt64(), pos);
+				}
+			}			
 
 			Msg msg = new Msg((byte[])buffer);
 			return s.Send(msg, 0);
@@ -60,18 +110,32 @@ namespace zmq
 				return null;
 
 			int pos = 0;
-			byte[] data = msg.Data;
+			ByteArraySegment data = msg.Data;
 
-			SocketEvent @event = (SocketEvent)BitConverter.ToInt32(data, pos);
+			SocketEvent @event =(SocketEvent) data.GetInteger(pos);				
 			pos += 4;
 			int len = (int)data[pos++];
-			string addr = Encoding.ASCII.GetString(data, pos, len);
+			string addr = data.GetString(len, pos);
 			pos += len;
 			int flag = (int)data[pos++];
 			Object arg = null;
 
 			if (flag == ValueInteger)
-				arg = BitConverter.ToInt32(data, pos);
+			{
+				arg = data.GetInteger(pos);
+			}
+			else if (flag == ValueChannel)
+			{
+				if (SizeOfIntPtr == 4)
+				{
+					arg = new IntPtr(data.GetInteger(pos));
+				}
+				else
+				{
+					arg = new IntPtr(data.GetLong(pos));
+				}
+			}			
+
 
 			return new MonitorEvent(@event, addr, arg);
 		}

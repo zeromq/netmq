@@ -104,4 +104,13 @@ namespace zmq
 		                AcceptFailed | Closed |
 		                CloseFailed | Disconnected,
 	}
+
+	[Flags]
+	public enum PollEvents
+	{		
+		None = 0x0,
+		PollIn = 0x1,
+		PollOut = 0x2,
+		PollError = 0x4
+	}
 }

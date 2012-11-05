@@ -59,7 +59,7 @@ namespace zmq
 		public void PutInteger(int value, int i)
 		{
 			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 4);
-		}
+		}		
 
 		public void PutString(string s, int length, int i)
 		{

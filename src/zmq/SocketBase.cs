@@ -272,12 +272,12 @@ namespace zmq
 				if (!rc && (ZError.IsError(ErrorNumber.EINTR) || ZError.IsError(ErrorNumber.ETERM)))
 					return -1;
 				Debug.Assert(rc);
-				int val = 0;
+				PollEvents val = 0;
 				if (HasOut())
-					val |= ZMQ.ZmqPollout;
+					val |= PollEvents.PollOut;
 				if (HasIn())
-					val |= ZMQ.ZmqPollin;
-				return val;
+					val |= PollEvents.PollIn;
+				return (int)val;
 			}
 
 			return (int)GetSocketOptionX(option);
@@ -1223,7 +1223,7 @@ namespace zmq
 			if (m_monitorSocket == null)
 				return;
 
-			monitorEvent.write(m_monitorSocket);
+			monitorEvent.Write(m_monitorSocket);
 		}
 
 		protected void StopMonitor()

@@ -1,6 +1,8 @@
+using System;
+
 namespace zmq
 {
-	public struct ErrorNumber
+	public struct ErrorNumber : IEquatable<ErrorNumber>
 	{
 		public ErrorNumber(int value)
 			: this()
@@ -13,6 +15,33 @@ namespace zmq
 		public static implicit operator ErrorNumber(int code)
 		{
 			return new ErrorNumber(code);
+		}
+
+		public bool Equals(ErrorNumber other)
+		{
+			return other.Value == Value;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(null, obj)) return false;
+			if (obj.GetType() != typeof (ErrorNumber)) return false;
+			return Equals((ErrorNumber) obj);
+		}
+
+		public override int GetHashCode()
+		{
+			return Value;
+		}
+
+		public static bool operator ==(ErrorNumber left, ErrorNumber right)
+		{
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(ErrorNumber left, ErrorNumber right)
+		{
+			return !left.Equals(right);
 		}
 
 		public static readonly ErrorNumber EINTR = 4;
