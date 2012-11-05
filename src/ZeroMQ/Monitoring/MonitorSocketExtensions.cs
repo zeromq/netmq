@@ -1,6 +1,7 @@
 ﻿namespace ZeroMQ.Monitoring
 {
     using System;
+    using zmq;
 
     /// <summary>
     /// Defines extension methods related to monitoring for <see cref="ZmqSocket"/> instances.
@@ -23,7 +24,7 @@
         /// <exception cref="ZmqSocketException">An error occurred initiating socket monitoring.</exception>
         public static void Monitor(this ZmqSocket socket, string endpoint)
         {
-            Monitor(socket, endpoint, MonitorEvents.AllEvents);
+            Monitor(socket, endpoint, SocketEvent.All);
         }
 
         /// <summary>
@@ -43,7 +44,7 @@
         /// <exception cref="ArgumentNullException"><paramref name="socket"/> or <see cref="endpoint"/> is null.</exception>
         /// <exception cref="ArgumentException"><see cref="endpoint"/> is an empty string.</exception>
         /// <exception cref="ZmqSocketException">An error occurred initiating socket monitoring.</exception>
-        public static void Monitor(this ZmqSocket socket, string endpoint, MonitorEvents eventsToMonitor)
+        public static void Monitor(this ZmqSocket socket, string endpoint, SocketEvent eventsToMonitor)
         {
             if (socket == null)
             {
@@ -60,7 +61,7 @@
                 throw new ArgumentException("Unable to publish socket events to an empty endpoint.", "endpoint");
             }
 
-            ZmqSocket.HandleProxyResult(socket.SocketProxy.Monitor(endpoint, (int)eventsToMonitor));
+            ZmqSocket.HandleProxyResult(socket.SocketProxy.Monitor(endpoint, eventsToMonitor));
         }
     }
 }

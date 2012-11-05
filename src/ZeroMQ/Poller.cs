@@ -84,7 +84,7 @@ namespace ZeroMQ
                 throw new ArgumentOutOfRangeException("socket", "Unable to add socket without at least one handler.");
             }
 
-            _pollableSockets.Add(new PollItem(socket.SocketHandle, pollEvents), socket);
+            _pollableSockets.Add(new PollItem(socket.SocketProxy, pollEvents), socket);
         }
 
         /// <summary>
@@ -156,9 +156,9 @@ namespace ZeroMQ
             // An error value of EINTR indicates that the operation was interrupted
             // by delivery of a signal before any events were available. This is a recoverable
             // error, so try polling again for the remaining amount of time in the timeout.
-            if (!ErrorProxy.ThreadWasInterrupted)
+            if (ZError.ErrorNumber != ErrorNumber.EINTR)
             {
-                throw new ZmqSocketException(ErrorProxy.GetLastError());
+                throw new ZmqSocketException(ZError.ErrorNumber, ZMQ.ErrorText(ZError.ErrorNumber));
             }
         }
 
@@ -168,7 +168,7 @@ namespace ZeroMQ
 
             int readyCount;
 
-            while ((readyCount = Poll(Timeout.Infinite)) == -1 && !ErrorProxy.ContextWasTerminated)
+            while ((readyCount = Poll(Timeout.Infinite)) == -1 && ZError.ErrorNumber != ErrorNumber.ETERM)
             {
                 ContinueIfInterrupted();
             }
@@ -188,7 +188,7 @@ namespace ZeroMQ
             {
                 readyCount = Poll(remainingTimeout);
 
-                if (readyCount >= 0 || ErrorProxy.ContextWasTerminated)
+                if (readyCount >= 0 || ZError.ErrorNumber == ErrorNumber.ETERM)
                 {
                     break;
                 }
@@ -216,17 +216,17 @@ namespace ZeroMQ
                 throw new InvalidOperationException("At least one socket is required for polling.");
             }
 
-            int readyCount = _pollerProxy.Poll(_pollItems, timeoutMilliseconds);
+            int readyCount = ZMQ.Poll(_pollItems, timeoutMilliseconds);
 
             Pulse.Set();
 
             if (readyCount > 0)
             {
-                foreach (PollItem pollItem in _pollItems.Where(item => item.ReadyEvents != (short)PollEvents.None))
+                foreach (PollItem pollItem in _pollItems.Where(item => item.ResultEvent != PollEvents.None))
                 {
                     ZmqSocket socket = _pollableSockets[pollItem];
 
-                    socket.InvokePollEvents((PollEvents)pollItem.ReadyEvents);
+                    socket.InvokePollEvents(pollItem.ResultEvent);
                 }
             }
 

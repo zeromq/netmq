@@ -47,27 +47,14 @@ namespace ZeroMQ
         /// Gets or sets the default encoding for all sockets in the current process.
         /// </summary>
         public static Encoding DefaultEncoding { get; set; }
-
-        /// <summary>
-        /// Gets a handle to the native 0MQ context.
-        /// </summary>
-        /// <remarks>
-        /// May be used to share a single ZmqContext with native libraries that use the
-        /// 0MQ API directly. Allows the inproc transport to be used if a single process
-        /// has a heterogeneous codebase.
-        /// </remarks>
-        public IntPtr ContextHandle
-        {
-            get { return _contextProxy.ContextHandle; }
-        }
-
+        
         /// <summary>
         /// Gets or sets the size of the thread pool for the current context (default = 1).
         /// </summary>
         public int ThreadPoolSize
         {
-            get { return _contextProxy.GetContextOption((int)ContextOption.IO_THREADS); }
-            set { SetContextOption(ContextOption.IO_THREADS, value); }
+            get { return ZMQ.CtxGet(_contextProxy, zmq.ContextOption.IOThreads);  }
+            set { ZMQ.CtxSet(_contextProxy, ContextOption.IOThreads, value); }
         }
 
         /// <summary>
@@ -75,8 +62,8 @@ namespace ZeroMQ
         /// </summary>
         public int MaxSockets
         {
-            get { return _contextProxy.GetContextOption((int)ContextOption.MAX_SOCKETS); }
-            set { SetContextOption(ContextOption.MAX_SOCKETS, value); }
+            get { return ZMQ.CtxGet(_contextProxy, zmq.ContextOption.MaxSockets); }
+            set { ZMQ.CtxSet(_contextProxy, ContextOption.MaxSockets, value); }
         }
 
         /// <summary>
@@ -85,12 +72,12 @@ namespace ZeroMQ
         /// <returns>A <see cref="ZmqContext"/> instance with the default thread pool size (1).</returns>
         public static ZmqContext Create()
         {
-            var contextProxy = new ContextProxy();
+            var contextProxy = ZMQ.CtxNew();
 
-            if (contextProxy.Initialize() == -1)
-            {
-                throw new ZmqException(ErrorProxy.GetLastError());
-            }
+            //if (contextProxy.Initialize() == -1)
+            //{
+            //    throw new ZmqException(ErrorProxy.GetLastError());
+            //}
 
             return new ZmqContext(contextProxy);
         }
@@ -100,29 +87,29 @@ namespace ZeroMQ
         /// </summary>
         /// <param name="socketType">A <see cref="SocketType"/> value for the socket.</param>
         /// <returns>A <see cref="ZmqSocket"/> instance with the current context and the specified socket type.</returns>
-        public ZmqSocket CreateSocket(SocketType socketType)
+        public ZmqSocket CreateSocket(ZmqSocketType socketType)
         {
             switch (socketType)
             {
-                case SocketType.REQ:
-                case SocketType.REP:
-                case SocketType.DEALER:
-                case SocketType.ROUTER:
-                case SocketType.XPUB:
-                case SocketType.PAIR:
+                case ZmqSocketType.Req:
+                case ZmqSocketType.Rep:
+                case ZmqSocketType.Dealer:
+                case ZmqSocketType.Router:
+                case ZmqSocketType.Xpub:
+                case ZmqSocketType.Pair:
                     return CreateSocket(sp => new DuplexSocket(sp, socketType), socketType);
 
-                case SocketType.PUSH:
-                case SocketType.PUB:
+                case ZmqSocketType.Push:
+                case ZmqSocketType.Pub:
                     return CreateSocket(sp => new SendSocket(sp, socketType), socketType);
 
-                case SocketType.PULL:
+                case ZmqSocketType.Pull:
                     return CreateSocket(sp => new ReceiveSocket(sp, socketType), socketType);
 
-                case SocketType.SUB:
+                case ZmqSocketType.Sub:
                     return CreateSocket(sp => new SubscribeSocket(sp, socketType), socketType);
 
-                case SocketType.XSUB:
+                case ZmqSocketType.Xsub:
                     return CreateSocket(sp => new SubscribeExtSocket(sp, socketType), socketType);
             }
 
@@ -191,18 +178,18 @@ namespace ZeroMQ
             _disposed = true;
         }
 
-        private TSocket CreateSocket<TSocket>(Func<SocketBase, TSocket> constructor, SocketType socketType) where TSocket : ZmqSocket
+        private TSocket CreateSocket<TSocket>(Func<SocketBase, TSocket> constructor, ZmqSocketType socketType) where TSocket : ZmqSocket
         {
             EnsureNotDisposed();
 
-            IntPtr socketHandle = _contextProxy.CreateSocket((int)socketType);
+            SocketBase socketHandle = _contextProxy.CreateSocket(socketType);
 
-            if (socketHandle == IntPtr.Zero)
+            if (socketHandle == null)
             {
-                throw new ZmqException(ErrorProxy.GetLastError());
+                throw new ZmqException(ZError.ErrorNumber, ZMQ.ErrorText(ZError.ErrorNumber));
             }
 
-            return constructor(new SocketProxy(socketHandle));
+            return constructor(socketHandle);
         }
 
         private void SetContextOption(ContextOption option, int value)

@@ -1,7 +1,8 @@
 ﻿namespace ZeroMQ
 {
     using System;
-    using System.Runtime.Serialization;    
+    using System.Runtime.Serialization;
+    using zmq;    
 
     /// <summary>
     /// The exception that is thrown when a ZeroMQ socket error occurs.
@@ -23,7 +24,7 @@
         /// </summary>
         /// <param name="errorCode">The error code returned by the ZeroMQ library call.</param>
         /// <param name="message">The message that describes the error</param>
-        public ZmqSocketException(int errorCode, string message)
+        public ZmqSocketException(ErrorNumber errorCode, string message)
             : base(errorCode, message)
         {
         }
@@ -39,10 +40,10 @@
         {
         }
 
-        internal ZmqSocketException(ErrorDetails errorDetails)
-            : base(errorDetails)
-        {
-        }
+        //internal ZmqSocketException(ErrorDetails errorDetails)
+        //    : base(errorDetails)
+        //{
+        //}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZmqSocketException"/> class.

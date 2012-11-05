@@ -1,4 +1,5 @@
-﻿namespace ZeroMQ.Devices
+﻿using zmq;
+namespace ZeroMQ.Devices
 {
     /// <summary>
     /// Collects messages from a set of publishers and forwards these to a set of subscribers.
@@ -13,12 +14,12 @@
         /// <summary>
         /// The frontend <see cref="SocketType"/> for a forwarder device.
         /// </summary>
-        public const SocketType FrontendType = SocketType.SUB;
+        public const ZmqSocketType FrontendType = ZmqSocketType.Sub;
 
         /// <summary>
         /// The backend <see cref="SocketType"/> for a forwarder device.
         /// </summary>
-        public const SocketType BackendType = SocketType.PUB;
+        public const ZmqSocketType BackendType = ZmqSocketType.Pub;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class that will run in a

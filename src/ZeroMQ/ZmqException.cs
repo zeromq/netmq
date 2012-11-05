@@ -2,6 +2,7 @@
 {
     using System;
     using System.Runtime.Serialization;
+    using zmq;
     
 
     /// <summary>
@@ -14,7 +15,7 @@
         /// Initializes a new instance of the <see cref="ZmqException"/> class.
         /// </summary>
         /// <param name="errorCode">The error code returned by the ZeroMQ library call.</param>
-        public ZmqException(int errorCode)
+        public ZmqException(ErrorNumber errorCode)
         {
             this.ErrorCode = errorCode;
             this.ErrorName = GetErrorName(errorCode);
@@ -25,7 +26,7 @@
         /// </summary>
         /// <param name="errorCode">The error code returned by the ZeroMQ library call.</param>
         /// <param name="message">The message that describes the error</param>
-        public ZmqException(int errorCode, string message)
+        public ZmqException(ErrorNumber errorCode, string message)
             : base(message)
         {
             this.ErrorCode = errorCode;
@@ -45,10 +46,10 @@
             this.ErrorName = GetErrorName(errorCode);
         }
 
-        internal ZmqException(ErrorDetails errorDetails)
-            : this(errorDetails.ErrorCode, errorDetails.Message)
-        {
-        }
+        //internal ZmqException(ErrorDetails errorDetails)
+        //    : this(errorDetails.ErrorCode, errorDetails.Message)
+        //{
+        //}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZmqException"/> class.
@@ -63,7 +64,7 @@
         /// <summary>
         /// Gets the error code returned by the ZeroMQ library call.
         /// </summary>
-        public int ErrorCode { get; private set; }
+        public ZmqSocketType ErrorCode { get; private set; }
 
         /// <summary>
         /// Gets the string representation of the error code, as found in the ZeroMQ docs.

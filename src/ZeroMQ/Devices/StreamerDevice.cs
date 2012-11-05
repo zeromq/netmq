@@ -1,4 +1,5 @@
-﻿namespace ZeroMQ.Devices
+﻿using zmq;
+namespace ZeroMQ.Devices
 {
     /// <summary>
     /// Collects tasks from a set of pushers and forwards these to a set of pullers.
@@ -13,12 +14,12 @@
         /// <summary>
         /// The frontend <see cref="SocketType"/> for a streamer device.
         /// </summary>
-        public const SocketType FrontendType = SocketType.PULL;
+        public const ZmqSocketType FrontendType = ZmqSocketType.Pull;
 
         /// <summary>
         /// The backend <see cref="SocketType"/> for a streamer device.
         /// </summary>
-        public const SocketType BackendType = SocketType.PUSH;
+        public const ZmqSocketType BackendType = ZmqSocketType.Push;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamerDevice"/> class that will run in

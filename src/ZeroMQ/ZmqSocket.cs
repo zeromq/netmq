@@ -20,7 +20,7 @@ namespace ZeroMQ
 
 		private bool _disposed;
 
-		internal ZmqSocket(SocketBase socketProxy, SocketType socketType)
+        internal ZmqSocket(SocketBase socketProxy, ZmqSocketType socketType)
 		{
 			if (socketProxy == null)
 			{
@@ -52,7 +52,7 @@ namespace ZeroMQ
 		/// <summary>
 		/// Gets the <see cref="ZeroMQ.SocketType"/> value for the current socket.
 		/// </summary>
-		public SocketType SocketType { get; private set; }
+        public ZmqSocketType SocketType { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the I/O thread affinity for newly created connections on this socket.
@@ -565,7 +565,7 @@ namespace ZeroMQ
 		/// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
 		/// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
 		/// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
-		public virtual int Receive(byte[] buffer, SocketFlags flags)
+		public virtual int Receive(byte[] buffer, SendRecieveOptions flags)
 		{
 			EnsureNotDisposed();
 
@@ -574,7 +574,9 @@ namespace ZeroMQ
 				throw new ArgumentNullException("buffer");
 			}
 
-			int receivedBytes = _socketProxy.Receive(buffer, (int)flags);
+            var msg = ZMQ.Recv(_socketProxy, flags); 
+
+            int receivedBytes = 
 
 			if (receivedBytes >= 0)
 			{
@@ -904,21 +906,21 @@ namespace ZeroMQ
 			GC.SuppressFinalize(this);
 		}
 
-		internal static void HandleProxyResult(int result)
+		internal static void HandleProxyResult(bool result)
 		{
 			// Context termination (ETERM) is an allowable error state, occurring when the
 			// ZmqContext was terminated during a socket method.
-			if (result == -1 && zmq.ZError.ErrorNumber != ErrorNumber.ETERM)
+			if (!result  && zmq.ZError.ErrorNumber != ErrorNumber.ETERM)
 			{
 				throw new ZmqSocketException(ZError.ErrorNumber.Value, ZMQ.ErrorText(ZError.ErrorNumber));
 			}
 		}
 
-		internal int GetSocketOptionInt32(SocketOption option)
+		internal int GetSocketOptionInt32(ZmqSocketOptions option)
 		{
 			EnsureNotDisposed();
 
-			int value = ZMQ.GetSocketOption(_socketProxy, (ZmqSocketOptions)option);
+			int value = ZMQ.GetSocketOption(_socketProxy, option);
 
 			//HandleProxyResult();
 
@@ -929,7 +931,7 @@ namespace ZeroMQ
 		{
 			EnsureNotDisposed();
 
-			long value = (long)ZMQ.GetSocketOptionX(_socketProxy, (ZmqSocketOptions)option);
+			long value = (long)ZMQ.GetSocketOptionX(_socketProxy, option);
 
 			//HandleProxyResult(_socketProxy.GetSocketOption((int)option, out value));
 

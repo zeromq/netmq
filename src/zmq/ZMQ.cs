@@ -26,6 +26,7 @@ using System.Threading;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace zmq
 {
@@ -421,13 +422,7 @@ namespace zmq
 		//{
 		//    return Proxy.proxy(insocket_, outsocket_, null);
 		//}
-
-		// Polling.
-		public static int Poll(PollItem[] items, long timeout)
-		{
-			throw new NotImplementedException();
-		}
-
+		
 		public static int Poll(PollItem[] items, int timeout)
 		{
 			if (items == null)
@@ -443,9 +438,7 @@ namespace zmq
 				return 0;
 			}
 
-			bool firstPass = true;
-			long now = 0;
-			long end = 0;
+			bool firstPass = true;		            
 
 			Socket[] writeList =
 					items.Where(p => (p.Events & PollEvents.PollOut) == PollEvents.PollOut).Select(
@@ -465,24 +458,21 @@ namespace zmq
 
 			Dictionary<Socket, PollItem> socketsToItems = items.Select(
 				p => new {Socket = p.Socket != null ? p.Socket.FD : p.FileDescriptor, Item = p}).
-				ToDictionary(i => i.Socket, i => i.Item);
+				ToDictionary(i => i.Socket, i => i.Item);			
 
-			foreach (var pollItem in items)
-			{
-				pollItem.ResultEvent = PollEvents.None;
-			}
+            Stopwatch stopwatch = null;
 
 			while (true)
 			{				
-				int currentTimeoutMicroSeconds;
-
+                int currentTimeoutMicroSeconds;
+				
 				if (firstPass)
 				{					
 					currentTimeoutMicroSeconds = 0;
 				}
 				else
 				{
-					currentTimeoutMicroSeconds =(int)( (end - now)%1000*1000);
+                    currentTimeoutMicroSeconds = (int) ((timeout - stopwatch.ElapsedMilliseconds) % 1000 * 1000);
 				}
 			
 				Buffer.BlockCopy(readList, 0, inset, 0, readList.Length );
@@ -495,72 +485,85 @@ namespace zmq
 				}
 				catch (SocketException ex)
 				{
-					// todo change to right error
+					// TODO: change to right error
 					ZError.ErrorNumber = ErrorNumber.ESOCKET;
 
 					return -1;
 				}
 
-				int hasEvents = 0;
+                foreach (var pollItem in items)
+                {
+                    pollItem.ResultEvent = PollEvents.None;
+                }
 
 				foreach (var socket in inset)
 				{
-					hasEvents++;
-					var item = socketsToItems[socket];
+                    if (socket != null)
+                    {
+                        var item = socketsToItems[socket];
 
-					if (item.Socket != null)
-					{
-						PollEvents value = (PollEvents)GetSocketOption(item.Socket, ZmqSocketOptions.Events);
+                        if (item.Socket != null)
+                        {
+                            PollEvents value = (PollEvents)GetSocketOption(item.Socket, ZmqSocketOptions.Events);
 
-						if (value == PollEvents.PollIn)
-						{
-							item.ResultEvent |= PollEvents.PollIn;
-						}
-					}
-					else
-					{
-						item.ResultEvent |= PollEvents.PollIn;						
-					}
+                            if (value == PollEvents.PollIn)
+                            {
+                                item.ResultEvent |= PollEvents.PollIn;
+                            }
+                        }
+                        else
+                        {
+                            item.ResultEvent |= PollEvents.PollIn;
+                        }
+                    }
 				}
 
-				foreach (var socket in outset)
-				{
-					hasEvents++;
-					var item = socketsToItems[socket];
+                foreach (var socket in outset)
+                {
+                    if (socket != null)
+                    {
+                        var item = socketsToItems[socket];
 
-					if (item.Socket != null)
-					{
-						PollEvents value = (PollEvents)GetSocketOption(item.Socket, ZmqSocketOptions.Events);
+                        if (item.Socket != null)
+                        {
+                            PollEvents value = (PollEvents)GetSocketOption(item.Socket, ZmqSocketOptions.Events);
 
-						if (value == PollEvents.PollOut)
-						{
-							item.ResultEvent |= PollEvents.PollOut;
-						}
-					}
-					else
-					{
-						item.ResultEvent |= PollEvents.PollOut;
-					}
-				}
+                            if (value == PollEvents.PollOut)
+                            {
+                                item.ResultEvent |= PollEvents.PollOut;
+                            }
+                        }
+                        else
+                        {
+                            item.ResultEvent |= PollEvents.PollOut;
+                        }
+                    }
+                }
 
-				foreach (var socket in errorList)
-				{
-					hasEvents++;
-					var item = socketsToItems[socket];
-					item.ResultEvent |= PollEvents.PollError;
-				}
+                foreach (var socket in errorList)
+                {
+                    if (socket != null)
+                    {
+                        var item = socketsToItems[socket];
+
+                        if (item.Socket == null)
+                        {
+                            item.ResultEvent |= PollEvents.PollError;
+                        }
+                    }
+                }
 
 				if (timeout == 0)
 				{
 					break;					
 				}
 
-				if (hasEvents != 0)
+				if (items.Any(i => i.ResultEvent != PollEvents.None))
 				{
 					break;
 				}
 
-				if (timeout <0)
+				if (timeout < 0)
 				{
 					if (firstPass)
 					{
@@ -572,21 +575,12 @@ namespace zmq
 
 				if (firstPass)
 				{
-					now = Clock.NowMs();
-					end = now + timeout;
-					
-					if(now == end)
-					{
-						break;						
-					}
-
+                    stopwatch = Stopwatch.StartNew();
 					firstPass = false;
 					continue;
 				}
 
-				now = Clock.NowMs();
-
-				if (now > end)
+				if (stopwatch.ElapsedMilliseconds > timeout)
 				{
 					break;					
 				}
@@ -594,15 +588,7 @@ namespace zmq
 
 			return items.Where(i => i.ResultEvent != PollEvents.None).Count();
 		}
-
-		//public static long zmq_stopwatch_start() {
-		//    return System.nanoTime();
-		//}
-
-		//public static long zmq_stopwatch_stop(long watch) {
-		//    return (System.nanoTime() - watch) / 1000;
-		//}
-
+		
 		public static int ZmqMakeVersion(int major, int minor, int patch)
 		{
 			return ((major) * 10000 + (minor) * 100 + (patch));

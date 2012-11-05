@@ -6,7 +6,7 @@ namespace ZeroMQ
 
     internal class DuplexSocket : ZmqSocket
     {
-        internal DuplexSocket(SocketBase socketProxy, SocketType socketType)
+        internal DuplexSocket(SocketBase socketProxy, zmq.ZmqSocketType socketType)
             : base(socketProxy, socketType)
         {
         }

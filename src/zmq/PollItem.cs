@@ -23,10 +23,21 @@ using System.Net.Sockets;
 
 namespace zmq
 {
-
-
 	public class PollItem
 	{
+        public PollItem(SocketBase socket, PollEvents events)
+        {
+            Socket = socket;
+            Events = events;
+            FileDescriptor = null;
+        }
+
+        public PollItem(Socket fileDescriptor, PollEvents events)
+        {
+            Socket = null;
+            Events = events;
+            FileDescriptor = fileDescriptor;
+        }
 		
 		public SocketBase Socket
 		{
@@ -34,9 +45,9 @@ namespace zmq
 			private set;
 		}
 
-		public Socket FileDescriptor { get; set; }
+		public Socket FileDescriptor { get; private set; }
 
-		public PollEvents Events { get; set; }
+		public PollEvents Events { get; private set; }
 
 
 		public PollEvents ResultEvent { get; set; }

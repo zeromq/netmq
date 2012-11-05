@@ -9,7 +9,7 @@ namespace ZeroMQ
         public const byte SubscribePrefix = 1;
         public const byte UnsubscribePrefix = 0;
 
-        internal SubscribeExtSocket(SocketBase socketProxy, SocketType socketType)
+        internal SubscribeExtSocket(SocketBase socketProxy, ZmqSocketType socketType)
             : base(socketProxy, socketType)
         {
         }

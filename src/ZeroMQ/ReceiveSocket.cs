@@ -6,12 +6,12 @@ namespace ZeroMQ
 
     internal class ReceiveSocket : ZmqSocket
     {
-        internal ReceiveSocket(SocketBase socketProxy, SocketType socketType)
+        internal ReceiveSocket(SocketBase socketProxy, ZmqSocketType socketType)
             : base(socketProxy, socketType)
         {
         }
 
-        public override int Send(byte[] buffer, int size, SocketFlags flags)
+        public override int Send(byte[] buffer, int size, SendRecieveOptions flags)
         {
             throw new NotSupportedException();
         }

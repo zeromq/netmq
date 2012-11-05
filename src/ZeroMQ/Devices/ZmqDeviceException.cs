@@ -40,10 +40,10 @@
         {
         }
 
-        internal ZmqDeviceException(ErrorDetails errorDetails)
-            : base(errorDetails)
-        {
-        }
+        //internal ZmqDeviceException(ErrorDetails errorDetails)
+        //    : base(errorDetails)
+        //{
+        //}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZmqDeviceException"/> class.

@@ -1,4 +1,5 @@
-﻿namespace ZeroMQ.Devices
+﻿using zmq;
+namespace ZeroMQ.Devices
 {
     /// <summary>
     /// A shared queue that collects requests from a set of clients and distributes
@@ -15,12 +16,12 @@
         /// <summary>
         /// The frontend <see cref="SocketType"/> for a queue device.
         /// </summary>
-        public const SocketType FrontendType = SocketType.ROUTER;
+        public const ZmqSocketType FrontendType = ZmqSocketType.Router;
 
         /// <summary>
         /// The backend <see cref="SocketType"/> for a queue device.
         /// </summary>
-        public const SocketType BackendType = SocketType.DEALER;
+        public const ZmqSocketType BackendType = ZmqSocketType.Dealer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueDevice"/> class that will run in a

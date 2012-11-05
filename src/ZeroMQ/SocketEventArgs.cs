@@ -1,6 +1,7 @@
 ﻿namespace ZeroMQ
 {
-    using System;    
+    using System;
+    using zmq;    
 
     /// <summary>
     /// Provides data for <see cref="ZmqSocket.ReceiveReady"/> and <see cref="ZmqSocket.SendReady"/> events.
