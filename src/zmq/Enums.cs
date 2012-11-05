@@ -45,7 +45,7 @@ namespace zmq
 		ReconnectIvlMax = 21,
 		Maxmsgsize = 22,
 		SendHighWatermark = 23,
-		ReceivevHightWatermark = 24,
+		ReceivevHighWatermark = 24,
 		MulticastHops = 25,
 		ReceiveTimeout = 27,
 		SendTimeout = 28,
