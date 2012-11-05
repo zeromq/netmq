@@ -170,7 +170,7 @@ namespace zmq
 			Debug.Assert(m_pipe == null);
 			Debug.Assert(pipe != null);
 			m_pipe = pipe;
-			m_pipe.set_event_sink (this);
+			m_pipe.SetEventSink (this);
 		}
     
 		public virtual Msg PullMsg () 
@@ -188,7 +188,7 @@ namespace zmq
 				return msg;
 			}
 
-			if (m_pipe == null || (msg = m_pipe.read ()) == null ) {
+			if (m_pipe == null || (msg = m_pipe.Read ()) == null ) {
 				return null;
 			}
 			m_incompleteIn = msg.HasMore;
@@ -209,7 +209,7 @@ namespace zmq
 				}
 			}
         
-			if (m_pipe != null && m_pipe.write (msg)) {
+			if (m_pipe != null && m_pipe.Write (msg)) {
 				return true;
 			}
 
@@ -227,7 +227,7 @@ namespace zmq
 
 		public void Flush() {
 			if (m_pipe != null)
-				m_pipe.flush ();
+				m_pipe.Flush ();
 		}
     
 
@@ -239,8 +239,8 @@ namespace zmq
 
 				//  Get rid of half-processed messages in the out pipe. Flush any
 				//  unflushed messages upstream.
-				m_pipe.rollback ();
-				m_pipe.flush ();
+				m_pipe.Rollback ();
+				m_pipe.Flush ();
 
 				//  Remove any half-read message from the in pipe.
 				while (m_incompleteIn) {
@@ -284,7 +284,7 @@ namespace zmq
 			if (m_engine != null)
 				m_engine.ActivateOut ();
 			else
-				m_pipe.check_read ();
+				m_pipe.CheckRead ();
 		}
     
 		public void WriteActivated (Pipe pipe)
@@ -331,10 +331,10 @@ namespace zmq
 				Pipe[] pipes = {null, null};
 				int[] hwms = {m_options.ReceiveHighWatermark, m_options.SendHighWatermark};
 				bool[] delays = {m_options.DelayOnClose, m_options.DelayOnDisconnect};
-				Pipe.pipepair (parents, pipes, hwms, delays);
+				Pipe.Pipepair (parents, pipes, hwms, delays);
 
 				//  Plug the local end of the pipe.
-				pipes [0].set_event_sink (this);
+				pipes [0].SetEventSink (this);
 
 				//  Remember the local end of the pipe.
 				Debug.Assert(m_pipe == null);
@@ -363,7 +363,7 @@ namespace zmq
 
 			//  Just in case there's only a delimiter in the pipe.
 			if (m_pipe != null)
-				m_pipe.check_read ();
+				m_pipe.CheckRead ();
 		}
     
 		protected override void ProcessTerm (int linger)
@@ -391,12 +391,12 @@ namespace zmq
 
 			//  Start pipe termination process. Delay the termination till all messages
 			//  are processed in case the linger time is non-zero.
-			m_pipe.terminate (linger != 0);
+			m_pipe.Terminate (linger != 0);
 
 			//  TODO: Should this go into pipe_t::terminate ?
 			//  In case there's no engine and there's only delimiter in the
 			//  pipe it wouldn't be ever read. Thus we check for it explicitly.
-			m_pipe.check_read ();
+			m_pipe.CheckRead ();
 		}
     
 
@@ -419,7 +419,7 @@ namespace zmq
 
 			//  Ask pipe to terminate even though there may be pending messages in it.
 			Debug.Assert(m_pipe != null);
-			m_pipe.terminate (false);
+			m_pipe.Terminate (false);
 		}
 
 
@@ -434,8 +434,8 @@ namespace zmq
 			//  and reestablish later on
 			if (m_pipe != null && m_options.DelayAttachOnConnect == 1
 			    && m_addr.Protocol  != "pgm" && m_addr.Protocol != "epgm") {
-			    	m_pipe.hiccup ();
-			    	m_pipe.terminate (false);
+			    	m_pipe.Hiccup ();
+			    	m_pipe.Terminate (false);
 			    	m_terminatingPipes.Add (m_pipe);
 			    	m_pipe = null;
 			    }
@@ -449,7 +449,7 @@ namespace zmq
 			//  For subscriber sockets we hiccup the inbound pipe, which will cause
 			//  the socket object to resend all the subscriptions.
 			if (m_pipe != null && (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub))
-				m_pipe.hiccup ();
+				m_pipe.Hiccup ();
 
 		}
 

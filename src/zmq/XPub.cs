@@ -112,7 +112,7 @@ namespace zmq
 		{
 			//  There are some subscriptions waiting. Let's process them.
 			Msg sub;
-			while ((sub = pipe.read()) != null) {
+			while ((sub = pipe.Read()) != null) {
 
 				//  Apply the subscription to the trie.
 				byte[] data = sub.Data;

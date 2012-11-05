@@ -67,7 +67,7 @@ namespace zmq
 			                                           	msg.Put(data,1, size);
 
 			                                           	//  Send it to the pipe.
-			                                           	bool sent = pipe.write (msg);
+			                                           	bool sent = pipe.Write (msg);
 			                                           	//  If we reached the SNDHWM, and thus cannot send the subscription, drop
 			                                           	//  the subscription message instead. This matches the behaviour of
 			                                           	//  zmq_setsockopt(ZMQ_SUBSCRIBE, ...), which also drops subscriptions
@@ -101,7 +101,7 @@ namespace zmq
 
 			//  Send all the cached subscriptions to the new upstream peer.
 			m_subscriptions.Apply (s_sendSubscription, pipe);
-			pipe.flush ();
+			pipe.Flush ();
 		}
     
     
@@ -125,7 +125,7 @@ namespace zmq
 		{
 			//  Send all the cached subscriptions to the hiccuped pipe.
 			m_subscriptions.Apply (s_sendSubscription, pipe);
-			pipe.flush ();
+			pipe.Flush ();
 		}
 
 		protected override bool XSend(Msg msg, SendRecieveOptions flags)

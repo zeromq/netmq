@@ -53,7 +53,7 @@ namespace zmq
 			if (m_pipe == null)
 				m_pipe = pipe;
 			else
-				pipe.terminate (false);
+				pipe.Terminate (false);
 		}
 	
 		override
@@ -79,13 +79,13 @@ namespace zmq
 		override
 			protected bool XSend(Msg msg, SendRecieveOptions flags)
 		{
-			if (m_pipe == null || !m_pipe.write (msg)) {
+			if (m_pipe == null || !m_pipe.Write (msg)) {
 				ZError.ErrorNumber = (ErrorNumber.EAGAIN);
 				return false;
 			}
 
 			if ((flags & SendRecieveOptions.SendMore) == 0)
-				m_pipe.flush ();
+				m_pipe.Flush ();
 
 			//  Detach the original message from the data buffer.
 
@@ -98,7 +98,7 @@ namespace zmq
 			//  Deallocate old content of the message.
 
 			Msg msg = null;
-			if (m_pipe == null || (msg = m_pipe.read ()) == null) {
+			if (m_pipe == null || (msg = m_pipe.Read ()) == null) {
 				ZError.ErrorNumber = (ErrorNumber.EAGAIN);
 				//  Initialise the output parameter to be a 0-byte message.
 				return null;
@@ -112,7 +112,7 @@ namespace zmq
 			if (m_pipe == null)
 				return false;
 
-			return m_pipe.check_read ();
+			return m_pipe.CheckRead ();
 			}
     
 		override
@@ -121,7 +121,7 @@ namespace zmq
 			if (m_pipe == null)
 				return false;
 
-			return m_pipe.check_write ();
+			return m_pipe.CheckWrite ();
 		}
 
 	}

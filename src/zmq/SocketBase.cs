@@ -218,7 +218,7 @@ namespace zmq
 		{
 			//  First, register the pipe so that we can terminate it later on.
 
-			pipe.set_event_sink(this);
+			pipe.SetEventSink(this);
 			m_pipes.Add(pipe);
 
 			//  Let the derived socket type know about new pipe.
@@ -229,7 +229,7 @@ namespace zmq
 			if (IsTerminating)
 			{
 				RegisterTermAcks(1);
-				pipe.terminate(false);
+				pipe.Terminate(false);
 			}
 		}
 
@@ -482,7 +482,7 @@ namespace zmq
 				Pipe[] pipes = { null, null };
 				int[] hwms = { sndhwm, rcvhwm };
 				bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-				Pipe.pipepair(parents, pipes, hwms, delays);
+				Pipe.Pipepair(parents, pipes, hwms, delays);
 
 				//  Attach local end of the pipe to this socket object.
 				AttachPipe(pipes[0]);
@@ -493,9 +493,9 @@ namespace zmq
 					Msg id = new Msg(peer.Options.IdentitySize);
 					id.Put(peer.Options.Identity, 0, peer.Options.IdentitySize);
 					id.SetFlags(MsgFlags.Identity);
-					bool written = pipes[0].write(id);
+					bool written = pipes[0].Write(id);
 					Debug.Assert(written);
-					pipes[0].flush();
+					pipes[0].Flush();
 				}
 
 				//  If required, send the identity of the local socket to the peer.
@@ -504,9 +504,9 @@ namespace zmq
 					Msg id = new Msg(m_options.IdentitySize);
 					id.Put(m_options.Identity, 0, m_options.IdentitySize);
 					id.SetFlags(MsgFlags.Identity);
-					bool written = pipes[1].write(id);
+					bool written = pipes[1].Write(id);
 					Debug.Assert(written);
-					pipes[1].flush();
+					pipes[1].Flush();
 				}
 
 				//  Attach remote end of the pipe to the peer socket. Note that peer's
@@ -558,7 +558,7 @@ namespace zmq
 				Pipe[] pipes = { null, null };
 				int[] hwms = { m_options.SendHighWatermark, m_options.ReceiveHighWatermark };
 				bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-				Pipe.pipepair(parents, pipes, hwms, delays);
+				Pipe.Pipepair(parents, pipes, hwms, delays);
 
 				//  Attach local end of the pipe to the socket object.
 				AttachPipe(pipes[0], icanhasall);
@@ -924,7 +924,7 @@ namespace zmq
 
 			//  Ask all attached pipes to terminate.
 			for (int i = 0; i != m_pipes.Count; ++i)
-				m_pipes[i].terminate(false);
+				m_pipes[i].Terminate(false);
 			RegisterTermAcks(m_pipes.Count);
 
 			//  Continue the termination process immediately.
@@ -1040,7 +1040,7 @@ namespace zmq
 		public void Hiccuped(Pipe pipe)
 		{
 			if (m_options.DelayAttachOnConnect == 1)
-				pipe.terminate(false);
+				pipe.Terminate(false);
 			else
 				// Notify derived sockets of the hiccup
 				XHiccuped(pipe);

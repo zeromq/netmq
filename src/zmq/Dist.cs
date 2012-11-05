@@ -179,7 +179,7 @@ namespace zmq
 		//  fails. In such a case false is returned.
 		private bool Write (Pipe pipe, Msg msg)
 		{
-			if (!pipe.write (msg)) {
+			if (!pipe.Write (msg)) {
 				Utils.Swap(m_pipes, m_pipes.IndexOf (pipe), m_matching - 1);
 				m_matching--;
 				Utils.Swap(m_pipes, m_pipes.IndexOf (pipe), m_active - 1);
@@ -189,7 +189,7 @@ namespace zmq
 				return false;
 			}
 			if (!msg.HasMore)
-				pipe.flush ();
+				pipe.Flush ();
 			return true;
 		}
 

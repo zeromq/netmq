@@ -321,12 +321,12 @@ namespace zmq
 			throw new NotSupportedException();
 		}
 
-		protected virtual void ProcessActivateWrite(long msgs_read_)
+		protected virtual void ProcessActivateWrite(long msgsRead)
 		{
 			throw new NotSupportedException();
 		}
 
-		protected virtual void ProcessHiccup(Object hiccup_pipe)
+		protected virtual void ProcessHiccup(Object pipe)
 		{
 			throw new NotSupportedException();
 		}

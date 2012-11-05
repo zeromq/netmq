@@ -98,7 +98,7 @@ namespace zmq
 			}
 
 			while (m_active > 0) {
-				if (m_pipes[m_current].write (msg))
+				if (m_pipes[m_current].Write (msg))
 					break;
 
 				Debug.Assert(!m_more);
@@ -119,7 +119,7 @@ namespace zmq
 			//  continue round-robinning (load balance).
 			m_more = msg.HasMore;
 			if (!m_more) {
-				m_pipes[m_current].flush();
+				m_pipes[m_current].Flush();
 				if (m_active > 1)
 					m_current = (m_current + 1) % m_active;
 			}
@@ -136,7 +136,7 @@ namespace zmq
 			while (m_active > 0) {
 
 				//  Check whether a pipe has room for another message.
-				if (m_pipes[m_current].check_write())
+				if (m_pipes[m_current].CheckWrite())
 					return true;
 
 				//  Deactivate the pipe.

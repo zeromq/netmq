@@ -95,7 +95,7 @@ namespace zmq
 
 				//  Try to fetch new message. If we've already read part of the message
 				//  subsequent part should be immediately available.
-				msg_ = m_pipes[m_current].read ();
+				msg_ = m_pipes[m_current].Read ();
 
 				bool fetched = msg_ != null;
 
@@ -139,7 +139,7 @@ namespace zmq
 			//  get back to its original value. Otherwise it'll point to the first
 			//  pipe holding messages, skipping only pipes with no messages available.
 			while (m_active > 0) {
-				if (m_pipes[m_current].check_read ())
+				if (m_pipes[m_current].CheckRead ())
 					return true;
 
 				//  Deactivate the pipe.

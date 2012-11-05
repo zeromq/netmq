@@ -149,8 +149,8 @@ namespace zmq
 
 				Outpipe old;
 
-				m_outpipes.TryGetValue(pipe.get_identity(), out  old);
-				m_outpipes.Remove(pipe.get_identity());
+				m_outpipes.TryGetValue(pipe.Identity, out  old);
+				m_outpipes.Remove(pipe.Identity);
             
 				Debug.Assert(old != null);
 
@@ -210,7 +210,7 @@ namespace zmq
 
 					if (op != null) {
 						m_currentOut = op.Pipe;
-						if (!m_currentOut.check_write ()) {
+						if (!m_currentOut.CheckWrite ()) {
 							op.Active = false;
 							m_currentOut = null;
 						}
@@ -229,11 +229,11 @@ namespace zmq
 
 			//  Push the message into the pipe. If there's no out pipe, just drop it.
 			if (m_currentOut != null) {
-				bool ok = m_currentOut.write (msg);
+				bool ok = m_currentOut.Write (msg);
 				if (!ok)
 					m_currentOut = null;
 				else if (!m_moreOut) {
-					m_currentOut.flush ();
+					m_currentOut.Flush ();
 					m_currentOut = null;
 				}
 			}
@@ -291,7 +291,7 @@ namespace zmq
 
 				m_prefetched = true;
 
-				Blob identity = pipe[0].get_identity ();
+				Blob identity = pipe[0].Identity;
 				msg = new Msg(identity.Data);
 				msg.SetFlags(MsgFlags.More);
 				m_identitySent = true;
@@ -304,7 +304,7 @@ namespace zmq
 		protected void Rollback () {
         
 			if (m_currentOut != null) {
-				m_currentOut.rollback ();
+				m_currentOut.Rollback ();
 				m_currentOut = null;
 				m_moreOut = false;
 			}
@@ -339,7 +339,7 @@ namespace zmq
 
 			Debug.Assert(pipe[0] != null);
         
-			Blob identity = pipe[0].get_identity ();
+			Blob identity = pipe[0].Identity ;
 			m_prefetchedId = new Msg(identity.Data);
 			m_prefetchedId.SetFlags(MsgFlags.More);
 
@@ -362,7 +362,7 @@ namespace zmq
 		{
 			Blob identity;
 
-			Msg msg = pipe.read ();
+			Msg msg = pipe.Read ();
 			if (msg == null)
 				return false;
 
@@ -389,7 +389,7 @@ namespace zmq
 					return false;
 			}
 
-			pipe.set_identity (identity);
+			pipe.Identity = identity;
 			//  Add the record into output pipes lookup table
 			Outpipe outpipe = new Outpipe(pipe, true);
 			m_outpipes.Add (identity, outpipe);

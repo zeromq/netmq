@@ -97,8 +97,7 @@ namespace zmq
 		private bool m_delay;
 
 		//  Identity of the writer. Used uniquely by the reader side.
-		private Blob m_identity;
-        
+
 		private readonly ZObject m_parent;
     
 		//  Constructor is private. Pipe can only be created using
@@ -112,16 +111,14 @@ namespace zmq
 			m_inActive = true;
 			m_outActive = true;
 			m_hwm = outhwm;
-			m_lwm = compute_lwm (inhwm);
+			m_lwm = ComputeLwm (inhwm);
 			m_msgsRead = 0;
 			m_msgsWritten = 0;
 			m_peersMsgsRead = 0;
 			m_peer = null ;
 			m_sink = null ;
 			m_state = State.Active;
-			m_delay = delay;
-		
-			parent = parent;
+			m_delay = delay;					
 		}
 	
 		//  Create a pipepair for bi-directional transfer of messages.
@@ -130,8 +127,8 @@ namespace zmq
 		//  Delay specifies how the pipe behaves when the peer terminates. If true
 		//  pipe receives all the pending messages before terminating, otherwise it
 		//  terminates straight away.
-		public static void pipepair(ZObject[] parents_, Pipe[] pipes_, int[] hwms_,
-		                            bool[] delays_) {
+		public static void Pipepair(ZObject[] parents, Pipe[] pipes, int[] hwms,
+		                            bool[] delays) {
 		
 			//   Creates two pipe objects. These objects are connected by two ypipes,
 			//   each to pass messages in one direction.
@@ -139,43 +136,35 @@ namespace zmq
 			YPipe<Msg> upipe1 = new YPipe<Msg>(Config.MessagePipeGranularity);
 			YPipe<Msg> upipe2 = new YPipe<Msg>(Config.MessagePipeGranularity);
 	            
-			pipes_ [0] = new Pipe(parents_ [0], upipe1, upipe2,
-			                      hwms_ [1], hwms_ [0], delays_ [0]);
-			pipes_ [1] = new Pipe(parents_ [1], upipe2, upipe1,
-			                      hwms_ [0], hwms_ [1], delays_ [1]);
+			pipes [0] = new Pipe(parents [0], upipe1, upipe2,
+			                      hwms [1], hwms [0], delays [0]);
+			pipes [1] = new Pipe(parents [1], upipe2, upipe1,
+			                      hwms [0], hwms [1], delays [1]);
 	            
-			pipes_ [0].set_peer (pipes_ [1]);
-			pipes_ [1].set_peer (pipes_ [0]);
+			pipes [0].SetPeer (pipes [1]);
+			pipes [1].SetPeer (pipes [0]);
 
 		                            }
 	
 		//  Pipepair uses this function to let us know about
 		//  the peer pipe object.
-		private void set_peer (Pipe peer_)
+		private void SetPeer (Pipe peer)
 		{
 			//  Peer can be set once only.
-			Debug.Assert(peer_ != null);
-			m_peer = peer_;
+			Debug.Assert(peer != null);
+			m_peer = peer;
 		}
     
 		//  Specifies the object to send events to.
-		public void set_event_sink(IPipeEvents sink_) {
+		public void SetEventSink(IPipeEvents sink) {
 			Debug.Assert(m_sink == null);
-			m_sink = sink_;
-		}
-    
-		//  Pipe endpoint can store an opaque ID to be used by its clients.
-		public void set_identity(Blob identity_) {
-			m_identity = identity_;
-		}
-    
-		public Blob get_identity() {
-			return m_identity;
+			m_sink = sink;
 		}
 
+		public Blob Identity { get; set; }
 
 		//  Returns true if there is at least one message to read in the pipe.
-		public bool check_read() {
+		public bool CheckRead() {
 			if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
 				return false;
 
@@ -187,10 +176,10 @@ namespace zmq
 
 			//  If the next item in the pipe is message delimiter,
 			//  initiate termination process.
-			if (is_delimiter(m_inpipe.Probe ())) {
+			if (IsDelimiter(m_inpipe.Probe ())) {
 				Msg msg = m_inpipe.Read ();
 				Debug.Assert(msg != null);
-				delimit ();
+				Delimit ();
 				return false;
 			}
 
@@ -199,36 +188,36 @@ namespace zmq
     
 
 		//  Reads a message to the underlying pipe.
-		public Msg read()
+		public Msg Read()
 		{
 			if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
 				return null;
 
-			Msg msg_ = m_inpipe.Read ();
+			Msg msg = m_inpipe.Read ();
 
-			if (msg_ == null) {
+			if (msg == null) {
 				m_inActive = false;
 				return null;
 			}
 
 			//  If delimiter was read, start termination process of the pipe.
-			if (msg_.IsDelimiter ) {
-				delimit ();
+			if (msg.IsDelimiter ) {
+				Delimit ();
 				return null;
 			}
 
-			if (!msg_.HasMore)
+			if (!msg.HasMore)
 				m_msgsRead++;
 
 			if (m_lwm > 0 && m_msgsRead % m_lwm == 0)
 				SendActivateWrite (m_peer, m_msgsRead);
 
-			return msg_;
+			return msg;
 		}
     
 		//  Checks whether messages can be written to the pipe. If writing
 		//  the message would cause high watermark the function returns false.
-		public bool check_write ()
+		public bool CheckWrite ()
 		{
 			if (!m_outActive || m_state != State.Active)
 				return false;
@@ -245,13 +234,13 @@ namespace zmq
 
 		//  Writes a message to the underlying pipe. Returns false if the
 		//  message cannot be written because high watermark was reached.
-		public bool write (Msg msg_)
+		public bool Write (Msg msg)
 		{
-			if (!check_write ())
+			if (!CheckWrite ())
 				return false;
 
-			bool more = msg_.HasMore;
-			m_outpipe.Write (msg_, more);
+			bool more = msg.HasMore;
+			m_outpipe.Write (msg, more);
 			//if (LOG.isDebugEnabled()) {
 			//    LOG.debug(parent.ToString() + " write " + msg_);
 			//}
@@ -264,7 +253,7 @@ namespace zmq
 
 
 		//  Remove unfinished parts of the outbound message from the pipe.
-		public void rollback ()
+		public void Rollback ()
 		{
 			//  Remove incomplete message from the outbound pipe.
 			Msg msg;
@@ -277,7 +266,7 @@ namespace zmq
 		}
     
 		//  Flush the messages downsteam.
-		public void flush ()
+		public void Flush ()
 		{
 			//  The peer does not exist anymore at this point.
 			if (m_state == State.Terminating)
@@ -299,10 +288,10 @@ namespace zmq
 		}
 
 		override
-			protected void ProcessActivateWrite (long msgs_read_)
+			protected void ProcessActivateWrite (long msgsRead)
 		{
 			//  Remember the peers's message sequence number.
-			m_peersMsgsRead = msgs_read_;
+			m_peersMsgsRead = msgsRead;
 
 			if (!m_outActive && m_state == State.Active) {
 				m_outActive = true;
@@ -311,7 +300,7 @@ namespace zmq
 		}
 
 
-		protected override void ProcessHiccup(Object pipe_)
+		protected override void ProcessHiccup(Object pipe)
 		{
 			//  Destroy old outpipe. Note that the read end of the pipe was already
 			//  migrated to this thread.
@@ -321,8 +310,8 @@ namespace zmq
 			}
 
 			//  Plug in the new outpipe.
-			Debug.Assert(pipe_ != null);
-			m_outpipe = (YPipe<Msg>) pipe_;
+			Debug.Assert(pipe != null);
+			m_outpipe = (YPipe<Msg>) pipe;
 			m_outActive = true;
 
 			//  If appropriate, notify the user about the hiccup.
@@ -407,10 +396,10 @@ namespace zmq
 		//  and user will be notified about actual deallocation by 'terminated'
 		//  event. If delay is true, the pending messages will be processed
 		//  before actual shutdown.
-		public void terminate (bool delay_)
+		public void Terminate (bool delay)
 		{
 			//  Overload the value specified at pipe creation.
-			m_delay = delay_;
+			m_delay = delay;
 
 			//  If terminate was already called, we can ignore the duplicit invocation.
 			if (m_state == State.Terminated || m_state == State.DoubleTerminated)
@@ -458,7 +447,7 @@ namespace zmq
 			if (m_outpipe != null) {
 
 				//  Drop any unfinished outbound messages.
-				rollback ();
+				Rollback ();
 
 				//  Write the delimiter into the pipe. Note that watermarks are not
 				//  checked; thus the delimiter can be written even when the pipe is full.
@@ -466,19 +455,19 @@ namespace zmq
 				Msg msg = new Msg();
 				msg.InitDelimiter ();
 				m_outpipe.Write (msg, false);
-				flush ();
+				Flush ();
             
 			}
 		}
     
 
 		//  Returns true if the message is delimiter; false otherwise.
-		private static bool is_delimiter(Msg msg_) {
-			return msg_.IsDelimiter ;
+		private static bool IsDelimiter(Msg msg) {
+			return msg.IsDelimiter ;
 		}
 
 		//  Computes appropriate low watermark from the given high watermark.
-		private static int compute_lwm (int hwm_)
+		private static int ComputeLwm (int hwm)
 		{
 			//  Compute the low water mark. Following point should be taken
 			//  into consideration:
@@ -500,15 +489,15 @@ namespace zmq
 			//  That done, we still we have to account for the cases where
 			//  HWM < max_wm_delta thus driving LWM to negative numbers.
 			//  Let's make LWM 1/2 of HWM in such cases.
-			int result = (hwm_ > Config.MaxWatermarkDelta * 2) ?
-			                                                   	hwm_ - Config.MaxWatermarkDelta : (hwm_ + 1) / 2;
+			int result = (hwm > Config.MaxWatermarkDelta * 2) ?
+			                                                   	hwm - Config.MaxWatermarkDelta : (hwm + 1) / 2;
 
 			return result;
 		}
 	
 
 		//  Handler for delimiter read from the pipe.
-		private void delimit ()
+		private void Delimit ()
 		{
 			if (m_state == State.Active) {
 				m_state = State.Delimited;
@@ -530,7 +519,7 @@ namespace zmq
 		//  Temporaraily disconnects the inbound message stream and drops
 		//  all the messages on the fly. Causes 'hiccuped' event to be generated
 		//  in the peer.
-		public void hiccup() {
+		public void Hiccup() {
 			//  If termination is already under way do nothing.
 			if (m_state != State.Active)
 				return;
