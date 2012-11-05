@@ -159,7 +159,7 @@ namespace zmq
 					SendHighWatermark = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.ReceivevHightWatermark:
+				case ZmqSocketOptions.ReceivevHighWatermark:
 					ReceiveHighWatermark = (int) optval;
 					return true;
 
@@ -323,7 +323,7 @@ namespace zmq
 				case ZmqSocketOptions.SendHighWatermark:
 					return SendHighWatermark;
 
-				case ZmqSocketOptions.ReceivevHightWatermark:
+				case ZmqSocketOptions.ReceivevHighWatermark:
 					return ReceiveHighWatermark;
 
 				case ZmqSocketOptions.Affinity:
