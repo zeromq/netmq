@@ -54,6 +54,7 @@
     <Compile Include="RequestSocket.cs" />
     <Compile Include="ResponseSocket.cs" />
     <Compile Include="RouterSocket.cs" />
+    <Compile Include="SocketOptions.cs" />
     <Compile Include="SubscriberSocket.cs" />
     <Compile Include="XPublisherSocket.cs" />
     <Compile Include="XSubscriberSocket.cs" />

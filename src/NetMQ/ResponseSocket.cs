@@ -121,5 +121,15 @@ namespace NetMQ
 		{
 			return ReceiveStringInternal(dontWait ? SendRecieveOptions.DontWait : SendRecieveOptions.None, out hasMore);
 		}
+
+        public IList<byte[]> ReceiveAll()
+        {
+            return base.ReceiveAllInternal();
+        }
+
+        public IList<string> ReceiveAllString()
+        {
+            return base.ReceiveAllStringInternal();
+        }
 	}
 }

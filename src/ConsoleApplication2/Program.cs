@@ -16,9 +16,7 @@ namespace ConsoleApplication2
 
             PublisherSocket pub = context.CreatePublisherSocket();
 
-            SubscriberSocket sub = context.CreateSubscriberSocket();
-
-            
+            SubscriberSocket sub = context.CreateSubscriberSocket();           
 
             pub.Bind("tcp://127.0.0.1:8000");
 
@@ -26,27 +24,23 @@ namespace ConsoleApplication2
 
             sub.Subscribe("hello");
 
-            Thread.Sleep(2000);
+            Thread.Sleep(500);
 
             //while (true)
             //{
 
-//            
-                pub.SendTopic("hello").Send("message");
+            //            
+            pub.SendTopic("hello").SendMore("message").Send("hahhhh");
 
-//                Console.WriteLine("Done");
+            //                Console.WriteLine("Done");
             //}
 
-            bool isMore ;
+            var messages = sub.ReceiveAllString();
 
-            string message = sub.ReceiveString(out isMore);
-
-            Console.WriteLine(message);
-
-            message = sub.ReceiveString(out isMore);
-
-            Console.WriteLine(message);
-
+            foreach (var m in messages)
+            {
+                Console.WriteLine(m);
+            }
 
             Console.ReadLine();
 

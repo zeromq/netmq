@@ -6,7 +6,7 @@ using zmq;
 
 namespace NetMQ
 {
-    public class XSubscriberSocket : BaseSocket
+    public class XSubscriberSocket : SubscriberSocket
     {
         public XSubscriberSocket(SocketBase socketHandle)
             : base(socketHandle)

@@ -29,20 +29,13 @@ namespace NetMQ
 
         public IList<byte[]> ReceiveAll()
         {
-            bool hasMore;
 
-            IList<byte[]> messages = new List<byte[]>();
+            return base.ReceiveAllInternal();
+        }
 
-            Msg msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
-            messages.Add(msg.Data);
-
-            while (hasMore)
-            {
-                msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
-                messages.Add(msg.Data);
-            }
-
-            return messages;
+        public IList<string> ReceiveAllString()
+        {
+            return base.ReceiveAllStringInternal();
         }
 
         public string ReceiveString(out bool hasMore)
