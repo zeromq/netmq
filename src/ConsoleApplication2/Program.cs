@@ -12,28 +12,43 @@ namespace ConsoleApplication2
     {
         static void Main(string[] args)
         {
-					Context context = Context.Create();
+            Context context = Context.Create();
 
-					ResponseSocket rep = context.CreateResponseSocket();
+            PublisherSocket pub = context.CreatePublisherSocket();
 
-					rep.Bind("tcp://127.0.0.1:8000");
+            SubscriberSocket sub = context.CreateSubscriberSocket();
 
-					while (true)
-					{						
-						bool hasMore;
+            
 
-						var m2 = rep.ReceiveString(out hasMore);
+            pub.Bind("tcp://127.0.0.1:8000");
 
-						Console.WriteLine(m2);
+            sub.Connect("tcp://127.0.0.1:8000");
 
-						var m3 = "hello back";
+            sub.Subscribe("hello");
 
-						rep.Send(m3);
+            Thread.Sleep(2000);
 
-						Console.WriteLine("Done");
-					}
+            //while (true)
+            //{
 
-        	Console.ReadLine();
+//            
+                pub.SendTopic("hello").Send("message");
+
+//                Console.WriteLine("Done");
+            //}
+
+            bool isMore ;
+
+            string message = sub.ReceiveString(out isMore);
+
+            Console.WriteLine(message);
+
+            message = sub.ReceiveString(out isMore);
+
+            Console.WriteLine(message);
+
+
+            Console.ReadLine();
 
         }
     }

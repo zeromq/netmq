@@ -93,7 +93,7 @@ namespace NetMQ
 
 			if (sendMore)
 			{
-				sendRecieveOptions |= SendRecieveOptions.DontWait;
+				sendRecieveOptions |= SendRecieveOptions.SendMore;
 			}
 
 			SendInternal(data, length, sendRecieveOptions);

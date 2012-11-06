@@ -12,5 +12,11 @@ namespace NetMQ
             : base(socketHandle)
         {
         }
+
+        public bool XPubVerbose
+        {
+            get { return GetSocketOptionX<bool>(ZmqSocketOptions.XpubVerbose); }
+            set { SetSocketOption(ZmqSocketOptions.XpubVerbose, value); }
+        }
     }
 }

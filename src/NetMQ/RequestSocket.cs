@@ -94,11 +94,11 @@ namespace NetMQ
 			return msg.Data;
 		}
 
-		public IList<byte[]> GetAll()
+		public IList<byte[]> ReceiveAll()
 		{
 			bool hasMore;
 
-			IList<byte[]> messages = new BindingList<byte[]>();
+			IList<byte[]> messages = new List<byte[]>();
 
 			Msg msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
 			messages.Add(msg.Data);
