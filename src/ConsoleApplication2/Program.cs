@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using NetMQ;
 using zmq;
 
 namespace ConsoleApplication2
@@ -10,37 +12,28 @@ namespace ConsoleApplication2
     {
         static void Main(string[] args)
         {
-            Ctx ctx = ZMQ.CtxNew();
+					Context context = Context.Create();
 
+					ResponseSocket rep = context.CreateResponseSocket();
 
-            SocketBase rep = ctx.CreateSocket(ZMQ.ZMQ_REP);
+					rep.Bind("tcp://127.0.0.1:8000");
 
-            rep.Bind("tcp://127.0.0.1:8000");
-           
-            //string message = "Hello";
+					while (true)
+					{						
+						bool hasMore;
 
-            //byte[] data = Encoding.ASCII.GetBytes(message);
+						var m2 = rep.ReceiveString(out hasMore);
 
-            //var msg = ZMQ.zmq_msg_init_size(data.Length);
+						Console.WriteLine(m2);
 
-            //Buffer.BlockCopy(data, 0, msg.get_data(), 0, data.Length);
+						var m3 = "hello back";
 
-            //ZMQ.zmq_sendmsg(req, msg, 0);
+						rep.Send(m3);
 
-            var reqMsg = ZMQ.recvmsg(rep, 0);
+						Console.WriteLine("Done");
+					}
 
-            var reply = ZMQ.ZmqMsgInitSize(5);
-            reply.Data()[0] = 1;
-            reply.Data()[1] = 2;
-            reply.Data()[2] = 3;
-            reply.Data()[3] = 4;
-            reply.Data()[4] = 5;
-
-            Console.WriteLine("Recieved Message");
-
-            ZMQ.Send(rep, reply, 0);
-
-            Console.ReadLine();
+        	Console.ReadLine();
 
         }
     }

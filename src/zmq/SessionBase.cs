@@ -201,7 +201,7 @@ namespace zmq
 		{
 			//  First message to receive is identity (if required).
 			if (!m_identityReceived) {
-				msg.SetFlags (MsgFlags.More);
+				msg.SetFlags (MsgFlags.Identity);
 				m_identityReceived = true;
             
 				if (!m_options.RecvIdentity) {
@@ -432,7 +432,7 @@ namespace zmq
 
 			//  For delayed connect situations, terminate the pipe
 			//  and reestablish later on
-			if (m_pipe != null && m_options.DelayAttachOnConnect == 1
+			if (m_pipe != null && m_options.DelayAttachOnConnect
 			    && m_addr.Protocol  != "pgm" && m_addr.Protocol != "epgm") {
 			    	m_pipe.Hiccup ();
 			    	m_pipe.Terminate (false);

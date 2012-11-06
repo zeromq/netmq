@@ -151,7 +151,7 @@ namespace zmq
 
 		protected void NextStep(ByteArraySegment readPos, int toRead, int state)
 		{
-			m_readPos = readPos;
+			m_readPos = readPos.Clone();
 			m_toRead = toRead;
 			this.State = state;
 		}

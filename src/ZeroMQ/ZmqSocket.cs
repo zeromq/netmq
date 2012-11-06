@@ -62,7 +62,7 @@ namespace ZeroMQ
 		public ulong Affinity
 		{
 			get { return GetSocketOptionUInt64(SocketOption.AFFINITY); }
-			set { SetSocketOption(SocketOption.AFFINITY, value); }
+			set { SetSocketOption(SocketOption.AFFINITY, value); }	
 		}
 
 		/// <summary>
@@ -812,90 +812,7 @@ namespace ZeroMQ
 		/// </remarks>
 		/// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
 		/// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
-		public void SubscribeAll()
-		{
-			Subscribe(new byte[0]);
-		}
-
-		/// <summary>
-		/// Subscribe to messages that begin with a specified prefix.
-		/// </summary>
-		/// <remarks>
-		/// Only applies to <see cref="ZeroMQ.SocketType.SUB"/> and <see cref="ZeroMQ.SocketType.XSUB"/> sockets.
-		/// </remarks>
-		/// <param name="prefix">Prefix for subscribed messages.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="prefix"/> is null.</exception>
-		/// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
-		/// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
-		public virtual void Subscribe(byte[] prefix)
-		{
-			SetSocketOption(SocketOption.SUBSCRIBE, prefix);
-		}
-
-		/// <summary>
-		/// Unsubscribe from all messages.
-		/// </summary>
-		/// <remarks>
-		/// Only applies to <see cref="ZeroMQ.SocketType.SUB"/> and <see cref="ZeroMQ.SocketType.XSUB"/> sockets.
-		/// </remarks>
-		/// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
-		/// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
-		public void UnsubscribeAll()
-		{
-			Unsubscribe(new byte[0]);
-		}
-
-		/// <summary>
-		/// Unsubscribe from messages that begin with a specified prefix.
-		/// </summary>
-		/// <remarks>
-		/// Only applies to <see cref="ZeroMQ.SocketType.SUB"/> and <see cref="ZeroMQ.SocketType.XSUB"/> sockets.
-		/// </remarks>
-		/// <param name="prefix">Prefix for subscribed messages.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="prefix"/> is null.</exception>
-		/// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
-		/// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
-		public virtual void Unsubscribe(byte[] prefix)
-		{
-			SetSocketOption(SocketOption.UNSUBSCRIBE, prefix);
-		}
-
-		/// <summary>
-		/// Add a filter that will be applied for each new TCP transport connection on a listening socket.
-		/// Example: "127.0.0.1", "mail.ru/24", "::1", "::1/128", "3ffe:1::", "3ffe:1::/56"
-		/// </summary>
-		/// <seealso cref="ClearTcpAcceptFilter"/>
-		/// <remarks>
-		/// If no filters are applied, then TCP transport allows connections from any IP. If at least one
-		/// filter is applied then new connection source IP should be matched.
-		/// </remarks>
-		/// <param name="filter">IPV6 or IPV4 CIDR filter.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="filter"/> is null.</exception>
-		/// <exception cref="ArgumentException"><paramref name="filter"/> is empty string.</exception>
-		/// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
-		public void AddTcpAcceptFilter(string filter)
-		{
-			if (filter == null)
-			{
-				throw new ArgumentNullException("filter");
-			}
-
-			if (filter == string.Empty)
-			{
-				throw new ArgumentException("Unable to add empty filter", "filter");
-			}
-
-			SetSocketOption(SocketOption.TCP_ACCEPT_FILTER, filter);
-		}
-
-		/// <summary>
-		/// Reset all TCP filters assigned by <see cref="AddTcpAcceptFilter"/> and allow TCP transport to accept connections from any IP.
-		/// </summary>
-		/// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
-		public void ClearTcpAcceptFilter()
-		{
-			SetSocketOption(SocketOption.TCP_ACCEPT_FILTER, (string)null);
-		}
+		
 
 		/// <summary>
 		/// Releases all resources used by the current instance of the <see cref="ZmqSocket"/> class.

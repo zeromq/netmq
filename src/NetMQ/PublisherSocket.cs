@@ -6,11 +6,17 @@ using zmq;
 
 namespace NetMQ
 {
-    public class PublisherSocket : BaseSocket
-    {
-        public PublisherSocket(SocketBase socketHandle)
-            : base(socketHandle)
-        {
-        }
-    }
+	public class PublisherSocket : BaseSocket
+	{
+		public PublisherSocket(SocketBase socketHandle)
+			: base(socketHandle)
+		{
+		}
+
+		public bool XPubVerbose
+		{
+			get { return GetSocketOptionX<bool>(ZmqSocketOptions.XpubVerbose); }
+			set { SetSocketOption(ZmqSocketOptions.XpubVerbose, value); }
+		}
+	}
 }

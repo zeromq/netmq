@@ -533,7 +533,7 @@ namespace zmq
 			{
 				paddr.Resolved = (new TcpAddress());
 				paddr.Resolved.Resolve(
-					address, m_options.IPv4Only != 0);
+					address, m_options.IPv4Only);
 			}
 			else if (protocol.Equals("Ipc"))
 			{
@@ -551,7 +551,7 @@ namespace zmq
 			if (protocol.Equals("pgm") || protocol.Equals("epgm"))
 				icanhasall = true;
 
-			if (m_options.DelayAttachOnConnect != 1 || icanhasall)
+			if (!m_options.DelayAttachOnConnect || icanhasall)
 			{
 				//  Create a bi-directional pipe.
 				ZObject[] parents = { this, session };
@@ -1039,7 +1039,7 @@ namespace zmq
 
 		public void Hiccuped(Pipe pipe)
 		{
-			if (m_options.DelayAttachOnConnect == 1)
+			if (m_options.DelayAttachOnConnect)
 				pipe.Terminate(false);
 			else
 				// Notify derived sockets of the hiccup

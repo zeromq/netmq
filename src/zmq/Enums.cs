@@ -70,6 +70,7 @@ namespace zmq
 	[Flags]
 	public enum SendRecieveOptions
 	{
+		None = 0,
 		DontWait = 1,
 		SendMore = 2,
 

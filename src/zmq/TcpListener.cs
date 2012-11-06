@@ -159,7 +159,7 @@ namespace zmq
 		//  Set address to listen on.
 		public virtual bool SetAddress(String addr)
 		{
-			m_address.Resolve(addr, m_options.IPv4Only > 0);
+			m_address.Resolve(addr, m_options.IPv4Only);
 
 			m_endpoint = m_address.ToString();
 			try

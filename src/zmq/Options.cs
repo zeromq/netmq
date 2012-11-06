@@ -47,8 +47,8 @@ namespace zmq
 			Maxmsgsize = -1;
 			ReceiveTimeout = -1;
 			SendTimeout = -1;
-			IPv4Only = 1;
-			DelayAttachOnConnect = 0;
+			IPv4Only = true;
+			DelayAttachOnConnect = false;
 			DelayOnClose = true;
 			DelayOnDisconnect = true;
 			Filter = false;
@@ -116,11 +116,11 @@ namespace zmq
 		//  If 1, indicates the use of IPv4 sockets only, it will not be
 		//  possible to communicate with IPv6-only hosts. If 0, the socket can
 		//  connect to and accept connections from both IPv4 and IPv6 hosts.
-		public int IPv4Only { get; set; }
+		public bool IPv4Only { get; set; }
 
 		//  If 1, connecting pipes are not attached immediately, meaning a send()
 		//  on a socket with only connecting pipes would block
-		public int DelayAttachOnConnect { get; set; }
+		public bool DelayAttachOnConnect { get; set; }
 
 		//  If true, session reads all the pending messages from the pipe and
 		//  sends them to the network when socket is closed.
@@ -256,12 +256,8 @@ namespace zmq
 
 				case ZmqSocketOptions.IPv4Only:
 
-					IPv4Only = (int) optval;
-					if (IPv4Only != 0 && IPv4Only != 1)
-					{
-						ZError.ErrorNumber = (ErrorNumber.EINVAL);
-						return false;
-					}
+					IPv4Only = (bool)optval;
+					
 					return true;
 
 				case ZmqSocketOptions.TcpKeepalive:
@@ -276,12 +272,8 @@ namespace zmq
 
 				case ZmqSocketOptions.DelayAttachOnConnect:
 
-					DelayAttachOnConnect = (int) optval;
-					if (DelayAttachOnConnect != 0 && DelayAttachOnConnect != 1)
-					{
-						ZError.ErrorNumber = (ErrorNumber.EINVAL);
-						return false;
-					}
+					DelayAttachOnConnect = (bool) optval;
+					
 					return true;
 
 				case ZmqSocketOptions.TcpKeepaliveCnt:
@@ -304,7 +296,7 @@ namespace zmq
 					else
 					{
 						TcpAddress.TcpAddressMask filter = new TcpAddress.TcpAddressMask();
-						filter.Resolve(filterStr, IPv4Only == 1);
+						filter.Resolve(filterStr, IPv4Only);
 						TcpAcceptFilters.Add(filter);
 					}
 					return true;

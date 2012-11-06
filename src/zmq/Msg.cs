@@ -73,7 +73,7 @@ namespace zmq
 		public Msg(int size)
 		{
 			Init(MsgType.Vsm);
-			size = size;
+			Size = size;
 		}
 
 		public Msg(int size, bool buffered)
@@ -82,7 +82,7 @@ namespace zmq
 				Init(MsgType.LMsg);
 			else
 				Init(MsgType.Vsm);
-			size = size;
+			Size = size;
 		}
 
 
@@ -103,16 +103,21 @@ namespace zmq
 
 		}
 
-		public Msg(byte[] src, bool copy)
+		public Msg(byte[] src, bool copy) : this(src, src.Length, copy)
+		{
+			
+		}
+
+		public Msg(byte[] src,int size, bool copy)
 			: this()
 		{
 			if (src != null)
 			{
-				Size = src.Length;
+				Size = size;
 				if (copy)
 				{
-					m_data = new byte[src.Length];
-					Buffer.BlockCopy(src, 0, m_data, 0, src.Length);
+					m_data = new byte[size];
+					Buffer.BlockCopy(src, 0, m_data, 0, size);
 				}
 				else
 				{

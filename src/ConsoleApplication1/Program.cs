@@ -3,46 +3,47 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using zmq;
+using NetMQ;
 
 namespace ConsoleApplication1
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Thread.Sleep(2000);
+	class Program
+	{
+		static void Main(string[] args)
+		{		
+			Context context = Context.Create();
 
-            Ctx ctx = ZMQ.CtxNew();
+			RequestSocket req = context.CreateRequestSocket();
 
-            SocketBase req = ctx.CreateSocket(ZMQ.ZMQ_REQ);
+			ResponseSocket rep = context.CreateResponseSocket();			
 
-            //SocketBase rep = ctx.create_socket(ZMQ.ZMQ_REP);
+			rep.Bind("tcp://127.0.0.1:8000");			
 
-            //rep.bind("tcp://127.0.0.1:8000");
+			req.Connect("tcp://127.0.0.1:8000");
 
-            req.Connect("tcp://127.0.0.1:8000");
+			Thread.Sleep(1000);
 
-            string message = "HelloHelloHelloHelloHelloHelloHelloHelloHelloHello";
+			string m1 = "HelloHelloHelloHelloHelloHelloHelloHelloHelloHello";
 
-            byte[] data = Encoding.ASCII.GetBytes(message);
+			req.Send(m1);
 
-            var msg = ZMQ.ZmqMsgInitSize(data.Length);
+			bool hasMore;
 
-            Buffer.BlockCopy(data, 0, msg.Data(), 0, data.Length);
+			var m2 = rep.ReceiveString(out hasMore);
 
-            ZMQ.zmq_sendmsg(req, msg, 0);
+			Console.WriteLine(m2);
 
-            var replyMsg = ZMQ.RecvMsg(req, 0);
+			var m3 = "hello back";
 
-            //var reqMsg = ZMQ.zmq_recvmsg(rep, 0);
+			rep.Send(m3);
 
-            Console.WriteLine("Message Received");
+			var m4 = req.ReceiveString(out hasMore);
 
-            Console.ReadLine();
+			Console.WriteLine(m4);			
 
-        
-        
-        }
-    }
+			Console.WriteLine("Message Received");
+
+			Console.ReadLine();
+		}
+	}
 }

@@ -101,7 +101,10 @@ namespace zmq
 			Buffer.BlockCopy(m_innerBuffer, Offset + fromOffset, dest.m_innerBuffer, dest.Offset + destOffset, toCopy);
 		}
 
-
+		public ByteArraySegment Clone()
+		{
+			return new ByteArraySegment(this);
+		}
 
 		public byte this[int i]
 		{
