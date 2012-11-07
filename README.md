@@ -23,14 +23,10 @@ Bonus features planned to be developed:
 * SSL
 * New PUB/SUB sockets that the server decide on the subscriptions of the client (to support permissions on topics).
 
-## Contribution Process
-
-This project uses the [C4 process](http://rfc.zeromq.org/spec:16) for all code changes. "Everyone,
-without distinction or discrimination, SHALL have an equal right to become a Contributor under the
-terms of this contract."
-
 ## Who owns NetMQ?
 
 NetMQ is owned by all its authors and contributors. 
 This is an open source project licensed under the LGPLv3. 
 To contribute to NetMQ please read the [C4 process](http://rfc.zeromq.org/spec:16), it's what we use.
+Their are open issues in the issues tab that still need to take care of, feel free to pick one up and submit a patch to the project.
+
