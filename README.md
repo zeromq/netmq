@@ -15,6 +15,8 @@ The following is still under development:
 * PGM protocol
 * TCP Keep alive
 * Proxy is still not supported
+* Mono support
+* IPv6
 
 Bonus features planned to be developed:
 * IO completion ports
