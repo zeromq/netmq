@@ -28,7 +28,6 @@ namespace NetMQ.zmq
 
 		public interface IZAddress
 		{
-			//String ToString();
 			void Resolve(String name, bool ip4Only);
 			IPEndPoint Address{get;}        
 		};
@@ -48,12 +47,12 @@ namespace NetMQ.zmq
 			if (endpoint is DnsEndPoint)
 			{
 				DnsEndPoint dnsEndpoint = endpoint as DnsEndPoint;
-				AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port.ToString();
+				AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port;
 			}
 			else if (endpoint is IPEndPoint)
 			{
 				IPEndPoint ipEndpoint = endpoint as IPEndPoint;
-				AddressString = ipEndpoint.Address.ToString() + ":" + ipEndpoint.Port.ToString();
+				AddressString = ipEndpoint.Address + ":" + ipEndpoint.Port;
 			}
 			else
 			{
@@ -84,7 +83,7 @@ namespace NetMQ.zmq
 				return Protocol + "://" + AddressString;
 			}
 
-			return null;
+			return null; //TODO: REVIEW - Although not explicitly prohibited, returning null from ToString seems sketchy; return string.Empty? 
 		}
 
 		public String Protocol
