@@ -55,7 +55,7 @@
       <Project>{82934BAC-07FB-41AC-AE59-46FEE6026A40}</Project>
       <Name>NetMQ</Name>
     </ProjectReference>
-    <ProjectReference Include="..\zmq\zmq.csproj">
+    <ProjectReference Include="..\NetMQ.zmq\NetMQ.zmq.csproj">
       <Project>{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}</Project>
       <Name>zmq</Name>
     </ProjectReference>
