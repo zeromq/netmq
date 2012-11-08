@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zmq", "zmq\zmq.csproj", "{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.zmq", "NetMQ.zmq\NetMQ.zmq.csproj", "{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{37B320C0-9E44-44EF-B89A-E671DBA4986B}"
 EndProject
