@@ -323,7 +323,7 @@ namespace NetMQ.zmq
 				}
 
 				//  Choose a slot for the socket.
-			    int slot = empty_slots.Pop();
+				int slot = empty_slots.Pop();
 
 				//  Generate new unique socket ID.
 				int sid = s_maxSocketId.IncrementAndGet();

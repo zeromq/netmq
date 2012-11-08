@@ -45,7 +45,7 @@ namespace NetMQ.zmq
     
 		protected PollerBase() {
 			m_load = new AtomicInteger(0);
-            m_timers = new SortedList<long, List<TimerInfo>>();
+			m_timers = new SortedList<long, List<TimerInfo>>();
 		}
     
 		//  Returns load of the poller. Note that this function can be
@@ -69,10 +69,10 @@ namespace NetMQ.zmq
 			long expiration = Clock.NowMs () + timeout;
 			TimerInfo info = new TimerInfo(sink, id);
 
-		    if (!m_timers.ContainsKey(expiration))
-		        m_timers.Add(expiration, new List<TimerInfo>());
+			if (!m_timers.ContainsKey(expiration))
+				m_timers.Add(expiration, new List<TimerInfo>());
 
-            m_timers[expiration].Add(info);		    
+			m_timers[expiration].Add(info);		    
 		}
 
 		//  Cancel the timer created by sink_ object with ID equal to id_.
@@ -80,31 +80,31 @@ namespace NetMQ.zmq
         {
 
 			//  Complexity of this operation is O(n). We assume it is rarely used.
-            var foundTimers = new Dictionary<long, TimerInfo>();
+			var foundTimers = new Dictionary<long, TimerInfo>();
 
-		    foreach (var pair in m_timers) {
-		        var timer = pair.Value.FirstOrDefault(x => x.Id == id && x.Sink == sink);
+			foreach (var pair in m_timers) {
+				var timer = pair.Value.FirstOrDefault(x => x.Id == id && x.Sink == sink);
 
-                if(timer == null)
-                    continue;
+				if(timer == null)
+					continue;
 
-                if(!foundTimers.ContainsKey(pair.Key))
-                foundTimers[pair.Key] = timer;
-		    }
+				if(!foundTimers.ContainsKey(pair.Key))
+					foundTimers[pair.Key] = timer;
+			}
 
-            if (foundTimers.Count > 0)
+			if (foundTimers.Count > 0)
 			{
-                foreach (var foundTimer in foundTimers) 
-                {
-                    if(m_timers[foundTimer.Key].Count == 1) 
-                    {
-                        m_timers.Remove(foundTimer.Key);
-                    } 
-                    else 
-                    {
-                        m_timers[foundTimer.Key].Remove(foundTimer.Value);
-                    }
-                }
+				foreach (var foundTimer in foundTimers) 
+				{
+					if(m_timers[foundTimer.Key].Count == 1) 
+					{
+						m_timers.Remove(foundTimer.Key);
+					} 
+					else 
+					{
+						m_timers[foundTimer.Key].Remove(foundTimer.Value);
+					}
+				}
 			}
 			else
 			{
@@ -125,8 +125,8 @@ namespace NetMQ.zmq
 			long current = Clock.NowMs ();
 
 			//  Execute the timers that are already due.
-		    var keys = m_timers.Keys;
-            foreach (var key in keys)
+			var keys = m_timers.Keys;
+			foreach (var key in keys)
 			{
                      
 				//  If we have to wait to execute the item, same will be true about
@@ -138,26 +138,26 @@ namespace NetMQ.zmq
 					return  (int)(key - current);                
 				}
 
-                var timers = m_timers[key];
+				var timers = m_timers[key];
 
-                //  Trigger the timers.                
-                foreach (var timer in timers) 
-                {
-                    timer.Sink.TimerEvent(timer.Id);
-                    m_timers[key].Remove(timer);
-                }
+				//  Trigger the timers.                
+				foreach (var timer in timers) 
+				{
+					timer.Sink.TimerEvent(timer.Id);
+					m_timers[key].Remove(timer);
+				}
 				
 				//  Remove it from the list of active timers.
 				//timers_t::iterator o = it;
 				//++it;
 				//timers.erase (o);
 
-                if(m_timers[key].Count == 0)                
-				    m_timers.Remove(key);            
-			}
+				if(m_timers[key].Count == 0)                
+					m_timers.Remove(key);            
+				}
 
-			//  There are no more timers.
-			return 0;
+				//  There are no more timers.
+				return 0;
 		}
 	}
 }
