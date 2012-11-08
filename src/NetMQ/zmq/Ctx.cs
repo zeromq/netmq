@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Diagnostics;
-using Wintellect.PowerCollections;
 
 //Context object encapsulates all the global state associated with
 //  the library.
@@ -60,7 +59,7 @@ namespace NetMQ.zmq
 		private readonly List<SocketBase> sockets;
 
 		//  List of unused thread slots.
-		private readonly Deque<int> empty_slots;
+		private readonly Stack<int> empty_slots;
 
 		//  If true, zmq_init has been called but no socket has been created
 		//  yet. Launching of I/O threads is delayed.
@@ -127,7 +126,7 @@ namespace NetMQ.zmq
 
 			term_mailbox = new Mailbox("terminater");
 
-			empty_slots = new Deque<int>();
+			empty_slots = new Stack<int>();
 			m_ioThreads = new List<IOThread>();
 			sockets = new List<SocketBase>();
 			endpoints = new Dictionary<String, Endpoint>();
@@ -303,7 +302,7 @@ namespace NetMQ.zmq
 					for (int i = (int)m_slotCount - 1;
 					     i >= (int)ios + 2; i--)
 					{
-						empty_slots.AddToBack(i);
+						empty_slots.Push(i);
 						m_slots[i] = null;
 					}
 
@@ -324,7 +323,7 @@ namespace NetMQ.zmq
 				}
 
 				//  Choose a slot for the socket.
-				int slot = empty_slots.RemoveFromBack();
+				int slot = empty_slots.Pop();
 
 				//  Generate new unique socket ID.
 				int sid = s_maxSocketId.IncrementAndGet();
@@ -333,7 +332,7 @@ namespace NetMQ.zmq
 				s = SocketBase.Create(type, this, slot, sid);
 				if (s == null)
 				{
-					empty_slots.AddToBack(slot);
+					empty_slots.Push(slot);
 					return null;
 				}
 				sockets.Add(s);
@@ -353,7 +352,7 @@ namespace NetMQ.zmq
 			lock (slot_sync)
 			{
 				tid = socket.Tid;
-				empty_slots.AddToBack(tid);
+				empty_slots.Push(tid);
 				m_slots[tid].Close();
 				m_slots[tid] = null;
 
