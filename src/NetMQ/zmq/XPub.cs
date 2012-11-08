@@ -20,8 +20,8 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using Wintellect.PowerCollections;
 
 namespace NetMQ.zmq
 {
@@ -52,7 +52,7 @@ namespace NetMQ.zmq
 
 		//  List of pending (un)subscriptions, ie. those that were already
 		//  applied to the trie, but not yet received by the user.
-		private readonly Deque<Blob> m_pending;
+		private readonly Stack<Blob> m_pending;
     
 		private static readonly Mtrie.MtrieDelegate s_markAsMatching;
 		private static readonly Mtrie.MtrieDelegate s_SendUnsubscription;
@@ -76,7 +76,7 @@ namespace NetMQ.zmq
 			                                               		Blob unsub = new Blob (data.Length + 1);
 			                                               		unsub.Put(0,(byte)0);
 			                                               		unsub.Put(1, data);
-			                                               		self.m_pending.AddToBack (unsub);
+			                                               		self.m_pending.Push(unsub);
  
 			                                               	}
 			};
@@ -90,7 +90,7 @@ namespace NetMQ.zmq
         
 			m_subscriptions = new Mtrie();
 			m_dist = new Dist();
-			m_pending = new Deque<Blob>();
+			m_pending = new Stack<Blob>();
 		}
     
 		protected override void XAttachPipe (Pipe pipe, bool icanhasall)
@@ -127,7 +127,7 @@ namespace NetMQ.zmq
 					//  If the subscription is not a duplicate, store it so that it can be
 					//  passed to used on next recv call.
 					if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
-						m_pending.AddToBack(new Blob (sub.Data));
+						m_pending.Push(new Blob (sub.Data));
 				}
 			}
 		}
@@ -196,7 +196,7 @@ namespace NetMQ.zmq
 				return null;
 			}
 
-			Blob first = m_pending.RemoveFromFront();
+			Blob first = m_pending.Pop();
 			Msg msg = new Msg(first.Data);
 			return msg;
 
