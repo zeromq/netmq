@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zmq", "zmq\zmq.csproj", "{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{37B320C0-9E44-44EF-B89A-E671DBA4986B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication2", "ConsoleApplication2\ConsoleApplication2.csproj", "{5B8F7740-EFD5-46B9-8A96-2E1F47385295}"
@@ -21,18 +19,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Release|x64.ActiveCfg = Release|Any CPU
-		{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}.Release|x86.ActiveCfg = Release|Any CPU
 		{37B320C0-9E44-44EF-B89A-E671DBA4986B}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{37B320C0-9E44-44EF-B89A-E671DBA4986B}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{37B320C0-9E44-44EF-B89A-E671DBA4986B}.Debug|Mixed Platforms.Build.0 = Debug|x86

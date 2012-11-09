@@ -33,11 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseSocket.cs" />
@@ -59,12 +55,77 @@
     <Compile Include="SubscriberSocket.cs" />
     <Compile Include="XPublisherSocket.cs" />
     <Compile Include="XSubscriberSocket.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\zmq\zmq.csproj">
-      <Project>{1FF911B4-93DD-41F4-8242-3DEE3926E2AE}</Project>
-      <Name>zmq</Name>
-    </ProjectReference>
+    <Compile Include="zmq\Address.cs" />
+    <Compile Include="zmq\AtomicInteger.cs" />
+    <Compile Include="zmq\AtomicLong.cs" />
+    <Compile Include="zmq\Blob.cs" />
+    <Compile Include="zmq\ByteArraySegment.cs" />
+    <Compile Include="zmq\Clock.cs" />
+    <Compile Include="zmq\Command.cs" />
+    <Compile Include="zmq\CommandType.cs" />
+    <Compile Include="zmq\Config.cs" />
+    <Compile Include="zmq\Ctx.cs" />
+    <Compile Include="zmq\Dealer.cs" />
+    <Compile Include="zmq\Decoder.cs" />
+    <Compile Include="zmq\DecoderBase.cs" />
+    <Compile Include="zmq\Dist.cs" />
+    <Compile Include="zmq\Encoder.cs" />
+    <Compile Include="zmq\EncoderBase.cs" />
+    <Compile Include="zmq\Enums.cs" />
+    <Compile Include="zmq\ErrorNumber.cs" />
+    <Compile Include="zmq\FQ.cs" />
+    <Compile Include="zmq\IDecoder.cs" />
+    <Compile Include="zmq\IEncoder.cs" />
+    <Compile Include="zmq\IEngine.cs" />
+    <Compile Include="zmq\IMsgSink.cs" />
+    <Compile Include="zmq\IMsgSource.cs" />
+    <Compile Include="zmq\IOObject.cs" />
+    <Compile Include="zmq\IOThread.cs" />
+    <Compile Include="zmq\IpcAddress.cs" />
+    <Compile Include="zmq\IpcConnecter.cs" />
+    <Compile Include="zmq\IpcListener.cs" />
+    <Compile Include="zmq\IPollEvents.cs" />
+    <Compile Include="zmq\IZmqMonitor.cs" />
+    <Compile Include="zmq\LB.cs" />
+    <Compile Include="zmq\Mailbox.cs" />
+    <Compile Include="zmq\MonitorEvent.cs" />
+    <Compile Include="zmq\Msg.cs" />
+    <Compile Include="zmq\Mtrie.cs" />
+    <Compile Include="zmq\Options.cs" />
+    <Compile Include="zmq\Own.cs" />
+    <Compile Include="zmq\Pair.cs" />
+    <Compile Include="zmq\Pipe.cs" />
+    <Compile Include="zmq\Poller.cs" />
+    <Compile Include="zmq\PollerBase.cs" />
+    <Compile Include="zmq\PollItem.cs" />
+    <None Include="zmq\Proxy.cs" />
+    <Compile Include="zmq\Pub.cs" />
+    <Compile Include="zmq\Pull.cs" />
+    <Compile Include="zmq\Push.cs" />
+    <Compile Include="zmq\Reaper.cs" />
+    <Compile Include="zmq\Rep.cs" />
+    <Compile Include="zmq\Req.cs" />
+    <Compile Include="zmq\Router.cs" />
+    <Compile Include="zmq\SessionBase.cs" />
+    <Compile Include="zmq\Signaler.cs" />
+    <Compile Include="zmq\SocketBase.cs" />
+    <Compile Include="zmq\StreamEngine.cs" />
+    <Compile Include="zmq\Sub.cs" />
+    <Compile Include="zmq\TcpAddress.cs" />
+    <Compile Include="zmq\TcpConnecter.cs" />
+    <Compile Include="zmq\TcpListener.cs" />
+    <Compile Include="zmq\Trie.cs" />
+    <Compile Include="zmq\Utils.cs" />
+    <Compile Include="zmq\V1Decoder.cs" />
+    <Compile Include="zmq\V1Encoder.cs" />
+    <Compile Include="zmq\V1Protocol.cs" />
+    <Compile Include="zmq\XPub.cs" />
+    <Compile Include="zmq\XSub.cs" />
+    <Compile Include="zmq\YPipe.cs" />
+    <Compile Include="zmq\YQueue.cs" />
+    <Compile Include="zmq\ZError.cs" />
+    <Compile Include="zmq\ZMQ.cs" />
+    <Compile Include="zmq\ZObject.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
