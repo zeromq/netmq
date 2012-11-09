@@ -6,10 +6,15 @@ using zmq;
 
 namespace NetMQ
 {
-    public class DealerSocket : BaseSocket
+    public class DealerSocket : DuplexSocket<DealerSocket>
     {
         public DealerSocket(SocketBase socketHandle) : base(socketHandle)
         {
+        }
+
+        protected override DealerSocket This
+        {
+            get { return this; }
         }
     }
 }

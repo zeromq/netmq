@@ -6,11 +6,16 @@ using zmq;
 
 namespace NetMQ
 {
-    public class PairSocket : BaseSocket
+    public class PairSocket : DuplexSocket<PairSocket>
     {
         public PairSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
+        }
+
+        protected override PairSocket This
+        {
+            get { return this; }
         }
     }
 }

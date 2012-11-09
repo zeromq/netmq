@@ -43,6 +43,7 @@
     <Compile Include="BaseSocket.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="DealerSocket.cs" />
+    <Compile Include="DuplexSocket.cs" />
     <Compile Include="MonitorSocket.cs" />
     <Compile Include="NetMQException.cs" />
     <Compile Include="PairSocket.cs" />

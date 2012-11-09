@@ -19,6 +19,14 @@ namespace NetMQ
 
         public SocketOptions Options { get; private set; }
 
+        internal SocketBase SocketHandle
+        {
+            get
+            {
+                return m_socketHandle;
+            }
+        }
+
 		public void Bind(string address)
 		{
 			if (!ZMQ.Bind(m_socketHandle, address))
@@ -50,6 +58,11 @@ namespace NetMQ
 				throw new NetMQException("Unbind socket failed", ZError.ErrorNumber);
 			}
 		}
+
+        public void Close()
+        {
+            ZMQ.Close(m_socketHandle);
+        }
 
 		protected Msg ReceiveInternal(SendRecieveOptions options, out bool hasMore)
 		{

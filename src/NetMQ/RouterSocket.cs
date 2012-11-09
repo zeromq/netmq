@@ -6,11 +6,16 @@ using zmq;
 
 namespace NetMQ
 {
-    public class RouterSocket : BaseSocket
+    public class RouterSocket : DuplexSocket<RouterSocket>
     {
         public RouterSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
+        }
+
+        protected override RouterSocket This
+        {
+            get { return this; }
         }
     }
 }
