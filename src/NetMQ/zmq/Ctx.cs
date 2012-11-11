@@ -56,10 +56,10 @@ namespace NetMQ.zmq
 		//  Sockets belonging to this context. We need the list so that
 		//  we can notify the sockets when zmq_term() is called. The sockets
 		//  will return ETERM then.
-		private readonly List<SocketBase> sockets;
+		private readonly List<SocketBase> m_sockets;
 
 		//  List of unused thread slots.
-		private readonly Stack<int> empty_slots;
+		private readonly Stack<int> m_emptySlots;
 
 		//  If true, zmq_init has been called but no socket has been created
 		//  yet. Launching of I/O threads is delayed.
@@ -73,7 +73,7 @@ namespace NetMQ.zmq
 		//  access to zombie sockets as such (as opposed to slots) and provides
 		//  a memory barrier to ensure that all CPU cores see the same data.
 		
-		private readonly object slot_sync;
+		private readonly object m_slotSync;
 
 		//  The reaper thread.
 		private Reaper m_reaper;
@@ -86,13 +86,13 @@ namespace NetMQ.zmq
 		private Mailbox[] m_slots;
 
 		//  Mailbox for zmq_term thread.
-		private readonly Mailbox term_mailbox;
+		private readonly Mailbox m_termMailbox;
 
 		//  List of inproc endpoints within this context.
-		private readonly Dictionary<String, Endpoint> endpoints;
+		private readonly Dictionary<String, Endpoint> m_endpoints;
 
 		//  Synchronisation of access to the list of inproc endpoints.		
-		private readonly object endpoints_sync;
+		private readonly object m_endpointsSync;
 
 		//  Maximum socket ID.
 		private static readonly AtomicInteger s_maxSocketId = new AtomicInteger(0);
@@ -120,16 +120,16 @@ namespace NetMQ.zmq
 			m_maxSockets = ZMQ.ZmqMaxSocketsDflt;
 			m_ioThreadCount = ZMQ.ZmqIOThreadsDflt;
 
-			slot_sync = new object();
-			endpoints_sync = new object();
+			m_slotSync = new object();
+			m_endpointsSync = new object();
 			m_optSync = new object();
 
-			term_mailbox = new Mailbox("terminater");
+			m_termMailbox = new Mailbox("terminater");
 
-			empty_slots = new Stack<int>();
+			m_emptySlots = new Stack<int>();
 			m_ioThreads = new List<IOThread>();
-			sockets = new List<SocketBase>();
-			endpoints = new Dictionary<String, Endpoint>();
+			m_sockets = new List<SocketBase>();
+			m_endpoints = new Dictionary<String, Endpoint>();
 		}
 
 		protected void Destroy()
@@ -146,7 +146,7 @@ namespace NetMQ.zmq
 
 			if (m_reaper != null)
 				m_reaper.Destroy();
-			term_mailbox.Close();
+			m_termMailbox.Close();
 
 			m_tag = 0xdeadbeef;
 		}
@@ -167,7 +167,7 @@ namespace NetMQ.zmq
 
 			m_tag = 0xdeadbeef;
 
-			Monitor.Enter(slot_sync);
+			Monitor.Enter(m_slotSync);
 			if (!m_starting)
 			{
 
@@ -175,7 +175,7 @@ namespace NetMQ.zmq
 				//  restarted.
 				bool restarted = m_terminating;
 				m_terminating = true;
-				Monitor.Exit(slot_sync);
+				Monitor.Exit(m_slotSync);
 
 
 				//  First attempt to terminate the context.
@@ -185,32 +185,32 @@ namespace NetMQ.zmq
 					//  First send stop command to sockets so that any blocking calls
 					//  can be interrupted. If there are no sockets we can ask reaper
 					//  thread to stop.
-					Monitor.Enter(slot_sync);
+					Monitor.Enter(m_slotSync);
 					try
 					{
-						for (int i = 0; i != sockets.Count; i++)
-							sockets[i].Stop();
-						if (sockets.Count == 0)
+						for (int i = 0; i != m_sockets.Count; i++)
+							m_sockets[i].Stop();
+						if (m_sockets.Count == 0)
 							m_reaper.Stop();
 					}
 					finally
 					{
-
+						Monitor.Exit(m_slotSync);
 					}
 				}
 
 				//  Wait till reaper thread closes all the sockets.
 				Command cmd;
-				cmd = term_mailbox.Recv(-1);
+				cmd = m_termMailbox.Recv(-1);
 				if (cmd == null)
 					//throw new InvalidOperationException();
 					throw new ArgumentException();
 
 				Debug.Assert(cmd.CommandType == CommandType.Done);
-				Monitor.Enter(slot_sync);
-				Debug.Assert(sockets.Count == 0);
+				Monitor.Enter(m_slotSync);
+				Debug.Assert(m_sockets.Count == 0);
 			}
-			Monitor.Exit(slot_sync);
+			Monitor.Exit(m_slotSync);
 
 			//  Deallocate the resources.
 			Destroy();
@@ -258,7 +258,7 @@ namespace NetMQ.zmq
 		public SocketBase CreateSocket(ZmqSocketType type)
 		{
 			SocketBase s = null;
-			lock (slot_sync)
+			lock (m_slotSync)
 			{
 				if (m_starting)
 				{
@@ -280,7 +280,7 @@ namespace NetMQ.zmq
 					//alloc_Debug.Assert(slots);
 
 					//  Initialise the infrastructure for zmq_term thread.
-					m_slots[TermTid] = term_mailbox;
+					m_slots[TermTid] = m_termMailbox;
 
 					//  Create the reaper thread.
 					m_reaper = new Reaper(this, ReaperTid);
@@ -302,7 +302,7 @@ namespace NetMQ.zmq
 					for (int i = (int)m_slotCount - 1;
 					     i >= (int)ios + 2; i--)
 					{
-						empty_slots.Push(i);
+						m_emptySlots.Push(i);
 						m_slots[i] = null;
 					}
 
@@ -316,14 +316,14 @@ namespace NetMQ.zmq
 				}
 
 				//  If max_sockets limit was reached, return error.
-				if (empty_slots.Count == 0)
+				if (m_emptySlots.Count == 0)
 				{
 					ZError.ErrorNumber = ErrorNumber.EMFILE;
 					return null;
 				}
 
 				//  Choose a slot for the socket.
-				int slot = empty_slots.Pop();
+				int slot = m_emptySlots.Pop();
 
 				//  Generate new unique socket ID.
 				int sid = s_maxSocketId.IncrementAndGet();
@@ -332,10 +332,10 @@ namespace NetMQ.zmq
 				s = SocketBase.Create(type, this, slot, sid);
 				if (s == null)
 				{
-					empty_slots.Push(slot);
+					m_emptySlots.Push(slot);
 					return null;
 				}
-				sockets.Add(s);
+				m_sockets.Add(s);
 				m_slots[slot] = s.Mailbox;
 
 				//LOG.debug("NEW Slot [" + slot + "] " + s);
@@ -349,19 +349,19 @@ namespace NetMQ.zmq
 		{
 			int tid;
 			//  Free the associated thread slot.
-			lock (slot_sync)
+			lock (m_slotSync)
 			{
 				tid = socket.Tid;
-				empty_slots.Push(tid);
+				m_emptySlots.Push(tid);
 				m_slots[tid].Close();
 				m_slots[tid] = null;
 
 				//  Remove the socket from the list of sockets.
-				sockets.Remove(socket);
+				m_sockets.Remove(socket);
 
 				//  If zmq_term() was already called and there are no more socket
 				//  we can ask reaper thread to terminate.
-				if (m_terminating && sockets.Count == 0)
+				if (m_terminating && m_sockets.Count == 0)
 					m_reaper.Stop();
 			}
 
@@ -410,13 +410,16 @@ namespace NetMQ.zmq
 		//  Management of inproc endpoints.
 		public bool RegisterEndpoint(String addr, Endpoint endpoint)
 		{
-			Endpoint inserted = null;
-
-			lock (endpoints_sync)
+			bool exist;
+			
+			lock (m_endpointsSync)
 			{
-				inserted = endpoints[addr] = endpoint;
+				exist = m_endpoints.ContainsKey(addr);
+
+				m_endpoints[addr] = endpoint;
 			}
-			if (inserted != null)
+
+			if (exist)
 			{
 				ZError.ErrorNumber = ErrorNumber.EADDRINUSE;
 				return false;
@@ -426,14 +429,14 @@ namespace NetMQ.zmq
 
 		public void UnregisterEndpoints(SocketBase socket)
 		{
-			lock (endpoints_sync)
+			lock (m_endpointsSync)
 			{
 
-				IList<string> removeList = (from e in endpoints where e.Value.Socket == socket select e.Key).ToList();
+				IList<string> removeList = (from e in m_endpoints where e.Value.Socket == socket select e.Key).ToList();
 
 				foreach (var item in removeList)
 				{
-					endpoints.Remove(item);
+					m_endpoints.Remove(item);
 				}
 			}
 		}
@@ -441,9 +444,9 @@ namespace NetMQ.zmq
 		public Endpoint FindEndpoint(String addr)
 		{
 			Endpoint endpoint = null;
-			lock (endpoints_sync)
+			lock (m_endpointsSync)
 			{
-				endpoint = endpoints[addr];
+				endpoint = m_endpoints[addr];
 				if (endpoint == null)
 				{
 					ZError.ErrorNumber = ErrorNumber.ECONNREFUSED;

@@ -2,116 +2,187 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using NetMQ.zmq;
 
 namespace NetMQ
 {
-    public class Context
-    {
-    	readonly Ctx m_ctx;
+	/// <summary>
+	/// Context class of the NetMQ, you should have only one context in your application
+	/// </summary>
+	public class Context : IDisposable
+	{
+		readonly Ctx m_ctx;
+		private int m_isClosed = 0;
 
-        private Context(Ctx ctx)
-        {
-            m_ctx = ctx;
-        }
 
-        public static Context Create()
-        {
-            return new Context(ZMQ.CtxNew());
-        }
+		private Context(Ctx ctx)
+		{
+			m_ctx = ctx;
+		}
 
-        public int IOThreads
-        {
-            get { return ZMQ.CtxGet(m_ctx, ContextOption.IOThreads); }
-            set { ZMQ.CtxSet(m_ctx, ContextOption.IOThreads, value); }
-        }
+		/// <summary>
+		/// Create a new context
+		/// </summary>
+		/// <returns>The new context</returns>
+		public static Context Create()
+		{
+			return new Context(ZMQ.CtxNew());
+		}
 
-        public int MaxSockets
-        {
-            get { return ZMQ.CtxGet(m_ctx, zmq.ContextOption.MaxSockets); }
-            set { ZMQ.CtxSet(m_ctx, ContextOption.MaxSockets, value); }
-        }
+		/// <summary>
+		/// Number of IO Threads in the context, default is 1, 1 is good for most cases
+		/// </summary>
+		public int IOThreads
+		{
+			get { return ZMQ.CtxGet(m_ctx, ContextOption.IOThreads); }
+			set { ZMQ.CtxSet(m_ctx, ContextOption.IOThreads, value); }
+		}
 
-        public RequestSocket CreateRequestSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Req);
+		/// <summary>
+		/// Maximum number of sockets
+		/// </summary>
+		public int MaxSockets
+		{
+			get { return ZMQ.CtxGet(m_ctx, zmq.ContextOption.MaxSockets); }
+			set { ZMQ.CtxSet(m_ctx, ContextOption.MaxSockets, value); }
+		}
 
-            return new RequestSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create request socket
+		/// </summary>
+		/// <returns></returns>
+		public RequestSocket CreateRequestSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Req);
 
-        public ResponseSocket CreateResponseSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Rep);
+			return new RequestSocket(socketHandle);
+		}
 
-            return new ResponseSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create response socket
+		/// </summary>
+		/// <returns></returns>
+		public ResponseSocket CreateResponseSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Rep);
 
-        public DealerSocket CreateDealerSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Dealer);
+			return new ResponseSocket(socketHandle);
+		}
 
-            return new DealerSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create dealer socket
+		/// </summary>
+		/// <returns></returns>
+		public DealerSocket CreateDealerSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Dealer);
 
-        public RouterSocket CreateRouterSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Router);
+			return new DealerSocket(socketHandle);
+		}
 
-            return new RouterSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create router socket
+		/// </summary>
+		/// <returns></returns>
+		public RouterSocket CreateRouterSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Router);
 
-        public XPublisherSocket CreateXPublisherSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xpub);
+			return new RouterSocket(socketHandle);
+		}
 
-            return new XPublisherSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create xpublisher socket
+		/// </summary>
+		/// <returns></returns>
+		public XPublisherSocket CreateXPublisherSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xpub);
 
-        public PairSocket CreatePairSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pair);
+			return new XPublisherSocket(socketHandle);
+		}
 
-            return new PairSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create pair socket
+		/// </summary>
+		/// <returns></returns>
+		public PairSocket CreatePairSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pair);
 
-        public PushSocket CreatePushSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Push);
+			return new PairSocket(socketHandle);
+		}
 
-            return new PushSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create push socket
+		/// </summary>
+		/// <returns></returns>
+		public PushSocket CreatePushSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Push);
 
-        public PublisherSocket CreatePublisherSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pub);
+			return new PushSocket(socketHandle);
+		}
 
-            return new PublisherSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create publisher socket
+		/// </summary>
+		/// <returns></returns>
+		public PublisherSocket CreatePublisherSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pub);
 
-        public PullSocket CreatePullSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pull);
+			return new PublisherSocket(socketHandle);
+		}
 
-            return new PullSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create pull socket
+		/// </summary>
+		/// <returns></returns>
+		public PullSocket CreatePullSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pull);
 
-        public SubscriberSocket CreateSubscriberSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Sub);
+			return new PullSocket(socketHandle);
+		}
 
-            return new SubscriberSocket(socketHandle);
-        }
+		/// <summary>
+		/// Create subscriber socket
+		/// </summary>
+		/// <returns></returns>
+		public SubscriberSocket CreateSubscriberSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Sub);
 
-        public XSubscriberSocket CreateXSubscriberSocket()
-        {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xsub);
+			return new SubscriberSocket(socketHandle);
+		}
 
-            return new XSubscriberSocket(socketHandle);
-        }            
+		/// <summary>
+		/// Create xsub socket
+		/// </summary>
+		/// <returns></returns>
+		public XSubscriberSocket CreateXSubscriberSocket()
+		{
+			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xsub);
 
-        public void Terminate()
-        {
-            ZMQ.Term(m_ctx);
-        }
-    }
+			return new XSubscriberSocket(socketHandle);
+		}
+
+		/// <summary>
+		/// Close the context
+		/// </summary>
+		public void Terminate()
+		{
+			if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) == 0)
+			{
+				ZMQ.Term(m_ctx);
+			}
+		}
+
+		public void Dispose()
+		{
+			Terminate();
+		}
+	}
 }
