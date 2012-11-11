@@ -30,7 +30,7 @@ namespace local_thr
                 message = pullSocket.Recv(SendRecieveOptions.None);
                 if (message.Size != messageSize)
                 {
-                    Console.WriteLine("message of incorrect size received");
+                    Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
                     return -1;
                 }
             }
