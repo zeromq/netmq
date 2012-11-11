@@ -42,7 +42,7 @@ namespace local_thr
             message.Close();
 
             long messagesPerSecond = messageCount / millisecondsElapsed * 1000;
-            double megabits = (messagesPerSecond * messageSize * 8) / 1000;
+            double megabits = messagesPerSecond * messageSize * 8 / 1000000;
 
             Console.WriteLine("message size: {0} [B]", messageSize);
             Console.WriteLine("message count: {0}", messageCount);
