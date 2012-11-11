@@ -7,42 +7,41 @@ using NetMQ;
 
 namespace ConsoleApplication2
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Context context = Context.Create();
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			Context context = Context.Create();
 
-            PublisherSocket pub = context.CreatePublisherSocket();
+			PairSocket pairSocket1 = context.CreatePairSocket();
+			PairSocket pairSocket2 = context.CreatePairSocket();
 
-            SubscriberSocket sub = context.CreateSubscriberSocket();           
+			//RequestSocket pairSocket1 = context.CreateRequestSocket();
+			//ResponseSocket pairSocket2 = context.CreateResponseSocket();
 
-            pub.Bind("tcp://127.0.0.1:8000");
 
-            sub.Connect("tcp://127.0.0.1:8000");
+			pairSocket1.Bind("inproc://d");
+			pairSocket2.Connect("inproc://d");
 
-            sub.Subscribe("hello");
+			pairSocket1.Send("1");
 
-            Thread.Sleep(500);
+			bool ok = pairSocket2.Poll(TimeSpan.FromSeconds(2));
+			
+			//pairSocket1.Send("1");
 
-            //while (true)
-            //{
+			bool hasMore;
+			
+			string m = pairSocket2.ReceiveString(out hasMore);
 
-            //            
-            pub.SendTopic("hello").SendMore("message").Send("hahhhh");
+			//var j = pairSocket2.ReceiveString(true, out hasMore);
 
-            //                Console.WriteLine("Done");
-            //}
+			//pairSocket1.Send("1");
 
-            var messages = sub.ReceiveAllString();
 
-            foreach (var m in messages)
-            {
-                Console.WriteLine(m);
-            }
 
-            Console.ReadLine();
-
-        }
-    }
+			
+		
+			Console.WriteLine(m);
+		}
+	}
 }

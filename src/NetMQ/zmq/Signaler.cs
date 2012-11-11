@@ -81,11 +81,11 @@ namespace NetMQ.zmq
 
 			try
 			{
-				sync = new Mutex(false, "Global\\zmq-signaler-port-sync");
+				sync = new Mutex(false, "Global\\netmq-signaler-port-sync");
 			}
 			catch (UnauthorizedAccessException)
 			{
-				sync = Mutex.OpenExisting("Global\\zmq-signaler-port-sync", MutexRights.Synchronize | MutexRights.Modify);
+				sync = Mutex.OpenExisting("Global\\netmq-signaler-port-sync", MutexRights.Synchronize | MutexRights.Modify);
 			}
 
 			Debug.Assert(sync != null);

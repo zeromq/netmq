@@ -6,11 +6,19 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
-    public class PairSocket : BaseSocket
-    {
-        public PairSocket(SocketBase socketHandle)
-            : base(socketHandle)
-        {
-        }
-    }
+	/// <summary>
+	/// Pair socket, usually used to synchronize two threads, only one socket on each side
+	/// </summary>
+	public class PairSocket : DuplexSocket<PairSocket>
+	{
+		public PairSocket(SocketBase socketHandle)
+			: base(socketHandle)
+		{
+		}
+
+		protected override PairSocket This
+		{
+			get { return this; }
+		}
+	}
 }

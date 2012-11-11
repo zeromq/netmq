@@ -133,8 +133,8 @@ namespace NetMQ.zmq
 			//   Creates two pipe objects. These objects are connected by two ypipes,
 			//   each to pass messages in one direction.
 	            
-			YPipe<Msg> upipe1 = new YPipe<Msg>(Config.MessagePipeGranularity);
-			YPipe<Msg> upipe2 = new YPipe<Msg>(Config.MessagePipeGranularity);
+			YPipe<Msg> upipe1 = new YPipe<Msg>(Config.MessagePipeGranularity, "upipe1");
+			YPipe<Msg> upipe2 = new YPipe<Msg>(Config.MessagePipeGranularity, "upipe2");
 	            
 			pipes [0] = new Pipe(parents [0], upipe1, upipe2,
 			                      hwms [1], hwms [0], delays [0]);
@@ -529,7 +529,7 @@ namespace NetMQ.zmq
 			m_inpipe = null;
 
 			//  Create new inpipe.
-			m_inpipe = new YPipe<Msg>(Config.MessagePipeGranularity);
+			m_inpipe = new YPipe<Msg>(Config.MessagePipeGranularity, "inpipe");
 			m_inActive = true;
 
 			//  Notify the peer about the hiccup.
