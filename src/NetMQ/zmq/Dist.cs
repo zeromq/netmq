@@ -166,8 +166,6 @@ namespace NetMQ.zmq
 			for (int i = 0; i < m_matching; ++i)
 				if(!Write (m_pipes[i], msg))
 					--i; //  Retry last write because index will have been swapped
-			return;
-        
 		}
     
 		public bool HasOut ()

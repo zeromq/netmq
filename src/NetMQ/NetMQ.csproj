@@ -102,6 +102,8 @@
     <Compile Include="zmq\PollerBase.cs" />
     <Compile Include="zmq\PollItem.cs" />
     <Compile Include="zmq\Proxy.cs" />
+    <Compile Include="JetBrains.Annotations.cs" />
+    <None Include="zmq\Proxy.cs" />
     <Compile Include="zmq\Pub.cs" />
     <Compile Include="zmq\Pull.cs" />
     <Compile Include="zmq\Push.cs" />
