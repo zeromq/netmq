@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication2", "Cons
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ", "NetMQ\NetMQ.csproj", "{82934BAC-07FB-41AC-AE59-46FEE6026A40}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.Tests", "NetMQ.Tests\NetMQ.Tests.csproj", "{526095CB-16A6-47C3-9F45-72A8530E5762}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{82934BAC-07FB-41AC-AE59-46FEE6026A40}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{82934BAC-07FB-41AC-AE59-46FEE6026A40}.Release|x64.ActiveCfg = Release|Any CPU
 		{82934BAC-07FB-41AC-AE59-46FEE6026A40}.Release|x86.ActiveCfg = Release|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Release|Any CPU.Build.0 = Release|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Release|x64.ActiveCfg = Release|Any CPU
+		{526095CB-16A6-47C3-9F45-72A8530E5762}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

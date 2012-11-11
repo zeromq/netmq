@@ -26,6 +26,7 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Collections;
 
 namespace NetMQ.zmq
 {
@@ -401,19 +402,19 @@ namespace NetMQ.zmq
 			Thread.Sleep(s * (1000));
 		}
 
-		////  The proxy functionality
-		//public static bool zmq_proxy(SocketBase frontend_, SocketBase backend_, SocketBase control_)
-		//{
-		//    if (frontend_ == null || backend_ == null)
-		//    {
-		//        ZError.errno = (ZError.EFAULT);
-		//        throw new ArgumentException();
-		//    }
-		//    return Proxy.proxy(
-		//        frontend_,
-		//        backend_,
-		//        control_);
-		//}
+		//  The proxy functionality
+		public static bool Proxy(SocketBase frontend_, SocketBase backend_, SocketBase control_)
+		{
+			if (frontend_ == null || backend_ == null)
+			{
+				ZError.ErrorNumber = ErrorNumber.EFAULT;
+				throw new ArgumentException();
+			}
+			return NetMQ.zmq.Proxy.CreateProxy(
+					frontend_,
+					backend_,
+					control_);
+		}
 
 		//[Obsolete]
 		//public static bool zmq_device(int device_, SocketBase insocket_,
@@ -438,27 +439,44 @@ namespace NetMQ.zmq
 			}
 
 			bool firstPass = true;
+			int nevents = 0;
 
-			Socket[] writeList =
-					items.Where(p => (p.Events & PollEvents.PollOut) == PollEvents.PollOut).Select(
-						p => p.Socket != null ? p.Socket.FD : p.FileDescriptor).ToArray();
+			List<Socket> writeList = new List<Socket>();
+			List<Socket> readList = new List<Socket>();
+			List<Socket> errorList = new List<Socket>();
 
-			Socket[] readList =
-				items.Where(p => (p.Events & PollEvents.PollOut) == PollEvents.PollIn).Select(
-					p => p.Socket != null ? p.Socket.FD : p.FileDescriptor).ToArray();
+			foreach (var pollItem in items)
+			{
+				if (pollItem.Socket != null)
+				{
+					if (pollItem.Events != PollEvents.None)
+					{
+						readList.Add(pollItem.Socket.FD);
+					}
+				}
+				else
+				{
+					if ((pollItem.Events & PollEvents.PollIn) == PollEvents.PollIn)
+					{
+						readList.Add(pollItem.FileDescriptor);
+					}
 
-			Socket[] errorList =
-				items.Where(p => (p.Events & PollEvents.PollOut) == PollEvents.PollError).Select(
-					p => p.Socket != null ? p.Socket.FD : p.FileDescriptor).ToArray();
+					if ((pollItem.Events & PollEvents.PollOut) == PollEvents.PollOut)
+					{
+						writeList.Add(pollItem.FileDescriptor);
+					}
 
-			Socket[] inset = new Socket[writeList.Length];
-			Socket[] outset = new Socket[readList.Length];
-			Socket[] errorset = new Socket[errorList.Length];
+					if ((pollItem.Events & PollEvents.PollError) == PollEvents.PollError)
+					{
+						errorList.Add(pollItem.FileDescriptor);
+					}
+				}
+			}
 
-			Dictionary<Socket, PollItem> socketsToItems = items.Select(
-				p => new { Socket = p.Socket != null ? p.Socket.FD : p.FileDescriptor, Item = p }).
-				ToDictionary(i => i.Socket, i => i.Item);
-
+			ArrayList inset = new ArrayList(readList.Count);
+			ArrayList outset = new ArrayList(writeList.Count);
+			ArrayList errorset = new ArrayList(errorList.Count);
+			
 			Stopwatch stopwatch = null;
 
 			while (true)
@@ -474,10 +492,10 @@ namespace NetMQ.zmq
 					currentTimeoutMicroSeconds = (int)((timeout - stopwatch.ElapsedMilliseconds) % 1000 * 1000);
 				}
 
-				Buffer.BlockCopy(readList, 0, inset, 0, readList.Length);
-				Buffer.BlockCopy(writeList, 0, inset, 0, writeList.Length);
-				Buffer.BlockCopy(errorList, 0, inset, 0, errorList.Length);
-
+				inset.AddRange(readList);
+				outset.AddRange(writeList);
+				errorset.AddRange(errorList);
+				
 				try
 				{
 					System.Net.Sockets.Socket.Select(inset, outset, errorset, currentTimeoutMicroSeconds);
@@ -493,71 +511,57 @@ namespace NetMQ.zmq
 				foreach (var pollItem in items)
 				{
 					pollItem.ResultEvent = PollEvents.None;
-				}
 
-				foreach (var socket in inset)
-				{
-					if (socket != null)
+					if (pollItem.Socket != null)
 					{
-						var item = socketsToItems[socket];
-
-						if (item.Socket != null)
+						PollEvents events = (PollEvents)GetSocketOption(pollItem.Socket, ZmqSocketOptions.Events);
+					
+						if ((pollItem.Events & PollEvents.PollIn) == PollEvents.PollIn &&
+							(events & PollEvents.PollIn) == PollEvents.PollIn)
 						{
-							PollEvents value = (PollEvents)GetSocketOption(item.Socket, ZmqSocketOptions.Events);
+							pollItem.ResultEvent |= PollEvents.PollIn;							
+						}
 
-							if (value == PollEvents.PollIn)
-							{
-								item.ResultEvent |= PollEvents.PollIn;
-							}
-						}
-						else
+						if ((pollItem.Events & PollEvents.PollOut) == PollEvents.PollOut &&
+							(events & PollEvents.PollOut) == PollEvents.PollOut)
 						{
-							item.ResultEvent |= PollEvents.PollIn;
+							pollItem.ResultEvent |= PollEvents.PollOut;
+						}												
+					}
+					else
+					{
+						if (inset.Contains(pollItem.FileDescriptor))
+						{
+							pollItem.ResultEvent |= PollEvents.PollIn;
 						}
+
+						if (outset.Contains(pollItem.FileDescriptor))
+						{
+							pollItem.ResultEvent |= PollEvents.PollOut;
+						}
+
+						if (errorset.Contains(pollItem.FileDescriptor))
+						{
+							pollItem.ResultEvent |= PollEvents.PollError;
+						}
+					}
+
+					if (pollItem.ResultEvent != PollEvents.None)
+					{
+						nevents++;
 					}
 				}
 
-				foreach (var socket in outset)
-				{
-					if (socket != null)
-					{
-						var item = socketsToItems[socket];
-
-						if (item.Socket != null)
-						{
-							PollEvents value = (PollEvents)GetSocketOption(item.Socket, ZmqSocketOptions.Events);
-
-							if (value == PollEvents.PollOut)
-							{
-								item.ResultEvent |= PollEvents.PollOut;
-							}
-						}
-						else
-						{
-							item.ResultEvent |= PollEvents.PollOut;
-						}
-					}
-				}
-
-				foreach (var socket in errorList)
-				{
-					if (socket != null)
-					{
-						var item = socketsToItems[socket];
-
-						if (item.Socket == null)
-						{
-							item.ResultEvent |= PollEvents.PollError;
-						}
-					}
-				}
+				inset.Clear();
+				outset.Clear();
+				errorset.Clear();
 
 				if (timeout == 0)
 				{
 					break;
 				}
 
-				if (items.Any(i => i.ResultEvent != PollEvents.None))
+				if (nevents > 0)
 				{
 					break;
 				}
@@ -585,7 +589,7 @@ namespace NetMQ.zmq
 				}
 			}
 
-			return items.Where(i => i.ResultEvent != PollEvents.None).Count();
+			return nevents;
 		}
 
 		public static int ZmqMakeVersion(int major, int minor, int patch)

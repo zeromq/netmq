@@ -7,7 +7,10 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
-    public class RequestSocket : DuplexSocket<RequestSocket>
+	/// <summary>
+	/// Request socket
+	/// </summary>
+	public class RequestSocket : DuplexSocket<RequestSocket>
 	{
 		public RequestSocket(SocketBase socketHandle)
 			: base(socketHandle)
@@ -15,9 +18,9 @@ namespace NetMQ
 		}
 
 
-        protected override RequestSocket This
-        {
-            get { return this; }
-        }
-    }
+		protected override RequestSocket This
+		{
+			get { return this; }
+		}
+	}
 }

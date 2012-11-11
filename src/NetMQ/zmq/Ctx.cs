@@ -195,7 +195,7 @@ namespace NetMQ.zmq
 					}
 					finally
 					{
-
+						Monitor.Exit(slot_sync);
 					}
 				}
 
@@ -410,13 +410,16 @@ namespace NetMQ.zmq
 		//  Management of inproc endpoints.
 		public bool RegisterEndpoint(String addr, Endpoint endpoint)
 		{
-			Endpoint inserted = null;
-
+			bool exist;
+			
 			lock (endpoints_sync)
 			{
-				inserted = endpoints[addr] = endpoint;
+				exist = endpoints.ContainsKey(addr);
+
+				endpoints[addr] = endpoint;
 			}
-			if (inserted != null)
+
+			if (exist)
 			{
 				ZError.ErrorNumber = ErrorNumber.EADDRINUSE;
 				return false;
