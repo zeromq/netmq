@@ -63,12 +63,12 @@ namespace NetMQ
 
 		public void Unsubscribe(string topic)
 		{
-			base.SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+			base.SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
 		}
 
 		public void Unsubscribe(byte[] topic)
 		{
-			base.SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+			base.SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
 		}
 	}
 }

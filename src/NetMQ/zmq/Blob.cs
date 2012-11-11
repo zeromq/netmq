@@ -19,7 +19,9 @@
 */
 
 using System;
+using System.Collections;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 namespace NetMQ.zmq
 {
@@ -70,15 +72,14 @@ namespace NetMQ.zmq
 		static extern int memcmp(byte[] b1, byte[] b2, long count);
 
 		public override bool Equals(Object t)
-		{
-
+		{			
 			if (t is Blob)
 			{
 				Blob b = (Blob)t;
 				if (b.m_buf.Length != m_buf.Length)
 				{
 					return false;
-				}
+				}				
 
 				return memcmp(m_buf, b.m_buf, m_buf.Length) == 0;
 			}

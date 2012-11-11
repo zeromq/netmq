@@ -153,7 +153,7 @@ namespace NetMQ.zmq
 		                         int state, bool beginning)
 		{
 
-			m_writePos = writePos;
+			m_writePos = writePos.Clone();
 			m_toWrite = toWrite;
 			State = state;
 			m_beginning = beginning;

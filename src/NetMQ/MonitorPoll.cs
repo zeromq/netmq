@@ -149,6 +149,8 @@ namespace NetMQ
 					Handle();
 				}
 			}
+
+			MonitoringSocket.Close();
 		}
 
 		// Stop the socket monitoring

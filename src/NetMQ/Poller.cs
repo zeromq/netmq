@@ -97,23 +97,18 @@ namespace NetMQ
 			{
 				m_proxies.Add(new ProxyPoll { FromSocket = to, ToSocket = from });
 			}
-		}
-
-		public void AddMonitor(MonitorPoll poll)
-		{
-			m_monitors.Add(poll);
-		}
+		}		
 
 		public void AddMonitor(BaseSocket socket, string address, IMonitoringEventsHandler eventsHandler)
 		{
-			AddMonitor(socket, address, eventsHandler, false);
+			AddMonitor(socket, address, eventsHandler, true);
 		}
 
 		public void AddMonitor(BaseSocket socket, string address, IMonitoringEventsHandler eventsHandler, bool init)
 		{
 			MonitorPoll monitorPoll = new MonitorPoll(m_context, socket, address, eventsHandler);
 
-			AddMonitor(monitorPoll);
+			m_monitors.Add(monitorPoll);
 			
 			if (init)
 			{
@@ -202,20 +197,25 @@ namespace NetMQ
 				}
 			}
 
+			// we should close the monitors anyway because this poller created them
+			foreach (var monitorPoll in m_monitors)
+			{
+				monitorPoll.MonitoringSocket.Close();
+			}
+
 			if (CloseSocketsOnStop)
 			{
 				// make a list of all the sockets the poller need to close
 				var socketToClose =
-				m_monitors.Select(m => m.Socket).Union(m_proxies.Select(p => p.FromSocket)).
-						Union(m_proxies.Select(p => p.ToSocket)).
-						Union(m_monitors.Select(m => m.Socket)).Distinct();
+					m_sockets.Select(m => m.Socket).Union(m_proxies.Select(p => p.FromSocket)).
+						Union(m_proxies.Select(p => p.ToSocket)).Distinct();						
 
 				foreach (var socket in socketToClose)
 				{
 					socket.Close();
 				}
 			}
-
+		
 			// the poller is stopped
 			m_isStoppedEvent.Set();
 		}
