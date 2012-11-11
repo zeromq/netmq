@@ -127,7 +127,7 @@ namespace NetMQ.zmq
         
 			bool rc = m_msgSink.PushMsg (m_inProgress);
 			if (!rc) {
-				if (ZError.IsError (ErrorNumber.EAGAIN))
+				if (!ZError.IsError (ErrorNumber.EAGAIN))
 					DecodingError ();
             
 				return false;
