@@ -50,7 +50,7 @@ namespace NetMQ.zmq
 		private readonly String m_name;
 
 		public Mailbox(String name) {
-			m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity);
+			m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 			m_sync = new object();
 			m_signaler = new Signaler();
         

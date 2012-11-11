@@ -39,11 +39,15 @@
     <Compile Include="BaseSocket.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="DealerSocket.cs" />
-    <Compile Include="MonitorSocket.cs" />
+    <Compile Include="DuplexSocket.cs" />
+    <Compile Include="IMonitoringEventsHandler.cs" />
+    <Compile Include="MonitoringEventsHandler.cs" />
+    <Compile Include="MonitorPoll.cs" />
     <Compile Include="NetMQException.cs" />
     <Compile Include="PairSocket.cs" />
     <Compile Include="Poller.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Proxy.cs" />
     <Compile Include="PublisherSocket.cs" />
     <Compile Include="PullSocket.cs" />
     <Compile Include="PushSocket.cs" />
@@ -97,6 +101,7 @@
     <Compile Include="zmq\Poller.cs" />
     <Compile Include="zmq\PollerBase.cs" />
     <Compile Include="zmq\PollItem.cs" />
+    <Compile Include="zmq\Proxy.cs" />
     <Compile Include="JetBrains.Annotations.cs" />
     <None Include="zmq\Proxy.cs" />
     <Compile Include="zmq\Pub.cs" />

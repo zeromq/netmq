@@ -77,7 +77,7 @@ namespace NetMQ.zmq
 
 		//  On some OSes the signaler has to be emulated using a TCP
 		//  connection. In such cases following port is used.
-		public const int SignalerPort = (5905);
+		public const int SignalerPort = (5906);
 	}
 }
 

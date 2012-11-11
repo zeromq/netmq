@@ -42,13 +42,16 @@ namespace NetMQ.zmq
 		//  Points to the first item to be flushed in the future.
 		private int m_f;
 
+		private string m_name;
+
 		//  The single point of contention between writer and reader thread.
 		//  Points past the last flushed item. If it is NULL,
 		//  reader is asleep. This pointer should be always accessed using
 		//  atomic operations.
 		private readonly AtomicInteger m_c;
 
-		public YPipe(int qsize) {
+		public YPipe(int qsize, string name) {
+			m_name = name;
 			m_queue = new YQueue<T>(qsize);
 			m_w = m_r = m_f = m_queue.BackPos;
 			m_c = new AtomicInteger(m_queue.BackPos);            

@@ -7,18 +7,34 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
-	public abstract class BaseSocket
+	public abstract class BaseSocket : IDisposable
 	{
 		readonly SocketBase m_socketHandle;
+		private bool m_isClosed = false;
 
 		protected BaseSocket(SocketBase socketHandle)
 		{
 			m_socketHandle = socketHandle;
-            Options = new SocketOptions(this);
+			Options = new SocketOptions(this);
 		}
 
-        public SocketOptions Options { get; private set; }
+		/// <summary>
+		/// Set the options of the socket
+		/// </summary>
+		public SocketOptions Options { get; private set; }
 
+		internal SocketBase SocketHandle
+		{
+			get
+			{
+				return m_socketHandle;
+			}
+		}
+
+		/// <summary>
+		/// Bind the socket to an address
+		/// </summary>
+		/// <param name="address">The address of the socket</param>
 		public void Bind(string address)
 		{
 			if (!ZMQ.Bind(m_socketHandle, address))
@@ -27,6 +43,10 @@ namespace NetMQ
 			}
 		}
 
+		/// <summary>
+		/// Connect the socket to an address
+		/// </summary>
+		/// <param name="address">Address to connect to</param>
 		public void Connect(string address)
 		{
 			if (!ZMQ.Connect(m_socketHandle, address))
@@ -35,6 +55,10 @@ namespace NetMQ
 			}
 		}
 
+		/// <summary>
+		/// Disconnect the socket from specific address
+		/// </summary>
+		/// <param name="address">The address to disconnect from</param>
 		public void Disconnect(string address)
 		{
 			if (!ZMQ.Disconnect(m_socketHandle, address))
@@ -43,12 +67,45 @@ namespace NetMQ
 			}
 		}
 
+		/// <summary>
+		/// Unbind the socket from specific address
+		/// </summary>
+		/// <param name="address">The address to unbind from</param>
 		public void Unbind(string address)
 		{
 			if (!ZMQ.Unbind(m_socketHandle, address))
 			{
 				throw new NetMQException("Unbind socket failed", ZError.ErrorNumber);
 			}
+		}
+
+		/// <summary>
+		/// Close the socket
+		/// </summary>
+		public void Close()
+		{
+			if (!m_isClosed)
+			{
+				m_isClosed = true;
+				ZMQ.Close(m_socketHandle);
+			}
+		}
+
+		/// <summary>
+		/// Wait until message is ready to be received from the socket or until timeout is reached
+		/// </summary>
+		/// <param name="timeout"></param>
+		/// <returns></returns>
+		public bool Poll(TimeSpan timeout, PollEvents events)
+		{
+			PollItem[] items = new PollItem[1];
+
+			items[0] = new PollItem(m_socketHandle, events);
+
+			ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
+
+			return (items[0].ResultEvent != PollEvents.None);
+
 		}
 
 		protected Msg ReceiveInternal(SendRecieveOptions options, out bool hasMore)
@@ -67,46 +124,46 @@ namespace NetMQ
 
 		protected string ReceiveStringInternal(SendRecieveOptions options, out bool hasMore)
 		{
-			var msg = ReceiveInternal(options, out hasMore);		
+			var msg = ReceiveInternal(options, out hasMore);
 
 			return Encoding.ASCII.GetString(msg.Data);
 		}
 
-        protected IList<byte[]> ReceiveAllInternal()
-        {
-            bool hasMore;
+		protected IList<byte[]> ReceiveAllInternal()
+		{
+			bool hasMore;
 
-            IList<byte[]> messages = new List<byte[]>();
+			IList<byte[]> messages = new List<byte[]>();
 
-            Msg msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
-            messages.Add(msg.Data);
+			Msg msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
+			messages.Add(msg.Data);
 
-            while (hasMore)
-            {
-                msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
-                messages.Add(msg.Data);
-            }
+			while (hasMore)
+			{
+				msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
+				messages.Add(msg.Data);
+			}
 
-            return messages;
-        }
+			return messages;
+		}
 
-        protected IList<string> ReceiveAllStringInternal()
-        {
-            bool hasMore;
+		protected IList<string> ReceiveAllStringInternal()
+		{
+			bool hasMore;
 
-            IList<string> messages = new List<string>();
+			IList<string> messages = new List<string>();
 
-            var msg = ReceiveStringInternal(SendRecieveOptions.None, out hasMore);
-            messages.Add(msg);
+			var msg = ReceiveStringInternal(SendRecieveOptions.None, out hasMore);
+			messages.Add(msg);
 
-            while (hasMore)
-            {
-                msg = ReceiveStringInternal(SendRecieveOptions.None, out hasMore);
-                messages.Add(msg);
-            }
+			while (hasMore)
+			{
+				msg = ReceiveStringInternal(SendRecieveOptions.None, out hasMore);
+				messages.Add(msg);
+			}
 
-            return messages;
-        }
+			return messages;
+		}
 
 		protected void SendInternal(byte[] data, int length, SendRecieveOptions options)
 		{
@@ -144,54 +201,59 @@ namespace NetMQ
 			SendInternal(data, data.Length, dontWait, sendMore);
 		}
 
-        private void HandleError(string message)
-        {
-            if (ZError.ErrorNumber != ErrorNumber.ETERM)
-            {
-                if (ZError.ErrorNumber == ErrorNumber.EAGAIN)
-                {
-                    throw new TryAgainException("Cannot complete without block, please try again later", ZError.ErrorNumber);
-                }
-                else
-                {
-                    throw new NetMQException(message, ZError.ErrorNumber);
-                }
-            }
-        }
-		
+		private void HandleError(string message)
+		{
+			if (ZError.ErrorNumber != ErrorNumber.ETERM)
+			{
+				if (ZError.ErrorNumber == ErrorNumber.EAGAIN)
+				{
+					throw new TryAgainException("Cannot complete without block, please try again later", ZError.ErrorNumber);
+				}
+				else
+				{
+					throw new NetMQException(message, ZError.ErrorNumber);
+				}
+			}
+		}
+
 		internal int GetSocketOption(ZmqSocketOptions socketOptions)
 		{
 			return ZMQ.GetSocketOption(m_socketHandle, socketOptions);
 		}
 
-        internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
+		internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
 		{
 			return TimeSpan.FromMilliseconds(ZMQ.GetSocketOption(m_socketHandle, socketOptions));
 		}
 
-        internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
+		internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
 		{
 			return (long)ZMQ.GetSocketOptionX(m_socketHandle, socketOptions);
 		}
 
-        internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
+		internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
 		{
 			return (T)ZMQ.GetSocketOptionX(m_socketHandle, socketOptions);
 		}
 
-        internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
+		internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
 		{
 			ZMQ.SetSocketOption(m_socketHandle, socketOptions, value);
 		}
 
-        internal void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
+		internal void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
 		{
 			ZMQ.SetSocketOption(m_socketHandle, socketOptions, (int)value.TotalMilliseconds);
 		}
 
-        internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
+		internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
 		{
 			ZMQ.SetSocketOption(m_socketHandle, socketOptions, value);
+		}
+
+		public void Dispose()
+		{
+			Close();
 		}
 	}
 

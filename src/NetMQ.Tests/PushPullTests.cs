@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NetMQ
+namespace NetMQ.Tests
 {
-    class MonitorSocket
-    {
-    }
+	public class PushPullTests
+	{
+	}
 }
