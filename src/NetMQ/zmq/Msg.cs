@@ -282,7 +282,7 @@ namespace NetMQ.zmq
 		{
 			MsgType = m.MsgType;
 			m_flags = m.m_flags;
-			Size = m.Size;
+			m_size = m.m_size;			
 			m_buf = m.m_buf;
 			m_data = m.m_data;
 		}

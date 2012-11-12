@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Diagnostics;
+using System.Threading;
 
 namespace NetMQ.zmq
 {
@@ -856,8 +857,8 @@ namespace NetMQ.zmq
                 //  If we are asked not to wait, check whether we haven't processed
                 //  commands recently, so that we can throttle the new commands.
 
-                //  Get the CPU's tick counter. If 0, the counter is not available.
-                long tsc = 0; // save cpu Clock.rdtsc ();
+                //  Get the CPU's tick counter. If 0, the counter is not available.								
+								long tsc = Clock.Rdtsc(); 								
 
                 //  Optimised version of command processing - it doesn't have to check
                 //  for incoming commands each time. It does so only if certain time

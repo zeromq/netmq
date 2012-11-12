@@ -24,83 +24,90 @@ using System.Linq;
 
 namespace NetMQ.zmq
 {
-	abstract public class PollerBase {
+	abstract public class PollerBase
+	{
 
 		//  Load of the poller. Currently the number of file descriptors
 		//  registered.
 		private readonly AtomicInteger m_load;
-    
-		private class TimerInfo {
+
+		private class TimerInfo
+		{
 			public TimerInfo(IPollEvents sink, int id)
 			{
 				Sink = sink;
 				Id = id;
 			}
-			
+
 			public IPollEvents Sink { get; private set; }
-			public int Id { get; private set; }        			
+			public int Id { get; private set; }
 		}
 
 		private readonly SortedList<long, List<TimerInfo>> m_timers;
-    
-		protected PollerBase() {
+
+		protected PollerBase()
+		{
 			m_load = new AtomicInteger(0);
 			m_timers = new SortedList<long, List<TimerInfo>>();
 		}
-    
+
 		//  Returns load of the poller. Note that this function can be
 		//  invoked from a different thread!
-		public int Load 
+		public int Load
 		{
 			get { return m_load.Get(); }
 		}
 
 		//  Called by individual poller implementations to manage the load.
-		protected void AdjustLoad (int amount)
-		{       
+		protected void AdjustLoad(int amount)
+		{
 			m_load.AddAndGet(amount);
-		}    
-       
+		}
+
 		//  Add a timeout to expire in timeout_ milliseconds. After the
 		//  expiration timer_event on sink_ object will be called with
 		//  argument set to id_.
-		public void AddTimer (long timeout, IPollEvents sink, int id)
+		public void AddTimer(long timeout, IPollEvents sink, int id)
 		{
-			long expiration = Clock.NowMs () + timeout;
+			long expiration = Clock.NowMs() + timeout;
 			TimerInfo info = new TimerInfo(sink, id);
 
 			if (!m_timers.ContainsKey(expiration))
 				m_timers.Add(expiration, new List<TimerInfo>());
 
-			m_timers[expiration].Add(info);		    
+			m_timers[expiration].Add(info);
 		}
 
 		//  Cancel the timer created by sink_ object with ID equal to id_.
-		public void CancelTimer(IPollEvents sink, int id) 
-        {
+		public void CancelTimer(IPollEvents sink, int id)
+		{
 
 			//  Complexity of this operation is O(n). We assume it is rarely used.
 			var foundTimers = new Dictionary<long, TimerInfo>();
 
-			foreach (var pair in m_timers) {
+			foreach (var pair in m_timers)
+			{
 				var timer = pair.Value.FirstOrDefault(x => x.Id == id && x.Sink == sink);
 
-				if(timer == null)
+				if (timer == null)
 					continue;
 
-				if(!foundTimers.ContainsKey(pair.Key))
+				if (!foundTimers.ContainsKey(pair.Key))
+				{
 					foundTimers[pair.Key] = timer;
+					break;
+				}
 			}
 
 			if (foundTimers.Count > 0)
 			{
-				foreach (var foundTimer in foundTimers) 
+				foreach (var foundTimer in foundTimers)
 				{
-					if(m_timers[foundTimer.Key].Count == 1) 
+					if (m_timers[foundTimer.Key].Count == 1)
 					{
 						m_timers.Remove(foundTimer.Key);
-					} 
-					else 
+					}
+					else
 					{
 						m_timers[foundTimer.Key].Remove(foundTimer.Value);
 					}
@@ -115,49 +122,49 @@ namespace NetMQ.zmq
 
 		//  Executes any timers that are due. Returns number of milliseconds
 		//  to wait to match the next timer or 0 meaning "no timers".
-		protected int ExecuteTimers ()
+		protected int ExecuteTimers()
 		{
 			//  Fast track.
-			if (!m_timers.Any ())
+			if (!m_timers.Any())
 				return 0;
 
 			//  Get the current time.
-			long current = Clock.NowMs ();
+			long current = Clock.NowMs();
 
 			//  Execute the timers that are already due.
 			var keys = m_timers.Keys;
 			foreach (var key in keys)
 			{
-                     
+
 				//  If we have to wait to execute the item, same will be true about
 				//  all the following items (multimap is sorted). Thus we can stop
 				//  checking the subsequent timers and return the time to wait for
 				//  the next timer (at least 1ms).
 				if (key > current)
 				{
-					return  (int)(key - current);                
+					return (int)(key - current);
 				}
 
 				var timers = m_timers[key];
 
 				//  Trigger the timers.                
-				foreach (var timer in timers) 
+				foreach (var timer in timers)
 				{
 					timer.Sink.TimerEvent(timer.Id);
-					m_timers[key].Remove(timer);
 				}
-				
+
 				//  Remove it from the list of active timers.
 				//timers_t::iterator o = it;
 				//++it;
 				//timers.erase (o);
 
-				if(m_timers[key].Count == 0)                
-					m_timers.Remove(key);            
-				}
+				timers.Clear();
+				m_timers.Remove(key);
 
-				//  There are no more timers.
-				return 0;
+			}
+
+			//  There are no more timers.
+			return 0;
 		}
 	}
 }
