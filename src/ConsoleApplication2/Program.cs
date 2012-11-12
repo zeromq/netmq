@@ -25,7 +25,7 @@ namespace ConsoleApplication2
 
 			pairSocket1.Send("1");
 
-			bool ok = pairSocket2.Poll(TimeSpan.FromSeconds(2));
+			bool ok = pairSocket2.Poll(TimeSpan.FromSeconds(2), NetMQ.zmq.PollEvents.PollIn);
 			
 			//pairSocket1.Send("1");
 
