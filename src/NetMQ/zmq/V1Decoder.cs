@@ -49,7 +49,8 @@ namespace NetMQ.zmq
 
 
 		private bool OneByteSizeReady() {
-        
+       m_tmpbuf.Reset();
+
 			//  Message size must not exceed the maximum allowed size.
 			if (m_maxmsgsize >= 0)
 				if (m_tmpbuf [0] > m_maxmsgsize) {
@@ -69,7 +70,8 @@ namespace NetMQ.zmq
 		}
     
 		private bool EightByteSizeReady() {
-        
+      m_tmpbuf.Reset();  
+
 			//  The payload size is encoded as 64-bit unsigned integer.
 			//  The most significant byte comes first.        
 
@@ -100,6 +102,7 @@ namespace NetMQ.zmq
 		}
     
 		private bool FlagsReady() {
+			m_tmpbuf.Reset();
 
 			//  Store the flags from the wire into the message structure.
 			m_msgFlags = 0;
@@ -119,6 +122,8 @@ namespace NetMQ.zmq
 		}
     
 		private bool MessageReady() {
+			m_tmpbuf.Reset();
+
 			//  Message is completely read. Push it further and start reading
 			//  new message. (in_progress is a 0-byte message after this point.)
         

@@ -69,6 +69,8 @@ namespace NetMQ.zmq
     
 		private bool MessageReady ()
 		{
+			m_tmpbuf.Reset();
+
 			//  Destroy content of the old message.
 			// in_progress.close ();
 

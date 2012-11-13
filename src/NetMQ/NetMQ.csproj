@@ -94,6 +94,7 @@
     <Compile Include="zmq\MonitorEvent.cs" />
     <Compile Include="zmq\Msg.cs" />
     <Compile Include="zmq\Mtrie.cs" />
+    <Compile Include="zmq\NativeMethods.cs" />
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
     <Compile Include="zmq\Pair.cs" />

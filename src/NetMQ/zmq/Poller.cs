@@ -21,7 +21,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Collections;
 using System.Linq;
@@ -30,23 +32,27 @@ namespace NetMQ.zmq
 {
 	public class Poller : PollerBase
 	{
-
 		private class PollSet
 		{
+			public Socket Socket { get; private set; }
 			public IPollEvents Handler { get; private set; }
 			public bool Cancelled { get; set; }
 
-			public PollSet(IPollEvents handler)
+			public PollSet(Socket socket, IPollEvents handler)
 			{
+				Socket = socket;
 				Handler = handler;
 				Cancelled = false;
 			}
 		}
 		//  This table stores data for registered descriptors.
-		private readonly Dictionary<Socket, PollSet> m_fdTable;
+		private readonly IList<PollSet> m_fds;
+		private readonly IList<PollSet> m_tempFDs;
 
 		//  If true, there's at least one retired event source.
 		private bool m_retired;
+
+		private bool m_new;
 
 		//  If true, thread is in the process of shutting down.
 		volatile private bool m_stopping;
@@ -55,10 +61,18 @@ namespace NetMQ.zmq
 		private Thread m_worker;
 		private readonly String m_name;
 
-		readonly HashSet<Socket> m_checkRead = new HashSet<Socket>();
-		readonly HashSet<Socket> m_checkWrite = new HashSet<Socket>();
-		readonly HashSet<Socket> m_checkError = new HashSet<Socket>();
-    
+		private int m_readCount = 0;
+		private int m_writeCount = 0;
+		private int m_errorCount = 0;
+
+		private readonly IntPtr[] m_sourceSetIn = new IntPtr[1024];
+		private readonly IntPtr[] m_sourceSetOut = new IntPtr[1024];
+		private readonly IntPtr[] m_sourceSetError = new IntPtr[1024];
+
+		private readonly IntPtr[] m_readFDs = new IntPtr[1024];
+		private readonly IntPtr[] m_writeFDs = new IntPtr[1024];
+		private readonly IntPtr[] m_errorFDs = new IntPtr[1024];
+
 
 		public Poller()
 			: this("poller")
@@ -68,13 +82,14 @@ namespace NetMQ.zmq
 
 		public Poller(String name)
 		{
-
 			m_name = name;
 			m_retired = false;
 			m_stopping = false;
 			m_stopped = false;
+			m_new = false;
 
-			m_fdTable = new Dictionary<Socket, PollSet>();
+			m_fds = new List<PollSet>();
+			m_tempFDs = new List<PollSet>();
 		}
 
 		public void Destroy()
@@ -90,11 +105,73 @@ namespace NetMQ.zmq
 				}
 			}
 		}
+
+		private void FDClear(Socket fd, IntPtr[] set, ref int count)
+		{
+			// we always ignore the first element in the array because it used for the counter
+
+			int i;
+			for (i = 0; i < count; i++)
+			{
+				if (set[i + 1] == fd.Handle)
+				{
+					while (i < count - 1)
+					{
+						set[i + 1] = set[i + 2];
+						i++;
+					}
+					count--;
+					break;
+				}
+			}
+		}
+
+		private void FDSet(Socket fd, IntPtr[] set, ref int count)
+		{
+			// we always ignore the first element in the array because it used for the counter
+
+			int i;
+			for (i = 0; i < count; i++)
+			{
+				if (set[i + 1] == fd.Handle)
+				{
+					break;
+				}
+			}
+			if (i == count)
+			{
+				if (count < set.Length)
+				{
+					set[i + 1] = fd.Handle;
+					count++;
+				}
+			}
+		}
+
+		private bool FDIsSet(Socket fd, IntPtr[] set)
+		{
+			// we always ignore the first element in the array because it used for the counter
+
+			int count = (int)set[0];
+
+			for (int i = 0; i < count; i++)
+			{
+				if (set[i + 1] == fd.Handle)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		public void AddFD(Socket fd, IPollEvents events)
 		{
-			m_fdTable.Add(fd, new PollSet(events));
+			m_tempFDs.Add(new PollSet(fd, events));
 
-			m_checkError.Add(fd);
+			FDSet(fd, m_sourceSetError, ref m_errorCount);
+
+			m_new = true;
 
 			AdjustLoad(1);
 		}
@@ -102,41 +179,48 @@ namespace NetMQ.zmq
 
 		public void RemoveFD(Socket handle)
 		{
-			m_fdTable[handle].Cancelled = true;
+			PollSet pollset = m_fds.FirstOrDefault(p => p.Socket == handle);
+
+			if (pollset == null)
+			{
+				pollset = m_tempFDs.First(p => p.Socket == handle);
+			}
+
+			// Debug.Assert(pollset != null);
+
+			pollset.Cancelled = true;
 			m_retired = true;
 
-			m_checkError.Remove(handle);
-			m_checkRead.Remove(handle);
-			m_checkWrite.Remove(handle);
+			FDClear(handle, m_sourceSetIn, ref m_readCount);
+			FDClear(handle, m_sourceSetOut, ref m_writeCount);
+			FDClear(handle, m_sourceSetError, ref m_errorCount);
 
-			//  Decrease the load metric of the thread.
+			// Decrease the load metric of the thread.
 			AdjustLoad(-1);
 		}
 
 
 		public void SetPollin(Socket handle)
 		{
-			if (!m_checkRead.Contains(handle))
-				m_checkRead.Add(handle);
+			FDSet(handle, m_sourceSetIn, ref m_readCount);
 		}
 
 
 		public void ResetPollin(Socket handle)
-		{        
-			m_checkRead.Remove(handle);
+		{
+			FDClear(handle, m_sourceSetIn, ref m_readCount);
 		}
 
 		public void SetPollout(Socket handle)
 		{
-			if (!m_checkWrite.Contains(handle))        
-				m_checkWrite.Add(handle);
+			FDSet(handle, m_sourceSetOut, ref m_writeCount);
 		}
 
 		public void ResetPollout(Socket handle)
 		{
-			m_checkWrite.Remove(handle);
-		}           
-    
+			FDClear(handle, m_sourceSetOut, ref m_writeCount);
+		}
+
 		public void Start()
 		{
 			m_worker = new Thread(Loop);
@@ -149,76 +233,103 @@ namespace NetMQ.zmq
 			m_stopping = true;
 		}
 
-
 		public void Loop()
 		{
-			ArrayList readList = new ArrayList();
-			ArrayList writeList = new ArrayList();
-			ArrayList errorList = new ArrayList();
-
 			while (!m_stopping)
 			{
+				if (m_new)
+				{
+					foreach (PollSet pollSet in m_tempFDs)
+					{
+						m_fds.Add(pollSet);
+					}
+					m_tempFDs.Clear();
+					m_new = false;
+				}
+
 				//  Execute any due timers.
 				int timeout = ExecuteTimers();
 
-				readList.AddRange(m_checkRead.ToArray());
-				writeList.AddRange(m_checkWrite.ToArray());
-				errorList.AddRange(m_checkError.ToArray());
+				Array.Copy(m_sourceSetIn, 1, m_readFDs, 1, m_readCount);
+				Array.Copy(m_sourceSetOut, 1, m_writeFDs, 1, m_writeCount);
+				Array.Copy(m_sourceSetError, 1, m_errorFDs, 1, m_errorCount);
 
-				try
+				m_readFDs[0] = (IntPtr)m_readCount;
+				m_writeFDs[0] = (IntPtr)m_writeCount;
+				m_errorFDs[0] = (IntPtr)m_errorCount;
+
+				NativeMethods.TimeValue tv = new NativeMethods.TimeValue(timeout / 1000, timeout % 1000 * 1000);
+
+				int rc;
+
+				if (timeout != 0)
 				{
-					Socket.Select(readList, writeList, errorList, timeout != 0 ? timeout : -1);
+					rc = NativeMethods.@select(0, m_readFDs, m_writeFDs, m_errorFDs, ref tv);
 				}
-				catch (SocketException)
+				else
+				{
+					rc = NativeMethods.@select(0, m_readFDs, m_writeFDs, m_errorFDs, IntPtr.Zero);
+				}
+
+				if (rc == -1)
+				{
+					throw new SocketException();
+				}
+
+				// Debug.Assert(rc != -1);
+
+				if (rc == 0)
 				{
 					continue;
 				}
 
-				foreach (Socket socket in errorList)
+				foreach (var item in m_fds)
 				{
-					PollSet item; 
+					if (item.Cancelled)
+					{
+						continue;
+					}
 
-					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
+					if (FDIsSet(item.Socket, m_errorFDs))
 					{
 						item.Handler.InEvent();
 					}
-				}
-				errorList.Clear();
-            
 
-				foreach (Socket socket in writeList)
-				{
-					PollSet item;
+					if (item.Cancelled)
+					{
+						continue;
+					}
 
-					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
+					if (FDIsSet(item.Socket, m_writeFDs))
 					{
 						item.Handler.OutEvent();
 					}
-				}
-				writeList.Clear();
-            
 
-				foreach (Socket socket in readList)
-				{
-					PollSet item;
+					if (item.Cancelled)
+					{
+						continue;
+					}
 
-					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
+					if (FDIsSet(item.Socket, m_readFDs))
 					{
 						item.Handler.InEvent();
 					}
 				}
-				readList.Clear();
 
-            
 				if (m_retired)
 				{
-					foreach (var item in m_fdTable.Where(k => k.Value.Cancelled).ToList())
+					foreach (var item in m_fds.Where(k => k.Cancelled).ToList())
 					{
-						m_fdTable.Remove(item.Key);
+						m_fds.Remove(item);
+					}
+
+					foreach (var item in m_tempFDs.Where(k => k.Cancelled).ToList())
+					{
+						m_tempFDs.Remove(item);
 					}
 
 					m_retired = false;
-				}                     
+				}
 			}
 		}
 

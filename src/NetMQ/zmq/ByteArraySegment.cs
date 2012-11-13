@@ -152,5 +152,10 @@ namespace NetMQ.zmq
 
 			return value;
 		}
+
+		internal void Reset()
+		{
+			Offset = 0;
+		}
 	}
 }

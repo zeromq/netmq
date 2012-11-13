@@ -240,7 +240,7 @@ namespace NetMQ.zmq
 				return false;
 
 			bool more = msg.HasMore;
-			m_outpipe.Write (new Msg(msg), more);
+			m_outpipe.Write (msg, more);
 			//if (LOG.isDebugEnabled()) {
 			//    LOG.debug(parent.ToString() + " write " + msg_);
 			//}
