@@ -28,7 +28,7 @@ namespace NetMQ.zmq
 	{
 
 		//  Where to get the data to write from.    
-		private ByteArraySegment m_writePos;
+		private ByteArraySegment m_writePos;	
 
 		//  If true, first byte of the message is being written.
 		//    @SuppressWarnings("unused")
@@ -153,7 +153,7 @@ namespace NetMQ.zmq
 		                         int state, bool beginning)
 		{
 
-			m_writePos = writePos.Clone();
+			m_writePos = writePos;
 			m_toWrite = toWrite;
 			State = state;
 			m_beginning = beginning;

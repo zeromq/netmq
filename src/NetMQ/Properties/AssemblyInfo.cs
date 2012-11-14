@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("NetMQ")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("iMatix Corporation")]
 [assembly: AssemblyProduct("NetMQ")]
-[assembly: AssemblyCopyright("Copyright ©  2012")]
+[assembly: AssemblyCopyright("Copyright © 2012 iMatix Corporation and Contributors")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

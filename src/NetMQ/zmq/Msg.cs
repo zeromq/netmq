@@ -270,7 +270,10 @@ namespace NetMQ.zmq
 				throw new InvalidOperationException();
 			}
 
-			Init(MsgType.Vsm);
+			// In C++ version of zero mq close would free all bytes array and init the msg type
+			// because in C# the GC is taking care or releasing resources and copying the message is expensive (because it's class and created on the heap)
+			// the close method on C# version does nothing
+			//Init(MsgType.Vsm);
 		}
 
 		public override String ToString()

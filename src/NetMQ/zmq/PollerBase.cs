@@ -130,11 +130,13 @@ namespace NetMQ.zmq
 
 			//  Get the current time.
 			long current = Clock.NowMs();
-
+					
 			//  Execute the timers that are already due.
 			var keys = m_timers.Keys;
-			foreach (var key in keys)
+
+			for (int i = 0; i < keys.Count; i++)
 			{
+				var key = keys[i];
 
 				//  If we have to wait to execute the item, same will be true about
 				//  all the following items (multimap is sorted). Thus we can stop
@@ -153,16 +155,12 @@ namespace NetMQ.zmq
 					timer.Sink.TimerEvent(timer.Id);
 				}
 
-				//  Remove it from the list of active timers.
-				//timers_t::iterator o = it;
-				//++it;
-				//timers.erase (o);
-
+				//  Remove it from the list of active timers.		
 				timers.Clear();
 				m_timers.Remove(key);
-
-			}
-
+				i--;
+			}						
+			
 			//  There are no more timers.
 			return 0;
 		}

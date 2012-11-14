@@ -94,10 +94,12 @@
     <Compile Include="zmq\MonitorEvent.cs" />
     <Compile Include="zmq\Msg.cs" />
     <Compile Include="zmq\Mtrie.cs" />
+    <None Include="zmq\Native\NativeMethods.cs" />
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
     <Compile Include="zmq\Pair.cs" />
     <Compile Include="zmq\Pipe.cs" />
+    <None Include="zmq\Native\Poller.cs" />
     <Compile Include="zmq\Poller.cs" />
     <Compile Include="zmq\PollerBase.cs" />
     <Compile Include="zmq\PollItem.cs" />
