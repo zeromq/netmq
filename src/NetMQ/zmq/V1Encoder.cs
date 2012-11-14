@@ -50,6 +50,8 @@ namespace NetMQ.zmq
 
 		private bool MessageReady()
 		{
+			m_tmpbuf.Reset();
+
 			//  Read new message. If there is none, return false.
 			//  Note that new state is set only if write is successful. That way
 			//  unsuccessful write will cause retry on the next state machine
