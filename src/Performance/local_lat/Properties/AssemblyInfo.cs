@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("local_lat")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyCompany("iMatix Corporation")]
 [assembly: AssemblyProduct("local_lat")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2012")]
+[assembly: AssemblyCopyright("Copyright © 2012 iMatix Corporation and Contributors")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
