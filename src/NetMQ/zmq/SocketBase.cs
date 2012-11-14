@@ -235,8 +235,7 @@ namespace NetMQ.zmq
         }
 
         public bool SetSocketOption(ZmqSocketOptions option, Object optval)
-        {
-
+        {					
             if (m_ctxTerminated)
             {
                 ZError.ErrorNumber = ErrorNumber.ETERM;

@@ -277,9 +277,13 @@ namespace NetMQ.zmq
 					return true;
 
 				case ZmqSocketOptions.TcpKeepaliveCnt:
-				case ZmqSocketOptions.TcpKeepaliveIdle:
-				case ZmqSocketOptions.TcpKeepaliveIntvl:
 					// not supported
+					return true;
+				case ZmqSocketOptions.TcpKeepaliveIdle:
+					TcpKeepaliveIdle = (int) optval;
+					return true;
+				case ZmqSocketOptions.TcpKeepaliveIntvl:
+					TcpKeepaliveIntvl = (int) optval;
 					return true;
 
 				case ZmqSocketOptions.TcpAcceptFilter:
@@ -373,10 +377,12 @@ namespace NetMQ.zmq
 					return DelayAttachOnConnect;
 
 				case ZmqSocketOptions.TcpKeepaliveCnt:
-				case ZmqSocketOptions.TcpKeepaliveIdle:
-				case ZmqSocketOptions.TcpKeepaliveIntvl:
 					// not supported
 					return 0;
+				case ZmqSocketOptions.TcpKeepaliveIdle:
+					return TcpKeepaliveIdle;
+				case ZmqSocketOptions.TcpKeepaliveIntvl:
+					return TcpKeepaliveIntvl;
 
 				case ZmqSocketOptions.LastEndpoint:
 					return LastEndpoint;
