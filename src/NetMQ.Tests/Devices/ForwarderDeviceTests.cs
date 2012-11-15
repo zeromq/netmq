@@ -1,19 +1,19 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using NetMQ.Devices;
 using NetMQ.zmq;
 
 namespace NetMQ.Tests.Devices
 {
-	[TestFixture, Ignore("Will not work until forwarder is fixed.")]
+	[TestFixture, Ignore("Broken at the moment.")]
 	public class ForwarderDeviceTests
 	{
 		private const string Frontend = "inproc://front.addr";
 		private const string Backend = "inproc://back.addr";
+		private const string Topic = "Topic";
+
 		private Thread m_workerThread;
-		private readonly Random m_random = new Random();
 		private static volatile int _workerReceiveCount;
 
 		[Test]
@@ -22,9 +22,13 @@ namespace NetMQ.Tests.Devices
 
 			using (var ctx = Context.Create()) {
 				var queue = new ForwarderDevice(ctx, Frontend, Backend);
+				queue.FrontendSetup.Subscribe(Topic);
 				queue.Start();
 
 				StartWorker(ctx);
+
+				// Alow worker to start
+				Thread.Sleep(100);
 
 				StartClient(ctx, 0);
 
@@ -41,29 +45,30 @@ namespace NetMQ.Tests.Devices
 		[Test]
 		public void Threaded_Multi_Client() {
 			_workerReceiveCount = 0;
-
 			using (var ctx = Context.Create()) {
-				var queue = new QueueDevice(ctx, Frontend, Backend);
+				var queue = new ForwarderDevice(ctx, Frontend, Backend);
+				queue.FrontendSetup.Subscribe(Topic);
 				queue.Start();
 
+				// Alow worker to start				
 				StartWorker(ctx);
+				Thread.Sleep(100);
 
-				var clients = new Task[4];
+				var clients = new Thread[2];
 
 				for (var i = 0; i < clients.Length; i++) {
 					var i1 = i;
-					clients[i] = Task.Factory.StartNew(() => StartClient(ctx, i1), TaskCreationOptions.LongRunning);
+					clients[i] = new Thread(() => StartClient(ctx, i1));
+					clients[i].Start();
 				}
 
-				Task.WaitAll(clients);
-
 				// Alow worker to do its magic
-				Thread.Sleep(100);
+				Thread.Sleep(5000);
 
 				StopWorker();
 
 				queue.Stop();
-				Assert.AreEqual(4, _workerReceiveCount);
+				Assert.AreEqual(clients.Length, _workerReceiveCount);
 			}
 		}
 
@@ -73,8 +78,9 @@ namespace NetMQ.Tests.Devices
 			Console.WriteLine("Client: {0} Publishing: {1}", id, expected);
 			var client = context.CreatePublisherSocket();
 			client.Connect(Frontend);
-			client.Send(expected);
-			Thread.Sleep(m_random.Next(1, 50));
+
+			client.SendTopic(Topic).Send(expected);
+			Thread.Sleep(10);
 			client.Close();
 		}
 
@@ -92,10 +98,12 @@ namespace NetMQ.Tests.Devices
 
 			var socket = ctx.CreateSubscriberSocket();
 			socket.Connect(Backend);
+			socket.Subscribe(Topic);
 
-			while (true) {
-				try {
-					var has = socket.Poll(TimeSpan.FromMilliseconds(10), PollEvents.PollIn);
+			try {
+				while (true) {
+
+					var has = socket.Poll(TimeSpan.FromMilliseconds(1), PollEvents.PollIn);
 
 					if (!has) {
 						Thread.Sleep(1);
@@ -111,11 +119,11 @@ namespace NetMQ.Tests.Devices
 					}
 
 					Console.WriteLine("------");
-
-				} catch (ThreadAbortException) {
-					socket.Close();
-					return;
+					_workerReceiveCount++;
 				}
+			} catch (ThreadAbortException) {
+				socket.Close();
+				return;
 			}
 		}
 	}

@@ -14,9 +14,12 @@ namespace NetMQ.Tests.Devices
 		private const string Backend = "inproc://back.addr";
 		private Thread m_workerThread;
 		private readonly Random m_random = new Random();
+		private static volatile int _workerReceiveCount;
 
 		[Test]
 		public void Threaded_Single_Client() {
+			_workerReceiveCount = 0;
+
 			using (var ctx = Context.Create()) {
 				var queue = new QueueDevice(ctx, Frontend, Backend);
 				queue.Start();
@@ -28,11 +31,13 @@ namespace NetMQ.Tests.Devices
 				StopWorker();
 
 				queue.Stop();
+				Assert.AreEqual(1, _workerReceiveCount);
 			}
 		}
 
 		[Test]
 		public void Threaded_Multi_Client() {
+			_workerReceiveCount = 0;
 			using (var ctx = Context.Create()) {
 				var queue = new QueueDevice(ctx, Frontend, Backend);
 				queue.Start();
@@ -51,6 +56,7 @@ namespace NetMQ.Tests.Devices
 				StopWorker();
 
 				queue.Stop();
+				Assert.AreEqual(clients.Length, _workerReceiveCount);
 			}
 		}
 
@@ -104,6 +110,7 @@ namespace NetMQ.Tests.Devices
 							socket.SendMore(received[i]);
 						}
 					}
+					_workerReceiveCount++;
 				} catch (ThreadAbortException) {
 					socket.Close();
 					return;

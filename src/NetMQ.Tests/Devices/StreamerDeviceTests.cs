@@ -65,7 +65,7 @@ namespace NetMQ.Tests.Devices
 
 				queue.Stop();
 
-				Assert.AreEqual(4, _workerReceiveCount);
+				Assert.AreEqual(clients.Length, _workerReceiveCount);
 			}
 		}
 

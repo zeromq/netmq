@@ -25,8 +25,8 @@ namespace NetMQ.Devices
 		                      DeviceMode mode = DeviceMode.Threaded)
 			: this(context, mode) {
 
-			FrontendSocket.Bind(frontendBindAddress);
-			BackendSocket.Bind(backendBindAddress);
+			FrontendSetup.Bind(frontendBindAddress);
+			BackendSetup.Bind(backendBindAddress);
 		}
 
 		private StreamerDevice(Context context, DeviceMode mode)

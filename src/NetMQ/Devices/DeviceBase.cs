@@ -10,9 +10,6 @@ namespace NetMQ.Devices
 		where TFront : BaseSocket
 		where TBack : BaseSocket
 	{
-
-		private bool m_isRunning;
-
 		private readonly Context m_context;
 
 		/// <summary>
@@ -28,9 +25,17 @@ namespace NetMQ.Devices
 		private readonly Poller m_poller;
 		private readonly DeviceRunner m_runner;
 
-		public bool IsRunning {
-			get { return m_isRunning; }
-		}
+		public bool IsRunning { get; private set; }
+
+		/// <summary>
+		/// Gets a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
+		/// </summary>
+		public DeviceSocketSetup<TFront> FrontendSetup { get; private set; }
+
+		/// <summary>
+		/// Gets a <see cref="DeviceSocketSetup"/> for configuring the frontend socket.
+		/// </summary>
+		public DeviceSocketSetup<TBack> BackendSetup { get; private set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DeviceBase"/> class.
@@ -51,9 +56,13 @@ namespace NetMQ.Devices
 				throw new ArgumentNullException("backendSocket");
 
 			m_context = context;
+
 			FrontendSocket = frontendSocket;
 			BackendSocket = backendSocket;
 
+			FrontendSetup = new DeviceSocketSetup<TFront>(FrontendSocket);
+			BackendSetup = new DeviceSocketSetup<TBack>(BackendSocket);
+			
 			m_poller = new Poller(m_context);
 
 			m_poller.AddSocket(FrontendSocket, FrontendHandler);
@@ -61,10 +70,12 @@ namespace NetMQ.Devices
 
 			m_runner = mode == DeviceMode.Blocking
 				? new DeviceRunner(this)
-				: new ThreadedDeviceRunner(this);
+				: new ThreadedDeviceRunner(this);			
 		}
 
 		public void Start() {
+			FrontendSetup.Configure();
+			BackendSetup.Configure();	
 			m_runner.Start();
 		}
 
@@ -72,12 +83,12 @@ namespace NetMQ.Devices
 			m_poller.Stop(waitForCloseToComplete);
 			FrontendSocket.Close();
 			BackendSocket.Close();
-			m_isRunning = false;
+			IsRunning = false;
 		}
 
 		public void Run() {
 			m_poller.Start();
-			m_isRunning = true;
+			IsRunning = true;
 		}
 
 		/// <summary>
@@ -89,6 +100,6 @@ namespace NetMQ.Devices
 		/// Invoked when a message has been received by the backend socket.
 		/// </summary>
 		protected virtual void BackendHandler(TBack socket) { }
-			
+
 	}
 }

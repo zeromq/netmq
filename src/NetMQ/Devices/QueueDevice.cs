@@ -14,8 +14,7 @@
 	public class QueueDevice : DeviceBase<RouterSocket, DealerSocket>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="QueueDevice"/> class that will run in a
-		/// self-managed thread.
+		/// Initializes a new instance of the <see cref="QueueDevice"/> class.
 		/// </summary>
 		/// <param name="context">The <see cref="Context"/> to use when creating the sockets.</param>
 		/// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
@@ -25,11 +24,16 @@
 			DeviceMode mode = DeviceMode.Threaded)
 			: this(context, mode) {
 
-			FrontendSocket.Bind(frontendBindAddress);
-			BackendSocket.Bind(backendBindAddress);
+			FrontendSetup.Bind(frontendBindAddress);
+			BackendSetup.Bind(backendBindAddress);					
 		}
 
-		private QueueDevice(Context context, DeviceMode mode)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="QueueDevice"/> class.
+		/// </summary>
+		/// <param name="context">The <see cref="Context"/> to use when creating the sockets.</param>
+		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
+		private QueueDevice(Context context, DeviceMode mode = DeviceMode.Threaded)
 			: base(context, context.CreateRouterSocket(), context.CreateDealerSocket(), mode) {
 		}
 
