@@ -44,6 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Devices\ForwarderDeviceTests.cs" />
+    <Compile Include="Devices\QueueDeviceTests.cs" />
+    <Compile Include="Devices\StreamerDeviceTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
     <Compile Include="PollerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
