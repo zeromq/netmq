@@ -54,6 +54,7 @@
     <Compile Include="PubSubTests.cs" />
     <Compile Include="PushPullTests.cs" />
     <Compile Include="ReqRepTests.cs" />
+    <Compile Include="SocketTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NetMQ\NetMQ.csproj">

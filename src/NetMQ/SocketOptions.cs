@@ -137,20 +137,20 @@ namespace NetMQ
 
         public bool TcpKeepalive
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.TcpKeepalive); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepalive, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOptions.TcpKeepalive) == 1; }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepalive, value ? 1: 0); }
         }
 
         public int TcpKeepaliveCnt
         {
             get { return m_socket.GetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Rate, value); }
+					set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt, value); }
         }
 
         public TimeSpan TcpKeepaliveIdle
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.TcpKeepaliveIdle); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.Rate, value); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.TcpKeepaliveIdle, value); }
         }
 
         public TimeSpan TcpKeepaliveInterval
