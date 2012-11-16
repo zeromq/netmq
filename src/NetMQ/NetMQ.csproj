@@ -39,6 +39,15 @@
     <Compile Include="BaseSocket.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="DealerSocket.cs" />
+    <Compile Include="Devices\DeviceBase.cs" />
+    <Compile Include="Devices\DeviceMode.cs" />
+    <Compile Include="Devices\DeviceRunner.cs" />
+    <Compile Include="Devices\DeviceSocketSetup.cs" />
+    <Compile Include="Devices\ForwarderDevice.cs" />
+    <Compile Include="Devices\IDevice.cs" />
+    <Compile Include="Devices\QueueDevice.cs" />
+    <Compile Include="Devices\StreamerDevice.cs" />
+    <Compile Include="Devices\ThreadedDeviceRunner.cs" />
     <Compile Include="DuplexSocket.cs" />
     <Compile Include="IMonitoringEventsHandler.cs" />
     <Compile Include="MonitoringEventsHandler.cs" />

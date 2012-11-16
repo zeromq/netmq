@@ -30,6 +30,7 @@ namespace NetMQ
 		readonly IList<ProxyPoll> m_proxies = new List<ProxyPoll>();
 		readonly IList<MonitorPoll> m_monitors = new List<MonitorPoll>();
 		private readonly Context m_context;
+		private bool m_isStarted;
 
 		public Poller(Context context)
 		{
@@ -48,6 +49,11 @@ namespace NetMQ
 		/// How much time to wait on each poll iteration, the higher the number the longer it will take the poller to stop 
 		/// </summary>
 		public TimeSpan PollTimeout { get; set; }
+
+		/// <summary>
+		/// Has the Poller been started.
+		/// </summary>
+		public bool IsStarted { get { return m_isStarted; } }
 
 		private void CheckSocketAlreadyExist(BaseSocket baseSocket)
 		{
@@ -123,6 +129,7 @@ namespace NetMQ
 		public void Start()
 		{
 			m_isStoppedEvent.Reset();
+			m_isStarted = true;
 
 			// the sockets may have been created in another thread, to make sure we can fully use them we do full memory barried
 			// at the begining of the loop
@@ -218,6 +225,7 @@ namespace NetMQ
 		
 			// the poller is stopped
 			m_isStoppedEvent.Set();
+			m_isStarted = false;
 		}
 
 		/// <summary>
@@ -232,10 +240,11 @@ namespace NetMQ
 			{
 				m_isStoppedEvent.WaitOne();
 			}
+			m_isStarted = false;
 		}
 
 		public void Stop()
-		{
+		{			
 			Stop(true);
 		}
 	}
