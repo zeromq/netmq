@@ -1,121 +1,77 @@
-﻿using System;
+using System;
 using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using NetMQ.Devices;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests.Devices
 {
-	[TestFixture]
-	public class QueueDeviceTests
+
+	public abstract class QueueDeviceTestBase : DeviceTestBase<QueueDevice, RequestSocket, ResponseSocket>
 	{
-		private const string Frontend = "inproc://front.addr";
-		private const string Backend = "inproc://back.addr";
-		private Thread m_workerThread;
-		private readonly Random m_random = new Random();
-		private static volatile int _workerReceiveCount;
-
-		[Test]
-		public void Threaded_Single_Client() {
-			_workerReceiveCount = 0;
-
-			using (var ctx = Context.Create()) {
-				var queue = new QueueDevice(ctx, Frontend, Backend);
-				queue.Start();
-
-				StartWorker(ctx);
-
-				StartClient(ctx, 0);
-
-				StopWorker();
-
-				queue.Stop();
-				Assert.AreEqual(1, _workerReceiveCount);
-			}
+		protected override void SetupTest() {
+			CreateDevice = c => new QueueDevice(c, Frontend, Backend);
+			CreateClientSocket = c => c.CreateRequestSocket();
+			CreateWorkerSocket = c => c.CreateResponseSocket();
 		}
 
-		[Test]
-		public void Threaded_Multi_Client() {
-			_workerReceiveCount = 0;
-			using (var ctx = Context.Create()) {
-				var queue = new QueueDevice(ctx, Frontend, Backend);
-				queue.Start();
+		protected override void DoWork(ResponseSocket socket) {
+			var received = socket.ReceiveAllString();
 
-				StartWorker(ctx);
-
-				var clients = new Task[4];
-
-				for (var i = 0; i < clients.Length; i++) {
-					var i1 = i;
-					clients[i] = Task.Factory.StartNew(() => StartClient(ctx, i1), TaskCreationOptions.LongRunning);
+			for (var i = 0; i < received.Count; i++) {
+				if (i == received.Count - 1) {
+					socket.Send(received[i]);
+				} else {
+					socket.SendMore(received[i]);
 				}
-
-				Task.WaitAll(clients);
-
-				StopWorker();
-
-				queue.Stop();
-				Assert.AreEqual(clients.Length, _workerReceiveCount);
 			}
 		}
 
-		private void StartClient(Context context, int id) {
+		protected override void DoClient(int id, RequestSocket socket) {
 			const string value = "Hello World";
 			var expected = value + " " + id;
 			Console.WriteLine("Client: {0} sending: {1}", id, expected);
-			var client = context.CreateRequestSocket();
-			client.Connect(Frontend);
-			client.Send(expected);
+			socket.Send(expected);
 
-			Thread.Sleep(m_random.Next(1, 50));
+			Thread.Sleep(Random.Next(1, 50));
 
-			var response = client.ReceiveAllString();
+			var response = socket.ReceiveAllString();
 			Assert.AreEqual(1, response.Count);
 			Assert.AreEqual(expected, response[0]);
 			Console.WriteLine("Client: {0} received: {1}", id, response[0]);
-			client.Close();
 		}
+	}
 
-		protected void StartWorker(Context context) {
-			m_workerThread = new Thread(Worker);
-			m_workerThread.Start(context);
-		}
+	[TestFixture]
+	public class QueueSingleClientTest : QueueDeviceTestBase
+	{
+		[Test]
+		public void Run() {
+			StartClient(0);
 
-		protected void StopWorker() {
-			m_workerThread.Abort();
-		}
+			SleepUntilWorkerReceives(1, TimeSpan.FromMilliseconds(100));
 
-		private static void Worker(object p) {
-			var ctx = (Context)p;
+			StopWorker();
+			Device.Stop();
 
-			var socket = ctx.CreateResponseSocket();
-			socket.Connect(Backend);
+			Assert.AreEqual(1, WorkerReceiveCount);
+		}		
+	}
 
-			while (true) {
-				try {
-					var has = socket.Poll(TimeSpan.FromMilliseconds(10), PollEvents.PollIn);
-
-					if (!has) {
-						Thread.Sleep(1);
-						continue;
-					}
-
-					var received = socket.ReceiveAllString();
-
-					for (var i = 0; i < received.Count; i++) {
-						if (i == received.Count - 1) {
-							socket.Send(received[i]);
-						} else {
-							socket.SendMore(received[i]);
-						}
-					}
-					_workerReceiveCount++;
-				} catch (ThreadAbortException) {
-					socket.Close();
-					return;
-				}
+	[TestFixture]
+	public class QueueMultiClientTest : QueueDeviceTestBase
+	{
+		[Test]
+		public void Run() {
+			for (var i = 0; i < 10; i++) {
+				StartClient(i);
 			}
+
+			SleepUntilWorkerReceives(10, TimeSpan.FromMilliseconds(1000));
+
+			StopWorker();
+			Device.Stop();
+
+			Assert.AreEqual(10, WorkerReceiveCount);
 		}
 	}
 }

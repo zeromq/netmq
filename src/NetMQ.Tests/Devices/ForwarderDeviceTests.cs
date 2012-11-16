@@ -1,130 +1,83 @@
 using System;
-using System.Threading;
 using NUnit.Framework;
 using NetMQ.Devices;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests.Devices
 {
-	[TestFixture, Ignore("Broken at the moment.")]
-	public class ForwarderDeviceTests
+	public abstract class ForwarderDeviceTestBase : DeviceTestBase<ForwarderDevice, PublisherSocket, SubscriberSocket>
 	{
-		private const string Frontend = "inproc://front.addr";
-		private const string Backend = "inproc://back.addr";
-		private const string Topic = "Topic";
 
-		private Thread m_workerThread;
-		private static volatile int _workerReceiveCount;
+		protected const string Topic = "CanHazTopic";
 
-		[Test]
-		public void Threaded_Single_Client() {
-			_workerReceiveCount = 0;
+		protected override void SetupTest() {
+			CreateDevice = c => {
+				var device = new ForwarderDevice(c, Frontend, Backend);
+				device.FrontendSetup.Subscribe(Topic);
+				return device;
+			};
 
-			using (var ctx = Context.Create()) {
-				var queue = new ForwarderDevice(ctx, Frontend, Backend);
-				queue.FrontendSetup.Subscribe(Topic);
-				queue.Start();
-
-				StartWorker(ctx);
-
-				// Alow worker to start
-				Thread.Sleep(100);
-
-				StartClient(ctx, 0);
-
-				// Alow worker to do its magic
-				Thread.Sleep(100);
-
-				StopWorker();
-
-				queue.Stop();
-				Assert.AreEqual(1, _workerReceiveCount);
-			}
+			CreateClientSocket = c => c.CreatePublisherSocket();
+			CreateWorkerSocket = c => c.CreateSubscriberSocket();
 		}
 
-		[Test]
-		public void Threaded_Multi_Client() {
-			_workerReceiveCount = 0;
-			using (var ctx = Context.Create()) {
-				var queue = new ForwarderDevice(ctx, Frontend, Backend);
-				queue.FrontendSetup.Subscribe(Topic);
-				queue.Start();
-
-				// Alow worker to start				
-				StartWorker(ctx);
-				Thread.Sleep(100);
-
-				var clients = new Thread[2];
-
-				for (var i = 0; i < clients.Length; i++) {
-					var i1 = i;
-					clients[i] = new Thread(() => StartClient(ctx, i1));
-					clients[i].Start();
-				}
-
-				// Alow worker to do its magic
-				Thread.Sleep(5000);
-
-				StopWorker();
-
-				queue.Stop();
-				Assert.AreEqual(clients.Length, _workerReceiveCount);
-			}
+		protected override void WorkerSocketAfterConnect(SubscriberSocket socket) {
+			socket.Subscribe(Topic);
 		}
 
-		private void StartClient(Context context, int id) {
+		protected override void DoWork(SubscriberSocket socket) {
+			var received = socket.ReceiveAllString();
+			Console.WriteLine("Worker received: ");
+
+			for (var i = 0; i < received.Count; i++) {
+				var r = received[i];
+				Console.WriteLine("{0}: {1}", i, r);
+			}
+
+			Console.WriteLine("------");
+		}
+
+		protected override void DoClient(int id, PublisherSocket socket) {
 			const string value = "Hello World";
 			var expected = value + " " + id;
 			Console.WriteLine("Client: {0} Publishing: {1}", id, expected);
-			var client = context.CreatePublisherSocket();
-			client.Connect(Frontend);
-
-			client.SendTopic(Topic).Send(expected);
-			Thread.Sleep(10);
-			client.Close();
+			socket.SendTopic(Topic).Send(expected);
 		}
+	}
 
-		protected void StartWorker(Context context) {
-			m_workerThread = new Thread(Worker);
-			m_workerThread.Start(context);
+	[TestFixture]
+	public class ForwarderSingleClientTest : ForwarderDeviceTestBase
+	{
+		[Test]
+		public void Run() {
+
+			// Allow the subscribers some time to connect
+			StartClient(0, 100);
+
+			SleepUntilWorkerReceives(1, TimeSpan.FromMilliseconds(1000));
+
+			StopWorker();
+			Device.Stop();
+
+			Assert.AreEqual(1, WorkerReceiveCount);
 		}
+	}
 
-		protected void StopWorker() {
-			m_workerThread.Abort();
-		}
-
-		private static void Worker(object p) {
-			var ctx = (Context)p;
-
-			var socket = ctx.CreateSubscriberSocket();
-			socket.Connect(Backend);
-			socket.Subscribe(Topic);
-
-			try {
-				while (true) {
-
-					var has = socket.Poll(TimeSpan.FromMilliseconds(1), PollEvents.PollIn);
-
-					if (!has) {
-						Thread.Sleep(1);
-						continue;
-					}
-
-					var received = socket.ReceiveAllString();
-					Console.WriteLine("Worker received: ");
-
-					for (var i = 0; i < received.Count; i++) {
-						var r = received[i];
-						Console.WriteLine("{0}: {1}", i, r);
-					}
-
-					Console.WriteLine("------");
-					_workerReceiveCount++;
-				}
-			} catch (ThreadAbortException) {
-				socket.Close();
-				return;
+	[TestFixture]
+	public class ForwarderMultiClientTest : ForwarderDeviceTestBase
+	{
+		[Test]
+		public void Run() {			
+			for (var i = 0; i < 10; i++) {
+				// Allow the subscribers some time to connect
+				StartClient(i, 100);
 			}
+
+			SleepUntilWorkerReceives(10, TimeSpan.FromMilliseconds(8000));
+
+			StopWorker();
+			Device.Stop();
+
+			Assert.AreEqual(10, WorkerReceiveCount);
 		}
 	}
 }
