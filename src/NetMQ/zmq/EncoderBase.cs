@@ -59,7 +59,15 @@ namespace NetMQ.zmq
 		//  are filled to a supplied buffer. If no buffer is supplied (data_
 		//  points to NULL) decoder object will provide buffer of its own.
 
+
 		public void GetData(ref ByteArraySegment data, ref int size)
+		{
+			int offset = -1;
+
+			GetData(ref data, ref size, ref offset);
+		}
+
+		public void GetData(ref ByteArraySegment data, ref int size, ref int offset)
 		{
 			ByteArraySegment buffer = data ?? new ByteArraySegment(m_buf);
 			int bufferSize = data == null ? m_buffersize : size;
@@ -76,13 +84,13 @@ namespace NetMQ.zmq
 					//  If we are to encode the beginning of a new message,
 					//  adjust the message offset.
 
-					//if (beginning)
-					//{
-					//    if (offest != null && offest.Value == -1)
-					//    {
-					//        offest = pos;
-					//    }
-					//}
+					if (m_beginning)
+					{
+						if (offset == -1)
+						{
+							offset = pos;
+						}
+					}
 
 					if (!Next())
 						break;
@@ -98,7 +106,7 @@ namespace NetMQ.zmq
 				//  As a consequence, large messages being sent won't block
 				//  other engines running in the same I/O thread for excessive
 				//  amounts of time.
-				if (pos == 0 && data == null && m_toWrite >= m_buffersize)
+				if (pos == 0 && data == null && m_toWrite >= bufferSize)
 				{
 					data = m_writePos;
 					size = m_toWrite;
@@ -109,7 +117,7 @@ namespace NetMQ.zmq
 				}
 
 				//  Copy data to the buffer. If the buffer is full, return.
-				int toCopy = Math.Min(m_toWrite, m_buffersize - pos);
+				int toCopy = Math.Min(m_toWrite, bufferSize - pos);
 
 				if (toCopy != 0)
 				{

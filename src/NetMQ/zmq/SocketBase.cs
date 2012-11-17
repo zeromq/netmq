@@ -187,8 +187,8 @@ namespace NetMQ.zmq
         {
             //  First check out whether the protcol is something we are aware of.
             if (!protocol.Equals("inproc") &&
-                    !protocol.Equals("ipc") && !protocol.Equals("tcp") /*&&
-              !protocol_.equals("pgm") && !protocol_.equals("epgm")*/)
+                    !protocol.Equals("ipc") && !protocol.Equals("tcp") &&
+							!protocol.Equals("pgm") && !protocol.Equals("epgm"))
             {
                 ZError.ErrorNumber = (ErrorNumber.EPROTONOSUPPORT);
                 throw new NotSupportedException(protocol);
@@ -362,7 +362,8 @@ namespace NetMQ.zmq
                 }
                 return rc;
             }
-            if (protocol.Equals("pgm") || protocol.Equals("epgm"))
+            if ((protocol.Equals("pgm") || protocol.Equals("epgm")) && (
+							m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub))
             {
                 //  For convenience's sake, bind can be used interchageable with
                 //  connect for PGM and EPGM transports.
@@ -397,6 +398,25 @@ namespace NetMQ.zmq
                 AddEndpoint(addr, listener);
                 return true;
             }
+
+						if (protocol.Equals("pgm") || protocol.Equals("epgm"))
+						{
+							PgmListener listener = new PgmListener(ioThread, this, m_options);
+							bool rc = listener.Init(address);
+							if (!rc)
+							{
+								listener.Destroy();
+								EventBindFailed(addr, ZError.ErrorNumber);
+
+								return false;
+							}
+
+							m_options.LastEndpoint = addr;
+
+							AddEndpoint(addr, listener);
+
+							return true;
+						}
 
             if (protocol.Equals("ipc"))
             {
@@ -540,16 +560,28 @@ namespace NetMQ.zmq
                 paddr.Resolved = (new IpcAddress());
                 paddr.Resolved.Resolve(address, true);
             }
+						else if (protocol.Equals("pgm") || protocol.Equals("epgm"))
+						{
+							if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
+							{
+								return Connect(addr);
+							}
+
+							paddr.Resolved = new PgmAddress();
+							paddr.Resolved.Resolve(address, m_options.IPv4Only);
+						}
+
             //  Create session.
-            SessionBase session = SessionBase.Create(ioThread, true, this,
-                                                                                                m_options, paddr);
+            SessionBase session = SessionBase.Create(ioThread, true, this, m_options, paddr);
             Debug.Assert(session != null);
 
             //  PGM does not support subscription forwarding; ask for all data to be
             //  sent to this pipe.
             bool icanhasall = false;
             if (protocol.Equals("pgm") || protocol.Equals("epgm"))
+						{
                 icanhasall = true;
+						}
 
             if (!m_options.DelayAttachOnConnect || icanhasall)
             {

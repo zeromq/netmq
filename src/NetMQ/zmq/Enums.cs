@@ -65,6 +65,8 @@ namespace NetMQ.zmq
 
 		[Obsolete]
 		RouterBehavior = RouterMandatory,
+
+		MaxTSDUSize = 1001,
 	}
 
 	[Flags]
