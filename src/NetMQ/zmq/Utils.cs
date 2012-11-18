@@ -20,10 +20,12 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 
 namespace NetMQ.zmq
 {
-	public static class Utils {
+	public static class Utils
+	{
 
 		private static readonly Random s_random = new Random();
 
@@ -32,50 +34,75 @@ namespace NetMQ.zmq
 			return s_random.Next();
 		}
 
-   
-		public static void TuneTcpSocket(Socket fd) 
+
+		public static void TuneTcpSocket(Socket fd)
 		{
 			//  Disable Nagle's algorithm. We are doing data batching on 0MQ level,
 			//  so using Nagle wouldn't improve throughput in anyway, but it would
 			//  hurt latency.
-			try {
+			try
+			{
 				fd.NoDelay = (true);
-			} catch (SocketException) {
 			}
-		}   
-    
-		public static void TuneTcpKeepalives(Socket fd, int tcpKeepalive,
-		                                       int tcpKeepaliveCnt, int tcpKeepaliveIdle,
-		                                       int tcpKeepaliveIntvl) {
+			catch (SocketException)
+			{
+			}
+		}
 
-			if (tcpKeepalive != -1) {
-				//fd.setKeepAlive(true);           
+		
+		public static void TuneTcpKeepalives(Socket fd, int tcpKeepalive,
+																					 int tcpKeepaliveCnt, int tcpKeepaliveIdle,
+																					 int tcpKeepaliveIntvl)
+		{
+
+			if (tcpKeepalive != -1)
+			{
+				fd.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, tcpKeepalive);
+
+				
+				if (tcpKeepaliveIdle != -1 && tcpKeepaliveIntvl != -1)
+				{
+					ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
+
+					bytes.PutInteger(tcpKeepalive, 0);
+					bytes.PutInteger(tcpKeepaliveIdle, 4);
+					bytes.PutInteger(tcpKeepaliveIntvl, 8);
+
+					fd.IOControl(IOControlCode.KeepAliveValues, (byte[]) bytes, null);
+				}
 			}
-		                                       }
-    
-		public static void UnblockSocket(Socket s) {
+		}
+
+		public static void UnblockSocket(Socket s)
+		{
 			s.Blocking = false;
 		}
-    
+
 		//@SuppressWarnings("unchecked")
-		public static T[] Realloc<T>(T[] src, int size, bool ended) {
+		public static T[] Realloc<T>(T[] src, int size, bool ended)
+		{
 			T[] dest;
-        
-			if (size > src.Length) {
-				dest = new T[ size];
+
+			if (size > src.Length)
+			{
+				dest = new T[size];
 				if (ended)
 
 					Buffer.BlockCopy(src, 0, dest, 0, src.Length);
 				else
 					Buffer.BlockCopy(src, 0, dest, size - src.Length, src.Length);
-			} else if (size < src.Length) {
-				dest = new T[ size];
+			}
+			else if (size < src.Length)
+			{
+				dest = new T[size];
 				if (ended)
 					Buffer.BlockCopy(src, 0, dest, 0, size);
 				else
 					Buffer.BlockCopy(src, src.Length - size, dest, 0, size);
 
-			} else {
+			}
+			else
+			{
 				dest = src;
 			}
 			return dest;
@@ -94,13 +121,14 @@ namespace NetMQ.zmq
 				items[index1] = item2;
 		}
 
-		public static byte[] Realloc(byte[] src, int size) {
+		public static byte[] Realloc(byte[] src, int size)
+		{
 
 			byte[] dest = new byte[size];
 			if (src != null)
 				Buffer.BlockCopy(src, 0, dest, 0, src.Length);
-        
+
 			return dest;
-		}    		
+		}
 	}
 }
