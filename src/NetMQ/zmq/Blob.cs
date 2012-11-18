@@ -68,9 +68,6 @@ namespace NetMQ.zmq
 			get { return m_buf; }
 		}
 
-		[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-		static extern int memcmp(byte[] b1, byte[] b2, long count);
-
 		public override bool Equals(Object t)
 		{			
 			if (t is Blob)
@@ -80,8 +77,8 @@ namespace NetMQ.zmq
 				{
 					return false;
 				}				
-
-				return memcmp(m_buf, b.m_buf, m_buf.Length) == 0;
+				
+				return m_buf.SequenceEqual(b.m_buf);				
 			}
 			return false;
 		}

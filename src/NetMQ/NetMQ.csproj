@@ -29,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -95,6 +96,7 @@
     <Compile Include="zmq\Msg.cs" />
     <Compile Include="zmq\Mtrie.cs" />
     <None Include="zmq\Native\NativeMethods.cs" />
+    <Compile Include="zmq\Native\OpCode.cs" />
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
     <Compile Include="zmq\Pair.cs" />
