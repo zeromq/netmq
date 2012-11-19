@@ -150,12 +150,6 @@ namespace NetMQ.zmq
 			get { return m_address.ToString(); }
 		}
 
-		[DllImport("kernel32.dll")]
-		static extern bool SetHandleInformation(IntPtr hObject, int dwMask, uint dwFlags);
-
-		const int HandleFlagInherit = 0x00000001;
-
-
 		//  Set address to listen on.
 		public virtual bool SetAddress(String addr)
 		{
@@ -165,9 +159,7 @@ namespace NetMQ.zmq
 			try
 			{
 				m_handle =
-					new Socket(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-				SetHandleInformation(m_handle.Handle, HandleFlagInherit, 0); 
+					new Socket(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);		
             
 				//handle.Blocking = false;
             
@@ -212,9 +204,7 @@ namespace NetMQ.zmq
 			catch (SocketException)
 			{
 				return null;
-			}
-
-			SetHandleInformation(sock.Handle, HandleFlagInherit, 0);
+			}			
 
 			if (m_options.TcpAcceptFilters.Count > 0)
 			{

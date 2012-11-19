@@ -21,115 +21,38 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using NetMQ.zmq.Native;
 
 namespace NetMQ.zmq
 {
 	public class Clock
 	{
-
-		private static readonly DateTime Jan1St1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
 		//  TSC timestamp of when last time measurement was made.
-		 private static long s_lastTsc;
+		private static long s_lastTsc;
 
 		//  Physical time corresponding to the TSC above (in milliseconds).
-		 private static long s_lastTime;
+		private static long s_lastTime;
 
-		[Flags()]
-		public enum AllocationType : uint
-		{
-			COMMIT = 0x1000,
-			RESERVE = 0x2000,
-			RESET = 0x80000,
-			LARGE_PAGES = 0x20000000,
-			PHYSICAL = 0x400000,
-			TOP_DOWN = 0x100000,
-			WRITE_WATCH = 0x200000
-		}
-
-		[Flags()]
-		public enum MemoryProtection : uint
-		{
-			EXECUTE = 0x10,
-			EXECUTE_READ = 0x20,
-			EXECUTE_READWRITE = 0x40,
-			EXECUTE_WRITECOPY = 0x80,
-			NOACCESS = 0x01,
-			READONLY = 0x02,
-			READWRITE = 0x04,
-			WRITECOPY = 0x08,
-			GUARD = 0x100,
-			NOCACHE = 0x200,
-			WRITECOMBINE = 0x400
-		}
-
-		[Flags]
-		public enum FreeType
-		{
-			DECOMMIT = 0x4000,
-			RELEASE = 0x8000
-		}
-
-		private static class NativeMethods
-		{
-			private const string KERNEL = "kernel32.dll";
-
-			[DllImport(KERNEL, CallingConvention = CallingConvention.Winapi)]
-			public static extern IntPtr VirtualAlloc(IntPtr lpAddress, UIntPtr dwSize,
-				AllocationType flAllocationType, MemoryProtection flProtect);
-
-			[DllImport(KERNEL, CallingConvention = CallingConvention.Winapi)]
-			public static extern bool VirtualFree(IntPtr lpAddress, UIntPtr dwSize,
-				FreeType dwFreeType);
-		}
-
-		[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-		delegate ulong GetTickDelegate();
-		static readonly IntPtr Addr;
-		static readonly GetTickDelegate getTick;
-
-
-		private static readonly byte[] RDTSC_32 = new byte[] {
-      0x0F, 0x31,                     // rdtsc   
-      0xC3                            // ret  
-    };
-
-		private static readonly byte[] RDTSC_64 = new byte[] {
-      0x0F, 0x31,                     // rdtsc  
-      0x48, 0xC1, 0xE2, 0x20,         // shl rdx, 20h  
-      0x48, 0x0B, 0xC2,               // or rax, rdx  
-      0xC3                            // ret  
-    };
+		private static bool s_rdtscSupported = false;
 
 		static Clock()
 		{
-			byte[] rdtscCode;
-
-			if (IntPtr.Size == 4)
-			{
-				rdtscCode = RDTSC_32;
-			}
-			else
-			{
-				rdtscCode = RDTSC_64;
-			}
-
-			Addr = NativeMethods.VirtualAlloc(IntPtr.Zero,
-				 (UIntPtr)rdtscCode.Length, AllocationType.COMMIT | AllocationType.RESERVE,
-				 MemoryProtection.EXECUTE_READWRITE);
-
-			Marshal.Copy(rdtscCode, 0, Addr, rdtscCode.Length);
-
-			getTick = (GetTickDelegate)Marshal.GetDelegateForFunctionPointer(Addr, typeof(GetTickDelegate));
-
 			try
 			{
-				getTick();
+				if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Unix ||
+					Environment.OSVersion.Platform == (PlatformID)128)
+				{
+					Opcode.Open();
+					s_rdtscSupported = true;
+				}
+				else
+				{
+					s_rdtscSupported = false;
+				}
 			}
-			catch(Exception)
+			catch (Exception)
 			{
-				getTick = null;
-				NativeMethods.VirtualFree(Addr, UIntPtr.Zero, FreeType.RELEASE);
+				s_rdtscSupported = false;
 			}
 		}
 
@@ -154,23 +77,23 @@ namespace NetMQ.zmq
 			{
 				return NowUs() / 1000;
 			}
-			
-			if (tsc - s_lastTsc <=  Config.ClockPrecision / 2 && tsc >= s_lastTsc)
+
+			if (tsc - s_lastTsc <= Config.ClockPrecision / 2 && tsc >= s_lastTsc)
 			{
 				return s_lastTime;
 			}
 
 			s_lastTsc = tsc;
-			s_lastTime = NowUs()/1000;
+			s_lastTime = NowUs() / 1000;
 			return s_lastTime;
 		}
 
 		//  CPU's timestamp counter. Returns 0 if it's not available.
 		public static long Rdtsc()
 		{
-			if (getTick != null)
+			if (s_rdtscSupported)
 			{
-				return (long) getTick();
+				return (long)Opcode.Rdtsc();
 			}
 			else
 			{
