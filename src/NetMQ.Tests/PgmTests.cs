@@ -309,5 +309,43 @@ namespace NetMQ.Tests
 		}
 
 
+		[Test]
+		public void LargeMessage()
+		{
+			using (Context context = Context.Create())
+			{
+				using (var pub = context.CreatePublisherSocket())
+				{
+					pub.Connect("pgm://224.0.0.1:5555");
+
+					using (var sub = context.CreateSubscriberSocket())
+					{
+						sub.Bind("pgm://224.0.0.1:5555");
+
+						sub.Subscribe("");
+
+						byte[] data = new byte[3200]; // this should be at least 3 packets
+
+						for (Int16 i = 0; i < 1600; i++)
+						{
+							Array.Copy(BitConverter.GetBytes(i), 0, data, i * 2, 2);							
+						}
+
+						pub.Send(data);
+						bool more;
+						byte[] message = sub.Receive(out more);
+
+						Assert.AreEqual(3200, message.Length);
+
+						for (Int16 i = 0; i < 1600; i++)
+						{
+							Int16 value = BitConverter.ToInt16(message, i*2);
+
+							Assert.AreEqual(i, value);
+						}
+					}
+				}
+			}
+		}
 	}
 }
