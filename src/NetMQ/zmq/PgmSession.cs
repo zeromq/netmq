@@ -29,7 +29,7 @@ namespace NetMQ.zmq
 			m_handle = pgmSocket.FD;
 			m_pgmSocket = pgmSocket;
 			m_options = options;
-			data = new byte[m_options.MaxTSDUSize];
+			data = new byte[Config.PgmMaxTPDU];
 		}
 
 		public void Plug(IOThread ioThread, SessionBase session)
@@ -45,7 +45,7 @@ namespace NetMQ.zmq
 			m_ioObject.SetPollin(m_handle);
 
 			DropSubscriptions();
-		
+
 			// push message to the session because there is no identity message with pgm
 			session.PushMsg(new Msg());
 		}
@@ -90,87 +90,83 @@ namespace NetMQ.zmq
 		}
 
 		public void InEvent()
-		{			
+		{
 			if (m_pendingBytes > 0)
 				return;
 
-			//  TODO: This loop can effectively block other engines in the same I/O
-			//  thread in the case of high load.
-			while (true)
+			//  Get new batch of data.
+			//  Note the workaround made not to break strict-aliasing rules.
+			data.Reset();
+
+			int received = 0;
+
+			try
 			{
-				//  Get new batch of data.
-				//  Note the workaround made not to break strict-aliasing rules.
-				data.Reset();
-
-				int received = 0;
-
-				try
+				received = m_handle.Receive((byte[])data);
+			}
+			catch (SocketException ex)
+			{
+				if (ex.SocketErrorCode == SocketError.WouldBlock)
 				{
-					received = m_handle.Receive((byte[])data);
+					return;
+					//break;
 				}
-				catch (SocketException ex)
+				else
 				{
-					if (ex.SocketErrorCode == SocketError.WouldBlock)
-					{
-						break;
-					}
-					else
-					{
-						m_joined = false;		
-						Error();
-						return;
-					}
+					m_joined = false;
+					Error();
+					return;
 				}
+			}
 
-				//  No data to process. This may happen if the packet received is
-				//  neither ODATA nor ODATA.
-				if (received == 0)
-				{					
-					break;
-				}				
+			//  No data to process. This may happen if the packet received is
+			//  neither ODATA nor ODATA.
+			if (received == 0)
+			{
+				return;
+			}
 
-				//  Read the offset of the fist message in the current packet.
-				Debug.Assert(received >= sizeof(ushort));
-				ushort offset = data.GetUnsignedShort(0);
-				data.AdvanceOffset(sizeof(ushort));
-				received -= sizeof(ushort);
+			//  Read the offset of the fist message in the current packet.
+			Debug.Assert(received >= sizeof(ushort));
+			ushort offset = data.GetUnsignedShort(0);
+			data.AdvanceOffset(sizeof(ushort));
+			received -= sizeof(ushort);
 
-				//  Join the stream if needed.
-				if (!m_joined)
-				{
-					//  There is no beginning of the message in current packet.
-					//  Ignore the data.
-					if (offset == 0xffff)
-						continue;
+			//  Join the stream if needed.
+			if (!m_joined)
+			{
+				//  There is no beginning of the message in current packet.
+				//  Ignore the data.
+				if (offset == 0xffff)
+					return;
 
-					Debug.Assert(offset <= received);
-					Debug.Assert(m_decoder == null);
+				Debug.Assert(offset <= received);
+				Debug.Assert(m_decoder == null);
 
-					//  We have to move data to the begining of the first message.
-					data.AdvanceOffset(offset);
-					received -= offset;
+				//  We have to move data to the begining of the first message.
+				data.AdvanceOffset(offset);
+				received -= offset;
 
-					//  Mark the stream as joined.
-					m_joined = true;
+				//  Mark the stream as joined.
+				m_joined = true;
 
-					//  Create and connect decoder for the peer.
-					m_decoder = new Decoder(0, m_options.Maxmsgsize);
-					m_decoder.SetMsgSink(m_session);
-				}
+				//  Create and connect decoder for the peer.
+				m_decoder = new Decoder(0, m_options.Maxmsgsize);
+				m_decoder.SetMsgSink(m_session);
+			}
 
-				//  Push all the data to the decoder.
-				int processed = m_decoder.ProcessBuffer(data, received);
-				if (processed < received)
-				{
-					//  Save some state so we can resume the decoding process later.
-					m_pendingBytes = received - processed;
-					m_pendingData = new ByteArraySegment(data, processed);
+			//  Push all the data to the decoder.
+			int processed = m_decoder.ProcessBuffer(data, received);
+			if (processed < received)
+			{
+				//  Save some state so we can resume the decoding process later.
+				m_pendingBytes = received - processed;
+				m_pendingData = new ByteArraySegment(data, processed);
 
-					//  Stop polling.
-					m_ioObject.ResetPollin(m_handle);
+				//  Stop polling.
+				m_ioObject.ResetPollin(m_handle);
 
-					break;
-				}
+				return;
 			}
 
 			m_session.Flush();

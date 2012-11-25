@@ -32,6 +32,19 @@ namespace NetMQ.zmq
 			//  Separate the address/port.
 			String addrStr = name.Substring(0, delimiter);
 			String portStr = name.Substring(delimiter + 1);
+	
+			if (addrStr.Contains(";"))
+			{
+				int semiColonDelimiter = addrStr.IndexOf(";");
+				string interfaceIP = addrStr.Substring(0, semiColonDelimiter);
+				addrStr = addrStr.Substring(semiColonDelimiter + 1);
+
+				InterfaceAddress = IPAddress.Parse(interfaceIP);
+			}
+			else
+			{
+				InterfaceAddress = null;
+			}
 
 			//  Remove square brackets around the address, if any.
 			if (addrStr.Length >= 2 && addrStr[0] == '[' &&
@@ -72,13 +85,7 @@ namespace NetMQ.zmq
 			Address = addrNet;
 		}
 
-		public IPEndPoint InterfaceAddress
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		public IPAddress InterfaceAddress { get; private set; }
 
 		public IPEndPoint Address { get; set; }
 

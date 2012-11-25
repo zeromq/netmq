@@ -16,7 +16,7 @@ namespace NetMQ.zmq
 
 		private Socket m_socket;
 		private PgmSocket m_pgmSocket;
-		
+
 		private ByteArraySegment m_outBuffer;
 		private int m_outBufferSize;
 
@@ -36,7 +36,7 @@ namespace NetMQ.zmq
 
 		public void Init(PgmAddress pgmAddress)
 		{
-			m_pgmSocket = new PgmSocket(m_options);
+			m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Publisher, m_addr.Resolved as PgmAddress);
 			m_pgmSocket.Init();
 
 			m_socket = m_pgmSocket.FD;
@@ -44,21 +44,23 @@ namespace NetMQ.zmq
 			IPEndPoint localEndpoint = new IPEndPoint(IPAddress.Any, 0);
 
 			m_socket.Bind(localEndpoint);
+
+			m_pgmSocket.InitOptions();
+
 			m_socket.Connect(pgmAddress.Address);
 			m_socket.Blocking = false;
-			m_pgmSocket.EnableGigabit();
 
-			m_outBufferSize = m_options.MaxTSDUSize;
+			m_outBufferSize = Config.PgmMaxTPDU;
 			m_outBuffer = new ByteArraySegment(new byte[m_outBufferSize]);
 		}
 
 		public void Plug(IOThread ioThread, SessionBase session)
-		{	
+		{
 			m_encoder.SetMsgSource(session);
-			
+
 			AddFd(m_socket);
 			SetPollout(m_socket);
-			
+
 			// get the first message from the session because we don't want to send identities
 			session.PullMsg();
 		}
@@ -135,5 +137,5 @@ namespace NetMQ.zmq
 			throw new NotImplementedException();
 		}
 
-		}
+	}
 }

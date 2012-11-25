@@ -37,7 +37,6 @@ namespace NetMQ.zmq
 			Rate = 100;
 			RecoveryIvl = 10000;
 			MulticastHops = 1;
-			MaxTSDUSize = 1400;
 			SendBuffer = 0;
 			ReceiveBuffer = 0;
 			SocketType = ZmqSocketType.None;
@@ -86,12 +85,6 @@ namespace NetMQ.zmq
 
 		// Sets the time-to-live field in every multicast packet sent.
 		public int MulticastHops { get; set; }
-
-
-		/// <summary>
-		/// Set the maximum message size for PGM, this is importnant for compatability with original zero mq
-		/// </summary>
-		public int MaxTSDUSize { get; set; }
 
 		// SO_SNDBUF and SO_RCVBUF to be passed to underlying transport sockets.
 		public int SendBuffer { get; set; }
@@ -253,10 +246,6 @@ namespace NetMQ.zmq
 					MulticastHops = (int) optval;
 					return true;
 
-				case ZmqSocketOptions.MaxTSDUSize:
-					MaxTSDUSize = (int) optval;
-					return true;
-
 				case ZmqSocketOptions.ReceiveTimeout:
 					ReceiveTimeout = (int) optval;
 					return true;
@@ -371,9 +360,6 @@ namespace NetMQ.zmq
 
 				case ZmqSocketOptions.MulticastHops:
 					return MulticastHops;
-
-				case ZmqSocketOptions.MaxTSDUSize:
-					return MaxTSDUSize;
 
 				case ZmqSocketOptions.ReceiveTimeout:
 					return ReceiveTimeout;

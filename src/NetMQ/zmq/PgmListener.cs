@@ -30,18 +30,18 @@ namespace NetMQ.zmq
 
 		public bool Init(string network)
 		{
-			m_pgmSocket = new PgmSocket(m_options);
-			m_pgmSocket.Init();
-
 			m_address = new PgmAddress(network);
 
+			m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Listener, m_address);
+			m_pgmSocket.Init();
+			
 			m_handle = m_pgmSocket.FD;
 
 			try
 			{
 				m_handle.Bind(m_address.Address);
+				m_pgmSocket.InitOptions();
 				m_handle.Listen(m_options.Backlog);
-				m_pgmSocket.EnableGigabit();
 			}
 			catch (SocketException ex)
 			{
@@ -113,7 +113,7 @@ namespace NetMQ.zmq
 				return;
 			}
 
-			PgmSocket pgmSocket = new PgmSocket(m_options);
+			PgmSocket pgmSocket = new PgmSocket(m_options, PgmSocketType.Receiver, m_address);
 			pgmSocket.Init(fd);
 
 			PgmSession pgmSession = new PgmSession(pgmSocket, m_options);
@@ -136,7 +136,7 @@ namespace NetMQ.zmq
 			{
 				socket = m_handle.Accept();
 				socket.Blocking = false;
-				m_pgmSocket.EnableGigabit();
+				m_pgmSocket.InitOptions();
 			}
 			catch (SocketException)
 			{

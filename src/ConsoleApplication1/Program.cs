@@ -20,25 +20,31 @@ namespace ConsoleApplication1
 
 			PublisherSocket pub = context.CreatePublisherSocket();
 
-			pub.Connect("pgm://224.0.0.1:55555");
+			pub.Connect("pgm://192.168.0.103;224.0.0.1:55555");
 
 			Console.ReadLine();
-			
-			sub.Bind("pgm://224.0.0.1:55555");			
+
+			sub.Bind("pgm://192.168.0.103;224.0.0.1:55555");			
 
 			Thread.Sleep(200);
 			
-			pub.SendTopic("Shalom").Send("BLABLABLABLA");
-			pub.SendTopic("Shalom").Send("BLABLABLABLA");
+			pub.SendTopic("Shalom").Send("1");
+			pub.SendTopic("Shalom").Send("2");
 
 			Thread.Sleep(200);
 						
-			pub.SendTopic("Shalom").Send("BLABLABLABLA");
+			pub.SendTopic("Shalom").Send("3");
 
-			IList<string> messages = sub.ReceiveAllString();
+			
+			while (true)
+			{
+				IList<string> messages = sub.ReceiveAllString();
 
-			Console.WriteLine(messages[0]);
-
+				foreach (string message in messages)
+				{
+					Console.WriteLine(message);
+				}
+			}
 		}
 	}
 }
