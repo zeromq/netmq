@@ -77,6 +77,13 @@ namespace NetMQ.zmq
 					return Resolved.ToString();
 				}
 			}
+			else if (Protocol.Equals("pgm"))
+			{
+				if (Resolved != null)
+				{
+					return Resolved.ToString();
+				}
+			}
 
 			if (!string.IsNullOrEmpty(Protocol) && !string.IsNullOrEmpty(AddressString))
 			{

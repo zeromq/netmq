@@ -109,6 +109,11 @@
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
     <Compile Include="zmq\Pair.cs" />
+    <Compile Include="zmq\PgmAddress.cs" />
+    <Compile Include="zmq\PgmListener.cs" />
+    <Compile Include="zmq\PgmSender.cs" />
+    <Compile Include="zmq\PgmSession.cs" />
+    <Compile Include="zmq\PgmSocket.cs" />
     <Compile Include="zmq\Pipe.cs" />
     <None Include="zmq\Native\Poller.cs" />
     <Compile Include="zmq\Poller.cs" />

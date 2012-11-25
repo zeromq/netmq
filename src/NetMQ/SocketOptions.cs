@@ -38,10 +38,10 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.Rate, value); }
         }
 
-        public int MulticastRecoveryInterval
+        public TimeSpan MulticastRecoveryInterval
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReconnectIvl); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.ReconnectIvl, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvl); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvl, value); }
         }
 
         public int SendBuffer

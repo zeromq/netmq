@@ -65,7 +65,7 @@ namespace NetMQ.zmq
 
 		[Obsolete]
 		RouterBehavior = RouterMandatory,
-	}
+}
 
 	[Flags]
 	public enum SendRecieveOptions
