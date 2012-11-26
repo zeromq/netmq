@@ -54,6 +54,11 @@ namespace NetMQ.zmq
 			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 8);
 		}
 
+		public void PutUnsingedShort(ushort value, int i)
+		{
+			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 2);			
+		}
+
 		public void PutInteger(int value, int i)
 		{
 			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 4);
@@ -80,6 +85,13 @@ namespace NetMQ.zmq
 		public int GetInteger(int i)
 		{
 			var value = BitConverter.ToInt32(m_innerBuffer, i + Offset);
+
+			return value;
+		}
+
+		public ushort GetUnsignedShort(int i)
+		{
+			var value = BitConverter.ToUInt16(m_innerBuffer, i + Offset);
 
 			return value;
 		}
@@ -157,5 +169,7 @@ namespace NetMQ.zmq
 		{
 			Offset = 0;
 		}
+
+		
 	}
 }

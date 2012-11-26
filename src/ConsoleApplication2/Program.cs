@@ -13,15 +13,15 @@ namespace ConsoleApplication2
 		{
 			Context context = Context.Create();
 
-			PairSocket pairSocket1 = context.CreatePairSocket();
-			PairSocket pairSocket2 = context.CreatePairSocket();
+			//PairSocket pairSocket1 = context.CreatePairSocket();
+			//PairSocket pairSocket2 = context.CreatePairSocket();
 
-			//RequestSocket pairSocket1 = context.CreateRequestSocket();
-			//ResponseSocket pairSocket2 = context.CreateResponseSocket();
+			RequestSocket pairSocket1 = context.CreateRequestSocket();
+			ResponseSocket pairSocket2 = context.CreateResponseSocket();
 
 
-			pairSocket1.Bind("inproc://d");
-			pairSocket2.Connect("inproc://d");
+			pairSocket1.Bind("tcp://127.0.0.1:5555");
+			pairSocket2.Connect("tcp://127.0.0.1:5555");
 
 			pairSocket1.Send("1");
 

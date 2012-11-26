@@ -88,16 +88,17 @@ namespace NetMQ.zmq
 			m_poller.ResetPollout (handle);
 		}
 
-		public void InEvent() {
+		public virtual void InEvent() {
 			m_handler.InEvent();
 		}
 
-		public void OutEvent() {
+		public virtual void OutEvent()
+		{
 			m_handler.OutEvent();
 		}
     
     
-		public void TimerEvent(int id) {
+		public virtual void TimerEvent(int id) {
 			m_handler.TimerEvent(id);
 		}
     
