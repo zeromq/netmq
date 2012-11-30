@@ -4,14 +4,13 @@ NetMQ
 NetMQ is port of zeromq to .net.
 
 The project based on zeromq version 3.2, the project is still under development and not stable yet.
-Most of zeromq features are already implemented.
+Most of zeromq features are already implemented, including TCP Keep alive and PGM. ePGM is not supported.
 
 The following is still under development:
 * Error handling
 * Support clrzmq API
 * Port the testing from the original project
 * Check compatibility to original zeromq
-* PGM protocol
 * Mono support
 * IPv6
 
