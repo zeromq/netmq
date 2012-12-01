@@ -9,7 +9,6 @@ namespace NetMQ
 {
 	public class Poller
 	{
-		
 		class ProxyPoll
 		{
 			public BaseSocket FromSocket { get; set; }
@@ -21,10 +20,14 @@ namespace NetMQ
 		{
 			public BaseSocket Socket { get; set; }
 			public Action<BaseSocket> Action;
+			public bool Cancelled { get; set; }
 		}
 
 		readonly CancellationTokenSource m_cancellationTokenSource;
 		readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
+
+		private bool m_socketRetired = false;
+		private bool m_newSockets = false;
 
 		readonly IList<SocketPoll> m_sockets = new List<SocketPoll>();
 		readonly IList<ProxyPoll> m_proxies = new List<ProxyPoll>();
@@ -76,9 +79,23 @@ namespace NetMQ
 			m_sockets.Add(new SocketPoll
 				{
 					Socket = socket,
-					Action = s => action(s as T)
+					Action = s => action(s as T),
+					Cancelled = false
 				});
 
+			m_newSockets = true;
+		}
+
+		public void CancelSocket<T>(T socket) where T : BaseSocket
+		{
+			SocketPoll poll = m_sockets.First(s => s.Socket == socket);
+
+			if (poll != null)
+			{
+				m_sockets.Remove(poll);
+				poll.Cancelled = true;
+				m_socketRetired = true;
+			}
 		}
 
 		/// <summary>
@@ -103,7 +120,7 @@ namespace NetMQ
 			{
 				m_proxies.Add(new ProxyPoll { FromSocket = to, ToSocket = from });
 			}
-		}		
+		}
 
 		public void AddMonitor(BaseSocket socket, string address, IMonitoringEventsHandler eventsHandler)
 		{
@@ -115,7 +132,7 @@ namespace NetMQ
 			MonitorPoll monitorPoll = new MonitorPoll(m_context, socket, address, eventsHandler);
 
 			m_monitors.Add(monitorPoll);
-			
+
 			if (init)
 			{
 				monitorPoll.Init();
@@ -135,15 +152,19 @@ namespace NetMQ
 			// at the begining of the loop
 			Thread.MemoryBarrier();
 
-			PollItem[] items = new PollItem[m_proxies.Count + m_sockets.Count + m_monitors.Count];
+			int count = m_proxies.Count + m_sockets.Count + m_monitors.Count;
+
+			PollItem[] items = new PollItem[count];
 			int i = 0;
 
+			// add all sockets to the poll array
 			foreach (var item in m_sockets)
 			{
 				items[i] = new PollItem(item.Socket.SocketHandle, PollEvents.PollIn);
 				i++;
 			}
 
+			// add all proxies to the poll array
 			foreach (var item in m_proxies)
 			{
 				items[i] = new PollItem(item.FromSocket.SocketHandle, PollEvents.PollIn);
@@ -162,12 +183,17 @@ namespace NetMQ
 
 			Dictionary<SocketBase, MonitorPoll> handleToMonitor = m_monitors.ToDictionary(k => k.MonitoringSocket.SocketHandle, m => m);
 
+			m_newSockets = false;
+			m_socketRetired = false;
+
 			while (!m_cancellationTokenSource.IsCancellationRequested)
 			{
-				int result = ZMQ.Poll(items, (int)PollTimeout.TotalMilliseconds);
+				int result = ZMQ.Poll(items, count, (int)PollTimeout.TotalMilliseconds);
 
-				foreach (var item in items)
+				for (int j = 0; j < count; j++)
 				{
+					var item = items[j];
+
 					if ((item.ResultEvent & PollEvents.PollIn) == PollEvents.PollIn)
 					{
 						SocketPoll socketPoll;
@@ -202,6 +228,18 @@ namespace NetMQ
 						}
 					}
 				}
+
+				if (m_socketRetired)
+				{
+					m_socketRetired = false;
+					count = HandleSocketRetired(items, count, handleToSocket);
+				}
+
+				if (m_newSockets)
+				{
+					m_newSockets = false;
+					count = HandleNewSockets(count, handleToSocket, ref items);
+				}
 			}
 
 			// we should close the monitors anyway because this poller created them
@@ -215,17 +253,72 @@ namespace NetMQ
 				// make a list of all the sockets the poller need to close
 				var socketToClose =
 					m_sockets.Select(m => m.Socket).Union(m_proxies.Select(p => p.FromSocket)).
-						Union(m_proxies.Select(p => p.ToSocket)).Distinct();						
+						Union(m_proxies.Select(p => p.ToSocket)).Distinct();
 
 				foreach (var socket in socketToClose)
 				{
 					socket.Close();
 				}
 			}
-		
+
 			// the poller is stopped
 			m_isStoppedEvent.Set();
 			m_isStarted = false;
+		}
+
+		private int HandleNewSockets(int count, Dictionary<SocketBase, SocketPoll> handleToSocket, ref PollItem[] items)
+		{
+			SocketPoll[] newSockets = m_sockets.Except(handleToSocket.Values).ToArray();
+
+			int itemsNewSize = count + newSockets.Length;
+
+			if (itemsNewSize > items.Length)
+			{
+				PollItem[] newArray = new PollItem[itemsNewSize];
+				Array.Copy(items, newArray, count);
+
+				items = newArray;
+			}
+
+			foreach (SocketPoll socketPoll in newSockets)
+			{
+				items[count] = new PollItem(socketPoll.Socket.SocketHandle, PollEvents.PollIn);
+				handleToSocket.Add(socketPoll.Socket.SocketHandle, socketPoll);
+				count++;
+			}
+			return count;
+		}
+
+		private static int HandleSocketRetired(PollItem[] items, int count, Dictionary<SocketBase, SocketPoll> handleToSocket)
+		{
+			SocketPoll[] retiredSockets = handleToSocket.Where(s => s.Value.Cancelled).Select(s => s.Value).ToArray();
+
+			foreach (SocketPoll retiredSocket in retiredSockets)
+			{
+				handleToSocket.Remove(retiredSocket.Socket.SocketHandle);
+
+				int currentIndex = 0;
+
+				while (true)
+				{
+					if (items[currentIndex].Socket == retiredSocket.Socket.SocketHandle)
+					{
+						while (currentIndex < count - 1)
+						{
+							items[currentIndex] = items[currentIndex + 1];
+							currentIndex++;
+						}
+
+						items[currentIndex] = null;
+
+						count--;
+						break;
+					}
+
+					currentIndex++;
+				}
+			}
+			return count;
 		}
 
 		/// <summary>
@@ -244,7 +337,7 @@ namespace NetMQ
 		}
 
 		public void Stop()
-		{			
+		{
 			Stop(true);
 		}
 	}
