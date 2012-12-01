@@ -19,6 +19,8 @@ Bonus features planned to be developed:
 * SSL
 * New PUB/SUB sockets that the server decide on the subscriptions of the client (to support permissions on topics).
 
+you can join us at netmq-dev@googlegroups.com
+
 ## Who owns NetMQ?
 
 NetMQ is owned by all its authors and contributors. 
