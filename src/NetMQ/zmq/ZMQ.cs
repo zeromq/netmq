@@ -425,12 +425,17 @@ namespace NetMQ.zmq
 
 		public static int Poll(PollItem[] items, int timeout)
 		{
+			return Poll(items, items.Length, timeout);
+		}
+
+		public static int Poll(PollItem[] items, int itemsCount, int timeout)
+		{
 			if (items == null)
 			{
 				ZError.ErrorNumber = (ErrorNumber.EFAULT);
 				throw new ArgumentException();
 			}
-			if (items.Length == 0)
+			if (itemsCount == 0)
 			{
 				if (timeout == 0)
 					return 0;
@@ -445,8 +450,10 @@ namespace NetMQ.zmq
 			List<Socket> readList = new List<Socket>();
 			List<Socket> errorList = new List<Socket>();
 
-			foreach (var pollItem in items)
+			for (int i = 0; i < itemsCount; i++)
 			{
+				var pollItem = items[i];
+
 				if (pollItem.Socket != null)
 				{
 					if (pollItem.Events != PollEvents.None)
@@ -476,7 +483,7 @@ namespace NetMQ.zmq
 			ArrayList inset = new ArrayList(readList.Count);
 			ArrayList outset = new ArrayList(writeList.Count);
 			ArrayList errorset = new ArrayList(errorList.Count);
-			
+
 			Stopwatch stopwatch = null;
 
 			while (true)
@@ -495,7 +502,7 @@ namespace NetMQ.zmq
 				inset.AddRange(readList);
 				outset.AddRange(writeList);
 				errorset.AddRange(errorList);
-				
+
 				try
 				{
 					System.Net.Sockets.Socket.Select(inset, outset, errorset, currentTimeoutMicroSeconds);
@@ -508,25 +515,27 @@ namespace NetMQ.zmq
 					return -1;
 				}
 
-				foreach (var pollItem in items)
+				for (int i = 0; i < itemsCount; i++)
 				{
+					var pollItem = items[i];
+
 					pollItem.ResultEvent = PollEvents.None;
 
 					if (pollItem.Socket != null)
 					{
 						PollEvents events = (PollEvents)GetSocketOption(pollItem.Socket, ZmqSocketOptions.Events);
-					
+
 						if ((pollItem.Events & PollEvents.PollIn) == PollEvents.PollIn &&
 							(events & PollEvents.PollIn) == PollEvents.PollIn)
 						{
-							pollItem.ResultEvent |= PollEvents.PollIn;							
+							pollItem.ResultEvent |= PollEvents.PollIn;
 						}
 
 						if ((pollItem.Events & PollEvents.PollOut) == PollEvents.PollOut &&
 							(events & PollEvents.PollOut) == PollEvents.PollOut)
 						{
 							pollItem.ResultEvent |= PollEvents.PollOut;
-						}												
+						}
 					}
 					else
 					{
