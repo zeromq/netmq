@@ -19,7 +19,7 @@ Bonus features planned to be developed:
 * SSL
 * New PUB/SUB sockets that the server decide on the subscriptions of the client (to support permissions on topics).
 
-you can join us at netmq-dev@googlegroups.com
+you can join us at https://groups.google.com/d/forum/netmq-dev?hl=en or netmq-dev@googlegroups.com 
 
 ## Who owns NetMQ?
 
