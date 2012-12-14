@@ -496,7 +496,7 @@ namespace NetMQ.zmq
 				}
 				else
 				{
-					currentTimeoutMicroSeconds = (int)((timeout - stopwatch.ElapsedMilliseconds) % 1000 * 1000);
+					currentTimeoutMicroSeconds = (int)((timeout - stopwatch.ElapsedMilliseconds) * 1000);
 				}
 
 				inset.AddRange(readList);
