@@ -9,6 +9,12 @@ namespace NetMQ
 {
 	public class Poller
 	{
+		public class TimerPoll
+		{
+			public Action<int> TimerAction { get; set; }
+			public int Id { get; set; }
+		}
+
 		class ProxyPoll
 		{
 			public BaseSocket FromSocket { get; set; }
@@ -32,6 +38,10 @@ namespace NetMQ
 		readonly IList<SocketPoll> m_sockets = new List<SocketPoll>();
 		readonly IList<ProxyPoll> m_proxies = new List<ProxyPoll>();
 		readonly IList<MonitorPoll> m_monitors = new List<MonitorPoll>();
+
+		readonly SortedList<long, IList<TimerPoll>> m_timers = new SortedList<long, IList<TimerPoll>>();
+
+
 		private readonly Context m_context;
 		private bool m_isStarted;
 
@@ -54,7 +64,7 @@ namespace NetMQ
 		public TimeSpan PollTimeout { get; set; }
 
 		/// <summary>
-		/// Has the Poller been started.
+		/// Has the Poller been started.id =
 		/// </summary>
 		public bool IsStarted { get { return m_isStarted; } }
 
@@ -63,6 +73,75 @@ namespace NetMQ
 			if (m_sockets.Select(s => s.Socket).Contains(baseSocket) || m_proxies.Select(p => p.FromSocket).Contains(baseSocket))
 			{
 				throw new NetMQException("Socket already exist");
+			}
+		}
+
+		public void AddTimer(long timeout, int id, Action<int> timerAction)
+		{
+			AddTimer(timeout, id, true, timerAction);
+		}
+
+		public void AddTimer(long timeout, int id, bool replaceExisting, Action<int> timerAction)
+		{
+			// checking if this id already exist
+			if (m_timers.SelectMany(t=> t.Value).Select(t=> t.Id).Contains(id))
+			{
+				if (replaceExisting)
+				{
+					CancelTimer(id);
+				}
+				else
+				{
+					throw new ArgumentException(string.Format("Timer with id {0} already exist", id));
+				}
+			}
+
+			long expiration = Clock.NowMs() + timeout;
+
+			if (!m_timers.ContainsKey(expiration))
+			{
+				m_timers.Add(expiration, new List<TimerPoll>());
+			}
+
+			m_timers[expiration].Add(new TimerPoll
+																 {
+																	 Id = id,
+																	 TimerAction = timerAction
+																 });
+		}
+
+		public void CancelTimer(int id)
+		{
+			//  Complexity of this operation is O(n). We assume it is rarely used.
+			var foundTimers = new Dictionary<long, TimerPoll>();
+
+			foreach (var pair in m_timers)
+			{
+				var timer = pair.Value.FirstOrDefault(x => x.Id == id);
+
+				if (timer == null)
+					continue;
+
+				if (!foundTimers.ContainsKey(pair.Key))
+				{
+					foundTimers[pair.Key] = timer;
+					break;
+				}
+			}
+
+			if (foundTimers.Count > 0)
+			{
+				foreach (var foundTimer in foundTimers)
+				{
+					if (m_timers[foundTimer.Key].Count == 1)
+					{
+						m_timers.Remove(foundTimer.Key);
+					}
+					else
+					{
+						m_timers[foundTimer.Key].Remove(foundTimer.Value);
+					}
+				}
 			}
 		}
 
@@ -139,6 +218,49 @@ namespace NetMQ
 			}
 		}
 
+		private int ExecuteTimers()
+		{
+			//  Fast track.
+			if (!m_timers.Any())
+				return 0;
+
+			//  Get the current time.
+			long current = Clock.NowMs();
+
+			//  Execute the timers that are already due.
+			var keys = m_timers.Keys;
+
+			for (int i = 0; i < keys.Count; i++)
+			{
+				var key = keys[i];
+
+				//  If we have to wait to execute the item, same will be true about
+				//  all the following items (multimap is sorted). Thus we can stop
+				//  checking the subsequent timers and return the time to wait for
+				//  the next timer (at least 1ms).
+				if (key > current)
+				{
+					return (int)(key - current);
+				}
+
+				var timers = m_timers[key];
+
+				//  Trigger the timers.                
+				foreach (var timer in timers)
+				{
+					timer.TimerAction(timer.Id);
+				}
+
+				//  Remove it from the list of active timers.		
+				timers.Clear();
+				m_timers.Remove(key);
+				i--;
+			}
+
+			//  There are no more timers.
+			return 0;
+		}
+
 		/// <summary>
 		/// Start the poller job, the start doesn't create a new thread. This method will block until stop is called
 		/// In the begining of the method full memory barried is called in case the sockets was created in another thread
@@ -186,9 +308,18 @@ namespace NetMQ
 			m_newSockets = false;
 			m_socketRetired = false;
 
+			int maxTimeout = (int)PollTimeout.TotalMilliseconds;
+
 			while (!m_cancellationTokenSource.IsCancellationRequested)
 			{
-				int result = ZMQ.Poll(items, count, (int)PollTimeout.TotalMilliseconds);
+				int timeout = ExecuteTimers();
+
+				if (timeout == 0 || timeout > maxTimeout)
+				{
+					timeout = maxTimeout;
+				}
+
+				int result = ZMQ.Poll(items, count, timeout);
 
 				for (int j = 0; j < count; j++)
 				{
