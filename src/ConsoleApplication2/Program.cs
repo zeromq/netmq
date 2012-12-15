@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -11,37 +12,28 @@ namespace ConsoleApplication2
 	{
 		static void Main(string[] args)
 		{
-			Context context = Context.Create();
+			using (Context context = Context.Create())
+			{
 
-			//PairSocket pairSocket1 = context.CreatePairSocket();
-			//PairSocket pairSocket2 = context.CreatePairSocket();
+				using (var socket1 = context.CreateResponseSocket())
+				{
+					socket1.Bind("tcp://127.0.0.1:82");
 
-			RequestSocket pairSocket1 = context.CreateRequestSocket();
-			ResponseSocket pairSocket2 = context.CreateResponseSocket();
-
-
-			pairSocket1.Bind("tcp://127.0.0.1:5555");
-			pairSocket2.Connect("tcp://127.0.0.1:5555");
-
-			pairSocket1.Send("1");
-
-			bool ok = pairSocket2.Poll(TimeSpan.FromSeconds(2), NetMQ.zmq.PollEvents.PollIn);
-			
-			//pairSocket1.Send("1");
-
-			bool hasMore;
-			
-			string m = pairSocket2.ReceiveString(out hasMore);
-
-			//var j = pairSocket2.ReceiveString(true, out hasMore);
-
-			//pairSocket1.Send("1");
-
-
-
-			
-		
-			Console.WriteLine(m);
+					while (true)
+					{
+						Stopwatch sw = Stopwatch.StartNew();
+						using (var socket2 = context.CreateRequestSocket())
+						{
+							socket2.Options.DelayAttachOnConnect = false;
+							socket2.Connect("tcp://127.0.0.1:82");
+							sw.Stop();	
+						}
+						
+						Console.WriteLine(sw.ElapsedMilliseconds);
+						//Thread.Sleep(1000);
+					}
+				}
+			}
 		}
 	}
 }
