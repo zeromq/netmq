@@ -15,9 +15,6 @@ namespace NetMQ.Tests
 		[Test]
 		public void ResponsePoll()
 		{
-			System.Security.Cryptography.RSACryptoServiceProvider s = new RSACryptoServiceProvider(new CspParameters());
-
-
 			using (Context contex = Context.Create())
 			{
 				using (ResponseSocket rep = contex.CreateResponseSocket())
@@ -353,18 +350,18 @@ namespace NetMQ.Tests
 							if (router2arrived == 1)
 							{
 								poller.AddSocket(router3, (r2) =>
-									                          {
-										                          router3.Receive(out more);
-										                          router3.Receive(out more);
-										                          router3arrived = true;
-									                          });
+																						{
+																							router3.Receive(out more);
+																							router3.Receive(out more);
+																							router3arrived = true;
+																						});
 
 								poller.AddSocket(router4, (r3) =>
-									                          {
-										                          router4.Receive(out more);
-										                          router4.Receive(out more);
-										                          router4arrived = true;
-									                          });
+																						{
+																							router4.Receive(out more);
+																							router4.Receive(out more);
+																							router4arrived = true;
+																						});
 							}
 						});
 
@@ -391,8 +388,8 @@ namespace NetMQ.Tests
 
 						Assert.IsFalse(more);
 
-						Assert.AreEqual(1,router1arrived);
-						Assert.AreEqual(2,router2arrived);
+						Assert.AreEqual(1, router1arrived);
+						Assert.AreEqual(2, router2arrived);
 						Assert.IsTrue(router3arrived);
 						Assert.IsTrue(router4arrived);
 					}
@@ -513,5 +510,308 @@ namespace NetMQ.Tests
 				}
 			}
 		}
+
+		[Test]
+		public void SimpleTimer()
+		{
+			using (Context contex = Context.Create())
+			{
+				// we are using three responses to make sure we actually move the correct socket and other sockets still work
+				using (RouterSocket router = contex.CreateRouterSocket())
+				{
+					router.Bind("tcp://127.0.0.1:5002");
+
+					using (DealerSocket dealer = contex.CreateDealerSocket())
+					{
+						dealer.Connect("tcp://127.0.0.1:5002");
+
+						Poller poller = new Poller(contex);
+
+						bool messageArrived = false;
+
+						poller.AddSocket(router, s =>
+						{
+							bool isMore;
+							router.Receive(out isMore);
+							router.Receive(out isMore);
+
+
+							messageArrived = true;
+						});
+
+						bool timerTriggered = false;
+
+						// the timer will jump after 100ms
+						poller.AddTimer(100, 1, id =>
+						{
+
+							// the timer should jump before the message
+							Assert.IsFalse(messageArrived);
+							timerTriggered = true;
+						});
+
+						Task.Factory.StartNew(poller.Start);
+
+						Thread.Sleep(150);
+
+						dealer.Send("hello");
+
+						Thread.Sleep(50);
+
+						poller.Stop();
+
+						Assert.IsTrue(messageArrived);
+						Assert.IsTrue(timerTriggered);
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void CancelTimer()
+		{
+			using (Context contex = Context.Create())
+			{
+				// we are using three responses to make sure we actually move the correct socket and other sockets still work
+				using (RouterSocket router = contex.CreateRouterSocket())
+				{
+					router.Bind("tcp://127.0.0.1:5002");
+
+					using (DealerSocket dealer = contex.CreateDealerSocket())
+					{
+						dealer.Connect("tcp://127.0.0.1:5002");
+
+						Poller poller = new Poller(contex);
+
+						bool timerTriggered = false;
+
+						// the timer will jump after 100ms
+						poller.AddTimer(100, 1, id =>
+						{
+							timerTriggered = true;
+						});
+
+						bool messageArrived = false;
+
+						poller.AddSocket(router, s =>
+						{
+							bool isMore;
+							router.Receive(out isMore);
+							router.Receive(out isMore);
+
+							messageArrived = true;
+							poller.CancelTimer(1);
+						});
+
+						Task.Factory.StartNew(poller.Start);
+
+						Thread.Sleep(20);
+
+						dealer.Send("hello");
+
+						Thread.Sleep(50);
+
+						poller.Stop();
+
+						Assert.IsTrue(messageArrived);
+						Assert.IsFalse(timerTriggered);
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void ReregisterTimer()
+		{
+			using (Context contex = Context.Create())
+			{
+				// we are using three responses to make sure we actually move the correct socket and other sockets still work
+				using (RouterSocket router = contex.CreateRouterSocket())
+				{
+					router.Bind("tcp://127.0.0.1:5002");
+
+					using (DealerSocket dealer = contex.CreateDealerSocket())
+					{
+						dealer.Connect("tcp://127.0.0.1:5002");
+
+						Poller poller = new Poller(contex);
+
+						bool messageArrived = false;
+
+						poller.AddSocket(router, s =>
+						{
+							bool isMore;
+							router.Receive(out isMore);
+							router.Receive(out isMore);
+
+
+							messageArrived = true;
+						});
+
+						int timerCounter = 0;
+
+						// the timer will jump after 100ms
+						poller.AddTimer(20, 1, id =>
+						{
+							timerCounter++;
+
+							poller.AddTimer(20, 1, id2 =>
+							{
+								timerCounter++;
+							});
+						});
+
+						Task.Factory.StartNew(poller.Start);
+
+						Thread.Sleep(30);
+
+						dealer.Send("hello");
+
+						Thread.Sleep(50);
+
+						poller.Stop();
+
+						Assert.IsTrue(messageArrived);
+						Assert.AreEqual(2, timerCounter);
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void TwoTimers()
+		{
+			using (Context contex = Context.Create())
+			{
+				// we are using three responses to make sure we actually move the correct socket and other sockets still work
+				using (RouterSocket router = contex.CreateRouterSocket())
+				{
+					router.Bind("tcp://127.0.0.1:5002");
+
+					using (DealerSocket dealer = contex.CreateDealerSocket())
+					{
+						dealer.Connect("tcp://127.0.0.1:5002");
+
+						Poller poller = new Poller(contex);
+
+						bool messageArrived = false;
+
+						poller.AddSocket(router, s =>
+						{
+							bool isMore;
+							router.Receive(out isMore);
+							router.Receive(out isMore);
+
+
+							messageArrived = true;
+						});
+
+						bool timerTriggered = false;
+
+						// the timer will jump after 100ms
+						poller.AddTimer(20, 1, id =>
+						{
+
+							// the timer should jump before the message
+							Assert.IsFalse(messageArrived);
+							timerTriggered = true;
+						});
+
+						bool timerTriggered2 = false;
+
+
+						poller.AddTimer(80, 2, id =>
+						{
+							// the timer should jump before the message
+							Assert.IsTrue(messageArrived);
+							timerTriggered2 = true;
+						});
+
+						Task.Factory.StartNew(poller.Start);
+
+						Thread.Sleep(50);
+
+						dealer.Send("hello");
+
+						Thread.Sleep(50);
+
+						poller.Stop();
+
+						Assert.IsTrue(messageArrived);
+						Assert.IsTrue(timerTriggered);
+						Assert.IsTrue(timerTriggered2);
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void OverrideTimer()
+		{
+			using (Context contex = Context.Create())
+			{
+				// we are using three responses to make sure we actually move the correct socket and other sockets still work
+				using (RouterSocket router = contex.CreateRouterSocket())
+				{
+					router.Bind("tcp://127.0.0.1:5002");
+
+					using (DealerSocket dealer = contex.CreateDealerSocket())
+					{
+						dealer.Connect("tcp://127.0.0.1:5002");
+
+						Poller poller = new Poller(contex);
+
+
+						bool timerTriggered = false;
+						bool timerTriggered2 = false;
+						bool messageArrived = false;
+
+						Console.WriteLine("register timer {0}", DateTime.Now.ToString("ss.fff"));
+						// the timer will jump after 100ms
+						poller.AddTimer(150, 1, id =>
+						{
+							Console.WriteLine("timer triggered {0}", DateTime.Now.ToString("ss.fff"));
+							// the timer should jump before the message
+							timerTriggered = true;
+						});
+
+						poller.AddSocket(router, s =>
+																			 {
+																				 bool isMore;
+																				 router.Receive(out isMore);
+																				 router.Receive(out isMore);
+
+																				 Console.WriteLine("message arrived {0}", DateTime.Now.ToString("ss.fff"));
+
+																				 Assert.IsFalse(timerTriggered);
+
+																				 messageArrived = true;
+
+																				 // the timer will jump after 100ms
+																				 poller.AddTimer(20, 1, id =>
+																				 {
+																					 Console.WriteLine("timer 2 triggered {0}", DateTime.Now.ToString("ss.fff"));
+																					 timerTriggered2 = true;
+																				 });
+
+																			 });
+
+						Task.Factory.StartNew(poller.Start);
+
+						dealer.Send("hello");
+						Console.WriteLine("message sent {0}", DateTime.Now.ToString("ss.fff"));
+
+						Thread.Sleep(300);
+
+						poller.Stop();
+
+						Assert.IsTrue(messageArrived);
+						Assert.IsFalse(timerTriggered);
+						Assert.IsTrue(timerTriggered2);
+					}
+				}
+			}
+		}
+
 	}
 }
