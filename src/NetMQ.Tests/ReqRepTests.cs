@@ -49,13 +49,16 @@ namespace NetMQ.Tests
 			{
 				using (ResponseSocket rep = ctx.CreateResponseSocket())
 				{
-					rep.Bind("tcp://127.0.0.1:5001");
+					rep.Bind("tcp://127.0.0.1:5002");
 
 					using (RequestSocket req = ctx.CreateRequestSocket())
 					{						
-						req.Connect("tcp://127.0.0.1:5001");
+						req.Connect("tcp://127.0.0.1:5002");
 
 						req.Send("Hi");
+
+						bool more;
+						rep.Receive(out more);
 
 						req.Send("Hi2");
 					}

@@ -33,17 +33,22 @@ namespace NetMQ.zmq
 
 		private class PollSet
 		{
+			public Socket Socket { get; private set; }
+
 			public IPollEvents Handler { get; private set; }
 			public bool Cancelled { get; set; }
 
-			public PollSet(IPollEvents handler)
+			public PollSet(Socket socket,IPollEvents handler)
 			{
 				Handler = handler;
+				Socket = socket;
 				Cancelled = false;
 			}
 		}
 		//  This table stores data for registered descriptors.
-		private readonly Dictionary<Socket, PollSet> m_fdTable;
+		private readonly List<PollSet> m_fdTable;
+
+		private readonly List<PollSet> m_addList; 
 
 		//  If true, there's at least one retired event source.
 		private bool m_retired;
@@ -58,7 +63,7 @@ namespace NetMQ.zmq
 		readonly HashSet<Socket> m_checkRead = new HashSet<Socket>();
 		readonly HashSet<Socket> m_checkWrite = new HashSet<Socket>();
 		readonly HashSet<Socket> m_checkError = new HashSet<Socket>();
-    
+
 
 		public Poller()
 			: this("poller")
@@ -68,13 +73,13 @@ namespace NetMQ.zmq
 
 		public Poller(String name)
 		{
-
 			m_name = name;
 			m_retired = false;
 			m_stopping = false;
 			m_stopped = false;
 
-			m_fdTable = new Dictionary<Socket, PollSet>();
+			m_fdTable = new List<PollSet>();
+			m_addList = new List<PollSet>();
 		}
 
 		public void Destroy()
@@ -90,9 +95,10 @@ namespace NetMQ.zmq
 				}
 			}
 		}
+
 		public void AddFD(Socket fd, IPollEvents events)
 		{
-			m_fdTable.Add(fd, new PollSet(events));
+			m_addList.Add(new PollSet(fd, events));
 
 			m_checkError.Add(fd);
 
@@ -102,8 +108,21 @@ namespace NetMQ.zmq
 
 		public void RemoveFD(Socket handle)
 		{
-			m_fdTable[handle].Cancelled = true;
-			m_retired = true;
+			PollSet pollSet;
+
+			// if the socket was removed before being added there is no reason to mark retired, so just cancelling the socket and removing from add list 
+			if ((pollSet = m_addList.FirstOrDefault(p => p.Socket == handle)) != null)
+			{
+				m_addList.Remove(pollSet);
+				pollSet.Cancelled = true;
+			}
+			else
+			{
+				pollSet = m_fdTable.First(p => p.Socket == handle);
+				pollSet.Cancelled = true;
+
+				m_retired = true;				
+			}
 
 			m_checkError.Remove(handle);
 			m_checkRead.Remove(handle);
@@ -122,21 +141,21 @@ namespace NetMQ.zmq
 
 
 		public void ResetPollin(Socket handle)
-		{        
+		{
 			m_checkRead.Remove(handle);
 		}
 
 		public void SetPollout(Socket handle)
 		{
-			if (!m_checkWrite.Contains(handle))        
+			if (!m_checkWrite.Contains(handle))
 				m_checkWrite.Add(handle);
 		}
 
 		public void ResetPollout(Socket handle)
 		{
 			m_checkWrite.Remove(handle);
-		}           
-    
+		}
+
 		public void Start()
 		{
 			m_worker = new Thread(Loop);
@@ -149,7 +168,6 @@ namespace NetMQ.zmq
 			m_stopping = true;
 		}
 
-
 		public void Loop()
 		{
 			ArrayList readList = new ArrayList();
@@ -158,6 +176,12 @@ namespace NetMQ.zmq
 
 			while (!m_stopping)
 			{
+				foreach (var pollSet in m_addList)
+				{
+					m_fdTable.Add(pollSet);
+				}
+				m_addList.Clear();
+
 				//  Execute any due timers.
 				int timeout = ExecuteTimers();
 
@@ -167,58 +191,59 @@ namespace NetMQ.zmq
 
 				try
 				{
-					Socket.Select(readList, writeList, errorList, timeout != 0 ? timeout : -1);
+					Socket.Select(readList, writeList, errorList, timeout != 0 ? timeout * 1000 : -1);
 				}
 				catch (SocketException)
 				{
 					continue;
 				}
 
-				foreach (Socket socket in errorList)
+				foreach (var pollSet in m_fdTable)
 				{
-					PollSet item; 
-
-					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
+					if (pollSet.Cancelled)
 					{
-						item.Handler.InEvent();
+						continue;
+					}
+
+					if (errorList.Contains(pollSet.Socket))
+					{
+						pollSet.Handler.InEvent();
+					}
+
+					if (pollSet.Cancelled)
+					{
+						continue;
+					}
+
+					if (writeList.Contains(pollSet.Socket))
+					{
+						pollSet.Handler.OutEvent();
+					}
+
+					if (pollSet.Cancelled)
+					{
+						continue;
+					}
+
+					if (readList.Contains(pollSet.Socket))
+					{
+						pollSet.Handler.InEvent();
 					}
 				}
+
 				errorList.Clear();
-            
-
-				foreach (Socket socket in writeList)
-				{
-					PollSet item;
-
-					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
-					{
-						item.Handler.OutEvent();
-					}
-				}
 				writeList.Clear();
-            
-
-				foreach (Socket socket in readList)
-				{
-					PollSet item;
-
-					if (m_fdTable.TryGetValue(socket, out item) && !item.Cancelled)
-					{
-						item.Handler.InEvent();
-					}
-				}
 				readList.Clear();
 
-            
 				if (m_retired)
 				{
-					foreach (var item in m_fdTable.Where(k => k.Value.Cancelled).ToList())
+					foreach (var item in m_fdTable.Where(k => k.Cancelled).ToList())
 					{
-						m_fdTable.Remove(item.Key);
+						m_fdTable.Remove(item);
 					}
 
 					m_retired = false;
-				}                     
+				}
 			}
 		}
 
