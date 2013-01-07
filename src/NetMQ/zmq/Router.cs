@@ -206,9 +206,9 @@ namespace NetMQ.zmq
 					//  If there's no such pipe just silently ignore the message, unless
 					//  mandatory is set.
 					Blob identity = new Blob(msg.Data);
-					Outpipe op = m_outpipes[identity];
+					Outpipe op;
 
-					if (op != null) {
+					if (m_outpipes.TryGetValue(identity, out op)) {
 						m_currentOut = op.Pipe;
 						if (!m_currentOut.CheckWrite ()) {
 							op.Active = false;
