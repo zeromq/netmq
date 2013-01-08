@@ -213,6 +213,12 @@ namespace NetMQ.zmq
 						if (!m_currentOut.CheckWrite ()) {
 							op.Active = false;
 							m_currentOut = null;
+							if (m_mandatory)
+							{
+								m_moreOut = false;
+								ZError.ErrorNumber = ErrorNumber.EAGAIN;
+								return false;
+							}
 						}
 					} else if (m_mandatory) {
 						m_moreOut = false;
