@@ -107,6 +107,9 @@ namespace NetMQ.zmq
 			listner.Close();
 
 			sync.ReleaseMutex();
+
+			// Release the kernel object
+			sync.Dispose();
 		}
 
 		public Socket FD
