@@ -53,7 +53,6 @@
     <Compile Include="IMonitoringEventsHandler.cs" />
     <Compile Include="MonitoringEventsHandler.cs" />
     <Compile Include="MonitorPoll.cs" />
-    <Compile Include="NetMQException.cs" />
     <Compile Include="PairSocket.cs" />
     <Compile Include="Poller.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -85,7 +84,8 @@
     <Compile Include="zmq\Encoder.cs" />
     <Compile Include="zmq\EncoderBase.cs" />
     <Compile Include="zmq\Enums.cs" />
-    <Compile Include="zmq\ErrorNumber.cs" />
+    <Compile Include="zmq\ErrorCode.cs" />
+    <Compile Include="zmq\ErrorHelper.cs" />
     <Compile Include="zmq\FQ.cs" />
     <Compile Include="zmq\IDecoder.cs" />
     <Compile Include="zmq\IEncoder.cs" />
@@ -106,6 +106,7 @@
     <Compile Include="zmq\Mtrie.cs" />
     <None Include="zmq\Native\NativeMethods.cs" />
     <Compile Include="zmq\Native\OpCode.cs" />
+    <Compile Include="zmq\NetMQException.cs" />
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
     <Compile Include="zmq\Pair.cs" />
@@ -146,7 +147,7 @@
     <Compile Include="zmq\XSub.cs" />
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\YQueue.cs" />
-    <Compile Include="zmq\ZError.cs" />
+    <None Include="zmq\ZError.cs" />
     <Compile Include="zmq\ZMQ.cs" />
     <Compile Include="zmq\ZObject.cs" />
   </ItemGroup>

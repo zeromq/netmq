@@ -77,11 +77,10 @@ namespace NetMQ.zmq
 		}
     
 		override
-			protected bool XSend(Msg msg, SendRecieveOptions flags)
+			protected void XSend(Msg msg, SendRecieveOptions flags)
 		{
 			if (m_pipe == null || !m_pipe.Write (msg)) {
-				ZError.ErrorNumber = (ErrorNumber.EAGAIN);
-				return false;
+				throw new ZMQException(ErrorCode.EAGAIN);
 			}
 
 			if ((flags & SendRecieveOptions.SendMore) == 0)
@@ -89,7 +88,6 @@ namespace NetMQ.zmq
 
 			//  Detach the original message from the data buffer.
 
-			return true;
 		}
 
 		override
@@ -99,10 +97,8 @@ namespace NetMQ.zmq
 
 			Msg msg = null;
 			if (m_pipe == null || (msg = m_pipe.Read ()) == null) {
-				ZError.ErrorNumber = (ErrorNumber.EAGAIN);
-				//  Initialise the output parameter to be a 0-byte message.
-				return null;
-			}
+				throw new ZMQException(ErrorCode.EAGAIN);
+							}
 			return msg;
 		}
 

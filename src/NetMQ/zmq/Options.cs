@@ -151,23 +151,20 @@ namespace NetMQ.zmq
 		public int SocketId { get; set; }
 
 
-		public bool SetSocketOption(ZmqSocketOptions option, Object optval)
+		public void SetSocketOption(ZmqSocketOptions option, Object optval)
 		{
 			switch (option)
 			{
 				case ZmqSocketOptions.SendHighWatermark:
 					SendHighWatermark = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.ReceivevHighWatermark:
 					ReceiveHighWatermark = (int) optval;
-					return true;
-
+					break;
 
 				case ZmqSocketOptions.Affinity:
 					Affinity = (long) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.Identity:
 					byte[] val;
 
@@ -177,115 +174,93 @@ namespace NetMQ.zmq
 						val = (byte[]) optval;
 					else
 					{
-						ZError.ErrorNumber = (ErrorNumber.EINVAL);
-						return false;
+						throw new ZMQException(ErrorCode.EINVAL);						
 					}
 
 					if (val.Length ==0 || val.Length > 255)
 					{
-						ZError.ErrorNumber = (ErrorNumber.EINVAL);
-						return false;
+						throw new ZMQException(ErrorCode.EINVAL);
 					}
 					Identity = new byte[val.Length];
 					val.CopyTo(Identity, 0);
 					IdentitySize = (byte) Identity.Length;
-					return true;
-
+					break;
 				case ZmqSocketOptions.Rate:
 					Rate = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.RecoveryIvl:
 					RecoveryIvl = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.SendBuffer:
 					SendBuffer = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.ReceivevBuffer:
 					ReceiveBuffer = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.Linger:
 					Linger = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.ReconnectIvl:
 					ReconnectIvl = (int) optval;
 
 					if (ReconnectIvl < -1)
 					{
-						ZError.ErrorNumber = (ErrorNumber.EINVAL);
-						return false;
+						throw new ZMQException(ErrorCode.EINVAL);
 					}
 
-					return true;
-
+					break;
 				case ZmqSocketOptions.ReconnectIvlMax:
 					ReconnectIvlMax = (int) optval;
 
 					if (ReconnectIvlMax < 0)
 					{
-						ZError.ErrorNumber = (ErrorNumber.EINVAL);
-						return false;
+						throw new ZMQException(ErrorCode.EINVAL);
 					}
 
-					return true;
-
+					break;
 				case ZmqSocketOptions.Backlog:
 					Backlog = (int) optval;
-					return true;
-
+					break;
 
 				case ZmqSocketOptions.Maxmsgsize:
 					Maxmsgsize = (long) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.MulticastHops:
 					MulticastHops = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.ReceiveTimeout:
 					ReceiveTimeout = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.SendTimeout:
 					SendTimeout = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.IPv4Only:
 
 					IPv4Only = (bool)optval;
-					
-					return true;
 
+					break;
 				case ZmqSocketOptions.TcpKeepalive:
 
 					TcpKeepalive = (int) optval;
 					if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
 					{
-						ZError.ErrorNumber = (ErrorNumber.EINVAL);
-						return false;
+						throw new ZMQException(ErrorCode.EINVAL);
 					}
-					return true;
-
+					break;
 				case ZmqSocketOptions.DelayAttachOnConnect:
 
 					DelayAttachOnConnect = (bool) optval;
-					
-					return true;
 
+					break;
 				case ZmqSocketOptions.TcpKeepaliveCnt:
 					// not supported
-					return true;
+					break;
 				case ZmqSocketOptions.TcpKeepaliveIdle:
 					TcpKeepaliveIdle = (int) optval;
-					return true;
+					break;
 				case ZmqSocketOptions.TcpKeepaliveIntvl:
 					TcpKeepaliveIntvl = (int) optval;
-					return true;
-
+					break;
 				case ZmqSocketOptions.TcpAcceptFilter:
 					String filterStr = (String) optval;
 					if (filterStr == null)
@@ -294,8 +269,7 @@ namespace NetMQ.zmq
 					}
 					else if (filterStr.Length == 0 || filterStr.Length > 255)
 					{
-						ZError.ErrorNumber = (ErrorNumber.EINVAL);
-						return false;
+						throw new ZMQException(ErrorCode.EINVAL);
 					}
 					else
 					{
@@ -303,11 +277,9 @@ namespace NetMQ.zmq
 						filter.Resolve(filterStr, IPv4Only);
 						TcpAcceptFilters.Add(filter);
 					}
-					return true;
-
+					break;
 				default:
-					ZError.ErrorNumber = (ErrorNumber.EINVAL);
-					return false;
+					throw new ZMQException(ErrorCode.EINVAL);
 			}
 		}
 
@@ -388,7 +360,7 @@ namespace NetMQ.zmq
 					return LastEndpoint;
 
 				default:
-					throw new ArgumentException("option=" + option);
+					throw new ZMQException(ErrorCode.EINVAL);
 			}
 		}
 	}

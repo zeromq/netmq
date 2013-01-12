@@ -59,7 +59,7 @@ namespace NetMQ.zmq
 			//  Find the ':' at end that separates address from the port number.
 			int delimiter = name.LastIndexOf(':');
 			if (delimiter < 0) {
-				throw new ArgumentException(name);
+				throw new ZMQException(ErrorCode.EINVAL);
 			}
 
 			//  Separate the address/port.
@@ -80,7 +80,7 @@ namespace NetMQ.zmq
 				//  Parse the port number (0 is not a valid port).
 				port = Convert.ToInt32(portStr);
 				if (port == 0) {
-					throw new ArgumentException(name);
+					throw new ZMQException(ErrorCode.EINVAL);
 				}
 			}
 
@@ -89,23 +89,13 @@ namespace NetMQ.zmq
 			if (addrStr.Equals("*")) {
 				addrStr = "0.0.0.0";
 			}
-			//try {
-			//    for(InetAddress ia: IPEndPoint .getAllByName(addr_str)) {
-			//        if (ipv4only_ && (ia is Inet6Address)) {
-			//            continue;
-			//        }
-			//        addr_net = ia;
-			//        break;
-			//    }
-			//} catch (UnknownHostException e) {
-			//    throw new ArgumentException(e);
-			//}
+			
 
 			IPAddress ipAddress;
 
 			if (!IPAddress.TryParse(addrStr, out ipAddress))
 			{
-				throw new ArgumentException();
+				throw new ZMQException(ErrorCode.EINVAL);
 			}
 
 			addrNet  = new IPEndPoint(ipAddress, port);

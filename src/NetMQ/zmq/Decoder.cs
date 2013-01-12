@@ -30,6 +30,8 @@
 //  This class , the state machine that parses the incoming buffer.
 //  Derived class should implement individual state machine actions.
 
+using System;
+
 namespace NetMQ.zmq
 {
 	public class Decoder : DecoderBase {
@@ -168,9 +170,14 @@ namespace NetMQ.zmq
         
 			if (m_msgSink == null)
 				return false;
-        
-			bool rc = m_msgSink.PushMsg (m_inProgress);
-			if (!rc) {
+
+			try
+			{
+				m_msgSink.PushMsg(m_inProgress);
+			
+			}
+			catch (ZMQException ex)
+			{
 				return false;
 			}
         

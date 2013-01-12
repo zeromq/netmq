@@ -19,20 +19,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class Dealer : SocketBase {
-    
-		public class DealerSession : SessionBase {
+	public class Dealer : SocketBase
+	{
+
+		public class DealerSession : SessionBase
+		{
 			public DealerSession(IOThread ioThread, bool connect,
-			                     SocketBase socket, Options options,
-			                     Address addr) : base(ioThread, connect, socket, options, addr) {
-            
-			                     }
+													 SocketBase socket, Options options,
+													 Address addr)
+				: base(ioThread, connect, socket, options, addr)
+			{
+
+			}
 		}
-    
+
 		//  Messages are fair-queued from inbound pipes. And load-balanced to
 		//  the outbound pipes.
 		private readonly FQ m_fq;
@@ -40,15 +45,17 @@ namespace NetMQ.zmq
 
 		//  Have we prefetched a message.
 		private bool m_prefetched;
-    
+
 		private Msg m_prefetchedMsg;
 
 		//  Holds the prefetched message.
-		public Dealer(Ctx parent, int tid, int sid) : base(parent, tid, sid) {
-                
+		public Dealer(Ctx parent, int tid, int sid)
+			: base(parent, tid, sid)
+		{
+
 			m_prefetched = false;
 			m_options.SocketType = ZmqSocketType.Dealer;
-        
+
 			m_fq = new FQ();
 			m_lb = new LB();
 			//  TODO: Uncomment the following line when DEALER will become true DEALER
@@ -56,20 +63,21 @@ namespace NetMQ.zmq
 			//  If the socket is closing we can drop all the outbound requests. There'll
 			//  be noone to receive the replies anyway.
 			//  options.delay_on_close = false;
-            
+
 			m_options.RecvIdentity = true;
 		}
-    
-		protected override void XAttachPipe(Pipe pipe, bool icanhasall) {
-        
+
+		protected override void XAttachPipe(Pipe pipe, bool icanhasall)
+		{
+
 			Debug.Assert(pipe != null);
-			m_fq.Attach (pipe);
-			m_lb.Attach (pipe);
+			m_fq.Attach(pipe);
+			m_lb.Attach(pipe);
 		}
 
-		protected override bool XSend(Msg msg, SendRecieveOptions flags)
+		protected override void XSend(Msg msg, SendRecieveOptions flags)
 		{
-			return m_lb.Send (msg, flags);
+			m_lb.Send(msg, flags);
 		}
 
 
@@ -82,16 +90,18 @@ namespace NetMQ.zmq
 		{
 			Msg msg_ = null;
 			//  If there is a prefetched message, return it.
-			if (m_prefetched) {
-				msg_ = m_prefetchedMsg ;
+			if (m_prefetched)
+			{
+				msg_ = m_prefetchedMsg;
 				m_prefetched = false;
 				m_prefetchedMsg = null;
 				return msg_;
 			}
 
 			//  DEALER socket doesn't use identities. We can safely drop it and 
-			while (true) {
-				msg_ = m_fq.Recv ();
+			while (true)
+			{
+				msg_ = m_fq.Recv();
 				if (msg_ == null)
 					return msg_;
 				if ((msg_.Flags & MsgFlags.Identity) == 0)
@@ -99,40 +109,53 @@ namespace NetMQ.zmq
 			}
 			return msg_;
 		}
-    
-		protected override bool XHasIn ()
+
+		protected override bool XHasIn()
 		{
 			//  We may already have a message pre-fetched.
 			if (m_prefetched)
 				return true;
 
 			//  Try to read the next message to the pre-fetch buffer.
-			m_prefetchedMsg = xxrecv(SendRecieveOptions.DontWait);
-			if (m_prefetchedMsg == null && ZError.IsError(ErrorNumber.EAGAIN))
-				return false;
+			try
+			{
+				m_prefetchedMsg = xxrecv(SendRecieveOptions.DontWait);
+			}
+			catch (ZMQException ex)
+			{
+				if (ex.ErrorCode == ErrorCode.EAGAIN)
+				{
+					return false;
+				}
+				else
+				{
+					throw;
+				}
+			}
+			
 			m_prefetched = true;
 			return true;
 		}
-    
-		protected override bool XHasOut ()
+
+		protected override bool XHasOut()
 		{
-			return m_lb.HasOut ();
+			return m_lb.HasOut();
 		}
-    
-		protected override void XReadActivated (Pipe pipe)
+
+		protected override void XReadActivated(Pipe pipe)
 		{
-			m_fq.Activated (pipe);
+			m_fq.Activated(pipe);
 		}
-   
-		protected override void XWriteActivated (Pipe pipe)
+
+		protected override void XWriteActivated(Pipe pipe)
 		{
-			m_lb.Activated (pipe);
+			m_lb.Activated(pipe);
 		}
 
 		protected override void XTerminated(Pipe pipe)
 		{
-			m_fq.Terminated (pipe);
-			m_lb.Terminated (pipe);
+			m_fq.Terminated(pipe);
+			m_lb.Terminated(pipe);
 		}
 	}
 }

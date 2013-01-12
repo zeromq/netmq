@@ -23,33 +23,40 @@ using System.Net;
 
 namespace NetMQ.zmq
 {
-	public class IpcAddress : Address.IZAddress {
+	public class IpcAddress : Address.IZAddress
+	{
 
 		private String m_name;
-    
-		public override String ToString() {
-			if (m_name == null) {
+
+		public override String ToString()
+		{
+			if (m_name == null)
+			{
 				return string.Empty;
 			}
-        
+
 			return "ipc://" + m_name;
 		}
 
-		public void Resolve(String name, bool ip4Only) {
-        
+		public void Resolve(String name, bool ip4Only)
+		{
+
 			this.m_name = name;
-        
+
 			int hash = name.GetHashCode();
 			if (hash < 0)
 				hash = -hash;
 			hash = hash % 55536;
 			hash += 10000;
-        
-        
-			try {
+
+
+			try
+			{
 				Address = new IPEndPoint(IPAddress.Loopback, hash);
-			} catch (Exception ex) {
-				throw new ArgumentException("",ex);
+			}
+			catch (Exception ex)
+			{
+				throw new ZMQException(ErrorCode.EINVAL, ex);
 			}
 		}
 

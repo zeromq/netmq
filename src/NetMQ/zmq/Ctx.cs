@@ -48,7 +48,7 @@ namespace NetMQ.zmq
 			}
 
 			public SocketBase Socket { get; private set; }
-			public Options Options { get; private set; }			
+			public Options Options { get; private set; }
 		}
 		//  Used to check whether the object is a context.
 		private uint m_tag;
@@ -72,7 +72,7 @@ namespace NetMQ.zmq
 		//  sockets, empty_slots, terminating. It also synchronises
 		//  access to zombie sockets as such (as opposed to slots) and provides
 		//  a memory barrier to ensure that all CPU cores see the same data.
-		
+
 		private readonly object m_slotSync;
 
 		//  The reaper thread.
@@ -168,6 +168,7 @@ namespace NetMQ.zmq
 			m_tag = 0xdeadbeef;
 
 			Monitor.Enter(m_slotSync);
+
 			if (!m_starting)
 			{
 
@@ -189,7 +190,9 @@ namespace NetMQ.zmq
 					try
 					{
 						for (int i = 0; i != m_sockets.Count; i++)
+						{
 							m_sockets[i].Stop();
+						}
 						if (m_sockets.Count == 0)
 							m_reaper.Stop();
 					}
@@ -201,10 +204,22 @@ namespace NetMQ.zmq
 
 				//  Wait till reaper thread closes all the sockets.
 				Command cmd;
-				cmd = m_termMailbox.Recv(-1);
-				if (cmd == null)
-					//throw new InvalidOperationException();
-					throw new ArgumentException();
+
+				try
+				{
+					cmd = m_termMailbox.Recv(-1);
+				}
+				catch (ZMQException ex)
+				{
+					if (ex.ErrorCode == ErrorCode.EINTR)
+					{
+						return;
+					}
+					else
+					{
+						throw;
+					}
+				}
 
 				Debug.Assert(cmd.CommandType == CommandType.Done);
 				Monitor.Enter(m_slotSync);
@@ -236,7 +251,7 @@ namespace NetMQ.zmq
 				}
 				else
 				{
-					throw new ArgumentException("option = " + option);
+					throw new ZMQException("option = " + option, ErrorCode.EINVAL);
 				}
 		}
 
@@ -250,7 +265,7 @@ namespace NetMQ.zmq
 					rc = m_ioThreadCount;
 				else
 				{
-					throw new ArgumentException("option = " + option);
+					throw new ZMQException("option = " + option, ErrorCode.EINVAL);
 				}
 			return rc;
 		}
@@ -300,7 +315,7 @@ namespace NetMQ.zmq
 
 					//  In the unused part of the slot array, create a list of empty slots.
 					for (int i = (int)m_slotCount - 1;
-					     i >= (int)ios + 2; i--)
+							 i >= (int)ios + 2; i--)
 					{
 						m_emptySlots.Push(i);
 						m_slots[i] = null;
@@ -311,15 +326,13 @@ namespace NetMQ.zmq
 				//  Once zmq_term() was called, we can't create new sockets.
 				if (m_terminating)
 				{
-					ZError.ErrorNumber = ErrorNumber.ETERM;
-					return null;
+					throw new ZMQException(ErrorCode.ETERM);
 				}
 
 				//  If max_sockets limit was reached, return error.
 				if (m_emptySlots.Count == 0)
 				{
-					ZError.ErrorNumber = ErrorNumber.EMFILE;
-					return null;
+					throw new ZMQException(ErrorCode.EMFILE);
 				}
 
 				//  Choose a slot for the socket.
@@ -408,10 +421,10 @@ namespace NetMQ.zmq
 		}
 
 		//  Management of inproc endpoints.
-		public bool RegisterEndpoint(String addr, Endpoint endpoint)
+		public void RegisterEndpoint(String addr, Endpoint endpoint)
 		{
 			bool exist;
-			
+
 			lock (m_endpointsSync)
 			{
 				exist = m_endpoints.ContainsKey(addr);
@@ -421,10 +434,8 @@ namespace NetMQ.zmq
 
 			if (exist)
 			{
-				ZError.ErrorNumber = ErrorNumber.EADDRINUSE;
-				return false;
+				throw new ZMQException(ErrorCode.EADDRINUSE);
 			}
-			return true;
 		}
 
 		public void UnregisterEndpoints(SocketBase socket)
@@ -449,8 +460,7 @@ namespace NetMQ.zmq
 				endpoint = m_endpoints[addr];
 				if (endpoint == null)
 				{
-					ZError.ErrorNumber = ErrorNumber.ECONNREFUSED;
-					return new Endpoint(null, new Options());
+					throw new ZMQException(ErrorCode.ECONNREFUSED);
 				}
 
 				//  Increment the command sequence number of the peer so that it won't

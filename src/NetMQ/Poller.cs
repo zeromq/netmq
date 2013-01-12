@@ -72,7 +72,7 @@ namespace NetMQ
 		{
 			if (m_sockets.Select(s => s.Socket).Contains(baseSocket) || m_proxies.Select(p => p.FromSocket).Contains(baseSocket))
 			{
-				throw new NetMQException("Socket already exist");
+				throw new ArgumentException("Socket already exist");
 			}
 		}
 
@@ -372,11 +372,11 @@ namespace NetMQ
 					count = HandleNewSockets(count, handleToSocket, ref items);
 				}
 			}
-
+			
 			// we should close the monitors anyway because this poller created them
 			foreach (var monitorPoll in m_monitors)
 			{
-				monitorPoll.MonitoringSocket.Close();
+				monitorPoll.MonitoringSocket.Close();				
 			}
 
 			if (CloseSocketsOnStop)

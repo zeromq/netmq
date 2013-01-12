@@ -19,12 +19,8 @@ namespace local_lat
 
             var context = ZMQ.CtxNew();
             var repSocket = ZMQ.Socket(context, ZmqSocketType.Rep);
-            bool bound = repSocket.Bind(bindTo);
-            if (!bound)
-            {
-                Console.WriteLine("error in zmq_bind");
-            }
-
+            repSocket.Bind(bindTo);
+            
             for (int i = 0; i != roundtripCount; i++)
             {
                 Msg message = repSocket.Recv(SendRecieveOptions.None);
@@ -34,12 +30,7 @@ namespace local_lat
                     return -1;
                 }
 
-                bool sent = repSocket.Send(message, SendRecieveOptions.None);
-                if (!sent)
-                {
-                    Console.WriteLine("error in zmq_sendmsg");
-                    return -1;
-                }
+                repSocket.Send(message, SendRecieveOptions.None);                
             }
 
             repSocket.Close();

@@ -75,7 +75,7 @@ namespace NetMQ.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(TryAgainException))]
+		[Test, ExpectedException(typeof(zmq.ZMQException))]
 		public void NotSubscribed()
 		{
 			using (Context contex = Context.Create())
@@ -101,7 +101,7 @@ namespace NetMQ.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(TryAgainException))]
+		[Test, ExpectedException(typeof(zmq.ZMQException))]
 		public void UnSubscribe()
 		{
 			using (Context contex = Context.Create())

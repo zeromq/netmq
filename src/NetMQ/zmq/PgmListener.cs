@@ -28,7 +28,7 @@ namespace NetMQ.zmq
 			m_ioObject = new IOObject(ioThread);
 		}
 
-		public bool Init(string network)
+		public void Init(string network)
 		{
 			m_address = new PgmAddress(network);
 
@@ -46,12 +46,11 @@ namespace NetMQ.zmq
 			catch (SocketException ex)
 			{
 				Close();
-				return false;
+
+				throw new ZMQException(ex);
 			}
 
 			m_socket.EventListening(m_address.ToString(), m_handle);
-
-			return true;
 		}
 
 		public override void Destroy()
@@ -86,10 +85,14 @@ namespace NetMQ.zmq
 				m_handle.Close();
 				m_socket.EventClosed(m_address.ToString(), m_handle);
 			}
-			catch (Exception)
+			catch (SocketException ex)
+			{				
+				m_socket.EventCloseFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+			}
+			catch (ZMQException ex)
 			{
 				//ZError.exc (e);
-				m_socket.EventCloseFailed(m_address.ToString(), ZError.ErrorNumber);
+				m_socket.EventCloseFailed(m_address.ToString(), ex.ErrorCode);
 			}
 			m_handle = null;
 
@@ -104,12 +107,17 @@ namespace NetMQ.zmq
 			{
 				fd = Accept();
 			}
-			catch (Exception)
+			catch (SocketException ex)
+			{
+				m_socket.EventAcceptFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+				return;
+			}
+			catch (ZMQException ex)
 			{
 				//  If connection was reset by the peer in the meantime, just ignore it.
 				//  TODO: Handle specific errors like ENFILE/EMFILE etc.
 				//ZError.exc (e);
-				m_socket.EventAcceptFailed(m_address.ToString(), ZError.ErrorNumber);
+				m_socket.EventAcceptFailed(m_address.ToString(), ex.ErrorCode);
 				return;
 			}
 

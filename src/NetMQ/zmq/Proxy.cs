@@ -68,14 +68,10 @@ namespace NetMQ.zmq
 						if (capture != null)
 						{
 							Msg ctrl = new Msg(msg);
-							success = capture.Send(ctrl, more > 0 ? SendRecieveOptions.SendMore : 0);
-							if (!success)
-								return false;
+							capture.Send(ctrl, more > 0 ? SendRecieveOptions.SendMore : 0);							
 						}
 
-						success = backend.Send(msg, more > 0 ? SendRecieveOptions.SendMore : 0);
-						if (!success)
-							return false;
+						backend.Send(msg, more > 0 ? SendRecieveOptions.SendMore : 0);
 						if (more == 0)
 							break;
 					}
@@ -100,14 +96,11 @@ namespace NetMQ.zmq
 						if (capture != null)
 						{
 							Msg ctrl = new Msg(msg);
-							success = capture.Send(ctrl, more > 0 ? SendRecieveOptions.SendMore : 0);
-							if (!success)
-								return false;
+							capture.Send(ctrl, more > 0 ? SendRecieveOptions.SendMore : 0);
+							
 						}
 
-						success = frontend.Send(msg, more > 0 ? SendRecieveOptions.SendMore : 0);
-						if (!success)
-							return false;
+						frontend.Send(msg, more > 0 ? SendRecieveOptions.SendMore : 0);
 						if (more == 0)
 							break;
 					}

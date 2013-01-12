@@ -76,6 +76,7 @@ namespace NetMQ
 				ZMQ.SocketMonitor(Socket.SocketHandle, MonitorAddress, m_monitoringEventsHandler.Events);
 
 				MonitoringSocket = Context.CreatePairSocket();
+				MonitoringSocket.Options.Linger = TimeSpan.Zero;
 
 				MonitoringSocket.Connect(MonitorAddress);
 
@@ -95,31 +96,31 @@ namespace NetMQ
 						m_monitoringEventsHandler.OnConnected(monitorEvent.Addr, (IntPtr)monitorEvent.Arg);
 						break;
 					case SocketEvent.ConnectDelayed:
-						m_monitoringEventsHandler.OnConnectFailed(monitorEvent.Addr, new ErrorNumber((int)monitorEvent.Arg));
+						m_monitoringEventsHandler.OnConnectFailed(monitorEvent.Addr, (ErrorCode)monitorEvent.Arg);
 						break;
 					case SocketEvent.ConnectRetried:
 						m_monitoringEventsHandler.OnConnectRetried(monitorEvent.Addr, (int)monitorEvent.Arg);
 						break;
 					case SocketEvent.ConnectFailed:
-						m_monitoringEventsHandler.OnConnectFailed(monitorEvent.Addr, new ErrorNumber((int)monitorEvent.Arg));
+						m_monitoringEventsHandler.OnConnectFailed(monitorEvent.Addr, (ErrorCode)monitorEvent.Arg);
 						break;
 					case SocketEvent.Listening:
 						m_monitoringEventsHandler.OnListening(monitorEvent.Addr, (IntPtr)monitorEvent.Arg);
 						break;
 					case SocketEvent.BindFailed:
-						m_monitoringEventsHandler.OnBindFailed(monitorEvent.Addr, new ErrorNumber((int)monitorEvent.Arg));
+						m_monitoringEventsHandler.OnBindFailed(monitorEvent.Addr, (ErrorCode)monitorEvent.Arg);
 						break;
 					case SocketEvent.Accepted:
 						m_monitoringEventsHandler.OnAccepted(monitorEvent.Addr, (IntPtr)monitorEvent.Arg);
 						break;
 					case SocketEvent.AcceptFailed:
-						m_monitoringEventsHandler.OnAcceptFailed(monitorEvent.Addr, new ErrorNumber((int)monitorEvent.Arg));
+						m_monitoringEventsHandler.OnAcceptFailed(monitorEvent.Addr, (ErrorCode)monitorEvent.Arg);
 						break;
 					case SocketEvent.Closed:
 						m_monitoringEventsHandler.OnClosed(monitorEvent.Addr, (IntPtr)monitorEvent.Arg);
 						break;
 					case SocketEvent.CloseFailed:
-						m_monitoringEventsHandler.OnCloseFailed(monitorEvent.Addr, new ErrorNumber((int)monitorEvent.Arg));
+						m_monitoringEventsHandler.OnCloseFailed(monitorEvent.Addr, (ErrorCode)monitorEvent.Arg);
 						break;
 					case SocketEvent.Disconnected:
 						m_monitoringEventsHandler.OnDisconnected(monitorEvent.Addr, (IntPtr)monitorEvent.Arg);

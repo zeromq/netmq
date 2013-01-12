@@ -38,7 +38,7 @@ namespace NetMQ.zmq
 			public IPollEvents Handler { get; private set; }
 			public bool Cancelled { get; set; }
 
-			public PollSet(Socket socket,IPollEvents handler)
+			public PollSet(Socket socket, IPollEvents handler)
 			{
 				Handler = handler;
 				Socket = socket;
@@ -48,7 +48,7 @@ namespace NetMQ.zmq
 		//  This table stores data for registered descriptors.
 		private readonly List<PollSet> m_fdTable;
 
-		private readonly List<PollSet> m_addList; 
+		private readonly List<PollSet> m_addList;
 
 		//  If true, there's at least one retired event source.
 		private bool m_retired;
@@ -121,7 +121,7 @@ namespace NetMQ.zmq
 				pollSet = m_fdTable.First(p => p.Socket == handle);
 				pollSet.Cancelled = true;
 
-				m_retired = true;				
+				m_retired = true;
 			}
 
 			m_checkError.Remove(handle);
@@ -207,7 +207,18 @@ namespace NetMQ.zmq
 
 					if (errorList.Contains(pollSet.Socket))
 					{
-						pollSet.Handler.InEvent();
+						try
+						{
+							pollSet.Handler.InEvent();
+						}
+						catch (ZMQException ex)
+						{
+							if (ex.ErrorCode != ErrorCode.ETERM)
+							{
+								throw;
+							}
+						}
+
 					}
 
 					if (pollSet.Cancelled)
@@ -217,7 +228,17 @@ namespace NetMQ.zmq
 
 					if (writeList.Contains(pollSet.Socket))
 					{
-						pollSet.Handler.OutEvent();
+						try
+						{
+							pollSet.Handler.OutEvent();
+						}
+						catch (ZMQException ex)
+						{
+							if (ex.ErrorCode != ErrorCode.ETERM)
+							{
+								throw;
+							}
+						}
 					}
 
 					if (pollSet.Cancelled)
@@ -227,7 +248,18 @@ namespace NetMQ.zmq
 
 					if (readList.Contains(pollSet.Socket))
 					{
-						pollSet.Handler.InEvent();
+						try
+						{
+							pollSet.Handler.InEvent();
+						}
+						catch (ZMQException ex)
+						{
+							if (ex.ErrorCode != ErrorCode.ETERM)
+							{
+								throw;
+							}
+						}
+						
 					}
 				}
 

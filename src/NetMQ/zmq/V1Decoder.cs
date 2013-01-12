@@ -130,14 +130,20 @@ namespace NetMQ.zmq
 			if (m_msgSink == null)
 				return false;
         
-			bool rc = m_msgSink.PushMsg (m_inProgress);
-			if (!rc) {
-				if (!ZError.IsError (ErrorNumber.EAGAIN))
-					DecodingError ();
-            
+			try
+			{
+				m_msgSink.PushMsg(m_inProgress);
+			}
+			catch (ZMQException ex)
+			{
+				if (ex.ErrorCode != ErrorCode.EAGAIN)
+				{
+					DecodingError();
+				}
+
 				return false;
 			}
-
+			
 			NextStep(m_tmpbuf, 1, FlagsReadyState);
         
 			return true;

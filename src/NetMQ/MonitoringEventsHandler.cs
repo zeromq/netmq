@@ -7,7 +7,7 @@ using NetMQ.zmq;
 namespace NetMQ
 {
 	public delegate void FDDelegate(string address, IntPtr fd);
-	public delegate void ErrorDelegate(string address, zmq.ErrorNumber errorCode);
+	public delegate void ErrorDelegate(string address, ErrorCode errorCode);
 	public delegate void IntervalDelegate(string address, int interval);
 
 	/// <summary>
@@ -170,7 +170,7 @@ namespace NetMQ
 			m_onConnected(address, fd);
 		}
 
-		void IMonitoringEventsHandler.OnConnectDelayed(string address, zmq.ErrorNumber errorCode)
+		void IMonitoringEventsHandler.OnConnectDelayed(string address, ErrorCode errorCode)
 		{
 			m_onConnectDelayed(address, errorCode);
 		}
@@ -180,9 +180,9 @@ namespace NetMQ
 			m_onConnectionRetried(address, interval);
 		}
 
-		void IMonitoringEventsHandler.OnConnectFailed(string address, zmq.ErrorNumber errorCode)
+		void IMonitoringEventsHandler.OnConnectFailed(string address, ErrorCode errorCode)
 		{
-			m_onConnectDelayed(address, errorCode);
+			m_onConnectFailed(address, errorCode);
 		}
 
 		void IMonitoringEventsHandler.OnListening(string address, IntPtr fd)
@@ -190,7 +190,7 @@ namespace NetMQ
 			m_onListening(address, fd);
 		}
 
-		void IMonitoringEventsHandler.OnBindFailed(string address, zmq.ErrorNumber errorCode)
+		void IMonitoringEventsHandler.OnBindFailed(string address, ErrorCode errorCode)
 		{
 			m_onBindFailed(address, errorCode);
 		}
@@ -200,7 +200,7 @@ namespace NetMQ
 			m_onAccepted(address, fd);
 		}
 
-		void IMonitoringEventsHandler.OnAcceptFailed(string address, zmq.ErrorNumber errorCode)
+		void IMonitoringEventsHandler.OnAcceptFailed(string address, ErrorCode errorCode)
 		{
 			m_onAcceptFailed(address, errorCode);
 		}
@@ -210,7 +210,7 @@ namespace NetMQ
 			m_onClosed(address, fd);
 		}
 
-		void IMonitoringEventsHandler.OnCloseFailed(string address, zmq.ErrorNumber errorCode)
+		void IMonitoringEventsHandler.OnCloseFailed(string address, ErrorCode errorCode)
 		{
 			m_onClosedFailed(address, errorCode);
 		}

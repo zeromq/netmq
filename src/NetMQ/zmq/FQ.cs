@@ -124,8 +124,7 @@ namespace NetMQ.zmq
 
 			//  No message is available. Initialise the output parameter
 			//  to be a 0-byte message.
-			ZError.ErrorNumber = ErrorNumber.EAGAIN;
-			return null;
+			throw new ZMQException(ErrorCode.EAGAIN);
 		}
 
 		public bool HasIn ()

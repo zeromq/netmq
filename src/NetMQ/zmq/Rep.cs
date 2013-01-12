@@ -52,25 +52,21 @@ namespace NetMQ.zmq
 		}
     
 		override
-			protected bool XSend(Msg msg, SendRecieveOptions flags)
+			protected void XSend(Msg msg, SendRecieveOptions flags)
 		{
 			//  If we are in the middle of receiving a request, we cannot send reply.
 			if (!m_sendingReply) {
-				throw new InvalidOperationException ("Cannot send another reply");
+				throw new ZMQException("Cannot send another reply",ErrorCode.EFSM);				
 			}
 
 			bool more = msg.HasMore;
 
 			//  Push message to the reply pipe.
-			bool rc = base.XSend (msg, flags);
-			if (!rc)
-				return rc;
-
+			base.XSend (msg, flags);
+			
 			//  If the reply is complete flip the FSM back to request receiving state.
 			if (!more)
 				m_sendingReply = false;
-
-			return true;
 		}
     
 		override
@@ -80,7 +76,8 @@ namespace NetMQ.zmq
 
 			//  If we are in middle of sending a reply, we cannot receive next request.
 			if (m_sendingReply) {
-				throw new InvalidOperationException("Cannot receive another request");
+				throw new ZMQException("Cannot receive another request",ErrorCode.EFSM);
+				throw new InvalidOperationException();
 			}
 
 			//  First thing to do when receiving a request is to copy all the labels
@@ -96,8 +93,7 @@ namespace NetMQ.zmq
 						bool bottom = (msg.Size == 0);
                     
 						//  Push it to the reply pipe.
-						bool rc = base.XSend (msg, flags);
-						Debug.Assert(rc);
+						base.XSend (msg, flags);
 						if (bottom)
 							break;
 					} else {
