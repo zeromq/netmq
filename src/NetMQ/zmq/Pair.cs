@@ -80,7 +80,7 @@ namespace NetMQ.zmq
 			protected void XSend(Msg msg, SendRecieveOptions flags)
 		{
 			if (m_pipe == null || !m_pipe.Write (msg)) {
-				throw new ZMQException(ErrorCode.EAGAIN);
+				throw AgainException.Create();
 			}
 
 			if ((flags & SendRecieveOptions.SendMore) == 0)
@@ -97,7 +97,7 @@ namespace NetMQ.zmq
 
 			Msg msg = null;
 			if (m_pipe == null || (msg = m_pipe.Read ()) == null) {
-				throw new ZMQException(ErrorCode.EAGAIN);
+				throw AgainException.Create();
 							}
 			return msg;
 		}

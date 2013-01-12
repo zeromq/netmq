@@ -150,7 +150,7 @@ namespace NetMQ.zmq
 		{
 			if (option != ZmqSocketOptions.XpubVerbose)
 			{
-				throw new ZMQException(ErrorCode.EINVAL);
+				throw InvalidException.Create();
 			}
 			m_verbose = (int)optval == 1;
 		}
@@ -199,7 +199,7 @@ namespace NetMQ.zmq
 			//  If there is at least one 
 			if (m_pending.Count == 0)
 			{
-				throw new ZMQException(ErrorCode.EAGAIN);
+				throw AgainException.Create();
 			}
 
 			Blob first = m_pending.Dequeue();

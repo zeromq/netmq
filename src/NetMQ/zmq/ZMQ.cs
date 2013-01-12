@@ -67,7 +67,7 @@ namespace NetMQ.zmq
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			ctx.Terminate();
@@ -78,7 +78,7 @@ namespace NetMQ.zmq
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			ctx.Set(option, optval);
 		}
@@ -87,7 +87,7 @@ namespace NetMQ.zmq
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			return ctx.Get(option);
 		}
@@ -102,7 +102,7 @@ namespace NetMQ.zmq
 				CtxSet(ctx, ContextOption.IOThreads, ioThreads);
 				return ctx;
 			}
-			throw new ZMQException(ErrorCode.EINVAL);
+			throw InvalidException.Create();
 		}
 
 		public static void Term(Ctx ctx)
@@ -115,7 +115,7 @@ namespace NetMQ.zmq
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			SocketBase s = ctx.CreateSocket(type);
 			return s;
@@ -125,7 +125,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			s.Close();
 		}
@@ -135,7 +135,7 @@ namespace NetMQ.zmq
 
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			s.SetSocketOption(option, optval);
@@ -146,7 +146,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			return s.GetSocketOptionX(option);
@@ -163,7 +163,7 @@ namespace NetMQ.zmq
 
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			s.Monitor(addr, events);
@@ -174,7 +174,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			s.Bind(addr);
@@ -184,7 +184,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			s.Connect(addr);
@@ -195,7 +195,7 @@ namespace NetMQ.zmq
 
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			return s.TermEndpoint(addr);
 		}
@@ -204,7 +204,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			s.TermEndpoint(addr);
 		}
@@ -225,7 +225,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			Msg msg = new Msg(len);
@@ -244,7 +244,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			Msg msg;
 
@@ -270,7 +270,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			Msg msg = RecvMsg(s, flags);
 			if (msg == null)
@@ -309,7 +309,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			int nread = 0;
@@ -368,7 +368,7 @@ namespace NetMQ.zmq
 				case MsgFlags.More:
 					return msg.HasMore ? 1 : 0;
 				default:
-					throw new ZMQException(ErrorCode.EINVAL);
+					throw InvalidException.Create();
 			}
 		}
 
@@ -382,7 +382,7 @@ namespace NetMQ.zmq
 		{
 			if (frontend_ == null || backend_ == null)
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			return NetMQ.zmq.Proxy.CreateProxy(
 					frontend_,
@@ -406,7 +406,7 @@ namespace NetMQ.zmq
 		{
 			if (items == null)
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			if (itemsCount == 0)
 			{
@@ -487,7 +487,7 @@ namespace NetMQ.zmq
 				}
 				catch (SocketException ex)
 				{
-					throw new ZMQException(ErrorCode.ESOCKET, ex);
+					throw NetMQException.Create(ErrorCode.ESOCKET, ex);
 				}
 
 				for (int i = 0; i < itemsCount; i++)

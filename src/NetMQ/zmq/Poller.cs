@@ -211,12 +211,8 @@ namespace NetMQ.zmq
 						{
 							pollSet.Handler.InEvent();
 						}
-						catch (ZMQException ex)
-						{
-							if (ex.ErrorCode != ErrorCode.ETERM)
-							{
-								throw;
-							}
+						catch (TerminatingException ex)
+						{							
 						}
 
 					}
@@ -232,12 +228,8 @@ namespace NetMQ.zmq
 						{
 							pollSet.Handler.OutEvent();
 						}
-						catch (ZMQException ex)
+						catch (TerminatingException ex)
 						{
-							if (ex.ErrorCode != ErrorCode.ETERM)
-							{
-								throw;
-							}
 						}
 					}
 
@@ -252,14 +244,9 @@ namespace NetMQ.zmq
 						{
 							pollSet.Handler.InEvent();
 						}
-						catch (ZMQException ex)
+						catch (TerminatingException ex)
 						{
-							if (ex.ErrorCode != ErrorCode.ETERM)
-							{
-								throw;
-							}
-						}
-						
+						}						
 					}
 				}
 

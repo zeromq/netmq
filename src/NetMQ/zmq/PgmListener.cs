@@ -47,7 +47,7 @@ namespace NetMQ.zmq
 			{
 				Close();
 
-				throw new ZMQException(ex);
+				throw NetMQException.Create(ex);
 			}
 
 			m_socket.EventListening(m_address.ToString(), m_handle);
@@ -89,7 +89,7 @@ namespace NetMQ.zmq
 			{				
 				m_socket.EventCloseFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
 			}
-			catch (ZMQException ex)
+			catch (NetMQException ex)
 			{
 				//ZError.exc (e);
 				m_socket.EventCloseFailed(m_address.ToString(), ex.ErrorCode);
@@ -112,7 +112,7 @@ namespace NetMQ.zmq
 				m_socket.EventAcceptFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
 				return;
 			}
-			catch (ZMQException ex)
+			catch (NetMQException ex)
 			{
 				//  If connection was reset by the peer in the meantime, just ignore it.
 				//  TODO: Handle specific errors like ENFILE/EMFILE etc.

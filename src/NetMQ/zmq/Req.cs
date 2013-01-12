@@ -55,7 +55,7 @@ namespace NetMQ.zmq
 			//  we can't send another request.
 			if (m_receivingReply)
 			{
-				throw new ZMQException("Cannot send another request", ErrorCode.EFSM);				
+				throw NetMQException.Create("Cannot send another request", ErrorCode.EFSM);				
 			}
 
 			
@@ -87,7 +87,7 @@ namespace NetMQ.zmq
 			//  If request wasn't send, we can't wait for reply.
 			if (!m_receivingReply)
 			{
-				throw new ZMQException(ErrorCode.EFSM);
+				throw NetMQException.Create(ErrorCode.EFSM);
 			}
 
 			//  First part of the reply should be the original request ID.
@@ -107,7 +107,7 @@ namespace NetMQ.zmq
 						if (!msg.HasMore)
 							break;
 					}
-					throw new ZMQException(ErrorCode.EAGAIN);
+					throw AgainException.Create();
 				}
 
 				m_messageBegins = false;
@@ -199,7 +199,7 @@ namespace NetMQ.zmq
 						break;
 					default:
 
-						throw new ZMQException(ErrorCode.EFAULT);
+						throw NetMQException.Create(ErrorCode.EFAULT);
 				}
 			}
 

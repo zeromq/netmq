@@ -267,7 +267,7 @@ namespace NetMQ.zmq
 		{
 			if (!Check())
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			// In C++ version of zero mq close would free all bytes array and init the msg type

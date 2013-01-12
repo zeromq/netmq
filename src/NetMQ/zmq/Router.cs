@@ -134,7 +134,7 @@ namespace NetMQ.zmq
 		{
 			if (option != ZmqSocketOptions.RouterMandatory)
 			{
-				throw new ZMQException(ErrorCode.EINVAL);				
+				throw InvalidException.Create();				
 			}
 			m_mandatory = (int) optval == 1;			
 		}
@@ -214,12 +214,12 @@ namespace NetMQ.zmq
 							if (m_mandatory)
 							{
 								m_moreOut = false;
-								throw new ZMQException(ErrorCode.EAGAIN);
+								throw AgainException.Create();
 							}
 						}
 					} else if (m_mandatory) {
 						m_moreOut = false;
-						throw new ZMQException(ErrorCode.EHOSTUNREACH);
+						throw NetMQException.Create(ErrorCode.EHOSTUNREACH);
 					}
 				}
 
@@ -330,7 +330,7 @@ namespace NetMQ.zmq
 			{
 				m_prefetchedMsg = m_fq.RecvPipe(pipe);
 			}
-			catch (ZMQException ex)
+			catch (NetMQException ex)
 			{
 				return false;
 			}
@@ -345,7 +345,7 @@ namespace NetMQ.zmq
 				{
 					m_prefetchedMsg = m_fq.RecvPipe(pipe);			
 				}
-				catch (ZMQException ex)
+				catch (NetMQException ex)
 				{
 					return false;
 				}

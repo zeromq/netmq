@@ -53,6 +53,7 @@
     <Compile Include="IMonitoringEventsHandler.cs" />
     <Compile Include="MonitoringEventsHandler.cs" />
     <Compile Include="MonitorPoll.cs" />
+    <Compile Include="NetMQException.cs" />
     <Compile Include="PairSocket.cs" />
     <Compile Include="Poller.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -106,7 +107,6 @@
     <Compile Include="zmq\Mtrie.cs" />
     <None Include="zmq\Native\NativeMethods.cs" />
     <Compile Include="zmq\Native\OpCode.cs" />
-    <Compile Include="zmq\NetMQException.cs" />
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
     <Compile Include="zmq\Pair.cs" />

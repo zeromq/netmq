@@ -126,7 +126,8 @@ namespace NetMQ.zmq
 																		socket, options, addr);
 					break;
 				default:
-					throw new ZMQException("type=" + options.SocketType,ErrorCode.EINVAL);					
+					throw InvalidException.Create("type=" + options.SocketType);					
+
 			}
 			return s;
 		}
@@ -225,7 +226,7 @@ namespace NetMQ.zmq
 				return;
 			}
 
-			throw new ZMQException(ErrorCode.EAGAIN);
+			throw AgainException.Create();
 		}
 
 

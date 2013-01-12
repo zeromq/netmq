@@ -133,7 +133,7 @@ namespace NetMQ.zmq
 			byte[] data = msg.Data; 
 			// Malformed subscriptions.
 			if (data.Length < 1 || (data[0] != 0 && data[0] != 1)) {
-				throw new ZMQException(ErrorCode.EINVAL);
+				throw InvalidException.Create();
 			}
         
 			// Process the subscription.
@@ -216,11 +216,10 @@ namespace NetMQ.zmq
 					//  Get a message using fair queueing algorithm.
 					m_message = m_fq.Recv();
 				}
-				catch (ZMQException ex)
+				catch (AgainException)
 				{
-					Debug.Assert(ex.ErrorCode == ErrorCode.EAGAIN);
 					return false;
-				}
+				}				
 
 				//  If there's no message available, return immediately.
 				//  The same when error occurs.

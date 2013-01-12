@@ -59,7 +59,7 @@ namespace NetMQ.zmq
 			//  Find the ':' at end that separates address from the port number.
 			int delimiter = name.LastIndexOf(':');
 			if (delimiter < 0) {
-				throw new ZMQException(ErrorCode.EINVAL);
+				throw InvalidException.Create();
 			}
 
 			//  Separate the address/port.
@@ -80,7 +80,7 @@ namespace NetMQ.zmq
 				//  Parse the port number (0 is not a valid port).
 				port = Convert.ToInt32(portStr);
 				if (port == 0) {
-					throw new ZMQException(ErrorCode.EINVAL);
+					throw InvalidException.Create();
 				}
 			}
 
@@ -95,7 +95,7 @@ namespace NetMQ.zmq
 
 			if (!IPAddress.TryParse(addrStr, out ipAddress))
 			{
-				throw new ZMQException(ErrorCode.EINVAL);
+				throw InvalidException.Create();
 			}
 
 			addrNet  = new IPEndPoint(ipAddress, port);

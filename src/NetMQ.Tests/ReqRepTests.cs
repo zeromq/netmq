@@ -61,7 +61,7 @@ namespace NetMQ.Tests
 						bool more;
 						rep.Receive(out more);
 
-						var ex = Assert.Throws<zmq.ZMQException>(() => req.Send("Hi2"));
+						var ex = Assert.Throws<NetMQException>(() => req.Send("Hi2"));
 
 						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);											
 					}
@@ -85,7 +85,7 @@ namespace NetMQ.Tests
 
 						bool more;
 
-						var ex = Assert.Throws<zmq.ZMQException>(() => req.ReceiveString(out more));
+						var ex = Assert.Throws<NetMQException>(() => req.ReceiveString(out more));
 
 						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
 						
@@ -107,7 +107,7 @@ namespace NetMQ.Tests
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
-						var ex = Assert.Throws<zmq.ZMQException>(() => rep.Send("1"));
+						var ex = Assert.Throws<NetMQException>(() => rep.Send("1"));
 
 						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);											
 					}

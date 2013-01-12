@@ -134,13 +134,13 @@ namespace NetMQ.zmq
 			{
 				m_msgSink.PushMsg(m_inProgress);
 			}
-			catch (ZMQException ex)
+			catch(AgainException)
 			{
-				if (ex.ErrorCode != ErrorCode.EAGAIN)
-				{
-					DecodingError();
-				}
-
+				return false;
+			}
+			catch (NetMQException ex)
+			{				
+				DecodingError();				
 				return false;
 			}
 			

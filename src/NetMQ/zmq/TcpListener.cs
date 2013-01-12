@@ -89,7 +89,7 @@ namespace NetMQ.zmq
 				Utils.TuneTcpSocket(fd);
 				Utils.TuneTcpKeepalives(fd, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
 			}
-			catch (ZMQException ex)
+			catch (NetMQException ex)
 			{
 				//  If connection was reset by the peer in the meantime, just ignore it.
 				//  TODO: Handle specific errors like ENFILE/EMFILE etc.
@@ -112,7 +112,7 @@ namespace NetMQ.zmq
 				ErrorCode errorCode = ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode);
 
 				m_socket.EventAcceptFailed(m_endpoint, errorCode);
-				throw new ZMQException(errorCode);
+				throw NetMQException.Create(errorCode);
 			}
 			//  Choose I/O thread to run connecter in. Given that we are already
 			//  running in an I/O thread, there must be at least one available.
@@ -143,7 +143,7 @@ namespace NetMQ.zmq
 			{
 				m_socket.EventCloseFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
 			}
-			catch (ZMQException ex)
+			catch (NetMQException ex)
 			{
 				m_socket.EventCloseFailed(m_endpoint, ex.ErrorCode);
 			}
@@ -175,7 +175,7 @@ namespace NetMQ.zmq
 			catch (SocketException ex)
 			{
 				Close();
-				throw new ZMQException(ex);
+				throw NetMQException.Create(ex);
 			}
 
 			m_socket.EventListening(m_endpoint, m_handle);			

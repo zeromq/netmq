@@ -174,12 +174,12 @@ namespace NetMQ.zmq
 						val = (byte[]) optval;
 					else
 					{
-						throw new ZMQException(ErrorCode.EINVAL);						
+						throw InvalidException.Create();
 					}
 
 					if (val.Length ==0 || val.Length > 255)
 					{
-						throw new ZMQException(ErrorCode.EINVAL);
+						throw InvalidException.Create();
 					}
 					Identity = new byte[val.Length];
 					val.CopyTo(Identity, 0);
@@ -205,7 +205,7 @@ namespace NetMQ.zmq
 
 					if (ReconnectIvl < -1)
 					{
-						throw new ZMQException(ErrorCode.EINVAL);
+						throw InvalidException.Create();
 					}
 
 					break;
@@ -214,7 +214,7 @@ namespace NetMQ.zmq
 
 					if (ReconnectIvlMax < 0)
 					{
-						throw new ZMQException(ErrorCode.EINVAL);
+						throw InvalidException.Create();
 					}
 
 					break;
@@ -244,7 +244,7 @@ namespace NetMQ.zmq
 					TcpKeepalive = (int) optval;
 					if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
 					{
-						throw new ZMQException(ErrorCode.EINVAL);
+						throw InvalidException.Create();
 					}
 					break;
 				case ZmqSocketOptions.DelayAttachOnConnect:
@@ -269,7 +269,7 @@ namespace NetMQ.zmq
 					}
 					else if (filterStr.Length == 0 || filterStr.Length > 255)
 					{
-						throw new ZMQException(ErrorCode.EINVAL);
+						throw InvalidException.Create();
 					}
 					else
 					{
@@ -279,7 +279,7 @@ namespace NetMQ.zmq
 					}
 					break;
 				default:
-					throw new ZMQException(ErrorCode.EINVAL);
+					throw InvalidException.Create();
 			}
 		}
 
@@ -360,7 +360,7 @@ namespace NetMQ.zmq
 					return LastEndpoint;
 
 				default:
-					throw new ZMQException(ErrorCode.EINVAL);
+					throw InvalidException.Create();
 			}
 		}
 	}

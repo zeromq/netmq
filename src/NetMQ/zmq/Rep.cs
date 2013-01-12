@@ -56,7 +56,7 @@ namespace NetMQ.zmq
 		{
 			//  If we are in the middle of receiving a request, we cannot send reply.
 			if (!m_sendingReply) {
-				throw new ZMQException("Cannot send another reply",ErrorCode.EFSM);				
+				throw NetMQException.Create("Cannot send another reply",ErrorCode.EFSM);				
 			}
 
 			bool more = msg.HasMore;
@@ -76,7 +76,7 @@ namespace NetMQ.zmq
 
 			//  If we are in middle of sending a reply, we cannot receive next request.
 			if (m_sendingReply) {
-				throw new ZMQException("Cannot receive another request",ErrorCode.EFSM);
+				throw NetMQException.Create("Cannot receive another request",ErrorCode.EFSM);
 				throw new InvalidOperationException();
 			}
 

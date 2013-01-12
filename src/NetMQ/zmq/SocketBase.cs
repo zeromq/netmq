@@ -151,7 +151,7 @@ namespace NetMQ.zmq
 					break;
 
 				default:
-					throw new ZMQException("type=" + type, ErrorCode.EINVAL);
+					throw InvalidException.Create("type=" + type);
 			}
 			return s;
 		}
@@ -190,7 +190,7 @@ namespace NetMQ.zmq
 							!protocol.Equals("ipc") && !protocol.Equals("tcp") &&
 				!protocol.Equals("pgm") && !protocol.Equals("epgm"))
 			{
-				throw new ZMQException(ErrorCode.EPROTONOSUPPORT);
+				throw NetMQException.Create(ErrorCode.EPROTONOSUPPORT);
 			}
 
 			//  Check whether socket type and transport protocol match.
@@ -200,7 +200,7 @@ namespace NetMQ.zmq
 							m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
 							m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
 			{
-				throw new ZMQException(protocol + ",type=" + m_options.SocketType, ErrorCode.EPROTONOSUPPORT);
+				throw NetMQException.Create(protocol + ",type=" + m_options.SocketType, ErrorCode.EPROTONOSUPPORT);
 			}
 
 			//  Protocol is available.
@@ -236,7 +236,7 @@ namespace NetMQ.zmq
 		{
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			//  First, check whether specific socket type overloads the option.
@@ -246,12 +246,8 @@ namespace NetMQ.zmq
 				XSetSocketOption(option, optval);
 				return;
 			}
-			catch (ZMQException ex)
-			{
-				if (ex.ErrorCode != ErrorCode.EINVAL)
-				{
-					throw;
-				}
+			catch (InvalidException)
+			{				
 			}
 
 			//  If the socket type doesn't support the option, pass it to
@@ -264,7 +260,7 @@ namespace NetMQ.zmq
 
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			if (option == ZmqSocketOptions.ReceiveMore)
@@ -277,7 +273,7 @@ namespace NetMQ.zmq
 				{
 					ProcessCommands(0, false);
 				}
-				catch (ZMQException ex)
+				catch (NetMQException ex)
 				{
 					if (ex.ErrorCode == ErrorCode.EINTR || ex.ErrorCode == ErrorCode.ETERM)
 					{
@@ -306,7 +302,7 @@ namespace NetMQ.zmq
 		{
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			if (option == ZmqSocketOptions.ReceiveMore)
@@ -325,7 +321,7 @@ namespace NetMQ.zmq
 				{
 					ProcessCommands(0, false);
 				}
-				catch (ZMQException ex)
+				catch (NetMQException ex)
 				{
 					Debug.Assert(false);
 
@@ -356,7 +352,7 @@ namespace NetMQ.zmq
 		{
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			//  Process pending commands, if any.
@@ -394,7 +390,7 @@ namespace NetMQ.zmq
 			IOThread ioThread = ChooseIOThread(m_options.Affinity);
 			if (ioThread == null)
 			{
-				throw new ZMQException(ErrorCode.EMTHREAD);
+				throw NetMQException.Create(ErrorCode.EMTHREAD);
 			}
 
 			if (protocol.Equals("tcp"))
@@ -406,7 +402,7 @@ namespace NetMQ.zmq
 				{
 					listener.SetAddress(address);
 				}
-				catch (ZMQException ex)
+				catch (NetMQException ex)
 				{
 					listener.Destroy();
 					EventBindFailed(addr, ex.ErrorCode);
@@ -430,7 +426,7 @@ namespace NetMQ.zmq
 				{
 					listener.Init(address);
 				}
-				catch (ZMQException ex)
+				catch (NetMQException ex)
 				{
 					listener.Destroy();
 					EventBindFailed(addr, ex.ErrorCode);
@@ -454,7 +450,7 @@ namespace NetMQ.zmq
 				{
 					listener.SetAddress(address);
 				}
-				catch (ZMQException ex)
+				catch (NetMQException ex)
 				{
 					listener.Destroy();
 					EventBindFailed(addr, ex.ErrorCode);
@@ -470,14 +466,14 @@ namespace NetMQ.zmq
 			}
 
 			Debug.Assert(false);
-			throw new ZMQException(ErrorCode.EFAULT);
+			throw NetMQException.Create(ErrorCode.EFAULT);
 		}
 
 		public void Connect(String addr)
 		{			
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			//  Process pending commands, if any.
@@ -560,7 +556,7 @@ namespace NetMQ.zmq
 			IOThread ioThread = ChooseIOThread(m_options.Affinity);
 			if (ioThread == null)
 			{
-				throw new ZMQException("Empty IO Thread", ErrorCode.EMTHREAD);
+				throw NetMQException.Create("Empty IO Thread", ErrorCode.EMTHREAD);
 			}
 			Address paddr = new Address(protocol, address);
 
@@ -642,13 +638,13 @@ namespace NetMQ.zmq
 
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			//  Check whether endpoint address passed to the function is valid.
 			if (addr == null)
 			{
-				throw new ZMQException(ErrorCode.EINVAL);
+				throw InvalidException.Create();
 			}
 
 			//  Process pending commands, if any, since there could be pending unprocessed process_own()'s
@@ -683,13 +679,13 @@ namespace NetMQ.zmq
 		{
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			//  Check whether message passed to the function is valid.
 			if (msg == null)
 			{
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			//  Process pending commands, if any.
@@ -708,18 +704,14 @@ namespace NetMQ.zmq
 				XSend(msg, flags);
 				return;
 			}
-			catch (ZMQException ex)
-			{
-				if (ex.ErrorCode != ErrorCode.EAGAIN)
-				{
-					throw;
-				}
+			catch (AgainException)
+			{				
 			}
 
 			//  In case of non-blocking send we'll simply propagate
 			//  the error - including EAGAIN - up the stack.
 			if ((flags & SendRecieveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
-				throw new ZMQException(ErrorCode.EAGAIN);
+				throw AgainException.Create();
 
 			//  Compute the time when the timeout should occur.
 			//  If the timeout is infite, don't care. 
@@ -738,12 +730,8 @@ namespace NetMQ.zmq
 					XSend(msg, flags);
 					break;
 				}
-				catch (ZMQException ex)
+				catch (AgainException)
 				{
-					if (ex.ErrorCode != ErrorCode.EAGAIN)
-					{
-						throw;
-					}
 				}
 
 				if (timeout > 0)
@@ -751,7 +739,7 @@ namespace NetMQ.zmq
 					timeout = (int)(end - Clock.NowMs());
 					if (timeout <= 0)
 					{
-						throw new ZMQException(ErrorCode.EAGAIN);
+						throw AgainException.Create();
 					}
 				}
 			}
@@ -761,7 +749,7 @@ namespace NetMQ.zmq
 		{
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			Msg msg = null;
@@ -771,12 +759,8 @@ namespace NetMQ.zmq
 			{
 				msg = XRecv(flags);
 			}
-			catch (ZMQException ex)
+			catch (AgainException)
 			{
-				if (ex.ErrorCode != ErrorCode.EAGAIN)
-				{
-					throw;
-				}
 			}
 
 			//  Once every inbound_poll_rate messages check for signals and process
@@ -837,12 +821,8 @@ namespace NetMQ.zmq
 						break;
 					}
 				}
-				catch (ZMQException ex)
+				catch (AgainException)
 				{
-					if (ex.ErrorCode != ErrorCode.EAGAIN)
-					{
-						throw;
-					}
 				}
 
 				block = true;
@@ -851,7 +831,7 @@ namespace NetMQ.zmq
 					timeout = (int)(end - Clock.NowMs());
 					if (timeout <= 0)
 					{
-						throw new ZMQException(ErrorCode.EAGAIN);
+						throw AgainException.Create();
 					}
 				}
 			}
@@ -958,7 +938,7 @@ namespace NetMQ.zmq
 			}
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 		}
 
@@ -1005,7 +985,7 @@ namespace NetMQ.zmq
 		//  method.
 		protected virtual void XSetSocketOption(ZmqSocketOptions option, Object optval)
 		{
-			throw new ZMQException(ErrorCode.EINVAL);
+			throw InvalidException.Create();
 		}
 
 
@@ -1148,7 +1128,7 @@ namespace NetMQ.zmq
 		{
 			if (m_ctxTerminated)
 			{
-				throw new ZMQException(ErrorCode.ETERM);
+				throw TerminatingException.Create();
 			}
 
 			// Support deregistering monitoring endpoints as well
@@ -1167,7 +1147,7 @@ namespace NetMQ.zmq
 			// Event notification only supported over inproc://
 			if (!protocol.Equals("inproc"))
 			{
-				throw new ZMQException(ErrorCode.EPROTONOSUPPORT);
+				throw NetMQException.Create(ErrorCode.EPROTONOSUPPORT);
 			}
 
 			// Register events to monitor
@@ -1175,7 +1155,7 @@ namespace NetMQ.zmq
 
 			m_monitorSocket = Ctx.CreateSocket(ZmqSocketType.Pair);
 			if (m_monitorSocket == null)
-				throw new ZMQException(ErrorCode.EFAULT);
+				throw NetMQException.Create(ErrorCode.EFAULT);
 
 			// Never block context termination on pending event messages
 			int linger = 0;
@@ -1184,7 +1164,7 @@ namespace NetMQ.zmq
 			{
 				m_monitorSocket.SetSocketOption(ZmqSocketOptions.Linger, linger);
 			}
-			catch (ZMQException ex)
+			catch (NetMQException ex)
 			{
 				StopMonitor();
 				throw;
@@ -1195,7 +1175,7 @@ namespace NetMQ.zmq
 			{
 				m_monitorSocket.Bind(addr);
 			}
-			catch (ZMQException ex)
+			catch (NetMQException ex)
 			{
 				StopMonitor();
 				throw;

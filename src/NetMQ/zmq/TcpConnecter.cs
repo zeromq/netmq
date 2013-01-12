@@ -186,7 +186,7 @@ namespace NetMQ.zmq
 				m_handleValid = true;
 				m_ioObject.OutEvent();
 			}
-			catch (ZMQException ex)
+			catch (NetMQException ex)
 			{
 				if (ex.ErrorCode == ErrorCode.EINPROGRESS)
 				{
@@ -254,7 +254,7 @@ namespace NetMQ.zmq
 			}
 			catch (SocketException ex)
 			{
-				throw new ZMQException(ex);
+				throw NetMQException.Create(ex);
 			}
 
 			// Set the socket to non-blocking mode so that we get async connect().
@@ -269,11 +269,11 @@ namespace NetMQ.zmq
 			{
 				if (ex.SocketErrorCode == SocketError.WouldBlock || ex.SocketErrorCode == SocketError.InProgress)
 				{
-					throw new ZMQException(ErrorCode.EINPROGRESS);
+					throw NetMQException.Create(ErrorCode.EINPROGRESS);
 				}
 				else
 				{
-					throw new ZMQException(ex);
+					throw NetMQException.Create(ex);
 				}
 			}
 		}
@@ -297,7 +297,7 @@ namespace NetMQ.zmq
 				}
 				else
 				{
-					throw new ZMQException(ErrorHelper.SocketErrorToErrorCode(error));
+					throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(error));
 				}
 			}
 			

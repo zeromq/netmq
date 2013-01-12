@@ -56,7 +56,7 @@ namespace NetMQ.zmq
 			}
 			catch (Exception ex)
 			{
-				throw new ZMQException(ErrorCode.EINVAL, ex);
+				throw InvalidException.Create(ex);				
 			}
 		}
 

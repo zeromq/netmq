@@ -209,7 +209,7 @@ namespace NetMQ.zmq
 				{
 					cmd = m_termMailbox.Recv(-1);
 				}
-				catch (ZMQException ex)
+				catch (NetMQException ex)
 				{
 					if (ex.ErrorCode == ErrorCode.EINTR)
 					{
@@ -251,7 +251,7 @@ namespace NetMQ.zmq
 				}
 				else
 				{
-					throw new ZMQException("option = " + option, ErrorCode.EINVAL);
+					throw InvalidException.Create("option = " + option);
 				}
 		}
 
@@ -265,7 +265,7 @@ namespace NetMQ.zmq
 					rc = m_ioThreadCount;
 				else
 				{
-					throw new ZMQException("option = " + option, ErrorCode.EINVAL);
+					throw InvalidException.Create("option = " + option);
 				}
 			return rc;
 		}
@@ -326,13 +326,13 @@ namespace NetMQ.zmq
 				//  Once zmq_term() was called, we can't create new sockets.
 				if (m_terminating)
 				{
-					throw new ZMQException(ErrorCode.ETERM);
+					throw TerminatingException.Create();
 				}
 
 				//  If max_sockets limit was reached, return error.
 				if (m_emptySlots.Count == 0)
 				{
-					throw new ZMQException(ErrorCode.EMFILE);
+					throw NetMQException.Create(ErrorCode.EMFILE);
 				}
 
 				//  Choose a slot for the socket.
@@ -434,7 +434,7 @@ namespace NetMQ.zmq
 
 			if (exist)
 			{
-				throw new ZMQException(ErrorCode.EADDRINUSE);
+				throw NetMQException.Create(ErrorCode.EADDRINUSE);
 			}
 		}
 
@@ -460,7 +460,7 @@ namespace NetMQ.zmq
 				endpoint = m_endpoints[addr];
 				if (endpoint == null)
 				{
-					throw new ZMQException(ErrorCode.ECONNREFUSED);
+					throw NetMQException.Create(ErrorCode.ECONNREFUSED);
 				}
 
 				//  Increment the command sequence number of the peer so that it won't

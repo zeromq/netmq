@@ -124,7 +124,7 @@ namespace NetMQ.zmq
 
 			//  No message is available. Initialise the output parameter
 			//  to be a 0-byte message.
-			throw new ZMQException(ErrorCode.EAGAIN);
+			throw AgainException.Create();
 		}
 
 		public bool HasIn ()

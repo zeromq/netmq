@@ -47,7 +47,7 @@ namespace NetMQ.zmq
 		{
 			if (option != ZmqSocketOptions.Subscribe && option != ZmqSocketOptions.Unsubscribe)
 			{
-				throw new ZMQException(ErrorCode.EINVAL);
+				throw InvalidException.Create();
 			}
 
 			byte[] val;
@@ -57,7 +57,7 @@ namespace NetMQ.zmq
 			else if (optval is byte[])
 				val = (byte[]) optval;
 			else
-				throw new ZMQException(ErrorCode.EINVAL);
+				throw InvalidException.Create();
 
 			//  Create the subscription message.
 			Msg msg = new Msg(val.Length + 1);
@@ -74,7 +74,7 @@ namespace NetMQ.zmq
 		protected override void XSend(Msg msg, SendRecieveOptions flags)
 		{
 			//  Overload the XSUB's send.
-			throw new ZMQException("Send not supported on sub socket", ErrorCode.ENOTSUP);
+			throw NetMQException.Create("Send not supported on sub socket", ErrorCode.ENOTSUP);
 		}
 
 		protected override bool XHasOut()

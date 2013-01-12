@@ -119,7 +119,7 @@ namespace NetMQ.zmq
 			//  If there are no pipes we cannot send the message.
 			if (m_active == 0)
 			{
-				throw new ZMQException(ErrorCode.EAGAIN);
+				throw AgainException.Create();
 			}
 
 			//  If it's part of the message we can fluch it downstream and

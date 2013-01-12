@@ -123,7 +123,7 @@ namespace NetMQ.zmq
 			{
 				Debug.Assert(false);
 
-				throw new ZMQException(ErrorCode.ESOCKET);
+				throw NetMQException.Create(ErrorCode.ESOCKET);
 			}
 		}
 
