@@ -126,9 +126,9 @@ namespace NetMQ.zmq
 
 		}
     
-		protected bool RegisterEndpoint (String addr, Ctx.Endpoint endpoint)
+		protected void RegisterEndpoint (String addr, Ctx.Endpoint endpoint)
 		{
-			return m_ctx.RegisterEndpoint (addr, endpoint);
+			m_ctx.RegisterEndpoint (addr, endpoint);
 		}
     
 		protected void UnregisterEndpoints (SocketBase socket)

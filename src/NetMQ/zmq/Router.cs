@@ -130,15 +130,13 @@ namespace NetMQ.zmq
 		}
 
 
-		protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+		protected override void XSetSocketOption(ZmqSocketOptions option, Object optval)
 		{
 			if (option != ZmqSocketOptions.RouterMandatory)
 			{
-				ZError.ErrorNumber = (ErrorNumber.EINVAL);
-				return false;
+				throw InvalidException.Create();				
 			}
-			m_mandatory = (int) optval == 1;
-			return true;
+			m_mandatory = (int) optval == 1;			
 		}
 
 
@@ -188,7 +186,7 @@ namespace NetMQ.zmq
 		}
 
 
-		protected override bool XSend(Msg msg, SendRecieveOptions flags)
+		protected override void XSend(Msg msg, SendRecieveOptions flags)
 		{
 			//  If this is the first part of the message it's the ID of the
 			//  peer to send the message to.
@@ -216,18 +214,16 @@ namespace NetMQ.zmq
 							if (m_mandatory)
 							{
 								m_moreOut = false;
-								ZError.ErrorNumber = ErrorNumber.EAGAIN;
-								return false;
+								throw AgainException.Create();
 							}
 						}
 					} else if (m_mandatory) {
 						m_moreOut = false;
-						ZError.ErrorNumber = (ErrorNumber.EHOSTUNREACH);
-						return false;
+						throw NetMQException.Create(ErrorCode.EHOSTUNREACH);
 					}
 				}
 
-				return true;
+				return;
 			}
 
 			//  Check whether this is the last part of the message.
@@ -247,8 +243,6 @@ namespace NetMQ.zmq
 			}
 
 			//  Detach the message from the data buffer.
-
-			return true;
 		}
 
 
@@ -331,18 +325,37 @@ namespace NetMQ.zmq
 			//  Try to read the next message.
 			//  The message, if read, is kept in the pre-fetch buffer.
 			Pipe[] pipe = new Pipe[1];
-			m_prefetchedMsg = m_fq.RecvPipe (pipe);
 
+			try
+			{
+				m_prefetchedMsg = m_fq.RecvPipe(pipe);
+			}
+			catch (NetMQException ex)
+			{
+				return false;
+			}
+			
 			//  It's possible that we receive peer's identity. That happens
 			//  after reconnection. The current implementation assumes that
 			//  the peer always uses the same identity.
 			//  TODO: handle the situation when the peer changes its identity.
 			while (m_prefetchedMsg != null && m_prefetchedMsg.IsIdentity )
-				m_prefetchedMsg = m_fq.RecvPipe (pipe);
+			{
+				try
+				{
+					m_prefetchedMsg = m_fq.RecvPipe(pipe);			
+				}
+				catch (NetMQException ex)
+				{
+					return false;
+				}
+			}
 
 			if (m_prefetchedMsg == null)
+			{
 				return false;
-
+			}
+						
 			Debug.Assert(pipe[0] != null);
         
 			Blob identity = pipe[0].Identity ;

@@ -1,58 +1,137 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
+using System;
+using System.Net.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
 {
 	public class NetMQException : Exception
+	{			
+		protected NetMQException(ErrorCode errorCode)
+		{
+			ErrorCode = errorCode;
+		}
+
+		protected NetMQException(string message, ErrorCode errorCode)
+			: base(message)
+		{
+			ErrorCode = errorCode;
+		}
+
+		protected NetMQException(ErrorCode errorCode, Exception ex)
+			: base("", ex)
+		{
+			this.ErrorCode = errorCode;			
+		}
+
+		public ErrorCode ErrorCode { get; private set; }
+
+		public static NetMQException Create(SocketException ex)
+		{
+			ErrorCode errorCode = ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode);
+
+			return Create(errorCode, ex);
+		}
+
+		public static NetMQException Create(ErrorCode errorCode, Exception ex)
+		{
+			switch (errorCode)
+			{
+				case ErrorCode.EAGAIN:
+					return new AgainException(ex);
+				case ErrorCode.ETERM:
+					return new TerminatingException(ex);
+				case ErrorCode.EINVAL:
+					return new InvalidException(ex);
+				default:
+					return new NetMQException(errorCode, ex);
+			}
+		}
+
+		public static NetMQException Create(ErrorCode errorCode)
+		{
+			return Create("", errorCode);
+		}
+
+		public static NetMQException Create(string message, ErrorCode errorCode)
+		{
+			switch (errorCode)
+			{
+				case ErrorCode.EAGAIN:
+					return new AgainException(message);
+				case ErrorCode.ETERM:
+					return new TerminatingException(message);
+				case ErrorCode.EINVAL:
+					return new InvalidException(message);
+				default:
+					return new NetMQException(message, errorCode);
+			}
+		}
+	}
+
+	public class AgainException : NetMQException
+	{				
+		internal AgainException(string message)
+			: base(message, ErrorCode.EAGAIN)
+		{
+		}
+
+		internal AgainException(Exception ex)
+			: base(ErrorCode.EAGAIN, ex)
+		{
+		}		
+
+		public static AgainException Create()
+		{
+			return new AgainException("");
+		}
+	}
+
+	public class TerminatingException : NetMQException
 	{		
-		private zmq.ErrorNumber m_errorNumber;
-
-		public NetMQException()
+		internal TerminatingException(string message)
+			: base(message, ErrorCode.ETERM)
 		{
 		}
 
-		public NetMQException(string message) : base(message)
+		internal TerminatingException(Exception ex)
+			: base(ErrorCode.ETERM, ex)
 		{
 		}
 
-		public NetMQException(string message, Exception innerException) : base(message, innerException)
+		public static TerminatingException Create()
 		{
-		}
-
-		protected NetMQException(SerializationInfo info, StreamingContext context) : base(info, context)
-		{
-		}
-
-		public NetMQException(string message, zmq.ErrorNumber errorNumber) : this(message)
-		{			
-			this.m_errorNumber = errorNumber;
+			return new TerminatingException("");
 		}
 	}
 
-	public class TryAgainException : NetMQException
+	public class InvalidException : NetMQException
 	{
-		public TryAgainException()
+		internal InvalidException(string message)
+			: base(message, ErrorCode.EINVAL)
 		{
 		}
 
-		public TryAgainException(string message) : base(message)
+		internal InvalidException(Exception ex)
+			: base(ErrorCode.EINVAL, ex)
 		{
 		}
 
-		public TryAgainException(string message, Exception innerException) : base(message, innerException)
+		public static InvalidException Create()
 		{
+			return new InvalidException("");
 		}
 
-		protected TryAgainException(SerializationInfo info, StreamingContext context) : base(info, context)
+		public static InvalidException Create(string message)
 		{
+			return new InvalidException(message);
 		}
 
-		public TryAgainException(string message, ErrorNumber errorNumber) : base(message, errorNumber)
+
+		public static InvalidException Create(Exception ex)
 		{
+			return new InvalidException("");
 		}
 	}
+
+	
 }

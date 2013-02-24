@@ -18,6 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -221,7 +222,10 @@ namespace NetMQ.zmq
 
 			//  Send termination request to all owned objects.
 			foreach (Own it in owned)
+			{
 				SendTerm(it, linger);
+			}
+			
 			RegisterTermAcks(owned.Count);
 			owned.Clear();
 
@@ -245,7 +249,7 @@ namespace NetMQ.zmq
 		{
 			Debug.Assert(m_termAcks > 0);
 			m_termAcks--;
-
+			
 			//  This may be a last ack we are waiting for before termination...
 			CheckTermAcks();
 		}
@@ -255,6 +259,7 @@ namespace NetMQ.zmq
 		override
 			protected void ProcessTermAck()
 		{
+
 			UnregisterTermAck();
 
 		}
@@ -262,6 +267,7 @@ namespace NetMQ.zmq
 
 		private void CheckTermAcks()
 		{
+		
 			if (m_terminating && m_processedSeqnum == m_sentSeqnum.Get() &&
 					m_termAcks == 0)
 			{

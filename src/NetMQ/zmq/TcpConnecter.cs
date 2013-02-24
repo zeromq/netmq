@@ -66,8 +66,8 @@ namespace NetMQ.zmq
 		private readonly SocketBase m_socket;
 
 		public TcpConnecter(IOThread ioThread,
-		                    SessionBase session, Options options,
-		                    Address addr, bool delayedStart)
+												SessionBase session, Options options,
+												Address addr, bool delayedStart)
 			: base(ioThread, options)
 		{
 
@@ -136,61 +136,27 @@ namespace NetMQ.zmq
 		{
 			// connected but attaching to stream engine is not completed. do nothing
 
-			bool err = false;
-			Socket fd = null;
-			try
+			Socket fd = Connect();
+			
+			if (fd == null)
 			{
-				fd = Connect();
-			}
-				//catch (ConnectException e) {
-				//    err = true;
-				//} 
-			catch (SocketException)
-			{
-				err = true;
-			}
-			//catch (IOException e) {
-			//    throw new ZError.IOException(e);
-			//}
-
-			m_ioObject.RmFd(m_handle);
-			m_handleValid = false;
-
-			if (err)
-			{
-				//  Handle the error condition by attempt to reconnect.
+				//  Handle the error condition by attempt to reconnect.			
 				Close();
 				AddReconnectTimer();
 				return;
 			}
 
+			m_ioObject.RmFd(m_handle);
+			m_handleValid = false;
+			
 			m_handle = null;
 
-			try
-			{
-
-				Utils.TuneTcpSocket(fd);
-				Utils.TuneTcpKeepalives(fd, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
-			}
-			catch (SocketException)
-			{
-				throw new Exception();
-			}
+			Utils.TuneTcpSocket(fd);
+			Utils.TuneTcpKeepalives(fd, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
 
 			//  Create the engine object for this connection.
-			StreamEngine engine;
-			try
-			{
-				engine = new StreamEngine(fd, m_options, m_endpoint);
-			}
-			catch (SocketException)
-			{
-				//LOG.error("Failed to initialize StreamEngine", e.getCause());
-				m_socket.EventConnectDelayed(m_endpoint, ZError.ErrorNumber);
-				return;
-			}
-			//alloc_Debug.Assert(engine);
-
+			StreamEngine engine = new StreamEngine(fd, m_options, m_endpoint);
+						
 			//  Attach the engine to the corresponding session object.
 			SendAttach(m_session, engine);
 
@@ -213,31 +179,30 @@ namespace NetMQ.zmq
 
 			try
 			{
-				bool rc = Open();
+				Open();
 
 				//  Connect may succeed in synchronous manner.
-				if (rc)
+				m_ioObject.AddFd(m_handle);
+				m_handleValid = true;
+				m_ioObject.OutEvent();
+			}
+			catch (NetMQException ex)
+			{
+				if (ex.ErrorCode == ErrorCode.EINPROGRESS)
 				{
-					m_ioObject.AddFd(m_handle);
-					m_handleValid = true;
-					m_ioObject.OutEvent();
-				}
-
 					//  Connection establishment may be delayed. Poll for its completion.
-				else
-				{
 					m_ioObject.AddFd(m_handle);
 					m_handleValid = true;
 					m_ioObject.SetPollout(m_handle);
-					m_socket.EventConnectDelayed(m_endpoint, ZError.ErrorNumber);
+					m_socket.EventConnectDelayed(m_endpoint, ex.ErrorCode);
 				}
-			}
-			catch (SocketException)
-			{
-				//  Handle any other error condition by eventual reconnect.
-				if (m_handle != null)
-					Close();
-				AddReconnectTimer();
+				else
+				{
+					//  Handle any other error condition by eventual reconnect.
+					if (m_handle != null)
+						Close();
+					AddReconnectTimer();
+				}
 			}
 		}
 
@@ -257,12 +222,12 @@ namespace NetMQ.zmq
 		{
 			//  The new interval is the current interval + random value.
 			int thisInterval = m_currentReconnectIvl +
-			                    (Utils.GenerateRandom() % m_options.ReconnectIvl);
+													(Utils.GenerateRandom() % m_options.ReconnectIvl);
 
 			//  Only change the current reconnect interval  if the maximum reconnect
 			//  interval was set and if it's larger than the reconnect interval.
 			if (m_options.ReconnectIvlMax > 0 &&
-			    m_options.ReconnectIvlMax > m_options.ReconnectIvl)
+					m_options.ReconnectIvlMax > m_options.ReconnectIvl)
 			{
 
 				//  Calculate the next interval
@@ -278,16 +243,22 @@ namespace NetMQ.zmq
 		//  Open TCP connecting socket. Returns -1 in case of error,
 		//  true if connect was successfull immediately. Returns false with
 		//  if async connect was launched.
-		private bool Open()
+		private void Open()
 		{
 			Debug.Assert(m_handle == null);
 
 			//  Create the socket.
-			m_handle = new Socket(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-			m_handle.Blocking = false;
+			try
+			{
+				m_handle = new Socket(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+			}
+			catch (SocketException ex)
+			{
+				throw NetMQException.Create(ex);
+			}
 
 			// Set the socket to non-blocking mode so that we get async connect().
-			//Utils.unblock_socket(handle);
+			m_handle.Blocking = false;
 
 			//  Connect to the remote peer.
 			try
@@ -298,22 +269,38 @@ namespace NetMQ.zmq
 			{
 				if (ex.SocketErrorCode == SocketError.WouldBlock || ex.SocketErrorCode == SocketError.InProgress)
 				{
-					ZError.ErrorNumber = ErrorNumber.EINPROGRESS;
+					throw NetMQException.Create(ErrorCode.EINPROGRESS);
 				}
-
-				return false;
+				else
+				{
+					throw NetMQException.Create(ex);
+				}
 			}
-			return true;
 		}
 
 		//  Get the file descriptor of newly created connection. Returns
 		//  retired_fd if the connection was unsuccessfull.
 		private Socket Connect()
-		{
-			bool finished = m_handle.Connected;
-			Debug.Assert(finished);
-			//SocketChannel ret = handle;
-
+		{						
+			SocketError error  = (SocketError) BitConverter.ToInt32(m_handle.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error, 4), 0);
+			
+			Debug.Assert(error == SocketError.Success);
+			
+			if (error != SocketError.Success)
+			{
+				if (error == SocketError.ConnectionRefused || error == SocketError.TimedOut ||
+				    error == SocketError.ConnectionAborted ||
+				    error == SocketError.HostUnreachable || error == SocketError.NetworkUnreachable ||
+				    error == SocketError.NetworkDown)
+				{
+					return null;
+				}
+				else
+				{
+					throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(error));
+				}
+			}
+			
 			return m_handle;
 		}
 
@@ -327,10 +314,9 @@ namespace NetMQ.zmq
 				m_socket.EventClosed(m_endpoint, m_handle);
 				m_handle = null;
 			}
-			catch (SocketException)
+			catch (SocketException ex)
 			{
-				//ZError.exc (e);
-				m_socket.EventCloseFailed(m_endpoint, ZError.ErrorNumber);
+				m_socket.EventCloseFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
 			}
 
 		}

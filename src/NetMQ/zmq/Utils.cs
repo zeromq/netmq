@@ -87,18 +87,17 @@ namespace NetMQ.zmq
 			{
 				dest = new T[size];
 				if (ended)
-
-					Buffer.BlockCopy(src, 0, dest, 0, src.Length);
+					Array.Copy(src, 0, dest, 0, src.Length);
 				else
-					Buffer.BlockCopy(src, 0, dest, size - src.Length, src.Length);
+					Array.Copy(src, 0, dest, size - src.Length, src.Length);
 			}
 			else if (size < src.Length)
 			{
 				dest = new T[size];
 				if (ended)
-					Buffer.BlockCopy(src, 0, dest, 0, size);
+					Array.Copy(src, 0, dest, 0, size);
 				else
-					Buffer.BlockCopy(src, src.Length - size, dest, 0, size);
+					Array.Copy(src, src.Length - size, dest, 0, size);
 
 			}
 			else

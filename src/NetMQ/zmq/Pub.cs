@@ -40,8 +40,7 @@ namespace NetMQ.zmq
 		protected override Msg XRecv(SendRecieveOptions flags)
 		{
 			//  Messages cannot be received from PUB socket.
-			ZError.ErrorNumber = (ErrorNumber.ENOTSUP);
-			return null;
+			throw NetMQException.Create("Messages cannot be received from PUB socket", ErrorCode.ENOTSUP);
 		}
 
 		protected override bool XHasIn()

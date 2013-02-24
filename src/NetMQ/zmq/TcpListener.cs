@@ -89,12 +89,12 @@ namespace NetMQ.zmq
 				Utils.TuneTcpSocket(fd);
 				Utils.TuneTcpKeepalives(fd, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
 			}
-			catch (Exception)
+			catch (NetMQException ex)
 			{
 				//  If connection was reset by the peer in the meantime, just ignore it.
 				//  TODO: Handle specific errors like ENFILE/EMFILE etc.
 				//ZError.exc (e);
-				m_socket.EventAcceptFailed(m_endpoint, ZError.ErrorNumber);
+				m_socket.EventAcceptFailed(m_endpoint, ex.ErrorCode);
 				return;
 			}
 
@@ -105,12 +105,14 @@ namespace NetMQ.zmq
 			{
 				engine = new StreamEngine(fd, m_options, m_endpoint);
 			}
-			catch (SocketException)
+			catch (SocketException ex)
 			{
 				//LOG.error("Failed to initialize StreamEngine", e.getCause());
-				ZError.ErrorNumber = (ErrorNumber.EINVAL);
-				m_socket.EventAcceptFailed(m_endpoint, ZError.ErrorNumber);
-				return;
+
+				ErrorCode errorCode = ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode);
+
+				m_socket.EventAcceptFailed(m_endpoint, errorCode);
+				throw NetMQException.Create(errorCode);
 			}
 			//  Choose I/O thread to run connecter in. Given that we are already
 			//  running in an I/O thread, there must be at least one available.
@@ -137,10 +139,13 @@ namespace NetMQ.zmq
 				m_handle.Close();
 				m_socket.EventClosed(m_endpoint, m_handle);
 			}
-			catch (Exception)
+			catch (SocketException ex)
 			{
-				//ZError.exc (e);
-				m_socket.EventCloseFailed(m_endpoint, ZError.ErrorNumber);
+				m_socket.EventCloseFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+			}
+			catch (NetMQException ex)
+			{
+				m_socket.EventCloseFailed(m_endpoint, ex.ErrorCode);
 			}
 			m_handle = null;
 		}
@@ -151,7 +156,7 @@ namespace NetMQ.zmq
 		}
 
 		//  Set address to listen on.
-		public virtual bool SetAddress(String addr)
+		public virtual void SetAddress(String addr)
 		{
 			m_address.Resolve(addr, m_options.IPv4Only);
 
@@ -167,27 +172,13 @@ namespace NetMQ.zmq
 				m_handle.Bind(m_address.Address);
 				m_handle.Listen(m_options.Backlog);           
 			}
-			catch (SecurityException)
+			catch (SocketException ex)
 			{
-				ZError.ErrorNumber = (ErrorNumber.EACCESS);
 				Close();
-				return false;
-			}
-			catch (ArgumentException)
-			{
-				ZError.ErrorNumber = (ErrorNumber.ENOTSUP);
-				Close();
-				return false;
-			}
-			catch (SocketException)
-			{
-				//ZError.exc(e);
-				Close();
-				return false;
+				throw NetMQException.Create(ex);
 			}
 
-			m_socket.EventListening(m_endpoint, m_handle);
-			return true;
+			m_socket.EventListening(m_endpoint, m_handle);			
 		}
 
 		//  Accept the new connection. Returns the file descriptor of the

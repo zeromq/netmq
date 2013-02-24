@@ -75,7 +75,7 @@ namespace NetMQ.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(TryAgainException))]
+		[Test, ExpectedException(typeof(AgainException))]
 		public void NotSubscribed()
 		{
 			using (Context contex = Context.Create())
@@ -101,7 +101,81 @@ namespace NetMQ.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(TryAgainException))]
+		/// <summary>
+		/// This test trying to reproduce bug #45 NetMQ.zmq.Utils.Realloc broken!
+		/// </summary>
+		[Test]		
+		public void MultipleSubscriptions()
+		{
+			using (Context contex = Context.Create())
+			{
+				using (PublisherSocket pub = contex.CreatePublisherSocket())
+				{
+					pub.Bind("tcp://127.0.0.1:5002");
+
+					using (SubscriberSocket sub = contex.CreateSubscriberSocket())
+					{
+						sub.Connect("tcp://127.0.0.1:5002");
+						sub.Subscribe("C");
+						sub.Subscribe("B");
+						sub.Subscribe("A");						
+						sub.Subscribe("D");
+						sub.Subscribe("E");
+
+						Thread.Sleep(500);
+						
+						sub.Unsubscribe("C");
+						sub.Unsubscribe("B");
+						sub.Unsubscribe("A");
+						sub.Unsubscribe("D");
+						sub.Unsubscribe("E");
+
+						Thread.Sleep(500);
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void MultipleSubscribers()
+		{
+			using (Context contex = Context.Create())
+			{
+				using (PublisherSocket pub = contex.CreatePublisherSocket())
+				{
+					pub.Bind("tcp://127.0.0.1:5002");
+
+					using (SubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (SubscriberSocket sub2 = contex.CreateSubscriberSocket())
+					{
+						sub.Connect("tcp://127.0.0.1:5002");
+						sub.Subscribe("A");
+						sub.Subscribe("AB");
+						sub.Subscribe("B");
+						sub.Subscribe("C");
+
+						sub2.Connect("tcp://127.0.0.1:5002");
+						sub2.Subscribe("A");
+						sub2.Subscribe("AB");
+						sub2.Subscribe("C");
+
+						Thread.Sleep(500);
+
+						pub.SendTopic("AB").Send("1");
+
+						IList<string> message = sub.ReceiveAllString();
+
+						Assert.AreEqual("AB", message[0]);
+
+						message = sub2.ReceiveAllString();
+
+						Assert.AreEqual("AB", message[0]);
+					}
+				}
+			}
+		}
+
+		[Test, ExpectedException(typeof(AgainException))]
 		public void UnSubscribe()
 		{
 			using (Context contex = Context.Create())

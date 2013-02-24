@@ -25,9 +25,10 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class Req : Dealer {
+	public class Req : Dealer
+	{
 
-    
+
 		//  If true, request was already sent and reply wasn't received yet or
 		//  was raceived partially.
 		private bool m_receivingReply;
@@ -40,47 +41,43 @@ namespace NetMQ.zmq
 		public Req(Ctx parent, int tid, int sid)
 			: base(parent, tid, sid)
 		{
-        
-        
+
+
 			m_receivingReply = false;
 			m_messageBegins = true;
 			m_options.SocketType = ZmqSocketType.Req;
 		}
 
 
-		protected override bool XSend(Msg msg, SendRecieveOptions flags)
+		protected override void XSend(Msg msg, SendRecieveOptions flags)
 		{
 			//  If we've sent a request and we still haven't got the reply,
 			//  we can't send another request.
-			if (m_receivingReply) {
-				throw new InvalidOperationException("Cannot send another request");
+			if (m_receivingReply)
+			{
+				throw NetMQException.Create("Cannot send another request", ErrorCode.EFSM);				
 			}
 
-			bool rc;
-
+			
 			//  First part of the request is the request identity.
-			if (m_messageBegins) {
+			if (m_messageBegins)
+			{
 				Msg bottom = new Msg();
-				bottom.SetFlags (MsgFlags.More);
-				rc = base.XSend (bottom, 0);
-				if (!rc)
-					return false;
+				bottom.SetFlags(MsgFlags.More);
+				base.XSend(bottom, 0);
 				m_messageBegins = false;
 			}
 
 			bool more = msg.HasMore;
 
-			rc = base.XSend (msg, flags);
-			if (!rc)
-				return rc;
-
+			base.XSend(msg, flags);
+			
 			//  If the request was fully sent, flip the FSM into reply-receiving state.
-			if (!more) {
+			if (!more)
+			{
 				m_receivingReply = true;
 				m_messageBegins = true;
 			}
-
-			return true;
 		}
 
 		override
@@ -88,54 +85,57 @@ namespace NetMQ.zmq
 		{
 			Msg msg = null;
 			//  If request wasn't send, we can't wait for reply.
-			if (!m_receivingReply) {
-				ZError.ErrorNumber = (ErrorNumber.EFSM);
-				throw new InvalidOperationException("Cannot wait before send");
+			if (!m_receivingReply)
+			{
+				throw NetMQException.Create(ErrorCode.EFSM);
 			}
 
 			//  First part of the reply should be the original request ID.
-			if (m_messageBegins) {
-				msg = base.XRecv (flags);
+			if (m_messageBegins)
+			{
+				msg = base.XRecv(flags);
 				if (msg == null)
 					return null;
 
 				// TODO: This should also close the connection with the peer!
-				if ( !msg.HasMore || msg.Size != 0) {
-					while (true) {
-						msg = base.XRecv (flags);
+				if (!msg.HasMore || msg.Size != 0)
+				{
+					while (true)
+					{
+						msg = base.XRecv(flags);
 						Debug.Assert(msg != null);
 						if (!msg.HasMore)
 							break;
 					}
-					ZError.ErrorNumber = (ErrorNumber.EAGAIN);
-					return null;
+					throw AgainException.Create();
 				}
 
 				m_messageBegins = false;
 			}
 
-			msg = base.XRecv (flags);
+			msg = base.XRecv(flags);
 			if (msg == null)
 				return null;
 
 			//  If the reply is fully received, flip the FSM into request-sending state.
-			if (!msg.HasMore) {
+			if (!msg.HasMore)
+			{
 				m_receivingReply = false;
 				m_messageBegins = true;
 			}
 
 			return msg;
 		}
-    
+
 		override
-			protected bool XHasIn ()
+			protected bool XHasIn()
 		{
 			//  TODO: Duplicates should be removed here.
 
 			if (!m_receivingReply)
 				return false;
 
-			return base.XHasIn ();
+			return base.XHasIn();
 		}
 
 		override
@@ -144,60 +144,68 @@ namespace NetMQ.zmq
 			if (m_receivingReply)
 				return false;
 
-			return base.XHasOut ();
+			return base.XHasOut();
 		}
 
-    
-		public class ReqSession : Dealer.DealerSession {
-        
-        
-			enum State {
+
+		public class ReqSession : Dealer.DealerSession
+		{
+
+
+			enum State
+			{
 				Identity,
 				Bottom,
 				Body
 			};
 
 			State m_state;
-        
+
 			public ReqSession(IOThread ioThread, bool connect,
-			                  SocketBase socket, Options options,
-			                  Address addr) :base(ioThread, connect, socket, options, addr)
-			{            
+												SocketBase socket, Options options,
+												Address addr)
+				: base(ioThread, connect, socket, options, addr)
+			{
 				m_state = State.Identity;
 			}
-        
+
 			override
-				public bool PushMsg (Msg msg)
+				public void PushMsg(Msg msg)
 			{
-				switch (m_state) {
+				switch (m_state)
+				{
 					case State.Bottom:
-						if (msg.Flags == MsgFlags.More && msg.Size == 0) {
+						if (msg.Flags == MsgFlags.More && msg.Size == 0)
+						{
 							m_state = State.Body;
-							return base.PushMsg (msg);
+							base.PushMsg(msg);
 						}
 						break;
 					case State.Body:
 						if (msg.Flags == MsgFlags.More)
-							return base.PushMsg (msg);
-						if (msg.Flags == 0) {
+							base.PushMsg(msg);
+						if (msg.Flags == 0)
+						{
 							m_state = State.Bottom;
-							return base.PushMsg (msg);
+							base.PushMsg(msg);
 						}
 						break;
 					case State.Identity:
-						if (msg.Flags == 0) {
+						if (msg.Flags == 0)
+						{
 							m_state = State.Bottom;
-							return base.PushMsg (msg);
+							base.PushMsg(msg);
 						}
 						break;
+					default:
+
+						throw NetMQException.Create(ErrorCode.EFAULT);
 				}
-            
-				throw new InvalidOperationException(m_state.ToString());
 			}
-        
-			protected override void Reset ()
+
+			protected override void Reset()
 			{
-				base.Reset ();
+				base.Reset();
 				m_state = State.Identity;
 			}
 

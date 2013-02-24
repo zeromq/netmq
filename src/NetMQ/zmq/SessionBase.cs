@@ -126,7 +126,8 @@ namespace NetMQ.zmq
 																		socket, options, addr);
 					break;
 				default:
-					throw new ArgumentException("type=" + options.SocketType);
+					throw InvalidException.Create("type=" + options.SocketType);					
+
 			}
 			return s;
 		}
@@ -206,7 +207,7 @@ namespace NetMQ.zmq
 
 		}
 
-		public virtual bool PushMsg(Msg msg)
+		public virtual void PushMsg(Msg msg)
 		{
 			//  First message to receive is identity (if required).
 			if (!m_identityReceived)
@@ -216,17 +217,16 @@ namespace NetMQ.zmq
 
 				if (!m_options.RecvIdentity)
 				{
-					return true;
+					return;
 				}
 			}
 
 			if (m_pipe != null && m_pipe.Write(msg))
 			{
-				return true;
+				return;
 			}
 
-			ZError.ErrorNumber = (ErrorNumber.EAGAIN);
-			return false;
+			throw AgainException.Create();
 		}
 
 

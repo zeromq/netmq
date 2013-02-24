@@ -25,11 +25,12 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class LB {
+	public class LB
+	{
 
 		//  List of outbound pipes.
 		private readonly List<Pipe> m_pipes;
-    
+
 		//  Number of active pipes. All the active pipes are located at the
 		//  beginning of the pipes array.
 		private int m_active;
@@ -42,24 +43,26 @@ namespace NetMQ.zmq
 
 		//  True if we are dropping current message.
 		private bool m_dropping;
-    
-		public LB() {
+
+		public LB()
+		{
 			m_active = 0;
 			m_current = 0;
 			m_more = false;
 			m_dropping = false;
-        
+
 			m_pipes = new List<Pipe>();
 		}
 
-		public void Attach (Pipe pipe) 
+		public void Attach(Pipe pipe)
 		{
-			m_pipes.Add (pipe);
-			Activated (pipe);
+			m_pipes.Add(pipe);
+			Activated(pipe);
 		}
 
-		public void Terminated(Pipe pipe) {
-			int index = m_pipes.IndexOf (pipe);
+		public void Terminated(Pipe pipe)
+		{
+			int index = m_pipes.IndexOf(pipe);
 
 			//  If we are in the middle of multipart message and current pipe
 			//  have disconnected, we have to drop the remainder of the message.
@@ -68,72 +71,78 @@ namespace NetMQ.zmq
 
 			//  Remove the pipe from the list; adjust number of active pipes
 			//  accordingly.
-			if (index < m_active) {
+			if (index < m_active)
+			{
 				m_active--;
-				Utils.Swap (m_pipes, index, m_active);
+				Utils.Swap(m_pipes, index, m_active);
 				if (m_current == m_active)
 					m_current = 0;
 			}
-			m_pipes.Remove (pipe);
+			m_pipes.Remove(pipe);
 
 		}
 
-		public void Activated(Pipe pipe) {
+		public void Activated(Pipe pipe)
+		{
 			//  Move the pipe to the list of active pipes.
-			Utils.Swap (m_pipes, m_pipes.IndexOf (pipe), m_active);
+			Utils.Swap(m_pipes, m_pipes.IndexOf(pipe), m_active);
 			m_active++;
 		}
 
-		public bool Send(Msg msg, SendRecieveOptions flags)
+		public void Send(Msg msg, SendRecieveOptions flags)
 		{
 			//  Drop the message if required. If we are at the end of the message
 			//  switch back to non-dropping mode.
-			if (m_dropping) {
+			if (m_dropping)
+			{
 
 				m_more = msg.HasMore;
 				m_dropping = m_more;
 
-				msg.Close ();
-				return true;
+				msg.Close();
+				return;
 			}
 
-			while (m_active > 0) {
-				if (m_pipes[m_current].Write (msg))
+			while (m_active > 0)
+			{
+				if (m_pipes[m_current].Write(msg))
 					break;
 
 				Debug.Assert(!m_more);
 				m_active--;
 				if (m_current < m_active)
-					Utils.Swap (m_pipes, m_current, m_active);
+					Utils.Swap(m_pipes, m_current, m_active);
 				else
 					m_current = 0;
 			}
 
 			//  If there are no pipes we cannot send the message.
-			if (m_active == 0) {
-				ZError.ErrorNumber = ErrorNumber.EAGAIN;
-				return false;
+			if (m_active == 0)
+			{
+				throw AgainException.Create();
 			}
 
 			//  If it's part of the message we can fluch it downstream and
 			//  continue round-robinning (load balance).
 			m_more = msg.HasMore;
-			if (!m_more) {
+			if (!m_more)
+			{
 				m_pipes[m_current].Flush();
 				if (m_active > 1)
 					m_current = (m_current + 1) % m_active;
 			}
 
-			return true;
 		}
 
-		public bool HasOut() {
+		public bool HasOut()
+		{
 			//  If one part of the message was already written we can definitely
 			//  write the rest of the message.
 			if (m_more)
 				return true;
 
-			while (m_active > 0) {
+			while (m_active > 0)
+			{
 
 				//  Check whether a pipe has room for another message.
 				if (m_pipes[m_current].CheckWrite())
@@ -141,7 +150,7 @@ namespace NetMQ.zmq
 
 				//  Deactivate the pipe.
 				m_active--;
-				Utils.Swap (m_pipes, m_current, m_active);
+				Utils.Swap(m_pipes, m_current, m_active);
 				if (m_current == m_active)
 					m_current = 0;
 			}

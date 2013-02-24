@@ -85,7 +85,8 @@
     <Compile Include="zmq\Encoder.cs" />
     <Compile Include="zmq\EncoderBase.cs" />
     <Compile Include="zmq\Enums.cs" />
-    <Compile Include="zmq\ErrorNumber.cs" />
+    <Compile Include="zmq\ErrorCode.cs" />
+    <Compile Include="zmq\ErrorHelper.cs" />
     <Compile Include="zmq\FQ.cs" />
     <Compile Include="zmq\IDecoder.cs" />
     <Compile Include="zmq\IEncoder.cs" />
@@ -146,7 +147,7 @@
     <Compile Include="zmq\XSub.cs" />
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\YQueue.cs" />
-    <Compile Include="zmq\ZError.cs" />
+    <None Include="zmq\ZError.cs" />
     <Compile Include="zmq\ZMQ.cs" />
     <Compile Include="zmq\ZObject.cs" />
   </ItemGroup>

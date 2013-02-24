@@ -238,7 +238,7 @@ namespace NetMQ.zmq
 				m_count = newMax - newMin + 1;
 				m_next = new Mtrie[m_count];
 
-				Buffer.BlockCopy(old_table, (newMin - m_min), m_next, 0, m_count);
+				Array.Copy(old_table, (newMin - m_min), m_next, 0, m_count);
 
 				m_min = newMin;
 			}
@@ -321,7 +321,7 @@ namespace NetMQ.zmq
 						Debug.Assert(i < m_count);
 						m_min += i;
 						m_count -= i;
-						m_next = Realloc (m_next, m_count, true);
+						m_next = Realloc (m_next, m_count, false);
 					}
 					else if (c == m_min + m_count - 1) {
 						//  We can compact the table "from the right"
@@ -333,7 +333,7 @@ namespace NetMQ.zmq
 						}
 						Debug.Assert(i < m_count);
 						m_count -= i;
-						m_next = Realloc(m_next, m_count, false);
+						m_next = Realloc(m_next, m_count, true);
 					}
 				}
 			}

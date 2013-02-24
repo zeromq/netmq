@@ -67,7 +67,7 @@ namespace NetMQ.zmq
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			ctx.Terminate();
@@ -78,7 +78,7 @@ namespace NetMQ.zmq
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			ctx.Set(option, optval);
 		}
@@ -87,7 +87,7 @@ namespace NetMQ.zmq
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			return ctx.Get(option);
 		}
@@ -102,7 +102,7 @@ namespace NetMQ.zmq
 				CtxSet(ctx, ContextOption.IOThreads, ioThreads);
 				return ctx;
 			}
-			throw new ArgumentException("io_threds must not be negative");
+			throw InvalidException.Create();
 		}
 
 		public static void Term(Ctx ctx)
@@ -115,7 +115,7 @@ namespace NetMQ.zmq
 		{
 			if (ctx == null || !ctx.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			SocketBase s = ctx.CreateSocket(type);
 			return s;
@@ -125,7 +125,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			s.Close();
 		}
@@ -135,7 +135,7 @@ namespace NetMQ.zmq
 
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			s.SetSocketOption(option, optval);
@@ -146,7 +146,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			return s.GetSocketOptionX(option);
@@ -158,36 +158,36 @@ namespace NetMQ.zmq
 			return s.GetSocketOption(opt);
 		}
 
-		public static bool SocketMonitor(SocketBase s, String addr, SocketEvent events)
+		public static void SocketMonitor(SocketBase s, String addr, SocketEvent events)
 		{
 
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
-			return s.Monitor(addr, events);
+			s.Monitor(addr, events);
 		}
 
 
-		public static bool Bind(SocketBase s, String addr)
+		public static void Bind(SocketBase s, String addr)
 		{
-
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
-			return s.Bind(addr);
+			s.Bind(addr);
 		}
 
-		public static bool Connect(SocketBase s, String addr)
+		public static void Connect(SocketBase s, String addr)
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
-			return s.Connect(addr);
+
+			s.Connect(addr);
 		}
 
 		public static bool Unbind(SocketBase s, String addr)
@@ -195,57 +195,43 @@ namespace NetMQ.zmq
 
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			return s.TermEndpoint(addr);
 		}
 
-		public static bool Disconnect(SocketBase s, String addr)
+		public static void Disconnect(SocketBase s, String addr)
 		{
-
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
-			return s.TermEndpoint(addr);
+			s.TermEndpoint(addr);
 		}
 
 		// Sending functions.
-		public static int Send(SocketBase s, String str, SendRecieveOptions flags)
+		public static void Send(SocketBase s, String str, SendRecieveOptions flags)
 		{
 			byte[] data = Encoding.ASCII.GetBytes(str);
-			return Send(s, data, data.Length, flags);
+			Send(s, data, data.Length, flags);
 		}
 
-		public static int Send(SocketBase s, Msg msg, SendRecieveOptions flags)
+		public static void Send(SocketBase s, Msg msg, SendRecieveOptions flags)
 		{
-
-			int rc = SendMsg(s, msg, flags);
-			if (rc < 0)
-			{
-				return -1;
-			}
-
-			return rc;
+			SendMsg(s, msg, flags);
 		}
 
-		public static int Send(SocketBase s, byte[] buf, int len, SendRecieveOptions flags)
+		public static void Send(SocketBase s, byte[] buf, int len, SendRecieveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			Msg msg = new Msg(len);
 			msg.Put(buf, 0, len);
 
-			int rc = SendMsg(s, msg, flags);
-			if (rc < 0)
-			{
-				return -1;
-			}
-
-			return rc;
+			SendMsg(s, msg, flags);			
 		}
 
 		// Send multiple messages.
@@ -254,13 +240,12 @@ namespace NetMQ.zmq
 		// a single multi-part message, i.e. the last message has
 		// ZMQ_SNDMORE bit switched off.
 		//
-		public int SendIOv(SocketBase s, byte[][] a, int count, SendRecieveOptions flags)
+		public void SendIOv(SocketBase s, byte[][] a, int count, SendRecieveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
-			int rc = 0;
 			Msg msg;
 
 			for (int i = 0; i < count; ++i)
@@ -268,24 +253,14 @@ namespace NetMQ.zmq
 				msg = new Msg(a[i]);
 				if (i == count - 1)
 					flags = flags & ~SendRecieveOptions.SendMore;
-				rc = SendMsg(s, msg, flags);
-				if (rc < 0)
-				{
-					rc = -1;
-					break;
-				}
-			}
-			return rc;
-
+				SendMsg(s, msg, flags);
+				
+			}			
 		}
 
-		private static int SendMsg(SocketBase s, Msg msg, SendRecieveOptions flags)
-		{
-			int sz = MsgSize(msg);
-			bool rc = s.Send(msg, flags);
-			if (!rc)
-				return -1;
-			return sz;
+		private static void SendMsg(SocketBase s, Msg msg, SendRecieveOptions flags)
+		{			
+			s.Send(msg, flags);
 		}
 
 
@@ -295,7 +270,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			Msg msg = RecvMsg(s, flags);
 			if (msg == null)
@@ -334,7 +309,7 @@ namespace NetMQ.zmq
 		{
 			if (s == null || !s.CheckTag())
 			{
-				throw new InvalidOperationException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			int nread = 0;
@@ -393,7 +368,7 @@ namespace NetMQ.zmq
 				case MsgFlags.More:
 					return msg.HasMore ? 1 : 0;
 				default:
-					throw new ArgumentException();
+					throw InvalidException.Create();
 			}
 		}
 
@@ -407,8 +382,7 @@ namespace NetMQ.zmq
 		{
 			if (frontend_ == null || backend_ == null)
 			{
-				ZError.ErrorNumber = ErrorNumber.EFAULT;
-				throw new ArgumentException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			return NetMQ.zmq.Proxy.CreateProxy(
 					frontend_,
@@ -432,8 +406,7 @@ namespace NetMQ.zmq
 		{
 			if (items == null)
 			{
-				ZError.ErrorNumber = (ErrorNumber.EFAULT);
-				throw new ArgumentException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 			if (itemsCount == 0)
 			{
@@ -514,10 +487,7 @@ namespace NetMQ.zmq
 				}
 				catch (SocketException ex)
 				{
-					// TODO: change to right error
-					ZError.ErrorNumber = ErrorNumber.ESOCKET;
-
-					return -1;
+					throw NetMQException.Create(ErrorCode.ESOCKET, ex);
 				}
 
 				for (int i = 0; i < itemsCount; i++)
@@ -611,9 +581,9 @@ namespace NetMQ.zmq
 			return ((major) * 10000 + (minor) * 100 + (patch));
 		}
 
-		public static String ErrorText(ErrorNumber errno)
+		public static String ErrorText(ErrorCode errno)
 		{
-			return "Errno = " + errno.Value.ToString();
+			return "Errno = " + errno.ToString();
 		}
 	}
 }
