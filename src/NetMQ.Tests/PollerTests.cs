@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
@@ -17,11 +18,11 @@ namespace NetMQ.Tests
 		{
 			using (Context contex = Context.Create())
 			{
-				using (ResponseSocket rep = contex.CreateResponseSocket())
+				using (IResponseSocket rep = contex.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5002");
 
-					using (RequestSocket req = contex.CreateRequestSocket())
+					using (IRequestSocket req = contex.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5002");
 
@@ -69,7 +70,7 @@ namespace NetMQ.Tests
 			{
 				Poller poller = new Poller(contex);
 
-				using (ResponseSocket rep = contex.CreateResponseSocket())
+				using (IResponseSocket rep = contex.CreateResponseSocket())
 				{
 					
 					MonitoringEventsHandler repMonitor = new MonitoringEventsHandler();
@@ -79,7 +80,7 @@ namespace NetMQ.Tests
 					poller.AddMonitor(rep, "inproc://rep.inproc", repMonitor, true);
 					rep.Bind("tcp://127.0.0.1:5002");
 
-					using (RequestSocket req = contex.CreateRequestSocket())
+					using (IRequestSocket req = contex.CreateRequestSocket())
 					{
 						try
 						{
@@ -121,19 +122,19 @@ namespace NetMQ.Tests
 			{
 				Poller poller = new Poller(contex);
 
-				RouterSocket router = contex.CreateRouterSocket();
+				IRouterSocket router = contex.CreateRouterSocket();
 				router.Bind("tcp://127.0.0.1:5001");
 
-				RequestSocket req = contex.CreateRequestSocket();
+				IRequestSocket req = contex.CreateRequestSocket();
 				req.Connect("tcp://127.0.0.1:5001");
 
-				ResponseSocket rep = contex.CreateResponseSocket();
+				IResponseSocket rep = contex.CreateResponseSocket();
 				rep.Bind("tcp://127.0.0.1:5002");
 
-				DealerSocket dealer = contex.CreateDealerSocket();
+				IDealerSocket dealer = contex.CreateDealerSocket();
 				dealer.Connect("tcp://127.0.0.1:5002");
 
-				poller.AddProxy(router, dealer, true);
+				poller.AddTwoWayProxy(router, dealer);
 
 				Task pollerTask = Task.Factory.StartNew(poller.Start);
 
@@ -172,14 +173,14 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
-				using (RouterSocket router2 = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router2 = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 					router2.Bind("tcp://127.0.0.1:5003");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
-					using (DealerSocket dealer2 = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer2 = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 						dealer2.Connect("tcp://127.0.0.1:5003");
@@ -228,17 +229,17 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
-				using (RouterSocket router2 = contex.CreateRouterSocket())
-				using (RouterSocket router3 = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router2 = contex.CreateRouterSocket())
+				using (IRouterSocket router3 = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 					router2.Bind("tcp://127.0.0.1:5003");
 					router3.Bind("tcp://127.0.0.1:5004");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
-					using (DealerSocket dealer2 = contex.CreateDealerSocket())
-					using (DealerSocket dealer3 = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer2 = contex.CreateDealerSocket())
+					using (IDealerSocket dealer3 = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 						dealer2.Connect("tcp://127.0.0.1:5003");
@@ -304,20 +305,20 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
-				using (RouterSocket router2 = contex.CreateRouterSocket())
-				using (RouterSocket router3 = contex.CreateRouterSocket())
-				using (RouterSocket router4 = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router2 = contex.CreateRouterSocket())
+				using (IRouterSocket router3 = contex.CreateRouterSocket())
+				using (IRouterSocket router4 = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 					router2.Bind("tcp://127.0.0.1:5003");
 					router3.Bind("tcp://127.0.0.1:5004");
 					router4.Bind("tcp://127.0.0.1:5005");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
-					using (DealerSocket dealer2 = contex.CreateDealerSocket())
-					using (DealerSocket dealer3 = contex.CreateDealerSocket())
-					using (DealerSocket dealer4 = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer2 = contex.CreateDealerSocket())
+					using (IDealerSocket dealer3 = contex.CreateDealerSocket())
+					using (IDealerSocket dealer4 = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 						dealer2.Connect("tcp://127.0.0.1:5003");
@@ -408,17 +409,17 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
-				using (RouterSocket router2 = contex.CreateRouterSocket())
-				using (RouterSocket router3 = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router2 = contex.CreateRouterSocket())
+				using (IRouterSocket router3 = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 					router2.Bind("tcp://127.0.0.1:5003");
 					router3.Bind("tcp://127.0.0.1:5004");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
-					using (DealerSocket dealer2 = contex.CreateDealerSocket())
-					using (DealerSocket dealer3 = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer2 = contex.CreateDealerSocket())
+					using (IDealerSocket dealer3 = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 						dealer2.Connect("tcp://127.0.0.1:5003");
@@ -521,11 +522,11 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 
@@ -577,11 +578,11 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 
@@ -630,11 +631,11 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 
@@ -688,11 +689,11 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 
@@ -755,11 +756,11 @@ namespace NetMQ.Tests
 			using (Context contex = Context.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
-				using (RouterSocket router = contex.CreateRouterSocket())
+				using (IRouterSocket router = contex.CreateRouterSocket())
 				{
 					router.Bind("tcp://127.0.0.1:5002");
 
-					using (DealerSocket dealer = contex.CreateDealerSocket())
+					using (IDealerSocket dealer = contex.CreateDealerSocket())
 					{
 						dealer.Connect("tcp://127.0.0.1:5002");
 

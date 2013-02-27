@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using NetMQ;
 using System.Threading.Tasks;
+using NetMQ.Sockets;
 
 namespace ConsoleApplication1
 {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
@@ -14,11 +15,11 @@ namespace NetMQ.Tests
 		{
 			using (Context context = Context.Create())
 			{
-				using (PullSocket pullSocket = context.CreatePullSocket())
+				using (IPullSocket pullSocket = context.CreatePullSocket())
 				{
 					pullSocket.Bind("tcp://127.0.0.1:5004");
 
-					using (PushSocket pushSocket  = context.CreatePushSocket())
+					using (IPushSocket pushSocket = context.CreatePushSocket())
 					{
 						pushSocket.Connect("tcp://127.0.0.1:5004");
 
@@ -38,11 +39,11 @@ namespace NetMQ.Tests
 		{
 			using (Context context = Context.Create())
 			{
-				using (PullSocket pullSocket = context.CreatePullSocket())
+				using (IPullSocket pullSocket = context.CreatePullSocket())
 				{
 					pullSocket.Bind("tcp://127.0.0.1:5004");
 
-					using (PushSocket pushSocket = context.CreatePushSocket())
+					using (IPushSocket pushSocket = context.CreatePushSocket())
 					{
 						pushSocket.Connect("tcp://127.0.0.1:5004");
 

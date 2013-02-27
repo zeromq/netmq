@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using NUnit.Framework;
+using NetMQ.Sockets;
+using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
@@ -15,11 +17,11 @@ namespace NetMQ.Tests
 		{
 			using (Context contex = Context.Create())
 			{
-				using (PublisherSocket pub = contex.CreatePublisherSocket())
+				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (SubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");
 						sub.Subscribe("A");
@@ -27,7 +29,8 @@ namespace NetMQ.Tests
 						// let the subscrbier connect to the publisher before sending a message
 						Thread.Sleep(500);
 
-						pub.SendTopic("A").Send("Hello");
+						pub.SendMore("A");
+						pub.Send("Hello");
 
 						bool more;
 
@@ -50,11 +53,11 @@ namespace NetMQ.Tests
 		{
 			using (Context contex = Context.Create())
 			{
-				using (PublisherSocket pub = contex.CreatePublisherSocket())
+				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (SubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");						
 						sub.Subscribe("");
@@ -80,11 +83,11 @@ namespace NetMQ.Tests
 		{
 			using (Context contex = Context.Create())
 			{
-				using (PublisherSocket pub = contex.CreatePublisherSocket())
+				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (SubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");						
 
@@ -109,11 +112,11 @@ namespace NetMQ.Tests
 		{
 			using (Context contex = Context.Create())
 			{
-				using (PublisherSocket pub = contex.CreatePublisherSocket())
+				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (SubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");
 						sub.Subscribe("C");
@@ -141,12 +144,12 @@ namespace NetMQ.Tests
 		{
 			using (Context contex = Context.Create())
 			{
-				using (PublisherSocket pub = contex.CreatePublisherSocket())
+				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (SubscriberSocket sub = contex.CreateSubscriberSocket())
-					using (SubscriberSocket sub2 = contex.CreateSubscriberSocket())
+					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (ISubscriberSocket sub2 = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");
 						sub.Subscribe("A");
@@ -161,7 +164,8 @@ namespace NetMQ.Tests
 
 						Thread.Sleep(500);
 
-						pub.SendTopic("AB").Send("1");
+						pub.SendMore("AB");
+							pub.Send("1");
 
 						IList<string> message = sub.ReceiveAllString();
 
@@ -180,11 +184,11 @@ namespace NetMQ.Tests
 		{
 			using (Context contex = Context.Create())
 			{
-				using (PublisherSocket pub = contex.CreatePublisherSocket())
+				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (SubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");
 						sub.Subscribe("A");
@@ -192,7 +196,8 @@ namespace NetMQ.Tests
 						// let the subscrbier connect to the publisher before sending a message
 						Thread.Sleep(500);
 
-						pub.SendTopic("A").Send("Hello");
+						pub.SendMore("A");
+						pub.Send("Hello");
 
 						bool more;
 
@@ -210,7 +215,8 @@ namespace NetMQ.Tests
 
 						Thread.Sleep(500);
 
-						pub.SendTopic("A").Send("Hello");
+						pub.SendMore("A");
+						pub.Send("Hello");
 
 						string m3  = sub.ReceiveString(true, out more);
 					}

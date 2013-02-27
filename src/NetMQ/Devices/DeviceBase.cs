@@ -1,4 +1,5 @@
 ﻿using System;
+using NetMQ.Sockets;
 
 namespace NetMQ.Devices
 {
@@ -7,8 +8,8 @@ namespace NetMQ.Devices
 	/// they are then sent.
 	/// </summary>	
 	public abstract class DeviceBase<TFront, TBack> : IDevice
-		where TFront : BaseSocket
-		where TBack : BaseSocket
+		where TFront : ISocket
+		where TBack : ISocket
 	{
 
 		/// <summary>

@@ -1,4 +1,5 @@
 using System;
+using NetMQ.Sockets;
 
 namespace NetMQ.Devices
 {
@@ -17,7 +18,7 @@ namespace NetMQ.Devices
 	/// var device = new ForwarderDevice(ctx, "inproc://frontend", "inproc://backend");
 	/// device.FrontendSetup.Subscribe("topic");
 	/// </example>
-	public class ForwarderDevice : DeviceBase<SubscriberSocket, PublisherSocket>
+	public class ForwarderDevice : DeviceBase<ISubscriberSocket, IPublisherSocket>
 	{
 
 		/// <summary>
@@ -29,7 +30,8 @@ namespace NetMQ.Devices
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
 		public ForwarderDevice(Context context, string frontendBindAddress, string backendBindAddress,
 			DeviceMode mode = DeviceMode.Threaded)
-			: base(context, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode) {
+			: base(context, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
+		{
 
 			FrontendSetup.Bind(frontendBindAddress);
 			BackendSetup.Bind(backendBindAddress);
@@ -45,29 +47,28 @@ namespace NetMQ.Devices
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>		
 		public ForwarderDevice(Context context, Poller poller, string frontendBindAddress, string backendBindAddress,
 			DeviceMode mode = DeviceMode.Threaded)
-			: base(poller, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode) {
+			: base(poller, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
+		{
 
 			FrontendSetup.Bind(frontendBindAddress);
 			BackendSetup.Bind(backendBindAddress);
 		}
 
-		protected override void FrontendHandler(SubscriberSocket socket) {
+		protected override void FrontendHandler(ISubscriberSocket socket)
+		{
 			bool more;
 
-			PublisherSocket.PublisherSendMessage msg = null;
-
-			do {
+			do
+			{
 				var data = socket.Receive(out more);
 
-				if (msg == null) {
-					msg = BackendSocket.SendTopic(data);
-				} else {
-					if (more)
-						msg.SendMore(data);
-					else {
-						msg.Send(data);
-					}
+				if (more)
+					BackendSocket.SendMore(data);
+				else
+				{
+					BackendSocket.Send(data);
 				}
+
 			} while (more);
 		}
 	}

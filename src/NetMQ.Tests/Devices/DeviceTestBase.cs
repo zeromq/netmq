@@ -3,14 +3,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using NetMQ.Devices;
+using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ.Tests.Devices
 {
 	public abstract class DeviceTestBase<TDevice, TClient, TWorker>
 		where TDevice : IDevice
-		where TClient : BaseSocket
-		where TWorker : BaseSocket
+		where TClient : ISocket
+		where TWorker : ISocket
 	{
 
 		protected const string Frontend = "inproc://front.addr";

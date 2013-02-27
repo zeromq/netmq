@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -25,7 +26,7 @@ namespace NetMQ
 		/// <param name="socket">Socket to monitor</param>
 		/// <param name="address">Monitoring address to use</param>
 		/// <param name="monitoringEventsHandler">The events handler interface</param>
-		public MonitorPoll(Context context, BaseSocket socket,
+		public MonitorPoll(Context context, ISocket socket,
 			string address, IMonitoringEventsHandler monitoringEventsHandler)
 		{
 			Socket = socket;
@@ -43,7 +44,7 @@ namespace NetMQ
 		/// <summary>
 		/// The socket to monitor
 		/// </summary>
-		public BaseSocket Socket { get; private set; }
+		public ISocket Socket { get; private set; }
 
 		/// <summary>
 		/// The socket context
@@ -53,7 +54,7 @@ namespace NetMQ
 		/// <summary>
 		/// Monitoring socket created by the init method
 		/// </summary>
-		internal BaseSocket MonitoringSocket { get; private set; }
+		internal IPairSocket MonitoringSocket { get; private set; }
 
 		/// <summary>
 		/// How much time to wait on each poll iteration, the higher the number the longer it will take the poller to stop 

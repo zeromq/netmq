@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -170,6 +171,12 @@ namespace NetMQ
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.DelayAttachOnConnect); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.DelayAttachOnConnect, value); }
         }
+
+				public bool XPubVerbose
+				{
+					get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XpubVerbose); }
+					set { m_socket.SetSocketOption(ZmqSocketOptions.XpubVerbose, value); }
+				}
 
     }
 }

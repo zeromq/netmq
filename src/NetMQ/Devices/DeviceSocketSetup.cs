@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using NetMQ.Sockets;
 
 namespace NetMQ.Devices
 {
@@ -10,7 +11,7 @@ namespace NetMQ.Devices
 	/// Configures the given socket
 	/// </summary>
 	/// <typeparam name="TSocket"></typeparam>
-	public class DeviceSocketSetup<TSocket> where TSocket : BaseSocket
+	public class DeviceSocketSetup<TSocket> where TSocket : ISocket
 	{
 
 		private readonly TSocket m_socket;

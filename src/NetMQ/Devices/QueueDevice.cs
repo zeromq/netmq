@@ -1,4 +1,6 @@
-﻿namespace NetMQ.Devices
+﻿using NetMQ.Sockets;
+
+namespace NetMQ.Devices
 {
 
 	/// <summary>
@@ -11,7 +13,7 @@
 	/// original request. This device is part of the request-reply pattern. The frontend
 	/// speaks to clients and the backend speaks to services.
 	/// </remarks>
-	public class QueueDevice : DeviceBase<RouterSocket, DealerSocket>
+	public class QueueDevice : DeviceBase<IRouterSocket, IDealerSocket>
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QueueDevice"/> class.
@@ -44,7 +46,7 @@
 			BackendSetup.Bind(backendBindAddress);
 		}
 
-		protected override void FrontendHandler(RouterSocket socket) {
+		protected override void FrontendHandler(IRouterSocket socket) {
 			bool more;
 
 			do {
@@ -58,7 +60,7 @@
 			} while (more);
 		}
 
-		protected override void BackendHandler(DealerSocket socket) {
+		protected override void BackendHandler(IDealerSocket socket) {
 			bool more;
 
 			do {

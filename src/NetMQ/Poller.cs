@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -17,15 +18,15 @@ namespace NetMQ
 
 		class ProxyPoll
 		{
-			public BaseSocket FromSocket { get; set; }
+			public IIncomingSocket FromSocket { get; set; }
 
-			public BaseSocket ToSocket { get; set; }
+			public IOutgoingSocket ToSocket { get; set; }
 		}
 
 		class SocketPoll
 		{
-			public BaseSocket Socket { get; set; }
-			public Action<BaseSocket> Action;
+			public ISocket Socket { get; set; }
+			public Action<ISocket> Action;
 			public bool Cancelled { get; set; }
 		}
 
@@ -68,7 +69,7 @@ namespace NetMQ
 		/// </summary>
 		public bool IsStarted { get { return m_isStarted; } }
 
-		private void CheckSocketAlreadyExist(BaseSocket baseSocket)
+		private void CheckSocketAlreadyExist(ISocket baseSocket)
 		{
 			if (m_sockets.Select(s => s.Socket).Contains(baseSocket) || m_proxies.Select(p => p.FromSocket).Contains(baseSocket))
 			{
@@ -151,23 +152,23 @@ namespace NetMQ
 		/// <typeparam name="T"></typeparam>
 		/// <param name="socket">Socket to listen to</param>
 		/// <param name="action">The action will be called when message is ready to be received</param>
-		public void AddSocket<T>(T socket, Action<T> action) where T : BaseSocket
+		public void AddSocket<T>(T socket, Action<T> action) where T : ISocket
 		{
 			CheckSocketAlreadyExist(socket);
 
 			m_sockets.Add(new SocketPoll
 				{
 					Socket = socket,
-					Action = s => action(s as T),
+					Action = s => action((T)s),
 					Cancelled = false
 				});
 
 			m_newSockets = true;
 		}
 
-		public void CancelSocket<T>(T socket) where T : BaseSocket
+		public void CancelSocket<T>(T socket) where T : ISocket
 		{
-			SocketPoll poll = m_sockets.First(s => s.Socket == socket);
+			SocketPoll poll = m_sockets.First(s => object.ReferenceEquals(s.Socket, socket));
 
 			if (poll != null)
 			{
@@ -184,29 +185,26 @@ namespace NetMQ
 		/// <param name="from">The messages from this socket will forward</param>
 		/// <param name="to">This socket will receive the messages from the from socket</param>
 		/// <param name="duplex">If true the messages will both ways</param>	
-		public void AddProxy(BaseSocket from, BaseSocket to, bool duplex)
+		public void AddProxy(IIncomingSocket from, IOutgoingSocket to)
 		{
-			CheckSocketAlreadyExist(from);
-
-			if (duplex)
-			{
-				CheckSocketAlreadyExist(to);
-			}
-
-			m_proxies.Add(new ProxyPoll { FromSocket = from, ToSocket = to });
-
-			if (duplex)
-			{
-				m_proxies.Add(new ProxyPoll { FromSocket = to, ToSocket = from });
-			}
+			CheckSocketAlreadyExist(from);						
 		}
 
-		public void AddMonitor(BaseSocket socket, string address, IMonitoringEventsHandler eventsHandler)
+		public void AddTwoWayProxy(IDuplexSocket from, IDuplexSocket to)
+		{
+			CheckSocketAlreadyExist(from);			
+			CheckSocketAlreadyExist(to);
+
+			m_proxies.Add(new ProxyPoll { FromSocket = from, ToSocket = to });			
+			m_proxies.Add(new ProxyPoll { FromSocket = to, ToSocket = from });			
+		}
+
+		public void AddMonitor(IPairSocket socket, string address, IMonitoringEventsHandler eventsHandler)
 		{
 			AddMonitor(socket, address, eventsHandler, true);
 		}
 
-		public void AddMonitor(BaseSocket socket, string address, IMonitoringEventsHandler eventsHandler, bool init)
+		public void AddMonitor(ISocket socket, string address, IMonitoringEventsHandler eventsHandler, bool init)
 		{
 			MonitorPoll monitorPoll = new MonitorPoll(m_context, socket, address, eventsHandler);
 

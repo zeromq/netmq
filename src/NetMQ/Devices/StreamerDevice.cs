@@ -1,4 +1,5 @@
 using System;
+using NetMQ.Sockets;
 
 namespace NetMQ.Devices
 {
@@ -10,7 +11,7 @@ namespace NetMQ.Devices
 	/// load-balanced to pullers. This device is part of the pipeline pattern. The
 	/// frontend speaks to pushers and the backend speaks to pullers.
 	/// </remarks>
-	public class StreamerDevice : DeviceBase<PullSocket, PushSocket>
+	public class StreamerDevice : DeviceBase<IPullSocket, IPushSocket>
 	{
 
 		/// <summary>
@@ -44,7 +45,7 @@ namespace NetMQ.Devices
 			BackendSetup.Bind(backendBindAddress);
 		}
 
-		protected override void FrontendHandler(PullSocket socket) {
+		protected override void FrontendHandler(IPullSocket socket) {
 			bool more;
 
 			do {

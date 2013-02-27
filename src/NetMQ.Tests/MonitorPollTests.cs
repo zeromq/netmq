@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
@@ -18,8 +19,8 @@ namespace NetMQ.Tests
 			bool accepted = false;
 
 			using (Context contex = Context.Create())
-			{				
-				using (ResponseSocket rep = contex.CreateResponseSocket())
+			{
+				using (IResponseSocket rep = contex.CreateResponseSocket())
 				{
 					MonitoringEventsHandler repMonitor = new MonitoringEventsHandler();
 					repMonitor.OnAccepted = (addr, fd) => accepted = true;
@@ -32,7 +33,7 @@ namespace NetMQ.Tests
 
 					rep.Bind("tcp://127.0.0.1:5002");
 
-					using (RequestSocket req = contex.CreateRequestSocket())
+					using (IRequestSocket req = contex.CreateRequestSocket())
 					{												
 						req.Connect("tcp://127.0.0.1:5002");
 						req.Send("a");
