@@ -60,9 +60,10 @@ namespace NetMQ.Tests
 		[Test]
 		public void MonitoringPoll()
 		{
-			bool listening = false;
-			bool connected = false;
-			bool accepted = false;
+			ManualResetEvent listeningEvent = new ManualResetEvent(false);
+			ManualResetEvent acceptedEvent = new ManualResetEvent(false);
+			ManualResetEvent connectedEvent = new ManualResetEvent(false);
+
 
 			using (Context contex = Context.Create())
 			{
@@ -70,41 +71,44 @@ namespace NetMQ.Tests
 
 				using (ResponseSocket rep = contex.CreateResponseSocket())
 				{
+					
 					MonitoringEventsHandler repMonitor = new MonitoringEventsHandler();
-					repMonitor.OnAccepted = (addr, fd) => accepted = true;
-					repMonitor.OnListening = (addr, fd) => listening = true;
+					repMonitor.OnAccepted = (addr, fd) => acceptedEvent.Set();
+					repMonitor.OnListening = (addr, fd) => listeningEvent.Set();
 
 					poller.AddMonitor(rep, "inproc://rep.inproc", repMonitor, true);
 					rep.Bind("tcp://127.0.0.1:5002");
 
 					using (RequestSocket req = contex.CreateRequestSocket())
 					{
-						MonitoringEventsHandler reqMonitor = new MonitoringEventsHandler();
-						reqMonitor.OnConnected = (addr, fd) => connected = true;
+						try
+						{
+							MonitoringEventsHandler reqMonitor = new MonitoringEventsHandler();
+							reqMonitor.OnConnected = (addr, fd) => connectedEvent.Set();
 
-						poller.AddMonitor(req, "inproc://req.inproc", reqMonitor, true);
+							poller.AddMonitor(req, "inproc://req.inproc", reqMonitor, true);
 
-						var pollerTask = Task.Factory.StartNew(poller.Start);
+							var pollerTask = Task.Factory.StartNew(poller.Start);
 
-						req.Connect("tcp://127.0.0.1:5002");
-						req.Send("a");
+							req.Connect("tcp://127.0.0.1:5002");
+							req.Send("a");
 
-						bool more;
+							bool more;
 
-						string m = rep.ReceiveString(out more);
+							string m = rep.ReceiveString(out more);
 
-						rep.Send("b");
+							rep.Send("b");
 
-						string m2 = req.ReceiveString(out more);
-
-						Assert.IsTrue(listening);
-						Assert.IsTrue(connected);
-						Assert.IsTrue(accepted);
-
-						poller.Stop();
-						Thread.Sleep(100);
-
-						Assert.IsTrue(pollerTask.IsCompleted);
+							string m2 = req.ReceiveString(out more);
+							
+							Assert.IsTrue(listeningEvent.WaitOne(300));
+							Assert.IsTrue(connectedEvent.WaitOne(300));
+							Assert.IsTrue(acceptedEvent.WaitOne(300));
+						}
+						finally
+						{
+							poller.Stop();
+						}
 					}
 				}
 			}
@@ -204,9 +208,9 @@ namespace NetMQ.Tests
 						Task task = Task.Factory.StartNew(poller.Start);
 
 						dealer.Send("1");
-						Thread.Sleep(100);
+						Thread.Sleep(300);
 						dealer2.Send("2");
-						Thread.Sleep(100);
+						Thread.Sleep(300);
 
 						poller.Stop(true);
 						task.Wait();
@@ -277,11 +281,11 @@ namespace NetMQ.Tests
 						Task task = Task.Factory.StartNew(poller.Start);
 
 						dealer.Send("1");
-						Thread.Sleep(100);
+						Thread.Sleep(300);
 						dealer2.Send("2");
-						Thread.Sleep(100);
+						Thread.Sleep(300);
 						dealer3.Send("3");
-						Thread.Sleep(100);
+						Thread.Sleep(300);
 
 						poller.Stop(true);
 						task.Wait();
@@ -368,14 +372,14 @@ namespace NetMQ.Tests
 						Task task = Task.Factory.StartNew(poller.Start);
 
 						dealer.Send("1");
-						Thread.Sleep(100);
+						Thread.Sleep(300);
 						dealer2.Send("2");
-						Thread.Sleep(100);
+						Thread.Sleep(300);
 						dealer3.Send("3");
 						dealer4.Send("4");
 						dealer2.Send("2");
 						dealer.Send("1");
-						Thread.Sleep(100);
+						Thread.Sleep(300);
 
 						poller.Stop(true);
 						task.Wait();

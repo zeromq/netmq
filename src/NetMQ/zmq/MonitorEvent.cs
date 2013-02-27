@@ -59,7 +59,7 @@ namespace NetMQ.zmq
 			get { return m_monitorEvent; }
 		}
 
-		public bool Write(SocketBase s)
+		public void Write(SocketBase s)
 		{
 			int size = 4 + 1 + m_addr.Length + 1; // event + len(addr) + addr + flag
 			if (m_flag == ValueInteger)
@@ -99,7 +99,7 @@ namespace NetMQ.zmq
 			}			
 
 			Msg msg = new Msg((byte[])buffer);
-			return s.Send(msg, 0);
+			s.Send(msg, 0);
 		}
 
 		public static MonitorEvent Read(SocketBase s)

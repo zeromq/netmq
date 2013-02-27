@@ -134,7 +134,7 @@ namespace NetMQ.zmq
 		}
 
 		public void Plug(IOThread ioThread,
-		                 SessionBase session)
+										 SessionBase session)
 		{
 			Debug.Assert(!m_plugged);
 			m_plugged = true;
@@ -154,10 +154,10 @@ namespace NetMQ.zmq
 			//  Send the 'length' and 'flags' fields of the identity message.
 			//  The 'length' field is encoded in the long format.
 
-			m_greetingOutputBuffer[m_outsize++] = ((byte) 0xff);
-			m_greetingOutputBuffer.PutLong((long) m_options.IdentitySize + 1, 1);
+			m_greetingOutputBuffer[m_outsize++] = ((byte)0xff);
+			m_greetingOutputBuffer.PutLong((long)m_options.IdentitySize + 1, 1);
 			m_outsize += 8;
-			m_greetingOutputBuffer[m_outsize++] = ((byte) 0x7f);
+			m_greetingOutputBuffer[m_outsize++] = ((byte)0x7f);
 
 			m_outpos = new ByteArraySegment(m_greetingOutputBuffer);
 
@@ -376,14 +376,14 @@ namespace NetMQ.zmq
 
 				//  The peer is using versioned protocol.
 				//  Send the rest of the greeting, if necessary.
-				if (!(((byte[]) m_outpos) == ((byte[]) m_greetingOutputBuffer) &&
-				      m_outpos.Offset + m_outsize == GreetingSize))
+				if (!(((byte[])m_outpos) == ((byte[])m_greetingOutputBuffer) &&
+							m_outpos.Offset + m_outsize == GreetingSize))
 				{
 					if (m_outsize == 0)
 						m_ioObject.SetPollout(m_handle);
 
 					m_outpos[m_outsize++] = 1; // Protocol version
-					m_outpos[m_outsize++] = (byte) m_options.SocketType;
+					m_outpos[m_outsize++] = (byte)m_options.SocketType;
 				}
 			}
 
@@ -452,28 +452,28 @@ namespace NetMQ.zmq
 			return true;
 		}
 
-		public bool PushMsg(Msg msg)
+		public void PushMsg(Msg msg)
 		{
 			Debug.Assert(m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub);
 
 			//  The first message is identity.
 			//  Let the session process it.
-			bool rc = m_session.PushMsg(msg);
-			Debug.Assert(rc);
+
+			m_session.PushMsg(msg);
 
 			//  Inject the subscription message so that the ZMQ 2.x peer
 			//  receives our messages.
 			msg = new Msg(1);
-			msg.Put((byte) 1);
-			rc = m_session.PushMsg(msg);
+			msg.Put((byte)1);
+
+			m_session.PushMsg(msg);
+
 			m_session.Flush();
 
 			//  Once we have injected the subscription message, we can
 			//  Divert the message flow back to the session.
 			Debug.Assert(m_decoder != null);
 			m_decoder.SetMsgSink(m_session);
-
-			return rc;
 		}
 
 		private void Error()
@@ -490,7 +490,7 @@ namespace NetMQ.zmq
 			int nbytes = 0;
 			try
 			{
-				nbytes = m_handle.Send((byte[]) data, data.Offset, size, SocketFlags.None);
+				nbytes = m_handle.Send((byte[])data, data.Offset, size, SocketFlags.None);
 			}
 			catch (SocketException ex)
 			{
@@ -501,12 +501,12 @@ namespace NetMQ.zmq
 					return 0;
 				}
 				else if ((
-				         	ex.SocketErrorCode == SocketError.NetworkDown ||
-				         	ex.SocketErrorCode == SocketError.NetworkReset ||
-				         	ex.SocketErrorCode == SocketError.HostUnreachable ||
-				         	ex.SocketErrorCode == SocketError.ConnectionAborted ||
-				         	ex.SocketErrorCode == SocketError.TimedOut ||
-				         	ex.SocketErrorCode == SocketError.ConnectionReset))
+									ex.SocketErrorCode == SocketError.NetworkDown ||
+									ex.SocketErrorCode == SocketError.NetworkReset ||
+									ex.SocketErrorCode == SocketError.HostUnreachable ||
+									ex.SocketErrorCode == SocketError.ConnectionAborted ||
+									ex.SocketErrorCode == SocketError.TimedOut ||
+									ex.SocketErrorCode == SocketError.ConnectionReset))
 				{
 					return -1;
 				}
@@ -524,7 +524,7 @@ namespace NetMQ.zmq
 			int nbytes = 0;
 			try
 			{
-				nbytes = m_handle.Receive((byte[]) data, data.Offset, size, SocketFlags.None);
+				nbytes = m_handle.Receive((byte[])data, data.Offset, size, SocketFlags.None);
 			}
 			catch (SocketException ex)
 			{
@@ -535,12 +535,12 @@ namespace NetMQ.zmq
 					return 0;
 				}
 				else if ((
-				         	ex.SocketErrorCode == SocketError.NetworkDown ||
-				         	ex.SocketErrorCode == SocketError.NetworkReset ||
-				         	ex.SocketErrorCode == SocketError.HostUnreachable ||
-				         	ex.SocketErrorCode == SocketError.ConnectionAborted ||
-				         	ex.SocketErrorCode == SocketError.TimedOut ||
-				         	ex.SocketErrorCode == SocketError.ConnectionReset))
+									ex.SocketErrorCode == SocketError.NetworkDown ||
+									ex.SocketErrorCode == SocketError.NetworkReset ||
+									ex.SocketErrorCode == SocketError.HostUnreachable ||
+									ex.SocketErrorCode == SocketError.ConnectionAborted ||
+									ex.SocketErrorCode == SocketError.TimedOut ||
+									ex.SocketErrorCode == SocketError.ConnectionReset))
 				{
 					return -1;
 				}

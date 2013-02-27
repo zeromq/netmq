@@ -26,7 +26,7 @@ namespace NetMQ.zmq
 			int delimiter = name.LastIndexOf(':');
 			if (delimiter < 0)
 			{
-				throw new ArgumentException(name);
+				throw InvalidException.Create();
 			}
 
 			//  Separate the address/port.
@@ -62,7 +62,7 @@ namespace NetMQ.zmq
 				port = Convert.ToInt32(portStr);
 				if (port == 0)
 				{
-					throw new ArgumentException(name);
+					throw InvalidException.Create();
 				}
 			}
 
@@ -77,7 +77,7 @@ namespace NetMQ.zmq
 
 			if (!IPAddress.TryParse(addrStr, out ipAddress))
 			{
-				throw new ArgumentException();
+				throw InvalidException.Create();
 			}
 
 			addrNet = new IPEndPoint(ipAddress, port);

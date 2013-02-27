@@ -115,7 +115,7 @@ namespace NetMQ.zmq
     
 		override
 			protected void ProcessReap (SocketBase socket)
-		{   
+		{			
 			//  Add the socket to the poller.
 			socket.StartReaping (m_poller);
 
@@ -128,7 +128,7 @@ namespace NetMQ.zmq
 			protected void ProcessReaped ()
 		{
 			--m_sockets;
-
+			
 			//  If reaped was already asked to terminate and there are no more sockets,
 			//  finish immediately.
 			if (m_sockets == 0 && m_terminating) {

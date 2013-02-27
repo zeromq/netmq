@@ -4,64 +4,56 @@ using NetMQ.zmq;
 
 namespace remote_lat
 {
-    class Program
-    {
-        static int Main(string[] args)
-        {
-            if (args.Length != 3)
-            {
-                Console.WriteLine("usage: remote_lat remote_lat <connect-to> <message-size> <roundtrip-count>");
-                return 1;
-            }
+	class Program
+	{
+		static int Main(string[] args)
+		{
+			if (args.Length != 3)
+			{
+				Console.WriteLine("usage: remote_lat remote_lat <connect-to> <message-size> <roundtrip-count>");
+				return 1;
+			}
 
-            string connectTo = args[0];
-            int messageSize = int.Parse(args[1]);
-            int roundtripCount = int.Parse(args[2]);
+			string connectTo = args[0];
+			int messageSize = int.Parse(args[1]);
+			int roundtripCount = int.Parse(args[2]);
 
-            var context = ZMQ.CtxNew();
-            var reqSocket = ZMQ.Socket(context, ZmqSocketType.Req);
-            bool connected = reqSocket.Connect(connectTo);
-            if (!connected)
-            {
-                Console.WriteLine("error in zmq_connect");
-            }
+			var context = ZMQ.CtxNew();
+			var reqSocket = ZMQ.Socket(context, ZmqSocketType.Req);
 
-            var message = new Msg(messageSize);
+			reqSocket.Connect(connectTo);
 
-            var stopWatch = Stopwatch.StartNew();
+			var message = new Msg(messageSize);
 
-            for (int i = 0; i != roundtripCount; i++)
-            {
-                bool sent = reqSocket.Send(message, SendRecieveOptions.None);
-                if (!sent)
-                {
-                    Console.WriteLine("error in zmq_sendmsg");
-                    return -1;
-                }
+			var stopWatch = Stopwatch.StartNew();
 
-                message = reqSocket.Recv(SendRecieveOptions.None);
-                if (message.Size != messageSize)
-                {
-                    Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
-                    return -1;
-                }
-            }
+			for (int i = 0; i != roundtripCount; i++)
+			{
+				reqSocket.Send(message, SendRecieveOptions.None);				
 
-            stopWatch.Stop();
+				message = reqSocket.Recv(SendRecieveOptions.None);
+				if (message.Size != messageSize)
+				{
+					Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
+					return -1;
+				}
+			}
 
-            message.Close();
+			stopWatch.Stop();
 
-            double elapsedMicroseconds = stopWatch.ElapsedTicks * 1000000 / Stopwatch.Frequency;
-            double latency = elapsedMicroseconds / (roundtripCount * 2);
+			message.Close();
 
-            Console.WriteLine("message size: {0} [B]", messageSize);
-            Console.WriteLine("roundtrip count: {0}", roundtripCount);
-            Console.WriteLine("average latency: {0:0.000} [µs]", latency);
+			double elapsedMicroseconds = stopWatch.ElapsedTicks * 1000000 / Stopwatch.Frequency;
+			double latency = elapsedMicroseconds / (roundtripCount * 2);
 
-            reqSocket.Close();
-            context.Terminate();
+			Console.WriteLine("message size: {0} [B]", messageSize);
+			Console.WriteLine("roundtrip count: {0}", roundtripCount);
+			Console.WriteLine("average latency: {0:0.000} [µs]", latency);
 
-            return 0;
-        }
-    }
+			reqSocket.Close();
+			context.Terminate();
+
+			return 0;
+		}
+	}
 }

@@ -12,21 +12,21 @@ namespace NetMQ
 
 		void OnConnected(string address, IntPtr fd);
 
-		void OnConnectDelayed(string address, ErrorNumber errorCode);
+		void OnConnectDelayed(string address, ErrorCode errorCode);
 
 		void OnConnectRetried(string address, int interval);
 
-		void OnConnectFailed(string address, ErrorNumber errorCode);
+		void OnConnectFailed(string address, ErrorCode errorCode);
 		void OnListening(string address, IntPtr fd);
 
 
-		void OnBindFailed(string address, ErrorNumber errorCode);
+		void OnBindFailed(string address, ErrorCode errorCode);
 
 		void OnAccepted(string address, IntPtr fd);
-		void OnAcceptFailed(string address, ErrorNumber errorCode);
+		void OnAcceptFailed(string address, ErrorCode errorCode);
 
 		void OnClosed(string address, IntPtr fd);
-		void OnCloseFailed(string address, ErrorNumber errorCode);
+		void OnCloseFailed(string address, ErrorCode errorCode);
 		void OnDisconnected(string address, IntPtr fd);
 	}
 }

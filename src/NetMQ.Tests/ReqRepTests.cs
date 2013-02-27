@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
@@ -42,7 +43,7 @@ namespace NetMQ.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void SendingTwoRequestsInaRow()
 		{
 			using (Context ctx = Context.Create())
@@ -60,13 +61,15 @@ namespace NetMQ.Tests
 						bool more;
 						rep.Receive(out more);
 
-						req.Send("Hi2");
+						var ex = Assert.Throws<NetMQException>(() => req.Send("Hi2"));
+
+						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);											
 					}
 				}
 			}
 		}
 
-		[Test, ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void ReceiveBeforeSending()
 		{
 			using (Context ctx = Context.Create())
@@ -74,20 +77,24 @@ namespace NetMQ.Tests
 				using (ResponseSocket rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5001");
-
+					
+					
 					using (RequestSocket req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
 						bool more;
 
-						var text = req.ReceiveString(out more);
+						var ex = Assert.Throws<NetMQException>(() => req.ReceiveString(out more));
+
+						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
+						
 					}
 				}
 			}
 		}
 
-		[Test, ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void SendMessageInResponeBeforeReceiving()
 		{
 			using (Context ctx = Context.Create())
@@ -100,7 +107,9 @@ namespace NetMQ.Tests
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
-						rep.Send("1");
+						var ex = Assert.Throws<NetMQException>(() => rep.Send("1"));
+
+						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);											
 					}
 				}
 			}

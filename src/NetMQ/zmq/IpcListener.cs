@@ -42,13 +42,12 @@ namespace NetMQ.zmq
     
 
 		//  Set address to listen on.
-		public override bool SetAddress(String addr)
-		{
-        
+		public override void SetAddress(String addr)
+		{        
 			m_address.Resolve (addr, false);
         
 			String fake = m_address.Address.Address + ":" + m_address.Address.Port;
-			return base.SetAddress(fake);
+			base.SetAddress(fake);
 		}
 
 

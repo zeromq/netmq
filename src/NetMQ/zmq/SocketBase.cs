@@ -88,7 +88,7 @@ namespace NetMQ.zmq
 			m_options.SocketId = sid;
 
 			m_endpoints = new Dictionary<string, Own>();
-			m_pipes = new List<Pipe>();
+			m_pipes = new List<Pipe>();			
 
 			m_mailbox = new Mailbox("socket-" + sid);
 		}
@@ -151,7 +151,7 @@ namespace NetMQ.zmq
 					break;
 
 				default:
-					throw new ArgumentException("type=" + type);
+					throw InvalidException.Create("type=" + type);
 			}
 			return s;
 		}
@@ -190,8 +190,7 @@ namespace NetMQ.zmq
 							!protocol.Equals("ipc") && !protocol.Equals("tcp") &&
 				!protocol.Equals("pgm") && !protocol.Equals("epgm"))
 			{
-				ZError.ErrorNumber = (ErrorNumber.EPROTONOSUPPORT);
-				throw new NotSupportedException(protocol);
+				throw NetMQException.Create(ErrorCode.EPROTONOSUPPORT);
 			}
 
 			//  Check whether socket type and transport protocol match.
@@ -201,8 +200,7 @@ namespace NetMQ.zmq
 							m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
 							m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
 			{
-				ZError.ErrorNumber = (ErrorNumber.EPROTONOSUPPORT);
-				throw new NotSupportedException(protocol + ",type=" + m_options.SocketType);
+				throw NetMQException.Create(protocol + ",type=" + m_options.SocketType, ErrorCode.EPROTONOSUPPORT);
 			}
 
 			//  Protocol is available.
@@ -234,23 +232,27 @@ namespace NetMQ.zmq
 			}
 		}
 
-		public bool SetSocketOption(ZmqSocketOptions option, Object optval)
+		public void SetSocketOption(ZmqSocketOptions option, Object optval)
 		{
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = ErrorNumber.ETERM;
-				return false;
+				throw TerminatingException.Create();
 			}
 
 			//  First, check whether specific socket type overloads the option.
-			bool rc = XSetSocketOption(option, optval);
-			if (rc || !ZError.IsError(ErrorNumber.EINVAL))
-				return false;
+
+			try
+			{
+				XSetSocketOption(option, optval);
+				return;
+			}
+			catch (InvalidException)
+			{				
+			}
 
 			//  If the socket type doesn't support the option, pass it to
 			//  the generic option parser.
-			ZError.Clear();
-			return m_options.SetSocketOption(option, optval);
+			m_options.SetSocketOption(option, optval);
 		}
 
 		public int GetSocketOption(ZmqSocketOptions option)
@@ -258,8 +260,7 @@ namespace NetMQ.zmq
 
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return -1;
+				throw TerminatingException.Create();
 			}
 
 			if (option == ZmqSocketOptions.ReceiveMore)
@@ -268,10 +269,24 @@ namespace NetMQ.zmq
 			}
 			if (option == ZmqSocketOptions.Events)
 			{
-				bool rc = ProcessCommands(0, false);
-				if (!rc && (ZError.IsError(ErrorNumber.EINTR) || ZError.IsError(ErrorNumber.ETERM)))
-					return -1;
-				Debug.Assert(rc);
+				try
+				{
+					ProcessCommands(0, false);
+				}
+				catch (NetMQException ex)
+				{
+					if (ex.ErrorCode == ErrorCode.EINTR || ex.ErrorCode == ErrorCode.ETERM)
+					{
+						return -1;
+					}
+					else
+					{
+						Debug.Assert(false);
+
+						throw;
+					}
+				}
+
 				PollEvents val = 0;
 				if (HasOut())
 					val |= PollEvents.PollOut;
@@ -287,8 +302,7 @@ namespace NetMQ.zmq
 		{
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return null;
+				throw TerminatingException.Create();
 			}
 
 			if (option == ZmqSocketOptions.ReceiveMore)
@@ -303,10 +317,24 @@ namespace NetMQ.zmq
 
 			if (option == ZmqSocketOptions.Events)
 			{
-				bool rc = ProcessCommands(0, false);
-				if (!rc && (ZError.IsError(ErrorNumber.EINTR) || ZError.IsError(ErrorNumber.ETERM)))
-					return -1;
-				Debug.Assert(rc);
+				try
+				{
+					ProcessCommands(0, false);
+				}
+				catch (NetMQException ex)
+				{
+					Debug.Assert(false);
+
+					if (ex.ErrorCode == ErrorCode.EINTR || ex.ErrorCode == ErrorCode.ETERM)
+					{
+						return -1;
+					}
+					else
+					{
+						throw;
+					}
+				}
+
 				int val = 0;
 				if (HasOut())
 					val |= ZMQ.ZmqPollout;
@@ -320,34 +348,15 @@ namespace NetMQ.zmq
 
 		}
 
-		public bool Bind(String addr)
+		public void Bind(String addr)
 		{
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return false;
+				throw TerminatingException.Create();
 			}
 
 			//  Process pending commands, if any.
-			bool brc = ProcessCommands(0, false);
-			if (!brc)
-				return false;
-
-			//  Parse addr_ string.
-			//Uri uri;
-			//try
-			//{
-			//  uri = new Uri(addr);
-			//}
-			//catch (Exception e)
-			//{
-			//  throw new ArgumentException(addr, e);
-			//}
-			//String protocol = uri.Scheme;
-			//String address = uri.Authority;
-			//String path = uri.AbsolutePath;
-			//if (string.IsNullOrEmpty(address))
-			//  address = path;
+			ProcessCommands(0, false);
 
 			string protocol;
 			string address;
@@ -359,20 +368,21 @@ namespace NetMQ.zmq
 			if (protocol.Equals("inproc"))
 			{
 				Ctx.Endpoint endpoint = new Ctx.Endpoint(this, m_options);
-				bool rc = RegisterEndpoint(addr, endpoint);
-				if (rc)
-				{
-					// Save last endpoint URI
-					m_options.LastEndpoint = addr;
-				}
-				return rc;
+
+				RegisterEndpoint(addr, endpoint);
+
+				// Save last endpoint URI
+				m_options.LastEndpoint = addr;
+
+				return;
 			}
 			if ((protocol.Equals("pgm") || protocol.Equals("epgm")) && (
 				m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub))
 			{
 				//  For convenience's sake, bind can be used interchageable with
 				//  connect for PGM and EPGM transports.
-				return Connect(addr);
+				Connect(addr);
+				return;
 			}
 
 			//  Remaining trasnports require to be run in an I/O thread, so at this
@@ -380,95 +390,95 @@ namespace NetMQ.zmq
 			IOThread ioThread = ChooseIOThread(m_options.Affinity);
 			if (ioThread == null)
 			{
-				ZError.ErrorNumber = (ErrorNumber.EMTHREAD);
-				return false;
+				throw NetMQException.Create(ErrorCode.EMTHREAD);
 			}
 
 			if (protocol.Equals("tcp"))
 			{
 				TcpListener listener = new TcpListener(
 						ioThread, this, m_options);
-				bool rc = listener.SetAddress(address);
-				if (!rc)
+
+				try
+				{
+					listener.SetAddress(address);
+				}
+				catch (NetMQException ex)
 				{
 					listener.Destroy();
-					EventBindFailed(addr, ZError.ErrorNumber);
-					//LOG.error("Failed to Bind", ZError.exc());
-					return false;
+					EventBindFailed(addr, ex.ErrorCode);
+
+					throw;
 				}
 
 				// Save last endpoint URI
 				m_options.LastEndpoint = listener.Address;
 
 				AddEndpoint(addr, listener);
-				return true;
+
+				return;
 			}
 
 			if (protocol.Equals("pgm") || protocol.Equals("epgm"))
 			{
 				PgmListener listener = new PgmListener(ioThread, this, m_options);
-				bool rc = listener.Init(address);
-				if (!rc)
+
+				try
+				{
+					listener.Init(address);
+				}
+				catch (NetMQException ex)
 				{
 					listener.Destroy();
-					EventBindFailed(addr, ZError.ErrorNumber);
+					EventBindFailed(addr, ex.ErrorCode);
 
-					return false;
+					throw;
 				}
 
 				m_options.LastEndpoint = addr;
 
 				AddEndpoint(addr, listener);
 
-				return true;
+				return;
 			}
 
 			if (protocol.Equals("ipc"))
 			{
 				IpcListener listener = new IpcListener(
 						ioThread, this, m_options);
-				bool rc = listener.SetAddress(address);
-				if (!rc)
+
+				try
+				{
+					listener.SetAddress(address);
+				}
+				catch (NetMQException ex)
 				{
 					listener.Destroy();
-					EventBindFailed(addr, ZError.ErrorNumber);
-					return false;
+					EventBindFailed(addr, ex.ErrorCode);
+
+					throw;
 				}
 
 				// Save last endpoint URI
 				m_options.LastEndpoint = listener.Address;
 
 				AddEndpoint(addr, listener);
-				return true;
+				return;
 			}
 
 			Debug.Assert(false);
-			return false;
+			throw NetMQException.Create(ErrorCode.EFAULT);
 		}
 
-		public bool Connect(String addr)
-		{
+		public void Connect(String addr)
+		{			
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return false;
+				throw TerminatingException.Create();
 			}
 
 			//  Process pending commands, if any.
-			bool brc = ProcessCommands(0, false);
-			if (!brc)
-				return false;
+			ProcessCommands(0, false);
 
-			//  Parse addr_ string.
-			//Uri uri;
-			//try
-			//{
-			//  uri = new Uri(addr);
-			//}
-			//catch (Exception e)
-			//{
-			//  throw new ArgumentException(addr, e);
-			//}
 
 			string address;
 			string protocol;
@@ -485,8 +495,7 @@ namespace NetMQ.zmq
 
 				//  Find the peer endpoint.
 				Ctx.Endpoint peer = FindEndpoint(addr);
-				if (peer.Socket == null)
-					return false;
+
 				// The total HWM for an inproc connection should be the sum of
 				// the binder's HWM and the connector's HWM.
 				int sndhwm;
@@ -540,14 +549,14 @@ namespace NetMQ.zmq
 				// Save last endpoint URI
 				m_options.LastEndpoint = addr;
 
-				return true;
+				return;
 			}
 
 			//  Choose the I/O thread to run the session in.
 			IOThread ioThread = ChooseIOThread(m_options.Affinity);
 			if (ioThread == null)
 			{
-				throw new ArgumentException("Empty IO Thread");
+				throw NetMQException.Create("Empty IO Thread", ErrorCode.EMTHREAD);
 			}
 			Address paddr = new Address(protocol, address);
 
@@ -567,7 +576,8 @@ namespace NetMQ.zmq
 			{
 				if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
 				{
-					return Bind(addr);
+					Bind(addr);
+					return;
 				}
 
 				paddr.Resolved = new PgmAddress();
@@ -580,11 +590,7 @@ namespace NetMQ.zmq
 
 			//  PGM does not support subscription forwarding; ask for all data to be
 			//  sent to this pipe.
-			bool icanhasall = false;
-			if (protocol.Equals("pgm") || protocol.Equals("epgm"))
-			{
-				icanhasall = true;
-			}
+			bool icanhasall = protocol.Equals("pgm") || protocol.Equals("epgm");
 
 			if (!m_options.DelayAttachOnConnect || icanhasall)
 			{
@@ -606,7 +612,7 @@ namespace NetMQ.zmq
 			m_options.LastEndpoint = paddr.ToString();
 
 			AddEndpoint(addr, session);
-			return true;
+			return;
 		}
 
 		private void DecodeAddress(string addr, out string address, out string protocol)
@@ -632,21 +638,18 @@ namespace NetMQ.zmq
 
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return false;
+				throw TerminatingException.Create();
 			}
 
 			//  Check whether endpoint address passed to the function is valid.
 			if (addr == null)
 			{
-				throw new ArgumentException();
+				throw InvalidException.Create();
 			}
 
 			//  Process pending commands, if any, since there could be pending unprocessed process_own()'s
 			//  (from launch_child() for example) we're asked to terminate now.
-			bool rc = ProcessCommands(0, false);
-			if (!rc)
-				return rc;
+			ProcessCommands(0, false);
 
 			if (!m_endpoints.ContainsKey(addr))
 			{
@@ -672,25 +675,21 @@ namespace NetMQ.zmq
 
 		}
 
-		public bool Send(Msg msg, SendRecieveOptions flags)
+		public void Send(Msg msg, SendRecieveOptions flags)
 		{
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return false;
+				throw TerminatingException.Create();
 			}
 
 			//  Check whether message passed to the function is valid.
 			if (msg == null)
 			{
-				ZError.ErrorNumber = (ErrorNumber.EFAULT);
-				throw new ArgumentException();
+				throw NetMQException.Create(ErrorCode.EFAULT);
 			}
 
 			//  Process pending commands, if any.
-			bool rc = ProcessCommands(0, true);
-			if (!rc)
-				return false;
+			ProcessCommands(0, true);
 
 			//  Clear any user-visible flags that are set on the message.
 			msg.ResetFlags(MsgFlags.More);
@@ -700,16 +699,19 @@ namespace NetMQ.zmq
 				msg.SetFlags(MsgFlags.More);
 
 			//  Try to send the message.
-			rc = XSend(msg, flags);
-			if (rc)
-				return true;
-			if (!ZError.IsError(ErrorNumber.EAGAIN))
-				return false;
+			try
+			{
+				XSend(msg, flags);
+				return;
+			}
+			catch (AgainException)
+			{				
+			}
 
 			//  In case of non-blocking send we'll simply propagate
 			//  the error - including EAGAIN - up the stack.
 			if ((flags & SendRecieveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
-				return false;
+				throw AgainException.Create();
 
 			//  Compute the time when the timeout should occur.
 			//  If the timeout is infite, don't care. 
@@ -721,43 +723,45 @@ namespace NetMQ.zmq
 			//  If timeout is reached in the meantime, return EAGAIN.
 			while (true)
 			{
-				if (!ProcessCommands(timeout, false))
-					return false;
+				ProcessCommands(timeout, false);
 
-				rc = XSend(msg, flags);
-				if (rc)
+				try
+				{
+					XSend(msg, flags);
 					break;
-
-				if (!ZError.IsError(ErrorNumber.EAGAIN))
-					return false;
+				}
+				catch (AgainException)
+				{
+				}
 
 				if (timeout > 0)
 				{
 					timeout = (int)(end - Clock.NowMs());
 					if (timeout <= 0)
 					{
-						ZError.ErrorNumber = (ErrorNumber.EAGAIN);
-						return false;
+						throw AgainException.Create();
 					}
 				}
 			}
-			return true;
 		}
-
 
 		public Msg Recv(SendRecieveOptions flags)
 		{
-
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return null;
+				throw TerminatingException.Create();
 			}
 
+			Msg msg = null;
+
 			//  Get the message.
-			Msg msg = XRecv(flags);
-			if (msg == null && !ZError.IsError(ErrorNumber.EAGAIN))
-				return null;
+			try
+			{
+				msg = XRecv(flags);
+			}
+			catch (AgainException)
+			{
+			}
 
 			//  Once every inbound_poll_rate messages check for signals and process
 			//  incoming commands. This happens only if we are not polling altogether
@@ -769,8 +773,7 @@ namespace NetMQ.zmq
 			//  ticks is more efficient than doing RDTSC all the time.
 			if (++m_ticks == Config.InboundPollRate)
 			{
-				if (!ProcessCommands(0, false))
-					return null;
+				ProcessCommands(0, false);
 				m_ticks = 0;
 			}
 
@@ -787,8 +790,7 @@ namespace NetMQ.zmq
 			//  If it's not, return EAGAIN.
 			if ((flags & SendRecieveOptions.DontWait) > 0 || m_options.ReceiveTimeout == 0)
 			{
-				if (!ProcessCommands(0, false))
-					return null;
+				ProcessCommands(0, false);
 				m_ticks = 0;
 
 				msg = XRecv(flags);
@@ -808,16 +810,20 @@ namespace NetMQ.zmq
 			bool block = (m_ticks != 0);
 			while (true)
 			{
-				if (!ProcessCommands(block ? timeout : 0, false))
-					return null;
-				msg = XRecv(flags);
-				if (msg != null)
+				ProcessCommands(block ? timeout : 0, false);
+
+				try
 				{
-					m_ticks = 0;
-					break;
+					msg = XRecv(flags);
+					if (msg != null)
+					{
+						m_ticks = 0;
+						break;
+					}
 				}
-				if (!ZError.IsError(ErrorNumber.EAGAIN))
-					return null;
+				catch (AgainException)
+				{
+				}
 
 				block = true;
 				if (timeout > 0)
@@ -825,15 +831,13 @@ namespace NetMQ.zmq
 					timeout = (int)(end - Clock.NowMs());
 					if (timeout <= 0)
 					{
-						ZError.ErrorNumber = (ErrorNumber.EAGAIN);
-						return null;
+						throw AgainException.Create();
 					}
 				}
 			}
 
 			ExtractFlags(msg);
 			return msg;
-
 		}
 
 
@@ -841,7 +845,7 @@ namespace NetMQ.zmq
 		{
 			//  Mark the socket as dead
 			m_tag = 0xdeadbeef;
-
+			
 			//  Transfer the ownership of the socket from this application thread
 			//  to the reaper thread which will take care of the rest of shutdown
 			//  process.
@@ -866,8 +870,7 @@ namespace NetMQ.zmq
 		//  Using this function reaper thread ask the socket to register with
 		//  its poller.
 		public void StartReaping(Poller poller)
-		{
-
+		{			
 			//  Plug the socket to the reaper thread.
 			m_poller = poller;
 			m_handle = m_mailbox.FD;
@@ -876,6 +879,7 @@ namespace NetMQ.zmq
 
 			//  Initialise the termination and check whether it can be deallocated
 			//  immediately.
+
 			Terminate();
 			CheckDestroy();
 		}
@@ -884,10 +888,9 @@ namespace NetMQ.zmq
 		//  returns only after at least one command was processed.
 		//  If throttle argument is true, commands are processed at most once
 		//  in a predefined time period.
-		private bool ProcessCommands(int timeout, bool throttle)
+		private void ProcessCommands(int timeout, bool throttle)
 		{
 			Command cmd;
-			bool ret = true;
 			if (timeout != 0)
 			{
 
@@ -916,14 +919,13 @@ namespace NetMQ.zmq
 					//  between CPU cores) and whether certain time have elapsed since
 					//  last command processing. If it didn't do nothing.
 					if (tsc >= m_lastTsc && tsc - m_lastTsc <= Config.MaxCommandDelay)
-						return true;
+						return;
 					m_lastTsc = tsc;
 				}
 
 				//  Check whether there are any commands pending for this thread.
 				cmd = m_mailbox.Recv(0);
 			}
-
 
 			//  Process all the commands available at the moment.
 			while (true)
@@ -936,11 +938,8 @@ namespace NetMQ.zmq
 			}
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return false;
+				throw TerminatingException.Create();
 			}
-
-			return ret;
 		}
 
 		protected override void ProcessStop()
@@ -984,10 +983,9 @@ namespace NetMQ.zmq
 		//  The default implementation assumes there are no specific socket
 		//  options for the particular socket type. If not so, overload this
 		//  method.
-		protected virtual bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+		protected virtual void XSetSocketOption(ZmqSocketOptions option, Object optval)
 		{
-			ZError.ErrorNumber = (ErrorNumber.EINVAL);
-			return false;
+			throw InvalidException.Create();
 		}
 
 
@@ -996,7 +994,7 @@ namespace NetMQ.zmq
 			return false;
 		}
 
-		protected virtual bool XSend(Msg msg, SendRecieveOptions flags)
+		protected virtual void XSend(Msg msg, SendRecieveOptions flags)
 		{
 			throw new NotSupportedException("Must Override");
 		}
@@ -1033,8 +1031,15 @@ namespace NetMQ.zmq
 			//  of the reaper thread. Process any commands from other threads/sockets
 			//  that may be available at the moment. Ultimately, the socket will
 			//  be destroyed.
-			ProcessCommands(0, false);
-			CheckDestroy();
+
+			try
+			{
+				ProcessCommands(0, false);
+			}
+			finally
+			{
+				CheckDestroy();
+			}
 		}
 
 		public virtual void OutEvent()
@@ -1060,7 +1065,7 @@ namespace NetMQ.zmq
 				m_poller.RemoveFD(m_handle);
 				//  Remove the socket from the context.
 				DestroySocket(this);
-
+			
 				//  Notify the reaper about the fact.
 				SendReaped();
 
@@ -1092,7 +1097,7 @@ namespace NetMQ.zmq
 
 
 		public void Terminated(Pipe pipe)
-		{
+		{			
 			//  Notify the specific socket type about the pipe termination.
 			XTerminated(pipe);
 
@@ -1119,38 +1124,19 @@ namespace NetMQ.zmq
 		}
 
 
-		public bool Monitor(String addr, SocketEvent events)
+		public void Monitor(String addr, SocketEvent events)
 		{
-			bool rc;
 			if (m_ctxTerminated)
 			{
-				ZError.ErrorNumber = (ErrorNumber.ETERM);
-				return false;
+				throw TerminatingException.Create();
 			}
 
 			// Support deregistering monitoring endpoints as well
 			if (addr == null)
 			{
 				StopMonitor();
-				return true;
+				return;
 			}
-
-			//  Parse addr_ string.
-			//Uri uri;
-			//try
-			//{
-			//  uri = new Uri(addr);
-			//}
-			//catch (UriFormatException ex)
-			//{
-			//  ZError.ErrorNumber = (ErrorNumber.EINVAL);
-			//  throw new ArgumentException(addr, ex);
-			//}
-			//String protocol = uri.Scheme;
-			//String address = uri.Authority;
-			//String path = uri.AbsolutePath;
-			//if (string.IsNullOrEmpty(address))
-			//  address = path;
 
 			string address;
 			string protocol;
@@ -1161,8 +1147,7 @@ namespace NetMQ.zmq
 			// Event notification only supported over inproc://
 			if (!protocol.Equals("inproc"))
 			{
-				ZError.ErrorNumber = (ErrorNumber.EPROTONOSUPPORT);
-				return false;
+				throw NetMQException.Create(ErrorCode.EPROTONOSUPPORT);
 			}
 
 			// Register events to monitor
@@ -1170,19 +1155,31 @@ namespace NetMQ.zmq
 
 			m_monitorSocket = Ctx.CreateSocket(ZmqSocketType.Pair);
 			if (m_monitorSocket == null)
-				return false;
+				throw NetMQException.Create(ErrorCode.EFAULT);
 
 			// Never block context termination on pending event messages
 			int linger = 0;
-			rc = m_monitorSocket.SetSocketOption(ZmqSocketOptions.Linger, linger);
-			if (!rc)
+
+			try
+			{
+				m_monitorSocket.SetSocketOption(ZmqSocketOptions.Linger, linger);
+			}
+			catch (NetMQException ex)
+			{
 				StopMonitor();
+				throw;
+			}
 
 			// Spawn the monitor socket endpoint
-			rc = m_monitorSocket.Bind(addr);
-			if (!rc)
+			try
+			{
+				m_monitorSocket.Bind(addr);
+			}
+			catch (NetMQException ex)
+			{
 				StopMonitor();
-			return rc;
+				throw;
+			}
 		}
 
 		public void EventConnected(String addr, Socket ch)
@@ -1193,7 +1190,7 @@ namespace NetMQ.zmq
 			MonitorEvent(new MonitorEvent(SocketEvent.Connected, addr, ch));
 		}
 
-		public void EventConnectDelayed(String addr, ErrorNumber errno)
+		public void EventConnectDelayed(String addr, ErrorCode errno)
 		{
 			if ((m_monitorEvents & SocketEvent.ConnectDelayed) == 0)
 				return;
@@ -1217,7 +1214,7 @@ namespace NetMQ.zmq
 			MonitorEvent(new MonitorEvent(SocketEvent.Listening, addr, ch));
 		}
 
-		public void EventBindFailed(String addr, ErrorNumber errno)
+		public void EventBindFailed(String addr, ErrorCode errno)
 		{
 			if ((m_monitorEvents & SocketEvent.BindFailed) == 0)
 				return;
@@ -1233,7 +1230,7 @@ namespace NetMQ.zmq
 			MonitorEvent(new MonitorEvent(SocketEvent.Accepted, addr, ch));
 		}
 
-		public void EventAcceptFailed(String addr, ErrorNumber errno)
+		public void EventAcceptFailed(String addr, ErrorCode errno)
 		{
 			if ((m_monitorEvents & SocketEvent.AcceptFailed) == 0)
 				return;
@@ -1249,7 +1246,7 @@ namespace NetMQ.zmq
 			MonitorEvent(new MonitorEvent(SocketEvent.Closed, addr, ch));
 		}
 
-		public void EventCloseFailed(String addr, ErrorNumber errno)
+		public void EventCloseFailed(String addr, ErrorCode errno)
 		{
 			if ((m_monitorEvents & SocketEvent.CloseFailed) == 0)
 				return;

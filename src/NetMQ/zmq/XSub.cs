@@ -128,25 +128,27 @@ namespace NetMQ.zmq
 			pipe.Flush ();
 		}
 
-		protected override bool XSend(Msg msg, SendRecieveOptions flags)
+		protected override void XSend(Msg msg, SendRecieveOptions flags)
 		{
 			byte[] data = msg.Data; 
 			// Malformed subscriptions.
 			if (data.Length < 1 || (data[0] != 0 && data[0] != 1)) {
-				return false;
+				throw InvalidException.Create();
 			}
         
 			// Process the subscription.
 			if (data[0] == 1) {
-				if (m_subscriptions.Add (data , 1))
-					return m_dist.SendToAll (msg, flags);
+				if (m_subscriptions.Add(data, 1))
+				{
+					m_dist.SendToAll(msg, flags);
+				}
 			}
 			else {
-				if (m_subscriptions.Remove (data, 1))
-					return m_dist.SendToAll (msg, flags);
+				if (m_subscriptions.Remove(data, 1))
+				{
+					m_dist.SendToAll(msg, flags);
+				}
 			}
-
-			return true;
 		}
 
 		protected override bool XHasOut () {
@@ -209,13 +211,20 @@ namespace NetMQ.zmq
 			//  stream of non-matching messages.
 			while (true) {
 
-				//  Get a message using fair queueing algorithm.
-				m_message = m_fq.Recv ();
+				try
+				{
+					//  Get a message using fair queueing algorithm.
+					m_message = m_fq.Recv();
+				}
+				catch (AgainException)
+				{
+					return false;
+				}				
 
 				//  If there's no message available, return immediately.
 				//  The same when error occurs.
-				if (m_message == null) {
-					Debug.Assert(ZError.IsError(ErrorNumber.EAGAIN));
+				if (m_message == null)
+				{
 					return false;
 				}
 

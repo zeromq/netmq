@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -37,10 +38,7 @@ namespace NetMQ
 		/// <param name="address">The address of the socket</param>
 		public void Bind(string address)
 		{
-			if (!ZMQ.Bind(m_socketHandle, address))
-			{
-				throw new NetMQException("Bind socket failed", ZError.ErrorNumber);
-			}
+			ZMQ.Bind(m_socketHandle, address);
 		}
 
 		/// <summary>
@@ -49,10 +47,7 @@ namespace NetMQ
 		/// <param name="address">Address to connect to</param>
 		public void Connect(string address)
 		{
-			if (!ZMQ.Connect(m_socketHandle, address))
-			{
-				throw new NetMQException("Connect socket failed", ZError.ErrorNumber);
-			}
+			ZMQ.Connect(m_socketHandle, address);
 		}
 
 		/// <summary>
@@ -61,10 +56,7 @@ namespace NetMQ
 		/// <param name="address">The address to disconnect from</param>
 		public void Disconnect(string address)
 		{
-			if (!ZMQ.Disconnect(m_socketHandle, address))
-			{
-				throw new NetMQException("Disconnect socket failed", ZError.ErrorNumber);
-			}
+			ZMQ.Disconnect(m_socketHandle, address);
 		}
 
 		/// <summary>
@@ -73,10 +65,7 @@ namespace NetMQ
 		/// <param name="address">The address to unbind from</param>
 		public void Unbind(string address)
 		{
-			if (!ZMQ.Unbind(m_socketHandle, address))
-			{
-				throw new NetMQException("Unbind socket failed", ZError.ErrorNumber);
-			}
+			ZMQ.Unbind(m_socketHandle, address);			
 		}
 
 		/// <summary>
@@ -111,12 +100,7 @@ namespace NetMQ
 		protected Msg ReceiveInternal(SendRecieveOptions options, out bool hasMore)
 		{
 			var msg = ZMQ.Recv(m_socketHandle, options);
-
-			if (msg == null)
-			{
-				HandleError("Receive failed");
-			}
-
+			
 			hasMore = msg.HasMore;
 
 			return msg;
@@ -169,12 +153,7 @@ namespace NetMQ
 		{
 			Msg msg = new Msg(data, length, Options.CopyMessages);
 
-			int bytesSend = ZMQ.Send(m_socketHandle, msg, options);
-
-			if (bytesSend < 0)
-			{
-				HandleError("Sending message failed");
-			}
+			ZMQ.Send(m_socketHandle, msg, options);			
 		}
 
 		protected void SendInternal(byte[] data, int length, bool dontWait, bool sendMore)
@@ -200,22 +179,7 @@ namespace NetMQ
 
 			SendInternal(data, data.Length, dontWait, sendMore);
 		}
-
-		private void HandleError(string message)
-		{
-			if (ZError.ErrorNumber != ErrorNumber.ETERM)
-			{
-				if (ZError.ErrorNumber == ErrorNumber.EAGAIN)
-				{
-					throw new TryAgainException("Cannot complete without block, please try again later", ZError.ErrorNumber);
-				}
-				else
-				{
-					throw new NetMQException(message, ZError.ErrorNumber);
-				}
-			}
-		}
-
+		
 		internal int GetSocketOption(ZmqSocketOptions socketOptions)
 		{
 			return ZMQ.GetSocketOption(m_socketHandle, socketOptions);
