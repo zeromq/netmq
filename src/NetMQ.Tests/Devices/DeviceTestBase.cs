@@ -19,12 +19,12 @@ namespace NetMQ.Tests.Devices
 
 		protected readonly Random Random = new Random();
 
-		protected Context Context;
+		protected NetMQContext Context;
 		protected TDevice Device;
 
-		protected Func<Context, TDevice> CreateDevice;
-		protected Func<Context, TClient> CreateClientSocket;
-		protected Func<Context, TWorker> CreateWorkerSocket;
+		protected Func<NetMQContext, TDevice> CreateDevice;
+		protected Func<NetMQContext, TClient> CreateClientSocket;
+		protected Func<NetMQContext, TWorker> CreateWorkerSocket;
 
 		protected int WorkerReceiveCount;
 
@@ -40,7 +40,7 @@ namespace NetMQ.Tests.Devices
 			m_workCancelationSource = new CancellationTokenSource();
 			m_workerCancelationToken = m_workCancelationSource.Token;
 
-			Context = Context.Create();
+			Context = NetMQContext.Create();
 			SetupTest();
 			Device = CreateDevice(Context);
 			Device.Start();

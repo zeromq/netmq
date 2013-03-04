@@ -26,7 +26,7 @@ namespace NetMQ
 		/// <param name="socket">Socket to monitor</param>
 		/// <param name="address">Monitoring address to use</param>
 		/// <param name="monitoringEventsHandler">The events handler interface</param>
-		public MonitorPoll(Context context, ISocket socket,
+		public MonitorPoll(NetMQContext context, ISocket socket,
 			string address, IMonitoringEventsHandler monitoringEventsHandler)
 		{
 			Socket = socket;
@@ -49,7 +49,7 @@ namespace NetMQ
 		/// <summary>
 		/// The socket context
 		/// </summary>
-		public Context Context { get; private set; }
+		public NetMQContext Context { get; private set; }
 
 		/// <summary>
 		/// Monitoring socket created by the init method

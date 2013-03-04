@@ -37,9 +37,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Sockets\BaseSocket.cs" />
-    <Compile Include="Sockets\BaseSubscriberSocket.cs" />
-    <Compile Include="Context.cs" />
+    <Compile Include="NetMQSocket.cs" />
+    <Compile Include="NetMQContext.cs" />
     <Compile Include="Sockets\DealerSocket.cs" />
     <Compile Include="Devices\DeviceBase.cs" />
     <Compile Include="Devices\DeviceMode.cs" />

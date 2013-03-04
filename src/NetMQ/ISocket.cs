@@ -24,24 +24,7 @@ namespace NetMQ
 
 		SocketBase SocketHandle { get; }
 	}
-
-	public interface ISocketExtended : ISocket
-	{
-		int GetSocketOption(ZmqSocketOptions socketOptions);
-
-		TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions);
-
-		long GetSocketOptionLong(ZmqSocketOptions socketOptions);
-
-		T GetSocketOptionX<T>(ZmqSocketOptions socketOptions);
-
-		void SetSocketOption(ZmqSocketOptions socketOptions, int value);
-
-		void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value);
-
-		void SetSocketOption(ZmqSocketOptions socketOptions, object value);
-	}
-
+	
 	public interface IOutgoingSocket : ISocket
 	{
 		void Send(byte[] data, int length, SendRecieveOptions options);

@@ -9,9 +9,9 @@ namespace NetMQ
 {
     public class SocketOptions
     {
-        BaseSocket m_socket;
+        NetMQSocket m_socket;
 
-        public SocketOptions(BaseSocket socket)
+        public SocketOptions(NetMQSocket socket)
         {
             m_socket = socket;
         }

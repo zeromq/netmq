@@ -6,7 +6,7 @@ namespace NetMQ.Sockets
 	/// <summary>
 	/// Subscriber socket, will receive messages from publisher socket
 	/// </summary>
-	class SubscriberSocket : BaseSubscriberSocket, ISubscriberSocket
+	class SubscriberSocket : NetMQSocket, ISubscriberSocket
 	{
 		public SubscriberSocket(SocketBase socketHandle)
 			: base(socketHandle)

@@ -14,7 +14,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void SimpleReqRep()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
 				using (IResponseSocket rep = ctx.CreateResponseSocket())
 				{
@@ -47,7 +47,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void SendingTwoRequestsInaRow()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
 				using (IResponseSocket rep = ctx.CreateResponseSocket())
 				{
@@ -73,7 +73,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void ReceiveBeforeSending()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
 				using (IResponseSocket rep = ctx.CreateResponseSocket())
 				{
@@ -98,7 +98,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void SendMessageInResponeBeforeReceiving()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
 				using (IResponseSocket rep = ctx.CreateResponseSocket())
 				{
@@ -119,7 +119,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void SendMultiplartMessage()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
 				using (IResponseSocket rep = ctx.CreateResponseSocket())
 				{

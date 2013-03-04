@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using NetMQ.zmq;
 
-namespace NetMQ.Sockets
+namespace NetMQ
 {
-	public abstract class BaseSocket : ISocket, ISocketExtended
+	public abstract class NetMQSocket : ISocket
 	{
 		readonly SocketBase m_socketHandle;
 		private bool m_isClosed = false;
 
-		protected BaseSocket(SocketBase socketHandle)
+		protected NetMQSocket(SocketBase socketHandle)
 		{
 			m_socketHandle = socketHandle;
 			Options = new SocketOptions(this);
@@ -293,38 +293,57 @@ namespace NetMQ.Sockets
 			return (IOutgoingSocket)this;
 		}
 
+		public virtual void Subscribe(string topic)
+		{
+			SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+		}
 
-		public int GetSocketOption(ZmqSocketOptions socketOptions)
+		public virtual void Subscribe(byte[] topic)
+		{
+			SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+		}
+
+		public virtual void Unsubscribe(string topic)
+		{
+			SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+		}
+
+		public virtual void Unsubscribe(byte[] topic)
+		{
+			SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+		}
+
+		internal int GetSocketOption(ZmqSocketOptions socketOptions)
 		{
 			return ZMQ.GetSocketOption(m_socketHandle, socketOptions);
 		}
 
-		public TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
+		internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
 		{
 			return TimeSpan.FromMilliseconds(ZMQ.GetSocketOption(m_socketHandle, socketOptions));
 		}
 
-		public long GetSocketOptionLong(ZmqSocketOptions socketOptions)
+		internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
 		{
 			return (long)ZMQ.GetSocketOptionX(m_socketHandle, socketOptions);
 		}
 
-		public T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
+		internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
 		{
 			return (T)ZMQ.GetSocketOptionX(m_socketHandle, socketOptions);
 		}
 
-		public void SetSocketOption(ZmqSocketOptions socketOptions, int value)
+		internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
 		{
 			ZMQ.SetSocketOption(m_socketHandle, socketOptions, value);
 		}
 
-		public void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
+		internal void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
 		{
 			ZMQ.SetSocketOption(m_socketHandle, socketOptions, (int)value.TotalMilliseconds);
 		}
 
-		public void SetSocketOption(ZmqSocketOptions socketOptions, object value)
+		internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
 		{
 			ZMQ.SetSocketOption(m_socketHandle, socketOptions, value);
 		}

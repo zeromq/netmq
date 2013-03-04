@@ -15,7 +15,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void TopicPubSub()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
@@ -51,7 +51,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void SimplePubSub()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
@@ -81,7 +81,7 @@ namespace NetMQ.Tests
 		[Test, ExpectedException(typeof(AgainException))]
 		public void NotSubscribed()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
@@ -110,7 +110,7 @@ namespace NetMQ.Tests
 		[Test]		
 		public void MultipleSubscriptions()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
@@ -142,7 +142,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void MultipleSubscribers()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{
@@ -182,7 +182,7 @@ namespace NetMQ.Tests
 		[Test, ExpectedException(typeof(AgainException))]
 		public void UnSubscribe()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				using (IPublisherSocket pub = contex.CreatePublisherSocket())
 				{

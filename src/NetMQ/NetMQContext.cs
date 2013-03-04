@@ -11,13 +11,13 @@ namespace NetMQ
 	/// <summary>
 	/// Context class of the NetMQ, you should have only one context in your application
 	/// </summary>
-	public class Context : IDisposable
+	public class NetMQContext : IDisposable
 	{
 		readonly Ctx m_ctx;
 		private int m_isClosed = 0;
 
 
-		private Context(Ctx ctx)
+		private NetMQContext(Ctx ctx)
 		{
 			m_ctx = ctx;
 		}
@@ -26,15 +26,15 @@ namespace NetMQ
 		/// Create a new context
 		/// </summary>
 		/// <returns>The new context</returns>
-		public static Context Create()
+		public static NetMQContext Create()
 		{
-			return new Context(ZMQ.CtxNew());
+			return new NetMQContext(ZMQ.CtxNew());
 		}
 
 		/// <summary>
 		/// Number of IO Threads in the context, default is 1, 1 is good for most cases
 		/// </summary>
-		public int IOThreads
+		public int ThreadPoolSize
 		{
 			get { return ZMQ.CtxGet(m_ctx, ContextOption.IOThreads); }
 			set { ZMQ.CtxSet(m_ctx, ContextOption.IOThreads, value); }
@@ -49,7 +49,7 @@ namespace NetMQ
 			set { ZMQ.CtxSet(m_ctx, ContextOption.MaxSockets, value); }
 		}
 
-		public BaseSocket CreateSocket(ZmqSocketType socketType)
+		public NetMQSocket CreateSocket(ZmqSocketType socketType)
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, socketType);
 

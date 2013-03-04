@@ -14,7 +14,7 @@ namespace NetMQ.Tests
 		public void TestKeepAlive()
 		{
 			// there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
-			using (Context context = Context.Create())
+			using (NetMQContext context = NetMQContext.Create())
 			{
 				using (IResponseSocket responseSocket = context.CreateResponseSocket())
 				{

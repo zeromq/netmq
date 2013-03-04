@@ -2,7 +2,7 @@
 
 namespace NetMQ.Sockets
 {
-	class XSubscriberSocket : BaseSubscriberSocket, IXSubscriberSocket
+	class XSubscriberSocket : NetMQSocket, IXSubscriberSocket
 	{
 		public XSubscriberSocket(SocketBase socketHandle)
 			: base(socketHandle)

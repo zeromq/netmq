@@ -18,7 +18,7 @@ namespace NetMQ.Tests
 			bool listening = false;
 			bool accepted = false;
 
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				using (IResponseSocket rep = contex.CreateResponseSocket())
 				{

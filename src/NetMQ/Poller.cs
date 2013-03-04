@@ -43,10 +43,10 @@ namespace NetMQ
 		readonly SortedList<long, IList<TimerPoll>> m_timers = new SortedList<long, IList<TimerPoll>>();
 
 
-		private readonly Context m_context;
+		private readonly NetMQContext m_context;
 		private bool m_isStarted;
 
-		public Poller(Context context)
+		public Poller(NetMQContext context)
 		{
 			m_context = context;
 			CloseSocketsOnStop = true;

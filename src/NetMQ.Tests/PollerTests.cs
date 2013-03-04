@@ -16,7 +16,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void ResponsePoll()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				using (IResponseSocket rep = contex.CreateResponseSocket())
 				{
@@ -66,7 +66,7 @@ namespace NetMQ.Tests
 			ManualResetEvent connectedEvent = new ManualResetEvent(false);
 
 
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				Poller poller = new Poller(contex);
 
@@ -118,7 +118,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void ProxyPoll()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				Poller poller = new Poller(contex);
 
@@ -170,7 +170,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void AddSocketDuringWork()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
@@ -226,7 +226,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void AddSocketAfterRemoving()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
@@ -302,7 +302,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void AddTwoSocketAfterRemoving()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
@@ -406,7 +406,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void CancelSocket()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
@@ -519,7 +519,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void SimpleTimer()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
@@ -575,7 +575,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void CancelTimer()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
@@ -628,7 +628,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void ReregisterTimer()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
@@ -686,7 +686,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void TwoTimers()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
@@ -753,7 +753,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void OverrideTimer()
 		{
-			using (Context contex = Context.Create())
+			using (NetMQContext contex = NetMQContext.Create())
 			{
 				// we are using three responses to make sure we actually move the correct socket and other sockets still work
 				using (IRouterSocket router = contex.CreateRouterSocket())
