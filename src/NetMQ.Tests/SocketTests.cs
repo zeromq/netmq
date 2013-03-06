@@ -16,7 +16,7 @@ namespace NetMQ.Tests
 			// there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
 			using (NetMQContext context = NetMQContext.Create())
 			{
-				using (IResponseSocket responseSocket = context.CreateResponseSocket())
+				using (var responseSocket = context.CreateResponseSocket())
 				{
 					responseSocket.Options.TcpKeepalive = true;
 					responseSocket.Options.TcpKeepaliveIdle = TimeSpan.FromSeconds(5);
@@ -24,7 +24,7 @@ namespace NetMQ.Tests
 
 					responseSocket.Bind("tcp://127.0.0.1:5555");
 
-					using (IRequestSocket requestSocket = context.CreateRequestSocket())
+					using (var requestSocket = context.CreateRequestSocket())
 					{
 						requestSocket.Options.TcpKeepalive = true;
 						requestSocket.Options.TcpKeepaliveIdle = TimeSpan.FromSeconds(5);

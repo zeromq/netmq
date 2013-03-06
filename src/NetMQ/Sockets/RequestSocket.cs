@@ -6,7 +6,7 @@ namespace NetMQ.Sockets
 	/// <summary>
 	/// Request socket
 	/// </summary>
-	class RequestSocket : NetMQSocket, IRequestSocket
+	class RequestSocket : NetMQSocket
 	{
 		public RequestSocket(SocketBase socketHandle)
 			: base(socketHandle)

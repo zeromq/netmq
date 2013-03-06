@@ -5,15 +5,68 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
-	public abstract class NetMQSocket : ISocket
+	public abstract class NetMQSocket : IOutgoingSocket, IDisposable
 	{
 		readonly SocketBase m_socketHandle;
 		private bool m_isClosed = false;
+		private NetMQSocketEventArgs m_socketEventArgs;
+
+		private event EventHandler<NetMQSocketEventArgs> m_receiveReady;
+
+		private event EventHandler<NetMQSocketEventArgs> m_sendReady;
 
 		protected NetMQSocket(SocketBase socketHandle)
 		{
 			m_socketHandle = socketHandle;
 			Options = new SocketOptions(this);
+			m_socketEventArgs = new NetMQSocketEventArgs(this);
+		}
+
+		/// <summary>
+		/// Occurs when at least one message may be received from the socket without blocking.
+		/// </summary>
+		public event EventHandler<NetMQSocketEventArgs> ReceiveReady
+		{
+			add
+			{
+				m_receiveReady += value;
+				InvokeEventsChanged();
+			}
+			remove
+			{
+				m_receiveReady -= value;
+				InvokeEventsChanged();
+			}
+		}
+
+		/// <summary>
+		/// Occurs when at least one message may be sent via the socket without blocking.
+		/// </summary>
+		public event EventHandler<NetMQSocketEventArgs> SendReady
+		{
+			add
+			{
+				m_sendReady += value;
+				InvokeEventsChanged();
+			}
+			remove
+			{
+				m_sendReady -= value;
+				InvokeEventsChanged();
+			}
+		}
+
+		internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
+
+		private void InvokeEventsChanged()
+		{
+			var temp = EventsChanged;
+
+			if (temp != null)
+			{
+				m_socketEventArgs.Init(PollEvents.None);
+				temp(this, m_socketEventArgs);
+			}
 		}
 
 		/// <summary>
@@ -21,7 +74,7 @@ namespace NetMQ
 		/// </summary>
 		public SocketOptions Options { get; private set; }
 
-		public SocketBase SocketHandle
+		internal SocketBase SocketHandle
 		{
 			get
 			{
@@ -82,16 +135,62 @@ namespace NetMQ
 		/// </summary>
 		/// <param name="timeout"></param>
 		/// <returns></returns>
-		public bool Poll(TimeSpan timeout, PollEvents events)
+		public bool Poll(TimeSpan timeout)
 		{
+			PollEvents events = GetPollEvents();
+
 			PollItem[] items = new PollItem[1];
 
 			items[0] = new PollItem(m_socketHandle, events);
 
 			ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
 
-			return (items[0].ResultEvent != PollEvents.None);
+			InvokeEvents(this, items[0].ResultEvent);
 
+			return items[0].ResultEvent != PollEvents.None;
+		}
+
+		internal PollEvents GetPollEvents()
+		{
+			PollEvents events = PollEvents.None;
+
+			if (m_sendReady != null)
+			{
+				events |= PollEvents.PollOut;
+			}
+
+			if (m_receiveReady != null)
+			{
+				events |= PollEvents.PollIn;
+			}
+
+			return events;
+		}
+
+		internal void InvokeEvents(object sender, PollEvents events)
+		{
+			if (!m_isClosed)
+			{
+				m_socketEventArgs.Init(events);
+
+				if (events.HasFlag(PollEvents.PollIn))
+				{
+					var temp = m_receiveReady;
+					if (temp != null)
+					{
+						temp(sender, m_socketEventArgs);
+					}
+				}
+
+				if (events.HasFlag(PollEvents.PollOut))
+				{
+					var temp = m_sendReady;
+					if (temp != null)
+					{
+						temp(sender, m_socketEventArgs);
+					}
+				}
+			}
 		}
 
 		protected internal virtual Msg ReceiveInternal(SendRecieveOptions options, out bool hasMore)
@@ -255,7 +354,7 @@ namespace NetMQ
 		{
 			Send(message, false, true);
 
-			return (IOutgoingSocket) this;
+			return (IOutgoingSocket)this;
 		}
 
 		public IOutgoingSocket SendMore(string message, bool dontWait)
@@ -311,6 +410,26 @@ namespace NetMQ
 		public virtual void Unsubscribe(byte[] topic)
 		{
 			SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+		}
+
+		public void Monitor(string endpoint)
+		{
+			Monitor(endpoint, SocketEvent.All);
+		}
+
+		public void Monitor(string endpoint, SocketEvent events)
+		{
+			if (endpoint == null)
+			{
+				throw new ArgumentNullException("endpoint");
+			}
+
+			if (endpoint == string.Empty)
+			{
+				throw new ArgumentException("Unable to publish socket events to an empty endpoint.", "endpoint");
+			}
+
+			ZMQ.SocketMonitor(SocketHandle, endpoint, events);
 		}
 
 		internal int GetSocketOption(ZmqSocketOptions socketOptions)

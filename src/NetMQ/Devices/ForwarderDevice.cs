@@ -18,7 +18,7 @@ namespace NetMQ.Devices
 	/// var device = new ForwarderDevice(ctx, "inproc://frontend", "inproc://backend");
 	/// device.FrontendSetup.Subscribe("topic");
 	/// </example>
-	public class ForwarderDevice : DeviceBase<ISubscriberSocket, IPublisherSocket>
+	public class ForwarderDevice : DeviceBase
 	{
 
 		/// <summary>
@@ -30,7 +30,7 @@ namespace NetMQ.Devices
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
 		public ForwarderDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress,
 			DeviceMode mode = DeviceMode.Threaded)
-			: base(context, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
+			: base(context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
 		{
 
 			FrontendSetup.Bind(frontendBindAddress);
@@ -54,13 +54,13 @@ namespace NetMQ.Devices
 			BackendSetup.Bind(backendBindAddress);
 		}
 
-		protected override void FrontendHandler(ISubscriberSocket socket)
+		protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
 		{
 			bool more;
 
 			do
 			{
-				var data = socket.Receive(out more);
+				var data = args.Socket.Receive(out more);
 
 				if (more)
 					BackendSocket.SendMore(data);

@@ -13,7 +13,7 @@ namespace NetMQ.Devices
 	/// original request. This device is part of the request-reply pattern. The frontend
 	/// speaks to clients and the backend speaks to services.
 	/// </remarks>
-	public class QueueDevice : DeviceBase<IRouterSocket, IDealerSocket>
+	public class QueueDevice : DeviceBase
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QueueDevice"/> class.
@@ -24,7 +24,7 @@ namespace NetMQ.Devices
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
 		public QueueDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress,
 			DeviceMode mode = DeviceMode.Threaded)
-			: base(context, context.CreateRouterSocket(), context.CreateDealerSocket(), mode) {
+			: base(context.CreateRouterSocket(), context.CreateDealerSocket(), mode) {
 
 			FrontendSetup.Bind(frontendBindAddress);
 			BackendSetup.Bind(backendBindAddress);
@@ -46,11 +46,12 @@ namespace NetMQ.Devices
 			BackendSetup.Bind(backendBindAddress);
 		}
 
-		protected override void FrontendHandler(IRouterSocket socket) {
+		protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
+		{
 			bool more;
 
 			do {
-				var data = socket.Receive(out more) ?? new byte[] { };
+				var data = args.Socket.Receive(out more) ?? new byte[] { };
 
 				if (more)
 					BackendSocket.SendMore(data);
@@ -60,11 +61,12 @@ namespace NetMQ.Devices
 			} while (more);
 		}
 
-		protected override void BackendHandler(IDealerSocket socket) {
+		protected override void BackendHandler(object sender, NetMQSocketEventArgs args)
+		{
 			bool more;
 
 			do {
-				var data = socket.Receive(out more) ?? new byte[] { };
+				var data = args.Socket.Receive(out more) ?? new byte[] { };
 
 				if (more)
 					FrontendSocket.SendMore(data);

@@ -17,11 +17,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext contex = NetMQContext.Create())
 			{
-				using (IPublisherSocket pub = contex.CreatePublisherSocket())
+				using (var pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (var sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");
 						sub.Subscribe("A");
@@ -53,11 +53,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext contex = NetMQContext.Create())
 			{
-				using (IPublisherSocket pub = contex.CreatePublisherSocket())
+				using (var pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (var sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");						
 						sub.Subscribe("");
@@ -83,11 +83,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext contex = NetMQContext.Create())
 			{
-				using (IPublisherSocket pub = contex.CreatePublisherSocket())
+				using (var pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (var sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");						
 
@@ -112,11 +112,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext contex = NetMQContext.Create())
 			{
-				using (IPublisherSocket pub = contex.CreatePublisherSocket())
+				using (var pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (var sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");
 						sub.Subscribe("C");
@@ -144,12 +144,12 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext contex = NetMQContext.Create())
 			{
-				using (IPublisherSocket pub = contex.CreatePublisherSocket())
+				using (var pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
-					using (ISubscriberSocket sub2 = contex.CreateSubscriberSocket())
+					using (var sub = contex.CreateSubscriberSocket())
+					using (var sub2 = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");
 						sub.Subscribe("A");
@@ -184,11 +184,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext contex = NetMQContext.Create())
 			{
-				using (IPublisherSocket pub = contex.CreatePublisherSocket())
+				using (var pub = contex.CreatePublisherSocket())
 				{
 					pub.Bind("tcp://127.0.0.1:5002");
 
-					using (ISubscriberSocket sub = contex.CreateSubscriberSocket())
+					using (var sub = contex.CreateSubscriberSocket())
 					{
 						sub.Connect("tcp://127.0.0.1:5002");
 						sub.Subscribe("A");

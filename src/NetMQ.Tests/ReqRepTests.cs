@@ -16,11 +16,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (IResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5001");
 
-					using (IRequestSocket req = ctx.CreateRequestSocket())
+					using (var req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
@@ -49,11 +49,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (IResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5002");
 
-					using (IRequestSocket req = ctx.CreateRequestSocket())
+					using (var req = ctx.CreateRequestSocket())
 					{						
 						req.Connect("tcp://127.0.0.1:5002");
 
@@ -75,12 +75,12 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (IResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5001");
 
 
-					using (IRequestSocket req = ctx.CreateRequestSocket())
+					using (var req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
@@ -100,11 +100,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (IResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5001");
 
-					using (IRequestSocket req = ctx.CreateRequestSocket())
+					using (var req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
@@ -121,11 +121,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (IResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5001");
 
-					using (IRequestSocket req = ctx.CreateRequestSocket())
+					using (var req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 

@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using NetMQ.Monitoring;
 using NetMQ.Sockets;
+using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
@@ -13,46 +15,47 @@ namespace NetMQ.Tests
 	public class MonitorPollTests
 	{
 		[Test]
-		public void MonitoringPoll()
+		public void Monitoring()
 		{
 			bool listening = false;
 			bool accepted = false;
 
 			using (NetMQContext contex = NetMQContext.Create())
 			{
-				using (IResponseSocket rep = contex.CreateResponseSocket())
+				using (var rep = contex.CreateResponseSocket())
 				{
-					MonitoringEventsHandler repMonitor = new MonitoringEventsHandler();
-					repMonitor.OnAccepted = (addr, fd) => accepted = true;
-					repMonitor.OnListening = (addr, fd) => listening = true;
+					using (NetMQMonitor monitor = new NetMQMonitor(contex, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
+					{
+						monitor.Accepted += (s, a) => accepted = true;
+						monitor.Listening += (s, a) => listening = true;
 
-					MonitorPoll monitorPoll = new MonitorPoll(contex, rep, "inproc://rep.inproc", repMonitor);
-					monitorPoll.Timeout = TimeSpan.FromMilliseconds(100);
+						monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
-					var pollerTask = Task.Factory.StartNew(monitorPoll.Start);
+						var pollerTask = Task.Factory.StartNew(monitor.Start);
 
-					rep.Bind("tcp://127.0.0.1:5002");
+						rep.Bind("tcp://127.0.0.1:5002");
 
-					using (IRequestSocket req = contex.CreateRequestSocket())
-					{												
-						req.Connect("tcp://127.0.0.1:5002");
-						req.Send("a");
+						using (var req = contex.CreateRequestSocket())
+						{
+							req.Connect("tcp://127.0.0.1:5002");
+							req.Send("a");
 
-						bool more;
+							bool more;
 
-						string m = rep.ReceiveString(out more);
+							string m = rep.ReceiveString(out more);
 
-						rep.Send("b");
+							rep.Send("b");
 
-						string m2 = req.ReceiveString(out more);
+							string m2 = req.ReceiveString(out more);
 
-						Assert.IsTrue(listening);						
-						Assert.IsTrue(accepted);
+							Assert.IsTrue(listening);
+							Assert.IsTrue(accepted);
 
-						monitorPoll.Stop();
-						Thread.Sleep(200);
+							monitor.Stop();
+							Thread.Sleep(200);
 
-						Assert.IsTrue(pollerTask.IsCompleted);
+							Assert.IsTrue(pollerTask.IsCompleted);
+						}
 					}
 				}
 			}

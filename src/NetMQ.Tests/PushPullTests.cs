@@ -15,11 +15,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext context = NetMQContext.Create())
 			{
-				using (IPullSocket pullSocket = context.CreatePullSocket())
+				using (var pullSocket = context.CreatePullSocket())
 				{
 					pullSocket.Bind("tcp://127.0.0.1:5004");
 
-					using (IPushSocket pushSocket = context.CreatePushSocket())
+					using (var pushSocket = context.CreatePushSocket())
 					{
 						pushSocket.Connect("tcp://127.0.0.1:5004");
 
@@ -39,11 +39,11 @@ namespace NetMQ.Tests
 		{
 			using (NetMQContext context = NetMQContext.Create())
 			{
-				using (IPullSocket pullSocket = context.CreatePullSocket())
+				using (var pullSocket = context.CreatePullSocket())
 				{
 					pullSocket.Bind("tcp://127.0.0.1:5004");
 
-					using (IPushSocket pushSocket = context.CreatePushSocket())
+					using (var pushSocket = context.CreatePushSocket())
 					{
 						pushSocket.Connect("tcp://127.0.0.1:5004");
 

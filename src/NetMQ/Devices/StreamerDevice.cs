@@ -11,7 +11,7 @@ namespace NetMQ.Devices
 	/// load-balanced to pullers. This device is part of the pipeline pattern. The
 	/// frontend speaks to pushers and the backend speaks to pullers.
 	/// </remarks>
-	public class StreamerDevice : DeviceBase<IPullSocket, IPushSocket>
+	public class StreamerDevice : DeviceBase
 	{
 
 		/// <summary>
@@ -23,7 +23,7 @@ namespace NetMQ.Devices
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
 		public StreamerDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress,
 		                      DeviceMode mode = DeviceMode.Threaded)
-			: base(context, context.CreatePullSocket(), context.CreatePushSocket(), mode) {
+			: base( context.CreatePullSocket(), context.CreatePushSocket(), mode) {
 
 			FrontendSetup.Bind(frontendBindAddress);
 			BackendSetup.Bind(backendBindAddress);
@@ -45,11 +45,12 @@ namespace NetMQ.Devices
 			BackendSetup.Bind(backendBindAddress);
 		}
 
-		protected override void FrontendHandler(IPullSocket socket) {
+		protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
+		{
 			bool more;
 
 			do {
-				var data = socket.Receive(out more);
+				var data = args.Socket.Receive(out more);
 
 				if (more)
 					BackendSocket.SendMore(data);

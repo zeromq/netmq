@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using NetMQ.Sockets;
 using NetMQ.zmq;
+using NetMQ.Monitoring;
 
 namespace NetMQ
 {
@@ -97,7 +98,7 @@ namespace NetMQ
 		/// Create request socket
 		/// </summary>
 		/// <returns></returns>
-		public IRequestSocket CreateRequestSocket()
+		public NetMQSocket CreateRequestSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Req);
 
@@ -108,7 +109,7 @@ namespace NetMQ
 		/// Create response socket
 		/// </summary>
 		/// <returns></returns>
-		public IResponseSocket CreateResponseSocket()
+		public NetMQSocket CreateResponseSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Rep);
 
@@ -119,7 +120,7 @@ namespace NetMQ
 		/// Create dealer socket
 		/// </summary>
 		/// <returns></returns>
-		public IDealerSocket CreateDealerSocket()
+		public NetMQSocket CreateDealerSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Dealer);
 
@@ -130,7 +131,7 @@ namespace NetMQ
 		/// Create router socket
 		/// </summary>
 		/// <returns></returns>
-		public IRouterSocket CreateRouterSocket()
+		public NetMQSocket CreateRouterSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Router);
 
@@ -141,7 +142,7 @@ namespace NetMQ
 		/// Create xpublisher socket
 		/// </summary>
 		/// <returns></returns>
-		public IXPublisherSocket CreateXPublisherSocket()
+		public NetMQSocket CreateXPublisherSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xpub);
 
@@ -152,7 +153,7 @@ namespace NetMQ
 		/// Create pair socket
 		/// </summary>
 		/// <returns></returns>
-		public IPairSocket CreatePairSocket()
+		public NetMQSocket CreatePairSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pair);
 
@@ -163,7 +164,7 @@ namespace NetMQ
 		/// Create push socket
 		/// </summary>
 		/// <returns></returns>
-		public IPushSocket CreatePushSocket()
+		public NetMQSocket CreatePushSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Push);
 
@@ -174,7 +175,7 @@ namespace NetMQ
 		/// Create publisher socket
 		/// </summary>
 		/// <returns></returns>
-		public IPublisherSocket CreatePublisherSocket()
+		public NetMQSocket CreatePublisherSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pub);
 
@@ -185,7 +186,7 @@ namespace NetMQ
 		/// Create pull socket
 		/// </summary>
 		/// <returns></returns>
-		public IPullSocket CreatePullSocket()
+		public NetMQSocket CreatePullSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pull);
 
@@ -196,7 +197,7 @@ namespace NetMQ
 		/// Create subscriber socket
 		/// </summary>
 		/// <returns></returns>
-		public ISubscriberSocket CreateSubscriberSocket()
+		public NetMQSocket CreateSubscriberSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Sub);
 
@@ -207,11 +208,26 @@ namespace NetMQ
 		/// Create xsub socket
 		/// </summary>
 		/// <returns></returns>
-		public IXSubscriberSocket CreateXSubscriberSocket()
+		public NetMQSocket CreateXSubscriberSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xsub);
 
 			return new XSubscriberSocket(socketHandle);
+		}
+
+		public NetMQMonitor CreateMonitorSocket(string endpoint)
+		{
+			if (endpoint == null)
+			{
+				throw new ArgumentNullException("endpoint");
+			}
+
+			if (endpoint == string.Empty)
+			{
+				throw new ArgumentException("Unable to monitor to an empty endpoint.", "endpoint");
+			}
+
+			return new NetMQMonitor(CreatePairSocket(), endpoint);
 		}
 
 		/// <summary>

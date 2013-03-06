@@ -1,131 +1,152 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
 {
 	public class Poller
 	{
-		public class TimerPoll
+		class PollerPollItem : PollItem
 		{
-			public Action<int> TimerAction { get; set; }
-			public int Id { get; set; }
+			private NetMQSocket m_socket;
+
+			public PollerPollItem(NetMQSocket socket, PollEvents events)
+				: base(socket.SocketHandle, events)
+			{
+				m_socket = socket;
+			}
+
+			public NetMQSocket NetMQSocket
+			{
+				get { return m_socket; }
+			}
 		}
 
-		class ProxyPoll
-		{
-			public IIncomingSocket FromSocket { get; set; }
+		private IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
+		IList<NetMQSocket> m_newSockets = new List<NetMQSocket>();
+		IList<NetMQSocket> m_cancelledSockets = new List<NetMQSocket>();
 
-			public IOutgoingSocket ToSocket { get; set; }
-		}
-
-		class SocketPoll
-		{
-			public ISocket Socket { get; set; }
-			public Action<ISocket> Action;
-			public bool Cancelled { get; set; }
-		}
+		readonly SortedList<long, IList<NetMQTimer>> m_timers = new SortedList<long, IList<NetMQTimer>>();
 
 		readonly CancellationTokenSource m_cancellationTokenSource;
 		readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
-
-		private bool m_socketRetired = false;
-		private bool m_newSockets = false;
-
-		readonly IList<SocketPoll> m_sockets = new List<SocketPoll>();
-		readonly IList<ProxyPoll> m_proxies = new List<ProxyPoll>();
-		readonly IList<MonitorPoll> m_monitors = new List<MonitorPoll>();
-
-		readonly SortedList<long, IList<TimerPoll>> m_timers = new SortedList<long, IList<TimerPoll>>();
-
-
-		private readonly NetMQContext m_context;
 		private bool m_isStarted;
 
-		public Poller(NetMQContext context)
+		private bool m_isDirty = false;
+
+		public Poller()
 		{
-			m_context = context;
-			CloseSocketsOnStop = true;
 			PollTimeout = TimeSpan.FromSeconds(1);
+
 			m_cancellationTokenSource = new CancellationTokenSource();
 		}
 
-		/// <summary>
-		/// If true the poller will close all sockets when the poller is stopped
-		/// </summary>
-		public bool CloseSocketsOnStop { get; set; }
-
-		/// <summary>
-		/// How much time to wait on each poll iteration, the higher the number the longer it will take the poller to stop 
-		/// </summary>
 		public TimeSpan PollTimeout { get; set; }
 
-		/// <summary>
-		/// Has the Poller been started.id =
-		/// </summary>
 		public bool IsStarted { get { return m_isStarted; } }
 
-		private void CheckSocketAlreadyExist(ISocket baseSocket)
+		public void AddSocket(NetMQSocket socket)
 		{
-			if (m_sockets.Select(s => s.Socket).Contains(baseSocket) || m_proxies.Select(p => p.FromSocket).Contains(baseSocket))
+			if (m_sockets.Contains(socket) || m_newSockets.Contains(socket))
 			{
-				throw new ArgumentException("Socket already exist");
+				throw new ArgumentException("Socket already added to poller");
+			}
+
+			m_newSockets.Add(socket);
+
+			socket.EventsChanged += OnSocketEventsChanged;
+
+			m_isDirty = true;
+		}
+
+		public void RemoveSocket(NetMQSocket socket)
+		{
+			socket.EventsChanged -= OnSocketEventsChanged;
+
+			if (m_newSockets.Contains(socket))
+			{
+				m_newSockets.Remove(socket);
+			}
+			else
+			{
+				m_cancelledSockets.Add(socket);
+
+				m_isDirty = true;
 			}
 		}
 
-		public void AddTimer(long timeout, int id, Action<int> timerAction)
+		private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
 		{
-			AddTimer(timeout, id, true, timerAction);
+			// when the sockets SendReady or ReceiveReady changed we marked the poller as dirty in order to reset the poll events
+			m_isDirty = true;
 		}
 
-		public void AddTimer(long timeout, int id, bool replaceExisting, Action<int> timerAction)
+		public void AddTimer(NetMQTimer timer)
 		{
-			// checking if this id already exist
-			if (m_timers.SelectMany(t=> t.Value).Select(t=> t.Id).Contains(id))
+			if (!timer.Cancelled)
 			{
-				if (replaceExisting)
+				throw new ArgumentException("Timer already attached to a poller");
+			}
+
+			timer.Cancelled = false;
+			timer.TimerChanged += OnTimerChanged;
+
+			SetTimer(timer);
+		}
+
+		public void RemoveTimer(NetMQTimer timer)
+		{
+			timer.TimerChanged -= OnTimerChanged;
+			timer.Cancelled = true;
+
+			UnsetTimer(timer);
+		}
+
+		private void OnTimerChanged(object sender, NetMQTimerEventArgs e)
+		{
+			UnsetTimer(e.Timer);
+			SetTimer(e.Timer);
+		}
+
+		private void SetTimer(NetMQTimer timer)
+		{
+			SetTimer(Clock.NowMs(), timer);
+		}
+
+		private void SetTimer(long current, NetMQTimer timer)
+		{
+			if (timer.Enable && !timer.Cancelled)
+			{
+				long expiration = current + (int)timer.Interval.TotalMilliseconds;
+
+				if (!m_timers.ContainsKey(expiration))
 				{
-					CancelTimer(id);
+					m_timers.Add(expiration, new List<NetMQTimer>());
 				}
-				else
-				{
-					throw new ArgumentException(string.Format("Timer with id {0} already exist", id));
-				}
+
+				m_timers[expiration].Add(timer);
 			}
-
-			long expiration = Clock.NowMs() + timeout;
-
-			if (!m_timers.ContainsKey(expiration))
-			{
-				m_timers.Add(expiration, new List<TimerPoll>());
-			}
-
-			m_timers[expiration].Add(new TimerPoll
-																 {
-																	 Id = id,
-																	 TimerAction = timerAction
-																 });
 		}
 
-		public void CancelTimer(int id)
+		private void UnsetTimer(NetMQTimer timer)
 		{
 			//  Complexity of this operation is O(n). We assume it is rarely used.
-			var foundTimers = new Dictionary<long, TimerPoll>();
+			var foundTimers = new Dictionary<long, NetMQTimer>();
 
 			foreach (var pair in m_timers)
 			{
-				var timer = pair.Value.FirstOrDefault(x => x.Id == id);
+				var foundTimer = pair.Value.FirstOrDefault(x => x == timer);
 
-				if (timer == null)
+				if (foundTimer == null)
 					continue;
 
 				if (!foundTimers.ContainsKey(pair.Key))
 				{
-					foundTimers[pair.Key] = timer;
+					foundTimers[pair.Key] = foundTimer;
 					break;
 				}
 			}
@@ -146,76 +167,6 @@ namespace NetMQ
 			}
 		}
 
-		/// <summary>
-		/// Add socket the poller
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="socket">Socket to listen to</param>
-		/// <param name="action">The action will be called when message is ready to be received</param>
-		public void AddSocket<T>(T socket, Action<T> action) where T : ISocket
-		{
-			CheckSocketAlreadyExist(socket);
-
-			m_sockets.Add(new SocketPoll
-				{
-					Socket = socket,
-					Action = s => action((T)s),
-					Cancelled = false
-				});
-
-			m_newSockets = true;
-		}
-
-		public void CancelSocket<T>(T socket) where T : ISocket
-		{
-			SocketPoll poll = m_sockets.First(s => object.ReferenceEquals(s.Socket, socket));
-
-			if (poll != null)
-			{
-				m_sockets.Remove(poll);
-				poll.Cancelled = true;
-				m_socketRetired = true;
-			}
-		}
-
-		/// <summary>
-		/// Add proxy to the poller, the proxy will forward messages from one socket to another socket
-		/// If duplex is true the socket will forward messages the opposite way as well
-		/// </summary>
-		/// <param name="from">The messages from this socket will forward</param>
-		/// <param name="to">This socket will receive the messages from the from socket</param>
-		/// <param name="duplex">If true the messages will both ways</param>	
-		public void AddProxy(IIncomingSocket from, IOutgoingSocket to)
-		{
-			CheckSocketAlreadyExist(from);						
-		}
-
-		public void AddTwoWayProxy(IDuplexSocket from, IDuplexSocket to)
-		{
-			CheckSocketAlreadyExist(from);			
-			CheckSocketAlreadyExist(to);
-
-			m_proxies.Add(new ProxyPoll { FromSocket = from, ToSocket = to });			
-			m_proxies.Add(new ProxyPoll { FromSocket = to, ToSocket = from });			
-		}
-
-		public void AddMonitor(IPairSocket socket, string address, IMonitoringEventsHandler eventsHandler)
-		{
-			AddMonitor(socket, address, eventsHandler, true);
-		}
-
-		public void AddMonitor(ISocket socket, string address, IMonitoringEventsHandler eventsHandler, bool init)
-		{
-			MonitorPoll monitorPoll = new MonitorPoll(m_context, socket, address, eventsHandler);
-
-			m_monitors.Add(monitorPoll);
-
-			if (init)
-			{
-				monitorPoll.Init();
-			}
-		}
-
 		private int ExecuteTimers()
 		{
 			//  Fast track.
@@ -225,12 +176,9 @@ namespace NetMQ
 			//  Get the current time.
 			long current = Clock.NowMs();
 
-			//  Execute the timers that are already due.
-			var keys = m_timers.Keys;
-
-			for (int i = 0; i < keys.Count; i++)
+			while (m_timers.Keys.Count > 0)
 			{
-				var key = keys[i];
+				var key = m_timers.Keys[0];
 
 				//  If we have to wait to execute the item, same will be true about
 				//  all the following items (multimap is sorted). Thus we can stop
@@ -243,194 +191,124 @@ namespace NetMQ
 
 				var timers = m_timers[key];
 
-				//  Trigger the timers.                
+				//  Remove it from the list of active timers.						
+				m_timers.Remove(key);
+
+				//  Trigger the timers. we make a copy of the list to avoid the enumerable was changed issue              
 				foreach (var timer in timers)
 				{
-					timer.TimerAction(timer.Id);
-				}
+					// set the next run before the invokation to avoid to registeration
+					SetTimer(current, timer);
 
-				//  Remove it from the list of active timers.		
-				timers.Clear();
-				m_timers.Remove(key);
-				i--;
+					timer.InvokeElapsed(this);
+				}
 			}
 
 			//  There are no more timers.
 			return 0;
 		}
 
-		/// <summary>
-		/// Start the poller job, the start doesn't create a new thread. This method will block until stop is called
-		/// In the begining of the method full memory barried is called in case the sockets was created in another thread
-		/// </summary>
 		public void Start()
 		{
+			Thread.CurrentThread.Name = "NetMQPollerThread";
+
 			m_isStoppedEvent.Reset();
 			m_isStarted = true;
-
-			// the sockets may have been created in another thread, to make sure we can fully use them we do full memory barried
-			// at the begining of the loop
-			Thread.MemoryBarrier();
-
-			int count = m_proxies.Count + m_sockets.Count + m_monitors.Count;
-
-			PollItem[] items = new PollItem[count];
-			int i = 0;
-
-			// add all sockets to the poll array
-			foreach (var item in m_sockets)
+			try
 			{
-				items[i] = new PollItem(item.Socket.SocketHandle, PollEvents.PollIn);
-				i++;
-			}
 
-			// add all proxies to the poll array
-			foreach (var item in m_proxies)
-			{
-				items[i] = new PollItem(item.FromSocket.SocketHandle, PollEvents.PollIn);
-				i++;
-			}
+				// the sockets may have been created in another thread, to make sure we can fully use them we do full memory barried
+				// at the begining of the loop
+				Thread.MemoryBarrier();
 
-			Dictionary<SocketBase, SocketPoll> handleToSocket = m_sockets.ToDictionary(k => k.Socket.SocketHandle, v => v);
-			Dictionary<SocketBase, ProxyPoll> handleToProxy = m_proxies.ToDictionary(k => k.FromSocket.SocketHandle, v => v);
+				PollerPollItem[] items = new PollerPollItem[m_newSockets.Count];
 
-			foreach (MonitorPoll poll in m_monitors)
-			{
-				poll.Init();
-				items[i] = new PollItem(poll.MonitoringSocket.SocketHandle, PollEvents.PollIn);
-				i++;
-			}
+				int count = 0;
 
-			Dictionary<SocketBase, MonitorPoll> handleToMonitor = m_monitors.ToDictionary(k => k.MonitoringSocket.SocketHandle, m => m);
+				count = HandleNewSockets(count, ref items);
 
-			m_newSockets = false;
-			m_socketRetired = false;
+				count = HandleCancelledSockets(items, count);
 
-			int maxTimeout = (int)PollTimeout.TotalMilliseconds;
+				int maxTimeout = (int)PollTimeout.TotalMilliseconds;
 
-			while (!m_cancellationTokenSource.IsCancellationRequested)
-			{
-				int timeout = ExecuteTimers();
-
-				if (timeout == 0 || timeout > maxTimeout)
+				while (!m_cancellationTokenSource.IsCancellationRequested)
 				{
-					timeout = maxTimeout;
-				}
+					int timeout = ExecuteTimers();
 
-				int result = ZMQ.Poll(items, count, timeout);
-
-				for (int j = 0; j < count; j++)
-				{
-					var item = items[j];
-
-					if ((item.ResultEvent & PollEvents.PollIn) == PollEvents.PollIn)
+					if (timeout == 0 || timeout > maxTimeout)
 					{
-						SocketPoll socketPoll;
-						ProxyPoll proxyPoll;
-						MonitorPoll monitorPoll;
+						timeout = maxTimeout;
+					}
 
-						if (handleToSocket.TryGetValue(item.Socket, out socketPoll))
+					ZMQ.Poll(items, count, timeout);
+
+					for (int index = 0; index < count; index++)
+					{
+						PollerPollItem item = items[index];
+						item.NetMQSocket.InvokeEvents(this, item.ResultEvent);
+					}
+
+					if (m_isDirty)
+					{
+						for (int i = 0; i < count; i++)
 						{
-							// calling the registed delegate to do the read from the socket
-							socketPoll.Action(socketPoll.Socket);
+							items[i].Events = items[i].NetMQSocket.GetPollEvents();							
 						}
-						else if (handleToProxy.TryGetValue(item.Socket, out proxyPoll))
-						{
-							Msg msg = ZMQ.Recv(proxyPoll.FromSocket.SocketHandle, SendRecieveOptions.None);
 
-							bool more = ZMQ.ZmqMsgGet(msg, MsgFlags.More) == 1;
+						count = HandleNewSockets(count, ref items);
 
-							ZMQ.Send(proxyPoll.ToSocket.SocketHandle, msg, more ? SendRecieveOptions.SendMore : SendRecieveOptions.None);
+						count = HandleCancelledSockets(items, count);
 
-							while (more)
-							{
-								msg = ZMQ.Recv(proxyPoll.FromSocket.SocketHandle, SendRecieveOptions.None);
-
-								more = ZMQ.ZmqMsgGet(msg, MsgFlags.More) == 1;
-
-								ZMQ.Send(proxyPoll.ToSocket.SocketHandle, msg, more ? SendRecieveOptions.SendMore : SendRecieveOptions.None);
-							}
-						}
-						else if (handleToMonitor.TryGetValue(item.Socket, out monitorPoll))
-						{
-							monitorPoll.Handle();
-						}
+						m_isDirty = false;
 					}
 				}
-
-				if (m_socketRetired)
-				{
-					m_socketRetired = false;
-					count = HandleSocketRetired(items, count, handleToSocket);
-				}
-
-				if (m_newSockets)
-				{
-					m_newSockets = false;
-					count = HandleNewSockets(count, handleToSocket, ref items);
-				}
 			}
-			
-			// we should close the monitors anyway because this poller created them
-			foreach (var monitorPoll in m_monitors)
+			catch (Exception ex)
 			{
-				monitorPoll.MonitoringSocket.Close();				
+				Console.WriteLine(ex);
 			}
-
-			if (CloseSocketsOnStop)
+			finally
 			{
-				// make a list of all the sockets the poller need to close
-				var socketToClose =
-					m_sockets.Select(m => m.Socket).Union(m_proxies.Select(p => p.FromSocket)).
-						Union(m_proxies.Select(p => p.ToSocket)).Distinct();
-
-				foreach (var socket in socketToClose)
-				{
-					socket.Close();
-				}
+				m_isStoppedEvent.Set();
 			}
-
-			// the poller is stopped
-			m_isStoppedEvent.Set();
-			m_isStarted = false;
 		}
 
-		private int HandleNewSockets(int count, Dictionary<SocketBase, SocketPoll> handleToSocket, ref PollItem[] items)
+		private int HandleNewSockets(int count, ref PollerPollItem[] items)
 		{
-			SocketPoll[] newSockets = m_sockets.Except(handleToSocket.Values).ToArray();
-
-			int itemsNewSize = count + newSockets.Length;
-
-			if (itemsNewSize > items.Length)
+			if (m_newSockets.Any())
 			{
-				PollItem[] newArray = new PollItem[itemsNewSize];
-				Array.Copy(items, newArray, count);
+				int itemsNewSize = count + m_newSockets.Count;
 
-				items = newArray;
+				if (itemsNewSize > items.Length)
+				{
+					PollerPollItem[] newArray = new PollerPollItem[itemsNewSize];
+					Array.Copy(items, newArray, count);
+
+					items = newArray;
+				}
+
+				foreach (NetMQSocket socket in m_newSockets)
+				{
+					m_sockets.Add(socket);
+					items[count] = new PollerPollItem(socket, socket.GetPollEvents());
+					count++;
+				}
+
+				m_newSockets.Clear();
 			}
 
-			foreach (SocketPoll socketPoll in newSockets)
-			{
-				items[count] = new PollItem(socketPoll.Socket.SocketHandle, PollEvents.PollIn);
-				handleToSocket.Add(socketPoll.Socket.SocketHandle, socketPoll);
-				count++;
-			}
 			return count;
 		}
 
-		private static int HandleSocketRetired(PollItem[] items, int count, Dictionary<SocketBase, SocketPoll> handleToSocket)
+		private int HandleCancelledSockets(PollerPollItem[] items, int count)
 		{
-			SocketPoll[] retiredSockets = handleToSocket.Where(s => s.Value.Cancelled).Select(s => s.Value).ToArray();
-
-			foreach (SocketPoll retiredSocket in retiredSockets)
+			foreach (NetMQSocket retiredSocket in m_cancelledSockets)
 			{
-				handleToSocket.Remove(retiredSocket.Socket.SocketHandle);
-
 				int currentIndex = 0;
 
 				while (true)
 				{
-					if (items[currentIndex].Socket == retiredSocket.Socket.SocketHandle)
+					if (items[currentIndex].NetMQSocket == retiredSocket)
 					{
 						while (currentIndex < count - 1)
 						{
@@ -446,7 +324,12 @@ namespace NetMQ
 
 					currentIndex++;
 				}
+
+				m_sockets.Remove(retiredSocket);
 			}
+
+			m_cancelledSockets.Clear();
+
 			return count;
 		}
 
@@ -462,6 +345,7 @@ namespace NetMQ
 			{
 				m_isStoppedEvent.WaitOne();
 			}
+
 			m_isStarted = false;
 		}
 

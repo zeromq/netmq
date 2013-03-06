@@ -3,7 +3,7 @@ using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
-	class XPublisherSocket : NetMQSocket, IXPublisherSocket
+	class XPublisherSocket : NetMQSocket
 	{
 		public XPublisherSocket(SocketBase socketHandle)
 			: base(socketHandle)
