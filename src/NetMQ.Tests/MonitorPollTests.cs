@@ -26,8 +26,16 @@ namespace NetMQ.Tests
 				{
 					using (NetMQMonitor monitor = new NetMQMonitor(contex, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
 					{
-						monitor.Accepted += (s, a) => accepted = true;
-						monitor.Listening += (s, a) => listening = true;
+						monitor.Accepted += (s, a) =>
+							{
+								accepted = true;
+								Console.WriteLine(a.Socket.RemoteEndPoint.ToString());								
+							};
+						monitor.Listening += (s, a) =>
+							{
+								listening = true;
+								Console.WriteLine(a.Socket.LocalEndPoint.ToString());								
+							};
 
 						monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
