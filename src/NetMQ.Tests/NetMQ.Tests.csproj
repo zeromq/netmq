@@ -45,6 +45,7 @@
     <Compile Include="Devices\QueueDeviceTests.cs" />
     <Compile Include="Devices\StreamerDeviceTests.cs" />
     <Compile Include="ExpectedZmqException.cs" />
+    <Compile Include="MessageTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
     <Compile Include="PgmTests.cs" />
     <Compile Include="PollerTests.cs" />

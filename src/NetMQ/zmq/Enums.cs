@@ -86,8 +86,7 @@ namespace NetMQ.zmq
 	{
 		Connected = 1,
 		ConnectDelayed = 2,
-		ConnectRetried = 4,
-		ConnectFailed = 1024,
+		ConnectRetried = 4,		
 
 		Listening = 8,
 		BindFailed = 16,

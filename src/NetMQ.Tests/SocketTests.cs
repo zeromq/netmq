@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
@@ -13,17 +14,17 @@ namespace NetMQ.Tests
 		public void TestKeepAlive()
 		{
 			// there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
-			using (Context context = Context.Create())
+			using (NetMQContext context = NetMQContext.Create())
 			{
-				using (ResponseSocket responseSocket = context.CreateResponseSocket())
+				using (var responseSocket = context.CreateResponseSocket())
 				{
 					responseSocket.Options.TcpKeepalive = true;
 					responseSocket.Options.TcpKeepaliveIdle = TimeSpan.FromSeconds(5);
 					responseSocket.Options.TcpKeepaliveInterval = TimeSpan.FromSeconds(1);
 
 					responseSocket.Bind("tcp://127.0.0.1:5555");
-					
-					using (RequestSocket requestSocket = context.CreateRequestSocket())
+
+					using (var requestSocket = context.CreateRequestSocket())
 					{
 						requestSocket.Options.TcpKeepalive = true;
 						requestSocket.Options.TcpKeepaliveIdle = TimeSpan.FromSeconds(5);

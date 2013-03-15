@@ -1,4 +1,5 @@
 using System;
+using NetMQ.Sockets;
 
 namespace NetMQ.Devices
 {
@@ -17,19 +18,20 @@ namespace NetMQ.Devices
 	/// var device = new ForwarderDevice(ctx, "inproc://frontend", "inproc://backend");
 	/// device.FrontendSetup.Subscribe("topic");
 	/// </example>
-	public class ForwarderDevice : DeviceBase<SubscriberSocket, PublisherSocket>
+	public class ForwarderDevice : DeviceBase
 	{
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
 		/// </summary>
-		/// <param name="context">The <see cref="Context"/> to use when creating the sockets.</param>
+		/// <param name="context">The <see cref="NetMQContext"/> to use when creating the sockets.</param>
 		/// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
 		/// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
-		public ForwarderDevice(Context context, string frontendBindAddress, string backendBindAddress,
+		public ForwarderDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress,
 			DeviceMode mode = DeviceMode.Threaded)
-			: base(context, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode) {
+			: base(context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
+		{
 
 			FrontendSetup.Bind(frontendBindAddress);
 			BackendSetup.Bind(backendBindAddress);
@@ -38,36 +40,35 @@ namespace NetMQ.Devices
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
 		/// </summary>
-		/// <param name="context">The <see cref="Context"/> to use when creating the sockets.</param>
+		/// <param name="context">The <see cref="NetMQContext"/> to use when creating the sockets.</param>
 		/// <param name="poller">The <see cref="Poller"/> to use.</param>
 		/// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
 		/// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>		
-		public ForwarderDevice(Context context, Poller poller, string frontendBindAddress, string backendBindAddress,
+		public ForwarderDevice(NetMQContext context, Poller poller, string frontendBindAddress, string backendBindAddress,
 			DeviceMode mode = DeviceMode.Threaded)
-			: base(poller, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode) {
+			: base(poller, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
+		{
 
 			FrontendSetup.Bind(frontendBindAddress);
 			BackendSetup.Bind(backendBindAddress);
 		}
 
-		protected override void FrontendHandler(SubscriberSocket socket) {
+		protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
+		{
 			bool more;
 
-			PublisherSocket.PublisherSendMessage msg = null;
+			do
+			{
+				var data = args.Socket.Receive(out more);
 
-			do {
-				var data = socket.Receive(out more);
-
-				if (msg == null) {
-					msg = BackendSocket.SendTopic(data);
-				} else {
-					if (more)
-						msg.SendMore(data);
-					else {
-						msg.Send(data);
-					}
+				if (more)
+					BackendSocket.SendMore(data);
+				else
+				{
+					BackendSocket.Send(data);
 				}
+
 			} while (more);
 		}
 	}

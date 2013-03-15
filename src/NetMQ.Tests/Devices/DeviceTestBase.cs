@@ -3,14 +3,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using NetMQ.Devices;
+using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ.Tests.Devices
 {
-	public abstract class DeviceTestBase<TDevice, TClient, TWorker>
+	public abstract class DeviceTestBase<TDevice>
 		where TDevice : IDevice
-		where TClient : BaseSocket
-		where TWorker : BaseSocket
+		
 	{
 
 		protected const string Frontend = "inproc://front.addr";
@@ -18,12 +18,12 @@ namespace NetMQ.Tests.Devices
 
 		protected readonly Random Random = new Random();
 
-		protected Context Context;
+		protected NetMQContext Context;
 		protected TDevice Device;
 
-		protected Func<Context, TDevice> CreateDevice;
-		protected Func<Context, TClient> CreateClientSocket;
-		protected Func<Context, TWorker> CreateWorkerSocket;
+		protected Func<NetMQContext, TDevice> CreateDevice;
+		protected Func<NetMQContext, NetMQSocket> CreateClientSocket;
+		protected Func<NetMQContext, NetMQSocket> CreateWorkerSocket;
 
 		protected int WorkerReceiveCount;
 
@@ -39,7 +39,7 @@ namespace NetMQ.Tests.Devices
 			m_workCancelationSource = new CancellationTokenSource();
 			m_workerCancelationToken = m_workCancelationSource.Token;
 
-			Context = Context.Create();
+			Context = NetMQContext.Create();
 			SetupTest();
 			Device = CreateDevice(Context);
 			Device.Start();
@@ -54,9 +54,9 @@ namespace NetMQ.Tests.Devices
 			Context.Dispose();
 		}
 
-		protected abstract void DoWork(TWorker socket);
+		protected abstract void DoWork(NetMQSocket socket);
 
-		protected virtual void WorkerSocketAfterConnect(TWorker socket) { }
+		protected virtual void WorkerSocketAfterConnect(NetMQSocket socket) { }
 
 		protected void StartWorker() {
 			Task.Factory.StartNew(() => {
@@ -64,8 +64,11 @@ namespace NetMQ.Tests.Devices
 				socket.Connect(Backend);
 				WorkerSocketAfterConnect(socket);
 
+				socket.ReceiveReady += (s,a) => { };
+				socket.SendReady += (s, a) => { };
+
 				while (!m_workerCancelationToken.IsCancellationRequested) {
-					var has = socket.Poll(TimeSpan.FromMilliseconds(1), PollEvents.PollIn | PollEvents.PollError | PollEvents.PollOut);
+					var has = socket.Poll(TimeSpan.FromMilliseconds(1));
 
 					if (!has) {
 						Thread.Sleep(1);
@@ -87,7 +90,7 @@ namespace NetMQ.Tests.Devices
 			WorkerDone.WaitOne();
 		}
 
-		protected abstract void DoClient(int id, TClient socket);
+		protected abstract void DoClient(int id, NetMQSocket socket);
 
 		protected void StartClient(int id, int waitBeforeSending = 0) {
 			Task.Factory.StartNew(() => {

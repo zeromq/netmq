@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ.Tests
@@ -13,13 +14,13 @@ namespace NetMQ.Tests
 		[Test]
 		public void SimpleReqRep()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (ResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5001");
 
-					using (RequestSocket req = ctx.CreateRequestSocket())
+					using (var req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
@@ -46,13 +47,13 @@ namespace NetMQ.Tests
 		[Test]
 		public void SendingTwoRequestsInaRow()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (ResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5002");
 
-					using (RequestSocket req = ctx.CreateRequestSocket())
+					using (var req = ctx.CreateRequestSocket())
 					{						
 						req.Connect("tcp://127.0.0.1:5002");
 
@@ -72,14 +73,14 @@ namespace NetMQ.Tests
 		[Test]
 		public void ReceiveBeforeSending()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (ResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5001");
-					
-					
-					using (RequestSocket req = ctx.CreateRequestSocket())
+
+
+					using (var req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
@@ -97,13 +98,13 @@ namespace NetMQ.Tests
 		[Test]
 		public void SendMessageInResponeBeforeReceiving()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (ResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
 					rep.Bind("tcp://127.0.0.1:5001");
-					
-					using (RequestSocket req = ctx.CreateRequestSocket())
+
+					using (var req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 
@@ -118,13 +119,13 @@ namespace NetMQ.Tests
 		[Test]
 		public void SendMultiplartMessage()
 		{
-			using (Context ctx = Context.Create())
+			using (NetMQContext ctx = NetMQContext.Create())
 			{
-				using (ResponseSocket rep = ctx.CreateResponseSocket())
+				using (var rep = ctx.CreateResponseSocket())
 				{
-					rep.Bind("tcp://127.0.0.1:5001");					
+					rep.Bind("tcp://127.0.0.1:5001");
 
-					using (RequestSocket req = ctx.CreateRequestSocket())
+					using (var req = ctx.CreateRequestSocket())
 					{
 						req.Connect("tcp://127.0.0.1:5001");
 

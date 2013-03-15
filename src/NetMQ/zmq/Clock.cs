@@ -63,7 +63,7 @@ namespace NetMQ.zmq
 			long ticksPerSecond = Stopwatch.Frequency;
 			long tick = Stopwatch.GetTimestamp();
 
-			double ticks_div = (double)(ticksPerSecond / 1000000);
+			double ticks_div = ticksPerSecond / 1000000.0;
 			return (long)(tick / ticks_div);
 		}
 

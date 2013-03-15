@@ -1,10 +1,11 @@
 using System;
 using NUnit.Framework;
 using NetMQ.Devices;
+using NetMQ.Sockets;
 
 namespace NetMQ.Tests.Devices
 {
-	public abstract class ForwarderDeviceTestBase : DeviceTestBase<ForwarderDevice, PublisherSocket, SubscriberSocket>
+	public abstract class ForwarderDeviceTestBase : DeviceTestBase<ForwarderDevice>
 	{
 
 		protected const string Topic = "CanHazTopic";
@@ -20,11 +21,12 @@ namespace NetMQ.Tests.Devices
 			CreateWorkerSocket = c => c.CreateSubscriberSocket();
 		}
 
-		protected override void WorkerSocketAfterConnect(SubscriberSocket socket) {
+		protected override void WorkerSocketAfterConnect(NetMQSocket socket) {
 			socket.Subscribe(Topic);
 		}
 
-		protected override void DoWork(SubscriberSocket socket) {
+		protected override void DoWork(NetMQSocket socket)
+		{
 			var received = socket.ReceiveAllString();
 			Console.WriteLine("Worker received: ");
 
@@ -36,11 +38,13 @@ namespace NetMQ.Tests.Devices
 			Console.WriteLine("------");
 		}
 
-		protected override void DoClient(int id, PublisherSocket socket) {
+		protected override void DoClient(int id, NetMQSocket socket)
+		{
 			const string value = "Hello World";
 			var expected = value + " " + id;
 			Console.WriteLine("Client: {0} Publishing: {1}", id, expected);
-			socket.SendTopic(Topic).Send(expected);
+			socket.SendMore(Topic);
+			socket.Send(expected);
 		}
 	}
 
