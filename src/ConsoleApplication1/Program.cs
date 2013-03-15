@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using NetMQ;
 using System.Threading.Tasks;
+using NetMQ.Sockets;
 
 namespace ConsoleApplication1
 {
@@ -12,7 +13,7 @@ namespace ConsoleApplication1
 	{
 		static void Main(string[] args)
 		{
-			Context context = Context.Create();
+			NetMQContext context = NetMQContext.Create();
 
 			SubscriberSocket sub = context.CreateSubscriberSocket();
 			sub.Subscribe("");

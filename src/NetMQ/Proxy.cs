@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NetMQ.Sockets;
 
 namespace NetMQ
 {
@@ -10,11 +11,11 @@ namespace NetMQ
 	/// </summary>
 	public class Proxy
 	{
-		BaseSocket m_frontend;
-		BaseSocket m_backend;
-		BaseSocket m_control;
+		NetMQSocket m_frontend;
+		NetMQSocket m_backend;
+		NetMQSocket m_control;
 
-		public Proxy(BaseSocket frontend, BaseSocket backend, BaseSocket control)
+		public Proxy(NetMQSocket frontend, NetMQSocket backend, NetMQSocket control)
 		{
 			m_frontend = frontend;
 			m_backend = backend;

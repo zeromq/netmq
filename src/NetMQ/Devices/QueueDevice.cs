@@ -1,4 +1,6 @@
-﻿namespace NetMQ.Devices
+﻿using NetMQ.Sockets;
+
+namespace NetMQ.Devices
 {
 
 	/// <summary>
@@ -11,18 +13,18 @@
 	/// original request. This device is part of the request-reply pattern. The frontend
 	/// speaks to clients and the backend speaks to services.
 	/// </remarks>
-	public class QueueDevice : DeviceBase<RouterSocket, DealerSocket>
+	public class QueueDevice : DeviceBase
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QueueDevice"/> class.
 		/// </summary>
-		/// <param name="context">The <see cref="Context"/> to use when creating the sockets.</param>
+		/// <param name="context">The <see cref="NetMQContext"/> to use when creating the sockets.</param>
 		/// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
 		/// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
-		public QueueDevice(Context context, string frontendBindAddress, string backendBindAddress,
+		public QueueDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress,
 			DeviceMode mode = DeviceMode.Threaded)
-			: base(context, context.CreateRouterSocket(), context.CreateDealerSocket(), mode) {
+			: base(context.CreateRouterSocket(), context.CreateDealerSocket(), mode) {
 
 			FrontendSetup.Bind(frontendBindAddress);
 			BackendSetup.Bind(backendBindAddress);
@@ -31,12 +33,12 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QueueDevice"/> class.
 		/// </summary>
-		/// <param name="context">The <see cref="Context"/> to use when creating the sockets.</param>
+		/// <param name="context">The <see cref="NetMQContext"/> to use when creating the sockets.</param>
 		/// <param name="poller">The <see cref="Poller"/> to use.</param>
 		/// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
 		/// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
 		/// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
-		public QueueDevice(Context context, Poller poller, string frontendBindAddress, string backendBindAddress,
+		public QueueDevice(NetMQContext context, Poller poller, string frontendBindAddress, string backendBindAddress,
 			DeviceMode mode = DeviceMode.Threaded)
 			: base(poller, context.CreateRouterSocket(), context.CreateDealerSocket(), mode) {
 
@@ -44,11 +46,12 @@
 			BackendSetup.Bind(backendBindAddress);
 		}
 
-		protected override void FrontendHandler(RouterSocket socket) {
+		protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
+		{
 			bool more;
 
 			do {
-				var data = socket.Receive(out more) ?? new byte[] { };
+				var data = args.Socket.Receive(out more) ?? new byte[] { };
 
 				if (more)
 					BackendSocket.SendMore(data);
@@ -58,11 +61,12 @@
 			} while (more);
 		}
 
-		protected override void BackendHandler(DealerSocket socket) {
+		protected override void BackendHandler(object sender, NetMQSocketEventArgs args)
+		{
 			bool more;
 
 			do {
-				var data = socket.Receive(out more) ?? new byte[] { };
+				var data = args.Socket.Receive(out more) ?? new byte[] { };
 
 				if (more)
 					FrontendSocket.SendMore(data);

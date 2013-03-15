@@ -88,13 +88,15 @@ namespace NetMQ.zmq
 			}
 			else if (m_flag == ValueChannel)
 			{
+				GCHandle handle = GCHandle.Alloc(m_arg, GCHandleType.Weak);
+
 				if (SizeOfIntPtr == 4)
 				{
-					buffer.PutInteger(((Socket)m_arg).Handle.ToInt32(), pos);
+					buffer.PutInteger(GCHandle.ToIntPtr(handle).ToInt32(), pos);
 				}
 				else
 				{
-					buffer.PutLong(((Socket)m_arg).Handle.ToInt64(), pos);
+					buffer.PutLong(GCHandle.ToIntPtr(handle).ToInt64(), pos);
 				}
 			}			
 
@@ -125,16 +127,29 @@ namespace NetMQ.zmq
 			}
 			else if (flag == ValueChannel)
 			{
+				IntPtr value;
+
 				if (SizeOfIntPtr == 4)
 				{
-					arg = new IntPtr(data.GetInteger(pos));
+					value = new IntPtr(data.GetInteger(pos));
 				}
 				else
 				{
-					arg = new IntPtr(data.GetLong(pos));
+					value = new IntPtr(data.GetLong(pos));
 				}
-			}			
 
+				GCHandle handle = GCHandle.FromIntPtr(value);
+				Socket socket = null;
+
+				if (handle.IsAllocated)
+				{
+					socket = handle.Target as Socket;
+				}
+
+				handle.Free();
+
+				arg = socket;
+			}			
 
 			return new MonitorEvent(@event, addr, arg);
 		}

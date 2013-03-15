@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
 {
     public class SocketOptions
     {
-        BaseSocket m_socket;
+        NetMQSocket m_socket;
 
-        public SocketOptions(BaseSocket socket)
+        public SocketOptions(NetMQSocket socket)
         {
             m_socket = socket;
         }
@@ -170,6 +171,12 @@ namespace NetMQ
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.DelayAttachOnConnect); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.DelayAttachOnConnect, value); }
         }
+
+				public bool XPubVerbose
+				{
+					get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XpubVerbose); }
+					set { m_socket.SetSocketOption(ZmqSocketOptions.XpubVerbose, value); }
+				}
 
     }
 }

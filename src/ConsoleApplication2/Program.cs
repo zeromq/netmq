@@ -12,7 +12,7 @@ namespace ConsoleApplication2
 	{
 		static void Main(string[] args)
 		{
-			using (Context context = Context.Create())
+			using (NetMQContext context = NetMQContext.Create())
 			{
 
 				using (var socket1 = context.CreateResponseSocket())

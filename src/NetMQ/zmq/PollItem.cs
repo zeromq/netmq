@@ -47,7 +47,7 @@ namespace NetMQ.zmq
 
 		public Socket FileDescriptor { get; private set; }
 
-		public PollEvents Events { get; private set; }
+		public PollEvents Events { get; set; }
 
 
 		public PollEvents ResultEvent { get; set; }

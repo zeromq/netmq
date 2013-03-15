@@ -1,10 +1,11 @@
 ﻿using System;
 using NUnit.Framework;
 using NetMQ.Devices;
+using NetMQ.Sockets;
 
 namespace NetMQ.Tests.Devices
 {
-	public abstract class StreamerDeviceTestBase : DeviceTestBase<StreamerDevice, PushSocket, PullSocket>
+	public abstract class StreamerDeviceTestBase : DeviceTestBase<StreamerDevice>
 	{
 		protected override void SetupTest() {
 			CreateDevice = c => new StreamerDevice(c, Frontend, Backend);
@@ -12,7 +13,8 @@ namespace NetMQ.Tests.Devices
 			CreateWorkerSocket = c => c.CreatePullSocket();
 		}
 
-		protected override void DoWork(PullSocket socket) {
+		protected override void DoWork(NetMQSocket socket)
+		{
 			var received = socket.ReceiveAllString();
 			Console.WriteLine("Pulled: ");
 
@@ -24,7 +26,8 @@ namespace NetMQ.Tests.Devices
 			Console.WriteLine("------");
 		}
 
-		protected override void DoClient(int id, PushSocket socket) {
+		protected override void DoClient(int id, NetMQSocket socket)
+		{
 			const string value = "Hello World";
 			var expected = value + " " + id;
 			Console.WriteLine("({0}) Pushing: {1}", id, expected);
