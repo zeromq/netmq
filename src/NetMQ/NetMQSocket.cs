@@ -304,6 +304,54 @@ namespace NetMQ
 			return messages;
 		}
 
+		public NetMQMessage ReceiveMessage()
+		{
+			return ReceiveMessage(false);
+		}
+
+		public NetMQMessage ReceiveMessage(bool dontWait)
+		{
+			NetMQMessage message = new NetMQMessage();
+
+			ReceiveMessage(message, dontWait);
+
+			return message;
+		}
+
+		public void ReceiveMessage(NetMQMessage message)
+		{
+			ReceiveMessage(message, false);
+		}
+
+		public void ReceiveMessage(NetMQMessage message, bool dontWait)
+		{			
+			message.Clear();
+
+			bool more = true;			
+
+			while (more)
+			{
+				byte[] buffer = Receive(dontWait, out more);
+
+				message.Append(buffer);
+			}
+		}
+
+		public void SendMessage(NetMQMessage message)
+		{
+			SendMessage(message, false);
+		}
+
+		public void SendMessage(NetMQMessage message, bool dontWait)
+		{
+			for (int i = 0; i < message.FrameCount-1; i++)
+			{
+				SendMore(message[i].Buffer, message[i].MessageSize);
+			}
+
+			Send(message.Last.Buffer, message.Last.MessageSize);
+		}
+
 		public virtual void Send(byte[] data, int length, SendRecieveOptions options)
 		{
 			Msg msg = new Msg(data, length, Options.CopyMessages);

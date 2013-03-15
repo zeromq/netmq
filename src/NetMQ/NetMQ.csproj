@@ -37,8 +37,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Frame.cs" />
     <Compile Include="IOutgoingSocket.cs" />
     <Compile Include="Monitoring\NetMQMonitorEventArgs.cs" />
+    <Compile Include="NetMQMessage.cs" />
     <Compile Include="NetMQSocket.cs" />
     <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
@@ -56,7 +58,6 @@
     <Compile Include="Monitoring\NetMQMonitor.cs" />
     <Compile Include="NetMQException.cs" />
     <Compile Include="Sockets\PairSocket.cs" />
-    <None Include="Poller-old.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Proxy.cs" />
     <Compile Include="Sockets\PublisherSocket.cs" />
