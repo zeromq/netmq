@@ -1,23 +1,21 @@
 NetMQ
 =====
 
-NetMQ is port of zeromq to .net.
+NetMQ is port of zeromq to .net, the project based on zeromq version 3.2.
 
-The project based on zeromq version 3.2, the project is still under development and not stable yet.
-Most of zeromq features are already implemented, including TCP Keep alive and PGM. ePGM is not supported.
+NetMQ is lightweight messaginglibrary which extends the
+standard socket interfaces with features traditionally provided by
+specialised messaging middleware products. NetMQ sockets provide an
+abstraction of asynchronous message queues, multiple messaging patterns,
+message filtering (subscriptions), seamless access to multiple transport
+protocols and more.
 
-The following is still under development:
-* Error handling
-* Support clrzmq API
-* Port the testing from the original project
-* Check compatibility to original zeromq
-* Mono support
-* IPv6
+NetMQ is still under development, although the current repository is pretty stable.
 
-Bonus features planned to be developed:
-* IO completion ports
-* SSL
-* New PUB/SUB sockets that the server decide on the subscriptions of the client (to support permissions on topics).
+## Installation
+
+Binaries of NetMQ is still not available, so to install NetMQ just download the source code and compile the project.
+We will add binaries and tutorial soon.
 
 ## Mailing list
 
