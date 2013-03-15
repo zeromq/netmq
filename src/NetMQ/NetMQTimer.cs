@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -18,36 +19,43 @@ namespace NetMQ
 	public class NetMQTimer
 	{
 		private NetMQTimerEventArgs m_timerEventArgs;
-		private TimeSpan m_interval;
+		private int m_interval;
 		private bool m_enable;
 
 		public event EventHandler<NetMQTimerEventArgs> Elapsed;
 
-		internal event EventHandler<NetMQTimerEventArgs> TimerChanged;
-
-		public NetMQTimer(TimeSpan interval)
+		public NetMQTimer(TimeSpan interval) : this((int)interval.TotalMilliseconds)
 		{
-			Interval = interval;
-			m_timerEventArgs = new NetMQTimerEventArgs(this);
-
-			Cancelled = true;
-			Enable = true;
+			
 		}
 
-		public TimeSpan Interval
+		public NetMQTimer(int interval)
+		{
+			m_interval = interval;
+			m_timerEventArgs = new NetMQTimerEventArgs(this);
+
+			m_enable = true;
+
+			When = -1;
+		}
+
+		public int Interval
 		{
 			get { return m_interval; }
 			set
 			{
 				m_interval = value;
-				InvokeTimerChanged();
+
+				if (Enable)
+				{
+					When = Clock.NowMs() + Interval;
+				}
+				else
+				{
+					When = -1;	
+				}				
 			}
 		}
-
-		/// <summary>
-		/// If timer attached to a poller Cancelled is false, if cancel is not attached or removed from a poller Cancelled is true
-		/// </summary>
-		public bool Cancelled { get; internal set; }
 
 		public bool Enable
 		{
@@ -57,10 +65,20 @@ namespace NetMQ
 				if (!m_enable.Equals(value))
 				{
 					m_enable = value;
-					InvokeTimerChanged();
+					
+					if (m_enable)
+					{
+						When = Clock.NowMs() + Interval;
+					}
+					else
+					{
+						When = -1;
+					}
 				}
 			}
 		}
+
+		internal Int64 When { get; set; }
 
 		internal void InvokeElapsed(object sender)
 		{
@@ -68,15 +86,6 @@ namespace NetMQ
 			if (temp != null)
 			{
 				temp(sender, m_timerEventArgs);
-			}
-		}
-
-		internal void InvokeTimerChanged()
-		{
-			var temp = TimerChanged;
-			if (temp != null)
-			{
-				temp(this, m_timerEventArgs);
 			}
 		}
 	}

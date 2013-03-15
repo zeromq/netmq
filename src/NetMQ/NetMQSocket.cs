@@ -20,6 +20,9 @@ namespace NetMQ
 			m_socketHandle = socketHandle;
 			Options = new SocketOptions(this);
 			m_socketEventArgs = new NetMQSocketEventArgs(this);
+
+			IgnoreErrors = false;
+			Errors = 0;
 		}
 
 		/// <summary>
@@ -56,7 +59,12 @@ namespace NetMQ
 			}
 		}
 
+		public bool IgnoreErrors { get; set; }
+
 		internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
+
+		internal int Errors { get; set; }
+
 
 		private void InvokeEventsChanged()
 		{
@@ -141,9 +149,27 @@ namespace NetMQ
 
 			PollItem[] items = new PollItem[1];
 
-			items[0] = new PollItem(m_socketHandle, events);
+			PollItem item = new PollItem(m_socketHandle, events);
+
+			items[0] = item;
+
+			
 
 			ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
+
+			if (item.ResultEvent.HasFlag(PollEvents.PollError) && !IgnoreErrors)
+			{
+				Errors++;
+
+				if (Errors > 1)
+				{
+					throw new ErrorPollingException("Error while polling", this);
+				}
+			}
+			else
+			{
+				Errors = 0;
+			}
 
 			InvokeEvents(this, items[0].ResultEvent);
 
@@ -152,7 +178,7 @@ namespace NetMQ
 
 		internal PollEvents GetPollEvents()
 		{
-			PollEvents events = PollEvents.None;
+			PollEvents events = PollEvents.PollError;
 
 			if (m_sendReady != null)
 			{
@@ -171,7 +197,7 @@ namespace NetMQ
 		{
 			if (!m_isClosed)
 			{
-				m_socketEventArgs.Init(events);
+				m_socketEventArgs.Init(events);				
 
 				if (events.HasFlag(PollEvents.PollIn))
 				{

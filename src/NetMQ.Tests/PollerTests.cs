@@ -774,7 +774,7 @@ namespace NetMQ.Tests
 					{
 						length1 = stopwatch.ElapsedMilliseconds;
 
-						timer.Interval = TimeSpan.FromMilliseconds(20);
+						timer.Interval = 20;
 						stopwatch.Restart();
 					}
 					else if (count == 3)
