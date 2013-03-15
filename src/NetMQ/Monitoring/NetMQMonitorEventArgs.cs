@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using NetMQ.zmq;
 
@@ -21,12 +22,13 @@ namespace NetMQ.Monitoring
 
 	public class NetMQMonitorSocketEventArgs : NetMQMonitorEventArgs
 	{
-		public NetMQMonitorSocketEventArgs(NetMQMonitor monitor, string address, IntPtr socket) : base(monitor, address)
+		public NetMQMonitorSocketEventArgs(NetMQMonitor monitor, string address, Socket socket)
+			: base(monitor, address)
 		{
 			Socket = socket;
 		}
 
-		public IntPtr Socket { get; private  set; }
+		public Socket Socket { get; private  set; }
 	}
 
 	public class NetMQMonitorErrorEventArgs : NetMQMonitorEventArgs
