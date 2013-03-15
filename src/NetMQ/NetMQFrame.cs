@@ -15,6 +15,11 @@ namespace NetMQ
 			MessageSize = buffer.Length;
 		}
 
+		public NetMQFrame(string message) : this(Encoding.ASCII.GetBytes(message))
+		{
+			
+		}
+
 		public NetMQFrame(int length)
 		{
 			if (length < 0)
@@ -84,6 +89,11 @@ namespace NetMQ
 			System.Buffer.BlockCopy(buffer, 0, copy.Buffer, 0, buffer.Length);
 
 			return copy;
+		}
+
+		public string ConvertToString()
+		{
+			return Encoding.ASCII.GetString(Buffer, 0, this.MessageSize);
 		}
 
 		/// <summary>

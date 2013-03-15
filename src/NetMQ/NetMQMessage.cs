@@ -90,6 +90,11 @@ namespace NetMQ
 			m_frames.Add(new NetMQFrame(buffer));			
 		}
 
+		public void Append(string message)
+		{
+			m_frames.Add(new NetMQFrame(message));
+		}
+
 		public void AppendEmptyFrame()
 		{
 			m_frames.Add(NetMQFrame.Empty);			
@@ -104,6 +109,12 @@ namespace NetMQ
 		{
 			m_frames.Insert(0, new NetMQFrame(buffer));			
 		}
+
+		public void Push(string message)
+		{
+			m_frames.Insert(0, new NetMQFrame(message));
+		}
+
 		
 		public void PushEmptyFrame()
 		{

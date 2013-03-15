@@ -37,7 +37,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Frame.cs" />
+    <Compile Include="NetMQFrame.cs" />
     <Compile Include="IOutgoingSocket.cs" />
     <Compile Include="Monitoring\NetMQMonitorEventArgs.cs" />
     <Compile Include="NetMQMessage.cs" />
