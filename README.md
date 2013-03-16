@@ -22,32 +22,32 @@ You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
 For using NetMQ make sure you read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). 
 NetMQ documentation is still work in progress but you can found small example [here](https://gist.github.com/somdoron/5175967).
 
-using (NetMQContext ctx = NetMQContext.Create())
-{
-  using (var server = ctx.CreateResponseSocket())
+	using (NetMQContext ctx = NetMQContext.Create())
 	{
-		server.Bind("tcp://127.0.0.1:5556");
- 
-		using (var client = ctx.CreateRequestSocket())
+		using (var server = ctx.CreateResponseSocket())
 		{
-			client.Connect("tcp://127.0.0.1:5556");
+			server.Bind("tcp://127.0.0.1:5556");
  
-			client.Send("Hello");
+			using (var client = ctx.CreateRequestSocket())
+			{
+				client.Connect("tcp://127.0.0.1:5556");
  
-			string m1 = server.ReceiveString();
+				client.Send("Hello");
  
-			Console.WriteLine("From Client: {0}", m1);
+				string m1 = server.ReceiveString();
  
-			server.Send("Hi Back");
+				Console.WriteLine("From Client: {0}", m1);
  
-			string m2 = client.ReceiveString();
+				server.Send("Hi Back");
  
-			Console.WriteLine("From Server: {0}", m2);
+				string m2 = client.ReceiveString();
  
-			Console.ReadLine();
+				Console.WriteLine("From Server: {0}", m2);
+ 
+				Console.ReadLine();
+			}
 		}
 	}
-}
 
 ## Contributing
 
