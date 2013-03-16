@@ -1,9 +1,9 @@
 NetMQ
 =====
 
-NetMQ is port of zeromq to .net, the project based on zeromq version 3.2.
+NetMQ is 100% native C# port of ZeroMQ.
 
-NetMQ is lightweight messaginglibrary which extends the
+NetMQ is lightweight messaging library which extends the
 standard socket interfaces with features traditionally provided by
 specialised messaging middleware products. NetMQ sockets provide an
 abstraction of asynchronous message queues, multiple messaging patterns,
