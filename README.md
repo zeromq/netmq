@@ -32,8 +32,7 @@ You can also help us with the following
 
 ## Installation
 
-Binaries of NetMQ is still not available, so to install NetMQ just download the source code and compile the project.
-We will add binaries and tutorial soon.
+You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
 
 ## Mailing list
 
