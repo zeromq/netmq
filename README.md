@@ -12,6 +12,16 @@ protocols and more.
 
 NetMQ is still under development, although the current repository is pretty stable.
 
+
+## Installation
+
+You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
+
+## Using
+
+For using NetMQ make sure you read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). 
+NetMQ documentation is still work in progress but you can found small example [here](https://gist.github.com/somdoron/5175967)
+
 ## Contributing
 
 We need help, so if you have good knowledge in C# and ZeroMQ just grab one of the issues and add a pull request.
@@ -29,10 +39,6 @@ You can also help us with the following
 * Joining our mailing list and be an active member
 * Write tutorials in the github wiki
 * Write about the probject in your blog
-
-## Installation
-
-You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
 
 ## Mailing list
 
