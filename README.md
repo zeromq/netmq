@@ -65,11 +65,11 @@ Some of the areas we need help with:
 You can also help us with the following
 * Joining our mailing list and be an active member
 * Write tutorials in the github wiki
-* Write about the probject in your blog
+* Write about the project in your blog
 
 ## Mailing list
 
-you can join our mailing list at https://groups.google.com/d/forum/netmq-dev?hl=en. 
+You can join our mailing list at https://groups.google.com/d/forum/netmq-dev?hl=en. 
 
 ## Who owns NetMQ?
 
