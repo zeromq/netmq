@@ -1,4 +1,5 @@
 ﻿using System;
+using NetMQ;
 using NetMQ.zmq;
 
 namespace NetMQ.Sockets
