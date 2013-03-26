@@ -19,7 +19,8 @@ You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
 
 ## Using
 
-For using NetMQ make sure you read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). 
+For using NetMQ make sure you read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). You can also read more about NetMQ at my [blog](http://somdoron.com/category/netmq/).
+
 NetMQ documentation is still work in progress but you can found small example [here](https://gist.github.com/somdoron/5175967).
 
 	using (NetMQContext ctx = NetMQContext.Create())
