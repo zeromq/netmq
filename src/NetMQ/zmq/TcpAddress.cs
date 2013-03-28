@@ -20,6 +20,7 @@
 */
 
 using System;
+using System.Linq;
 using System.Net;
 
 namespace NetMQ.zmq
@@ -55,7 +56,8 @@ namespace NetMQ.zmq
 		}
     
 
-		public void Resolve(String name, bool ip4Only) {
+		public void Resolve(String name, bool ip4Only)
+		{
 			//  Find the ':' at end that separates address from the port number.
 			int delimiter = name.LastIndexOf(':');
 			if (delimiter < 0) {
@@ -89,14 +91,8 @@ namespace NetMQ.zmq
 			if (addrStr.Equals("*")) {
 				addrStr = "0.0.0.0";
 			}
-			
 
-			IPAddress ipAddress;
-
-			if (!IPAddress.TryParse(addrStr, out ipAddress))
-			{
-				throw InvalidException.Create();
-			}
+			IPAddress ipAddress = Dns.GetHostEntry(addrStr).AddressList.First();
 
 			addrNet  = new IPEndPoint(ipAddress, port);
         

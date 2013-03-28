@@ -12,17 +12,19 @@ namespace NetMQ.Tests
 	public class ReqRepTests
 	{
 		[Test]
-		public void SimpleReqRep()
+		[TestCase("tcp://localhost:5001")]
+		[TestCase("tcp://127.0.0.1:5001")]
+		public void SimpleReqRep(string address)
 		{
 			using (NetMQContext ctx = NetMQContext.Create())
 			{
 				using (var rep = ctx.CreateResponseSocket())
 				{
-					rep.Bind("tcp://127.0.0.1:5001");
+					rep.Bind(address);
 
 					using (var req = ctx.CreateRequestSocket())
 					{
-						req.Connect("tcp://127.0.0.1:5001");
+						req.Connect(address);
 
 						req.Send("Hi");
 
@@ -51,11 +53,11 @@ namespace NetMQ.Tests
 			{
 				using (var rep = ctx.CreateResponseSocket())
 				{
-					rep.Bind("tcp://127.0.0.1:5002");
+					rep.Bind("tcp://localhost:5002");
 
 					using (var req = ctx.CreateRequestSocket())
 					{						
-						req.Connect("tcp://127.0.0.1:5002");
+						req.Connect("tcp://localhost:5002");
 
 						req.Send("Hi");
 
@@ -77,12 +79,12 @@ namespace NetMQ.Tests
 			{
 				using (var rep = ctx.CreateResponseSocket())
 				{
-					rep.Bind("tcp://127.0.0.1:5001");
+					rep.Bind("tcp://localhost:5001");
 
 
 					using (var req = ctx.CreateRequestSocket())
 					{
-						req.Connect("tcp://127.0.0.1:5001");
+						req.Connect("tcp://localhost:5001");
 
 						bool more;
 
@@ -102,11 +104,11 @@ namespace NetMQ.Tests
 			{
 				using (var rep = ctx.CreateResponseSocket())
 				{
-					rep.Bind("tcp://127.0.0.1:5001");
+					rep.Bind("tcp://localhost:5001");
 
 					using (var req = ctx.CreateRequestSocket())
 					{
-						req.Connect("tcp://127.0.0.1:5001");
+						req.Connect("tcp://localhost:5001");
 
 						var ex = Assert.Throws<NetMQException>(() => rep.Send("1"));
 
@@ -123,11 +125,11 @@ namespace NetMQ.Tests
 			{
 				using (var rep = ctx.CreateResponseSocket())
 				{
-					rep.Bind("tcp://127.0.0.1:5001");
+					rep.Bind("tcp://localhost:5001");
 
 					using (var req = ctx.CreateRequestSocket())
 					{
-						req.Connect("tcp://127.0.0.1:5001");
+						req.Connect("tcp://localhost:5001");
 
 						req.SendMore("Hello").Send("World");
 
