@@ -92,7 +92,17 @@ namespace NetMQ.zmq
 				addrStr = "0.0.0.0";
 			}
 
-			IPAddress ipAddress = Dns.GetHostEntry(addrStr).AddressList.First();
+			IPAddress ipAddress;
+ 
+			if (!IPAddress.TryParse(addrStr, out ipAddress))
+			{
+				ipAddress = Dns.GetHostEntry(addrStr).AddressList.FirstOrDefault();
+
+				if (ipAddress == null)
+				{
+					throw InvalidException.Create(string.Format("Unable to find an IP address for {0}", name));
+				}
+			}
 
 			addrNet  = new IPEndPoint(ipAddress, port);
         

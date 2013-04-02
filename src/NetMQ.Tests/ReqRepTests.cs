@@ -14,6 +14,7 @@ namespace NetMQ.Tests
 		[Test]
 		[TestCase("tcp://localhost:5001")]
 		[TestCase("tcp://127.0.0.1:5001")]
+		[TestCase("tcp://unknownhostname:5001", ExpectedException = typeof(System.Net.Sockets.SocketException))]
 		public void SimpleReqRep(string address)
 		{
 			using (NetMQContext ctx = NetMQContext.Create())
