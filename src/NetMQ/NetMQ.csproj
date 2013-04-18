@@ -109,6 +109,7 @@
     <Compile Include="zmq\MonitorEvent.cs" />
     <Compile Include="zmq\Msg.cs" />
     <Compile Include="zmq\Mtrie.cs" />
+    <None Include="NetMQ.nuspec" />
     <None Include="zmq\Native\NativeMethods.cs" />
     <Compile Include="zmq\Native\OpCode.cs" />
     <Compile Include="zmq\Options.cs" />
