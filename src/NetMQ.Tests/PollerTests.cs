@@ -797,6 +797,8 @@ namespace NetMQ.Tests
 
 				Assert.AreEqual(3, count);
 
+				Console.WriteLine("Length1:{0}, Length2:{1}", length1, length2);
+
 				Assert.GreaterOrEqual(length1, 8);
 				Assert.LessOrEqual(length1, 12);
 
