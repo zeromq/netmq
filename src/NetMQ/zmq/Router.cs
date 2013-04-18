@@ -136,7 +136,7 @@ namespace NetMQ.zmq
 			{
 				throw InvalidException.Create();				
 			}
-			m_mandatory = (int) optval == 1;			
+			m_mandatory = (bool)optval;			
 		}
 
 
