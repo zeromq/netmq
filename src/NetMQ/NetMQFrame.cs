@@ -11,6 +11,11 @@ namespace NetMQ
 
 		public NetMQFrame(byte[] buffer)
 		{
+            if (buffer == null)
+            {
+                buffer = new byte[0];
+            }
+
 			Buffer = buffer;
 			MessageSize = buffer.Length;
 		}
@@ -59,7 +64,7 @@ namespace NetMQ
 		/// </summary>
 		public int BufferSize
 		{
-			get { return Buffer.Length; }
+			get { return Buffer == null ? 0 : Buffer.Length; }
 		}
 
 		/// <summary>
