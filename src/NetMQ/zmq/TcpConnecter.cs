@@ -41,6 +41,9 @@ namespace NetMQ.zmq
 		private readonly Address m_addr;
 
 		//  Underlying socket.
+		private Socket m_s;
+
+		//  Handle corresponding to the listening socket.
 		private Socket m_handle;
 
 		//  If true file descriptor is registered with the poller and 'handle'
@@ -75,6 +78,7 @@ namespace NetMQ.zmq
 			m_ioObject = new IOObject(ioThread);
 			m_addr = addr;
 			m_handle = null;
+			m_s = null;
 			m_handleValid = false;
 			m_delayedStart = delayedStart;
 			m_timerStarted = false;
@@ -90,7 +94,7 @@ namespace NetMQ.zmq
 		{
 			Debug.Assert(!m_timerStarted);
 			Debug.Assert(!m_handleValid);
-			Debug.Assert(m_handle == null);
+			Debug.Assert(m_s == null);
 		}
 
 
@@ -120,7 +124,7 @@ namespace NetMQ.zmq
 				m_handleValid = false;
 			}
 
-			if (m_handle != null)
+			if (m_s != null)
 				Close();
 
 			base.ProcessTerm(linger);
@@ -135,21 +139,17 @@ namespace NetMQ.zmq
 		public void OutEvent()
 		{
 			// connected but attaching to stream engine is not completed. do nothing
-
 			Socket fd = Connect();
-			
+			m_ioObject.RmFd(m_handle);
+			m_handleValid = false;			
+
 			if (fd == null)
 			{
 				//  Handle the error condition by attempt to reconnect.			
 				Close();
 				AddReconnectTimer();
 				return;
-			}
-
-			m_ioObject.RmFd(m_handle);
-			m_handleValid = false;
-			
-			m_handle = null;
+			}			
 
 			Utils.TuneTcpSocket(fd);
 			Utils.TuneTcpKeepalives(fd, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
@@ -182,6 +182,7 @@ namespace NetMQ.zmq
 				Open();
 
 				//  Connect may succeed in synchronous manner.
+				m_handle = m_s;
 				m_ioObject.AddFd(m_handle);
 				m_handleValid = true;
 				m_ioObject.OutEvent();
@@ -191,6 +192,7 @@ namespace NetMQ.zmq
 				if (ex.ErrorCode == ErrorCode.EINPROGRESS)
 				{
 					//  Connection establishment may be delayed. Poll for its completion.
+					m_handle = m_s;
 					m_ioObject.AddFd(m_handle);
 					m_handleValid = true;
 					m_ioObject.SetPollout(m_handle);
@@ -199,7 +201,7 @@ namespace NetMQ.zmq
 				else
 				{
 					//  Handle any other error condition by eventual reconnect.
-					if (m_handle != null)
+					if (m_s != null)
 						Close();
 					AddReconnectTimer();
 				}
@@ -245,12 +247,12 @@ namespace NetMQ.zmq
 		//  if async connect was launched.
 		private void Open()
 		{
-			Debug.Assert(m_handle == null);
+			Debug.Assert(m_s == null);
 
 			//  Create the socket.
 			try
 			{
-				m_handle = new Socket(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				m_s = new Socket(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 			}
 			catch (SocketException ex)
 			{
@@ -258,12 +260,12 @@ namespace NetMQ.zmq
 			}
 
 			// Set the socket to non-blocking mode so that we get async connect().
-			m_handle.Blocking = false;
+			m_s.Blocking = false;
 
 			//  Connect to the remote peer.
 			try
 			{
-				m_handle.Connect(m_addr.Resolved.Address.Address.ToString(), m_addr.Resolved.Address.Port);
+				m_s.Connect(m_addr.Resolved.Address.Address.ToString(), m_addr.Resolved.Address.Port);
 			}
 			catch (SocketException ex)
 			{
@@ -282,7 +284,7 @@ namespace NetMQ.zmq
 		//  retired_fd if the connection was unsuccessfull.
 		private Socket Connect()
 		{						
-			SocketError error  = (SocketError) BitConverter.ToInt32(m_handle.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error, 4), 0);
+			SocketError error  = (SocketError) BitConverter.ToInt32(m_s.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error, 4), 0);
 			
 			Debug.Assert(error == SocketError.Success);
 			
@@ -300,19 +302,22 @@ namespace NetMQ.zmq
 					throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(error));
 				}
 			}
-			
-			return m_handle;
+
+			var result = m_s;
+			m_s = null;
+
+			return result;
 		}
 
 		//  Close the connecting socket.
 		private void Close()
 		{
-			Debug.Assert(m_handle != null);
+			Debug.Assert(m_s != null);
 			try
 			{
-				m_handle.Close();
-				m_socket.EventClosed(m_endpoint, m_handle);
-				m_handle = null;
+				m_s.Close();
+				m_socket.EventClosed(m_endpoint, m_s);
+				m_s = null;
 			}
 			catch (SocketException ex)
 			{
