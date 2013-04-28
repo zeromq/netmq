@@ -150,10 +150,8 @@ namespace NetMQ.Monitoring
 					case SocketEvent.Disconnected:
 						InvokeEvent(Disconnected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (Socket)monitorEvent.Arg));						
 						break;
-
 					default:
 						throw new Exception("unknown event " + monitorEvent.Event.ToString());
-						break;
 				}
 			}
 		}

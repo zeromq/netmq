@@ -138,7 +138,7 @@ namespace NetMQ.zmq
 			{
 				return false;
 			}
-			catch (NetMQException ex)
+			catch (NetMQException)
 			{				
 				DecodingError();				
 				return false;

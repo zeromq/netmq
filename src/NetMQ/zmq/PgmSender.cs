@@ -85,6 +85,9 @@ namespace NetMQ.zmq
 
 		public void OutEvent()
 		{
+            // TODO: Should this method be an override of NetMQ.zmq.IOObject.OutEvent or is this the implementation of the IPollEvents interface?
+            // To fix it either add an override, or explicitly prefix the method with IPollEvents.
+
 			//  POLLOUT event from send socket. If write buffer is empty, 
 			//  try to read new data from the encoder.
 			if (m_writeSize == 0)
@@ -128,12 +131,16 @@ namespace NetMQ.zmq
 		}
 
 		public void InEvent()
-		{
-			throw new NotImplementedException();
+        {
+            // TODO: Should this method be an override of NetMQ.zmq.IOObject.InEvent or is this the implementation of the IPollEvents interface?
+            // To fix it either add an override, or explicitly prefix the method with IPollEvents.
+            throw new NotImplementedException();
 		}
 
 		public void TimerEvent(int id)
 		{
+            // TODO: Should this method be an override of NetMQ.zmq.IOObject.TimerEvent(int) or is this the implementation of the IPollEvents interface?
+            // To fix it either add an override, or explicitly prefix the method with IPollEvents.
 			throw new NotImplementedException();
 		}
 

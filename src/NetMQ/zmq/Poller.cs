@@ -211,7 +211,7 @@ namespace NetMQ.zmq
 						{
 							pollSet.Handler.InEvent();
 						}
-						catch (TerminatingException ex)
+						catch (TerminatingException)
 						{							
 						}
 
@@ -228,7 +228,7 @@ namespace NetMQ.zmq
 						{
 							pollSet.Handler.OutEvent();
 						}
-						catch (TerminatingException ex)
+						catch (TerminatingException)
 						{
 						}
 					}
@@ -244,7 +244,7 @@ namespace NetMQ.zmq
 						{
 							pollSet.Handler.InEvent();
 						}
-						catch (TerminatingException ex)
+						catch (TerminatingException)
 						{
 						}						
 					}

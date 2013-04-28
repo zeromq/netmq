@@ -58,37 +58,26 @@ namespace NetMQ
 			{				
 				case ZmqSocketType.Pair:
 					return new PairSocket(socketHandle);
-					break;
-				case ZmqSocketType.Pub:
+                case ZmqSocketType.Pub:
 					return new PublisherSocket(socketHandle);
-					break;
 				case ZmqSocketType.Sub:
 					return new SubscriberSocket(socketHandle);
-					break;
 				case ZmqSocketType.Req:
 					return new RequestSocket(socketHandle);
-					break;
 				case ZmqSocketType.Rep:
 					return new ResponseSocket(socketHandle);
-					break;
 				case ZmqSocketType.Dealer:
 					return new DealerSocket(socketHandle);
-					break;
 				case ZmqSocketType.Router:
 					return new RouterSocket(socketHandle);
-					break;
 				case ZmqSocketType.Pull:
 					return new PullSocket(socketHandle);
-					break;
 				case ZmqSocketType.Push:
 					return new PushSocket(socketHandle);
-					break;
 				case ZmqSocketType.Xpub:
 					return new XPublisherSocket(socketHandle);
-					break;
 				case ZmqSocketType.Xsub:
 					return new XSubscriberSocket(socketHandle);
-					break;
 				default:
 					throw new ArgumentOutOfRangeException("socketType");
 			}

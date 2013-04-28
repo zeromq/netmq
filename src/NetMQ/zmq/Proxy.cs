@@ -32,7 +32,6 @@ namespace NetMQ.zmq
 			//  The algorithm below assumes ratio of requests and replies processed
 			//  under full load to be 1:1.
 
-			bool success;
 			int more;
 			int rc;
 			Msg msg;
@@ -107,8 +106,8 @@ namespace NetMQ.zmq
 				}
 
 			}
-
-			return true;
+            // TODO: The compiler says it won't get here. He's right. How to shut down the proxy?
+			// return true;
 		}
 	}
 }
