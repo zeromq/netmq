@@ -6,9 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("NetMQ")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("NetMQ is 100% C# native port of ZeroMQ. " + 
+	"NetMQ is lightweight high performance messaging library. This current version is still in alpha phase and not recommended for production usage yet")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("iMatix Corporation")]
+[assembly: AssemblyCompany("NetMQ")]
+//[assembly: AssemblyCompany("iMatix Corporation")]
 [assembly: AssemblyProduct("NetMQ")]
 [assembly: AssemblyCopyright("Copyright © 2012 iMatix Corporation and Contributors")]
 [assembly: AssemblyTrademark("")]
@@ -32,5 +34,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("3.3.0.5")]
+[assembly: AssemblyFileVersion("3.3.0.5")]
