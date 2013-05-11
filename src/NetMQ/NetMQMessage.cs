@@ -115,7 +115,14 @@ namespace NetMQ
 			m_frames.Insert(0, new NetMQFrame(message));
 		}
 
-		
+    public NetMQFrame Pop()
+    {
+      NetMQFrame frame = m_frames[0];
+      m_frames.RemoveAt(0);
+
+      return frame;
+    }
+        		
 		public void PushEmptyFrame()
 		{
 			m_frames.Insert(0, NetMQFrame.Empty);			

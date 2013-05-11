@@ -46,6 +46,11 @@
     <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
     <Compile Include="Poller.cs" />
+    <Compile Include="Security\BaseSecureChannel.cs" />
+    <Compile Include="Security\SecureChannelUtility.cs" />
+    <Compile Include="Security\NetMQClientSecureChannel.cs" />
+    <Compile Include="Security\NetMQServerSecureChannel.cs" />
+    <Compile Include="Security\HandshakeType.cs" />
     <Compile Include="Sockets\DealerSocket.cs" />
     <Compile Include="Devices\DeviceBase.cs" />
     <Compile Include="Devices\DeviceMode.cs" />

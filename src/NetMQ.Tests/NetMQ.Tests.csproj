@@ -54,6 +54,7 @@
     <Compile Include="PubSubTests.cs" />
     <Compile Include="PushPullTests.cs" />
     <Compile Include="ReqRepTests.cs" />
+    <Compile Include="SecurityTests.cs" />
     <Compile Include="SocketTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +65,14 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="zmq\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="NetMQ.Testing.crt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="NetMQ.Testing.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
