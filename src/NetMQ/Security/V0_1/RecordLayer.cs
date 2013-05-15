@@ -148,7 +148,7 @@ namespace NetMQ.Security.V0_1
         m_encryptionHMAC = m_decryptionHMAC = null;
       }
     }
-
+    
     public NetMQMessage EncryptMessage(ContentType contentType, NetMQMessage plainMessage)
     {
       if (SecurityParameters.BulkCipherAlgorithm == BulkCipherAlgorithm.Null &&
@@ -158,17 +158,16 @@ namespace NetMQ.Security.V0_1
       }
 
       NetMQMessage cipherMessage = new NetMQMessage();
-
-      // generate new iv
-      m_encryptionBulkAlgorithm.GenerateIV();
-      cipherMessage.Append(m_encryptionBulkAlgorithm.IV);
-
+      
       using (var encryptor = m_encryptionBulkAlgorithm.CreateEncryptor())
       {
         ulong seqNum = GetAndIncreaseSequneceNumber();
-
         byte[] seqNumBytes = BitConverter.GetBytes(seqNum);
+               
+        var iv = GenerateIV(encryptor, seqNumBytes);
+        cipherMessage.Append(iv);               
 
+        // including the frame number in the message to make sure the frames are not reordered
         int frameIndex = 0;
 
         byte[] cipherSeqNumBytes = EncryptBytes(encryptor, contentType, seqNum, frameIndex, seqNumBytes);
@@ -186,6 +185,22 @@ namespace NetMQ.Security.V0_1
 
         return cipherMessage;
       }
+    }
+
+    private byte[] GenerateIV(ICryptoTransform encryptor, byte[] seqNumBytes)
+    {
+      // generating an IV by encrypting the sequence number with the random IV and encrypting symmetric key 
+      byte[] iv = new byte[SecurityParameters.RecordIVLength];
+      Buffer.BlockCopy(seqNumBytes, 0, iv, 0, 8);
+
+      byte padding = (byte) ((encryptor.OutputBlockSize - (9%encryptor.OutputBlockSize))%encryptor.OutputBlockSize);
+      for (int i = 8; i < iv.Length; i++)
+      {
+        iv[i] = padding;
+      }
+
+      encryptor.TransformBlock(iv, 0, iv.Length, iv, 0);
+      return iv;
     }
 
     private ulong GetAndIncreaseSequneceNumber()
@@ -268,14 +283,15 @@ namespace NetMQ.Security.V0_1
 
         byte[] seqNumBytes;
         byte[] seqNumMAC;
+        byte[] padding;
 
-        DecryptBytes(decryptor, seqNumFrame.ToByteArray(), out seqNumBytes, out seqNumMAC);
+        DecryptBytes(decryptor, seqNumFrame.ToByteArray(), out seqNumBytes, out seqNumMAC, out padding);
 
         ulong seqNum = BitConverter.ToUInt64(seqNumBytes, 0);
 
         int frameIndex = 0;
 
-        ValidateBytes(contentType, seqNum, frameIndex, seqNumBytes, seqNumMAC);
+        ValidateBytes(contentType, seqNum, frameIndex, seqNumBytes, seqNumMAC,padding);
 
         if (CheckReplayAttack(seqNum))
         {
@@ -290,8 +306,8 @@ namespace NetMQ.Security.V0_1
           byte[] data;
           byte[] mac;
 
-          DecryptBytes(decryptor, cipherFrame.ToByteArray(), out data, out mac);
-          ValidateBytes(contentType, seqNum, frameIndex, data, mac);
+          DecryptBytes(decryptor, cipherFrame.ToByteArray(), out data, out mac, out padding);
+          ValidateBytes(contentType, seqNum, frameIndex, data, mac,padding);
 
           frameIndex++;
 
@@ -302,24 +318,41 @@ namespace NetMQ.Security.V0_1
       }
     }
 
-    private void DecryptBytes(ICryptoTransform decryptor, byte[] cipherBytes, out byte[] plainBytes, out byte[] mac)
+    private void DecryptBytes(ICryptoTransform decryptor, byte[] cipherBytes, 
+      out byte[] plainBytes, out byte[] mac, out byte[] padding)
     {
       byte[] frameBytes = new byte[cipherBytes.Length];
 
       int dataLength;
+      int paddingSize;
 
       if (SecurityParameters.BulkCipherAlgorithm != BulkCipherAlgorithm.Null)
       {
         decryptor.TransformBlock(cipherBytes, 0, cipherBytes.Length, frameBytes, 0);
 
-        int padding = frameBytes[frameBytes.Length - 1];
+        paddingSize = frameBytes[frameBytes.Length - 1] + 1;
 
-        dataLength = frameBytes.Length - 1 - padding - SecurityParameters.MACLength;
+        if (paddingSize > decryptor.InputBlockSize)
+        {
+          // somebody tamper the message, we don't want throw the exception yet because
+          // of timing issue, we need to throw the exception after the mac check, 
+          // therefore we will change the padding size to the size of the block
+          paddingSize = decryptor.InputBlockSize;
+        }
+
+        dataLength = frameBytes.Length - paddingSize - SecurityParameters.MACLength;      
+
+        // data length can be zero if somebody tamper with the padding
+        if (dataLength < 0)
+        {
+          dataLength = 0;
+        }
       }
       else
       {
         dataLength = frameBytes.Length - SecurityParameters.MACLength;
         frameBytes = cipherBytes;
+        paddingSize = 0;
       }
 
       plainBytes = new byte[dataLength];
@@ -327,9 +360,13 @@ namespace NetMQ.Security.V0_1
 
       mac = new byte[SecurityParameters.MACLength];
       Buffer.BlockCopy(frameBytes, dataLength, mac, 0, SecurityParameters.MACLength);
+     
+      padding = new byte[paddingSize];
+      Buffer.BlockCopy(frameBytes, dataLength + SecurityParameters.MACLength, padding, 0, paddingSize);
     }
 
-    public void ValidateBytes(ContentType contentType, ulong seqNum, int frameIndex, byte[] plainBytes, byte[] mac)
+    public void ValidateBytes(ContentType contentType, ulong seqNum, int frameIndex, 
+      byte[] plainBytes, byte[] mac, byte[] padding)
     {
       if (SecurityParameters.MACAlgorithm != MACAlgorithm.Null)
       {
@@ -349,6 +386,14 @@ namespace NetMQ.Security.V0_1
         {
           throw new NetMQSecurityException("MAC not matched message");
         }
+
+        for (int i = 0; i < padding.Length; i++)
+        {
+          if (padding[i] != padding.Length - 1)
+          {
+            throw new NetMQSecurityException("MAC not matched message");
+          }
+        }        
       }
     }
 
