@@ -30,7 +30,7 @@ namespace NetMQ.Security.V0_1
 
     public bool SecureChannelReady { get; private set; }
 
-    public X509Certificate2 Certificate
+  	public X509Certificate2 Certificate
     {
       get { return m_handshakeLayer.LocalCertificate; }
       set { m_handshakeLayer.LocalCertificate = value; }
@@ -58,26 +58,26 @@ namespace NetMQ.Security.V0_1
 
         if (protocolVersionBytes.Length != 2)
         {
-          throw new NetMQSecurityException("Wrong length for protocol version frame");
+          throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFrameLength,  "Wrong length for protocol version frame");
         }
 
         if (!protocolVersionBytes.SequenceEqual(m_protocolVersion))
         {
-          throw new NetMQSecurityException("Wrong protocol version");
+          throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidProtocolVersion, "Wrong protocol version");
         }
 
         NetMQFrame contentTypeFrame = incomingMessage.Pop();
 
         if (contentTypeFrame.MessageSize != 1)
         {
-          throw new NetMQSecurityException("wrong size for message size");
+          throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFrameLength, "wrong length for message size");
         }
 
         contentType = (ContentType) contentTypeFrame.Buffer[0];
 
         if (contentType != ContentType.ChangeCipherSpec && contentType != ContentType.Handshake)
         {
-          throw new NetMQSecurityException("Unkown content type");
+          throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, "Unkown content type");
         }
         
         if (ChangeSuiteChangeArrived)
@@ -132,8 +132,13 @@ namespace NetMQ.Security.V0_1
     {
       if (!SecureChannelReady)
       {
-        throw new NetMQSecurityException("Cannot encrypt messages until the secure channel is ready");
+        throw new NetMQSecurityException(NetMQSecurityErrorCode.SecureChannelNotReady,  "Cannot encrypt messages until the secure channel is ready");
       }
+
+			if (plainMessage == null)
+			{
+				throw new ArgumentNullException("plainMessage is null");
+			}			
 
       return InternalEncryptAndWrapMessage(ContentType.ApplicationData, plainMessage);
     }
@@ -142,22 +147,32 @@ namespace NetMQ.Security.V0_1
     {
       if (!SecureChannelReady)
       {
-        throw new NetMQSecurityException("Cannot decrypt messages until the secure channel is ready");
+        throw new NetMQSecurityException(NetMQSecurityErrorCode.SecureChannelNotReady, "Cannot decrypt messages until the secure channel is ready");
       }
+
+			if (cipherMessage == null)
+			{
+				throw new ArgumentNullException("cipherMessage is null");
+			}
+
+			if (cipherMessage.FrameCount < 2)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount, "cipher message should have at least 2 frames");
+			}
 
       NetMQFrame protocolVersionFrame = cipherMessage.Pop();
       NetMQFrame contentTypeFrame = cipherMessage.Pop();
 
       if (!protocolVersionFrame.ToByteArray().SequenceEqual(m_protocolVersion))
       {
-        throw new NetMQSecurityException("Wrong protocol version");
+        throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidProtocolVersion, "Wrong protocol version");
       }
 
       ContentType contentType = (ContentType)contentTypeFrame.Buffer[0];
 
       if (contentType != ContentType.ApplicationData)
       {
-        throw new NetMQSecurityException("Not an applicagtion data message");
+        throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, "Not an applicagtion data message");
       }
 
       return m_recordLayer.DecryptMessage(ContentType.ApplicationData, cipherMessage);

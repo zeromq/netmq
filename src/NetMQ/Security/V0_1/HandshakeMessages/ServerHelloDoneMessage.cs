@@ -11,5 +11,15 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
     {
       get { return HandshakeType.ServerHelloDone; }
     }
+
+		public override void SetFromNetMQMessage(NetMQMessage message)
+		{
+			base.SetFromNetMQMessage(message);
+
+			if (message.FrameCount != 0)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount,  "Malformed message");
+			}
+		}
   }
 }

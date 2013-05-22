@@ -170,7 +170,12 @@ namespace NetMQ.Security.V0_1
         // including the frame number in the message to make sure the frames are not reordered
         int frameIndex = 0;
 
-        byte[] cipherSeqNumBytes = EncryptBytes(encryptor, contentType, seqNum, frameIndex, seqNumBytes);
+				// the first frame is the sequence number and the number of frames to make sure frames was not removed
+      	byte[] frameBytes = new byte[12]; 
+				Buffer.BlockCopy(seqNumBytes, 0, frameBytes, 0, 8);
+				Buffer.BlockCopy(BitConverter.GetBytes(plainMessage.FrameCount), 0, frameBytes, 8, 4);
+
+				byte[] cipherSeqNumBytes = EncryptBytes(encryptor, contentType, seqNum, frameIndex, frameBytes);
         cipherMessage.Append(cipherSeqNumBytes);
 
         frameIndex++;
@@ -271,6 +276,11 @@ namespace NetMQ.Security.V0_1
         return cipherMessage;
       }
 
+			if (cipherMessage.FrameCount < 2)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount, "cipher message should have at least 2 frames, iv and sequence number");
+			}
+
       NetMQFrame ivFrame = cipherMessage.Pop();
 
       m_decryptionBulkAlgorithm.IV = ivFrame.ToByteArray();
@@ -281,23 +291,29 @@ namespace NetMQ.Security.V0_1
 
         NetMQFrame seqNumFrame = cipherMessage.Pop();
 
-        byte[] seqNumBytes;
+        byte[] frameBytes;
         byte[] seqNumMAC;
         byte[] padding;
 
-        DecryptBytes(decryptor, seqNumFrame.ToByteArray(), out seqNumBytes, out seqNumMAC, out padding);
+        DecryptBytes(decryptor, seqNumFrame.ToByteArray(), out frameBytes, out seqNumMAC, out padding);
 
-        ulong seqNum = BitConverter.ToUInt64(seqNumBytes, 0);
+        ulong seqNum = BitConverter.ToUInt64(frameBytes, 0);
+      	int frameCount = BitConverter.ToInt32(frameBytes, 8);
 
         int frameIndex = 0;
 
-        ValidateBytes(contentType, seqNum, frameIndex, seqNumBytes, seqNumMAC,padding);
+        ValidateBytes(contentType, seqNum, frameIndex, frameBytes, seqNumMAC, padding);
 
         if (CheckReplayAttack(seqNum))
         {
-          // under reply attack, silently drop the message and return null
-          return null;
+          throw new NetMQSecurityException(NetMQSecurityErrorCode.ReplayAttack, 
+						"Message already handled or very old message, might be under replay attack");
         }
+
+				if (frameCount != cipherMessage.FrameCount)
+				{
+					throw new NetMQSecurityException(NetMQSecurityErrorCode.FramesMissing, "Frames was removed from the encrypted message");
+				}
 
         frameIndex++;
 
@@ -321,6 +337,11 @@ namespace NetMQ.Security.V0_1
     private void DecryptBytes(ICryptoTransform decryptor, byte[] cipherBytes, 
       out byte[] plainBytes, out byte[] mac, out byte[] padding)
     {
+			if (cipherBytes.Length % decryptor.InputBlockSize != 0)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidBlockSize, "Invalid block size for cipher bytes");
+			}
+
       byte[] frameBytes = new byte[cipherBytes.Length];
 
       int dataLength;
@@ -384,14 +405,14 @@ namespace NetMQ.Security.V0_1
 
         if (!m_decryptionHMAC.Hash.SequenceEqual(mac))
         {
-          throw new NetMQSecurityException("MAC not matched message");
+          throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "MAC not matched message");
         }
 
         for (int i = 0; i < padding.Length; i++)
         {
           if (padding[i] != padding.Length - 1)
           {
-            throw new NetMQSecurityException("MAC not matched message");
+						throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "MAC not matched message");
           }
         }        
       }

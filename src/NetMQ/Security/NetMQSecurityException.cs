@@ -5,14 +5,30 @@ using System.Text;
 
 namespace NetMQ.Security
 {
-  public class NetMQSecurityException : Exception
-  {
-    public NetMQSecurityException(string message) : base(message)
-    {
-    }
+	public enum NetMQSecurityErrorCode
+	{
+		WrongFramesCount,
+		WrongFrameLength,
+		InvalidProtocolVersion,
+		InvalidContentType,
+		SecureChannelNotReady,
+		ReplayAttack,
+		MACNotMatched,
+		FramesMissing,
+		InvalidBlockSize,
+		HandshakeUnexpectedMessage,
+		HandshakeVerifyCertificateFailed,
+		HandshakeVerifyData,				
+	}
 
-    public NetMQSecurityException()
-    {
-    }
+  public class NetMQSecurityException : Exception
+  {  	
+  	public NetMQSecurityException(NetMQSecurityErrorCode errorCode, string message)
+			: base(message)
+		{
+			ErrorCode = errorCode;
+		}
+
+		public NetMQSecurityErrorCode ErrorCode { get; private set; }  
   }
 }

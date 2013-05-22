@@ -22,7 +22,7 @@ namespace NetMQ
 				throw new ArgumentNullException("frames");
 			}
 
-			m_frames = new List<NetMQFrame>();
+			m_frames = new List<NetMQFrame>(frames);
 		}
 
 		public NetMQMessage(IEnumerable<byte[]> buffers)
@@ -115,6 +115,10 @@ namespace NetMQ
 			m_frames.Insert(0, new NetMQFrame(message));
 		}
 
+		/// <summary>
+		/// Remove the first frame
+		/// </summary>
+		/// <returns></returns>
     public NetMQFrame Pop()
     {
       NetMQFrame frame = m_frames[0];
@@ -122,6 +126,11 @@ namespace NetMQ
 
       return frame;
     }
+
+		public void RemoveFrame(NetMQFrame frame)
+		{
+			m_frames.Remove(frame);
+		}
         		
 		public void PushEmptyFrame()
 		{

@@ -8,11 +8,12 @@ using NetMQ.Security.V0_1.HandshakeMessages;
 
 namespace NetMQ.Security.V0_1
 {
-  public delegate bool VerifyCertificateDelegate(X509Certificate2 certificate2);
+  
   
   class HandshakeLayer : IDisposable
   {
-    public const int RandomNumberLength = 32;
+  	private readonly SecureChannel m_secureChannel;
+  	public const int RandomNumberLength = 32;
     public const int MasterSecretLength = 48;
 
     public string MasterSecretLabel = "master secret";
@@ -32,9 +33,10 @@ namespace NetMQ.Security.V0_1
 
     private readonly IPRF m_prf = new SHA256PRF();
 
-    public HandshakeLayer(SecureChannel end, ConnectionEnd connectionEnd)
+    public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
     {
-      SecurityParameters = new SecurityParameters();
+    	m_secureChannel = secureChannel;
+    	SecurityParameters = new SecurityParameters();
       SecurityParameters.Entity = connectionEnd;
       SecurityParameters.CompressionAlgorithm = CompressionMethod.Null;
       SecurityParameters.PRFAlgorithm = PRFAlgorithm.SHA256;
@@ -72,7 +74,8 @@ namespace NetMQ.Security.V0_1
     {
       if (incomingMessage == null)
       {
-        if (m_lastReceivedMessage == m_lastSentMessage && m_lastSentMessage == HandshakeType.HelloRequest)
+        if (m_lastReceivedMessage == m_lastSentMessage && 
+					m_lastSentMessage == HandshakeType.HelloRequest && SecurityParameters.Entity == ConnectionEnd.Client)
         {
           OnHelloRequest(outgoingMessages);
           return false; 
@@ -109,6 +112,8 @@ namespace NetMQ.Security.V0_1
           throw new ArgumentOutOfRangeException();
       }
 
+    	m_lastReceivedMessage = handshakeType;
+
       return m_done;
     }
 
@@ -139,7 +144,7 @@ namespace NetMQ.Security.V0_1
     }
 
     private void OnHelloRequest(OutgoingMessageBag outgoingMessages)
-    {
+    {			
       ClientHelloMessage clientHelloMessage = new ClientHelloMessage();      
 
       clientHelloMessage.RandomNumber = new byte[RandomNumberLength];
@@ -154,10 +159,16 @@ namespace NetMQ.Security.V0_1
       HashLocalAndRemote(outgoingMessage);      
 
       outgoingMessages.AddHandshakeMessage(outgoingMessage);
+			m_lastSentMessage = HandshakeType.ClientHello;
     }
 
     private void OnClientHello(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
     {
+			if (m_lastReceivedMessage != HandshakeType.HelloRequest || m_lastSentMessage != HandshakeType.HelloRequest)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeUnexpectedMessage, "Client Hello received when expecting another message");
+			}
+
       HashLocalAndRemote(incomingMessage);
       
       ClientHelloMessage clientHelloMessage = new ClientHelloMessage();
@@ -178,6 +189,7 @@ namespace NetMQ.Security.V0_1
       NetMQMessage outgoingMessage = serverHelloDoneMessage.ToNetMQMessage();
       HashLocalAndRemote(outgoingMessage);
       outgoingMessages.AddHandshakeMessage(outgoingMessage);
+			m_lastSentMessage = HandshakeType.ServerHelloDone;
     }
 
     private void AddCertificateMessage(OutgoingMessageBag outgoingMessages)
@@ -188,6 +200,7 @@ namespace NetMQ.Security.V0_1
       NetMQMessage outgoingMessage = certificateMessage.ToNetMQMessage();
       HashLocalAndRemote(outgoingMessage);
       outgoingMessages.AddHandshakeMessage(outgoingMessage);
+			m_lastSentMessage = HandshakeType.Certificate;
     }
 
     private void AddServerHelloMessage(OutgoingMessageBag outgoingMessages, CipherSuite[] cipherSuites)
@@ -213,11 +226,17 @@ namespace NetMQ.Security.V0_1
 
       NetMQMessage outgoingMessage = serverHelloMessage.ToNetMQMessage();
       HashLocalAndRemote(outgoingMessage);
-      outgoingMessages.AddHandshakeMessage(outgoingMessage);      
+      outgoingMessages.AddHandshakeMessage(outgoingMessage);
+			m_lastSentMessage = HandshakeType.ServerHello;
     }
 
     private void OnServerHello(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
     {
+			if (m_lastReceivedMessage != HandshakeType.HelloRequest || m_lastSentMessage != HandshakeType.ClientHello)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeUnexpectedMessage, "Server Hello received when expecting another message");
+			}
+
       HashLocalAndRemote(incomingMessage);
 
       ServerHelloMessage serverHelloMessage = new ServerHelloMessage();
@@ -230,6 +249,11 @@ namespace NetMQ.Security.V0_1
 
     private void OnCertificate(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
     {
+			if (m_lastReceivedMessage != HandshakeType.ServerHello || m_lastSentMessage != HandshakeType.ClientHello)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeUnexpectedMessage, "Certificate received when expecting another message");
+			}
+
       HashLocalAndRemote(incomingMessage);
 
       CertificateMessage certificateMessage = new CertificateMessage();
@@ -237,17 +261,25 @@ namespace NetMQ.Security.V0_1
       
       if (!VerifyCertificate(certificateMessage.Certificate))
       {
-        throw new NetMQSecurityException("Unable to verify certificate");
+        throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeUnexpectedMessage,  "Unable to verify certificate");
       }
 
       RemoteCertificate = certificateMessage.Certificate;
     }
 
-    private void OnServerHelloDone(NetMQMessage serverHelloDoneMessage,
+    private void OnServerHelloDone(NetMQMessage incomingMessage,
                                   OutgoingMessageBag outgoingMessages)
     {
-      HashLocalAndRemote(serverHelloDoneMessage);
+			if (m_lastReceivedMessage != HandshakeType.Certificate || m_lastSentMessage != HandshakeType.ClientHello)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeUnexpectedMessage, "Server Hello Done received when expecting another message");
+			}
 
+			HashLocalAndRemote(incomingMessage);
+			 
+			ServerHelloDoneMessage serverHelloDoneMessage = new ServerHelloDoneMessage();
+			serverHelloDoneMessage.SetFromNetMQMessage(incomingMessage);
+			    	
       AddClientKeyExchange(outgoingMessages);            
 
       InvokeChangeCipherSuite();
@@ -270,10 +302,16 @@ namespace NetMQ.Security.V0_1
       NetMQMessage outgoingMessage = clientKeyExchangeMessage.ToNetMQMessage();
       HashLocalAndRemote(outgoingMessage);
       outgoingMessages.AddHandshakeMessage(outgoingMessage);
+			m_lastSentMessage = HandshakeType.ClientKeyExchange;
     }
 
     private void OnClientKeyExchange(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
     {
+			if (m_lastReceivedMessage != HandshakeType.ClientHello || m_lastSentMessage != HandshakeType.ServerHelloDone)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeUnexpectedMessage, "Client Key Exchange received when expecting another message");
+			}
+
       HashLocalAndRemote(incomingMessage);
 
       ClientKeyExchangeMessage clientKeyExchangeMessage = new ClientKeyExchangeMessage();
@@ -290,6 +328,17 @@ namespace NetMQ.Security.V0_1
 
     private void OnFinished(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
     {
+			if ( 
+				(SecurityParameters.Entity == ConnectionEnd.Client && 
+				(!m_secureChannel.ChangeSuiteChangeArrived ||  
+					m_lastReceivedMessage != HandshakeType.ServerHelloDone || m_lastSentMessage != HandshakeType.Finished)) ||
+				(SecurityParameters.Entity == ConnectionEnd.Server &&
+				(!m_secureChannel.ChangeSuiteChangeArrived ||
+				m_lastReceivedMessage != HandshakeType.ClientKeyExchange || m_lastSentMessage != HandshakeType.ServerHelloDone)))
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeUnexpectedMessage, "Finished received when expecting another message");
+			}
+
       if (SecurityParameters.Entity == ConnectionEnd.Server)
       {
         HashLocal(incomingMessage);
@@ -320,7 +369,7 @@ namespace NetMQ.Security.V0_1
 
       if (!verifyData.SequenceEqual(finishedMessage.VerifyData))
       {
-        throw  new NetMQSecurityException("peer verify data wrong");
+        throw  new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeVerifyData, "peer verify data wrong");
       }
 
       if (SecurityParameters.Entity == ConnectionEnd.Server)
@@ -357,6 +406,7 @@ namespace NetMQ.Security.V0_1
 
       NetMQMessage outgoingMessage = finishedMessage.ToNetMQMessage();
       outgoingMessages.AddHandshakeMessage(outgoingMessage);
+			m_lastSentMessage = HandshakeType.Finished;
 
       if (SecurityParameters.Entity == ConnectionEnd.Client)
       {
@@ -448,9 +498,17 @@ namespace NetMQ.Security.V0_1
     public void Dispose()
     {
       m_rng.Dispose();
-      m_remoteHash.Dispose();
-      m_localHash.Dispose();
-      m_prf.Dispose();
+
+			if (m_remoteHash != null)
+			{
+				m_remoteHash.Dispose();
+			}
+
+			if (m_localHash != null)
+			{
+				m_localHash.Dispose();
+			}
+    	m_prf.Dispose();
     }
   }
 }

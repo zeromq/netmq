@@ -30,6 +30,11 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
 
     public virtual void SetFromNetMQMessage(NetMQMessage message)
     {
+			if (message.FrameCount == 0)
+			{
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount, "Malformed message");
+			}
+
       // remove the handshake type column
       message.Pop();
     }    
