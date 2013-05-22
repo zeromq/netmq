@@ -21,7 +21,7 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
 
 			if (message.FrameCount != 1)
 			{
-				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount, "Malformed message");
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
 			}
 
       NetMQFrame certificateFrame = message.Pop();

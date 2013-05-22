@@ -184,7 +184,7 @@ namespace NetMQ.Tests.Security
 			
 			NetMQSecurityException exception = Assert.Throws<NetMQSecurityException>(() => m_clientSecureChannel.DecryptApplicationMessage(cipherMessage));
 
-			Assert.AreEqual(NetMQSecurityErrorCode.FramesMissing, exception.ErrorCode);
+			Assert.AreEqual(NetMQSecurityErrorCode.EncryptedFramesMissing, exception.ErrorCode);
 		}
 
 		[Test]
@@ -240,7 +240,7 @@ namespace NetMQ.Tests.Security
 
 			NetMQSecurityException exception = Assert.Throws<NetMQSecurityException>(() => m_clientSecureChannel.DecryptApplicationMessage(cipherMessage));
 
-			Assert.AreEqual(NetMQSecurityErrorCode.InvalidBlockSize, exception.ErrorCode);
+			Assert.AreEqual(NetMQSecurityErrorCode.EncryptedFrameInvalidLength, exception.ErrorCode);
 		}
 
 		[Test]

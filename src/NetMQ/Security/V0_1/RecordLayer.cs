@@ -278,7 +278,7 @@ namespace NetMQ.Security.V0_1
 
 			if (cipherMessage.FrameCount < 2)
 			{
-				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount, "cipher message should have at least 2 frames, iv and sequence number");
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "cipher message should have at least 2 frames, iv and sequence number");
 			}
 
       NetMQFrame ivFrame = cipherMessage.Pop();
@@ -312,7 +312,7 @@ namespace NetMQ.Security.V0_1
 
 				if (frameCount != cipherMessage.FrameCount)
 				{
-					throw new NetMQSecurityException(NetMQSecurityErrorCode.FramesMissing, "Frames was removed from the encrypted message");
+					throw new NetMQSecurityException(NetMQSecurityErrorCode.EncryptedFramesMissing, "Frames was removed from the encrypted message");
 				}
 
         frameIndex++;
@@ -339,7 +339,7 @@ namespace NetMQ.Security.V0_1
     {
 			if (cipherBytes.Length % decryptor.InputBlockSize != 0)
 			{
-				throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidBlockSize, "Invalid block size for cipher bytes");
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.EncryptedFrameInvalidLength, "Invalid block size for cipher bytes");
 			}
 
       byte[] frameBytes = new byte[cipherBytes.Length];

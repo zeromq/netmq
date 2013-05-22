@@ -32,7 +32,7 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
     {
 			if (message.FrameCount == 0)
 			{
-				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount, "Malformed message");
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
 			}
 
       // remove the handshake type column

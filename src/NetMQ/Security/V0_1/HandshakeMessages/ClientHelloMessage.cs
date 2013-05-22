@@ -22,7 +22,7 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
 
 			if (message.FrameCount != 3)
 			{
-				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount, "Malformed message");
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
 			}
 
       // get the randon number

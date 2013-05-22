@@ -58,7 +58,7 @@ namespace NetMQ.Security.V0_1
 
         if (protocolVersionBytes.Length != 2)
         {
-          throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFrameLength,  "Wrong length for protocol version frame");
+          throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFrameLength,  "Wrong length for protocol version frame");
         }
 
         if (!protocolVersionBytes.SequenceEqual(m_protocolVersion))
@@ -70,7 +70,7 @@ namespace NetMQ.Security.V0_1
 
         if (contentTypeFrame.MessageSize != 1)
         {
-          throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFrameLength, "wrong length for message size");
+          throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFrameLength, "wrong length for message size");
         }
 
         contentType = (ContentType) contentTypeFrame.Buffer[0];
@@ -157,7 +157,7 @@ namespace NetMQ.Security.V0_1
 
 			if (cipherMessage.FrameCount < 2)
 			{
-				throw new NetMQSecurityException(NetMQSecurityErrorCode.WrongFramesCount, "cipher message should have at least 2 frames");
+				throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "cipher message should have at least 2 frames");
 			}
 
       NetMQFrame protocolVersionFrame = cipherMessage.Pop();

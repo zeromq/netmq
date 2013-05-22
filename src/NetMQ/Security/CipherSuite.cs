@@ -5,7 +5,10 @@ using System.Text;
 
 namespace NetMQ.Security
 {
-  [Flags]
+	/// <summary>
+	/// Different cipher suites available with SecureChannel
+	/// </summary>
+  [Flags]	
   public enum CipherSuite : byte
   {
     TLS_NULL_WITH_NULL_NULL               =0,
