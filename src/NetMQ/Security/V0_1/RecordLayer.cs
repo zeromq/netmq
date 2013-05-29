@@ -466,11 +466,35 @@ namespace NetMQ.Security.V0_1
 
     public void Dispose()
     {
-      m_decryptionBulkAlgorithm.Dispose();
-      m_encryptionBulkAlgorithm.Dispose();
-      m_decryptionHMAC.Dispose();
-      m_encryptionHMAC.Dispose();
-      PRF.Dispose();
+			if (m_decryptionBulkAlgorithm != null)
+			{
+				m_decryptionBulkAlgorithm.Dispose();
+				m_decryptionBulkAlgorithm = null;
+			}
+
+			if (m_encryptionBulkAlgorithm != null)
+			{
+				m_encryptionBulkAlgorithm.Dispose();
+				m_encryptionBulkAlgorithm = null;
+			}
+
+			if (m_decryptionHMAC != null)
+			{
+				m_decryptionHMAC.Dispose();
+				m_decryptionHMAC = null;
+			}
+
+			if (m_encryptionHMAC != null)
+			{
+				m_encryptionHMAC.Dispose();
+				m_encryptionHMAC = null;
+			}
+
+			if (PRF != null)
+			{
+				PRF.Dispose();
+				PRF = null;
+			}            
     }
   }
 }

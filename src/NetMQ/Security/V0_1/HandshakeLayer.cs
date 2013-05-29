@@ -31,7 +31,7 @@ namespace NetMQ.Security.V0_1
   
     private bool m_done = false;
 
-    private readonly IPRF m_prf = new SHA256PRF();
+    private IPRF m_prf = new SHA256PRF();
 
     public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
     {
@@ -497,18 +497,30 @@ namespace NetMQ.Security.V0_1
 
     public void Dispose()
     {
-      m_rng.Dispose();
+			if (m_rng != null)
+			{
+				m_rng.Dispose();
+				m_rng = null;
+			}
 
-			if (m_remoteHash != null)
+    	if (m_remoteHash != null)
 			{
 				m_remoteHash.Dispose();
+				m_remoteHash = null;
 			}
 
 			if (m_localHash != null)
 			{
 				m_localHash.Dispose();
+				m_localHash = null;
 			}
-    	m_prf.Dispose();
+
+			if(m_prf != null)
+			{				
+				m_prf.Dispose();
+				m_prf = null;
+			}
+    	
     }
   }
 }

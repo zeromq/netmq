@@ -180,8 +180,17 @@ namespace NetMQ.Security.V0_1
 
     public void Dispose()
     {
-      m_handshakeLayer.Dispose();
-      m_recordLayer.Dispose();
+			if (m_handshakeLayer != null)
+			{
+				m_handshakeLayer.Dispose();
+				m_handshakeLayer = null;
+			}
+
+			if (m_recordLayer != null)
+			{
+				m_recordLayer.Dispose();
+				m_recordLayer = null;
+			}
     }
   }
 }
