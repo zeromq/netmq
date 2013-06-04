@@ -64,7 +64,7 @@ namespace NetMQ.zmq
 			}
 
 		override
-			protected Msg XRecv(SendRecieveOptions flags)
+			protected Msg XRecv(SendReceiveOptions flags)
 		{
 			return m_fq.Recv ();
 		}

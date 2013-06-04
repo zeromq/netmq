@@ -130,14 +130,14 @@ namespace NetMQ.zmq
 		}
 
 		//  Send the message to all the outbound pipes.
-		public void SendToAll(Msg msg, SendRecieveOptions flags)
+		public void SendToAll(Msg msg, SendReceiveOptions flags)
 		{
 			m_matching = m_active;
 			SendToMatching (msg, flags);
 		}
 
 		//  Send the message to the matching outbound pipes.
-		public void SendToMatching(Msg msg, SendRecieveOptions flags)
+		public void SendToMatching(Msg msg, SendReceiveOptions flags)
 		{
 			//  Is this end of a multipart message?
 			bool msg_more = msg.HasMore;
@@ -153,7 +153,7 @@ namespace NetMQ.zmq
 		}
 
 		//  Put the message to all active pipes.
-		private void Distribute(Msg msg, SendRecieveOptions flags)
+		private void Distribute(Msg msg, SendReceiveOptions flags)
 		{
 			//  If there are no matching pipes available, simply drop the message.
 			if (m_matching == 0) {

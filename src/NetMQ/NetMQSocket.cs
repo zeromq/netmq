@@ -219,7 +219,7 @@ namespace NetMQ
 			}
 		}
 
-		protected internal virtual Msg ReceiveInternal(SendRecieveOptions options, out bool hasMore)
+		protected internal virtual Msg ReceiveInternal(SendReceiveOptions options, out bool hasMore)
 		{
 			var msg = ZMQ.Recv(m_socketHandle, options);
 
@@ -228,7 +228,7 @@ namespace NetMQ
 			return msg;
 		}
 
-		public byte[] Receive(SendRecieveOptions options, out bool hasMore)
+		public byte[] Receive(SendReceiveOptions options, out bool hasMore)
 		{
 			var msg = ReceiveInternal(options, out hasMore);
 
@@ -237,12 +237,12 @@ namespace NetMQ
 
 		public byte[] Receive(out bool hasMore)
 		{
-			var msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
+			var msg = ReceiveInternal(SendReceiveOptions.None, out hasMore);
 
 			return msg.Data;
 		}
 
-		public byte[] Receive(SendRecieveOptions options)
+		public byte[] Receive(SendReceiveOptions options)
 		{
 			bool hasMore;
 
@@ -255,24 +255,24 @@ namespace NetMQ
 		{
 			bool hasMore;
 
-			var msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
+			var msg = ReceiveInternal(SendReceiveOptions.None, out hasMore);
 
 			return msg.Data;
 		}
 
 		public byte[] Receive(bool dontWait, out bool hasMore)
 		{
-			return Receive(dontWait ? SendRecieveOptions.DontWait : SendRecieveOptions.None, out hasMore);
+			return Receive(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore);
 		}
 
-		public string ReceiveString(SendRecieveOptions options, out bool hasMore)
+		public string ReceiveString(SendReceiveOptions options, out bool hasMore)
 		{
 			var msg = ReceiveInternal(options, out hasMore);
 
 			return Encoding.ASCII.GetString(msg.Data);
 		}
 
-		public string ReceiveString(SendRecieveOptions options)
+		public string ReceiveString(SendReceiveOptions options)
 		{
 			bool more;
 
@@ -281,17 +281,17 @@ namespace NetMQ
 
 		public string ReceiveString(out bool more)
 		{
-			return ReceiveString(SendRecieveOptions.None, out more);
+			return ReceiveString(SendReceiveOptions.None, out more);
 		}
 
 		public string ReceiveString()
 		{
-			return ReceiveString(SendRecieveOptions.None);
+			return ReceiveString(SendReceiveOptions.None);
 		}
 
 		public string ReceiveString(bool dontWait, out bool hasMore)
 		{
-			return ReceiveString(dontWait ? SendRecieveOptions.DontWait : SendRecieveOptions.None, out hasMore);
+			return ReceiveString(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore);
 		}
 
 		public IList<byte[]> ReceiveAll()
@@ -300,12 +300,12 @@ namespace NetMQ
 
 			IList<byte[]> messages = new List<byte[]>();
 
-			Msg msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
+			Msg msg = ReceiveInternal(SendReceiveOptions.None, out hasMore);
 			messages.Add(msg.Data);
 
 			while (hasMore)
 			{
-				msg = ReceiveInternal(SendRecieveOptions.None, out hasMore);
+				msg = ReceiveInternal(SendReceiveOptions.None, out hasMore);
 				messages.Add(msg.Data);
 			}
 
@@ -318,12 +318,12 @@ namespace NetMQ
 
 			IList<string> messages = new List<string>();
 
-			var msg = ReceiveString(SendRecieveOptions.None, out hasMore);
+			var msg = ReceiveString(SendReceiveOptions.None, out hasMore);
 			messages.Add(msg);
 
 			while (hasMore)
 			{
-				msg = ReceiveString(SendRecieveOptions.None, out hasMore);
+				msg = ReceiveString(SendReceiveOptions.None, out hasMore);
 				messages.Add(msg);
 			}
 
@@ -378,7 +378,7 @@ namespace NetMQ
 			Send(message.Last.Buffer, message.Last.MessageSize);
 		}
 
-		public virtual void Send(byte[] data, int length, SendRecieveOptions options)
+		public virtual void Send(byte[] data, int length, SendReceiveOptions options)
 		{
 			Msg msg = new Msg(data, length, Options.CopyMessages);
 
@@ -397,19 +397,19 @@ namespace NetMQ
 
 		public void Send(byte[] data, int length, bool dontWait, bool sendMore)
 		{
-			SendRecieveOptions sendRecieveOptions = SendRecieveOptions.None;
+			SendReceiveOptions sendReceiveOptions = SendReceiveOptions.None;
 
 			if (dontWait)
 			{
-				sendRecieveOptions |= SendRecieveOptions.DontWait;
+				sendReceiveOptions |= SendReceiveOptions.DontWait;
 			}
 
 			if (sendMore)
 			{
-				sendRecieveOptions |= SendRecieveOptions.SendMore;
+				sendReceiveOptions |= SendReceiveOptions.SendMore;
 			}
 
-			Send(data, length, sendRecieveOptions);
+			Send(data, length, sendReceiveOptions);
 		}
 
 		public void Send(string message, bool dontWait, bool sendMore)

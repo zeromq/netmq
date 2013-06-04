@@ -210,18 +210,18 @@ namespace NetMQ.zmq
 		}
 
 		// Sending functions.
-		public static void Send(SocketBase s, String str, SendRecieveOptions flags)
+		public static void Send(SocketBase s, String str, SendReceiveOptions flags)
 		{
 			byte[] data = Encoding.ASCII.GetBytes(str);
 			Send(s, data, data.Length, flags);
 		}
 
-		public static void Send(SocketBase s, Msg msg, SendRecieveOptions flags)
+		public static void Send(SocketBase s, Msg msg, SendReceiveOptions flags)
 		{
 			SendMsg(s, msg, flags);
 		}
 
-		public static void Send(SocketBase s, byte[] buf, int len, SendRecieveOptions flags)
+		public static void Send(SocketBase s, byte[] buf, int len, SendReceiveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
@@ -240,7 +240,7 @@ namespace NetMQ.zmq
 		// a single multi-part message, i.e. the last message has
 		// ZMQ_SNDMORE bit switched off.
 		//
-		public void SendIOv(SocketBase s, byte[][] a, int count, SendRecieveOptions flags)
+		public void SendIOv(SocketBase s, byte[][] a, int count, SendReceiveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
@@ -252,13 +252,13 @@ namespace NetMQ.zmq
 			{
 				msg = new Msg(a[i]);
 				if (i == count - 1)
-					flags = flags & ~SendRecieveOptions.SendMore;
+					flags = flags & ~SendReceiveOptions.SendMore;
 				SendMsg(s, msg, flags);
 				
 			}			
 		}
 
-		private static void SendMsg(SocketBase s, Msg msg, SendRecieveOptions flags)
+		private static void SendMsg(SocketBase s, Msg msg, SendReceiveOptions flags)
 		{			
 			s.Send(msg, flags);
 		}
@@ -266,7 +266,7 @@ namespace NetMQ.zmq
 
 		// Receiving functions.
 
-		public static Msg Recv(SocketBase s, SendRecieveOptions flags)
+		public static Msg Recv(SocketBase s, SendReceiveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
@@ -305,7 +305,7 @@ namespace NetMQ.zmq
 		// We assume it is safe to steal these buffers by simply
 		// not closing the zmq::msg_t.
 		//
-		public int RecvIOv(SocketBase s, byte[][] a, int count, SendRecieveOptions flags)
+		public int RecvIOv(SocketBase s, byte[][] a, int count, SendReceiveOptions flags)
 		{
 			if (s == null || !s.CheckTag())
 			{
@@ -336,7 +336,7 @@ namespace NetMQ.zmq
 		}
 
 
-		public static Msg RecvMsg(SocketBase s, SendRecieveOptions flags)
+		public static Msg RecvMsg(SocketBase s, SendReceiveOptions flags)
 		{
 			return s.Recv(flags);
 		}

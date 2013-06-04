@@ -13,7 +13,7 @@ namespace NetMQ.Sockets
 		{
 		}
 
-		public override void Send(byte[] data, int length, SendRecieveOptions options)
+		public override void Send(byte[] data, int length, SendReceiveOptions options)
 		{
 			throw  new NotSupportedException("Pull socket doesn't support sending");
 		}

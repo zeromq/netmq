@@ -8,7 +8,7 @@ namespace NetMQ
 {
 	public interface IOutgoingSocket
 	{
-		void Send(byte[] data, int length, SendRecieveOptions options);
+		void Send(byte[] data, int length, SendReceiveOptions options);
 		void Send(byte[] data);
 
 		void Send(byte[] data, int length);

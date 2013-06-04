@@ -23,14 +23,14 @@ namespace local_lat
             
             for (int i = 0; i != roundtripCount; i++)
             {
-                Msg message = repSocket.Recv(SendRecieveOptions.None);
+                Msg message = repSocket.Recv(SendReceiveOptions.None);
                 if (ZMQ.MsgSize(message) != messageSize)
                 {
                     Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
                     return -1;
                 }
 
-                repSocket.Send(message, SendRecieveOptions.None);                
+                repSocket.Send(message, SendReceiveOptions.None);                
             }
 
             repSocket.Close();

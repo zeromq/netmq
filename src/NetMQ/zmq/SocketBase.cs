@@ -675,7 +675,7 @@ namespace NetMQ.zmq
 
 		}
 
-		public void Send(Msg msg, SendRecieveOptions flags)
+		public void Send(Msg msg, SendReceiveOptions flags)
 		{
 			if (m_ctxTerminated)
 			{
@@ -695,7 +695,7 @@ namespace NetMQ.zmq
 			msg.ResetFlags(MsgFlags.More);
 
 			//  At this point we impose the flags on the message.
-			if ((flags & SendRecieveOptions.SendMore) > 0)
+			if ((flags & SendReceiveOptions.SendMore) > 0)
 				msg.SetFlags(MsgFlags.More);
 
 			//  Try to send the message.
@@ -710,7 +710,7 @@ namespace NetMQ.zmq
 
 			//  In case of non-blocking send we'll simply propagate
 			//  the error - including EAGAIN - up the stack.
-			if ((flags & SendRecieveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
+			if ((flags & SendReceiveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
 				throw AgainException.Create();
 
 			//  Compute the time when the timeout should occur.
@@ -745,7 +745,7 @@ namespace NetMQ.zmq
 			}
 		}
 
-		public Msg Recv(SendRecieveOptions flags)
+		public Msg Recv(SendReceiveOptions flags)
 		{
 			if (m_ctxTerminated)
 			{
@@ -788,7 +788,7 @@ namespace NetMQ.zmq
 			//  For non-blocking recv, commands are processed in case there's an
 			//  activate_reader command already waiting int a command pipe.
 			//  If it's not, return EAGAIN.
-			if ((flags & SendRecieveOptions.DontWait) > 0 || m_options.ReceiveTimeout == 0)
+			if ((flags & SendReceiveOptions.DontWait) > 0 || m_options.ReceiveTimeout == 0)
 			{
 				ProcessCommands(0, false);
 				m_ticks = 0;
@@ -994,7 +994,7 @@ namespace NetMQ.zmq
 			return false;
 		}
 
-		protected virtual void XSend(Msg msg, SendRecieveOptions flags)
+		protected virtual void XSend(Msg msg, SendReceiveOptions flags)
 		{
 			throw new NotSupportedException("Must Override");
 		}
@@ -1005,7 +1005,7 @@ namespace NetMQ.zmq
 		}
 
 
-		protected virtual Msg XRecv(SendRecieveOptions flags)
+		protected virtual Msg XRecv(SendReceiveOptions flags)
 		{
 			throw new NotSupportedException("Must Override");
 		}

@@ -68,7 +68,7 @@ namespace NetMQ.zmq
 }
 
 	[Flags]
-	public enum SendRecieveOptions
+	public enum SendReceiveOptions
 	{
 		None = 0,
 		DontWait = 1,

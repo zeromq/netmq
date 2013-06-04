@@ -186,7 +186,7 @@ namespace NetMQ.zmq
 		}
 
 
-		protected override void XSend(Msg msg, SendRecieveOptions flags)
+		protected override void XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  If this is the first part of the message it's the ID of the
 			//  peer to send the message to.
@@ -247,7 +247,7 @@ namespace NetMQ.zmq
 
 
 
-		protected override Msg XRecv(SendRecieveOptions flags)
+		protected override Msg XRecv(SendReceiveOptions flags)
 		{
 			Msg msg = null;
 			if (m_prefetched) {

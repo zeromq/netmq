@@ -14,7 +14,7 @@ namespace NetMQ.Sockets
 		{
 		}
 
-		public override void Send(byte[] data, int length, SendRecieveOptions options)
+		public override void Send(byte[] data, int length, SendReceiveOptions options)
 		{
 			throw new NotSupportedException("Subscriber socket doesn't support sending");
 		}	

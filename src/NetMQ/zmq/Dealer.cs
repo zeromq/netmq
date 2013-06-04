@@ -75,18 +75,18 @@ namespace NetMQ.zmq
 			m_lb.Attach(pipe);
 		}
 
-		protected override void XSend(Msg msg, SendRecieveOptions flags)
+		protected override void XSend(Msg msg, SendReceiveOptions flags)
 		{
 			m_lb.Send(msg, flags);
 		}
 
 
-		protected override Msg XRecv(SendRecieveOptions flags)
+		protected override Msg XRecv(SendReceiveOptions flags)
 		{
 			return xxrecv(flags);
 		}
 
-		private Msg xxrecv(SendRecieveOptions flags_)
+		private Msg xxrecv(SendReceiveOptions flags_)
 		{
 			Msg msg_ = null;
 			//  If there is a prefetched message, return it.
@@ -119,7 +119,7 @@ namespace NetMQ.zmq
 			//  Try to read the next message to the pre-fetch buffer.
 			try
 			{
-				m_prefetchedMsg = xxrecv(SendRecieveOptions.DontWait);
+				m_prefetchedMsg = xxrecv(SendReceiveOptions.DontWait);
 			}
 			catch (AgainException ex)
 			{
