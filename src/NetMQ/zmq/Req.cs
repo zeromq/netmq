@@ -49,7 +49,7 @@ namespace NetMQ.zmq
 		}
 
 
-		protected override void XSend(Msg msg, SendRecieveOptions flags)
+		protected override void XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  If we've sent a request and we still haven't got the reply,
 			//  we can't send another request.
@@ -81,7 +81,7 @@ namespace NetMQ.zmq
 		}
 
 		override
-			protected Msg XRecv(SendRecieveOptions flags)
+			protected Msg XRecv(SendReceiveOptions flags)
 		{
 			Msg msg = null;
 			//  If request wasn't send, we can't wait for reply.

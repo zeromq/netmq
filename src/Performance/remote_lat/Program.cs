@@ -29,9 +29,9 @@ namespace remote_lat
 
 			for (int i = 0; i != roundtripCount; i++)
 			{
-				reqSocket.Send(message, SendRecieveOptions.None);				
+				reqSocket.Send(message, SendReceiveOptions.None);				
 
-				message = reqSocket.Recv(SendRecieveOptions.None);
+				message = reqSocket.Recv(SendReceiveOptions.None);
 				if (message.Size != messageSize)
 				{
 					Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);

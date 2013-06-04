@@ -89,7 +89,7 @@ namespace NetMQ.zmq
 			m_active++;
 		}
 
-		public void Send(Msg msg, SendRecieveOptions flags)
+		public void Send(Msg msg, SendReceiveOptions flags)
 		{
 			//  Drop the message if required. If we are at the end of the message
 			//  switch back to non-dropping mode.

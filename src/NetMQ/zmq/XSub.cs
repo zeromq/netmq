@@ -128,7 +128,7 @@ namespace NetMQ.zmq
 			pipe.Flush ();
 		}
 
-		protected override void XSend(Msg msg, SendRecieveOptions flags)
+		protected override void XSend(Msg msg, SendReceiveOptions flags)
 		{
 			byte[] data = msg.Data; 
 			// Malformed subscriptions.
@@ -156,7 +156,7 @@ namespace NetMQ.zmq
 			return true;
 		}
 
-		protected override Msg XRecv(SendRecieveOptions flags)
+		protected override Msg XRecv(SendReceiveOptions flags)
 		{
 			//  If there's already a message prepared by a previous call to zmq_poll,
 			//  return it straight ahead.

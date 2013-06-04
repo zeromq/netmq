@@ -24,7 +24,7 @@ namespace remote_thr
             for (int i = 0; i != messageCount; i++)
             {
                 var message = new Msg(messageSize);
-                pushSocket.Send(message, SendRecieveOptions.None);
+                pushSocket.Send(message, SendReceiveOptions.None);
             }
 
             pushSocket.Close();

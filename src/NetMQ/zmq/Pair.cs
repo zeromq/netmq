@@ -77,13 +77,13 @@ namespace NetMQ.zmq
 		}
     
 		override
-			protected void XSend(Msg msg, SendRecieveOptions flags)
+			protected void XSend(Msg msg, SendReceiveOptions flags)
 		{
 			if (m_pipe == null || !m_pipe.Write (msg)) {
 				throw AgainException.Create();
 			}
 
-			if ((flags & SendRecieveOptions.SendMore) == 0)
+			if ((flags & SendReceiveOptions.SendMore) == 0)
 				m_pipe.Flush ();
 
 			//  Detach the original message from the data buffer.
@@ -91,7 +91,7 @@ namespace NetMQ.zmq
 		}
 
 		override
-			protected Msg XRecv(SendRecieveOptions flags)
+			protected Msg XRecv(SendReceiveOptions flags)
 		{
 			//  Deallocate old content of the message.
 

@@ -52,7 +52,7 @@ namespace NetMQ.zmq
 		}
     
 		override
-			protected void XSend(Msg msg, SendRecieveOptions flags)
+			protected void XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  If we are in the middle of receiving a request, we cannot send reply.
 			if (!m_sendingReply) {
@@ -70,7 +70,7 @@ namespace NetMQ.zmq
 		}
     
 		override
-			protected Msg XRecv(SendRecieveOptions flags)
+			protected Msg XRecv(SendReceiveOptions flags)
 		{
 			Msg msg;
 
