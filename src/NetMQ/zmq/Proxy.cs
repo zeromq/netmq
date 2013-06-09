@@ -106,8 +106,6 @@ namespace NetMQ.zmq
 				}
 
 			}
-            // TODO: The compiler says it won't get here. He's right. How to shut down the proxy?
-			// return true;
 		}
 	}
 }
