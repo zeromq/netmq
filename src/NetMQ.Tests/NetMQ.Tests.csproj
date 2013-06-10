@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{526095CB-16A6-47C3-9F45-72A8530E5762}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NetMQ.Tests</RootNamespace>
     <AssemblyName>NetMQ.Tests</AssemblyName>
@@ -30,10 +30,25 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>NetMQ.Tests.NetMQTestRunner</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit-console-runner">
+      <HintPath>..\Lib\nunit-console-runner.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.core">
+      <HintPath>..\Lib\nunit.core.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.core.interfaces">
+      <HintPath>..\Lib\nunit.core.interfaces.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Lib\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.util">
+      <HintPath>..\Lib\nunit.util.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -47,6 +62,7 @@
     <Compile Include="ExpectedZmqException.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
+    <Compile Include="NetMQTestRunner.cs" />
     <Compile Include="PgmTests.cs" />
     <Compile Include="PollerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
