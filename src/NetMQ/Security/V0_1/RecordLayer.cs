@@ -241,7 +241,7 @@ namespace NetMQ.Security.V0_1
       int length = plainBytes.Length + SecurityParameters.MACLength;
       byte padding = 0;
 
-      if (SecurityParameters.BulkCipherAlgorithm != null)
+      if (SecurityParameters.BulkCipherAlgorithm != BulkCipherAlgorithm.Null)
       {
         padding = (byte)((encryptor.OutputBlockSize -
                                 (plainBytes.Length + SecurityParameters.MACLength + 1) % encryptor.OutputBlockSize) %
