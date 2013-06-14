@@ -144,5 +144,21 @@ namespace NetMQ
 
 			return true;
 		}
+
+    public byte[] ToByteArray(bool copy = false)
+    {
+      if (!copy || MessageSize == BufferSize)
+      {
+        return Buffer;
+      }
+      else
+      {
+        byte[] byteArray = new byte[MessageSize];
+
+        System.Buffer.BlockCopy(Buffer,0, byteArray, 0, MessageSize);
+
+        return byteArray;
+      }
+    }
 	}
 }

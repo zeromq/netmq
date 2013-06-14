@@ -46,6 +46,25 @@
     <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
     <Compile Include="Poller.cs" />
+    <Compile Include="Security\NetMQSecurityException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Security\CipherSuite.cs" />
+    <Compile Include="Security\V0_1\ContentType.cs" />
+    <Compile Include="Security\V0_1\HandshakeLayer.cs" />
+    <Compile Include="Security\V0_1\HandshakeMessages\ClientHelloMessage.cs" />
+    <Compile Include="Security\V0_1\HandshakeMessages\FinishedMessage.cs" />
+    <Compile Include="Security\V0_1\HandshakeMessages\HandshakeMessage.cs" />
+    <Compile Include="Security\V0_1\HandshakeMessages\CertificateMessage.cs" />
+    <Compile Include="Security\V0_1\HandshakeMessages\ServerHelloDoneMessage.cs" />
+    <Compile Include="Security\V0_1\HandshakeMessages\ServerHelloMessage.cs" />
+    <Compile Include="Security\V0_1\HandshakeMessages\ClientKeyExchangeMessage.cs" />
+    <Compile Include="Security\ISecureChannel.cs" />
+    <Compile Include="Security\V0_1\OutgoingMessageBag.cs" />
+    <Compile Include="Security\V0_1\RecordLayer.cs" />
+    <Compile Include="Security\V0_1\SecureChannel.cs" />
+    <Compile Include="Security\V0_1\SecurityParameters.cs" />
+    <Compile Include="Security\V0_1\SHA256PRF.cs" />
     <Compile Include="Sockets\DealerSocket.cs" />
     <Compile Include="Devices\DeviceBase.cs" />
     <Compile Include="Devices\DeviceMode.cs" />
