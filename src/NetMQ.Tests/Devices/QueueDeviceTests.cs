@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using NetMQ.Devices;
@@ -17,7 +18,7 @@ namespace NetMQ.Tests.Devices
 
 		protected override void DoWork(NetMQSocket socket)
 		{
-			var received = socket.ReceiveAllString();
+			var received = socket.ReceiveStringMessages().ToList();
 
 			for (var i = 0; i < received.Count; i++) {
 				if (i == received.Count - 1) {
@@ -37,7 +38,7 @@ namespace NetMQ.Tests.Devices
 
 			Thread.Sleep(Random.Next(1, 50));
 
-			var response = socket.ReceiveAllString();
+			var response = socket.ReceiveStringMessages().ToList();
 			Assert.AreEqual(1, response.Count);
 			Assert.AreEqual(expected, response[0]);
 			Console.WriteLine("Client: {0} received: {1}", id, response[0]);
