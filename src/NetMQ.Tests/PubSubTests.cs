@@ -167,13 +167,13 @@ namespace NetMQ.Tests
 						pub.SendMore("AB");
 							pub.Send("1");
 
-						IList<string> message = sub.ReceiveAllString();
+						string message = sub.ReceiveStringMessages().First();
 
-						Assert.AreEqual("AB", message[0]);
+						Assert.AreEqual("AB", message, "First subscriber is expected to receive the message");
 
-						message = sub2.ReceiveAllString();
+						message = sub2.ReceiveStringMessages().First();
 
-						Assert.AreEqual("AB", message[0]);
+						Assert.AreEqual("AB", message, "Second subscriber is expected to receive the message");
 					}
 				}
 			}
