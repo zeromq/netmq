@@ -294,42 +294,6 @@ namespace NetMQ
 			return ReceiveString(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore);
 		}
 
-		public IList<byte[]> ReceiveAll()
-		{
-			bool hasMore;
-
-			IList<byte[]> messages = new List<byte[]>();
-
-			Msg msg = ReceiveInternal(SendReceiveOptions.None, out hasMore);
-			messages.Add(msg.Data);
-
-			while (hasMore)
-			{
-				msg = ReceiveInternal(SendReceiveOptions.None, out hasMore);
-				messages.Add(msg.Data);
-			}
-
-			return messages;
-		}
-
-		public IList<string> ReceiveAllString()
-		{
-			bool hasMore;
-
-			IList<string> messages = new List<string>();
-
-			var msg = ReceiveString(SendReceiveOptions.None, out hasMore);
-			messages.Add(msg);
-
-			while (hasMore)
-			{
-				msg = ReceiveString(SendReceiveOptions.None, out hasMore);
-				messages.Add(msg);
-			}
-
-			return messages;
-		}
-
 		public NetMQMessage ReceiveMessage()
 		{
 			return ReceiveMessage(false);
