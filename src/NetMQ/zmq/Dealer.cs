@@ -75,9 +75,9 @@ namespace NetMQ.zmq
 			m_lb.Attach(pipe);
 		}
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
-			m_lb.Send(msg, flags);
+			return m_lb.Send(msg, flags);
 		}
 
 

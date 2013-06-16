@@ -52,7 +52,7 @@ namespace NetMQ.zmq
 		}
     
 		override
-			protected void XSend(Msg msg, SendReceiveOptions flags)
+			protected bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  If we are in the middle of receiving a request, we cannot send reply.
 			if (!m_sendingReply) {
@@ -62,11 +62,17 @@ namespace NetMQ.zmq
 			bool more = msg.HasMore;
 
 			//  Push message to the reply pipe.
-			base.XSend (msg, flags);
-			
+			bool result = base.XSend (msg, flags);
+
+			if (!result)
+			{
+				return false;
+			}			
 			//  If the reply is complete flip the FSM back to request receiving state.
-			if (!more)
+			else if (!more)
 				m_sendingReply = false;
+
+			return true;
 		}
     
 		override protected bool XRecv(SendReceiveOptions flags, out Msg msg)
@@ -100,7 +106,12 @@ namespace NetMQ.zmq
 						bool bottom = (msg.Size == 0);
                     
 						//  Push it to the reply pipe.
-						base.XSend (msg, flags);
+						result = base.XSend(msg, flags);
+						if(!result)
+						{
+							return false;
+						}
+
 						if (bottom)
 							break;
 					} else {

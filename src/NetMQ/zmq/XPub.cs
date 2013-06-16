@@ -167,7 +167,7 @@ namespace NetMQ.zmq
 			m_dist.Terminated(pipe);
 		}
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			bool msgMore = msg.HasMore;
 
@@ -186,6 +186,8 @@ namespace NetMQ.zmq
 				m_dist.Unmatch();
 
 			m_more = msgMore;
+
+			return true;
 		}
 
 

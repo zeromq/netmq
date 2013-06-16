@@ -77,17 +77,18 @@ namespace NetMQ.zmq
 		}
     
 		override
-			protected void XSend(Msg msg, SendReceiveOptions flags)
+			protected bool XSend(Msg msg, SendReceiveOptions flags)
 		{
-			if (m_pipe == null || !m_pipe.Write (msg)) {
-				throw AgainException.Create();
+			if (m_pipe == null || !m_pipe.Write (msg))
+			{
+				return false;
 			}
 
 			if ((flags & SendReceiveOptions.SendMore) == 0)
 				m_pipe.Flush ();
 
 			//  Detach the original message from the data buffer.
-
+			return true;
 		}
 
 		override

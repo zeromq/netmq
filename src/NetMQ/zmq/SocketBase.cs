@@ -699,16 +699,16 @@ namespace NetMQ.zmq
 				msg.SetFlags(MsgFlags.More);
 
 			//  Try to send the message.
-			try
+
+			bool result = XSend(msg, flags);
+			
+			if (result)
 			{
-				XSend(msg, flags);
 				return;
 			}
-			catch (AgainException)
-			{
-			}
 
-			//  In case of non-blocking send we'll simply propagate
+
+		//  In case of non-blocking send we'll simply propagate
 			//  the error - including EAGAIN - up the stack.
 			if ((flags & SendReceiveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
 				throw AgainException.Create();
@@ -725,15 +725,10 @@ namespace NetMQ.zmq
 			{
 				ProcessCommands(timeout, false);
 
-				try
-				{
-					XSend(msg, flags);
+				result = XSend(msg, flags);
+				if (result)
 					break;
-				}
-				catch (AgainException)
-				{
-				}
-
+				
 				if (timeout > 0)
 				{
 					timeout = (int)(end - Clock.NowMs());
@@ -986,7 +981,7 @@ namespace NetMQ.zmq
 			return false;
 		}
 
-		protected virtual void XSend(Msg msg, SendReceiveOptions flags)
+		protected virtual bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			throw new NotSupportedException("Must Override");
 		}

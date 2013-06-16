@@ -198,7 +198,7 @@ namespace NetMQ.zmq
 		}
 
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  If this is the first part of the message it's the ID of the
 			//  peer to send the message to.
@@ -230,7 +230,7 @@ namespace NetMQ.zmq
 							if (m_mandatory)
 							{
 								m_moreOut = false;
-								throw AgainException.Create();
+								return false;
 							}
 						}
 					}
@@ -241,7 +241,7 @@ namespace NetMQ.zmq
 					}
 				}
 
-				return;
+				return true;
 			}
 
 			//  Check whether this is the last part of the message.
@@ -264,6 +264,8 @@ namespace NetMQ.zmq
 			}
 
 			//  Detach the message from the data buffer.
+
+			return true;
 		}
 
 

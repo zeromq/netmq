@@ -128,7 +128,7 @@ namespace NetMQ.zmq
 			pipe.Flush ();
 		}
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			byte[] data = msg.Data; 
 			// Malformed subscriptions.
@@ -149,6 +149,8 @@ namespace NetMQ.zmq
 					m_dist.SendToAll(msg, flags);
 				}
 			}
+
+			return true;
 		}
 
 		protected override bool XHasOut () {

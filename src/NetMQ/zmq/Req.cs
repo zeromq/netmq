@@ -49,7 +49,7 @@ namespace NetMQ.zmq
 		}
 
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  If we've sent a request and we still haven't got the reply,
 			//  we can't send another request.
@@ -58,26 +58,39 @@ namespace NetMQ.zmq
 				throw NetMQException.Create("Cannot send another request", ErrorCode.EFSM);				
 			}
 
+			bool result;
 			
 			//  First part of the request is the request identity.
 			if (m_messageBegins)
 			{
 				Msg bottom = new Msg();
 				bottom.SetFlags(MsgFlags.More);
-				base.XSend(bottom, 0);
+				result = base.XSend(bottom, 0);
+
+				if (!result)
+				{
+					return false;
+				}
+
 				m_messageBegins = false;
 			}
 
 			bool more = msg.HasMore;
 
-			base.XSend(msg, flags);
-			
+			result = base.XSend(msg, flags);
+
+			if (!result)
+			{
+				return false;
+			}			
 			//  If the request was fully sent, flip the FSM into reply-receiving state.
-			if (!more)
+			else if (!more)
 			{
 				m_receivingReply = true;
 				m_messageBegins = true;
 			}
+
+			return true;
 		}
 
 		override protected bool XRecv(SendReceiveOptions flags, out Msg msg)

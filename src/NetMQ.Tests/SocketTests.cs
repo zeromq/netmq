@@ -12,7 +12,7 @@ namespace NetMQ.Tests
 	public class SocketTests
 	{
 		[Test, ExpectedException(typeof(AgainException))]
-		public void CheckAgainException()
+		public void CheckRecvAgainException()
 		{
 			using (NetMQContext context = NetMQContext.Create())
 			{
@@ -24,6 +24,29 @@ namespace NetMQ.Tests
 				}
 			}
 		}
+
+		[Test, ExpectedException(typeof(AgainException))]
+		public void CheckSendAgainException()
+		{
+			using (NetMQContext context = NetMQContext.Create())
+			{
+				using (var routerSocket = context.CreateRouterSocket())
+				{
+					routerSocket.Bind("tcp://127.0.0.1:5555");
+					routerSocket.Options.Linger = TimeSpan.Zero;
+
+					using (var dealerSocket = context.CreateDealerSocket())
+					{
+						dealerSocket.Options.SendHighWatermark = 1;
+						dealerSocket.Connect("tcp://127.0.0.1:5555");
+
+						dealerSocket.Send("1", true, false);
+						dealerSocket.Send("2", true, false);
+					}
+				}
+			}
+		}
+
 
 		[Test]
 		public void TestKeepAlive()
