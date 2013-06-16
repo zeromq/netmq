@@ -330,7 +330,7 @@ namespace NetMQ.zmq
 			{
 				m_prefetchedMsg = m_fq.RecvPipe(pipe);
 			}
-			catch (NetMQException ex)
+			catch (NetMQException)
 			{
 				return false;
 			}
@@ -345,7 +345,7 @@ namespace NetMQ.zmq
 				{
 					m_prefetchedMsg = m_fq.RecvPipe(pipe);			
 				}
-				catch (NetMQException ex)
+				catch (NetMQException)
 				{
 					return false;
 				}

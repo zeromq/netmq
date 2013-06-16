@@ -121,7 +121,7 @@ namespace NetMQ.zmq
 			{
 				m_prefetchedMsg = xxrecv(SendReceiveOptions.DontWait);
 			}
-			catch (AgainException ex)
+			catch (AgainException)
 			{
 				return false;
 			}
