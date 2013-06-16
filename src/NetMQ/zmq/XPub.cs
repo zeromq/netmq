@@ -167,7 +167,7 @@ namespace NetMQ.zmq
 			m_dist.Terminated(pipe);
 		}
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			bool msgMore = msg.HasMore;
 
@@ -186,6 +186,8 @@ namespace NetMQ.zmq
 				m_dist.Unmatch();
 
 			m_more = msgMore;
+
+			return true;
 		}
 
 
@@ -194,18 +196,19 @@ namespace NetMQ.zmq
 			return m_dist.HasOut();
 		}
 
-		protected override Msg XRecv(SendReceiveOptions flags)
+		protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
 		{
 			//  If there is at least one 
 			if (m_pending.Count == 0)
 			{
-				throw AgainException.Create();
+				msg = null;
+				return false;
 			}
 
 			Blob first = m_pending.Dequeue();
-			Msg msg = new Msg(first.Data);
-			return msg;
-
+			msg = new Msg(first.Data);
+			
+			return true;
 		}
 
 		protected override bool XHasIn()

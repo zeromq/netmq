@@ -128,7 +128,7 @@ namespace NetMQ.zmq
 			pipe.Flush ();
 		}
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			byte[] data = msg.Data; 
 			// Malformed subscriptions.
@@ -149,6 +149,8 @@ namespace NetMQ.zmq
 					m_dist.SendToAll(msg, flags);
 				}
 			}
+
+			return true;
 		}
 
 		protected override bool XHasOut () {
@@ -156,16 +158,16 @@ namespace NetMQ.zmq
 			return true;
 		}
 
-		protected override Msg XRecv(SendReceiveOptions flags)
+		protected override bool XRecv(SendReceiveOptions flags, out Msg msg	)
 		{
 			//  If there's already a message prepared by a previous call to zmq_poll,
 			//  return it straight ahead.
-			Msg msg;
+			
 			if (m_hasMessage) {
 				msg = new Msg(m_message);
 				m_hasMessage = false;
 				m_more = msg.HasMore;
-				return msg;
+				return true;
 			}
 
 			//  TODO: This can result in infinite loop in the case of continuous
@@ -174,25 +176,32 @@ namespace NetMQ.zmq
 			while (true) {
 
 				//  Get a message using fair queueing algorithm.
-				msg = m_fq.Recv ();
+				bool result = m_fq.Recv (out msg);
 
 				//  If there's no message available, return immediately.
 				//  The same when error occurs.
-				if (msg == null)
-					return null;
+				if (!result)
+				{
+					return false;
+				}
+				else if (msg == null)
+				{
+					return true;
+				}
 
 				//  Check whether the message matches at least one subscription.
 				//  Non-initial parts of the message are passed 
 				if (m_more || !m_options.Filter || Match (msg)) {
 					m_more = msg.HasMore;
-					return msg;
+					return true;
 				}
 
 				//  Message doesn't match. Pop any remaining parts of the message
 				//  from the pipe.
 				while (msg.HasMore) {
-					msg = m_fq.Recv ();
-					Debug.Assert(msg != null);
+					m_fq.Recv (out msg);					
+
+					Debug.Assert(msg != null);					
 				}
 			}
 		}
@@ -210,16 +219,14 @@ namespace NetMQ.zmq
 			//  TODO: This can result in infinite loop in the case of continuous
 			//  stream of non-matching messages.
 			while (true) {
-
-				try
-				{
-					//  Get a message using fair queueing algorithm.
-					m_message = m_fq.Recv();
-				}
-				catch (AgainException)
+				
+				//  Get a message using fair queueing algorithm.
+				bool result = m_fq.Recv(out m_message);
+				
+				if (!result)
 				{
 					return false;
-				}				
+				}
 
 				//  If there's no message available, return immediately.
 				//  The same when error occurs.
@@ -237,8 +244,9 @@ namespace NetMQ.zmq
 				//  Message doesn't match. Pop any remaining parts of the message
 				//  from the pipe.
 				while (m_message.HasMore) {
-					m_message = m_fq.Recv ();
-					Debug.Assert(m_message != null);
+					m_fq.Recv (out m_message);
+					
+					Debug.Assert(m_message != null);					
 				}
 			}
 
