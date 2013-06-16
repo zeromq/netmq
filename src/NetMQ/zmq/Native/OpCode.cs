@@ -16,7 +16,6 @@ namespace NetMQ.zmq.Native
 			int p = (int)Environment.OSVersion.Platform;
 
 			byte[] rdtscCode;
-			byte[] cpuidCode;
 			if (IntPtr.Size == 4)
 			{
 				rdtscCode = RDTSC_32;

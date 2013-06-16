@@ -32,7 +32,6 @@ namespace NetMQ.zmq
 			//  The algorithm below assumes ratio of requests and replies processed
 			//  under full load to be 1:1.
 
-			bool success;
 			int more;
 			int rc;
 			Msg msg;
@@ -106,8 +105,6 @@ namespace NetMQ.zmq
 					}
 				}
 			}
-
-			return true;
 		}
 	}
 }

@@ -1164,7 +1164,7 @@ namespace NetMQ.zmq
 			{
 				m_monitorSocket.SetSocketOption(ZmqSocketOptions.Linger, linger);
 			}
-			catch (NetMQException ex)
+			catch (NetMQException)
 			{
 				StopMonitor();
 				throw;
@@ -1175,7 +1175,7 @@ namespace NetMQ.zmq
 			{
 				m_monitorSocket.Bind(addr);
 			}
-			catch (NetMQException ex)
+			catch (NetMQException)
 			{
 				StopMonitor();
 				throw;

@@ -83,7 +83,7 @@ namespace NetMQ.zmq
 			Debug.Assert(false);
 		}
 
-		public void OutEvent()
+        public override void OutEvent()
 		{
 			//  POLLOUT event from send socket. If write buffer is empty, 
 			//  try to read new data from the encoder.
@@ -127,12 +127,12 @@ namespace NetMQ.zmq
 			}
 		}
 
-		public void InEvent()
-		{
-			throw new NotImplementedException();
+		public override void InEvent()
+        {
+            throw new NotImplementedException();
 		}
 
-		public void TimerEvent(int id)
+		public override void TimerEvent(int id)
 		{
 			throw new NotImplementedException();
 		}

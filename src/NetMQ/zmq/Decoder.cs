@@ -176,7 +176,7 @@ namespace NetMQ.zmq
 				m_msgSink.PushMsg(m_inProgress);
 			
 			}
-			catch (NetMQException ex)
+			catch (NetMQException)
 			{
 				return false;
 			}
