@@ -194,18 +194,19 @@ namespace NetMQ.zmq
 			return m_dist.HasOut();
 		}
 
-		protected override Msg XRecv(SendReceiveOptions flags)
+		protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
 		{
 			//  If there is at least one 
 			if (m_pending.Count == 0)
 			{
-				throw AgainException.Create();
+				msg = null;
+				return false;
 			}
 
 			Blob first = m_pending.Dequeue();
-			Msg msg = new Msg(first.Data);
-			return msg;
-
+			msg = new Msg(first.Data);
+			
+			return true;
 		}
 
 		protected override bool XHasIn()

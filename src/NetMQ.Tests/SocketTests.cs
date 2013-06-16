@@ -4,12 +4,27 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using NetMQ.Sockets;
+using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
 	[TestFixture]
 	public class SocketTests
 	{
+		[Test, ExpectedException(typeof(AgainException))]
+		public void CheckAgainException()
+		{
+			using (NetMQContext context = NetMQContext.Create())
+			{
+				using (var routerSocket = context.CreateRouterSocket())
+				{
+					routerSocket.Bind("tcp://127.0.0.1:5555");
+
+					routerSocket.Receive(SendReceiveOptions.DontWait);
+				}
+			}
+		}
+
 		[Test]
 		public void TestKeepAlive()
 		{

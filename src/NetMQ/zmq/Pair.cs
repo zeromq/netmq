@@ -91,15 +91,16 @@ namespace NetMQ.zmq
 		}
 
 		override
-			protected Msg XRecv(SendReceiveOptions flags)
+			protected bool XRecv(SendReceiveOptions flags, out Msg msg)
 		{
 			//  Deallocate old content of the message.
 
-			Msg msg = null;
-			if (m_pipe == null || (msg = m_pipe.Read ()) == null) {
-				throw AgainException.Create();
-							}
-			return msg;
+			msg = null;
+			if (m_pipe == null || (msg = m_pipe.Read ()) == null)
+			{
+				return false;
+			}
+			return true;
 		}
 
 
