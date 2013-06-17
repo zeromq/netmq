@@ -336,10 +336,10 @@ namespace NetMQ
 		{
 			for (int i = 0; i < message.FrameCount-1; i++)
 			{
-				SendMore(message[i].Buffer, message[i].MessageSize);
+				Send(message[i].Buffer, message[i].MessageSize, dontWait, true);
 			}
 
-			Send(message.Last.Buffer, message.Last.MessageSize);
+			Send(message.Last.Buffer, message.Last.MessageSize, dontWait);
 		}
 
 		public virtual void Send(byte[] data, int length, SendReceiveOptions options)
@@ -349,17 +349,7 @@ namespace NetMQ
 			ZMQ.Send(m_socketHandle, msg, options);
 		}
 
-		public void Send(byte[] data)
-		{
-			Send(data, data.Length, false, false);
-		}
-
-		public void Send(byte[] data, int length)
-		{
-			Send(data, length, false, false);
-		}
-
-		public void Send(byte[] data, int length, bool dontWait, bool sendMore)
+		public void Send(byte[] data, int length, bool dontWait = false, bool sendMore = false)
 		{
 			SendReceiveOptions sendReceiveOptions = SendReceiveOptions.None;
 
@@ -374,60 +364,6 @@ namespace NetMQ
 			}
 
 			Send(data, length, sendReceiveOptions);
-		}
-
-		public void Send(string message, bool dontWait, bool sendMore)
-		{
-			byte[] data = Encoding.ASCII.GetBytes(message);
-
-			Send(data, data.Length, dontWait, sendMore);
-		}
-
-		public void Send(string message)
-		{
-			Send(message, false, false);
-		}
-
-		public IOutgoingSocket SendMore(string message)
-		{
-			Send(message, false, true);
-
-			return (IOutgoingSocket)this;
-		}
-
-		public IOutgoingSocket SendMore(string message, bool dontWait)
-		{
-			Send(message, dontWait, true);
-
-			return (IOutgoingSocket)this;
-		}
-
-		public IOutgoingSocket SendMore(byte[] data)
-		{
-			Send(data, data.Length, false, true);
-
-			return (IOutgoingSocket)this;
-		}
-
-		public IOutgoingSocket SendMore(byte[] data, bool dontWait)
-		{
-			Send(data, data.Length, dontWait, true);
-
-			return (IOutgoingSocket)this;
-		}
-
-		public IOutgoingSocket SendMore(byte[] data, int length)
-		{
-			Send(data, length, false, true);
-
-			return (IOutgoingSocket)this;
-		}
-
-		public IOutgoingSocket SendMore(byte[] data, int length, bool dontWait)
-		{
-			Send(data, length, dontWait, true);
-
-			return (IOutgoingSocket)this;
 		}
 
 		public virtual void Subscribe(string topic)
@@ -510,6 +446,4 @@ namespace NetMQ
 			Close();
 		}
 	}
-
-
 }
