@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NetMQ.zmq;
 
@@ -54,6 +56,34 @@ namespace NetMQ
 		{
 			bool hasMore;
 			return socket.ReceiveString(false, out hasMore);
+		}
+
+		public static IEnumerable<byte[]> ReceiveMessages(this IReceivingSocket socket)
+		{
+			bool hasMore = true;
+
+			while (hasMore)
+				yield return socket.Receive(false, out hasMore);
+		}
+
+		public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket)
+		{
+			bool hasMore = true;
+
+			while (hasMore)
+				yield return socket.ReceiveString(SendReceiveOptions.None, out hasMore);
+		}
+
+		[Obsolete("Use ReceiveMessages extension method instead")]
+		public static IList<byte[]> ReceiveAll(this IReceivingSocket socket)
+		{
+			return socket.ReceiveMessages().ToList();
+		}
+
+		[Obsolete("Use ReceiveStringMessages extension method instead")]
+		public static IList<string> ReceiveAllString(this IReceivingSocket socket)
+		{
+			return socket.ReceiveStringMessages().ToList();
 		}
 	}
 }

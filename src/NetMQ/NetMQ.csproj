@@ -47,7 +47,6 @@
     <Compile Include="NetMQSocket.cs" />
     <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
-    <Compile Include="NetMQSocketExtensions.cs" />
     <Compile Include="Poller.cs" />
     <Compile Include="ReceivingSocketExtensions.cs" />
     <Compile Include="Security\NetMQSecurityException.cs">
