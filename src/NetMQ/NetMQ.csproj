@@ -37,6 +37,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IReceivingSocket.cs" />
+    <Compile Include="OutgoingSocketExtensions.cs" />
     <Compile Include="ErrorPollingException.cs" />
     <Compile Include="NetMQFrame.cs" />
     <Compile Include="IOutgoingSocket.cs" />
@@ -45,8 +47,8 @@
     <Compile Include="NetMQSocket.cs" />
     <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
-    <Compile Include="NetMQSocketExtensions.cs" />
     <Compile Include="Poller.cs" />
+    <Compile Include="ReceivingSocketExtensions.cs" />
     <Compile Include="Security\NetMQSecurityException.cs">
       <SubType>Code</SubType>
     </Compile>
