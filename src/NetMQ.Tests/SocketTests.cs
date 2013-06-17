@@ -38,6 +38,7 @@ namespace NetMQ.Tests
 					using (var dealerSocket = context.CreateDealerSocket())
 					{
 						dealerSocket.Options.SendHighWatermark = 1;
+						dealerSocket.Options.Linger = TimeSpan.Zero;
 						dealerSocket.Connect("tcp://127.0.0.1:5555");
 
 						dealerSocket.Send("1", true, false);

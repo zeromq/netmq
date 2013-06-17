@@ -102,9 +102,9 @@ namespace NetMQ.zmq
 			//  DEALER socket doesn't use identities. We can safely drop it and 
 			while (true)
 			{
-				bool result = m_fq.Recv(out msg_);
+				bool isMessageAvailable = m_fq.Recv(out msg_);
 
-				if (!result)
+				if (!isMessageAvailable)
 				{
 					return false;
 				}
@@ -127,9 +127,9 @@ namespace NetMQ.zmq
 
 			//  Try to read the next message to the pre-fetch buffer.
 
-			bool result = xxrecv(SendReceiveOptions.DontWait, out m_prefetchedMsg);
+			bool isMessageAvailable = xxrecv(SendReceiveOptions.DontWait, out m_prefetchedMsg);
 
-			if (!result)
+			if (!isMessageAvailable)
 			{
 				return false;
 			}
