@@ -293,16 +293,16 @@ namespace NetMQ.zmq
 
 			Pipe[] pipe = new Pipe[1];
 
-			bool result = m_fq.RecvPipe(pipe, out msg);
+			bool isMessageAvailable = m_fq.RecvPipe(pipe, out msg);
 
 			//  It's possible that we receive peer's identity. That happens
 			//  after reconnection. The current implementation assumes that
 			//  the peer always uses the same identity.
 			//  TODO: handle the situation when the peer changes its identity.
-			while (result && msg != null && msg.IsIdentity)
-				result = m_fq.RecvPipe(pipe, out msg);
+			while (isMessageAvailable && msg != null && msg.IsIdentity)
+				isMessageAvailable = m_fq.RecvPipe(pipe, out msg);
 
-			if (!result)
+			if (!isMessageAvailable)
 			{
 				return false;
 			}
@@ -362,9 +362,9 @@ namespace NetMQ.zmq
 			//  The message, if read, is kept in the pre-fetch buffer.
 			Pipe[] pipe = new Pipe[1];
 
-			bool result = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
+			bool isMessageAvailable = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
 
-			if (!result)
+			if (!isMessageAvailable)
 			{
 				return false;
 			}
@@ -376,9 +376,9 @@ namespace NetMQ.zmq
 			//  TODO: handle the situation when the peer changes its identity.
 			while (m_prefetchedMsg != null && m_prefetchedMsg.IsIdentity)
 			{
-				result = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
+				isMessageAvailable = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
 
-				if (!result)
+				if (!isMessageAvailable)
 				{
 					return false;
 				}
