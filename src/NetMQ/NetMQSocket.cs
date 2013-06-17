@@ -233,12 +233,7 @@ namespace NetMQ
 			return ReceiveInternal(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore).Data;
 		}
 
-		public NetMQMessage ReceiveMessage()
-		{
-			return ReceiveMessage(false);
-		}
-
-		public NetMQMessage ReceiveMessage(bool dontWait)
+		public NetMQMessage ReceiveMessage(bool dontWait = false)
 		{
 			NetMQMessage message = new NetMQMessage();
 
@@ -247,12 +242,7 @@ namespace NetMQ
 			return message;
 		}
 
-		public void ReceiveMessage(NetMQMessage message)
-		{
-			ReceiveMessage(message, false);
-		}
-
-		public void ReceiveMessage(NetMQMessage message, bool dontWait)
+		public void ReceiveMessage(NetMQMessage message, bool dontWait = false)
 		{			
 			message.Clear();
 
@@ -266,12 +256,7 @@ namespace NetMQ
 			}
 		}
 
-		public void SendMessage(NetMQMessage message)
-		{
-			SendMessage(message, false);
-		}
-
-		public void SendMessage(NetMQMessage message, bool dontWait)
+		public void SendMessage(NetMQMessage message, bool dontWait = false)
 		{
 			for (int i = 0; i < message.FrameCount-1; i++)
 			{
@@ -325,12 +310,7 @@ namespace NetMQ
 			SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
 		}
 
-		public void Monitor(string endpoint)
-		{
-			Monitor(endpoint, SocketEvent.All);
-		}
-
-		public void Monitor(string endpoint, SocketEvent events)
+		public void Monitor(string endpoint, SocketEvent events = SocketEvent.All)
 		{
 			if (endpoint == null)
 			{
