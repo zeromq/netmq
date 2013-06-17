@@ -5,7 +5,7 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
-	public abstract class NetMQSocket : IOutgoingSocket, IDisposable
+	public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, IDisposable
 	{
 		readonly SocketBase m_socketHandle;
 		private bool m_isClosed = false;
@@ -228,70 +228,9 @@ namespace NetMQ
 			return msg;
 		}
 
-		public byte[] Receive(SendReceiveOptions options, out bool hasMore)
-		{
-			var msg = ReceiveInternal(options, out hasMore);
-
-			return msg.Data;
-		}
-
-		public byte[] Receive(out bool hasMore)
-		{
-			var msg = ReceiveInternal(SendReceiveOptions.None, out hasMore);
-
-			return msg.Data;
-		}
-
-		public byte[] Receive(SendReceiveOptions options)
-		{
-			bool hasMore;
-
-			var msg = ReceiveInternal(options, out hasMore);
-
-			return msg.Data;
-		}
-
-		public byte[] Receive()
-		{
-			bool hasMore;
-
-			var msg = ReceiveInternal(SendReceiveOptions.None, out hasMore);
-
-			return msg.Data;
-		}
-
 		public byte[] Receive(bool dontWait, out bool hasMore)
 		{
-			return Receive(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore);
-		}
-
-		public string ReceiveString(SendReceiveOptions options, out bool hasMore)
-		{
-			var msg = ReceiveInternal(options, out hasMore);
-
-			return Encoding.ASCII.GetString(msg.Data);
-		}
-
-		public string ReceiveString(SendReceiveOptions options)
-		{
-			bool more;
-
-			return ReceiveString(options, out more);
-		}
-
-		public string ReceiveString(out bool more)
-		{
-			return ReceiveString(SendReceiveOptions.None, out more);
-		}
-
-		public string ReceiveString()
-		{
-			return ReceiveString(SendReceiveOptions.None);
-		}
-
-		public string ReceiveString(bool dontWait, out bool hasMore)
-		{
-			return ReceiveString(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore);
+			return ReceiveInternal(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore).Data;
 		}
 
 		public NetMQMessage ReceiveMessage()
