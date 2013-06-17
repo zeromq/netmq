@@ -52,7 +52,7 @@ namespace NetMQ.zmq
 		}
     
 		override
-			protected void XSend(Msg msg, SendReceiveOptions flags)
+			protected bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  If we are in the middle of receiving a request, we cannot send reply.
 			if (!m_sendingReply) {
@@ -62,18 +62,23 @@ namespace NetMQ.zmq
 			bool more = msg.HasMore;
 
 			//  Push message to the reply pipe.
-			base.XSend (msg, flags);
-			
+			bool result = base.XSend (msg, flags);
+
+			if (!result)
+			{
+				return false;
+			}			
 			//  If the reply is complete flip the FSM back to request receiving state.
-			if (!more)
+			else if (!more)
 				m_sendingReply = false;
+
+			return true;
 		}
     
-		override
-			protected Msg XRecv(SendReceiveOptions flags)
+		override protected bool XRecv(SendReceiveOptions flags, out Msg msg)
 		{
-			Msg msg;
-
+			bool result;
+			
 			//  If we are in middle of sending a reply, we cannot receive next request.
 			if (m_sendingReply) {
 				throw NetMQException.Create("Cannot receive another request",ErrorCode.EFSM);
@@ -82,18 +87,31 @@ namespace NetMQ.zmq
 
 			//  First thing to do when receiving a request is to copy all the labels
 			//  to the reply pipe.
-			if (m_requestBegins) {
+			if (m_requestBegins) 
+			{
 				while (true) {
-					msg = base.XRecv (flags);
-					if (msg == null)
-						return null;
-                
+					result = base.XRecv (flags, out msg);
+
+					if (!result)
+					{
+						return false;
+					}
+					else if (msg == null)
+					{
+						return true;
+					}
+
 					if (msg.HasMore) {
 						//  Empty message part delimits the traceback stack.
 						bool bottom = (msg.Size == 0);
                     
 						//  Push it to the reply pipe.
-						base.XSend (msg, flags);
+						result = base.XSend(msg, flags);
+						if(!result)
+						{
+							return false;
+						}
+
 						if (bottom)
 							break;
 					} else {
@@ -106,9 +124,16 @@ namespace NetMQ.zmq
 			}
 
 			//  Get next message part to return to the user.
-			msg = base.XRecv (flags);
-			if (msg == null)
-				return null;
+			result = base.XRecv(flags, out msg);
+
+			if (!result)
+			{
+				return false;
+			}
+			else if (msg == null)
+			{
+				return true;
+			}
 
 			//  If whole request is read, flip the FSM to reply-sending state.
 			if (!msg.HasMore) {
@@ -116,7 +141,7 @@ namespace NetMQ.zmq
 				m_requestBegins = true;
 			}
 
-			return msg;
+			return true;
 		}
 
 		override

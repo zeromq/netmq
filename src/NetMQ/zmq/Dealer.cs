@@ -75,39 +75,48 @@ namespace NetMQ.zmq
 			m_lb.Attach(pipe);
 		}
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
-			m_lb.Send(msg, flags);
+			return m_lb.Send(msg, flags);
 		}
 
 
-		protected override Msg XRecv(SendReceiveOptions flags)
+		protected override bool XRecv(SendReceiveOptions flags, out Msg msg_)
 		{
-			return xxrecv(flags);
+			return xxrecv(flags, out msg_);
 		}
 
-		private Msg xxrecv(SendReceiveOptions flags_)
+		private bool xxrecv(SendReceiveOptions flags_, out Msg msg_)
 		{
-			Msg msg_ = null;
+			msg_ = null;
+
 			//  If there is a prefetched message, return it.
 			if (m_prefetched)
 			{
 				msg_ = m_prefetchedMsg;
 				m_prefetched = false;
 				m_prefetchedMsg = null;
-				return msg_;
+				return true;
 			}
 
 			//  DEALER socket doesn't use identities. We can safely drop it and 
 			while (true)
 			{
-				msg_ = m_fq.Recv();
-				if (msg_ == null)
-					return msg_;
+				bool result = m_fq.Recv(out msg_);
+
+				if (!result)
+				{
+					return false;
+				}
+				else if (msg_ == null)
+				{
+					return true;
+				}
 				if ((msg_.Flags & MsgFlags.Identity) == 0)
 					break;
 			}
-			return msg_;
+
+			return true;
 		}
 
 		protected override bool XHasIn()
@@ -117,17 +126,18 @@ namespace NetMQ.zmq
 				return true;
 
 			//  Try to read the next message to the pre-fetch buffer.
-			try
-			{
-				m_prefetchedMsg = xxrecv(SendReceiveOptions.DontWait);
-			}
-			catch (AgainException)
+
+			bool result = xxrecv(SendReceiveOptions.DontWait, out m_prefetchedMsg);
+
+			if (!result)
 			{
 				return false;
 			}
-
-			m_prefetched = true;
-			return true;
+			else
+			{
+				m_prefetched = true;
+				return true;
+			}
 		}
 
 		protected override bool XHasOut()

@@ -68,10 +68,15 @@ namespace NetMQ.zmq
 			msg.Put (val,1);
 
 			//  Pass it further on in the stack.
-			base.XSend (msg, 0);
+			bool result = base.XSend (msg, 0);
+
+			if (!result)
+			{
+				throw AgainException.Create();
+			}
 		}
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  Overload the XSUB's send.
 			throw NetMQException.Create("Send not supported on sub socket", ErrorCode.ENOTSUP);

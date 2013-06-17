@@ -88,7 +88,7 @@ namespace NetMQ.zmq
 			m_options.SocketId = sid;
 
 			m_endpoints = new Dictionary<string, Own>();
-			m_pipes = new List<Pipe>();			
+			m_pipes = new List<Pipe>();
 
 			m_mailbox = new Mailbox("socket-" + sid);
 		}
@@ -247,7 +247,7 @@ namespace NetMQ.zmq
 				return;
 			}
 			catch (InvalidException)
-			{				
+			{
 			}
 
 			//  If the socket type doesn't support the option, pass it to
@@ -470,7 +470,7 @@ namespace NetMQ.zmq
 		}
 
 		public void Connect(String addr)
-		{			
+		{
 			if (m_ctxTerminated)
 			{
 				throw TerminatingException.Create();
@@ -699,16 +699,16 @@ namespace NetMQ.zmq
 				msg.SetFlags(MsgFlags.More);
 
 			//  Try to send the message.
-			try
+
+			bool result = XSend(msg, flags);
+			
+			if (result)
 			{
-				XSend(msg, flags);
 				return;
 			}
-			catch (AgainException)
-			{				
-			}
 
-			//  In case of non-blocking send we'll simply propagate
+
+		//  In case of non-blocking send we'll simply propagate
 			//  the error - including EAGAIN - up the stack.
 			if ((flags & SendReceiveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
 				throw AgainException.Create();
@@ -725,15 +725,10 @@ namespace NetMQ.zmq
 			{
 				ProcessCommands(timeout, false);
 
-				try
-				{
-					XSend(msg, flags);
+				result = XSend(msg, flags);
+				if (result)
 					break;
-				}
-				catch (AgainException)
-				{
-				}
-
+				
 				if (timeout > 0)
 				{
 					timeout = (int)(end - Clock.NowMs());
@@ -752,16 +747,10 @@ namespace NetMQ.zmq
 				throw TerminatingException.Create();
 			}
 
-			Msg msg = null;
+			Msg msg;
 
 			//  Get the message.
-			try
-			{
-				msg = XRecv(flags);
-			}
-			catch (AgainException)
-			{
-			}
+			bool result = XRecv(flags, out msg);
 
 			//  Once every inbound_poll_rate messages check for signals and process
 			//  incoming commands. This happens only if we are not polling altogether
@@ -778,7 +767,7 @@ namespace NetMQ.zmq
 			}
 
 			//  If we have the message, return immediately.
-			if (msg != null)
+			if (result && msg != null)
 			{
 				ExtractFlags(msg);
 				return msg;
@@ -793,8 +782,12 @@ namespace NetMQ.zmq
 				ProcessCommands(0, false);
 				m_ticks = 0;
 
-				msg = XRecv(flags);
-				if (msg == null)
+				result = XRecv(flags, out msg);
+				if (!result)
+				{
+					throw AgainException.Create();
+				}
+				else if (msg == null)
 					return null;
 				ExtractFlags(msg);
 				return msg;
@@ -812,17 +805,11 @@ namespace NetMQ.zmq
 			{
 				ProcessCommands(block ? timeout : 0, false);
 
-				try
+				result = XRecv(flags, out msg);
+				if (result && msg != null)
 				{
-					msg = XRecv(flags);
-					if (msg != null)
-					{
-						m_ticks = 0;
-						break;
-					}
-				}
-				catch (AgainException)
-				{
+					m_ticks = 0;
+					break;
 				}
 
 				block = true;
@@ -845,7 +832,7 @@ namespace NetMQ.zmq
 		{
 			//  Mark the socket as dead
 			m_tag = 0xdeadbeef;
-			
+
 			//  Transfer the ownership of the socket from this application thread
 			//  to the reaper thread which will take care of the rest of shutdown
 			//  process.
@@ -870,7 +857,7 @@ namespace NetMQ.zmq
 		//  Using this function reaper thread ask the socket to register with
 		//  its poller.
 		public void StartReaping(Poller poller)
-		{			
+		{
 			//  Plug the socket to the reaper thread.
 			m_poller = poller;
 			m_handle = m_mailbox.FD;
@@ -994,7 +981,7 @@ namespace NetMQ.zmq
 			return false;
 		}
 
-		protected virtual void XSend(Msg msg, SendReceiveOptions flags)
+		protected virtual bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			throw new NotSupportedException("Must Override");
 		}
@@ -1005,7 +992,7 @@ namespace NetMQ.zmq
 		}
 
 
-		protected virtual Msg XRecv(SendReceiveOptions flags)
+		protected virtual bool XRecv(SendReceiveOptions flags, out Msg msg)
 		{
 			throw new NotSupportedException("Must Override");
 		}
@@ -1065,7 +1052,7 @@ namespace NetMQ.zmq
 				m_poller.RemoveFD(m_handle);
 				//  Remove the socket from the context.
 				DestroySocket(this);
-			
+
 				//  Notify the reaper about the fact.
 				SendReaped();
 
@@ -1097,7 +1084,7 @@ namespace NetMQ.zmq
 
 
 		public void Terminated(Pipe pipe)
-		{			
+		{
 			//  Notify the specific socket type about the pipe termination.
 			XTerminated(pipe);
 

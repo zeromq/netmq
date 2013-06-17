@@ -81,14 +81,13 @@ namespace NetMQ.zmq
 			m_active++;
 		}
 
-		public Msg Recv ()
+		public bool Recv (out Msg msg)
 		{
-			return RecvPipe (null);
+			return RecvPipe(null, out msg);
 		}
 
-		public Msg RecvPipe(Pipe[] pipe) {
-			//  Deallocate old content of the message.
-			Msg msg_;
+		public bool RecvPipe(Pipe[] pipe, out Msg msg_) {
+			//  Deallocate old content of the message.			
 
 			//  Round-robin over the pipes to get the next message.
 			while (m_active > 0) {
@@ -108,7 +107,7 @@ namespace NetMQ.zmq
 					m_more = msg_.HasMore;
 					if (!m_more)
 						m_current = (m_current + 1) % m_active;
-					return msg_;
+					return true;
 				}
             
 				//  Check the atomicity of the message.
@@ -124,7 +123,8 @@ namespace NetMQ.zmq
 
 			//  No message is available. Initialise the output parameter
 			//  to be a 0-byte message.
-			throw AgainException.Create();
+			msg_ = null;
+			return false;
 		}
 
 		public bool HasIn ()

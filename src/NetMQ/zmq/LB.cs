@@ -89,7 +89,7 @@ namespace NetMQ.zmq
 			m_active++;
 		}
 
-		public void Send(Msg msg, SendReceiveOptions flags)
+		public  bool Send(Msg msg, SendReceiveOptions flags)
 		{
 			//  Drop the message if required. If we are at the end of the message
 			//  switch back to non-dropping mode.
@@ -100,7 +100,7 @@ namespace NetMQ.zmq
 				m_dropping = m_more;
 
 				msg.Close();
-				return;
+				return true;
 			}
 
 			while (m_active > 0)
@@ -119,7 +119,7 @@ namespace NetMQ.zmq
 			//  If there are no pipes we cannot send the message.
 			if (m_active == 0)
 			{
-				throw AgainException.Create();
+				return false;
 			}
 
 			//  If it's part of the message we can fluch it downstream and
@@ -132,6 +132,7 @@ namespace NetMQ.zmq
 					m_current = (m_current + 1) % m_active;
 			}
 
+			return true;
 		}
 
 		public bool HasOut()

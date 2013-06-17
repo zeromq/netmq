@@ -49,7 +49,7 @@ namespace NetMQ.zmq
 		}
 
 
-		protected override void XSend(Msg msg, SendReceiveOptions flags)
+		protected override bool XSend(Msg msg, SendReceiveOptions flags)
 		{
 			//  If we've sent a request and we still haven't got the reply,
 			//  we can't send another request.
@@ -58,32 +58,46 @@ namespace NetMQ.zmq
 				throw NetMQException.Create("Cannot send another request", ErrorCode.EFSM);				
 			}
 
+			bool result;
 			
 			//  First part of the request is the request identity.
 			if (m_messageBegins)
 			{
 				Msg bottom = new Msg();
 				bottom.SetFlags(MsgFlags.More);
-				base.XSend(bottom, 0);
+				result = base.XSend(bottom, 0);
+
+				if (!result)
+				{
+					return false;
+				}
+
 				m_messageBegins = false;
 			}
 
 			bool more = msg.HasMore;
 
-			base.XSend(msg, flags);
-			
+			result = base.XSend(msg, flags);
+
+			if (!result)
+			{
+				return false;
+			}			
 			//  If the request was fully sent, flip the FSM into reply-receiving state.
-			if (!more)
+			else if (!more)
 			{
 				m_receivingReply = true;
 				m_messageBegins = true;
 			}
+
+			return true;
 		}
 
-		override
-			protected Msg XRecv(SendReceiveOptions flags)
+		override protected bool XRecv(SendReceiveOptions flags, out Msg msg)
 		{
-			Msg msg = null;
+			bool result;
+
+			msg = null;
 			//  If request wasn't send, we can't wait for reply.
 			if (!m_receivingReply)
 			{
@@ -93,29 +107,44 @@ namespace NetMQ.zmq
 			//  First part of the reply should be the original request ID.
 			if (m_messageBegins)
 			{
-				msg = base.XRecv(flags);
-				if (msg == null)
-					return null;
+				result = base.XRecv(flags, out msg);
+				
+				if (!result)
+				{
+					return false;
+				}
+				else if (msg == null)
+				{
+					return true;
+				}
 
 				// TODO: This should also close the connection with the peer!
 				if (!msg.HasMore || msg.Size != 0)
 				{
 					while (true)
 					{
-						msg = base.XRecv(flags);
+						result = base.XRecv(flags, out msg);
 						Debug.Assert(msg != null);
 						if (!msg.HasMore)
 							break;
 					}
-					throw AgainException.Create();
+
+					msg = null;
+					return false;
 				}
 
 				m_messageBegins = false;
 			}
 
-			msg = base.XRecv(flags);
-			if (msg == null)
-				return null;
+			result = base.XRecv(flags, out msg);
+			if (!result)
+			{
+				return false;
+			}
+			else if (msg == null)
+			{
+				return true;
+			}
 
 			//  If the reply is fully received, flip the FSM into request-sending state.
 			if (!msg.HasMore)
@@ -124,7 +153,7 @@ namespace NetMQ.zmq
 				m_messageBegins = true;
 			}
 
-			return msg;
+			return true;
 		}
 
 		override
