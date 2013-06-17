@@ -233,29 +233,6 @@ namespace NetMQ
 			return ReceiveInternal(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore).Data;
 		}
 
-		public NetMQMessage ReceiveMessage(bool dontWait = false)
-		{
-			NetMQMessage message = new NetMQMessage();
-
-			ReceiveMessage(message, dontWait);
-
-			return message;
-		}
-
-		public void ReceiveMessage(NetMQMessage message, bool dontWait = false)
-		{			
-			message.Clear();
-
-			bool more = true;			
-
-			while (more)
-			{
-				byte[] buffer = Receive(dontWait, out more);
-
-				message.Append(buffer);
-			}
-		}
-
 		public void SendMessage(NetMQMessage message, bool dontWait = false)
 		{
 			for (int i = 0; i < message.FrameCount-1; i++)

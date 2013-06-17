@@ -58,6 +58,26 @@ namespace NetMQ
 			return socket.ReceiveString(false, out hasMore);
 		}
 
+		public static NetMQMessage ReceiveMessage(this IReceivingSocket socket, bool dontWait = false)
+		{
+			NetMQMessage message = new NetMQMessage();
+			socket.ReceiveMessage(message, dontWait);
+			return message;
+		}
+
+		public static void ReceiveMessage(this IReceivingSocket socket, NetMQMessage message, bool dontWait = false)
+		{
+			message.Clear();
+
+			bool more = true;
+
+			while (more)
+			{
+				byte[] buffer = socket.Receive(dontWait, out more);
+				message.Append(buffer);
+			}
+		}
+
 		public static IEnumerable<byte[]> ReceiveMessages(this IReceivingSocket socket)
 		{
 			bool hasMore = true;
