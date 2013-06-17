@@ -58,16 +58,16 @@ namespace NetMQ.zmq
 				throw NetMQException.Create("Cannot send another request", ErrorCode.EFSM);				
 			}
 
-			bool result;
+			bool isMessageSent;
 			
 			//  First part of the request is the request identity.
 			if (m_messageBegins)
 			{
 				Msg bottom = new Msg();
 				bottom.SetFlags(MsgFlags.More);
-				result = base.XSend(bottom, 0);
+				isMessageSent = base.XSend(bottom, 0);
 
-				if (!result)
+				if (!isMessageSent)
 				{
 					return false;
 				}
@@ -77,9 +77,9 @@ namespace NetMQ.zmq
 
 			bool more = msg.HasMore;
 
-			result = base.XSend(msg, flags);
+			isMessageSent = base.XSend(msg, flags);
 
-			if (!result)
+			if (!isMessageSent)
 			{
 				return false;
 			}			
@@ -95,7 +95,7 @@ namespace NetMQ.zmq
 
 		override protected bool XRecv(SendReceiveOptions flags, out Msg msg)
 		{
-			bool result;
+			bool isMessageAvailable;
 
 			msg = null;
 			//  If request wasn't send, we can't wait for reply.
@@ -107,9 +107,9 @@ namespace NetMQ.zmq
 			//  First part of the reply should be the original request ID.
 			if (m_messageBegins)
 			{
-				result = base.XRecv(flags, out msg);
+				isMessageAvailable = base.XRecv(flags, out msg);
 				
-				if (!result)
+				if (!isMessageAvailable)
 				{
 					return false;
 				}
@@ -123,7 +123,7 @@ namespace NetMQ.zmq
 				{
 					while (true)
 					{
-						result = base.XRecv(flags, out msg);
+						isMessageAvailable = base.XRecv(flags, out msg);
 						Debug.Assert(msg != null);
 						if (!msg.HasMore)
 							break;
@@ -136,8 +136,8 @@ namespace NetMQ.zmq
 				m_messageBegins = false;
 			}
 
-			result = base.XRecv(flags, out msg);
-			if (!result)
+			isMessageAvailable = base.XRecv(flags, out msg);
+			if (!isMessageAvailable)
 			{
 				return false;
 			}

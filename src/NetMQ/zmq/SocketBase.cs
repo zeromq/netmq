@@ -700,9 +700,9 @@ namespace NetMQ.zmq
 
 			//  Try to send the message.
 
-			bool result = XSend(msg, flags);
+			bool isMessageSent = XSend(msg, flags);
 			
-			if (result)
+			if (isMessageSent)
 			{
 				return;
 			}
@@ -725,8 +725,8 @@ namespace NetMQ.zmq
 			{
 				ProcessCommands(timeout, false);
 
-				result = XSend(msg, flags);
-				if (result)
+				isMessageSent = XSend(msg, flags);
+				if (isMessageSent)
 					break;
 				
 				if (timeout > 0)
@@ -750,7 +750,7 @@ namespace NetMQ.zmq
 			Msg msg;
 
 			//  Get the message.
-			bool result = XRecv(flags, out msg);
+			bool isMessageAvailable = XRecv(flags, out msg);
 
 			//  Once every inbound_poll_rate messages check for signals and process
 			//  incoming commands. This happens only if we are not polling altogether
@@ -767,7 +767,7 @@ namespace NetMQ.zmq
 			}
 
 			//  If we have the message, return immediately.
-			if (result && msg != null)
+			if (isMessageAvailable && msg != null)
 			{
 				ExtractFlags(msg);
 				return msg;
@@ -782,8 +782,8 @@ namespace NetMQ.zmq
 				ProcessCommands(0, false);
 				m_ticks = 0;
 
-				result = XRecv(flags, out msg);
-				if (!result)
+				isMessageAvailable = XRecv(flags, out msg);
+				if (!isMessageAvailable)
 				{
 					throw AgainException.Create();
 				}
@@ -805,8 +805,8 @@ namespace NetMQ.zmq
 			{
 				ProcessCommands(block ? timeout : 0, false);
 
-				result = XRecv(flags, out msg);
-				if (result && msg != null)
+				isMessageAvailable = XRecv(flags, out msg);
+				if (isMessageAvailable && msg != null)
 				{
 					m_ticks = 0;
 					break;

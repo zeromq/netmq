@@ -68,9 +68,9 @@ namespace NetMQ.zmq
 			msg.Put (val,1);
 
 			//  Pass it further on in the stack.
-			bool result = base.XSend (msg, 0);
+			bool isMessageSent = base.XSend (msg, 0);
 
-			if (!result)
+			if (!isMessageSent)
 			{
 				throw AgainException.Create();
 			}

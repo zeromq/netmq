@@ -176,11 +176,11 @@ namespace NetMQ.zmq
 			while (true) {
 
 				//  Get a message using fair queueing algorithm.
-				bool result = m_fq.Recv (out msg);
+				bool isMessageAvailable = m_fq.Recv(out msg);
 
 				//  If there's no message available, return immediately.
 				//  The same when error occurs.
-				if (!result)
+				if (!isMessageAvailable)
 				{
 					return false;
 				}
@@ -221,9 +221,9 @@ namespace NetMQ.zmq
 			while (true) {
 				
 				//  Get a message using fair queueing algorithm.
-				bool result = m_fq.Recv(out m_message);
+				bool isMessageAvailable = m_fq.Recv(out m_message);
 				
-				if (!result)
+				if (!isMessageAvailable)
 				{
 					return false;
 				}
