@@ -410,7 +410,7 @@ namespace NetMQ.zmq
 			}
 			if (itemsCount == 0)
 			{
-				if (timeout == 0)
+				if (timeout <= 0)
 					return 0;
 				Thread.Sleep(timeout);
 				return 0;
@@ -466,6 +466,10 @@ namespace NetMQ.zmq
 				if (firstPass)
 				{
 					currentTimeoutMicroSeconds = 0;
+				}
+				else if (timeout == -1)
+				{
+					currentTimeoutMicroSeconds = -1;
 				}
 				else
 				{
