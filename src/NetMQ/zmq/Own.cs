@@ -27,9 +27,8 @@ using System.Threading;
 //  It handles initialisation and destruction of such objects.
 namespace NetMQ.zmq
 {
-	abstract public class Own : ZObject
+	public abstract class Own : ZObject
 	{
-
 		protected Options m_options;
 
 		//  True if termination was already initiated. If so, we can destroy
@@ -49,7 +48,7 @@ namespace NetMQ.zmq
 		//  List of all objects owned by this socket. We are responsible
 		//  for deallocating them before we quit.
 		//typedef std::set <own_t*> owned_t;
-		private HashSet<Own> owned;
+		private readonly HashSet<Own> owned = new HashSet<Own>();
 
 		//  Number of events we have to get before we can destroy the object.
 		private int m_termAcks;
@@ -69,11 +68,10 @@ namespace NetMQ.zmq
 			m_termAcks = 0;
 
 			m_options = new Options();
-			owned = new HashSet<Own>();
 		}
 
 		//  The object is living within I/O thread.
-		public Own(IOThread ioThread, Options options)
+		protected Own(IOThread ioThread, Options options)
 			: base(ioThread)
 		{
 			m_options = options;
@@ -81,8 +79,6 @@ namespace NetMQ.zmq
 			m_processedSeqnum = 0;
 			m_owner = null;
 			m_termAcks = 0;
-
-			owned = new HashSet<Own>();
 		}
 
 		abstract public void Destroy();
@@ -93,7 +89,6 @@ namespace NetMQ.zmq
 		{
 			Destroy();
 		}
-
 
 		private void SetOwner(Own owner)
 		{
@@ -132,17 +127,11 @@ namespace NetMQ.zmq
 			SendOwn(this, object_);
 		}
 
-
-
-
-
-
 		//  Terminate owned object
 		protected void TermChild(Own object_)
 		{
 			ProcessTermReq(object_);
 		}
-
 
 		protected override void ProcessTermReq(Own object_)
 		{
@@ -213,8 +202,7 @@ namespace NetMQ.zmq
 		//  Term handler is protocted rather than private so that it can
 		//  be intercepted by the derived class. This is useful to add custom
 		//  steps to the beginning of the termination process.
-		override
-			protected void ProcessTerm(int linger)
+		override protected void ProcessTerm(int linger)
 		{
 			//  Double termination should never happen.
 			Debug.Assert(!m_terminating);
@@ -224,7 +212,7 @@ namespace NetMQ.zmq
 			{
 				SendTerm(it, linger);
 			}
-			
+
 			RegisterTermAcks(owned.Count);
 			owned.Clear();
 
@@ -248,29 +236,21 @@ namespace NetMQ.zmq
 		{
 			Debug.Assert(m_termAcks > 0);
 			m_termAcks--;
-			
+
 			//  This may be a last ack we are waiting for before termination...
 			CheckTermAcks();
 		}
 
-
-
-		override
-			protected void ProcessTermAck()
+		override protected void ProcessTermAck()
 		{
-
 			UnregisterTermAck();
-
 		}
-
 
 		private void CheckTermAcks()
 		{
-		
 			if (m_terminating && m_processedSeqnum == Interlocked.Read(ref m_sentSeqnum) && 
 					m_termAcks == 0)
 			{
-
 				//  Sanity check. There should be no active children at this point.
 				Debug.Assert(owned.Count == 0);
 
@@ -283,8 +263,5 @@ namespace NetMQ.zmq
 				ProcessDestroy();
 			}
 		}
-
-
-
 	}
 }

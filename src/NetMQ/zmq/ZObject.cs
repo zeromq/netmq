@@ -25,278 +25,263 @@ using System;
 //  communication.
 namespace NetMQ.zmq
 {
-	public abstract class ZObject {
-
-
+	public abstract class ZObject
+	{
 		//  Context provides access to the global state.
 		private readonly Ctx m_ctx;
 
 		//  Thread ID of the thread the object belongs to.
-		private int m_tid;
-    
-		protected ZObject(Ctx ctx, int tid) {
+		private readonly int m_tid;
+
+		protected ZObject(Ctx ctx, int tid)
+		{
 			this.m_ctx = ctx;
 			this.m_tid = tid;
 		}
-    
-		protected ZObject (ZObject parent) :this(parent.m_ctx, parent.m_tid){
-    	
-		}    
-    
-		public int Tid
+
+		protected ZObject(ZObject parent)
+			: this(parent.m_ctx, parent.m_tid)
 		{
-			get { return m_tid; }
 		}
-    
-		protected Ctx Ctx 
+
+		public int Tid { get { return m_tid; } }
+
+		protected Ctx Ctx { get { return m_ctx; } }
+
+		public void ProcessCommand(Command cmd)
 		{
-			get { return m_ctx; }
-		}
-    
-		public void ProcessCommand(Command cmd) {
-			switch (cmd.CommandType) {
+			switch (cmd.CommandType)
+			{
 
 				case CommandType.ActivateRead:
-					ProcessActivateRead ();
+					ProcessActivateRead();
 					break;
 
 				case CommandType.ActivateWrite:
-					ProcessActivateWrite ((long)cmd.Arg);
+					ProcessActivateWrite((long)cmd.Arg);
 					break;
 
 				case CommandType.Stop:
-					ProcessStop ();
+					ProcessStop();
 					break;
 
 				case CommandType.Plug:
-					ProcessPlug ();
-					ProcessSeqnum ();
+					ProcessPlug();
+					ProcessSeqnum();
 					break;
 
 				case CommandType.Own:
-					ProcessOwn ((Own)cmd.Arg);
-					ProcessSeqnum ();
+					ProcessOwn((Own)cmd.Arg);
+					ProcessSeqnum();
 					break;
 
 				case CommandType.Attach:
-					ProcessAttach ((IEngine)cmd.Arg);
-					ProcessSeqnum ();
+					ProcessAttach((IEngine)cmd.Arg);
+					ProcessSeqnum();
 					break;
 
 				case CommandType.Bind:
-					ProcessBind ((Pipe)cmd.Arg);
-					ProcessSeqnum ();
+					ProcessBind((Pipe)cmd.Arg);
+					ProcessSeqnum();
 					break;
 
 				case CommandType.Hiccup:
-					ProcessHiccup (cmd.Arg);
+					ProcessHiccup(cmd.Arg);
 					break;
-    
+
 				case CommandType.PipeTerm:
-					ProcessPipeTerm ();
+					ProcessPipeTerm();
 					break;
-    
+
 				case CommandType.PipeTermAck:
-					ProcessPipeTermAck ();
+					ProcessPipeTermAck();
 					break;
-    
+
 				case CommandType.TermReq:
-					ProcessTermReq ((Own)cmd.Arg);
+					ProcessTermReq((Own)cmd.Arg);
 					break;
-    
+
 				case CommandType.Term:
-					ProcessTerm ((int)cmd.Arg);
+					ProcessTerm((int)cmd.Arg);
 					break;
-    
+
 				case CommandType.TermAck:
-					ProcessTermAck ();
+					ProcessTermAck();
 					break;
-    
+
 				case CommandType.Reap:
-					ProcessReap ((SocketBase)cmd.Arg);
+					ProcessReap((SocketBase)cmd.Arg);
 					break;
-            
+
 				case CommandType.Reaped:
-					ProcessReaped ();
+					ProcessReaped();
 					break;
-    
+
 				default:
 					throw new ArgumentException();
 			}
 
 		}
-    
-		protected void RegisterEndpoint (String addr, Ctx.Endpoint endpoint)
+
+		protected void RegisterEndpoint(String addr, Ctx.Endpoint endpoint)
 		{
-			m_ctx.RegisterEndpoint (addr, endpoint);
+			m_ctx.RegisterEndpoint(addr, endpoint);
 		}
-    
-		protected void UnregisterEndpoints (SocketBase socket)
+
+		protected void UnregisterEndpoints(SocketBase socket)
 		{
-			m_ctx.UnregisterEndpoints (socket);
+			m_ctx.UnregisterEndpoints(socket);
 		}
-    
-		protected Ctx.Endpoint FindEndpoint (String addr)
+
+		protected Ctx.Endpoint FindEndpoint(String addr)
 		{
-			return m_ctx.FindEndpoint (addr);
+			return m_ctx.FindEndpoint(addr);
 		}
-    
-		protected void DestroySocket (SocketBase socket)
+
+		protected void DestroySocket(SocketBase socket)
 		{
-			m_ctx.DestroySocket (socket);
+			m_ctx.DestroySocket(socket);
 		}
 
 		//  Chooses least loaded I/O thread.
-		protected IOThread ChooseIOThread (long affinity)
+		protected IOThread ChooseIOThread(long affinity)
 		{
-			return m_ctx.ChooseIOThread (affinity);
+			return m_ctx.ChooseIOThread(affinity);
 		}
-    
-		protected void SendStop ()
+
+		protected void SendStop()
 		{
 			//  'stop' command goes always from administrative thread to
 			//  the current object. 
 			Command cmd = new Command(this, CommandType.Stop);
-			m_ctx.SendCommand (m_tid, cmd);
-		}
-    
-    
-		protected void SendPlug (Own destination) {
-			SendPlug(destination, true);
+			m_ctx.SendCommand(m_tid, cmd);
 		}
 
-		protected void SendPlug (Own destination, bool incSeqnum)
+
+		protected void SendPlug(Own destination, bool incSeqnum = true)
 		{
 			if (incSeqnum)
-				destination.IncSeqnum ();
+				destination.IncSeqnum();
 
 			Command cmd = new Command(destination, CommandType.Plug);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
-    
-    
-		protected void SendOwn (Own destination, Own obj)
+
+
+		protected void SendOwn(Own destination, Own obj)
 		{
-			destination.IncSeqnum ();
+			destination.IncSeqnum();
 			Command cmd = new Command(destination, CommandType.Own, obj);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
-    
-		protected void SendAttach (SessionBase destination, IEngine engine) 
-		{
-			SendAttach(destination, engine, true);
-		}
-    
-		protected void SendAttach (SessionBase destination,
-		                            IEngine engine, bool incSeqnum)
+
+		protected void SendAttach(SessionBase destination,
+									IEngine engine, bool incSeqnum = true)
 		{
 			if (incSeqnum)
-				destination.IncSeqnum ();
+				destination.IncSeqnum();
 
 			Command cmd = new Command(destination, CommandType.Attach, engine);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
 
-    
-		protected void SendBind (Own destination, Pipe pipe)
-		{
-			SendBind(destination, pipe, true);
-		}
-    
-		protected void SendBind (Own destination, Pipe pipe,
-		                          bool incSeqnum)
+
+		protected void SendBind(Own destination, Pipe pipe,
+								  bool incSeqnum = true)
 		{
 			if (incSeqnum)
-				destination.IncSeqnum ();
+				destination.IncSeqnum();
 
 			Command cmd = new Command(destination, CommandType.Bind, pipe);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
 
 
 		protected void SendActivateRead(Pipe destination)
 		{
 			Command cmd = new Command(destination, CommandType.ActivateRead);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
 
-		protected void SendActivateWrite (Pipe destination,
-		                                    long msgsRead)
+		protected void SendActivateWrite(Pipe destination,
+											long msgsRead)
 		{
 			Command cmd = new Command(destination, CommandType.ActivateWrite, msgsRead);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
 
-		protected void SendHiccup (Pipe destination, Object pipe)
+		protected void SendHiccup(Pipe destination, Object pipe)
 		{
 			Command cmd = new Command(destination, CommandType.Hiccup, pipe);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
 
-    
-		protected void SendPipeTerm (Pipe destination)
+
+		protected void SendPipeTerm(Pipe destination)
 		{
 			Command cmd = new Command(destination, CommandType.PipeTerm);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
 
 
-		protected void SendPipeTermAck (Pipe destination)
+		protected void SendPipeTermAck(Pipe destination)
 		{
 			Command cmd = new Command(destination, CommandType.PipeTermAck);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
 
 
-		protected void SendTermReq (Own destination,
-		                              Own object_)
+		protected void SendTermReq(Own destination,
+									  Own object_)
 		{
 			Command cmd = new Command(destination, CommandType.TermReq, object_);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
-    
 
-		protected void SendTerm (Own destination, int linger)
+
+		protected void SendTerm(Own destination, int linger)
 		{
 			Command cmd = new Command(destination, CommandType.Term, linger);
-			SendCommand (cmd);
-        
+			SendCommand(cmd);
+
 		}
-    
 
-		protected void SendTermAck (Own destination)
-		{   
-			Command cmd = new Command(destination, CommandType.TermAck);
-			SendCommand (cmd);
-		}   
 
-		protected void SendReap (SocketBase socket)
+		protected void SendTermAck(Own destination)
 		{
-			Command cmd = new Command(m_ctx.GetReaper (), CommandType.Reap, socket);
-			SendCommand (cmd);
+			Command cmd = new Command(destination, CommandType.TermAck);
+			SendCommand(cmd);
 		}
-    
-    
-		protected void SendReaped ()
+
+		protected void SendReap(SocketBase socket)
+		{
+			Command cmd = new Command(m_ctx.GetReaper(), CommandType.Reap, socket);
+			SendCommand(cmd);
+		}
+
+
+		protected void SendReaped()
 		{
 			Command cmd = new Command(m_ctx.GetReaper(), CommandType.Reaped);
-			SendCommand (cmd);
+			SendCommand(cmd);
 		}
 
 
 
-		protected void SendDone ()
+		protected void SendDone()
 		{
 			Command cmd = new Command(null, CommandType.Done);
 			m_ctx.SendCommand(Ctx.TermTid, cmd);
 		}
 
 
-		protected virtual void ProcessStop() {
+		protected virtual void ProcessStop()
+		{
 			throw new NotSupportedException();
 		}
-    
-		protected virtual void ProcessPlug() {
+
+		protected virtual void ProcessPlug()
+		{
 			throw new NotSupportedException();
 		}
 
@@ -366,7 +351,7 @@ namespace NetMQ.zmq
 		{
 			throw new NotSupportedException();
 		}
-    
+
 		//  Special handler called after a command that requires a seqnum
 		//  was processed. The implementation should catch up with its counter
 		//  of processed commands here.
@@ -374,12 +359,11 @@ namespace NetMQ.zmq
 		{
 			throw new NotSupportedException();
 		}
-    
-    
-		private void SendCommand (Command cmd)
-		{
-			m_ctx.SendCommand (cmd.Destination.Tid , cmd);
-		}
 
+
+		private void SendCommand(Command cmd)
+		{
+			m_ctx.SendCommand(cmd.Destination.Tid, cmd);
+		}
 	}
 }
