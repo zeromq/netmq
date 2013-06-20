@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 //  Base class for objects forming a part of ownership hierarchy.
 //  It handles initialisation and destruction of such objects.
@@ -36,7 +37,7 @@ namespace NetMQ.zmq
 		private bool m_terminating;
 
 		//  Sequence number of the last command sent to this object.
-		private readonly AtomicLong m_sentSeqnum;
+		private long m_sentSeqnum;
 
 		//  Sequence number of the last command processed by this object.
 		private long m_processedSeqnum;
@@ -63,7 +64,6 @@ namespace NetMQ.zmq
 			: base(parent, tid)
 		{
 			m_terminating = false;
-			m_sentSeqnum = new AtomicLong(0);
 			m_processedSeqnum = 0;
 			m_owner = null;
 			m_termAcks = 0;
@@ -78,7 +78,6 @@ namespace NetMQ.zmq
 		{
 			m_options = options;
 			m_terminating = false;
-			m_sentSeqnum = new AtomicLong(0);
 			m_processedSeqnum = 0;
 			m_owner = null;
 			m_termAcks = 0;
@@ -105,10 +104,10 @@ namespace NetMQ.zmq
 		//  When another owned object wants to send command to this object
 		//  it calls this function to let it know it should not shut down
 		//  before the command is delivered.
+		//  This function may be called from a different thread!
 		public void IncSeqnum()
 		{
-			//  This function may be called from a different thread!
-			m_sentSeqnum.IncrementAndGet();
+			Interlocked.Increment(ref m_sentSeqnum);
 		}
 
 		protected override void ProcessSeqnum()
@@ -268,7 +267,7 @@ namespace NetMQ.zmq
 		private void CheckTermAcks()
 		{
 		
-			if (m_terminating && m_processedSeqnum == m_sentSeqnum.Get() &&
+			if (m_terminating && m_processedSeqnum == Interlocked.Read(ref m_sentSeqnum) && 
 					m_termAcks == 0)
 			{
 

@@ -97,7 +97,6 @@
     <Compile Include="NetMQTimer.cs" />
     <Compile Include="zmq\Address.cs" />
     <Compile Include="zmq\AtomicInteger.cs" />
-    <Compile Include="zmq\AtomicLong.cs" />
     <Compile Include="zmq\Blob.cs" />
     <Compile Include="zmq\ByteArraySegment.cs" />
     <Compile Include="zmq\Clock.cs" />
