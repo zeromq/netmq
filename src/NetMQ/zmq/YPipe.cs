@@ -20,10 +20,12 @@
 */
 
 using System.Diagnostics;
+using System.Threading;
 
 namespace NetMQ.zmq
 {
-	public class YPipe<T> where T: class{
+	public class YPipe<T> where T : class
+	{
 
 		//  Allocation-efficient queue to store pipe items.
 		//  Front of the queue points to the first prefetched item, back of
@@ -48,73 +50,74 @@ namespace NetMQ.zmq
 		//  Points past the last flushed item. If it is NULL,
 		//  reader is asleep. This pointer should be always accessed using
 		//  atomic operations.
-		private readonly AtomicInteger m_c;
+		private int m_c;
 
-		public YPipe(int qsize, string name) {
+		public YPipe(int qsize, string name)
+		{
 			m_name = name;
 			m_queue = new YQueue<T>(qsize);
-			m_w = m_r = m_f = m_queue.BackPos;
-			m_c = new AtomicInteger(m_queue.BackPos);            
+			m_c = m_w = m_r = m_f = m_queue.BackPos;
 		}
 
 		//  Write an item to the pipe.  Don't flush it yet. If incomplete is
 		//  set to true the item is assumed to be continued by items
 		//  subsequently written to the pipe. Incomplete items are never
 		//  flushed down the stream.
-		public void Write (T value, bool incomplete)
+		public void Write(T value, bool incomplete)
 		{
 			//  Place the value to the queue, add new terminator element.
 			m_queue.Push(value);
 
 			//  Move the "flush up to here" poiter.
-			if (!incomplete) {
+			if (!incomplete)
+			{
 				m_f = m_queue.BackPos;
 			}
 		}
-    
+
 		//  Pop an incomplete item from the pipe. Returns true is such
 		//  item exists, false otherwise.
-		public T Unwrite ()
+		public T Unwrite()
 		{
-        
+
 			if (m_f == m_queue.BackPos)
 				return null;
 			m_queue.Unpush();
 			return m_queue.Back;
 		}
-    
+
 		//  Flush all the completed items into the pipe. Returns false if
 		//  the reader thread is sleeping. In that case, caller is obliged to
 		//  wake the reader up before using the pipe again.
-		public bool Flush ()
+		public bool Flush()
 		{
 			//  If there are no un-flushed items, do nothing.
-			if (m_w == m_f) {
+			if (m_w == m_f)
+			{
 				return true;
 			}
 
-        
 			//  Try to set 'c' to 'f'.
-			if (!m_c.CompareAndSet(m_w, m_f)) {
-
-				//  Compare-and-swap was unseccessful because 'c' is NULL.
+			if (Interlocked.CompareExchange(ref m_c, m_f, m_w) != m_w)
+			{
+				//  Compare-and-swap was unsuccessful because 'c' is NULL.
 				//  This means that the reader is asleep. Therefore we don't
 				//  care about thread-safeness and update c in non-atomic
 				//  manner. We'll return false to let the caller know
 				//  that reader is sleeping.
-				m_c.Set (m_f);
+				Interlocked.Exchange(ref m_c, m_f);
 				m_w = m_f;
 				return false;
 			}
-        
+
 			//  Reader is alive. Nothing special to do now. Just move
 			//  the 'first un-flushed item' pointer to 'f'.
 			m_w = m_f;
 			return true;
 		}
-    
+
 		//  Check whether item is available for reading.
-		public bool CheckRead ()
+		public bool CheckRead()
 		{
 			//  Was the value prefetched already? If so, return.
 			int h = m_queue.FrontPos;
@@ -125,11 +128,11 @@ namespace NetMQ.zmq
 			//  Prefetching is to simply retrieve the
 			//  pointer from c in atomic fashion. If there are no
 			//  items to prefetch, set c to -1 (using compare-and-swap).
-			if (m_c.CompareAndSet (h, -1)) {
+			if (Interlocked.CompareExchange(ref m_c, -1, h)==h) {
 				// nothing to read, h == r must be the same
 			} else {
 				// something to have been written
-				m_r = m_c.Get();
+				m_r = m_c;
 			}
         
 			//  If there are no elements prefetched, exit.
@@ -146,32 +149,29 @@ namespace NetMQ.zmq
 
 		//  Reads an item from the pipe. Returns false if there is no value.
 		//  available.
-		public T Read ()
+		public T Read()
 		{
 			//  Try to prefetch a value.
-			if (!CheckRead ())
+			if (!CheckRead())
 				return null;
 
 			//  There was at least one value prefetched.
 			//  Return it to the caller.
 			T value = m_queue.Pop();
-        
+
 			return value;
 		}
-    
-    
+
 		//  Applies the function fn to the first elemenent in the pipe
 		//  and returns the value returned by the fn.
 		//  The pipe mustn't be empty or the function crashes.
-		public T Probe() {
-        
-			bool rc = CheckRead ();
+		public T Probe()
+		{
+			bool rc = CheckRead();
 			Debug.Assert(rc);
-        
+
 			T value = m_queue.Front;
 			return value;
 		}
-
-
 	}
 }

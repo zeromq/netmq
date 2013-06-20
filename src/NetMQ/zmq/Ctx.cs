@@ -95,7 +95,7 @@ namespace NetMQ.zmq
 		private readonly object m_endpointsSync;
 
 		//  Maximum socket ID.
-		private static readonly AtomicInteger s_maxSocketId = new AtomicInteger(0);
+		private static int s_maxSocketId;
 
 		//  Maximum number of sockets that can be opened at the same time.
 		private int m_maxSockets;
@@ -339,7 +339,7 @@ namespace NetMQ.zmq
 				int slot = m_emptySlots.Pop();
 
 				//  Generate new unique socket ID.
-				int sid = s_maxSocketId.IncrementAndGet();
+				int sid = Interlocked.Increment(ref s_maxSocketId);
 
 				//  Create the socket and register its mailbox.
 				s = SocketBase.Create(type, this, slot, sid);
