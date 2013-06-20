@@ -31,20 +31,20 @@ namespace NetMQ.zmq
 		private readonly Ctx m_ctx;
 
 		//  Thread ID of the thread the object belongs to.
-		private readonly int m_tid;
+		private readonly int m_threadId;
 
-		protected ZObject(Ctx ctx, int tid)
+		protected ZObject(Ctx ctx, int threadId)
 		{
 			this.m_ctx = ctx;
-			this.m_tid = tid;
+			this.m_threadId = threadId;
 		}
 
 		protected ZObject(ZObject parent)
-			: this(parent.m_ctx, parent.m_tid)
+			: this(parent.m_ctx, parent.m_threadId)
 		{
 		}
 
-		public int Tid { get { return m_tid; } }
+		public int ThreadId { get { return m_threadId; } }
 
 		protected Ctx Ctx { get { return m_ctx; } }
 
@@ -154,7 +154,7 @@ namespace NetMQ.zmq
 			//  'stop' command goes always from administrative thread to
 			//  the current object. 
 			Command cmd = new Command(this, CommandType.Stop);
-			m_ctx.SendCommand(m_tid, cmd);
+			m_ctx.SendCommand(m_threadId, cmd);
 		}
 
 
@@ -363,7 +363,7 @@ namespace NetMQ.zmq
 
 		private void SendCommand(Command cmd)
 		{
-			m_ctx.SendCommand(cmd.Destination.Tid, cmd);
+			m_ctx.SendCommand(cmd.Destination.ThreadId, cmd);
 		}
 	}
 }

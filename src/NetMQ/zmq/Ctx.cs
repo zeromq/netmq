@@ -364,7 +364,7 @@ namespace NetMQ.zmq
 			//  Free the associated thread slot.
 			lock (m_slotSync)
 			{
-				tid = socket.Tid;
+				tid = socket.ThreadId;
 				m_emptySlots.Push(tid);
 				m_slots[tid].Close();
 				m_slots[tid] = null;

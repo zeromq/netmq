@@ -59,8 +59,8 @@ namespace NetMQ.zmq
 
 		//  The object is not living within an I/O thread. It has it's own
 		//  thread outside of 0MQ infrastructure.
-		public Own(Ctx parent, int tid)
-			: base(parent, tid)
+		public Own(Ctx parent, int threadId)
+			: base(parent, threadId)
 		{
 			m_terminating = false;
 			m_processedSeqnum = 0;

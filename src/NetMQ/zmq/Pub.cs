@@ -32,7 +32,7 @@ namespace NetMQ.zmq
 
 		}
 
-		public Pub(Ctx parent, int tid, int sid):base(parent, tid, sid) {
+		public Pub(Ctx parent, int threadId, int sid):base(parent, threadId, sid) {
 
 			m_options.SocketType = ZmqSocketType.Pub;
 		}

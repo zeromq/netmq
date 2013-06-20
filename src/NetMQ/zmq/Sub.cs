@@ -35,7 +35,7 @@ namespace NetMQ.zmq
 
 		}
     
-		public Sub(Ctx parent, int tid, int sid) :base(parent, tid, sid){
+		public Sub(Ctx parent, int threadId, int sid) :base(parent, threadId, sid){
 			m_options.SocketType = ZmqSocketType.Sub;
 
 			//  Switch filtering messages on (as opposed to XSUB which where the

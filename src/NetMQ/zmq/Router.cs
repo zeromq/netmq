@@ -93,8 +93,8 @@ namespace NetMQ.zmq
 		private bool m_mandatory;
 
 
-		public Router(Ctx parent, int tid, int sid)
-			: base(parent, tid, sid)
+		public Router(Ctx parent, int threadId, int sid)
+			: base(parent, threadId, sid)
 		{
 
 			m_prefetched = false;

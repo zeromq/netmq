@@ -73,8 +73,8 @@ namespace NetMQ.zmq
 		// Bitmask of events being monitored
 		private SocketEvent m_monitorEvents;
 
-		protected SocketBase(Ctx parent, int tid, int sid)
-			: base(parent, tid)
+		protected SocketBase(Ctx parent, int threadId, int sid)
+			: base(parent, threadId)
 		{
 			m_tag = 0xbaddecaf;
 			m_ctxTerminated = false;

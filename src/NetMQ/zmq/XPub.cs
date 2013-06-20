@@ -87,8 +87,8 @@ namespace NetMQ.zmq
 			};
 		}
 
-		public XPub(Ctx parent, int tid, int sid)
-			: base(parent, tid, sid)
+		public XPub(Ctx parent, int threadId, int sid)
+			: base(parent, threadId, sid)
 		{
 
 			m_options.SocketType = ZmqSocketType.Xpub;

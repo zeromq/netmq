@@ -42,7 +42,7 @@ namespace NetMQ.zmq
 		private bool m_requestBegins;
     
     
-		public Rep(Ctx parent, int tid, int sid) : base(parent, tid, sid)
+		public Rep(Ctx parent, int threadId, int sid) : base(parent, threadId, sid)
 		{
         
 			m_sendingReply = false;
