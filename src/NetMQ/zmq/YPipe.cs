@@ -35,14 +35,14 @@ namespace NetMQ.zmq
 
 		//  Points to the first un-flushed item. This variable is used
 		//  exclusively by writer thread.
-		private int m_w;
+		private int m_flushFromIndex;
 
 		//  Points to the first un-prefetched item. This variable is used
 		//  exclusively by reader thread.
-		private int m_r;
+		private int m_readToIndex;
 
 		//  Points to the first item to be flushed in the future.
-		private int m_f;
+		private int m_flushToIndex;
 
 		private string m_name;
 
@@ -50,13 +50,13 @@ namespace NetMQ.zmq
 		//  Points past the last flushed item. If it is NULL,
 		//  reader is asleep. This pointer should be always accessed using
 		//  atomic operations.
-		private int m_c;
+		private int m_lastAllowedToReadIndex;
 
 		public YPipe(int qsize, string name)
 		{
 			m_name = name;
 			m_queue = new YQueue<T>(qsize);
-			m_c = m_w = m_r = m_f = m_queue.BackPos;
+			m_lastAllowedToReadIndex = m_flushFromIndex = m_readToIndex = m_flushToIndex = m_queue.BackPos;
 		}
 
 		//  Write an item to the pipe.  Don't flush it yet. If incomplete is
@@ -71,48 +71,48 @@ namespace NetMQ.zmq
 			//  Move the "flush up to here" poiter.
 			if (!incomplete)
 			{
-				m_f = m_queue.BackPos;
+				m_flushToIndex = m_queue.BackPos;
 			}
 		}
 
-		//  Pop an incomplete item from the pipe. Returns true is such
-		//  item exists, false otherwise.
+		/// <summary>Pop an incomplete item from the pipe.</summary> 
+		/// <returns>Returns the element revoked if such item exists, <c>null</c> otherwise.</returns>  
 		public T Unwrite()
 		{
 
-			if (m_f == m_queue.BackPos)
+			if (m_flushToIndex == m_queue.BackPos)
 				return null;
 			m_queue.Unpush();
 			return m_queue.Back;
 		}
 
-		//  Flush all the completed items into the pipe. Returns false if
-		//  the reader thread is sleeping. In that case, caller is obliged to
-		//  wake the reader up before using the pipe again.
+		/// <summary> Flush all the completed items into the pipe. </summary>
+		/// <returns> Returns <c>false</c> if the reader thread is sleeping. In that case, caller is obliged to
+		/// wake the reader up before using the pipe again.</returns>
 		public bool Flush()
 		{
 			//  If there are no un-flushed items, do nothing.
-			if (m_w == m_f)
+			if (m_flushFromIndex == m_flushToIndex)
 			{
 				return true;
 			}
 
-			//  Try to set 'c' to 'f'.
-			if (Interlocked.CompareExchange(ref m_c, m_f, m_w) != m_w)
+			//  Try to set 'c' to 'flushToIndex'.
+			if (Interlocked.CompareExchange(ref m_lastAllowedToReadIndex, m_flushToIndex, m_flushFromIndex) != m_flushFromIndex)
 			{
-				//  Compare-and-swap was unsuccessful because 'c' is NULL.
+				//  Compare-and-swap was unsuccessful because 'lastAllowedToReadIndex' is NULL (-1).
 				//  This means that the reader is asleep. Therefore we don't
 				//  care about thread-safeness and update c in non-atomic
 				//  manner. We'll return false to let the caller know
 				//  that reader is sleeping.
-				Interlocked.Exchange(ref m_c, m_f);
-				m_w = m_f;
+				Interlocked.Exchange(ref m_lastAllowedToReadIndex, m_flushToIndex);
+				m_flushFromIndex = m_flushToIndex;
 				return false;
 			}
 
 			//  Reader is alive. Nothing special to do now. Just move
-			//  the 'first un-flushed item' pointer to 'f'.
-			m_w = m_f;
+			//  the 'first un-flushed item' pointer to 'flushToIndex'.
+			m_flushFromIndex = m_flushToIndex;
 			return true;
 		}
 
@@ -120,26 +120,29 @@ namespace NetMQ.zmq
 		public bool CheckRead()
 		{
 			//  Was the value prefetched already? If so, return.
-			int h = m_queue.FrontPos;
-			if (h != m_r) 
+			int head = m_queue.FrontPos;
+			if (head != m_readToIndex)
 				return true;
 
 			//  There's no prefetched value, so let us prefetch more values.
 			//  Prefetching is to simply retrieve the
 			//  pointer from c in atomic fashion. If there are no
 			//  items to prefetch, set c to -1 (using compare-and-swap).
-			if (Interlocked.CompareExchange(ref m_c, -1, h)==h) {
+			if (Interlocked.CompareExchange(ref m_lastAllowedToReadIndex, -1, head) == head)
+			{
 				// nothing to read, h == r must be the same
-			} else {
-				// something to have been written
-				m_r = m_c;
 			}
-        
+			else
+			{
+				// something to have been written
+				m_readToIndex = m_lastAllowedToReadIndex;
+			}
+
 			//  If there are no elements prefetched, exit.
-			//  During pipe's lifetime r should never be NULL, however,
+			//  During pipe's lifetime readToIndex should never be NULL, however,
 			//  it can happen during pipe shutdown when items
 			//  are being deallocated.
-			if (h == m_r || m_r == -1) 
+			if (head == m_readToIndex || m_readToIndex == -1)
 				return false;
 
 			//  There was at least one value prefetched.
