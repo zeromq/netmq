@@ -82,8 +82,7 @@ namespace NetMQ.zmq
 
 			if (m_flushToIndex == m_queue.BackPos)
 				return null;
-			m_queue.Unpush();
-			return m_queue.Back;
+			return m_queue.Unpush();
 		}
 
 		/// <summary> Flush all the completed items into the pipe. </summary>

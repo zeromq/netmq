@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Diagnostics;
 
 namespace NetMQ.zmq
@@ -70,6 +71,8 @@ namespace NetMQ.zmq
 
 		public YQueue(int size)
 		{
+			if (size<2)
+				throw new ArgumentOutOfRangeException("size", "Size should be no less than 2");
 
 			this.m_size = size;
 			m_nextGlobalIndex = 0;
@@ -97,10 +100,6 @@ namespace NetMQ.zmq
 		/// <remarks> If the queue is empty, it should be equal to <see cref="FrontPos"/>. </remarks>
 		public int BackPos { get { return m_backChunk.GlobalPosition[m_backPositionInChunk]; } }
 		
-		/// <summary> Gets the back element of the queue. If the queue is empty, behaviour is undefined. </summary>
-		/// <value> The back element of the queue. </value>
-		public T Back { get { return m_backChunk.Values[m_backPositionInChunk]; } }
-
 		/// <summary> Retrieves the element at the front of the queue. </summary>
 		/// <returns> The element taken from queue. </returns>
 		public T Pop()
@@ -151,8 +150,8 @@ namespace NetMQ.zmq
 		/// <remarks> Caller is responsible for destroying the object being unpushed. 
 		/// The caller must also guarantee that the queue isn't empty when unpush is called. 
 		/// It cannot be done automatically as the read side of the queue can be managed by different, 
-		/// completely unsynchronised thread.</remarks>
-		public void Unpush()
+		/// completely unsynchronized thread.</remarks>
+		public T Unpush()
 		{
 			//  First, move 'back' one position backwards.
 			if (m_backPositionInChunk > 0)
@@ -175,6 +174,11 @@ namespace NetMQ.zmq
 				m_endChunk = m_endChunk.Previous;
 				m_endChunk.Next = null;
 			}
+
+			//capturing and removing the unpushed value from chunk.
+			T value = m_backChunk.Values[m_backPositionInChunk];
+			m_backChunk.Values[m_backPositionInChunk] = null;
+			return value;
 		}
 	}
 }
