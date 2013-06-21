@@ -56,10 +56,13 @@ namespace NetMQ.Tests
 
 							string m2 = req.ReceiveString(out more);
 
+							Thread.Sleep(200);
+
 							Assert.IsTrue(listening);
 							Assert.IsTrue(accepted);
 
 							monitor.Stop();
+
 							Thread.Sleep(200);
 
 							Assert.IsTrue(pollerTask.IsCompleted);
