@@ -138,6 +138,12 @@ namespace NetMQ
 			}
 		}
 
+		/// <summary> Wait until message is ready to be received from the socket. </summary>
+		public void Poll()
+		{
+			Poll(TimeSpan.FromMilliseconds(-1));
+		}
+
 		/// <summary>
 		/// Wait until message is ready to be received from the socket or until timeout is reached
 		/// </summary>
