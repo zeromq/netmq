@@ -25,27 +25,26 @@ namespace NetMQ.zmq
 {
 	public class YQueue<T> where T : class
 	{
-
-		//  Individual memory chunk to hold N elements.
+		/// <summary> Individual memory chunk to hold N elements. </summary>
 		private class Chunk
 		{
-			public Chunk(int size, int memoryPtr)
+			public Chunk(int size, int globalIndex)
 			{
 				Values = new T[size];
-				Pos = new int[size];
+				GlobalPosition = new int[size];
 				Debug.Assert(Values != null);
-				Prev = Next = null;
+				Previous = Next = null;
 				for (int i = 0; i != Values.Length; i++)
 				{
-					Pos[i] = memoryPtr;
-					memoryPtr++;
+					GlobalPosition[i] = globalIndex;
+					globalIndex++;
 				}
-
 			}
 
 			public T[] Values { get; private set; }
-			public int[] Pos { get; private set; }
-			public Chunk Prev { get; set; }
+			/// <summary> Contains global index positions of elements in the chunk. </summary>
+			public int[] GlobalPosition { get; private set; }
+			public Chunk Previous { get; set; }
 			public Chunk Next { get; set; }
 		}
 
@@ -54,9 +53,9 @@ namespace NetMQ.zmq
 		//  accessed exclusively be queue reader (front/pop), while back and
 		//  end positions are accessed exclusively by queue writer (back/push).
 		private volatile Chunk m_beginChunk;
-		private int m_beginPos;
+		private int m_beginPositionInChunk;
 		private Chunk m_backChunk;
-		private int m_backPos;
+		private int m_backPositionInChunk;
 		private Chunk m_endChunk;
 		private int m_endPos;
 		private Chunk m_spareChunk;
@@ -66,74 +65,66 @@ namespace NetMQ.zmq
 		//  this scenario holding onto the most recently freed chunk saves
 		//  us from having to call malloc/free.
 
-		private int m_memoryPtr;
+		private int m_nextGlobalIndex;
 
 
 		public YQueue(int size)
 		{
 
 			this.m_size = size;
-			m_memoryPtr = 0;
-			m_beginChunk = new Chunk(size, m_memoryPtr);
-			m_memoryPtr += size;
-			m_beginPos = 0;
-			m_backPos = 0;
+			m_nextGlobalIndex = 0;
+			m_beginChunk = new Chunk(size, m_nextGlobalIndex);
+			m_nextGlobalIndex += size;
+			m_beginPositionInChunk = 0;
+			m_backPositionInChunk = 0;
 			m_backChunk = m_beginChunk;
 			m_spareChunk = m_beginChunk;
 			m_endChunk = m_beginChunk;
 			m_endPos = 1;
 		}
 
-		public int FrontPos
-		{
-			get
-			{
-				return m_beginChunk.Pos[m_beginPos];
-			}
-		}
+		/// <summary> Gets the index of the front element of the queue. </summary>
+		/// <value> The index of the front element of the queue. </value>
+		/// <remarks> If the queue is empty, it should be equal to <see cref="BackPos"/>. </remarks>
+		public int FrontPos { get { return m_beginChunk.GlobalPosition[m_beginPositionInChunk]; } }
 
-		//  Returns reference to the front element of the queue.
-		//  If the queue is empty, behaviour is undefined.
-		public T Front
-		{
-			get { return m_beginChunk.Values[m_beginPos]; }
-		}
+		/// <summary> Gets the front element of the queue. If the queue is empty, behaviour is undefined. </summary>
+		/// <value> The front element of the queue. </value>
+		public T Front { get { return m_beginChunk.Values[m_beginPositionInChunk]; } }
 
-		public int BackPos
-		{
-			get { return m_backChunk.Pos[m_backPos]; }
-		}
+		/// <summary> Gets the index of the back element of the queue. </summary>
+		/// <value> The index of the back element of the queue. </value>
+		/// <remarks> If the queue is empty, it should be equal to <see cref="FrontPos"/>. </remarks>
+		public int BackPos { get { return m_backChunk.GlobalPosition[m_backPositionInChunk]; } }
+		
+		/// <summary> Gets the back element of the queue. If the queue is empty, behaviour is undefined. </summary>
+		/// <value> The back element of the queue. </value>
+		public T Back { get { return m_backChunk.Values[m_backPositionInChunk]; } }
 
-		//  Returns reference to the back element of the queue.
-		//  If the queue is empty, behaviour is undefined.
-		public T Back
-		{
-			get
-			{
-				return m_backChunk.Values[m_backPos];
-			}
-		}
-
+		/// <summary> Retrieves the element at the front of the queue. </summary>
+		/// <returns> The element taken from queue. </returns>
 		public T Pop()
 		{
-			T val = m_beginChunk.Values[m_beginPos];
-			m_beginChunk.Values[m_beginPos] = null;
-			m_beginPos++;
-			if (m_beginPos == m_size)
+			T value = m_beginChunk.Values[m_beginPositionInChunk];
+			m_beginChunk.Values[m_beginPositionInChunk] = null;
+			m_beginPositionInChunk++;
+			if (m_beginPositionInChunk == m_size)
 			{
 				m_beginChunk = m_beginChunk.Next;
-				m_beginChunk.Prev = null;
-				m_beginPos = 0;
+				m_beginChunk.Previous = null;
+				m_beginPositionInChunk = 0;
 			}
-			return val;
+			return value;
 		}
 
-		//  Adds an element to the back end of the queue.
+
+		/// <summary> Adds an element to the back end of the queue. </summary>
+		/// <param name="val">The value to be pushed.</param>
 		public void Push(T val)
 		{
-			m_backChunk.Values[m_backPos] = val;
+			m_backChunk.Values[m_backPositionInChunk] = val;
 			m_backChunk = m_endChunk;
-			m_backPos = m_endPos;
+			m_backPositionInChunk = m_endPos;
 
 			m_endPos++;
 			if (m_endPos != m_size)
@@ -144,34 +135,32 @@ namespace NetMQ.zmq
 			{
 				m_spareChunk = m_spareChunk.Next;
 				m_endChunk.Next = sc;
-				sc.Prev = m_endChunk;
+				sc.Previous = m_endChunk;
 			}
 			else
 			{
-				m_endChunk.Next = new Chunk(m_size, m_memoryPtr);
-				m_memoryPtr += m_size;
-				m_endChunk.Next.Prev = m_endChunk;
+				m_endChunk.Next = new Chunk(m_size, m_nextGlobalIndex);
+				m_nextGlobalIndex += m_size;
+				m_endChunk.Next.Previous = m_endChunk;
 			}
 			m_endChunk = m_endChunk.Next;
 			m_endPos = 0;
 		}
 
-		//  Removes element from the back end of the queue. In other words
-		//  it rollbacks last push to the queue. Take care: Caller is
-		//  responsible for destroying the object being unpushed.
-		//  The caller must also guarantee that the queue isn't empty when
-		//  unpush is called. It cannot be done automatically as the read
-		//  side of the queue can be managed by different, completely
-		//  unsynchronised thread.
+		/// <summary> Removes element from the back end of the queue. In other words it rollbacks last push to the queue. </summary>
+		/// <remarks> Caller is responsible for destroying the object being unpushed. 
+		/// The caller must also guarantee that the queue isn't empty when unpush is called. 
+		/// It cannot be done automatically as the read side of the queue can be managed by different, 
+		/// completely unsynchronised thread.</remarks>
 		public void Unpush()
 		{
 			//  First, move 'back' one position backwards.
-			if (m_backPos > 0)
-				m_backPos--;
+			if (m_backPositionInChunk > 0)
+				m_backPositionInChunk--;
 			else
 			{
-				m_backPos = m_size - 1;
-				m_backChunk = m_backChunk.Prev;
+				m_backPositionInChunk = m_size - 1;
+				m_backChunk = m_backChunk.Previous;
 			}
 
 			//  Now, move 'end' position backwards. Note that obsolete end chunk
@@ -183,12 +172,9 @@ namespace NetMQ.zmq
 			else
 			{
 				m_endPos = m_size - 1;
-				m_endChunk = m_endChunk.Prev;
+				m_endChunk = m_endChunk.Previous;
 				m_endChunk.Next = null;
 			}
 		}
-
-
-
 	}
 }
