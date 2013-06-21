@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using NetMQ.zmq;
+﻿using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -9,33 +6,6 @@ namespace NetMQ.Tests
 	[TestFixture]
 	public class ProxyTests
 	{
-		[Test]
-		public void TestInfinitePolling()
-		{
-			using (var context = NetMQContext.Create())
-			using (var socket = context.CreateDealerSocket())
-			{
-				socket.Bind("inproc://test");
-				//Workaround. To signal the poll that we are interested in POLLIN events, otherwise the Poll will be waiting for errors only.
-				socket.ReceiveReady += (sender, args) => { };
-
-				// ReSharper disable AccessToDisposedClosure
-				Task.Factory.StartNew(() =>
-					{
-						Thread.Sleep(500);
-						using (var monitor = context.CreateDealerSocket())
-						{
-							monitor.Connect("inproc://test");
-							monitor.Send("ping");
-						}
-					});
-
-				Assert.DoesNotThrow(socket.Poll);
-				Assert.AreEqual(socket.ReceiveString(SendReceiveOptions.DontWait), "ping");
-				// ReSharper restore AccessToDisposedClosure
-			}
-		}
-
 		[Test]
 		public void TestProxySendAndReceive()
 		{

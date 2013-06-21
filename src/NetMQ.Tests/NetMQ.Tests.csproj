@@ -73,6 +73,7 @@
     <Compile Include="ReqRepTests.cs" />
     <Compile Include="Security\SecureChannelTests.cs" />
     <Compile Include="SocketTests.cs" />
+    <Compile Include="zmq\ZMQPollTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NetMQ\NetMQ.csproj">
@@ -80,9 +81,7 @@
       <Name>NetMQ</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="zmq\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="NetMQ.Testing.crt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
