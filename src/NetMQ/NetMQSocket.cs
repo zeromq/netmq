@@ -138,6 +138,12 @@ namespace NetMQ
 			}
 		}
 
+		/// <summary> Wait until message is ready to be received from the socket. </summary>
+		public void Poll()
+		{
+			Poll(TimeSpan.FromMilliseconds(-1));
+		}
+
 		/// <summary>
 		/// Wait until message is ready to be received from the socket or until timeout is reached
 		/// </summary>
@@ -147,13 +153,9 @@ namespace NetMQ
 		{
 			PollEvents events = GetPollEvents();
 
-			PollItem[] items = new PollItem[1];
-
 			PollItem item = new PollItem(m_socketHandle, events);
 
-			items[0] = item;
-
-			
+			PollItem[] items = new PollItem[] { item };
 
 			ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
 
@@ -171,7 +173,7 @@ namespace NetMQ
 				Errors = 0;
 			}
 
-			InvokeEvents(this, items[0].ResultEvent);
+			InvokeEvents(this, item.ResultEvent);
 
 			return items[0].ResultEvent != PollEvents.None;
 		}
@@ -197,7 +199,7 @@ namespace NetMQ
 		{
 			if (!m_isClosed)
 			{
-				m_socketEventArgs.Init(events);				
+				m_socketEventArgs.Init(events);
 
 				if (events.HasFlag(PollEvents.PollIn))
 				{
@@ -235,7 +237,7 @@ namespace NetMQ
 
 		public void SendMessage(NetMQMessage message, bool dontWait = false)
 		{
-			for (int i = 0; i < message.FrameCount-1; i++)
+			for (int i = 0; i < message.FrameCount - 1; i++)
 			{
 				Send(message[i].Buffer, message[i].MessageSize, dontWait, true);
 			}
