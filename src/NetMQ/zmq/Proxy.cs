@@ -52,7 +52,15 @@ namespace NetMQ.zmq
 				{
 					while (true)
 					{
-						msg = frontend.Recv(0);
+						try
+						{
+							msg = frontend.Recv(0);
+						}
+						catch (TerminatingException)
+						{
+							return false;
+						}
+
 						if (msg == null)
 						{
 							return false;
@@ -80,7 +88,15 @@ namespace NetMQ.zmq
 				{
 					while (true)
 					{
-						msg = backend.Recv(0);
+						try
+						{
+							msg = backend.Recv(0);
+						}
+						catch (TerminatingException)
+						{
+							return false;
+						}
+
 						if (msg == null)
 						{
 							return false;
