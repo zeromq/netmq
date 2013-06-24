@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IReceivingSocket.cs" />
+    <Compile Include="NetMQScheduler.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
     <Compile Include="ErrorPollingException.cs" />
     <Compile Include="NetMQFrame.cs" />
