@@ -63,6 +63,7 @@
     <Compile Include="ExpectedZmqException.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
+    <Compile Include="NetMQSchedulerTest.cs" />
     <Compile Include="NetMQTestRunner.cs" />
     <Compile Include="PgmTests.cs" />
     <Compile Include="PollerTests.cs" />
