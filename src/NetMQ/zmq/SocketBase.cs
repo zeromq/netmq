@@ -511,10 +511,9 @@ namespace NetMQ.zmq
 
 				//  Create a bi-directional pipe to connect the peers.
 				ZObject[] parents = { this, peer.Socket };
-				Pipe[] pipes = { null, null };
 				int[] hwms = { sndhwm, rcvhwm };
 				bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-				Pipe.Pipepair(parents, pipes, hwms, delays);
+				Pipe[] pipes = Pipe.PipePair(parents, hwms, delays);
 
 				//  Attach local end of the pipe to this socket object.
 				AttachPipe(pipes[0]);
@@ -596,10 +595,9 @@ namespace NetMQ.zmq
 			{
 				//  Create a bi-directional pipe.
 				ZObject[] parents = { this, session };
-				Pipe[] pipes = { null, null };
 				int[] hwms = { m_options.SendHighWatermark, m_options.ReceiveHighWatermark };
 				bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-				Pipe.Pipepair(parents, pipes, hwms, delays);
+				Pipe[] pipes = Pipe.PipePair(parents, hwms, delays);
 
 				//  Attach local end of the pipe to the socket object.
 				AttachPipe(pipes[0], icanhasall);
