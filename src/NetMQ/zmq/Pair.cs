@@ -37,8 +37,8 @@ namespace NetMQ.zmq
 
 		private Pipe m_pipe;
 
-		public Pair(Ctx parent, int tid, int sid)
-			: base(parent, tid, sid)
+		public Pair(Ctx parent, int threadId, int sid)
+			: base(parent, threadId, sid)
 		{
 			m_options.SocketType = ZmqSocketType.Pair;
 		}

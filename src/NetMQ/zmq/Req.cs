@@ -38,8 +38,8 @@ namespace NetMQ.zmq
 		private bool m_messageBegins;
 
 
-		public Req(Ctx parent, int tid, int sid)
-			: base(parent, tid, sid)
+		public Req(Ctx parent, int threadId, int sid)
+			: base(parent, threadId, sid)
 		{
 
 

@@ -79,7 +79,7 @@ namespace NetMQ.zmq
 			};
 		}
     
-		public XSub (Ctx parent, int tid, int sid) : base(parent, tid, sid) {
+		public XSub (Ctx parent, int threadId, int sid) : base(parent, threadId, sid) {
 
 			m_options.SocketType = ZmqSocketType.Xsub;
 			m_hasMessage = false;

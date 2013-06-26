@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace NetMQ.zmq
 {
@@ -29,7 +30,7 @@ namespace NetMQ.zmq
 
 		//  Load of the poller. Currently the number of file descriptors
 		//  registered.
-		private readonly AtomicInteger m_load;
+		private int m_load;
 
 		private class TimerInfo
 		{
@@ -47,7 +48,6 @@ namespace NetMQ.zmq
 
 		protected PollerBase()
 		{
-			m_load = new AtomicInteger(0);
 			m_timers = new SortedList<long, List<TimerInfo>>();
 		}
 
@@ -55,13 +55,17 @@ namespace NetMQ.zmq
 		//  invoked from a different thread!
 		public int Load
 		{
-			get { return m_load.Get(); }
+			get
+			{
+				Thread.MemoryBarrier();
+				return m_load;
+			}
 		}
 
 		//  Called by individual poller implementations to manage the load.
 		protected void AdjustLoad(int amount)
 		{
-			m_load.AddAndGet(amount);
+			Interlocked.Add(ref m_load, amount); 
 		}
 
 		//  Add a timeout to expire in timeout_ milliseconds. After the

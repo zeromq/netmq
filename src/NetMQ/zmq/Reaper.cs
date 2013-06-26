@@ -42,13 +42,13 @@ namespace NetMQ.zmq
     
 		private readonly String m_name;
 
-		public Reaper(Ctx ctx, int tid)
-			: base(ctx, tid)
+		public Reaper(Ctx ctx, int threadId)
+			: base(ctx, threadId)
 		{
 
 			m_sockets = 0;
 			m_terminating = false;
-			m_name = "reaper-" + tid;
+			m_name = "reaper-" + threadId;
 			m_poller = new Poller(m_name);
 
 			mailbox = new Mailbox(m_name);
