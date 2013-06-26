@@ -48,18 +48,20 @@ namespace NetMQ.zmq
 		//  List of all objects owned by this socket. We are responsible
 		//  for deallocating them before we quit.
 		//typedef std::set <own_t*> owned_t;
-		private readonly HashSet<Own> owned = new HashSet<Own>();
+		private readonly HashSet<Own> m_owned = new HashSet<Own>();
 
 		//  Number of events we have to get before we can destroy the object.
 		private int m_termAcks;
 
 
-		//  Note that the owner is unspecified in the constructor.
-		//  It'll be supplied later on when the object is plugged in.
 
-		//  The object is not living within an I/O thread. It has it's own
-		//  thread outside of 0MQ infrastructure.
-		public Own(Ctx parent, int threadId)
+
+		/// <summary> Initializes a new instance of the <see cref="Own" /> class that is running on a thread outside of 0MQ infrastructure. </summary>
+		/// <param name="parent">The parent context.</param>
+		/// <param name="threadId">The thread id.</param>
+		/// <remarks> Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
+		/// when the object is plugged in. </remarks>
+		protected Own(Ctx parent, int threadId)
 			: base(parent, threadId)
 		{
 			m_terminating = false;
@@ -70,7 +72,11 @@ namespace NetMQ.zmq
 			m_options = new Options();
 		}
 
-		//  The object is living within I/O thread.
+		/// <summary> Initializes a new instance of the <see cref="Own" /> class that is running within I/O thread. </summary>
+		/// <param name="ioThread">The I/O thread.</param>
+		/// <param name="options">The options.</param>
+		/// <remarks> Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
+		/// when the object is plugged in. </remarks>
 		protected Own(IOThread ioThread, Options options)
 			: base(ioThread)
 		{
@@ -83,8 +89,7 @@ namespace NetMQ.zmq
 
 		abstract public void Destroy();
 
-		//  A place to hook in when phyicallal destruction of the object
-		//  is to be delayed.
+		/// <summary> A place to hook in when physical destruction of the object is to be delayed. </summary>
 		protected virtual void ProcessDestroy()
 		{
 			Destroy();
@@ -96,10 +101,9 @@ namespace NetMQ.zmq
 			m_owner = owner;
 		}
 
-		//  When another owned object wants to send command to this object
-		//  it calls this function to let it know it should not shut down
-		//  before the command is delivered.
-		//  This function may be called from a different thread!
+		/// <summary> When another owned object wants to send command to this object it calls this function
+		/// to let it know it should not shut down before the command is delivered. </summary>
+		/// <remarks> This function may be called from a different thread! </remarks>
 		public void IncSeqnum()
 		{
 			Interlocked.Increment(ref m_sentSeqnum);
@@ -114,7 +118,9 @@ namespace NetMQ.zmq
 			CheckTermAcks();
 		}
 
-		//  Launch the supplied object and become its owner.
+
+		/// <summary> Launch the supplied object and become its owner. </summary>
+		/// <param name="object_">The object to be launched.</param>
 		protected void LaunchChild(Own object_)
 		{
 			//  Specify the owner of the object.
@@ -127,7 +133,8 @@ namespace NetMQ.zmq
 			SendOwn(this, object_);
 		}
 
-		//  Terminate owned object
+		/// <summary> Terminate owned object. </summary>
+		/// <param name="object_"></param>
 		protected void TermChild(Own object_)
 		{
 			ProcessTermReq(object_);
@@ -144,10 +151,10 @@ namespace NetMQ.zmq
 
 			//  If not found, we assume that termination request was already sent to
 			//  the object so we can safely ignore the request.
-			if (!owned.Contains(object_))
+			if (!m_owned.Contains(object_))
 				return;
 
-			owned.Remove(object_);
+			m_owned.Remove(object_);
 			RegisterTermAcks(1);
 
 			//  Note that this object is the root of the (partial shutdown) thus, its
@@ -168,12 +175,11 @@ namespace NetMQ.zmq
 			}
 
 			//  Store the reference to the owned object.
-			owned.Add(object_);
+			m_owned.Add(object_);
 		}
 
-		//  Ask owner object to terminate this object. It may take a while
-		//  while actual termination is started. This function should not be
-		//  called more than once.
+		/// <summary> Ask owner object to terminate this object. It may take a while while actual termination is started. </summary>
+		/// <remarks> This function should not be called more than once. </remarks>
 		protected void Terminate()
 		{
 			//  If termination is already underway, there's no point
@@ -193,28 +199,26 @@ namespace NetMQ.zmq
 			SendTermReq(m_owner, this);
 		}
 
-		//  Returns true if the object is in process of termination.
-		protected bool IsTerminating
-		{
-			get { return m_terminating; }
-		}
+		/// <summary> Returns true if the object is in process of termination. </summary>
+		protected bool IsTerminating { get { return m_terminating; } }
 
-		//  Term handler is protocted rather than private so that it can
-		//  be intercepted by the derived class. This is useful to add custom
-		//  steps to the beginning of the termination process.
-		override protected void ProcessTerm(int linger)
+		/// <summary> Runs the termination process. </summary>
+		/// <param name="linger">The linger.</param>
+		/// <remarks> Termination handler is protected rather than private so that it can be intercepted by the derived class.
+		/// This is useful to add custom steps to the beginning of the termination process. </remarks>
+		protected override void ProcessTerm(int linger)
 		{
 			//  Double termination should never happen.
 			Debug.Assert(!m_terminating);
 
 			//  Send termination request to all owned objects.
-			foreach (Own it in owned)
+			foreach (Own it in m_owned)
 			{
 				SendTerm(it, linger);
 			}
 
-			RegisterTermAcks(owned.Count);
-			owned.Clear();
+			RegisterTermAcks(m_owned.Count);
+			m_owned.Clear();
 
 			//  Start termination process and check whether by chance we cannot
 			//  terminate immediately.
@@ -241,18 +245,18 @@ namespace NetMQ.zmq
 			CheckTermAcks();
 		}
 
-		override protected void ProcessTermAck()
+		protected override void ProcessTermAck()
 		{
 			UnregisterTermAck();
 		}
 
 		private void CheckTermAcks()
 		{
-			if (m_terminating && m_processedSeqnum == Interlocked.Read(ref m_sentSeqnum) && 
+			if (m_terminating && m_processedSeqnum == Interlocked.Read(ref m_sentSeqnum) &&
 					m_termAcks == 0)
 			{
 				//  Sanity check. There should be no active children at this point.
-				Debug.Assert(owned.Count == 0);
+				Debug.Assert(m_owned.Count == 0);
 
 				//  The root object has nobody to confirm the termination to.
 				//  Other nodes will confirm the termination to the owner.
