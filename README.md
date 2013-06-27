@@ -13,6 +13,14 @@ protocols and more.
 NetMQ is still under development, although the current repository is pretty stable.
 
 
+## Important Issue
+
+From version 3.3.07 NetMQ change the number serialization fron Little Endian to Big Endian to be compitable with ZeroMQ.
+Any version prior to 3.3.0.7 are not compitable with the new version, to support older version you can set Endian option on a socket to Little,
+how ever changing the option to little will make it incompitable with ZeroMQ.
+
+We recommend to update to latest version and use Big (the default behavior).
+
 ## Installation
 
 You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
