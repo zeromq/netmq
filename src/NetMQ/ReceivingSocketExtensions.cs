@@ -10,7 +10,7 @@ namespace NetMQ
 	{
 		public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
 		{
-			return socket.Receive((options & SendReceiveOptions.DontWait) > 0, out hasMore);
+			return socket.Receive(options.HasFlag(SendReceiveOptions.DontWait), out hasMore);
 		}
 
 		public static byte[] Receive(this IReceivingSocket socket, out bool hasMore)
@@ -38,7 +38,7 @@ namespace NetMQ
 
 		public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
 		{
-			return socket.ReceiveString((options & SendReceiveOptions.DontWait) > 0, out hasMore);
+			return socket.ReceiveString(options.HasFlag(SendReceiveOptions.DontWait), out hasMore);
 		}
 
 		public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options)

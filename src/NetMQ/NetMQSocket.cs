@@ -11,9 +11,9 @@ namespace NetMQ
 		private bool m_isClosed = false;
 		private NetMQSocketEventArgs m_socketEventArgs;
 
-		private event EventHandler<NetMQSocketEventArgs> m_receiveReady;
+		private EventHandler<NetMQSocketEventArgs> m_receiveReady;
 
-		private event EventHandler<NetMQSocketEventArgs> m_sendReady;
+		private EventHandler<NetMQSocketEventArgs> m_sendReady;
 
 		protected NetMQSocket(SocketBase socketHandle)
 		{

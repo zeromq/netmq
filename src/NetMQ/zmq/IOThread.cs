@@ -38,9 +38,9 @@ namespace NetMQ.zmq
 
 		readonly String m_name;
     
-		public IOThread(Ctx ctx, int tid) :base(ctx, tid){			
+		public IOThread(Ctx ctx, int threadId) :base(ctx, threadId){			
 
-			m_name = "iothread-" + tid;
+			m_name = "iothread-" + threadId;
 			m_poller = new Poller(m_name);
 
 			m_mailbox = new Mailbox(m_name);
