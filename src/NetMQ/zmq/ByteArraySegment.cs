@@ -6,7 +6,7 @@ namespace NetMQ.zmq
 {
 	public class ByteArraySegment
 	{
-		readonly byte[] m_innerBuffer;
+		private readonly byte[] m_innerBuffer;
 
 		public ByteArraySegment(byte[] buffer)
 		{
@@ -34,10 +34,7 @@ namespace NetMQ.zmq
 
 		public int Size
 		{
-			get
-			{
-				return m_innerBuffer.Length - Offset;
-			}
+			get { return m_innerBuffer.Length - Offset; }
 		}
 
 		public void AdvanceOffset(int delta)
@@ -45,32 +42,64 @@ namespace NetMQ.zmq
 			Offset += delta;
 		}
 
-		public int Offset
+		public int Offset { get; private set; }
+
+		public void PutLong(Endianness endian, long value, int i)
 		{
-			get;
-			private set;
+			if (endian == Endianness.Big)
+			{
+				m_innerBuffer[i + Offset] = (byte)(((value) >> 56) & 0xff);
+				m_innerBuffer[i + Offset + 1] = (byte)(((value) >> 48) & 0xff);
+				m_innerBuffer[i + Offset + 2] = (byte)(((value) >> 40) & 0xff);
+				m_innerBuffer[i + Offset + 3] = (byte)(((value) >> 32) & 0xff);
+				m_innerBuffer[i + Offset + 4] = (byte)(((value) >> 24) & 0xff);
+				m_innerBuffer[i + Offset + 5] = (byte)(((value) >> 16) & 0xff);
+				m_innerBuffer[i + Offset + 6] = (byte)(((value) >> 8) & 0xff);
+				m_innerBuffer[i + Offset + 7] = (byte)(value & 0xff);
+			}
+			else
+			{
+				m_innerBuffer[i + Offset + 7] = (byte)(((value) >> 56) & 0xff);
+				m_innerBuffer[i + Offset + 6] = (byte)(((value) >> 48) & 0xff);
+				m_innerBuffer[i + Offset + 5] = (byte)(((value) >> 40) & 0xff);
+				m_innerBuffer[i + Offset + 4] = (byte)(((value) >> 32) & 0xff);
+				m_innerBuffer[i + Offset + 3] = (byte)(((value) >> 24) & 0xff);
+				m_innerBuffer[i + Offset + 2] = (byte)(((value) >> 16) & 0xff);
+				m_innerBuffer[i + Offset + 1] = (byte)(((value) >> 8) & 0xff);
+				m_innerBuffer[i + Offset] = (byte)(value & 0xff);
+			}
 		}
 
-		public void PutLong(long value, int i)
+		public void PutUnsingedShort(Endianness endian, ushort value, int i)
 		{
-			m_innerBuffer[i + Offset] = (byte)(((value) >> 56) & 0xff);
-			m_innerBuffer[i + Offset + 1] = (byte)(((value) >> 48) & 0xff);
-			m_innerBuffer[i + Offset + 2] = (byte)(((value) >> 40) & 0xff);
-			m_innerBuffer[i + Offset + 3] = (byte)(((value) >> 32) & 0xff);
-			m_innerBuffer[i + Offset + 4] = (byte)(((value) >> 24) & 0xff);
-			m_innerBuffer[i + Offset + 5] = (byte)(((value) >> 16) & 0xff);
-			m_innerBuffer[i + Offset + 6] = (byte)(((value) >> 8) & 0xff);
-			m_innerBuffer[i + Offset + 7] = (byte)(value & 0xff);
+			if (endian == Endianness.Big)
+			{
+				m_innerBuffer[i + Offset] = (byte)(((value) >> 8) & 0xff);
+				m_innerBuffer[i + Offset + 1] = (byte)(value & 0xff);
+			}
+			else
+			{
+				m_innerBuffer[i + Offset + 1] = (byte)(((value) >> 8) & 0xff);
+				m_innerBuffer[i + Offset] = (byte)(value & 0xff);
+			}
 		}
 
-		public void PutUnsingedShort(ushort value, int i)
+		public void PutInteger(Endianness endian, int value, int i)
 		{
-			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 2);
-		}
-
-		public void PutInteger(int value, int i)
-		{
-			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 4);
+			if (endian == Endianness.Big)
+			{
+				m_innerBuffer[i + Offset] = (byte)(((value) >> 24) & 0xff);
+				m_innerBuffer[i + Offset + 1] = (byte)(((value) >> 16) & 0xff);
+				m_innerBuffer[i + Offset + 2] = (byte)(((value) >> 8) & 0xff);
+				m_innerBuffer[i + Offset + 3] = (byte)(value & 0xff);
+			}
+			else
+			{
+				m_innerBuffer[i + Offset + 3] = (byte)(((value) >> 24) & 0xff);
+				m_innerBuffer[i + Offset + 2] = (byte)(((value) >> 16) & 0xff);
+				m_innerBuffer[i + Offset + 1] = (byte)(((value) >> 8) & 0xff);
+				m_innerBuffer[i + Offset] = (byte)(value & 0xff);
+			}
 		}
 
 		public void PutString(string s, int length, int i)
@@ -84,15 +113,11 @@ namespace NetMQ.zmq
 		}
 
 
-		public long GetLong(int i)
+		public long GetLong(Endianness endian, int i)
 		{
 			// we changed how NetMQ is serializing long to support zeromq, however we still want to support old releases of netmq
 			// so we check if the MSB is not zero, in case it not zero we need to reorder the bits
-			if (m_innerBuffer[i] != 0)
-			{
-				return BitConverter.ToInt64(m_innerBuffer, i + Offset);
-			}
-			else
+			if (endian == Endianness.Big)
 			{
 				return
 					(((long)m_innerBuffer[i + Offset]) << 56) |
@@ -104,20 +129,52 @@ namespace NetMQ.zmq
 					(((long)m_innerBuffer[i + Offset + 6]) << 8) |
 					((long)m_innerBuffer[i + Offset + 7]);
 			}
+			else
+			{
+				return
+				(((long)m_innerBuffer[i + Offset + 7]) << 56) |
+				(((long)m_innerBuffer[i + Offset + 6]) << 48) |
+				(((long)m_innerBuffer[i + Offset + 5]) << 40) |
+				(((long)m_innerBuffer[i + Offset + 4]) << 32) |
+				(((long)m_innerBuffer[i + Offset + 3]) << 24) |
+				(((long)m_innerBuffer[i + Offset + 2]) << 16) |
+				(((long)m_innerBuffer[i + Offset + 1]) << 8) |
+				((long)m_innerBuffer[i + Offset + 0]);
+			}
 		}
 
-		public int GetInteger(int i)
+		public int GetInteger(Endianness endian, int i)
 		{
-			var value = BitConverter.ToInt32(m_innerBuffer, i + Offset);
-
-			return value;
+			if (endian == Endianness.Big)
+			{
+				return
+					 ((m_innerBuffer[i + Offset]) << 24) |
+					 ((m_innerBuffer[i + Offset + 1]) << 16) |
+					 ((m_innerBuffer[i + Offset + 2]) << 8) |
+					 (m_innerBuffer[i + Offset + 3]);
+			}
+			else
+			{
+				return
+					 ((m_innerBuffer[i + Offset + 3]) << 24) |
+					 ((m_innerBuffer[i + Offset + 2]) << 16) |
+					 ((m_innerBuffer[i + Offset + 1]) << 8) |
+					 (m_innerBuffer[i + Offset]);
+			}
 		}
 
-		public ushort GetUnsignedShort(int i)
+		public ushort GetUnsignedShort(Endianness endian, int i)
 		{
-			var value = BitConverter.ToUInt16(m_innerBuffer, i + Offset);
-
-			return value;
+			if (endian == Endianness.Big)
+			{
+				return (ushort)(((m_innerBuffer[i + Offset]) << 8) |
+					 (m_innerBuffer[i + Offset + 1]));
+			}
+			else
+			{
+				return (ushort)(((m_innerBuffer[i + Offset + 1]) << 8) |
+				(m_innerBuffer[i + Offset]));
+			}
 		}
 
 		public string GetString(int length, int i)

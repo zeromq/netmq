@@ -12,7 +12,7 @@ namespace NetMQ.zmq
 
 		private IMsgSource m_msgSource;
     
-		public V1Encoder (int bufsize, IMsgSource session) : base(bufsize)
+		public V1Encoder (int bufsize, IMsgSource session, Endianness endian) : base(bufsize, endian)
 		{
 			m_tmpbuf = new byte [9];
 			m_msgSource = session;
@@ -77,7 +77,7 @@ namespace NetMQ.zmq
 			//  messages, 64-bit unsigned integer in network byte order is used.
 			int size = m_inProgress.Size;
 			if (size > 255) {
-				m_tmpbuf.PutLong(size, 1);
+				m_tmpbuf.PutLong(Endian, size, 1);
 
 				NextStep(m_tmpbuf, 9, SizeReadyState, false);
 			}
