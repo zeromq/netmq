@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Text;
+using System.Linq;
 
 namespace NetMQ.zmq
 {
 	public class ByteArraySegment
 	{
-		readonly byte[] m_innerBuffer;		
+		readonly byte[] m_innerBuffer;
 
 		public ByteArraySegment(byte[] buffer)
 		{
@@ -46,23 +47,31 @@ namespace NetMQ.zmq
 
 		public int Offset
 		{
-			get; private set;			
+			get;
+			private set;
 		}
 
 		public void PutLong(long value, int i)
 		{
-			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 8);
+			m_innerBuffer[i + Offset] = (byte)(((value) >> 56) & 0xff);
+			m_innerBuffer[i + Offset + 1] = (byte)(((value) >> 48) & 0xff);
+			m_innerBuffer[i + Offset + 2] = (byte)(((value) >> 40) & 0xff);
+			m_innerBuffer[i + Offset + 3] = (byte)(((value) >> 32) & 0xff);
+			m_innerBuffer[i + Offset + 4] = (byte)(((value) >> 24) & 0xff);
+			m_innerBuffer[i + Offset + 5] = (byte)(((value) >> 16) & 0xff);
+			m_innerBuffer[i + Offset + 6] = (byte)(((value) >> 8) & 0xff);
+			m_innerBuffer[i + Offset + 7] = (byte)(value & 0xff);
 		}
 
 		public void PutUnsingedShort(ushort value, int i)
 		{
-			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 2);			
+			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 2);
 		}
 
 		public void PutInteger(int value, int i)
 		{
 			Buffer.BlockCopy(BitConverter.GetBytes(value), 0, m_innerBuffer, i + Offset, 4);
-		}		
+		}
 
 		public void PutString(string s, int length, int i)
 		{
@@ -77,9 +86,24 @@ namespace NetMQ.zmq
 
 		public long GetLong(int i)
 		{
-			var value = BitConverter.ToInt64(m_innerBuffer, i + Offset);
-
-			return value;
+			// we changed how NetMQ is serializing long to support zeromq, however we still want to support old releases of netmq
+			// so we check if the MSB is not zero, in case it not zero we need to reorder the bits
+			if (m_innerBuffer[i] != 0)
+			{
+				return BitConverter.ToInt64(m_innerBuffer, i + Offset);
+			}
+			else
+			{
+				return
+					(((long)m_innerBuffer[i + Offset]) << 56) |
+					(((long)m_innerBuffer[i + Offset + 1]) << 48) |
+					(((long)m_innerBuffer[i + Offset + 2]) << 40) |
+					(((long)m_innerBuffer[i + Offset + 3]) << 32) |
+					(((long)m_innerBuffer[i + Offset + 4]) << 24) |
+					(((long)m_innerBuffer[i + Offset + 5]) << 16) |
+					(((long)m_innerBuffer[i + Offset + 6]) << 8) |
+					((long)m_innerBuffer[i + Offset + 7]);
+			}
 		}
 
 		public int GetInteger(int i)
@@ -170,6 +194,6 @@ namespace NetMQ.zmq
 			Offset = 0;
 		}
 
-		
+
 	}
 }

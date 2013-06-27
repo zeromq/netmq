@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using NUnit.Framework;
 using NetMQ.Sockets;
 using NetMQ.zmq;
@@ -48,6 +49,33 @@ namespace NetMQ.Tests
 			}
 		}
 
+		[Test]
+		public void LargeMessage()
+		{
+			using (NetMQContext context = NetMQContext.Create())
+			{
+				using (var pubSocket = context.CreatePublisherSocket())
+				{
+					pubSocket.Bind("tcp://127.0.0.1:5555");
+
+					using (var subSocket = context.CreateSubscriberSocket())
+					{
+						subSocket.Connect("tcp://127.0.0.1:5555");						
+						subSocket.Subscribe("");
+					
+						Thread.Sleep(100);
+
+						byte[] msg = new byte[300];
+
+						pubSocket.Send(msg);
+
+						byte [] msg2 = subSocket.Receive();
+
+						Assert.AreEqual(300, msg2.Length);
+					}
+				}
+			}
+		}
 
 		[Test]
 		public void TestKeepAlive()
