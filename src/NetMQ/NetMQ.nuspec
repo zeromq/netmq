@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>$id$</id>
-    <version>$version$-beta</version>
+    <version>$version$</version>
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
@@ -11,7 +11,15 @@
     <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-	<!--<releaseNotes>Summary of changes made in this release of the package.</releaseNotes>-->
+	  <releaseNotes>
+      * NetMQ Secure Channel (SSL/DTLS over NetMQ)
+      * NetMQ Scheduler for TPL
+      * Bug fixes
+      
+      From version 3.3.0.7 NetMQ is using Big Endian by default (old versions used Little Endian) to be compitable with ZeroMQ,
+      In order to be compitable with older NetMQ versions you can set the Endian to Little on the Socket.Options.Endian.
+      You cannot support older versions of NetMQ and ZeroMQ with the same socket.            
+    </releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>
   </metadata>

@@ -35,8 +35,7 @@ using System;
 namespace NetMQ.zmq
 {
 	abstract public class DecoderBase : IDecoder
-	{
-
+	{		
 		//  Where to store the read data.
 		private ByteArraySegment m_readPos;
 
@@ -47,13 +46,16 @@ namespace NetMQ.zmq
 		private readonly int m_bufsize;
 		private readonly byte[] m_buf;
 
-		public DecoderBase(int bufsize)
+		public DecoderBase(int bufsize, Endianness endian)
 		{
+			Endian = endian;
 			m_toRead = 0;
 			m_bufsize = bufsize;
 			m_buf = new byte[bufsize];
 			State = -1;
 		}
+
+		public Endianness Endian { get; private set; }
 
 		public abstract void SetMsgSink(IMsgSink msgSink);
 		public abstract bool Stalled();

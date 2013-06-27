@@ -13,7 +13,7 @@ namespace NetMQ.zmq
 		private readonly long m_maxmsgsize;
 		private MsgFlags m_msgFlags;
     
-		public V1Decoder (int bufsize, long maxmsgsize, IMsgSink session) : base(bufsize)
+		public V1Decoder (int bufsize, long maxmsgsize, IMsgSink session, Endianness endian) : base(bufsize, endian)
 		{
 			m_maxmsgsize = maxmsgsize;
 			m_msgSink = session;
@@ -75,7 +75,7 @@ namespace NetMQ.zmq
 			//  The payload size is encoded as 64-bit unsigned integer.
 			//  The most significant byte comes first.        
 
-			long msg_size = m_tmpbuf.GetLong(0);
+			long msg_size = m_tmpbuf.GetLong(Endian, 0);
 
 			//  Message size must not exceed the maximum allowed size.
 			if (m_maxmsgsize >= 0)

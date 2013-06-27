@@ -47,7 +47,8 @@ namespace NetMQ.zmq
 		private readonly long m_maxmsgsize;
 		private IMsgSink m_msgSink;
 
-		public Decoder (int bufsize, long maxmsgsize) : base(bufsize)
+		public Decoder(int bufsize, long maxmsgsize, Endianness endian)
+			: base(bufsize, endian)
 		{
 			m_maxmsgsize = maxmsgsize;
 			m_tmpbuf = new ByteArraySegment(new byte[8]);
@@ -116,7 +117,7 @@ namespace NetMQ.zmq
 
 			//  8-byte payload length is read. Allocate the buffer
 			//  for message body and read the message data into it.
-			long payloadLength = m_tmpbuf.GetLong(0);
+			long payloadLength = m_tmpbuf.GetLong(Endian, 0);
         
 			//  There has to be at least one byte (the flags) in the message).
 			if (payloadLength == 0) {

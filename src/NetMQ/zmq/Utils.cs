@@ -64,9 +64,11 @@ namespace NetMQ.zmq
 				{
 					ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
 
-					bytes.PutInteger(tcpKeepalive, 0);
-					bytes.PutInteger(tcpKeepaliveIdle, 4);
-					bytes.PutInteger(tcpKeepaliveIntvl, 8);
+				  Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
+
+          bytes.PutInteger(endian, tcpKeepalive, 0);
+          bytes.PutInteger(endian, tcpKeepaliveIdle, 4);
+          bytes.PutInteger(endian, tcpKeepaliveIntvl, 8);
 
 					fd.IOControl(IOControlCode.KeepAliveValues, (byte[]) bytes, null);
 				}

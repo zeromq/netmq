@@ -25,8 +25,7 @@ using System;
 namespace NetMQ.zmq
 {
 	abstract public class EncoderBase : IEncoder
-	{
-
+	{		
 		//  Where to get the data to write from.    
 		private ByteArraySegment m_writePos;	
 
@@ -46,12 +45,15 @@ namespace NetMQ.zmq
 
 		private bool m_error;
 
-		protected EncoderBase(int bufsize)
+		protected EncoderBase(int bufsize, Endianness endian)
 		{
+			Endian = endian;
 			m_buffersize = bufsize;
 			m_buf = new byte[bufsize];
 			m_error = false;
 		}
+
+		public Endianness Endian { get; private set; }
 
 		public abstract void SetMsgSource(IMsgSource msgSource);
 

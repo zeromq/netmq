@@ -155,7 +155,7 @@ namespace NetMQ.zmq
 			//  The 'length' field is encoded in the long format.
 
 			m_greetingOutputBuffer[m_outsize++] = ((byte)0xff);
-			m_greetingOutputBuffer.PutLong((long)m_options.IdentitySize + 1, 1);
+			m_greetingOutputBuffer.PutLong(m_options.Endian, (long)m_options.IdentitySize + 1, 1);
 			m_outsize += 8;
 			m_greetingOutputBuffer[m_outsize++] = ((byte)0x7f);
 
@@ -392,10 +392,10 @@ namespace NetMQ.zmq
 			//  messages.
 			if (m_greeting[0] != 0xff || (m_greeting[9] & 0x01) == 0)
 			{
-				m_encoder = new Encoder(Config.OutBatchSize);
+				m_encoder = new Encoder(Config.OutBatchSize, m_options.Endian);
 				m_encoder.SetMsgSource(m_session);
 
-				m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize);
+				m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
 
 				m_decoder.SetMsgSink(m_session);
 
@@ -428,18 +428,18 @@ namespace NetMQ.zmq
 			else if (m_greeting[VersionPos] == 0)
 			{
 				//  ZMTP/1.0 framing.
-				m_encoder = new Encoder(Config.OutBatchSize);
+				m_encoder = new Encoder(Config.OutBatchSize, m_options.Endian);
 				m_encoder.SetMsgSource(m_session);
 
-				m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize);
+				m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
 				m_decoder.SetMsgSink(m_session);
 			}
 			else
 			{
 				//  v1 framing protocol.
-				m_encoder = new V1Encoder(Config.OutBatchSize, m_session);
+				m_encoder = new V1Encoder(Config.OutBatchSize, m_session, m_options.Endian);
 
-				m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_session);
+				m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_session, m_options.Endian);
 			}
 			// Start polling for output if necessary.
 			if (m_outsize == 0)
