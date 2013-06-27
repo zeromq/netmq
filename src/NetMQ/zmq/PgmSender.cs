@@ -31,7 +31,7 @@ namespace NetMQ.zmq
 			m_outBuffer = null;
 			m_outBufferSize = 0;
 			m_writeSize = 0;
-			m_encoder = new Encoder(0);
+			m_encoder = new Encoder(0, m_options.Endian);
 		}
 
 		public void Init(PgmAddress pgmAddress)
@@ -108,7 +108,7 @@ namespace NetMQ.zmq
 				//  Put offset information in the buffer.
 				m_writeSize = bfsz + sizeof(ushort);
 
-				m_outBuffer.PutUnsingedShort(offset == -1 ? (ushort)0xffff : (ushort)offset, 0);
+				m_outBuffer.PutUnsingedShort(m_options.Endian, offset == -1 ? (ushort)0xffff : (ushort)offset, 0);
 			}
 
 			//  Send the data.

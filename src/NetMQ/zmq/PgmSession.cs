@@ -128,7 +128,7 @@ namespace NetMQ.zmq
 
 			//  Read the offset of the fist message in the current packet.
 			Debug.Assert(received >= sizeof(ushort));
-			ushort offset = data.GetUnsignedShort(0);
+			ushort offset = data.GetUnsignedShort(m_options.Endian, 0);
 			data.AdvanceOffset(sizeof(ushort));
 			received -= sizeof(ushort);
 
@@ -151,7 +151,7 @@ namespace NetMQ.zmq
 				m_joined = true;
 
 				//  Create and connect decoder for the peer.
-				m_decoder = new Decoder(0, m_options.Maxmsgsize);
+				m_decoder = new Decoder(0, m_options.Maxmsgsize, m_options.Endian);
 				m_decoder.SetMsgSink(m_session);
 			}
 

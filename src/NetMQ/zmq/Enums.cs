@@ -60,12 +60,19 @@ namespace NetMQ.zmq
 		DelayAttachOnConnect = 39,
 		XpubVerbose = 40,
 
+		Endian = 1000,
+
 		[Obsolete]
 		FailUnroutable = RouterMandatory,
 
 		[Obsolete]
 		RouterBehavior = RouterMandatory,
 }
+
+	public enum Endianness
+	{
+		Big, Little
+	}
 
 	[Flags]
 	public enum SendReceiveOptions

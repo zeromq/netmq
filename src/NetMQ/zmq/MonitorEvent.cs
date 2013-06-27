@@ -72,7 +72,7 @@ namespace NetMQ.zmq
 			int pos = 0;
 
 			ByteArraySegment buffer = new byte[size];
-			buffer.PutInteger((int)m_monitorEvent, pos);
+			buffer.PutInteger(Endianness.Little,  (int)m_monitorEvent, pos);
 			pos += 4;
 			buffer[pos++] = (byte)m_addr.Length;
 
@@ -84,7 +84,7 @@ namespace NetMQ.zmq
 			buffer[pos++] = ((byte)m_flag);
 			if (m_flag == ValueInteger)
 			{
-				buffer.PutInteger((int) m_arg, pos);
+				buffer.PutInteger(Endianness.Little, (int)m_arg, pos);
 			}
 			else if (m_flag == ValueChannel)
 			{
@@ -92,11 +92,11 @@ namespace NetMQ.zmq
 
 				if (SizeOfIntPtr == 4)
 				{
-					buffer.PutInteger(GCHandle.ToIntPtr(handle).ToInt32(), pos);
+					buffer.PutInteger(Endianness.Little, GCHandle.ToIntPtr(handle).ToInt32(), pos);
 				}
 				else
 				{
-					buffer.PutLong(GCHandle.ToIntPtr(handle).ToInt64(), pos);
+					buffer.PutLong(Endianness.Little, GCHandle.ToIntPtr(handle).ToInt64(), pos);
 				}
 			}			
 
@@ -113,7 +113,7 @@ namespace NetMQ.zmq
 			int pos = 0;
 			ByteArraySegment data = msg.Data;
 
-			SocketEvent @event =(SocketEvent) data.GetInteger(pos);				
+			SocketEvent @event = (SocketEvent)data.GetInteger(Endianness.Little, pos);				
 			pos += 4;
 			int len = (int)data[pos++];
 			string addr = data.GetString(len, pos);
@@ -123,7 +123,7 @@ namespace NetMQ.zmq
 
 			if (flag == ValueInteger)
 			{
-				arg = data.GetInteger(pos);
+				arg = data.GetInteger(Endianness.Little, pos);
 			}
 			else if (flag == ValueChannel)
 			{
@@ -131,11 +131,11 @@ namespace NetMQ.zmq
 
 				if (SizeOfIntPtr == 4)
 				{
-					value = new IntPtr(data.GetInteger(pos));
+					value = new IntPtr(data.GetInteger(Endianness.Little, pos));
 				}
 				else
 				{
-					value = new IntPtr(data.GetLong(pos));
+					value = new IntPtr(data.GetLong(Endianness.Little, pos));
 				}
 
 				GCHandle handle = GCHandle.FromIntPtr(value);

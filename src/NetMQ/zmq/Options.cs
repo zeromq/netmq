@@ -60,6 +60,9 @@ namespace NetMQ.zmq
 			SocketId = 0;
 
 			Identity = null;
+
+			Endian = Endianness.Big;
+
 			TcpAcceptFilters = new List<TcpAddress.TcpAddressMask>();
 		}
 
@@ -150,58 +153,59 @@ namespace NetMQ.zmq
 		//  ID of the socket.
 		public int SocketId { get; set; }
 
+		public Endianness Endian { get; set; }
 
 		public void SetSocketOption(ZmqSocketOptions option, Object optval)
 		{
 			switch (option)
 			{
 				case ZmqSocketOptions.SendHighWatermark:
-					SendHighWatermark = (int) optval;
+					SendHighWatermark = (int)optval;
 					break;
 				case ZmqSocketOptions.ReceivevHighWatermark:
-					ReceiveHighWatermark = (int) optval;
+					ReceiveHighWatermark = (int)optval;
 					break;
 
 				case ZmqSocketOptions.Affinity:
-					Affinity = (long) optval;
+					Affinity = (long)optval;
 					break;
 				case ZmqSocketOptions.Identity:
 					byte[] val;
 
 					if (optval is String)
-						val = Encoding.ASCII.GetBytes((String) optval);
+						val = Encoding.ASCII.GetBytes((String)optval);
 					else if (optval is byte[])
-						val = (byte[]) optval;
+						val = (byte[])optval;
 					else
 					{
 						throw InvalidException.Create();
 					}
 
-					if (val.Length ==0 || val.Length > 255)
+					if (val.Length == 0 || val.Length > 255)
 					{
 						throw InvalidException.Create();
 					}
 					Identity = new byte[val.Length];
 					val.CopyTo(Identity, 0);
-					IdentitySize = (byte) Identity.Length;
+					IdentitySize = (byte)Identity.Length;
 					break;
 				case ZmqSocketOptions.Rate:
-					Rate = (int) optval;
+					Rate = (int)optval;
 					break;
 				case ZmqSocketOptions.RecoveryIvl:
-					RecoveryIvl = (int) optval;
+					RecoveryIvl = (int)optval;
 					break;
 				case ZmqSocketOptions.SendBuffer:
-					SendBuffer = (int) optval;
+					SendBuffer = (int)optval;
 					break;
 				case ZmqSocketOptions.ReceivevBuffer:
-					ReceiveBuffer = (int) optval;
+					ReceiveBuffer = (int)optval;
 					break;
 				case ZmqSocketOptions.Linger:
-					Linger = (int) optval;
+					Linger = (int)optval;
 					break;
 				case ZmqSocketOptions.ReconnectIvl:
-					ReconnectIvl = (int) optval;
+					ReconnectIvl = (int)optval;
 
 					if (ReconnectIvl < -1)
 					{
@@ -210,7 +214,7 @@ namespace NetMQ.zmq
 
 					break;
 				case ZmqSocketOptions.ReconnectIvlMax:
-					ReconnectIvlMax = (int) optval;
+					ReconnectIvlMax = (int)optval;
 
 					if (ReconnectIvlMax < 0)
 					{
@@ -219,20 +223,20 @@ namespace NetMQ.zmq
 
 					break;
 				case ZmqSocketOptions.Backlog:
-					Backlog = (int) optval;
+					Backlog = (int)optval;
 					break;
 
 				case ZmqSocketOptions.Maxmsgsize:
-					Maxmsgsize = (long) optval;
+					Maxmsgsize = (long)optval;
 					break;
 				case ZmqSocketOptions.MulticastHops:
-					MulticastHops = (int) optval;
+					MulticastHops = (int)optval;
 					break;
 				case ZmqSocketOptions.ReceiveTimeout:
-					ReceiveTimeout = (int) optval;
+					ReceiveTimeout = (int)optval;
 					break;
 				case ZmqSocketOptions.SendTimeout:
-					SendTimeout = (int) optval;
+					SendTimeout = (int)optval;
 					break;
 				case ZmqSocketOptions.IPv4Only:
 
@@ -241,7 +245,7 @@ namespace NetMQ.zmq
 					break;
 				case ZmqSocketOptions.TcpKeepalive:
 
-					TcpKeepalive = (int) optval;
+					TcpKeepalive = (int)optval;
 					if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
 					{
 						throw InvalidException.Create();
@@ -249,20 +253,20 @@ namespace NetMQ.zmq
 					break;
 				case ZmqSocketOptions.DelayAttachOnConnect:
 
-					DelayAttachOnConnect = (bool) optval;
+					DelayAttachOnConnect = (bool)optval;
 
 					break;
 				case ZmqSocketOptions.TcpKeepaliveCnt:
 					// not supported
 					break;
 				case ZmqSocketOptions.TcpKeepaliveIdle:
-					TcpKeepaliveIdle = (int) optval;
+					TcpKeepaliveIdle = (int)optval;
 					break;
 				case ZmqSocketOptions.TcpKeepaliveIntvl:
-					TcpKeepaliveIntvl = (int) optval;
+					TcpKeepaliveIntvl = (int)optval;
 					break;
 				case ZmqSocketOptions.TcpAcceptFilter:
-					String filterStr = (String) optval;
+					String filterStr = (String)optval;
 					if (filterStr == null)
 					{
 						TcpAcceptFilters.Clear();
@@ -277,6 +281,9 @@ namespace NetMQ.zmq
 						filter.Resolve(filterStr, IPv4Only);
 						TcpAcceptFilters.Add(filter);
 					}
+					break;
+				case ZmqSocketOptions.Endian:
+					Endian = (Endianness)optval;
 					break;
 				default:
 					throw InvalidException.Create();
@@ -358,7 +365,8 @@ namespace NetMQ.zmq
 
 				case ZmqSocketOptions.LastEndpoint:
 					return LastEndpoint;
-
+					case ZmqSocketOptions.Endian:
+					return Endian;
 				default:
 					throw InvalidException.Create();
 			}

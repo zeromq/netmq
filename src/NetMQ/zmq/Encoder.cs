@@ -32,8 +32,9 @@ namespace NetMQ.zmq
 		private readonly ByteArraySegment m_tmpbuf;
 
 		private IMsgSource m_msgSource;
-    
-		public Encoder (int bufsize) : base(bufsize)
+
+		public Encoder(int bufsize, Endianness endian)
+			: base(bufsize, endian)
 		{        
 			m_tmpbuf = new byte[10];
 
@@ -104,7 +105,7 @@ namespace NetMQ.zmq
 			}
 			else {
 				m_tmpbuf[0] = 0xff;
-				m_tmpbuf.PutLong(size, 1);
+				m_tmpbuf.PutLong(Endian, size, 1);
 				m_tmpbuf[9] = (byte)(m_inProgress.Flags & MsgFlags.More);
 
 				NextStep(m_tmpbuf, 10, SizeReadyState, false);
