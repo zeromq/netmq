@@ -88,7 +88,7 @@ To contribute to NetMQ please read the [C4 process](http://rfc.zeromq.org/spec:1
 Their are open issues in the issues tab that still need to take care of, feel free to pick one up and submit a patch to the project.
 
 
-![Code Better](http://www.jetbrains.com/img/banners/Codebetter.png)
+![Code Better](http://www.jetbrains.com/img/banners/Codebetter300x250.png)
 
 [YouTrack by JetBrains - keyboard-centric bug tracker](http://www.jetbrains.com/youtrack)
 
