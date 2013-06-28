@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
-	[TestFixture]
+	[TestFixture("PGM")]
 	public class PgmTests
 	{
 		[Test]
