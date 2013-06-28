@@ -89,6 +89,8 @@ Their are open issues in the issues tab that still need to take care of, feel fr
 
 
 ![Code Better](http://www.jetbrains.com/img/banners/Codebetter.png)
+
 [YouTrack by JetBrains - keyboard-centric bug tracker](http://www.jetbrains.com/youtrack)
+
 [TeamCity by JetBrains - continuous integration server](http://www.jetbrains.com/teamcity)
 
