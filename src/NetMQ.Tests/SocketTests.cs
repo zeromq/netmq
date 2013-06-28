@@ -155,5 +155,53 @@ namespace NetMQ.Tests
 				}
 			}
 		}
+
+	  [Test]
+	  public void MultipleLargeMessages()
+	  {
+	    byte[] largeMessage = new byte[12000];
+
+	    for (int i = 0; i < 12000; i++)
+	    {
+	      largeMessage[i] = (byte) (i%256);
+	    }
+
+	    using (NetMQContext context = NetMQContext.Create())
+	    {
+	      using (NetMQSocket pubSocket = context.CreatePublisherSocket())
+	      {
+          pubSocket.Bind("tcp://127.0.0.1:5558");
+
+	        using (NetMQSocket subSocket = context.CreateSubscriberSocket())
+	        {
+            subSocket.Connect("tcp://127.0.0.1:5558");
+            subSocket.Subscribe("");
+
+            Thread.Sleep(1000);
+
+            pubSocket.Send("");
+	          subSocket.Receive();
+
+	          for (int i = 0; i < 100; i++)
+	          {
+              pubSocket.Send(largeMessage);
+
+	            byte[] recvMesage = subSocket.Receive();
+
+              for (int j = 0; j < 12000; j++)
+              {
+                Assert.AreEqual(largeMessage[j], recvMesage[j]);                
+              }
+	          }
+	        }
+	      }
+	    }
+	  }
+
+
+
+
+
+
 	}
 }

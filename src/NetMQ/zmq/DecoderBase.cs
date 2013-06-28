@@ -75,7 +75,7 @@ namespace NetMQ.zmq
 
 			if (m_toRead >= m_bufsize)
 			{
-				data = m_readPos;
+				data = m_readPos.Clone();
 				size = m_toRead;
 				return;
 			}
@@ -143,16 +143,16 @@ namespace NetMQ.zmq
 					return pos;
 
 				//  Copy the data from buffer to the message.
-				int to_copy = Math.Min(m_toRead, size - pos);
-				data.CopyTo(pos, m_readPos, 0, to_copy);
-				m_readPos.AdvanceOffset(to_copy);
-				pos += to_copy;
-				m_toRead -= to_copy;
+				int toCopy = Math.Min(m_toRead, size - pos);
+				data.CopyTo(pos, m_readPos, 0, toCopy);
+				m_readPos.AdvanceOffset(toCopy);
+				pos += toCopy;
+				m_toRead -= toCopy;
 			}
 		}
 
 		protected void NextStep(ByteArraySegment readPos, int toRead, int state)
-		{
+		{      
 			m_readPos = readPos;
 			m_toRead = toRead;
 			this.State = state;
