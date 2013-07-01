@@ -48,7 +48,7 @@ namespace NetMQ.Tests
 				using (var pub = context.CreatePublisherSocket())
 				{
 					pub.Bind("pgm://224.0.0.1:5555");
-
+                    
 					using (var sub = context.CreateSubscriberSocket())
 					{
 						sub.Bind("pgm://224.0.0.1:5555");

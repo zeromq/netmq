@@ -8,12 +8,12 @@ using NetMQ.Sockets;
 namespace NetMQ.Tests.Devices
 {
 
-	public abstract class QueueDeviceTestBase : DeviceTestBase<QueueDevice>
+	public abstract class QueueDeviceTestBase : DeviceTestBase<QueueDevice, ResponseSocket>
 	{
 		protected override void SetupTest() {
 			CreateDevice = c => new QueueDevice(c, Frontend, Backend);
 			CreateClientSocket = c => c.CreateRequestSocket();
-			CreateWorkerSocket = c => c.CreateResponseSocket();
+            //CreateWorkerSocket = c => c.CreateResponseSocket();
 		}
 
 		protected override void DoWork(NetMQSocket socket)
@@ -43,6 +43,11 @@ namespace NetMQ.Tests.Devices
 			Assert.AreEqual(expected, response[0]);
 			Console.WriteLine("Client: {0} received: {1}", id, response[0]);
 		}
+
+        protected override ResponseSocket CreateWorkerSocket(NetMQContext context)
+        {
+            return  context.CreateResponseSocket();
+        }
 	}
 
 	[TestFixture]

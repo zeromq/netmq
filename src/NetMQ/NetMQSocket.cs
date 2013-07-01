@@ -269,26 +269,6 @@ namespace NetMQ
 			Send(data, length, sendReceiveOptions);
 		}
 
-		public virtual void Subscribe(string topic)
-		{
-			SetSocketOption(ZmqSocketOptions.Subscribe, topic);
-		}
-
-		public virtual void Subscribe(byte[] topic)
-		{
-			SetSocketOption(ZmqSocketOptions.Subscribe, topic);
-		}
-
-		public virtual void Unsubscribe(string topic)
-		{
-			SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
-		}
-
-		public virtual void Unsubscribe(byte[] topic)
-		{
-			SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
-		}
-
 		public void Monitor(string endpoint, SocketEvent events = SocketEvent.All)
 		{
 			if (endpoint == null)
