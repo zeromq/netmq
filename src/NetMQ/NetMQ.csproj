@@ -35,6 +35,10 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IReceivingSocket.cs" />
@@ -69,6 +73,18 @@
     <Compile Include="Security\V0_1\SecureChannel.cs" />
     <Compile Include="Security\V0_1\SecurityParameters.cs" />
     <Compile Include="Security\V0_1\SHA256PRF.cs" />
+    <Compile Include="Serialization\BaseProtocol.cs" />
+    <Compile Include="Serialization\ByteBasedProtocol.cs" />
+    <Compile Include="Serialization\Convertions.cs" />
+    <Compile Include="Serialization\EnumBasedProtocol.cs" />
+    <Compile Include="Serialization\IntegerBasedProtocol.cs" />
+    <Compile Include="Serialization\MemberTypeEnum.cs" />
+    <Compile Include="Serialization\NetMQMember.cs" />
+    <Compile Include="Serialization\NetMQProtocolException.cs" />
+    <Compile Include="Serialization\SerializerBuilder.cs" />
+    <Compile Include="Serialization\ShortBasedProtocol.cs" />
+    <Compile Include="Serialization\SocketExtensions.cs" />
+    <Compile Include="Serialization\StringBasedProtocol.cs" />
     <Compile Include="Sockets\DealerSocket.cs" />
     <Compile Include="Devices\DeviceBase.cs" />
     <Compile Include="Devices\DeviceMode.cs" />

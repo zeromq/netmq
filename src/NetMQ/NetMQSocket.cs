@@ -245,6 +245,18 @@ namespace NetMQ
 			Send(message.Last.Buffer, message.Last.MessageSize, dontWait);
 		}
 
+    public void SendMultiple(byte[][] frames, bool dontWait = false)
+    {
+      for (int i = 0; i < frames.Length - 1; i++)
+      {
+        Send(frames[i], frames.Length, dontWait, true);
+      }
+
+      var lastFrame = frames[frames.Length - 1];
+
+      Send(lastFrame, lastFrame.Length, dontWait);
+    }
+
 		public virtual void Send(byte[] data, int length, SendReceiveOptions options)
 		{
 			Msg msg = new Msg(data, length, Options.CopyMessages);
