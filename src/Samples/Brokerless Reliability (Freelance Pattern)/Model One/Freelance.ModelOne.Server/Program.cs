@@ -7,6 +7,8 @@ namespace Freelance.ModelOne.Server
 {
     class Program
     {
+        private const uint PORT_NUMBER = 5555;
+
         static void Main(string[] args)
         {
             using (NetMQContext context = NetMQContext.Create())
@@ -14,14 +16,13 @@ namespace Freelance.ModelOne.Server
                 using (NetMQSocket response = context.CreateResponseSocket())
                 {
                     string address = GetComputerLanIP();
-                    string port = "5555";
 
-                    if (!string.IsNullOrEmpty(port))
+                    if (PORT_NUMBER > 0)
                     {
                         if (!string.IsNullOrEmpty(address))
                         {
-                            Console.WriteLine("Binding tcp://{0}:{1}", address, port);
-                            response.Bind(string.Format("tcp://{0}:{1}", address, port));
+                            Console.WriteLine("Binding tcp://{0}:{1}", address, PORT_NUMBER);
+                            response.Bind(string.Format("tcp://{0}:{1}", address, PORT_NUMBER));
 
                             while (true)
                             {
@@ -48,7 +49,7 @@ namespace Freelance.ModelOne.Server
                     }
                     else
                     {
-                        Console.WriteLine("Please set NetMQPort variable into app.config file");
+                        Console.WriteLine("The port number should be greater than 0");
                     }
 
                     Console.WriteLine("Press ENTER to exit...");
