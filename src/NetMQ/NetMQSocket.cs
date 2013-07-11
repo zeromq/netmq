@@ -269,6 +269,30 @@ namespace NetMQ
 			Send(data, length, sendReceiveOptions);
 		}
 
+        [Obsolete ("Do not use this method if the socket is different from Subscriber and XSubscriber")]
+        public virtual void Subscribe(string topic)
+        {
+            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+        }
+
+        [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
+        public virtual void Subscribe(byte[] topic)
+        {
+            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+        }
+
+        [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
+        public virtual void Unsubscribe(string topic)
+        {
+            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+        }
+
+        [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
+        public virtual void Unsubscribe(byte[] topic)
+        {
+            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+        }
+
 		public void Monitor(string endpoint, SocketEvent events = SocketEvent.All)
 		{
 			if (endpoint == null)

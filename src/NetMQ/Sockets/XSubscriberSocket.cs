@@ -9,22 +9,22 @@ namespace NetMQ.Sockets
 		{
 		}
 
-        public virtual void Subscribe(string topic)
+        public new virtual void Subscribe(string topic)
         {
             SetSocketOption(ZmqSocketOptions.Subscribe, topic);
         }
 
-        public virtual void Subscribe(byte[] topic)
+        public new virtual void Subscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOptions.Subscribe, topic);
         }
 
-        public virtual void Unsubscribe(string topic)
+        public new virtual void Unsubscribe(string topic)
         {
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
         }
 
-        public virtual void Unsubscribe(byte[] topic)
+        public new virtual void Unsubscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
         }
