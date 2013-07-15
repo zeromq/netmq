@@ -8,8 +8,9 @@ using NetMQ.zmq;
 
 namespace NetMQ.Tests.Devices
 {
-	public abstract class DeviceTestBase<TDevice>
+	public abstract class DeviceTestBase<TDevice, TWorkerSocket>
 		where TDevice : IDevice
+        where TWorkerSocket: NetMQSocket
 		
 	{
 
@@ -22,8 +23,9 @@ namespace NetMQ.Tests.Devices
 		protected TDevice Device;
 
 		protected Func<NetMQContext, TDevice> CreateDevice;
+
 		protected Func<NetMQContext, NetMQSocket> CreateClientSocket;
-		protected Func<NetMQContext, NetMQSocket> CreateWorkerSocket;
+        protected abstract TWorkerSocket CreateWorkerSocket(NetMQContext context);
 
 		protected int WorkerReceiveCount;
 
@@ -56,7 +58,7 @@ namespace NetMQ.Tests.Devices
 
 		protected abstract void DoWork(NetMQSocket socket);
 
-		protected virtual void WorkerSocketAfterConnect(NetMQSocket socket) { }
+		protected virtual void WorkerSocketAfterConnect(TWorkerSocket socket) { }
 
 		protected void StartWorker() {
 			Task.Factory.StartNew(() => {

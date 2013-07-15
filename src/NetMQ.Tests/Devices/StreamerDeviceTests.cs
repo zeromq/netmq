@@ -6,12 +6,11 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Tests.Devices
 {
-	public abstract class StreamerDeviceTestBase : DeviceTestBase<StreamerDevice>
+	public abstract class StreamerDeviceTestBase : DeviceTestBase<StreamerDevice, PullSocket>
 	{
 		protected override void SetupTest() {
 			CreateDevice = c => new StreamerDevice(c, Frontend, Backend);
 			CreateClientSocket = c => c.CreatePushSocket();
-			CreateWorkerSocket = c => c.CreatePullSocket();
 		}
 
 		protected override void DoWork(NetMQSocket socket)
@@ -34,6 +33,11 @@ namespace NetMQ.Tests.Devices
 			Console.WriteLine("({0}) Pushing: {1}", id, expected);
 			socket.Send(expected);
 		}
+
+        protected override PullSocket CreateWorkerSocket(NetMQContext context)
+        {
+            return context.CreatePullSocket();
+        }
 	}
 
 	[TestFixture]

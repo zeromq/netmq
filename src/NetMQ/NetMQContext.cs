@@ -87,7 +87,7 @@ namespace NetMQ
 		/// Create request socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreateRequestSocket()
+		public RequestSocket CreateRequestSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Req);
 
@@ -98,7 +98,7 @@ namespace NetMQ
 		/// Create response socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreateResponseSocket()
+		public ResponseSocket CreateResponseSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Rep);
 
@@ -109,7 +109,7 @@ namespace NetMQ
 		/// Create dealer socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreateDealerSocket()
+		public DealerSocket CreateDealerSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Dealer);
 
@@ -120,7 +120,7 @@ namespace NetMQ
 		/// Create router socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreateRouterSocket()
+		public RouterSocket CreateRouterSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Router);
 
@@ -131,7 +131,7 @@ namespace NetMQ
 		/// Create xpublisher socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreateXPublisherSocket()
+		public XPublisherSocket CreateXPublisherSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xpub);
 
@@ -142,7 +142,7 @@ namespace NetMQ
 		/// Create pair socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreatePairSocket()
+		public PairSocket CreatePairSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pair);
 
@@ -153,7 +153,7 @@ namespace NetMQ
 		/// Create push socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreatePushSocket()
+		public PushSocket CreatePushSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Push);
 
@@ -164,7 +164,7 @@ namespace NetMQ
 		/// Create publisher socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreatePublisherSocket()
+		public PublisherSocket CreatePublisherSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pub);
 
@@ -175,7 +175,7 @@ namespace NetMQ
 		/// Create pull socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreatePullSocket()
+		public PullSocket CreatePullSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pull);
 
@@ -186,7 +186,7 @@ namespace NetMQ
 		/// Create subscriber socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreateSubscriberSocket()
+        public SubscriberSocket CreateSubscriberSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Sub);
 
@@ -197,7 +197,7 @@ namespace NetMQ
 		/// Create xsub socket
 		/// </summary>
 		/// <returns></returns>
-		public NetMQSocket CreateXSubscriberSocket()
+		public XSubscriberSocket CreateXSubscriberSocket()
 		{
 			var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xsub);
 
