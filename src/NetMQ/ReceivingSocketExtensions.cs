@@ -65,7 +65,7 @@ namespace NetMQ
 			return message;
 		}
 
-		public static NetMQMessage ReceiveMessage<TSocket>(this TSocket socket, TimeSpan timeout) where TSocket : NetMQSocket, IReceivingSocket 
+		public static NetMQMessage ReceiveMessage(this NetMQSocket socket, TimeSpan timeout) 
 		{
 			var item = new PollItem(socket.SocketHandle, PollEvents.PollIn);
 			var items = new[] { item };
