@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using NetMQ.Sockets;
 using NetMQ.zmq;
@@ -75,6 +76,51 @@ namespace NetMQ.Tests
 					}
 				}
 			}
+		}
+
+		[Test]
+		public void ReceiveMessageWithTimeout() 
+		{
+			using (var context = NetMQContext.Create()) 
+			{
+
+				var pubSync = new AutoResetEvent(false);
+				var msg = new byte[300];
+				var waitTime = 500;
+
+				var t1 = new Task(() => {					
+					var pubSocket = context.CreatePublisherSocket();
+					pubSocket.Bind("tcp://127.0.0.1:5556");
+					pubSync.WaitOne();
+					Thread.Sleep(waitTime);
+					pubSocket.Send(msg);
+					pubSync.WaitOne();
+					pubSocket.Dispose();
+				}, TaskCreationOptions.LongRunning);
+
+				var t2 = new Task(() => {
+					var subSocket = context.CreateSubscriberSocket();
+					subSocket.Connect("tcp://127.0.0.1:5556");
+					subSocket.Subscribe("");
+					Thread.Sleep(100);
+					pubSync.Set();
+
+					var msg2 = subSocket.ReceiveMessage(TimeSpan.FromMilliseconds(10));
+					Assert.IsNull(msg2, "The first receive should be null!");
+					
+					msg2 = subSocket.ReceiveMessage(TimeSpan.FromMilliseconds(waitTime));
+
+					Assert.AreEqual(1, msg2.FrameCount);
+					Assert.AreEqual(300, msg2.First.MessageSize);
+					pubSync.Set();
+					subSocket.Dispose();
+				}, TaskCreationOptions.LongRunning);
+				
+				t1.Start();
+				t2.Start();
+
+				Task.WaitAll(new[] {t1, t2});
+			}	
 		}
 
     [Test]
