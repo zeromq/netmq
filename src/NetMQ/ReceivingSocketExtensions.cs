@@ -65,6 +65,22 @@ namespace NetMQ
 			return message;
 		}
 
+		public static NetMQMessage ReceiveMessage<TSocket>(this TSocket socket, TimeSpan timeout) where TSocket : NetMQSocket, IReceivingSocket 
+		{
+			var item = new PollItem(socket.SocketHandle, PollEvents.PollIn);
+			var items = new[] { item };
+			ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
+
+			if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
+				throw new ErrorPollingException("Error while polling", socket);
+
+			if (!item.ResultEvent.HasFlag(PollEvents.PollIn))
+				return null;
+
+			var msg = socket.ReceiveMessage();
+			return msg;
+		}
+
 		public static void ReceiveMessage(this IReceivingSocket socket, NetMQMessage message, bool dontWait = false)
 		{
 			message.Clear();
