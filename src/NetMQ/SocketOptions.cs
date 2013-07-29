@@ -98,7 +98,7 @@ namespace NetMQ
 			set { m_socket.SetSocketOption(ZmqSocketOptions.SendHighWatermark, value); }
 		}
 
-		public int ReceivevHighWatermark
+		public int ReceiveHighWatermark
 		{
 			get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceivevHighWatermark); }
 			set { m_socket.SetSocketOption(ZmqSocketOptions.ReceivevHighWatermark, value); }
