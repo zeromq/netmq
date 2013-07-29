@@ -24,8 +24,8 @@ namespace NetMQ.Security.V0_1
     private HandshakeType m_lastReceivedMessage = HandshakeType.HelloRequest;
     private HandshakeType m_lastSentMessage = HandshakeType.HelloRequest;
 
-    private SHA256 m_localHash = new SHA256Cng();
-    private SHA256 m_remoteHash= new SHA256Cng();
+    private SHA256 m_localHash;
+    private SHA256 m_remoteHash;
 
     private RandomNumberGenerator m_rng = new RNGCryptoServiceProvider();
   
@@ -35,6 +35,9 @@ namespace NetMQ.Security.V0_1
 
     public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
     {
+      m_localHash = SHA256.Create();
+      m_remoteHash = SHA256.Create();
+
     	m_secureChannel = secureChannel;
     	SecurityParameters = new SecurityParameters();
       SecurityParameters.Entity = connectionEnd;
@@ -68,8 +71,8 @@ namespace NetMQ.Security.V0_1
 
     public event EventHandler CipherSuiteChange;
 
-    public VerifyCertificateDelegate VerifyCertificate { get; set; }
-   
+    public VerifyCertificateDelegate VerifyCertificate { get; set; }   
+
     public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
     {
       if (incomingMessage == null)
