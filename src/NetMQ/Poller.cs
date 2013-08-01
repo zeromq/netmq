@@ -127,7 +127,7 @@ namespace NetMQ
 					timer.When = timer.Interval + Clock.NowMs();
 				}
 
-				if (tickless > timer.When)
+				if (timer.When != -1 && tickless > timer.When)
 				{
 					tickless = timer.When;
 				}
