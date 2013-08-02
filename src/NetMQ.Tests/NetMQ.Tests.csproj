@@ -74,6 +74,8 @@
     <Compile Include="PushPullTests.cs" />
     <Compile Include="ReqRepTests.cs" />
     <Compile Include="Security\SecureChannelTests.cs" />
+    <Compile Include="Serialization\SerializerBuilderTests.cs" />
+    <Compile Include="Serialization\ProtocolTests.cs" />
     <Compile Include="SocketTests.cs" />
     <Compile Include="zmq\YQueueTests.cs" />
     <Compile Include="zmq\ZMQPollTests.cs" />
