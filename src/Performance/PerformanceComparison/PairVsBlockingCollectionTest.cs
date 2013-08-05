@@ -92,7 +92,7 @@ namespace NetMQ.PerformanceComparison
 
 			using (var blockingCollection = new BlockingCollection<byte[]>())
 			{
-				var task = Task.Run(() =>
+				var task = Task.Factory.StartNew(() =>
 				{
 					for (int i = 0; i < iterations; i++) // ReSharper disable once AccessToDisposedClosure
 						blockingCollection.Take();
@@ -117,7 +117,7 @@ namespace NetMQ.PerformanceComparison
 			Stopwatch stopwatch = Stopwatch.StartNew();
 			using (var blockingCollection = new BlockingCollection<byte[]>(limitOnQueueSize)) 
 			{
-				var task = Task.Run(() =>
+				var task = Task.Factory.StartNew(() =>
 				{
 					for (int i = 0; i < iterations; i++) // ReSharper disable once AccessToDisposedClosure
 						blockingCollection.Take();
@@ -144,7 +144,7 @@ namespace NetMQ.PerformanceComparison
 			{
 				pair1.Bind("inproc://test");
 
-				var task = Task.Run(() =>
+				var task = Task.Factory.StartNew(() =>
 					{
 						// ReSharper disable once AccessToDisposedClosure
 						using (var pair2 = ctx.CreatePairSocket())
@@ -176,7 +176,7 @@ namespace NetMQ.PerformanceComparison
 			using (var requestCollection = new BlockingCollection<byte[]>())
 			using (var replyCollection = new BlockingCollection<byte[]>())
 			{
-				var task = Task.Run(() =>
+				var task = Task.Factory.StartNew(() =>
 				{
 					for (int i = 0; i < iterations; i++)
 					{
@@ -207,7 +207,7 @@ namespace NetMQ.PerformanceComparison
 			{
 				pair1.Bind("inproc://test");
 
-				var task = Task.Run(() =>
+				var task = Task.Factory.StartNew(() =>
 				{
 					// ReSharper disable once AccessToDisposedClosure
 					using (var pair2 = ctx.CreatePairSocket())
