@@ -9,7 +9,7 @@ namespace NetMQ.PerformanceComparison
 	public class PairVsBlockingCollectionTest
 	{
 		[Test(Description = "Comparison of PAIR sockets with BlockingCollection using a single thread and a send-receive pattern")]
-		public void Submit1MMessagesOnOneThreadInterleaved()
+		public void SubmitMessagesOnOneThreadInterleaved()
 		{
 			var payload = new byte[100]; //actual payload is not important since it's always a reference copy
 			const int iterations = 1000000;
@@ -20,7 +20,7 @@ namespace NetMQ.PerformanceComparison
 		}
 
 		[Test(Description = "Comparison of PAIR sockets with BlockingCollection using 2 threads with one producer and one consumer")]
-		public void Submit10MMessagesOnDifferentThreads()
+		public void SubmitMessagesOnDifferentThreads()
 		{
 			var payload = new byte[100]; //actual payload is not important since it's always a reference copy
 			const int iterations = 1000000;
@@ -33,7 +33,7 @@ namespace NetMQ.PerformanceComparison
 		}
 
 		[Test(Description = "Comparison of PAIR sockets with BlockingCollection using 2 threads with request-reply pattern")]
-		public void AsyncCommunicationBetweenThreads1MMessages()
+		public void AsyncCommunicationBetweenThreads()
 		{
 			var payload = new byte[100]; //actual payload is not important since it's always a reference copy
 			const int iterations = 100000;
