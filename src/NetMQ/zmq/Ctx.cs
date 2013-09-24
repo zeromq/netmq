@@ -457,6 +457,11 @@ namespace NetMQ.zmq
 			Endpoint endpoint = null;
 			lock (m_endpointsSync)
 			{
+				if (addr == null || !m_endpoints.ContainsKey(addr))
+			        {
+			        	throw NetMQException.Create(ErrorCode.EINVAL);
+			       	}
+				
 				endpoint = m_endpoints[addr];
 				if (endpoint == null)
 				{
