@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Note: To target a version of .NET earlier than 4.0, build this with the pragma PRE_4 defined.  jh
+using System;
 using System.Threading;
+#if !PRE_4
 using System.Threading.Tasks;
-using NUnit.Framework;
+#endif
 using NetMQ.Monitoring;
-using NetMQ.Sockets;
 using NetMQ.zmq;
+using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -39,7 +38,12 @@ namespace NetMQ.Tests
 
 						monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
+#if !PRE_4
 						var pollerTask = Task.Factory.StartNew(monitor.Start);
+#else
+                        var pollerThread = new Thread(_ => monitor.Start());
+                        pollerThread.Start();
+#endif
 
 						rep.Bind("tcp://127.0.0.1:5002");
 
@@ -65,8 +69,12 @@ namespace NetMQ.Tests
 
 							Thread.Sleep(200);
 
-							Assert.IsTrue(pollerTask.IsCompleted);
-						}
+#if !PRE_4
+                            Assert.IsTrue(pollerTask.IsCompleted);
+#else
+                            Assert.IsFalse(pollerThread.IsAlive);
+#endif
+                        }
 					}
 				}
 			}

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.Sockets;
-
+﻿
 namespace NetMQ
 {
 	/// <summary>
-	/// Forward messages between two sockets, you can also specify control socket which both sockets will send messages to
+	/// This Proxy class is used to forward messages from one socket to another.
+	/// It also has a provision for you to specify a control-socket which both sockets would send messages to.
 	/// </summary>
 	public class Proxy
 	{
@@ -15,6 +11,13 @@ namespace NetMQ
 		NetMQSocket m_backend;
 		NetMQSocket m_control;
 
+        /// <summary>
+        /// Create a new instance of a Proxy (NetMQ.Proxy)
+        /// with the given sockets to serve as a front-end, a back-end, and a control socket.
+        /// </summary>
+        /// <param name="frontend">the socket that messages will be forwarded from</param>
+        /// <param name="backend">the socket that messages will be forwarded to</param>
+        /// <param name="control">this socket will have messages also sent to it - you can set this to null if not needed</param>
 		public Proxy(NetMQSocket frontend, NetMQSocket backend, NetMQSocket control)
 		{
 			m_frontend = frontend;
@@ -23,7 +26,7 @@ namespace NetMQ
 		}
 
 		/// <summary>
-		/// Start the proxy work, this will block until one of the sockets is closed
+		/// Start the proxy working; this will block until one of the sockets is closed.
 		/// </summary>
 		public void Start()
 		{

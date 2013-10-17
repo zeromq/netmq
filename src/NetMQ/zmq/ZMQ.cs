@@ -372,13 +372,24 @@ namespace NetMQ.zmq
 			}
 		}
 
-		public static void Sleep(int s)
+        /// <summary>
+        /// Make this thread sleep for the given number of seconds.
+        /// </summary>
+        /// <param name="numberOfSeconds">how long to block, in seconds</param>
+        public static void Sleep(int numberOfSeconds)
 		{
-			Thread.Sleep(s * (1000));
+            Thread.Sleep(numberOfSeconds * (1000));
 		}
 
-		//  The proxy functionality
-		public static bool Proxy(SocketBase frontend_, SocketBase backend_, SocketBase control_)
+        /// <summary>
+        /// Start a Proxy operating between the given SocketBases, returning true if successful.
+        /// If you specifiy a control_ socket, that serves as a control-channel that both sockets would send messages to.
+        /// </summary>
+        /// <param name="frontend_">the SocketBase that messages will be forwarded from</param>
+        /// <param name="backend_">the SocketBase that messages will be forwarded to</param>
+        /// <param name="control_">>this SocketBase will have messages also sent to it - you can set this to null if not needed</param>
+        /// <returns></returns>
+        public static bool Proxy(SocketBase frontend_, SocketBase backend_, SocketBase control_)
 		{
 			if (frontend_ == null || backend_ == null)
 			{

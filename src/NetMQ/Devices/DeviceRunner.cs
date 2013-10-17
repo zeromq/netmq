@@ -1,7 +1,7 @@
 namespace NetMQ.Devices
 {
 	/// <summary>
-	/// None threaded version of the device runner.
+	/// Non-threaded version of the device runner.
 	/// Used for specifying the threading model to use with a <see cref="IDevice"/>.
 	/// </summary>
 	internal class DeviceRunner

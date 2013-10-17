@@ -18,17 +18,19 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Note: To target a version of .NET earlier than 4.0, build this with the pragma PRE_4 defined.  jh
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
-using System.Collections;
+#if PRE_4
 using System.Linq;
+#else
+using System.Runtime.InteropServices;
+#endif
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Native
 {
 	public class Poller : PollerBase
 	{

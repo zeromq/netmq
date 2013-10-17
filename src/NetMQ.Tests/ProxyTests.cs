@@ -1,4 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿// Note: To target a version of .NET earlier than 4.0, build this with the pragma PRE_4 defined.  jh
+#if !PRE_4
+using System.Threading.Tasks;
+#else
+using System.Threading;
+#endif
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -17,7 +22,11 @@ namespace NetMQ.Tests
 				back.Bind("inproc://backend");
 
 				var proxy = new Proxy(front, back, null);
+#if !PRE_4
 				Task.Factory.StartNew(proxy.Start);
+#else
+                ThreadPool.QueueUserWorkItem(_ => { proxy.Start(); });
+#endif
 
 				using (var client = ctx.CreateRequestSocket())
 				using (var server = ctx.CreateResponseSocket())
