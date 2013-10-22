@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
+using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NetMQ.zmq;
-using NetMQ.Monitoring;
+
 
 namespace NetMQ
 {
@@ -15,7 +13,7 @@ namespace NetMQ
 	public class NetMQContext : IDisposable
 	{
 		readonly Ctx m_ctx;
-		private int m_isClosed = 0;
+		private int m_isClosed;
 
 
 		private NetMQContext(Ctx ctx)
