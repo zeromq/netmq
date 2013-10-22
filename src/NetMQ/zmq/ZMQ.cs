@@ -20,13 +20,13 @@
 */
 
 using System;
-using System.Net.Sockets;
-using System.Threading;
-using System.Text;
-using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Collections;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
 
 namespace NetMQ.zmq
 {
@@ -498,7 +498,7 @@ namespace NetMQ.zmq
 
 				try
 				{
-					System.Net.Sockets.Socket.Select(inset, outset, errorset, currentTimeoutMicroSeconds);
+                    System.Net.Sockets.Socket.Select(inset, outset, errorset, currentTimeoutMicroSeconds);
 				}
 				catch (SocketException ex)
 				{

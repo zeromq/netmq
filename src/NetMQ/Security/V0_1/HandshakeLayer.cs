@@ -30,12 +30,19 @@ namespace NetMQ.Security.V0_1
 
         private RandomNumberGenerator m_rng = new RNGCryptoServiceProvider();
 
-        private bool m_done = false;
+        private bool m_done;
 
         private IPRF m_prf = new SHA256PRF();
 
+        #region constructor
+        /// <summary>
+        /// Create a new HandshakeLayer object given a SecureChannel and which end of the connection it is to be.
+        /// </summary>
+        /// <param name="secureChannel">the SecureChannel that comprises the secure functionality of this layer</param>
+        /// <param name="connectionEnd">this specifies which end of the connection - Server or Client</param>
         public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
         {
+            // SHA256 is a class that computes the SHA-256 (SHA stands for Standard Hasing Algorithm) of it's input.
             m_localHash = SHA256.Create();
             m_remoteHash = SHA256.Create();
 
@@ -56,6 +63,7 @@ namespace NetMQ.Security.V0_1
 
             VerifyCertificate = c => c.Verify();
         }
+        #endregion
 
         public SecurityParameters SecurityParameters { get; private set; }
 
@@ -65,13 +73,22 @@ namespace NetMQ.Security.V0_1
 
         public X509Certificate2 RemoteCertificate { get; set; }
 
+        /// <summary>
+        /// Get the Pseudo-Random number generating-Function (PRF) that is being used.
+        /// </summary>
         public IPRF PRF
         {
             get { return m_prf; }
         }
 
+        /// <summary>
+        /// This event signals a change to the cipher-suite.
+        /// </summary>
         public event EventHandler CipherSuiteChange;
 
+        /// <summary>
+        /// Get or set the delegate to use to call the method for verifying the certificate.
+        /// </summary>
         public VerifyCertificateDelegate VerifyCertificate { get; set; }
 
         public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
@@ -121,28 +138,51 @@ namespace NetMQ.Security.V0_1
             return m_done;
         }
 
+        /// <summary>
+        /// Compute the hash of the given message twice, first using the local hashing algorithm
+        /// and then again using the remote-peer hashing algorithm.
+        /// </summary>
+        /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
         private void HashLocalAndRemote(NetMQMessage message)
         {
             HashLocal(message);
             HashRemote(message);
         }
 
+        /// <summary>
+        /// Use the local (as opposed to that of the remote-peer) hashing algorithm to compute a hash
+        /// of the frames within the given NetMQMessage.
+        /// </summary>
+        /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
         private void HashLocal(NetMQMessage message)
         {
             Hash(m_localHash, message);
         }
 
+        /// <summary>
+        /// Use the remote-peer hashing algorithm to compute a hash
+        /// of the frames within the given NetMQMessage.
+        /// </summary>
+        /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
         private void HashRemote(NetMQMessage message)
         {
             Hash(m_remoteHash, message);
         }
 
+        /// <summary>
+        /// Compute a hash of the bytes of the buffer within the frames of the given NetMQMessage.
+        /// </summary>
+        /// <param name="hasher">the hashing-algorithm to employ</param>
+        /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
         private void Hash(HashAlgorithm hash, NetMQMessage message)
         {
             foreach (NetMQFrame frame in message)
             {
+                // Access the byte-array that is the frame's buffer.
+                //TODO: This seems to me to be in error - it should be called with false. This is hashing a copy of the buffer, and then doing nothing with it. james hurst
                 byte[] bytes = frame.ToByteArray(true);
-
+                // Compute the hash value for the region of the input byte-array (bytes), starting at index 0,
+                // and copy the resulting hash value back into the same byte-array.
                 hash.TransformBlock(bytes, 0, bytes.Length, bytes, 0);
             }
         }
@@ -369,9 +409,9 @@ namespace NetMQ.Security.V0_1
             }
 
             byte[] verifyData =
-              PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
+              PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerificationDataLength);
 
-            if (!verifyData.SequenceEqual(finishedMessage.VerifyData))
+            if (!verifyData.SequenceEqual(finishedMessage.VerificationData))
             {
                 throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeVerifyData, "peer verify data wrong");
             }
@@ -405,8 +445,8 @@ namespace NetMQ.Security.V0_1
 
             FinishedMessage finishedMessage = new FinishedMessage();
 
-            finishedMessage.VerifyData =
-              PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
+            finishedMessage.VerificationData =
+              PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerificationDataLength);
 
             NetMQMessage outgoingMessage = finishedMessage.ToNetMQMessage();
             outgoingMessages.AddHandshakeMessage(outgoingMessage);
@@ -477,6 +517,9 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// Raise the CipherSuiteChange event.
+        /// </summary>
         private void InvokeChangeCipherSuite()
         {
             EventHandler temp = CipherSuiteChange;

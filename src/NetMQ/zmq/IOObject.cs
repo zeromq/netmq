@@ -20,10 +20,10 @@
 */
 
 using System.Diagnostics;
-
 //  Simple base class for objects that live in I/O threads.
 //  It makes communication with the poller object easier and
 //  makes defining unneeded event handlers unnecessary.
+using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
@@ -60,16 +60,16 @@ namespace NetMQ.zmq
 			m_handler = null;
 		}
 
-		public void AddFd (System.Net.Sockets.Socket fd)
+		public void AddFd (Socket fd)
 		{
 			m_poller.AddFD (fd, this);
 		}
     
-		public void RmFd(System.Net.Sockets.Socket handle) {
+		public void RmFd(Socket handle) {
 			m_poller.RemoveFD(handle);
 		}
     
-		public void SetPollin (System.Net.Sockets.Socket handle)
+		public void SetPollin (Socket handle)
 		{
 			m_poller.SetPollin (handle);
 		}

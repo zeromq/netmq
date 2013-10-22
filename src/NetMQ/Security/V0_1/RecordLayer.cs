@@ -20,11 +20,11 @@ namespace NetMQ.Security.V0_1
         private HMAC m_decryptionHMAC;
         private HMAC m_encryptionHMAC;
 
-        private ulong m_sequenceNumber = 0;
+        private ulong m_sequenceNumber;
 
         private readonly byte[] m_protocolVersion;
 
-        private ulong m_leftWindow = 0;
+        private ulong m_leftWindow;
         private ulong m_rightWindow = WindowSize - 1;
         private bool[] m_windowMap = new bool[WindowSize];
 
@@ -43,9 +43,10 @@ namespace NetMQ.Security.V0_1
 
         public IPRF PRF { get; set; }
 
-        private void GenerateKeys(
-          out byte[] clientMAC, out byte[] serverMAC,
-          out byte[] clientEncryptionKey, out byte[] serverEncryptionKey)
+        private void GenerateKeys(out byte[] clientMAC,
+                                  out byte[] serverMAC,
+                                  out byte[] clientEncryptionKey,
+                                  out byte[] serverEncryptionKey)
         {
             byte[] seed = new byte[HandshakeLayer.RandomNumberLength * 2];
 
@@ -216,7 +217,7 @@ namespace NetMQ.Security.V0_1
         }
 
         private byte[] EncryptBytes(ICryptoTransform encryptor, ContentType contentType, ulong seqNum,
-          int frameIndex, byte[] plainBytes)
+                                    int frameIndex, byte[] plainBytes)
         {
             byte[] mac;
 
@@ -337,7 +338,7 @@ namespace NetMQ.Security.V0_1
         }
 
         private void DecryptBytes(ICryptoTransform decryptor, byte[] cipherBytes,
-          out byte[] plainBytes, out byte[] mac, out byte[] padding)
+                                  out byte[] plainBytes, out byte[] mac, out byte[] padding)
         {
             if (cipherBytes.Length % decryptor.InputBlockSize != 0)
             {
@@ -389,7 +390,7 @@ namespace NetMQ.Security.V0_1
         }
 
         public void ValidateBytes(ContentType contentType, ulong seqNum, int frameIndex,
-          byte[] plainBytes, byte[] mac, byte[] padding)
+                                  byte[] plainBytes, byte[] mac, byte[] padding)
         {
             if (SecurityParameters.MACAlgorithm != MACAlgorithm.Null)
             {
