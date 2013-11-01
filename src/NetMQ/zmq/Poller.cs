@@ -157,6 +157,7 @@ namespace NetMQ.zmq
 		public void Start()
 		{
 			m_worker = new Thread(Loop);
+			m_worker.IsBackground = true;
 			m_worker.Name = m_name;
 			m_worker.Start();
 		}
