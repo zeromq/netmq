@@ -135,8 +135,7 @@ namespace NetMQ.zmq
 
 		public void SetPollin(Socket handle)
 		{
-			if (!m_checkRead.Contains(handle))
-				m_checkRead.Add(handle);
+			m_checkRead.Add(handle);
 		}
 
 
@@ -147,8 +146,7 @@ namespace NetMQ.zmq
 
 		public void SetPollout(Socket handle)
 		{
-			if (!m_checkWrite.Contains(handle))
-				m_checkWrite.Add(handle);
+			m_checkWrite.Add(handle);
 		}
 
 		public void ResetPollout(Socket handle)
@@ -170,9 +168,9 @@ namespace NetMQ.zmq
 
 		public void Loop()
 		{
-			ArrayList readList = new ArrayList();
-			ArrayList writeList = new ArrayList();
-			ArrayList errorList = new ArrayList();
+			List<Socket> readList = new List<Socket>();
+			List<Socket> writeList = new List<Socket>();
+			List<Socket> errorList = new List<Socket>();
 
 			while (!m_stopping)
 			{
