@@ -4,256 +4,381 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Diagnostics;
 using NetMQ.zmq;
 
 namespace NetMQ
 {
-	public class Poller
-	{
-		class PollerPollItem : PollItem
-		{
-			private NetMQSocket m_socket;
+    public class Poller : IDisposable
+    {
+        class PollerPollItem : PollItem
+        {
+            private NetMQSocket m_socket;
 
-			public PollerPollItem(NetMQSocket socket, PollEvents events)
-				: base(socket.SocketHandle, events)
-			{
-				m_socket = socket;
-			}
+            public PollerPollItem(NetMQSocket socket, PollEvents events)
+                : base(socket.SocketHandle, events)
+            {
+                m_socket = socket;
+            }
 
-			public NetMQSocket NetMQSocket
-			{
-				get { return m_socket; }
-			}
-		}
+            public NetMQSocket NetMQSocket
+            {
+                get { return m_socket; }
+            }
+        }
 
-		private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
+        private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
 
-		private PollItem[] m_pollset;
-		private NetMQSocket[] m_pollact;
-		private int m_pollSize;
+        private PollItem[] m_pollset;
+        private NetMQSocket[] m_pollact;
+        private int m_pollSize;
 
-		readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
-		readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
+        readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
+        readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
 
-		readonly CancellationTokenSource m_cancellationTokenSource;
-		readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
-		private bool m_isStarted;
+        readonly CancellationTokenSource m_cancellationTokenSource;
+        readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
+        private bool m_isStarted;
 
-		private bool m_isDirty = true;
+        private bool m_isDirty = true;
+        private bool m_disposed = false;
 
-		public Poller()
-		{
-			PollTimeout = 1000;
+        public Poller()
+        {
+            PollTimeout = 1000;
 
-			m_cancellationTokenSource = new CancellationTokenSource();
-		}
+            m_cancellationTokenSource = new CancellationTokenSource();
+        }
 
-		/// <summary>
-		/// Poll timeout in milliseconds
-		/// </summary>
-		public int PollTimeout { get; set; }
+        public Poller(params NetMQSocket[] sockets)
+            : this()
+        {
+            if (sockets == null)
+            {
+                throw new ArgumentNullException("sockets");
+            }
 
-		public bool IsStarted { get { return m_isStarted; } }
+            foreach (var socket in sockets)
+            {
+                AddSocket(socket);
+            }
+        }
 
-		public void AddSocket(NetMQSocket socket)
-		{
-			if (m_sockets.Contains(socket))
-			{
-				throw new ArgumentException("Socket already added to poller");
-			}
+        public Poller(params NetMQTimer[] timers)
+            : this()
+        {
+            if (timers == null)
+            {
+                throw new ArgumentNullException("timers");
+            }
 
-			m_sockets.Add(socket);
+            foreach (var timer in timers)
+            {
+                AddTimer(timer);
+            }
+        }
 
-			socket.EventsChanged += OnSocketEventsChanged;
+        #region Dtors
 
-			m_isDirty = true;
-		}
+        ~Poller()
+        {
+            Dispose(false);
+        }
 
-		public void RemoveSocket(NetMQSocket socket)
-		{
-			socket.EventsChanged -= OnSocketEventsChanged;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-			m_sockets.Remove(socket);
-			m_isDirty = true;
-		}
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!m_disposed)
+            {
+                if (disposing)
+                {
+                    if (m_isStarted)
+                    {
+                        Stop(false);
+                    }
+                }
 
-		private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
-		{
-			// when the sockets SendReady or ReceiveReady changed we marked the poller as dirty in order to reset the poll events
-			m_isDirty = true;
-		}
+                m_disposed = true;
+            }
+        }
 
-		public void AddTimer(NetMQTimer timer)
-		{
-			m_timers.Add(timer);
-		}
+        #endregion
 
-		public void RemoveTimer(NetMQTimer timer)
-		{
-			timer.When = -1;
-			m_zombies.Add(timer);
-		}
+        /// <summary>
+        /// Poll timeout in milliseconds
+        /// </summary>
+        public int PollTimeout { get; set; }
 
-		private void RebuildPollset()
-		{
-			m_pollset = null;
-			m_pollact = null;
+        public bool IsStarted { get { return m_isStarted; } }
 
-			m_pollSize = m_sockets.Count;
-			m_pollset = new PollItem[m_pollSize];
-			m_pollact = new NetMQSocket[m_pollSize];
+        public void AddSocket(NetMQSocket socket)
+        {
+            if (socket == null)
+            {
+                throw new ArgumentNullException("stock");
+            }
 
-			uint itemNbr = 0;
-			foreach (var socket in m_sockets)
-			{
-				m_pollset[itemNbr] = new PollItem(socket.SocketHandle, socket.GetPollEvents());
-				m_pollact[itemNbr] = socket;
-				itemNbr++;
-			}
-			m_isDirty = false;
-		}
+            if (m_sockets.Contains(socket))
+            {
+                throw new ArgumentException("Socket already added to poller");
+            }
+
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            m_sockets.Add(socket);
+
+            socket.EventsChanged += OnSocketEventsChanged;
+
+            m_isDirty = true;
+        }
+
+        public void RemoveSocket(NetMQSocket socket)
+        {
+            if (socket == null)
+            {
+                throw new ArgumentNullException("stock");
+            }
+
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            socket.EventsChanged -= OnSocketEventsChanged;
+
+            m_sockets.Remove(socket);
+            m_isDirty = true;
+        }
+
+        private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
+        {
+            // when the sockets SendReady or ReceiveReady changed we marked the poller as dirty in order to reset the poll events
+            m_isDirty = true;
+        }
+
+        public void AddTimer(NetMQTimer timer)
+        {
+            if (timer == null)
+            {
+                throw new ArgumentNullException("timer");
+            }
+
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            m_timers.Add(timer);
+        }
+
+        public void RemoveTimer(NetMQTimer timer)
+        {
+            if (timer == null)
+            {
+                throw new ArgumentNullException("timer");
+            }
+
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            timer.When = -1;
+            m_zombies.Add(timer);
+        }
+
+        private void RebuildPollset()
+        {
+            m_pollset = null;
+            m_pollact = null;
+
+            m_pollSize = m_sockets.Count;
+            m_pollset = new PollItem[m_pollSize];
+            m_pollact = new NetMQSocket[m_pollSize];
+
+            uint itemNbr = 0;
+            foreach (var socket in m_sockets)
+            {
+                m_pollset[itemNbr] = new PollItem(socket.SocketHandle, socket.GetPollEvents());
+                m_pollact[itemNbr] = socket;
+                itemNbr++;
+            }
+            m_isDirty = false;
+        }
 
 
-		int TicklessTimer()
-		{
-			//  Calculate tickless timer
-			Int64 tickless = Clock.NowMs() + PollTimeout;
+        int TicklessTimer()
+        {
+            //  Calculate tickless timer
+            Int64 tickless = Clock.NowMs() + PollTimeout;
 
-			foreach (NetMQTimer timer in m_timers)
-			{
-				//  Find earliest timer
-				if (timer.When == -1 && timer.Enable)
-				{
-					timer.When = timer.Interval + Clock.NowMs();
-				}
+            foreach (NetMQTimer timer in m_timers)
+            {
+                //  Find earliest timer
+                if (timer.When == -1 && timer.Enable)
+                {
+                    timer.When = timer.Interval + Clock.NowMs();
+                }
 
-				if (timer.When != -1 && tickless > timer.When)
-				{
-					tickless = timer.When;
-				}
-			}
+                if (timer.When != -1 && tickless > timer.When)
+                {
+                    tickless = timer.When;
+                }
+            }
 
-			int timeout = (int)(tickless - Clock.NowMs());
-			if (timeout < 0)
-			{
-				timeout = 0;
-			}
+            int timeout = (int)(tickless - Clock.NowMs());
+            if (timeout < 0)
+            {
+                timeout = 0;
+            }
 
-			return timeout;
-		}
+            return timeout;
+        }
 
-		public void Start()
-		{
-			Thread.CurrentThread.Name = "NetMQPollerThread";
+        public void Start()
+        {
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
 
-			m_isStoppedEvent.Reset();
-			m_isStarted = true;
-			try
-			{
-				// the sockets may have been created in another thread, to make sure we can fully use them we do full memory barried
-				// at the begining of the loop
-				Thread.MemoryBarrier();
+            if (m_isStarted)
+            {
+                throw new InvalidOperationException("Poller is started");
+            }
 
-				//  Recalculate all timers now
-				foreach (NetMQTimer netMQTimer in m_timers)
-				{
-					if (netMQTimer.Enable)
-					{
-						netMQTimer.When = Clock.NowMs() + netMQTimer.Interval;
-					}
-				}
+            Thread.CurrentThread.Name = "NetMQPollerThread";
 
-				while (!m_cancellationTokenSource.IsCancellationRequested)
-				{
-					if (m_isDirty)
-					{
-						RebuildPollset();
-					}
+            m_isStoppedEvent.Reset();
+            m_isStarted = true;
+            try
+            {
+                // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barried
+                // at the begining of the loop
+                Thread.MemoryBarrier();
 
-					ZMQ.Poll(m_pollset, m_pollSize, TicklessTimer());
+                //  Recalculate all timers now
+                foreach (NetMQTimer netMQTimer in m_timers)
+                {
+                    if (netMQTimer.Enable)
+                    {
+                        netMQTimer.When = Clock.NowMs() + netMQTimer.Interval;
+                    }
+                }
 
-					// that way we make sure we can continue the loop if new timers are added.
-					// timers cannot be removed
-					int timersCount = m_timers.Count;
-					for (int i = 0; i < timersCount; i++)
-					{
-						var timer = m_timers[i];
+                while (!m_cancellationTokenSource.IsCancellationRequested)
+                {
+                    if (m_isDirty)
+                    {
+                        RebuildPollset();
+                    }
 
-						if (Clock.NowMs() >= timer.When && timer.When != -1)
-						{
-							timer.InvokeElapsed(this);
+                    ZMQ.Poll(m_pollset, m_pollSize, TicklessTimer());
 
-							if (timer.Enable)
-							{
-								timer.When = timer.Interval + Clock.NowMs();
-							}
-						}
-					}
+                    // that way we make sure we can continue the loop if new timers are added.
+                    // timers cannot be removed
+                    int timersCount = m_timers.Count;
+                    for (int i = 0; i < timersCount; i++)
+                    {
+                        var timer = m_timers[i];
 
-					for (int itemNbr = 0; itemNbr < m_pollSize; itemNbr++)
-					{
-						NetMQSocket socket = m_pollact[itemNbr];
-						PollItem item = m_pollset[itemNbr];
+                        if (Clock.NowMs() >= timer.When && timer.When != -1)
+                        {
+                            timer.InvokeElapsed(this);
 
-						if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
-						{
-							socket.Errors++;
+                            if (timer.Enable)
+                            {
+                                timer.When = timer.Interval + Clock.NowMs();
+                            }
+                        }
+                    }
 
-							if (socket.Errors > 1)
-							{
-								RemoveSocket(socket);
-								item.ResultEvent = PollEvents.None;
-							}
-						}
-						else
-						{
-							socket.Errors = 0;
-						}
+                    for (int itemNbr = 0; itemNbr < m_pollSize; itemNbr++)
+                    {
+                        NetMQSocket socket = m_pollact[itemNbr];
+                        PollItem item = m_pollset[itemNbr];
 
-						if (item.ResultEvent != PollEvents.None)
-						{
-							socket.InvokeEvents(this, item.ResultEvent);
-						}
-					}
+                        if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
+                        {
+                            socket.Errors++;
 
-					if (m_zombies.Any())
-					{
-						//  Now handle any timer zombies
-						//  This is going to be slow if we have many zombies
-						foreach (NetMQTimer netMQTimer in m_zombies)
-						{
-							m_timers.Remove(netMQTimer);
-						}
+                            if (socket.Errors > 1)
+                            {
+                                RemoveSocket(socket);
+                                item.ResultEvent = PollEvents.None;
+                            }
+                        }
+                        else
+                        {
+                            socket.Errors = 0;
+                        }
 
-						m_zombies.Clear();
-					}
-				}
-			}
-			finally
-			{
-				m_isStoppedEvent.Set();
-			}
-		}
+                        if (item.ResultEvent != PollEvents.None)
+                        {
+                            socket.InvokeEvents(this, item.ResultEvent);
+                        }
+                    }
 
-		/// <summary>
-		/// Stop the poller job, it may take a while until the poller is fully stopped
-		/// </summary>
-		/// <param name="waitForCloseToComplete">if true the method will block until the poller is fully stopped</param>
-		public void Stop(bool waitForCloseToComplete)
-		{
-			m_cancellationTokenSource.Cancel();
+                    if (m_zombies.Any())
+                    {
+                        //  Now handle any timer zombies
+                        //  This is going to be slow if we have many zombies
+                        foreach (NetMQTimer netMQTimer in m_zombies)
+                        {
+                            m_timers.Remove(netMQTimer);
+                        }
 
-			if (waitForCloseToComplete)
-			{
-				m_isStoppedEvent.WaitOne();
-			}
+                        m_zombies.Clear();
+                    }
+                }
+            }
+            finally
+            {
+                m_isStoppedEvent.Set();
+            }
+        }
 
-			m_isStarted = false;
-		}
+        /// <summary>
+        /// Stop the poller job, it may take a while until the poller is fully stopped
+        /// </summary>
+        /// <param name="waitForCloseToComplete">if true the method will block until the poller is fully stopped</param>
+        public void Stop(bool waitForCloseToComplete)
+        {
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
 
-		public void Stop()
-		{
-			Stop(true);
-		}
-	}
+            if (m_isStarted)
+            {
+                m_cancellationTokenSource.Cancel();
+
+                if (waitForCloseToComplete)
+                {
+                    m_isStoppedEvent.WaitOne();
+                }
+
+                m_isStarted = false;
+            }
+            else
+            {
+                throw new InvalidOperationException("Poller is unstarted");
+            }
+        }
+
+        public void Stop()
+        {
+            Stop(true);
+        }
+
+
+    }
 }
