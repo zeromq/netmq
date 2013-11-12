@@ -244,10 +244,25 @@ namespace NetMQ.Tests
 	    }
 	  }
 
+        [Test]
+	    public void BindRandom()
+	    {
+	        using (NetMQContext context = NetMQContext.Create())
+	        {
+	            using (NetMQSocket randomDealer = context.CreateDealerSocket())
+	            {
+	                int port = randomDealer.BindRandomPort("tcp://*");
 
+	                using (NetMQSocket connectingDealer = context.CreateDealerSocket())
+	                {
+	                    connectingDealer.Connect("tcp://127.0.0.1:" + port);
 
+                        randomDealer.Send("test");
 
-
-
+                        Assert.AreEqual("test", connectingDealer.ReceiveString());
+	                }
+	            }
+	        }
+	    }
 	}
 }
