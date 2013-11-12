@@ -453,9 +453,9 @@ namespace NetMQ.zmq
 				}
 			}
 
-			ArrayList inset = new ArrayList(readList.Count);
-			ArrayList outset = new ArrayList(writeList.Count);
-			ArrayList errorset = new ArrayList(errorList.Count);
+			List<Socket> inset = new List<Socket>(readList.Count);
+			List<Socket> outset = new List<Socket>(writeList.Count);
+			List<Socket> errorset = new List<Socket>(errorList.Count);
 
 			Stopwatch stopwatch = null;
 
