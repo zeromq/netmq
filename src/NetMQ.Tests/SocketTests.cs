@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Note: To target a version of .NET earlier than 4.0, build this with the pragma PRE_4 defined.  jh
+using System;
 using System.Threading;
+#if !PRE_4
 using System.Threading.Tasks;
+#endif
 using NUnit.Framework;
-using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ.Tests
@@ -16,6 +15,7 @@ namespace NetMQ.Tests
 		[Test, ExpectedException(typeof(AgainException))]
 		public void CheckRecvAgainException()
 		{
+            // Create a socket and bind it, and immediately call Receive - and verify that this results in a AgainException.
 			using (NetMQContext context = NetMQContext.Create())
 			{
 				using (var routerSocket = context.CreateRouterSocket())
@@ -53,6 +53,7 @@ namespace NetMQ.Tests
 		[Test]
 		public void LargeMessage()
 		{
+            // Send a 300-byte message and verify that it is received.
 			using (NetMQContext context = NetMQContext.Create())
 			{
 				using (var pubSocket = context.CreatePublisherSocket())
@@ -78,9 +79,14 @@ namespace NetMQ.Tests
 			}
 		}
 
-		[Test]
+        [Test, Timeout(60000)]
 		public void ReceiveMessageWithTimeout() 
 		{
+            // Check the operation of the timeout parameter on Receive,
+            // by trying to Receive a message with a 10ms timeout, which should return too soon
+            // to receive a message, and verifying that what was received is null,
+            // and then trying to Receive a message with a longer timeout which should be sufficient
+            // to receive the subsequent message, and verifying that that message was correctly received.
 			using (var context = NetMQContext.Create()) 
 			{
 
@@ -88,7 +94,11 @@ namespace NetMQ.Tests
 				var msg = new byte[300];
 				var waitTime = 500;
 
+#if !PRE_4
 				var t1 = new Task(() => {					
+#else
+                var t1 = new Thread(_ => {
+#endif
 					var pubSocket = context.CreatePublisherSocket();
 					pubSocket.Bind("tcp://127.0.0.1:5556");
 					pubSync.WaitOne();
@@ -96,9 +106,17 @@ namespace NetMQ.Tests
 					pubSocket.Send(msg);
 					pubSync.WaitOne();
 					pubSocket.Dispose();
+#if !PRE_4
 				}, TaskCreationOptions.LongRunning);
+#else
+                }) { IsBackground = true, Name = "t1" };
+#endif
 
+#if !PRE_4
 				var t2 = new Task(() => {
+#else
+                var t2 = new Thread(_ => {
+#endif
 					var subSocket = context.CreateSubscriberSocket();
 					subSocket.Connect("tcp://127.0.0.1:5556");
 					subSocket.Subscribe("");
@@ -114,18 +132,30 @@ namespace NetMQ.Tests
 					Assert.AreEqual(300, msg2.First.MessageSize);
 					pubSync.Set();
 					subSocket.Dispose();
+#if !PRE_4
 				}, TaskCreationOptions.LongRunning);
+#else
+                }) { IsBackground = true, Name = "t2" };
+#endif
 				
 				t1.Start();
 				t2.Start();
 
+#if !PRE_4
 				Task.WaitAll(new[] {t1, t2});
+#else
+                t1.Join();
+                t2.Join();
+#endif
 			}	
 		}
 
     [Test]
     public void LargeMessageLittleEndian()
     {
+            // Check the operation of the socket Options.Endian property,
+            // by setting a pub and a sub socket-pair both to little-endian
+            // and verifying that sub receives a message that pub sends, and that it is the same length.
       using (NetMQContext context = NetMQContext.Create())
       {
         using (var pubSocket = context.CreatePublisherSocket())
@@ -205,6 +235,9 @@ namespace NetMQ.Tests
 	  [Test]
 	  public void MultipleLargeMessages()
 	  {
+            // Check that a sub socket can receive multiple large messages from a pub socket,
+            // by sending 100 messages, each of which is 12,000 bytes long,
+            // and verifying that those exact messages are in fact received by the sub socket.
 	    byte[] largeMessage = new byte[12000];
 
 	    for (int i = 0; i < 12000; i++)
@@ -243,11 +276,5 @@ namespace NetMQ.Tests
 	      }
 	    }
 	  }
-
-
-
-
-
-
 	}
 }

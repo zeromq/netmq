@@ -20,8 +20,8 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using NetMQ.zmq.Native;
+
 
 namespace NetMQ.zmq
 {
@@ -33,7 +33,7 @@ namespace NetMQ.zmq
 		//  Physical time corresponding to the TSC above (in milliseconds).
 		private static long s_lastTime;
 
-		private static bool s_rdtscSupported = false;
+		private static bool s_rdtscSupported;
 
 		static Clock()
 		{

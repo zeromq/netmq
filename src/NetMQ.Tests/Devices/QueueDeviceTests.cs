@@ -55,7 +55,7 @@ namespace NetMQ.Tests.Devices
 	{
 		[Test]
 		public void Run() {
-			StartClient(0);
+			StartClient(0, 0);
 
 			SleepUntilWorkerReceives(1, TimeSpan.FromMilliseconds(100));
 
@@ -72,7 +72,7 @@ namespace NetMQ.Tests.Devices
 		[Test]
 		public void Run() {
 			for (var i = 0; i < 10; i++) {
-				StartClient(i);
+				StartClient(i, 0);
 			}
 
 			SleepUntilWorkerReceives(10, TimeSpan.FromMilliseconds(1000));

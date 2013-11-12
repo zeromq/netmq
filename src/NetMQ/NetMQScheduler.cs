@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+// Note: This particular module does not support versions of the .NET Framework earlier than 4.0 (those did not provide a TaskScheduler class).
+//       In the Visual Studio solution that does target pre-.NET 4, (NetMQ_Vs2008.sln) this module is not included.  James Hurst (jh)
 
 namespace NetMQ
 {
@@ -14,7 +15,7 @@ namespace NetMQ
 		private readonly bool m_ownPoller;
 		private readonly Poller m_poller;
 
-		private static int s_schedulerCounter = 0;
+		private static int s_schedulerCounter;
 
 		private readonly int m_schedulerId;
 		private readonly string m_address;

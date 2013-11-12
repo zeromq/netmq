@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Native
 {
 	public static class NativeMethods
 	{

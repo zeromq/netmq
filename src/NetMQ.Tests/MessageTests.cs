@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -12,6 +8,11 @@ namespace NetMQ.Tests
 		[Test]
 		public void AddFrame()
 		{
+            // Check the basic NetMQMessage operation
+            // by verifying that a newly-created instance has an IsEmpty property value of true,
+            // that Append yields a message with that content as the first element when indexing into the message,
+            // that IsEmpty is then false,
+            // and that the message First, Last, and FrameCount properties are correct.
 			var message = new NetMQMessage();
 
 			Assert.AreEqual(0, message.FrameCount);

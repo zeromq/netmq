@@ -1,123 +1,201 @@
-﻿using System;
+﻿// Note: To target a version of .NET earlier than 4.0, build this with the pragma PRE_4 defined.  jh
+using System;
 using System.Threading;
+#if !PRE_4
 using System.Threading.Tasks;
+#endif
 using NUnit.Framework;
 using NetMQ.Devices;
-using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests.Devices
 {
-	public abstract class DeviceTestBase<TDevice, TWorkerSocket>
-		where TDevice : IDevice
-        where TWorkerSocket: NetMQSocket
-		
-	{
+    public abstract class DeviceTestBase<TDevice, TWorkerSocket>
+        where TDevice : IDevice
+        where TWorkerSocket : NetMQSocket
+    {
 
-		protected const string Frontend = "inproc://front.addr";
-		protected const string Backend = "inproc://back.addr";
+        protected const string Frontend = "inproc://front.addr";
+        protected const string Backend = "inproc://back.addr";
 
-		protected readonly Random Random = new Random();
+        protected readonly Random Random = new Random();
 
-		protected NetMQContext Context;
-		protected TDevice Device;
+        protected NetMQContext Context;
+        protected TDevice Device;
 
-		protected Func<NetMQContext, TDevice> CreateDevice;
+        protected Func<NetMQContext, TDevice> CreateDevice;
 
-		protected Func<NetMQContext, NetMQSocket> CreateClientSocket;
+        protected Func<NetMQContext, NetMQSocket> CreateClientSocket;
         protected abstract TWorkerSocket CreateWorkerSocket(NetMQContext context);
 
-		protected int WorkerReceiveCount;
+        protected int WorkerReceiveCount;
 
-		private CancellationTokenSource m_workCancelationSource;
+#if !PRE_4
+        private CancellationTokenSource m_workCancelationSource;
 		private CancellationToken m_workerCancelationToken;
+#else
+        /// <summary>
+        /// This is a flag that indicates a request has been made to stop (cancel) the socket monitoring.
+        /// Zero represents false, 1 represents true - cancellation is requested.
+        /// </summary>
+        private long m_isCancellationRequested;
+#endif
 
-		protected ManualResetEvent WorkerDone;
+        protected ManualResetEvent WorkerDone;
 
-		[TestFixtureSetUp]
-		protected virtual void Initialize() {
-			WorkerReceiveCount = 0;
-			WorkerDone = new ManualResetEvent(false);
-			m_workCancelationSource = new CancellationTokenSource();
-			m_workerCancelationToken = m_workCancelationSource.Token;
+        [TestFixtureSetUp]
+        protected virtual void Initialize()
+        {
+            WorkerReceiveCount = 0;
+            WorkerDone = new ManualResetEvent(false);
 
-			Context = NetMQContext.Create();
-			SetupTest();
-			Device = CreateDevice(Context);
-			Device.Start();
+#if !PRE_4
+            m_workCancelationSource = new CancellationTokenSource();
+            m_workerCancelationToken = m_workCancelationSource.Token;
+#endif
 
-			StartWorker();
-		}
+            Context = NetMQContext.Create();
+            SetupTest();
+            Device = CreateDevice(Context);
+            Device.Start();
 
-		protected abstract void SetupTest();
+            StartWorker();
+        }
 
-		[TestFixtureTearDown]
-		protected virtual void Cleanup() {
-			Context.Dispose();
-		}
+        protected abstract void SetupTest();
 
-		protected abstract void DoWork(NetMQSocket socket);
+        [TestFixtureTearDown]
+        protected virtual void Cleanup()
+        {
+            Context.Dispose();
+        }
 
-		protected virtual void WorkerSocketAfterConnect(TWorkerSocket socket) { }
+        protected abstract void DoWork(NetMQSocket socket);
 
-		protected void StartWorker() {
-			Task.Factory.StartNew(() => {
-				var socket = CreateWorkerSocket(Context);
-				socket.Connect(Backend);
-				WorkerSocketAfterConnect(socket);
+        protected virtual void WorkerSocketAfterConnect(TWorkerSocket socket) { }
 
-				socket.ReceiveReady += (s,a) => { };
-				socket.SendReady += (s, a) => { };
+        protected void StartWorker()
+        {
+#if !PRE_4
+            Task.Factory.StartNew(() =>
+#else
+            new Thread(_ =>
+#endif
+            {
+                var socket = CreateWorkerSocket(Context);
+                socket.Connect(Backend);
+                WorkerSocketAfterConnect(socket);
 
-				while (!m_workerCancelationToken.IsCancellationRequested) {
-					var has = socket.Poll(TimeSpan.FromMilliseconds(1));
+                socket.ReceiveReady += (s, a) => { };
+                socket.SendReady += (s, a) => { };
 
-					if (!has) {
-						Thread.Sleep(1);
-						continue;
-					}
+                while (!IsCancellationRequested)
+                {
+                    var has = socket.Poll(TimeSpan.FromMilliseconds(1));
 
-					DoWork(socket);
-					Interlocked.Increment(ref WorkerReceiveCount);
-				}
+                    if (!has)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
 
-				socket.Close();
+                    DoWork(socket);
+                    Interlocked.Increment(ref WorkerReceiveCount);
+                }
 
-				WorkerDone.Set();
-			}, TaskCreationOptions.LongRunning);
-		}
+                socket.Close();
 
-		protected void StopWorker() {
-			m_workCancelationSource.Cancel();
-			WorkerDone.WaitOne();
-		}
+                WorkerDone.Set();
+#if !PRE_4
+            }, TaskCreationOptions.LongRunning);
+#else
+            }) { IsBackground = true, Name = "DeviceTestWorkerThread" }.Start();
+#endif
+        }
 
-		protected abstract void DoClient(int id, NetMQSocket socket);
+        protected void StopWorker()
+        {
+            RequestCancellation();
+            WorkerDone.WaitOne();
+        }
 
-		protected void StartClient(int id, int waitBeforeSending = 0) {
-			Task.Factory.StartNew(() => {
-				var client = CreateClientSocket(Context);
-				client.Connect(Frontend);
+        #region IsCancellationRequested
+        /// <summary>
+        /// Get whether a request to cancel the socket-monitoring has been made.
+        /// </summary>
+        private bool IsCancellationRequested
+        {
+            get
+            {
+#if !PRE_4
+                return m_workCancelationSource.IsCancellationRequested;
+#else
+                return Interlocked.Read(ref m_isCancellationRequested) != 0;
+#endif
+            }
+        }
+        #endregion
 
-				if(waitBeforeSending > 0)
-					Thread.Sleep(waitBeforeSending);
+        #region RequestCancellation
+        /// <summary>
+        /// Set a flag that indicates that we want to stop ("cancel") monitoring the socket.
+        /// </summary>
+        private void RequestCancellation()
+        {
+#if !PRE_4
+            m_workCancelationSource.Cancel();
+#else
+            // Set the cancellation-flag to the value that we are using to represent true.
+            Interlocked.Exchange(ref m_isCancellationRequested, 1);
+#endif
+        }
+        #endregion
 
-				DoClient(id, client);
-				client.Close();
-			});
-		}
+        protected abstract void DoClient(int id, NetMQSocket socket);
 
-		protected void SleepUntilWorkerReceives(int messages, TimeSpan maxWait) {
-			var start = DateTime.UtcNow + maxWait;
-			while (WorkerReceiveCount != messages) {
-				Thread.Sleep(1);
+        protected void StartClient(int id, int waitBeforeSending)
+        {
+#if !PRE_4
+            Task.Factory.StartNew(() =>
+            {
+                var client = CreateClientSocket(Context);
+                client.Connect(Frontend);
 
-				if (DateTime.UtcNow <= start)
-					continue;
+                if (waitBeforeSending > 0)
+                    Thread.Sleep(waitBeforeSending);
 
-				Console.WriteLine("Max wait time exceeded for worker messages");
-				return;
-			}
-		}
-	}
+                DoClient(id, client);
+                client.Close();
+            });
+
+#else // pre-4.0 .NET did not have Tasks
+
+            new Thread(_ =>
+            {
+                var client = CreateClientSocket(Context);
+                client.Connect(Frontend);
+
+                if (waitBeforeSending > 0)
+                    Thread.Sleep(waitBeforeSending);
+
+                DoClient(id, client);
+                client.Close();
+            }) { IsBackground = true, Name = "DeviceTestStartClientThread" }.Start();
+#endif
+        }
+
+        protected void SleepUntilWorkerReceives(int messages, TimeSpan maxWait)
+        {
+            var start = DateTime.UtcNow + maxWait;
+            while (WorkerReceiveCount != messages)
+            {
+                Thread.Sleep(1);
+
+                if (DateTime.UtcNow <= start)
+                    continue;
+
+                Console.WriteLine("Max wait time exceeded for worker messages");
+                return;
+            }
+        }
+    }
 }

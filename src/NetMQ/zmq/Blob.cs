@@ -19,80 +19,79 @@
 */
 
 using System;
-using System.Collections;
-using System.Runtime.InteropServices;
 using System.Linq;
+
 
 namespace NetMQ.zmq
 {
-	public class Blob
-	{
+    public class Blob
+    {
 
-		private readonly byte[] m_buf;
-		private int m_hash = 0;
+        private readonly byte[] m_buf;
+        private int m_hash;
 
-		public Blob(byte[] data)
-		{
-			m_buf = new byte[data.Length];
-			data.CopyTo(m_buf, 0);
-		}
+        public Blob(byte[] data)
+        {
+            m_buf = new byte[data.Length];
+            data.CopyTo(m_buf, 0);
+        }
 
-		public Blob(int size)
-		{
-			m_buf = new byte[size];
-		}
+        public Blob(int size)
+        {
+            m_buf = new byte[size];
+        }
 
-		public Blob Put(int pos, byte b)
-		{
-			m_buf[pos] = b;
-			m_hash = 0;
-			return this;
-		}
+        public Blob Put(int pos, byte b)
+        {
+            m_buf[pos] = b;
+            m_hash = 0;
+            return this;
+        }
 
-		public Blob Put(int pos, byte[] data)
-		{
+        public Blob Put(int pos, byte[] data)
+        {
 
-			Buffer.BlockCopy(data, 0, m_buf, pos, data.Length);
+            Buffer.BlockCopy(data, 0, m_buf, pos, data.Length);
 
-			m_hash = 0;
-			return this;
-		}
+            m_hash = 0;
+            return this;
+        }
 
-		public int Size
-		{
-			get { return m_buf.Length; }
-		}
+        public int Size
+        {
+            get { return m_buf.Length; }
+        }
 
-		public byte[] Data
-		{
-			get { return m_buf; }
-		}
+        public byte[] Data
+        {
+            get { return m_buf; }
+        }
 
-		public override bool Equals(Object t)
-		{			
-			if (t is Blob)
-			{
-				Blob b = (Blob)t;
-				if (b.m_buf.Length != m_buf.Length)
-				{
-					return false;
-				}				
-				
-				return m_buf.SequenceEqual(b.m_buf);				
-			}
-			return false;
-		}
+        public override bool Equals(Object t)
+        {
+            if (t is Blob)
+            {
+                Blob b = (Blob)t;
+                if (b.m_buf.Length != m_buf.Length)
+                {
+                    return false;
+                }
 
-		public override int GetHashCode()
-		{
-			if (m_hash == 0)
-			{
-				foreach (byte b in m_buf)
-				{
-					m_hash = 31 * m_hash + b;
-				}
-			}
-			return m_hash;
-		}
-	}
+                return m_buf.SequenceEqual(b.m_buf);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            if (m_hash == 0)
+            {
+                foreach (byte b in m_buf)
+                {
+                    m_hash = 31 * m_hash + b;
+                }
+            }
+            return m_hash;
+        }
+    }
 }
