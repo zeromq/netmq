@@ -41,12 +41,12 @@ namespace local_thr
 
             message.Close();
 
-            long messagesPerSecond = messageCount / millisecondsElapsed * 1000;
+            double messagesPerSecond = (double)messageCount / millisecondsElapsed * 1000;
             double megabits = messagesPerSecond * messageSize * 8 / 1000000;
 
             Console.WriteLine("message size: {0} [B]", messageSize);
             Console.WriteLine("message count: {0}", messageCount);
-            Console.WriteLine("mean throughput: {0} [msg/s]", messagesPerSecond);
+            Console.WriteLine("mean throughput: {0:0.000} [msg/s]", messagesPerSecond);
             Console.WriteLine("mean throughput: {0:0.000} [Mb/s]", megabits);
 
             pullSocket.Close();
