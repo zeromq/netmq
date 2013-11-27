@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NetMQ.Compat;
 using NetMQ.zmq;
 
 namespace NetMQ

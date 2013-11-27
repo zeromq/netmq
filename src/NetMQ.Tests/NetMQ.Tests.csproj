@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NetMQ.Tests</RootNamespace>
     <AssemblyName>NetMQ.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,6 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>NetMQ.Tests.NetMQTestRunner</StartupObject>
@@ -79,13 +82,20 @@
     <Compile Include="zmq\ZMQPollTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Net45\NetMQ.Net45.csproj">
+      <Project>{dac200f1-380f-4e95-b4b1-c8f7a8d72aea}</Project>
+      <Name>NetMQ.Net45</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NetMQ\NetMQ.csproj">
       <Project>{82934BAC-07FB-41AC-AE59-46FEE6026A40}</Project>
       <Name>NetMQ</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
     <None Include="NetMQ.Testing.crt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

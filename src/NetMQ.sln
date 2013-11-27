@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ", "NetMQ\NetMQ.csproj", "{82934BAC-07FB-41AC-AE59-46FEE6026A40}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance", "{1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}"
@@ -40,6 +42,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROUTERbrokerDEALERworkers", "Samples\Load Balancing Pattern\ROUTERbrokerDEALERworkers\ROUTERbrokerDEALERworkers.csproj", "{DE0D8B83-DAB8-4EAF-9336-0A1614165AD8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROUTERbrokerREQworkers", "Samples\Load Balancing Pattern\ROUTERbrokerREQworkers\ROUTERbrokerREQworkers.csproj", "{B3402B17-15B1-423D-B031-349ADBAFFC3E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.Net45", "Net45\NetMQ.Net45.csproj", "{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -209,6 +213,18 @@ Global
 		{B3402B17-15B1-423D-B031-349ADBAFFC3E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{B3402B17-15B1-423D-B031-349ADBAFFC3E}.Release|x64.ActiveCfg = Release|Any CPU
 		{B3402B17-15B1-423D-B031-349ADBAFFC3E}.Release|x86.ActiveCfg = Release|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Release|x64.ActiveCfg = Release|Any CPU
+		{DAC200F1-380F-4E95-B4B1-C8F7A8D72AEA}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

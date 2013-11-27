@@ -8,6 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NetMQ</RootNamespace>
+    <RootNamespace>NetMQ.Net45</RootNamespace>
     <AssemblyName>NetMQ.Net45</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

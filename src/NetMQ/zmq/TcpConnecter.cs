@@ -286,8 +286,6 @@ namespace NetMQ.zmq
 		{						
 			SocketError error  = (SocketError) BitConverter.ToInt32(m_s.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error, 4), 0);
 			
-			Debug.Assert(error == SocketError.Success);
-			
 			if (error != SocketError.Success)
 			{
 				if (error == SocketError.ConnectionRefused || error == SocketError.TimedOut ||

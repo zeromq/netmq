@@ -44,12 +44,7 @@ namespace NetMQ.zmq
 		{
 			Protocol = "tcp";
 
-			if (endpoint is DnsEndPoint)
-			{
-				DnsEndPoint dnsEndpoint = endpoint as DnsEndPoint;
-				AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port;
-			}
-			else if (endpoint is IPEndPoint)
+			if (endpoint is IPEndPoint)
 			{
 				IPEndPoint ipEndpoint = endpoint as IPEndPoint;
 				AddressString = ipEndpoint.Address + ":" + ipEndpoint.Port;

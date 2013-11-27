@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NetMQ</RootNamespace>
     <AssemblyName>NetMQ</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,20 +32,21 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compat\EnumExtensions.cs" />
     <Compile Include="IReceivingSocket.cs" />
-    <Compile Include="NetMQScheduler.cs" />
+    <Compile Include="Monitoring\NetMQMonitor.cs" />
+    <Compile Include="Monitoring\NetMQMonitorEventArgs.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
     <Compile Include="ErrorPollingException.cs" />
     <Compile Include="NetMQFrame.cs" />
     <Compile Include="IOutgoingSocket.cs" />
-    <Compile Include="Monitoring\NetMQMonitorEventArgs.cs" />
     <Compile Include="NetMQMessage.cs" />
     <Compile Include="NetMQSocket.cs" />
     <Compile Include="NetMQContext.cs" />
@@ -79,7 +82,6 @@
     <Compile Include="Devices\QueueDevice.cs" />
     <Compile Include="Devices\StreamerDevice.cs" />
     <Compile Include="Devices\ThreadedDeviceRunner.cs" />
-    <Compile Include="Monitoring\NetMQMonitor.cs" />
     <Compile Include="NetMQException.cs" />
     <Compile Include="Sockets\PairSocket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

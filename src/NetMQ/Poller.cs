@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using NetMQ.Compat;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -35,7 +36,7 @@ namespace NetMQ
 		readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
 		readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
 
-		readonly CancellationTokenSource m_cancellationTokenSource;
+		volatile bool m_cancelled;
 		readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
 		private bool m_isStarted;
 
@@ -44,8 +45,6 @@ namespace NetMQ
 		public Poller()
 		{
 			PollTimeout = 1000;
-
-			m_cancellationTokenSource = new CancellationTokenSource();
 		}
 
 		/// <summary>
@@ -163,7 +162,7 @@ namespace NetMQ
 					}
 				}
 
-				while (!m_cancellationTokenSource.IsCancellationRequested)
+				while (!m_cancelled)
 				{
 					if (m_isDirty)
 					{
@@ -241,7 +240,7 @@ namespace NetMQ
 		/// <param name="waitForCloseToComplete">if true the method will block until the poller is fully stopped</param>
 		public void Stop(bool waitForCloseToComplete)
 		{
-			m_cancellationTokenSource.Cancel();
+		    m_cancelled = true;
 
 			if (waitForCloseToComplete)
 			{
