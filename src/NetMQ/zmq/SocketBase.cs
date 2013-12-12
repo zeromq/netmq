@@ -73,6 +73,9 @@ namespace NetMQ.zmq
 		// Bitmask of events being monitored
 		private SocketEvent m_monitorEvents;
 
+        // The tcp port that was bound to, if any
+        private int m_port;
+
 		protected SocketBase(Ctx parent, int threadId, int sid)
 			: base(parent, threadId)
 		{
@@ -401,6 +404,7 @@ namespace NetMQ.zmq
 				try
 				{
 					listener.SetAddress(address);
+                    m_port = listener.Port;
 				}
 				catch (NetMQException ex)
 				{
@@ -449,6 +453,7 @@ namespace NetMQ.zmq
 				try
 				{
 					listener.SetAddress(address);
+                    m_port = listener.Port;
 				}
 				catch (NetMQException ex)
 				{
@@ -468,6 +473,22 @@ namespace NetMQ.zmq
 			Debug.Assert(false);
 			throw NetMQException.Create(ErrorCode.EFAULT);
 		}
+
+        public int BindRandomPort(String addr)
+        {
+            string address, protocol;
+
+            DecodeAddress(addr, out address, out protocol);
+            if(protocol.Equals("tcp"))
+            {
+                Bind(addr + ":0");
+                return m_port;
+            }
+            else
+            {
+                throw NetMQException.Create(ErrorCode.EINVAL);
+            }
+        }
 
 		public void Connect(String addr)
 		{

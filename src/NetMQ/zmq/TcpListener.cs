@@ -20,6 +20,7 @@
 */
 
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Diagnostics;
 using System.Security;
@@ -44,6 +45,9 @@ namespace NetMQ.zmq
 		private String m_endpoint;
 
 		private readonly IOObject m_ioObject;
+
+        // The port that was bound on
+        private int m_port;
 
 		public TcpListener(IOThread ioThread, SocketBase socket, Options options) :
 			base(ioThread, options)
@@ -155,7 +159,7 @@ namespace NetMQ.zmq
 			get { return m_address.ToString(); }
 		}
 
-		//  Set address to listen on.
+		//  Set address to listen on. return the used port
 		public virtual void SetAddress(String addr)
 		{
 			m_address.Resolve(addr, m_options.IPv4Only);
@@ -178,8 +182,15 @@ namespace NetMQ.zmq
 				throw NetMQException.Create(ex);
 			}
 
-			m_socket.EventListening(m_endpoint, m_handle);			
+			m_socket.EventListening(m_endpoint, m_handle);
+
+            m_port = ((IPEndPoint)m_handle.LocalEndPoint).Port;
 		}
+
+        public virtual int Port
+        {
+            get { return m_port; }
+        }
 
 		//  Accept the new connection. Returns the file descriptor of the
 		//  newly created connection. The function may return retired_fd

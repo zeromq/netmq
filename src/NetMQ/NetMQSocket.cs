@@ -99,6 +99,16 @@ namespace NetMQ
 			ZMQ.Bind(m_socketHandle, address);
 		}
 
+        /// <summary>
+        /// Bind the socket to a random free port
+        /// </summary>
+        /// <param name="address">The address of the socket, omit the port</param>
+        /// <returns>Chosen port number</returns>
+        public int BindRandomPort(string address)
+        {
+            return ZMQ.BindRandomPort(m_socketHandle, address);
+        }
+
 		/// <summary>
 		/// Connect the socket to an address
 		/// </summary>
