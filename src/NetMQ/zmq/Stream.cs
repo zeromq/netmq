@@ -57,9 +57,6 @@ namespace NetMQ.zmq
     //  Holds the prefetched message.
     private Msg m_prefetchedMsg;
 
-    //  If true, more incoming message parts are expected.
-    private bool m_moreIn;
-
     class Outpipe
     {
       public Outpipe(Pipe pipe, bool active)
@@ -90,7 +87,6 @@ namespace NetMQ.zmq
     {
       m_prefetched = false;
       m_identitySent = false;
-      m_moreIn = false;
       m_currentOut = null;
       m_moreOut = false;
       m_nextPeerId = Utils.GenerateRandom();
@@ -166,9 +162,6 @@ namespace NetMQ.zmq
         //  TODO: The connections should be killed instead.
         if (msg.HasMore)
         {
-
-          m_moreOut = true;
-
           //  Find the pipe associated with the identity stored in the prefix.
           //  If there's no such pipe just silently ignore the message, unless
           //  mandatory is set.
@@ -182,24 +175,25 @@ namespace NetMQ.zmq
             {
               op.Active = false;
               m_currentOut = null;
-              m_moreOut = false;
               return false;
             }
           }
           else
           {
-            m_moreOut = false;
             throw NetMQException.Create(ErrorCode.EHOSTUNREACH);
           }
         }
 
+        m_moreOut = true;
+
         return true;
       }
 
+      //  Ignore the MORE flag
       msg.ResetFlags(MsgFlags.More);
 
-      //  Check whether this is the last part of the message.
-      m_moreOut = msg.HasMore;
+      //  This is the last part of the message. 
+      m_moreOut = false;
 
       //  Push the message into the pipe. If there's no out pipe, just drop it.
       if (m_currentOut != null)
@@ -212,13 +206,12 @@ namespace NetMQ.zmq
         }
 
         bool ok = m_currentOut.Write(msg);
-        if (!ok)
-          m_currentOut = null;
-        else if (!m_moreOut)
+        if (ok)
         {
           m_currentOut.Flush();
-          m_currentOut = null;
         }
+
+        m_currentOut = null;
       }
       else
       {
@@ -228,8 +221,6 @@ namespace NetMQ.zmq
 
       return true;
     }
-
-
 
     protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
     {
@@ -248,53 +239,42 @@ namespace NetMQ.zmq
           m_prefetchedMsg = null;
           m_prefetched = false;
         }
-        m_moreIn = msg.HasMore;
+
         return true;
       }
 
       Pipe[] pipe = new Pipe[1];
 
-      bool isMessageAvailable = m_fq.RecvPipe(pipe, out msg);
-      
+      bool isMessageAvailable = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
+
       if (!isMessageAvailable)
       {
         return false;
       }
-      else if (msg == null)
+      else if (m_prefetchedMsg == null)
       {
         return true;
       }
 
       Debug.Assert(pipe[0] != null);
+      Debug.Assert(!m_prefetchedMsg.HasMore);
 
-      //  If we are in the middle of reading a message, just return the next part.
-      if (m_moreIn)
-        m_moreIn = msg.HasMore;
-      else
-      {
-        //  We are at the beginning of a message.
-        //  Keep the message part we have in the prefetch buffer
-        //  and return the ID of the peer instead.
-        m_prefetchedMsg = msg;
+      //  We have received a frame with TCP data.
+      //  Rather than sendig this frame, we keep it in prefetched
+      //  buffer and send a frame with peer's ID.
+      Blob identity = pipe[0].Identity;
 
-        m_prefetched = true;
+      msg = new Msg(identity.Data, true);
+      msg.SetFlags(MsgFlags.More);
 
-        Blob identity = pipe[0].Identity;
-        msg = new Msg(identity.Data);
-        msg.SetFlags(MsgFlags.More);
-        m_identitySent = true;
-      }
+      m_prefetched = true;
+      m_identitySent = true;
 
       return true;
     }
-    
-    protected override bool XHasIn()
-    {
-      //  If we are in the middle of reading the messages, there are
-      //  definitely more parts available.
-      if (m_moreIn)
-        return true;
 
+    protected override bool XHasIn()
+    {     
       //  We may already have a message pre-fetched.
       if (m_prefetched)
         return true;
@@ -308,7 +288,7 @@ namespace NetMQ.zmq
       if (!isMessageAvailable)
       {
         return false;
-      }    
+      }
 
       if (m_prefetchedMsg == null)
       {
@@ -316,6 +296,7 @@ namespace NetMQ.zmq
       }
 
       Debug.Assert(pipe[0] != null);
+      Debug.Assert(!m_prefetchedMsg.HasMore);
 
       Blob identity = pipe[0].Identity;
       m_prefetchedId = new Msg(identity.Data);
@@ -354,7 +335,7 @@ namespace NetMQ.zmq
       pipe.Identity = identity;
       //  Add the record into output pipes lookup table
       Outpipe outpipe = new Outpipe(pipe, true);
-      m_outpipes.Add(identity, outpipe);      
+      m_outpipes.Add(identity, outpipe);
     }
   }
 }
