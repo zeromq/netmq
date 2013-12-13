@@ -72,9 +72,6 @@ namespace NetMQ.zmq
       public bool Active;
     };
 
-    //  We keep a set of pipes that have not been identified yet.
-    private readonly HashSet<Pipe> m_anonymousPipes;
-
     //  Outbound pipes indexed by the peer IDs.
     private readonly Dictionary<Blob, Outpipe> m_outpipes;
 
@@ -87,7 +84,7 @@ namespace NetMQ.zmq
     //  Peer ID are generated. It's a simple increment and wrap-over
     //  algorithm. This value is the next ID to use (if not used already).
     private int m_nextPeerId;
-    
+
     public Stream(Ctx parent, int threadId, int sid)
       : base(parent, threadId, sid)
     {
@@ -105,58 +102,37 @@ namespace NetMQ.zmq
       m_prefetchedId = new Msg();
       m_prefetchedMsg = new Msg();
 
-      m_anonymousPipes = new HashSet<Pipe>();
       m_outpipes = new Dictionary<Blob, Outpipe>();
 
-      m_options.RecvIdentity = true;
       m_options.RawSocket = true;
-
     }
 
     protected override void XAttachPipe(Pipe pipe, bool icanhasall)
     {
       Debug.Assert(pipe != null);
 
-      bool identityOk = IdentifyPeer(pipe);
-      if (identityOk)
-        m_fq.Attach(pipe);
-      else
-        m_anonymousPipes.Add(pipe);
+      IdentifyPeer(pipe);
+      m_fq.Attach(pipe);
     }
 
     protected override void XTerminated(Pipe pipe)
     {
-      if (!m_anonymousPipes.Remove(pipe))
-      {
-        Outpipe old;
+      Outpipe old;
 
-        m_outpipes.TryGetValue(pipe.Identity, out  old);
-        m_outpipes.Remove(pipe.Identity);
+      m_outpipes.TryGetValue(pipe.Identity, out  old);
+      m_outpipes.Remove(pipe.Identity);
 
-        Debug.Assert(old != null);
+      Debug.Assert(old != null);
 
-        m_fq.Terminated(pipe);
-        if (pipe == m_currentOut)
-          m_currentOut = null;
-      }
+      m_fq.Terminated(pipe);
+      if (pipe == m_currentOut)
+        m_currentOut = null;
     }
-
 
     protected override void XReadActivated(Pipe pipe)
     {
-      if (!m_anonymousPipes.Contains(pipe))
-        m_fq.Activated(pipe);
-      else
-      {
-        bool identityOk = IdentifyPeer(pipe);
-        if (identityOk)
-        {
-          m_anonymousPipes.Remove(pipe);
-          m_fq.Attach(pipe);
-        }
-      }
+      m_fq.Activated(pipe);
     }
-
 
     protected override void XWriteActivated(Pipe pipe)
     {
@@ -230,7 +206,7 @@ namespace NetMQ.zmq
       {
         if (msg.Size == 0)
         {
-          m_currentOut.Terminate(false);          
+          m_currentOut.Terminate(false);
           m_currentOut = null;
           return true;
         }
@@ -279,14 +255,7 @@ namespace NetMQ.zmq
       Pipe[] pipe = new Pipe[1];
 
       bool isMessageAvailable = m_fq.RecvPipe(pipe, out msg);
-
-      //  It's possible that we receive peer's identity. That happens
-      //  after reconnection. The current implementation assumes that
-      //  the peer always uses the same identity.
-      //  TODO: handle the situation when the peer changes its identity.
-      while (isMessageAvailable && msg != null && msg.IsIdentity)
-        isMessageAvailable = m_fq.RecvPipe(pipe, out msg);
-
+      
       if (!isMessageAvailable)
       {
         return false;
@@ -318,20 +287,7 @@ namespace NetMQ.zmq
 
       return true;
     }
-
-    //  Rollback any message parts that were sent but not yet flushed.
-    protected void Rollback()
-    {
-
-      if (m_currentOut != null)
-      {
-        m_currentOut.Rollback();
-        m_currentOut = null;
-        m_moreOut = false;
-      }
-    }
-
-
+    
     protected override bool XHasIn()
     {
       //  If we are in the middle of reading the messages, there are
@@ -352,21 +308,7 @@ namespace NetMQ.zmq
       if (!isMessageAvailable)
       {
         return false;
-      }
-
-      //  It's possible that we receive peer's identity. That happens
-      //  after reconnection. The current implementation assumes that
-      //  the peer always uses the same identity.
-      //  TODO: handle the situation when the peer changes its identity.
-      while (m_prefetchedMsg != null && m_prefetchedMsg.IsIdentity)
-      {
-        isMessageAvailable = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
-
-        if (!isMessageAvailable)
-        {
-          return false;
-        }
-      }
+      }    
 
       if (m_prefetchedMsg == null)
       {
@@ -388,13 +330,13 @@ namespace NetMQ.zmq
 
     protected override bool XHasOut()
     {
-      //  In theory, ROUTER socket is always ready for writing. Whether actual
+      //  In theory, STREAM socket is always ready for writing. Whether actual
       //  attempt to write succeeds depends on whitch pipe the message is going
       //  to be routed to.
       return true;
     }
 
-    private bool IdentifyPeer(Pipe pipe)
+    private void IdentifyPeer(Pipe pipe)
     {
       Blob identity;
 
@@ -407,14 +349,12 @@ namespace NetMQ.zmq
       Buffer.BlockCopy(result, 0, buf, 1, 4);
       identity = new Blob(buf);
       m_options.Identity = buf;
-      m_options.IdentitySize =(byte)buf.Length;
+      m_options.IdentitySize = (byte)buf.Length;
 
       pipe.Identity = identity;
       //  Add the record into output pipes lookup table
       Outpipe outpipe = new Outpipe(pipe, true);
-      m_outpipes.Add(identity, outpipe);
-
-      return true;
+      m_outpipes.Add(identity, outpipe);      
     }
   }
 }
