@@ -125,6 +125,9 @@ namespace NetMQ.zmq
 					s = new Pair.PairSession(ioThread, connect,
 																		socket, options, addr);
 					break;
+        case ZmqSocketType.Stream:
+			    s = new Stream.StreamSession(ioThread, connect, socket, options, addr);
+			    break;
 				default:
 					throw InvalidException.Create("type=" + options.SocketType);					
 
@@ -149,6 +152,12 @@ namespace NetMQ.zmq
 			m_identitySent = false;
 			m_identityReceived = false;
 			m_addr = addr;
+
+		  if (options.RawSocket)
+		  {
+		    m_identitySent = true;
+		    m_identityReceived = true;
+		  }
 
 			m_terminatingPipes = new HashSet<Pipe>();
 		}
@@ -282,6 +291,16 @@ namespace NetMQ.zmq
 			else
 				// Remove the pipe from the detached pipes set
 				m_terminatingPipes.Remove(pipe);
+
+      if (!IsTerminating && m_options.RawSocket)
+      {
+        if (m_engine != null)
+        {
+          m_engine.Terminate();
+          m_engine = null;
+        }
+        Terminate();
+      }
 
 			//  If we are waiting for pending messages to be sent, at this point
 			//  we are sure that there will be no more messages and we can proceed

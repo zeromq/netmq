@@ -1,4 +1,4 @@
-/*
+﻿/*
     Copyright (c) 2012 iMatix Corporation
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2011 VMware, Inc.
@@ -23,16 +23,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Text;
 
-//TODO: This class uses O(n) scheduling. Rewrite it to use O(1) algorithm.
 namespace NetMQ.zmq
 {
-  public class Router : SocketBase
+  public class Stream : SocketBase
   {
-
-    public class RouterSession : SessionBase
+    public class StreamSession : SessionBase
     {
-      public RouterSession(IOThread ioThread, bool connect,
+      public StreamSession(IOThread ioThread, bool connect,
                            SocketBase socket, Options options,
                            Address addr)
         : base(ioThread, connect, socket, options, addr)
@@ -87,28 +87,18 @@ namespace NetMQ.zmq
     //  Peer ID are generated. It's a simple increment and wrap-over
     //  algorithm. This value is the next ID to use (if not used already).
     private int m_nextPeerId;
-
-    // If true, report EHOSTUNREACH to the caller instead of silently dropping 
-    // the message targeting an unknown peer.
-    private bool m_mandatory;
-
-
-    private bool m_rawSocket;
-
-    public Router(Ctx parent, int threadId, int sid)
+    
+    public Stream(Ctx parent, int threadId, int sid)
       : base(parent, threadId, sid)
     {
-
       m_prefetched = false;
       m_identitySent = false;
       m_moreIn = false;
       m_currentOut = null;
       m_moreOut = false;
       m_nextPeerId = Utils.GenerateRandom();
-      m_mandatory = false;
-      m_rawSocket = false;
 
-      m_options.SocketType = ZmqSocketType.Router;
+      m_options.SocketType = ZmqSocketType.Stream;
 
 
       m_fq = new FQ();
@@ -118,13 +108,9 @@ namespace NetMQ.zmq
       m_anonymousPipes = new HashSet<Pipe>();
       m_outpipes = new Dictionary<Blob, Outpipe>();
 
-      //  TODO: Uncomment the following line when ROUTER will become true ROUTER
-      //  rather than generic router socket.
-      //  If peer disconnect there's noone to send reply to anyway. We can drop
-      //  all the outstanding requests from that peer.
-      //  options.delay_on_disconnect = false;
+      m_options.RecvIdentity = true;
+      m_options.RawSocket = true;
 
-      m_options.RecvIdentity = true;      
     }
 
     protected override void XAttachPipe(Pipe pipe, bool icanhasall)
@@ -138,35 +124,10 @@ namespace NetMQ.zmq
         m_anonymousPipes.Add(pipe);
     }
 
-
-    protected override void XSetSocketOption(ZmqSocketOptions option, Object optval)
-    {
-      if (option != ZmqSocketOptions.RouterMandatory && option != ZmqSocketOptions.RouterRawSocket)
-      {
-        throw InvalidException.Create();
-      }
-      if (option == ZmqSocketOptions.RouterRawSocket)
-      {
-        m_rawSocket = (bool)optval;
-        if (m_rawSocket)
-        {
-          m_options.RecvIdentity = false;
-          m_options.RawSocket = true;
-        }
-      }
-      else
-      {
-        m_mandatory = (bool)optval;
-      }
-    }
-
-
-
     protected override void XTerminated(Pipe pipe)
     {
       if (!m_anonymousPipes.Remove(pipe))
       {
-
         Outpipe old;
 
         m_outpipes.TryGetValue(pipe.Identity, out  old);
@@ -245,14 +206,11 @@ namespace NetMQ.zmq
             {
               op.Active = false;
               m_currentOut = null;
-              if (m_mandatory)
-              {
-                m_moreOut = false;
-                return false;
-              }
+              m_moreOut = false;
+              return false;
             }
           }
-          else if (m_mandatory)
+          else
           {
             m_moreOut = false;
             throw NetMQException.Create(ErrorCode.EHOSTUNREACH);
@@ -262,10 +220,7 @@ namespace NetMQ.zmq
         return true;
       }
 
-      if (m_options.RawSocket)
-      {
-        msg.ResetFlags(MsgFlags.More);
-      }
+      msg.ResetFlags(MsgFlags.More);
 
       //  Check whether this is the last part of the message.
       m_moreOut = msg.HasMore;
@@ -273,12 +228,9 @@ namespace NetMQ.zmq
       //  Push the message into the pipe. If there's no out pipe, just drop it.
       if (m_currentOut != null)
       {
-        // Close the remote connection if user has asked to do so
-        // by sending zero length message.
-        // Pending messages in the pipe will be dropped (on receiving term- ack)
-        if (m_rawSocket && msg.Size == 0)
+        if (msg.Size == 0)
         {
-          m_currentOut.Terminate(false);         
+          m_currentOut.Terminate(false);          
           m_currentOut = null;
           return true;
         }
@@ -402,7 +354,6 @@ namespace NetMQ.zmq
         return false;
       }
 
-
       //  It's possible that we receive peer's identity. That happens
       //  after reconnection. The current implementation assumes that
       //  the peer always uses the same identity.
@@ -447,41 +398,16 @@ namespace NetMQ.zmq
     {
       Blob identity;
 
-      if (m_options.RawSocket)
-      {
-        byte[] buf = new byte[5];
-        buf[0] = 0;
-        byte[] result = BitConverter.GetBytes(m_nextPeerId++);
-        Buffer.BlockCopy(result, 0, buf, 1, 4);
-        identity = new Blob(buf);
-      }
-      else
-      {
-        Msg msg = pipe.Read();
-        if (msg == null)
-          return false;
+      // Always assign identity for raw-socket
+      byte[] buf = new byte[5];
+      buf[0] = 0;
 
-        if (msg.Size == 0)
-        {
-          //  Fall back on the auto-generation
-          byte[] buf = new byte[5];
+      byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
-          buf[0] = 0;
-
-          byte[] result = BitConverter.GetBytes(m_nextPeerId++);
-
-          Buffer.BlockCopy(result, 0, buf, 1, 4);
-          identity = new Blob(buf);
-        }
-        else
-        {
-          identity = new Blob(msg.Data);
-
-          //  Ignore peers with duplicate ID.
-          if (m_outpipes.ContainsKey(identity))
-            return false;
-        }
-      }
+      Buffer.BlockCopy(result, 0, buf, 1, 4);
+      identity = new Blob(buf);
+      m_options.Identity = buf;
+      m_options.IdentitySize =(byte)buf.Length;
 
       pipe.Identity = identity;
       //  Add the record into output pipes lookup table
@@ -490,7 +416,5 @@ namespace NetMQ.zmq
 
       return true;
     }
-
-
   }
 }

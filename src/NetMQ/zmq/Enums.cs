@@ -22,7 +22,8 @@ namespace NetMQ.zmq
 		Pull = 7,
 		Push = 8,
 		Xpub = 9,
-		Xsub = 10,	
+		Xsub = 10,
+	  Stream = 11,
 	}
 
 	public enum ZmqSocketOptions
@@ -59,6 +60,7 @@ namespace NetMQ.zmq
 		TcpAcceptFilter = 38,
 		DelayAttachOnConnect = 39,
 		XpubVerbose = 40,
+    RouterRawSocket = 41,
 
 		Endian = 1000,
 

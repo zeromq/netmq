@@ -53,6 +53,7 @@ namespace NetMQ.zmq
 			DelayOnDisconnect = true;
 			Filter = false;
 			RecvIdentity = false;
+		  RawSocket = false;
 			TcpKeepalive = -1;
 			TcpKeepaliveCnt = -1;
 			TcpKeepaliveIdle = -1;
@@ -138,6 +139,9 @@ namespace NetMQ.zmq
 
 		//  If true, the identity message is forwarded to the socket.
 		public bool RecvIdentity { get; set; }
+
+    // if true, router socket accepts non-zmq tcp connections
+    public bool RawSocket { get; set; }
 
 		//  TCP keep-alive settings.
 		//  Defaults to -1 = do not change socket options

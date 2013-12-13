@@ -75,6 +75,7 @@
     <Compile Include="ReqRepTests.cs" />
     <Compile Include="Security\SecureChannelTests.cs" />
     <Compile Include="SocketTests.cs" />
+    <Compile Include="StreamTests.cs" />
     <Compile Include="zmq\YQueueTests.cs" />
     <Compile Include="zmq\ZMQPollTests.cs" />
   </ItemGroup>

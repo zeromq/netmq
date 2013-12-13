@@ -91,6 +91,7 @@
     <Compile Include="Sockets\ResponseSocket.cs" />
     <Compile Include="Sockets\RouterSocket.cs" />
     <Compile Include="SocketOptions.cs" />
+    <Compile Include="Sockets\StreamSocket.cs" />
     <Compile Include="Sockets\SubscriberSocket.cs" />
     <Compile Include="Sockets\XPublisherSocket.cs" />
     <Compile Include="Sockets\XSubscriberSocket.cs" />
@@ -152,6 +153,8 @@
     <Compile Include="zmq\Pub.cs" />
     <Compile Include="zmq\Pull.cs" />
     <Compile Include="zmq\Push.cs" />
+    <Compile Include="zmq\RawDecoder.cs" />
+    <Compile Include="zmq\RawEncoder.cs" />
     <Compile Include="zmq\Reaper.cs" />
     <Compile Include="zmq\Rep.cs" />
     <Compile Include="zmq\Req.cs" />
@@ -159,6 +162,7 @@
     <Compile Include="zmq\SessionBase.cs" />
     <Compile Include="zmq\Signaler.cs" />
     <Compile Include="zmq\SocketBase.cs" />
+    <Compile Include="zmq\Stream.cs" />
     <Compile Include="zmq\StreamEngine.cs" />
     <Compile Include="zmq\Sub.cs" />
     <Compile Include="zmq\TcpAddress.cs" />

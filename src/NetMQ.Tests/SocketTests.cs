@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -242,6 +243,46 @@ namespace NetMQ.Tests
 	        }
 	      }
 	    }
+	  }
+
+    [Test]
+	  public void RawSocket()
+	  {
+      byte[] message;
+      byte[] id;
+
+      using (NetMQContext context = NetMQContext.Create())
+      {
+        using (var routerSocket = context.CreateRouterSocket())
+        {
+          routerSocket.Options.RouterRawSocket = true;
+          routerSocket.Bind("tcp://127.0.0.1:5556");
+          
+          using (var clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+          {
+            clientSocket.Connect("127.0.0.1", 5556);
+            clientSocket.NoDelay = true;
+
+            byte[] clientMessage = Encoding.ASCII.GetBytes("HelloRaw");
+
+            int bytesSent = clientSocket.Send(clientMessage);
+            Assert.Greater(bytesSent, 0);            
+
+            id = routerSocket.Receive();
+            message = routerSocket.Receive();
+
+            routerSocket.SendMore(id).
+              SendMore(message); // SNDMORE option is ignored
+
+            byte[] buffer = new byte[16];
+
+            int bytesRead = clientSocket.Receive(buffer);
+            Assert.Greater(bytesRead, 0);
+
+            Assert.AreEqual(Encoding.ASCII.GetString(buffer, 0, bytesRead), "HelloRaw");
+          }
+        }
+      }
 	  }
 
         [Test]
