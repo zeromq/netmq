@@ -17,11 +17,11 @@ namespace NetMQ.Tests
       {
         using (var server = context.CreateStreamSocket())
         {
-          server.Bind("tcp://*:8080");
+          server.Bind("tcp://*:5557");
 
           using (var client = context.CreateStreamSocket())
           {
-            client.Connect("tcp://127.0.0.1:8080");
+						client.Connect("tcp://127.0.0.1:5557");
 
             byte[] id = client.Options.Identity;
 
