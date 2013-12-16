@@ -178,6 +178,12 @@ namespace NetMQ
 			set { m_socket.SetSocketOption(ZmqSocketOptions.XpubVerbose, value); }
 		}
 
+    public bool RouterRawSocket
+    {
+      get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.RouterRawSocket); }
+      set { m_socket.SetSocketOption(ZmqSocketOptions.RouterRawSocket, value); }
+    }
+
 		public Endianness Endian
 		{
 			get { return m_socket.GetSocketOptionX<Endianness>(ZmqSocketOptions.Endian); }

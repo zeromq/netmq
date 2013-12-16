@@ -20,7 +20,6 @@
 */
 
 using System;
-
 //  Helper base class for decoders that know the amount of data to read
 //  in advance at any moment. Knowing the amount in advance is a property
 //  of the protocol used. 0MQ framing protocol is based size-prefixed
@@ -31,6 +30,7 @@ using System;
 //
 //  This class , the state machine that parses the incoming buffer.
 //  Derived class should implement individual state machine actions.
+using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
@@ -169,7 +169,13 @@ namespace NetMQ.zmq
 			State = -1;
 		}
 
-		abstract protected bool Next();
+	  public virtual bool MessageReadySize(int msgSize)
+	  {
+	    Debug.Assert(false);
+      return false;	    
+	  }
+
+	  abstract protected bool Next();
 
 	}
 }
