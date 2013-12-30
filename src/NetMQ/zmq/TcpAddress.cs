@@ -49,9 +49,9 @@ namespace NetMQ.zmq
 			IPEndPoint endpoint = Address;
         
 			if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6) {
-				return "tcp://[" + endpoint .AddressFamily.ToString() + "]:" + endpoint.Port;
+				return Protocol + "://[" + endpoint .AddressFamily.ToString() + "]:" + endpoint.Port;
 			} else {
-				return "tcp://" + endpoint.Address.ToString() + ":" + endpoint.Port;
+                return Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
 			}
 		}
     
@@ -119,6 +119,11 @@ namespace NetMQ.zmq
 			get;
 			private set;
 		}
+
+        public String Protocol
+        {
+            get { return NetMQ.zmq.Address.TCP_PROTOCOL; }
+        }
 
 	}
 }

@@ -49,7 +49,7 @@ namespace NetMQ
 
 			m_schedulerId = Interlocked.Increment(ref s_schedulerCounter);
 
-			m_address = string.Format("inproc://scheduler-{0}", m_schedulerId);
+			m_address = string.Format("{0}://scheduler-{1}", NetMQ.zmq.Address.INPROC_PROTOCOL, m_schedulerId);
 
 			m_serverSocket = context.CreatePullSocket();
 			m_serverSocket.Options.Linger = TimeSpan.Zero;
@@ -62,14 +62,14 @@ namespace NetMQ
 			m_poller.AddSocket(m_serverSocket);
 
 			m_clientSocket = new ThreadLocal<NetMQSocket>(() =>
-																											{
-																												var socket = m_context.CreatePushSocket();
-																												socket.Connect(m_address);
+					{
+						var socket = m_context.CreatePushSocket();
+						socket.Connect(m_address);
 
-																												m_clientSockets.Add(socket);
+						m_clientSockets.Add(socket);
 
-																												return socket;
-																											});
+						return socket;
+					});
 
 			m_schedulerThread = new ThreadLocal<bool>(() => false);
 

@@ -23,92 +23,86 @@ using System.Net;
 
 namespace NetMQ.zmq
 {
-	public class Address
-	{
+    public class Address
+    {
+        public const string INPROC_PROTOCOL = "inproc";
+        public const string TCP_PROTOCOL = "tcp";
+        public const string IPC_PROTOCOL = "ipc";
+        public const string PGM_PROTOCOL = "pgm";
+        public const string EPGM_PROTOCOL = "epgm";
 
-		public interface IZAddress
-		{
-			void Resolve(String name, bool ip4Only);
-			IPEndPoint Address{get;}        
-		};
-
-
-		public Address(String protocol, String address)
-		{
-			Protocol = protocol;
-			AddressString = address;
-			Resolved = null;
-		}
-
-		public Address(EndPoint endpoint)
-		{
-			Protocol = "tcp";
-
-			if (endpoint is DnsEndPoint)
-			{
-				DnsEndPoint dnsEndpoint = endpoint as DnsEndPoint;
-				AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port;
-			}
-			else if (endpoint is IPEndPoint)
-			{
-				IPEndPoint ipEndpoint = endpoint as IPEndPoint;
-				AddressString = ipEndpoint.Address + ":" + ipEndpoint.Port;
-			}
-			else
-			{
-				AddressString = endpoint.ToString();
-			}
-		}
+        public interface IZAddress
+        {
+            void Resolve(String name, bool ip4Only);
+            IPEndPoint Address { get; }
+            String Protocol { get; }
+        };
 
 
-		public override String ToString()
-		{
-			if (Protocol.Equals("tcp"))
-			{
-				if (Resolved != null)
-				{
-					return Resolved.ToString();
-				}
-			}
-			else if (Protocol.Equals("ipc"))
-			{
-				if (Resolved != null)
-				{
-					return Resolved.ToString();
-				}
-			}
-			else if (Protocol.Equals("pgm"))
-			{
-				if (Resolved != null)
-				{
-					return Resolved.ToString();
-				}
-			}
+        public Address(String protocol, String address)
+        {
+            Protocol = protocol;
+            AddressString = address;
+            Resolved = null;
+        }
 
-			if (!string.IsNullOrEmpty(Protocol) && !string.IsNullOrEmpty(AddressString))
-			{
-				return Protocol + "://" + AddressString;
-			}
+        public Address(EndPoint endpoint)
+        {
+            Protocol = TCP_PROTOCOL;
 
-			return null; //TODO: REVIEW - Although not explicitly prohibited, returning null from ToString seems sketchy; return string.Empty? 
-		}
+            if (endpoint is DnsEndPoint)
+            {
+                DnsEndPoint dnsEndpoint = endpoint as DnsEndPoint;
+                AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port;
+            }
+            else if (endpoint is IPEndPoint)
+            {
+                IPEndPoint ipEndpoint = endpoint as IPEndPoint;
+                AddressString = ipEndpoint.Address + ":" + ipEndpoint.Port;
+            }
+            else
+            {
+                AddressString = endpoint.ToString();
+            }
+        }
 
-		public String Protocol
-		{
-			get;
-			private set;
-		}
 
-		public String AddressString
-		{
-			get;
-			private set;
-		}
+        public override String ToString()
+        {
+            if (Protocol.Equals(TCP_PROTOCOL))
+            {
+                if (Resolved != null)
+                {
+                    return Resolved.ToString();
+                }
+            }
+            else if (Protocol.Equals(IPC_PROTOCOL))
+            {
+                if (Resolved != null)
+                {
+                    return Resolved.ToString();
+                }
+            }
+            else if (Protocol.Equals(PGM_PROTOCOL))
+            {
+                if (Resolved != null)
+                {
+                    return Resolved.ToString();
+                }
+            }
 
-		public IZAddress Resolved
-		{
-			get;
-			set;
-		}
-	}
+            if (!string.IsNullOrEmpty(Protocol) && !string.IsNullOrEmpty(AddressString))
+            {
+                return Protocol + "://" + AddressString;
+            }
+
+            return null; //TODO: REVIEW - Although not explicitly prohibited, returning null from ToString seems sketchy; return string.Empty? 
+        }
+
+        public String Protocol { get; private set; }
+
+        public String AddressString { get; private set; }
+
+        public IZAddress Resolved { get; set; }
+    }
 }
