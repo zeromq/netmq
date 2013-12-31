@@ -477,7 +477,7 @@ namespace NetMQ.zmq
 			//  For delayed connect situations, terminate the pipe
 			//  and reestablish later on
 			if (m_pipe != null && m_options.DelayAttachOnConnect
-					&& m_addr.Protocol != "pgm" && m_addr.Protocol != "epgm")
+                    && m_addr.Protocol != Address.PgmProtocol && m_addr.Protocol != Address.EpgmProtocol)
 			{
 				m_pipe.Hiccup();
 				m_pipe.Terminate(false);
@@ -510,7 +510,7 @@ namespace NetMQ.zmq
 
 			//  Create the connecter object.
 
-			if (m_addr.Protocol.Equals("tcp"))
+			if (m_addr.Protocol.Equals(Address.TcpProtocol))
 			{
 				TcpConnecter connecter = new TcpConnecter(
 					ioThread, this, m_options, m_addr, wait);
@@ -519,7 +519,7 @@ namespace NetMQ.zmq
 				return;
 			}
 
-			if (m_addr.Protocol.Equals("ipc"))
+            if (m_addr.Protocol.Equals(Address.IpcProtocol))
 			{
 				IpcConnecter connecter = new IpcConnecter(
 					ioThread, this, m_options, m_addr, wait);
@@ -528,7 +528,7 @@ namespace NetMQ.zmq
 				return;
 			}
 
-			if (m_addr.Protocol.Equals("pgm") || m_addr.Protocol.Equals("epgm"))
+            if (m_addr.Protocol.Equals(Address.PgmProtocol) || m_addr.Protocol.Equals(Address.EpgmProtocol))
 			{
 				PgmSender pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
 				pgmSender.Init(m_addr.Resolved as PgmAddress);

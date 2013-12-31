@@ -35,7 +35,7 @@ namespace NetMQ.zmq
 				return string.Empty;
 			}
 
-			return "ipc://" + m_name;
+			return Protocol + "://" + m_name;
 		}
 
 		public void Resolve(String name, bool ip4Only)
@@ -65,6 +65,11 @@ namespace NetMQ.zmq
 			get;
 			private set;
 		}
+
+        public String Protocol
+        {
+            get { return NetMQ.zmq.Address.IpcProtocol; }
+        }
 
 	}
 }

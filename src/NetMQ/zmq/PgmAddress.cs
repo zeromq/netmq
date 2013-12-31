@@ -100,12 +100,17 @@ namespace NetMQ.zmq
 
 			if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
 			{
-				return "pgm://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port;
+                return Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port;
 			}
 			else
 			{
-				return "pgm://" + endpoint.Address.ToString() + ":" + endpoint.Port;
+                return Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
 			}
 		}
+
+        public String Protocol
+        {
+            get { return NetMQ.zmq.Address.PgmProtocol; }
+        }
 	}
 }
