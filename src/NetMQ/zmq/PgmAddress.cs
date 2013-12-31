@@ -110,7 +110,7 @@ namespace NetMQ.zmq
 
         public String Protocol
         {
-            get { return NetMQ.zmq.Address.PGM_PROTOCOL; }
+            get { return NetMQ.zmq.Address.PgmProtocol; }
         }
 	}
 }

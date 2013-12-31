@@ -191,9 +191,9 @@ namespace NetMQ.zmq
         private void CheckProtocol(String protocol)
         {
             //  First check out whether the protcol is something we are aware of.
-            if (!protocol.Equals(Address.INPROC_PROTOCOL) && 
-                !protocol.Equals(Address.IPC_PROTOCOL) && !protocol.Equals(Address.TCP_PROTOCOL) &&
-                !protocol.Equals(Address.PGM_PROTOCOL) && !protocol.Equals(Address.EPGM_PROTOCOL))
+            if (!protocol.Equals(Address.InProcProtocol) && 
+                !protocol.Equals(Address.IpcProtocol) && !protocol.Equals(Address.TcpProtocol) &&
+                !protocol.Equals(Address.PgmProtocol) && !protocol.Equals(Address.EpgmProtocol))
             {
                 throw NetMQException.Create(ErrorCode.EPROTONOSUPPORT);
             }
@@ -201,7 +201,7 @@ namespace NetMQ.zmq
             //  Check whether socket type and transport protocol match.
             //  Specifically, multicast protocols can't be combined with
             //  bi-directional messaging patterns (socket types).
-            if ((protocol.Equals(Address.PGM_PROTOCOL) || protocol.Equals(Address.EPGM_PROTOCOL)) &&
+            if ((protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol)) &&
                             m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
                             m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
             {
@@ -370,7 +370,7 @@ namespace NetMQ.zmq
 
             CheckProtocol(protocol);
 
-            if (protocol.Equals(Address.INPROC_PROTOCOL))
+            if (protocol.Equals(Address.InProcProtocol))
             {
                 Ctx.Endpoint endpoint = new Ctx.Endpoint(this, m_options);
 
@@ -381,7 +381,7 @@ namespace NetMQ.zmq
 
                 return;
             }
-            if ((protocol.Equals(Address.PGM_PROTOCOL) || protocol.Equals(Address.EPGM_PROTOCOL)) && (
+            if ((protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol)) && (
                 m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub))
             {
                 //  For convenience's sake, bind can be used interchageable with
@@ -398,7 +398,7 @@ namespace NetMQ.zmq
                 throw NetMQException.Create(ErrorCode.EMTHREAD);
             }
 
-            if (protocol.Equals(Address.TCP_PROTOCOL))
+            if (protocol.Equals(Address.TcpProtocol))
             {
                 TcpListener listener = new TcpListener(
                         ioThread, this, m_options);
@@ -424,7 +424,7 @@ namespace NetMQ.zmq
                 return;
             }
 
-            if (protocol.Equals(Address.PGM_PROTOCOL) || protocol.Equals(Address.EPGM_PROTOCOL))
+            if (protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol))
             {
                 PgmListener listener = new PgmListener(ioThread, this, m_options);
 
@@ -447,7 +447,7 @@ namespace NetMQ.zmq
                 return;
             }
 
-            if (protocol.Equals(Address.IPC_PROTOCOL))
+            if (protocol.Equals(Address.IpcProtocol))
             {
                 IpcListener listener = new IpcListener(
                         ioThread, this, m_options);
@@ -481,7 +481,7 @@ namespace NetMQ.zmq
             string address, protocol;
 
             DecodeAddress(addr, out address, out protocol);
-            if (protocol.Equals(Address.TCP_PROTOCOL))
+            if (protocol.Equals(Address.TcpProtocol))
             {
                 Bind(addr + ":0");
                 return m_port;
@@ -509,7 +509,7 @@ namespace NetMQ.zmq
 
             CheckProtocol(protocol);
 
-            if (protocol.Equals(Address.INPROC_PROTOCOL))
+            if (protocol.Equals(Address.InProcProtocol))
             {
 
                 //  TODO: inproc connect is specific with respect to creating pipes
@@ -583,18 +583,18 @@ namespace NetMQ.zmq
             Address paddr = new Address(protocol, address);
 
             //  Resolve address (if needed by the protocol)
-            if (protocol.Equals(Address.TCP_PROTOCOL))
+            if (protocol.Equals(Address.TcpProtocol))
             {
                 paddr.Resolved = (new TcpAddress());
                 paddr.Resolved.Resolve(
                         address, m_options.IPv4Only);
             }
-            else if (protocol.Equals(Address.IPC_PROTOCOL))
+            else if (protocol.Equals(Address.IpcProtocol))
             {
                 paddr.Resolved = (new IpcAddress());
                 paddr.Resolved.Resolve(address, true);
             }
-            else if (protocol.Equals(Address.PGM_PROTOCOL) || protocol.Equals(Address.EPGM_PROTOCOL))
+            else if (protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol))
             {
                 if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
                 {
@@ -612,7 +612,7 @@ namespace NetMQ.zmq
 
             //  PGM does not support subscription forwarding; ask for all data to be
             //  sent to this pipe.
-            bool icanhasall = protocol.Equals(Address.PGM_PROTOCOL) || protocol.Equals(Address.EPGM_PROTOCOL);
+            bool icanhasall = protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol);
 
             if (!m_options.DelayAttachOnConnect || icanhasall)
             {
@@ -1153,7 +1153,7 @@ namespace NetMQ.zmq
             CheckProtocol(protocol);
 
             // Event notification only supported over inproc://
-            if (!protocol.Equals(Address.INPROC_PROTOCOL))
+            if (!protocol.Equals(Address.InProcProtocol))
             {
                 throw NetMQException.Create(ErrorCode.EPROTONOSUPPORT);
             }

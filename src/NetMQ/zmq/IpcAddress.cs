@@ -68,7 +68,7 @@ namespace NetMQ.zmq
 
         public String Protocol
         {
-            get { return NetMQ.zmq.Address.IPC_PROTOCOL; }
+            get { return NetMQ.zmq.Address.IpcProtocol; }
         }
 
 	}

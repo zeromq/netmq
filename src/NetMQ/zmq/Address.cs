@@ -25,11 +25,11 @@ namespace NetMQ.zmq
 {
     public class Address
     {
-        public const string INPROC_PROTOCOL = "inproc";
-        public const string TCP_PROTOCOL = "tcp";
-        public const string IPC_PROTOCOL = "ipc";
-        public const string PGM_PROTOCOL = "pgm";
-        public const string EPGM_PROTOCOL = "epgm";
+        public const string InProcProtocol = "inproc";
+        public const string TcpProtocol = "tcp";
+        public const string IpcProtocol = "ipc";
+        public const string PgmProtocol = "pgm";
+        public const string EpgmProtocol = "epgm";
 
         public interface IZAddress
         {
@@ -48,7 +48,7 @@ namespace NetMQ.zmq
 
         public Address(EndPoint endpoint)
         {
-            Protocol = TCP_PROTOCOL;
+            Protocol = TcpProtocol;
 
             if (endpoint is DnsEndPoint)
             {
@@ -69,21 +69,21 @@ namespace NetMQ.zmq
 
         public override String ToString()
         {
-            if (Protocol.Equals(TCP_PROTOCOL))
+            if (Protocol.Equals(TcpProtocol))
             {
                 if (Resolved != null)
                 {
                     return Resolved.ToString();
                 }
             }
-            else if (Protocol.Equals(IPC_PROTOCOL))
+            else if (Protocol.Equals(IpcProtocol))
             {
                 if (Resolved != null)
                 {
                     return Resolved.ToString();
                 }
             }
-            else if (Protocol.Equals(PGM_PROTOCOL))
+            else if (Protocol.Equals(PgmProtocol))
             {
                 if (Resolved != null)
                 {
