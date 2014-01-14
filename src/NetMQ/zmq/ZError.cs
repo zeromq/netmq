@@ -21,44 +21,44 @@ using System.Threading;
 
 namespace NetMQ.zmq
 {
-	public class ZError
-	{
-		private static ThreadLocal<ErrorNumber> s_errno = new ThreadLocal<ErrorNumber>(() => 0);
-	
-		public static ErrorNumber ErrorNumber
-		{
-			get
-			{
-				return s_errno.Value;
-			}
-			set
-			{
-				s_errno.Value = value;
-			}
-		}
+    public class ZError
+    {
+        private static ThreadLocal<ErrorNumber> s_errno = new ThreadLocal<ErrorNumber>(() => 0);
 
-		public static bool IsError(int code)
-		{
-			if (code == ErrorNumber.EINTR.Value)
-			{
-				return false;
-			}
-			else
-			{
-				return ErrorNumber.Value == code;
-			}
-		}
+        public static ErrorNumber ErrorNumber
+        {
+            get
+            {
+                return s_errno.Value;
+            }
+            set
+            {
+                s_errno.Value = value;
+            }
+        }
 
-		public static bool IsError(ErrorNumber code)
-		{
-			return IsError(code.Value);
-		}
+        public static bool IsError(int code)
+        {
+            if (code == ErrorNumber.EINTR.Value)
+            {
+                return false;
+            }
+            else
+            {
+                return ErrorNumber.Value == code;
+            }
+        }
 
-		public static void Clear()
-		{
-			ErrorNumber = 0;
-		}
+        public static bool IsError(ErrorNumber code)
+        {
+            return IsError(code.Value);
+        }
+
+        public static void Clear()
+        {
+            ErrorNumber = 0;
+        }
 
 
-	}
+    }
 }

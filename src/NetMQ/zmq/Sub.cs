@@ -24,70 +24,76 @@ using System.Text;
 
 namespace NetMQ.zmq
 {
-	public class Sub : XSub {
+    public class Sub : XSub
+    {
 
-		public class SubSession :XSub.XSubSession {
+        public class SubSession : XSub.XSubSession
+        {
 
-			public SubSession(IOThread ioThread, bool connect,
-			                  SocketBase socket, Options options, Address addr):base(ioThread, connect, socket, options, addr) {
+            public SubSession(IOThread ioThread, bool connect,
+                              SocketBase socket, Options options, Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {
 
-			                  }
+            }
 
-		}
-    
-		public Sub(Ctx parent, int threadId, int sid) :base(parent, threadId, sid){
-			m_options.SocketType = ZmqSocketType.Sub;
+        }
 
-			//  Switch filtering messages on (as opposed to XSUB which where the
-			//  filtering is off).
-			m_options.Filter = true;
-		}
+        public Sub(Ctx parent, int threadId, int sid)
+            : base(parent, threadId, sid)
+        {
+            m_options.SocketType = ZmqSocketType.Sub;
 
-		protected override void XSetSocketOption(ZmqSocketOptions option, Object optval)
-		{
-			if (option != ZmqSocketOptions.Subscribe && option != ZmqSocketOptions.Unsubscribe)
-			{
-				throw InvalidException.Create();
-			}
+            //  Switch filtering messages on (as opposed to XSUB which where the
+            //  filtering is off).
+            m_options.Filter = true;
+        }
 
-			byte[] val;
-        
-			if (optval is String)
-				val =  Encoding.ASCII.GetBytes ((String)optval);
-			else if (optval is byte[])
-				val = (byte[]) optval;
-			else
-				throw InvalidException.Create();
+        protected override void XSetSocketOption(ZmqSocketOptions option, Object optval)
+        {
+            if (option != ZmqSocketOptions.Subscribe && option != ZmqSocketOptions.Unsubscribe)
+            {
+                throw InvalidException.Create();
+            }
 
-			//  Create the subscription message.
-			Msg msg = new Msg(val.Length + 1);
-			if (option == ZmqSocketOptions.Subscribe)
-				msg.Put((byte)1);
-			else if (option == ZmqSocketOptions.Unsubscribe)
-				msg.Put((byte)0);
-			msg.Put (val,1);
+            byte[] val;
 
-			//  Pass it further on in the stack.
-			bool isMessageSent = base.XSend (msg, 0);
+            if (optval is String)
+                val = Encoding.ASCII.GetBytes((String)optval);
+            else if (optval is byte[])
+                val = (byte[])optval;
+            else
+                throw InvalidException.Create();
 
-			if (!isMessageSent)
-			{
-				throw AgainException.Create();
-			}
-		}
+            //  Create the subscription message.
+            Msg msg = new Msg(val.Length + 1);
+            if (option == ZmqSocketOptions.Subscribe)
+                msg.Put((byte)1);
+            else if (option == ZmqSocketOptions.Unsubscribe)
+                msg.Put((byte)0);
+            msg.Put(val, 1);
 
-		protected override bool XSend(Msg msg, SendReceiveOptions flags)
-		{
-			//  Overload the XSUB's send.
-			throw NetMQException.Create("Send not supported on sub socket", ErrorCode.ENOTSUP);
-		}
+            //  Pass it further on in the stack.
+            bool isMessageSent = base.XSend(msg, 0);
 
-		protected override bool XHasOut()
-		{
-			//  Overload the XSUB's send.
-			return false;
-		}
+            if (!isMessageSent)
+            {
+                throw AgainException.Create();
+            }
+        }
+
+        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        {
+            //  Overload the XSUB's send.
+            throw NetMQException.Create("Send not supported on sub socket", ErrorCode.ENOTSUP);
+        }
+
+        protected override bool XHasOut()
+        {
+            //  Overload the XSUB's send.
+            return false;
+        }
 
 
-	}
+    }
 }

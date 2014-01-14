@@ -21,14 +21,15 @@
 
 namespace NetMQ.zmq
 {
-	public interface IPollEvents {
-		// Called by I/O thread when file descriptor is ready for reading.
-		void InEvent () ;
+    public interface IPollEvents
+    {
+        // Called by I/O thread when file descriptor is ready for reading.
+        void InEvent();
 
-		// Called by I/O thread when file descriptor is ready for writing.
-		void OutEvent () ;
-    
-		// Called when timer expires.
-		void TimerEvent (int id) ;
-	}
+        // Called by I/O thread when file descriptor is ready for writing.
+        void OutEvent();
+
+        // Called when timer expires.
+        void TimerEvent(int id);
+    }
 }

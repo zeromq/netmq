@@ -24,161 +24,161 @@ using System;
 
 namespace NetMQ.zmq
 {
-	abstract public class EncoderBase : IEncoder
-	{		
-		//  Where to get the data to write from.    
-		private ByteArraySegment m_writePos;	
+    abstract public class EncoderBase : IEncoder
+    {
+        //  Where to get the data to write from.    
+        private ByteArraySegment m_writePos;
 
-		//  If true, first byte of the message is being written.
-		//    @SuppressWarnings("unused")
-		private bool m_beginning;
-
-
-		//  How much data to write before next step should be executed.
-		private int m_toWrite;
-
-		//  The buffer for encoded data.
-		private readonly byte[] m_buf;
-
-		private readonly int m_buffersize;
+        //  If true, first byte of the message is being written.
+        //    @SuppressWarnings("unused")
+        private bool m_beginning;
 
 
-		private bool m_error;
+        //  How much data to write before next step should be executed.
+        private int m_toWrite;
 
-		protected EncoderBase(int bufsize, Endianness endian)
-		{
-			Endian = endian;
-			m_buffersize = bufsize;
-			m_buf = new byte[bufsize];
-			m_error = false;
-		}
+        //  The buffer for encoded data.
+        private readonly byte[] m_buf;
 
-		public Endianness Endian { get; private set; }
-
-		public abstract void SetMsgSource(IMsgSource msgSource);
-
-		//  The function returns a batch of binary data. The data
-		//  are filled to a supplied buffer. If no buffer is supplied (data_
-		//  points to NULL) decoder object will provide buffer of its own.
+        private readonly int m_buffersize;
 
 
-		public void GetData(ref ByteArraySegment data, ref int size)
-		{
-			int offset = -1;
+        private bool m_error;
 
-			GetData(ref data, ref size, ref offset);
-		}
+        protected EncoderBase(int bufsize, Endianness endian)
+        {
+            Endian = endian;
+            m_buffersize = bufsize;
+            m_buf = new byte[bufsize];
+            m_error = false;
+        }
 
-		public void GetData(ref ByteArraySegment data, ref int size, ref int offset)
-		{
-			ByteArraySegment buffer = data ?? new ByteArraySegment(m_buf);
-			int bufferSize = data == null ? m_buffersize : size;
+        public Endianness Endian { get; private set; }
 
-			int pos = 0;
+        public abstract void SetMsgSource(IMsgSource msgSource);
 
-			while (pos < bufferSize)
-			{
-				//  If there are no more data to return, run the state machine.
-				//  If there are still no data, return what we already have
-				//  in the buffer.
-				if (m_toWrite == 0)
-				{
-					//  If we are to encode the beginning of a new message,
-					//  adjust the message offset.
+        //  The function returns a batch of binary data. The data
+        //  are filled to a supplied buffer. If no buffer is supplied (data_
+        //  points to NULL) decoder object will provide buffer of its own.
 
-					if (m_beginning)
-					{
-						if (offset == -1)
-						{
-							offset = pos;
-						}
-					}
 
-					if (!Next())
-						break;
-				}
+        public void GetData(ref ByteArraySegment data, ref int size)
+        {
+            int offset = -1;
 
-				//  If there are no data in the buffer yet and we are able to
-				//  fill whole buffer in a single go, let's use zero-copy.
-				//  There's no disadvantage to it as we cannot stuck multiple
-				//  messages into the buffer anyway. Note that subsequent
-				//  write(s) are non-blocking, thus each single write writes
-				//  at most SO_SNDBUF bytes at once not depending on how large
-				//  is the chunk returned from here.
-				//  As a consequence, large messages being sent won't block
-				//  other engines running in the same I/O thread for excessive
-				//  amounts of time.
-				if (pos == 0 && data == null && m_toWrite >= bufferSize)
-				{
-					data = m_writePos;
-					size = m_toWrite;
+            GetData(ref data, ref size, ref offset);
+        }
 
-					m_writePos = null;
-					m_toWrite = 0;
-					return;
-				}
+        public void GetData(ref ByteArraySegment data, ref int size, ref int offset)
+        {
+            ByteArraySegment buffer = data ?? new ByteArraySegment(m_buf);
+            int bufferSize = data == null ? m_buffersize : size;
 
-				//  Copy data to the buffer. If the buffer is full, return.
-				int toCopy = Math.Min(m_toWrite, bufferSize - pos);
+            int pos = 0;
 
-				if (toCopy != 0)
-				{
-					m_writePos.CopyTo(0,buffer, pos, toCopy);
-					pos += toCopy;
-					m_writePos.AdvanceOffset(toCopy);
-					m_toWrite -= toCopy;
-				}
-			}
+            while (pos < bufferSize)
+            {
+                //  If there are no more data to return, run the state machine.
+                //  If there are still no data, return what we already have
+                //  in the buffer.
+                if (m_toWrite == 0)
+                {
+                    //  If we are to encode the beginning of a new message,
+                    //  adjust the message offset.
 
-			data = buffer;
-			size = pos;
-		}
+                    if (m_beginning)
+                    {
+                        if (offset == -1)
+                        {
+                            offset = pos;
+                        }
+                    }
 
-		protected int State
-		{
-			get;
-			private set;
-		}
+                    if (!Next())
+                        break;
+                }
 
-		protected void EncodingError()
-		{
-			m_error = true;
-		}
+                //  If there are no data in the buffer yet and we are able to
+                //  fill whole buffer in a single go, let's use zero-copy.
+                //  There's no disadvantage to it as we cannot stuck multiple
+                //  messages into the buffer anyway. Note that subsequent
+                //  write(s) are non-blocking, thus each single write writes
+                //  at most SO_SNDBUF bytes at once not depending on how large
+                //  is the chunk returned from here.
+                //  As a consequence, large messages being sent won't block
+                //  other engines running in the same I/O thread for excessive
+                //  amounts of time.
+                if (pos == 0 && data == null && m_toWrite >= bufferSize)
+                {
+                    data = m_writePos;
+                    size = m_toWrite;
 
-		public bool IsError()
-		{
-			return m_error;
-		}
+                    m_writePos = null;
+                    m_toWrite = 0;
+                    return;
+                }
 
-		abstract protected bool Next();
+                //  Copy data to the buffer. If the buffer is full, return.
+                int toCopy = Math.Min(m_toWrite, bufferSize - pos);
 
-		//protected void next_step (Msg msg_, int state_, bool beginning_) {
-		//    if (msg_ == null)
-		//        next_step((ByteBuffer) null, 0, state_, beginning_);
-		//    else
-		//        next_step(msg_.data(), msg_.size(), state_, beginning_);
-		//}
+                if (toCopy != 0)
+                {
+                    m_writePos.CopyTo(0, buffer, pos, toCopy);
+                    pos += toCopy;
+                    m_writePos.AdvanceOffset(toCopy);
+                    m_toWrite -= toCopy;
+                }
+            }
 
-		protected void NextStep(ByteArraySegment writePos, int toWrite,
-		                         int state, bool beginning)
-		{
+            data = buffer;
+            size = pos;
+        }
 
-			m_writePos = writePos;
-			m_toWrite = toWrite;
-			State = state;
-			m_beginning = beginning;
-		}
+        protected int State
+        {
+            get;
+            private set;
+        }
 
-		//protected void next_step (byte[] buf_, int to_write_,
-		//        int next_, bool beginning_)
-		//{
-		//    write_buf = null;
-		//    write_array = buf_;
-		//    write_pos = 0;
-		//    to_write = to_write_;
-		//    next = next_;
-		//    beginning = beginning_;
-		//}
+        protected void EncodingError()
+        {
+            m_error = true;
+        }
 
-	}
+        public bool IsError()
+        {
+            return m_error;
+        }
+
+        abstract protected bool Next();
+
+        //protected void next_step (Msg msg_, int state_, bool beginning_) {
+        //    if (msg_ == null)
+        //        next_step((ByteBuffer) null, 0, state_, beginning_);
+        //    else
+        //        next_step(msg_.data(), msg_.size(), state_, beginning_);
+        //}
+
+        protected void NextStep(ByteArraySegment writePos, int toWrite,
+                                 int state, bool beginning)
+        {
+
+            m_writePos = writePos;
+            m_toWrite = toWrite;
+            State = state;
+            m_beginning = beginning;
+        }
+
+        //protected void next_step (byte[] buf_, int to_write_,
+        //        int next_, bool beginning_)
+        //{
+        //    write_buf = null;
+        //    write_array = buf_;
+        //    write_pos = 0;
+        //    to_write = to_write_;
+        //    next = next_;
+        //    beginning = beginning_;
+        //}
+
+    }
 }

@@ -20,12 +20,15 @@
 
 namespace NetMQ.zmq
 {
-	public class IpcConnecter : TcpConnecter {
-    
-		public IpcConnecter (IOThread ioThread,
-		                     SessionBase session, Options options,
-		                     Address addr, bool wait) : base(ioThread, session, options, addr, wait)  {
+    public class IpcConnecter : TcpConnecter
+    {
 
-		                     }
-	}
+        public IpcConnecter(IOThread ioThread,
+                             SessionBase session, Options options,
+                             Address addr, bool wait)
+            : base(ioThread, session, options, addr, wait)
+        {
+
+        }
+    }
 }

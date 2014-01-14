@@ -27,98 +27,110 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class IOObject : IPollEvents {
+    public class IOObject : IPollEvents
+    {
 
-		private Poller m_poller;
-		private IPollEvents m_handler;
-    
-		public IOObject(IOThread ioThread) {
-			if (ioThread != null) {
-				Plug(ioThread);
-			}
-		}
+        private Poller m_poller;
+        private IPollEvents m_handler;
 
-		//  When migrating an object from one I/O thread to another, first
-		//  unplug it, then migrate it, then plug it to the new thread.
-    
-		public void Plug(IOThread ioThread) {
-        
-        
-			Debug.Assert(ioThread != null);
-			Debug.Assert(m_poller == null);
+        public IOObject(IOThread ioThread)
+        {
+            if (ioThread != null)
+            {
+                Plug(ioThread);
+            }
+        }
 
-			//  Retrieve the poller from the thread we are running in.
-			m_poller = ioThread.GetPoller ();    
-		}
-    
-		public void Unplug() {
-			Debug.Assert(m_poller != null);
+        //  When migrating an object from one I/O thread to another, first
+        //  unplug it, then migrate it, then plug it to the new thread.
 
-			//  Forget about old poller in preparation to be migrated
-			//  to a different I/O thread.
-			m_poller = null;
-			m_handler = null;
-		}
-
-		public void AddFd (System.Net.Sockets.Socket fd)
-		{
-			m_poller.AddFD (fd, this);
-		}
-    
-		public void RmFd(System.Net.Sockets.Socket handle) {
-			m_poller.RemoveFD(handle);
-		}
-    
-		public void SetPollin (System.Net.Sockets.Socket handle)
-		{
-			m_poller.SetPollin (handle);
-		}
-
-		public void SetPollout (System.Net.Sockets.Socket handle)
-		{
-			m_poller.SetPollout (handle);
-		}    
-    
-		public void ResetPollin(System.Net.Sockets.Socket handle) {
-			m_poller.ResetPollin (handle);
-		}
+        public void Plug(IOThread ioThread)
+        {
 
 
-		public void ResetPollout(System.Net.Sockets.Socket handle) {
-			m_poller.ResetPollout (handle);
-		}
+            Debug.Assert(ioThread != null);
+            Debug.Assert(m_poller == null);
 
-		public virtual void InEvent() {
-			m_handler.InEvent();
-		}
+            //  Retrieve the poller from the thread we are running in.
+            m_poller = ioThread.GetPoller();
+        }
 
-		public virtual void OutEvent()
-		{
-			m_handler.OutEvent();
-		}
-    
-    
-		public virtual void TimerEvent(int id) {
-			m_handler.TimerEvent(id);
-		}
-    
-		public void AddTimer (long timeout, int id)
-		{
-			m_poller.AddTimer (timeout, this, id);
-		}
+        public void Unplug()
+        {
+            Debug.Assert(m_poller != null);
 
-		public void SetHandler(IPollEvents handler) {
-			this.m_handler = handler;
-		}
+            //  Forget about old poller in preparation to be migrated
+            //  to a different I/O thread.
+            m_poller = null;
+            m_handler = null;
+        }
+
+        public void AddFd(System.Net.Sockets.Socket fd)
+        {
+            m_poller.AddFD(fd, this);
+        }
+
+        public void RmFd(System.Net.Sockets.Socket handle)
+        {
+            m_poller.RemoveFD(handle);
+        }
+
+        public void SetPollin(System.Net.Sockets.Socket handle)
+        {
+            m_poller.SetPollin(handle);
+        }
+
+        public void SetPollout(System.Net.Sockets.Socket handle)
+        {
+            m_poller.SetPollout(handle);
+        }
+
+        public void ResetPollin(System.Net.Sockets.Socket handle)
+        {
+            m_poller.ResetPollin(handle);
+        }
+
+
+        public void ResetPollout(System.Net.Sockets.Socket handle)
+        {
+            m_poller.ResetPollout(handle);
+        }
+
+        public virtual void InEvent()
+        {
+            m_handler.InEvent();
+        }
+
+        public virtual void OutEvent()
+        {
+            m_handler.OutEvent();
+        }
+
+
+        public virtual void TimerEvent(int id)
+        {
+            m_handler.TimerEvent(id);
+        }
+
+        public void AddTimer(long timeout, int id)
+        {
+            m_poller.AddTimer(timeout, this, id);
+        }
+
+        public void SetHandler(IPollEvents handler)
+        {
+            this.m_handler = handler;
+        }
 
 
 
 
-		public void CancelTimer(int id) {
-			m_poller.CancelTimer(this, id);
-		}
+        public void CancelTimer(int id)
+        {
+            m_poller.CancelTimer(this, id);
+        }
 
 
 
-	}
+    }
 }

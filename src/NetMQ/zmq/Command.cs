@@ -24,40 +24,46 @@ using System;
 //  This structure defines the commands that can be sent between threads.
 namespace NetMQ.zmq
 {
-	public class Command {
+    public class Command
+    {
 
-		//  Object to process the command.		
+        //  Object to process the command.		
 
-		public Command () {
-		}
+        public Command()
+        {
+        }
 
-		public Command(ZObject destination, CommandType type)
-			: this(destination, type, null)
-		{
-        
-		}
+        public Command(ZObject destination, CommandType type)
+            : this(destination, type, null)
+        {
 
-		public Command(ZObject destination, CommandType type, Object arg)
-		{
-			this.Destination = destination;
-			this.CommandType = type;
-			this.Arg = arg;
-		}
-    
-		public ZObject Destination {
-			get; private set;
-		}
+        }
 
-		public CommandType CommandType
-		{
-			get; private set;
-		}
+        public Command(ZObject destination, CommandType type, Object arg)
+        {
+            this.Destination = destination;
+            this.CommandType = type;
+            this.Arg = arg;
+        }
 
-		public Object Arg { get; private set; }
-    
-		public override String ToString() {
-			return base.ToString() + "[" + CommandType + ", " + Destination + "]";
-		}
+        public ZObject Destination
+        {
+            get;
+            private set;
+        }
 
-	}
+        public CommandType CommandType
+        {
+            get;
+            private set;
+        }
+
+        public Object Arg { get; private set; }
+
+        public override String ToString()
+        {
+            return base.ToString() + "[" + CommandType + ", " + Destination + "]";
+        }
+
+    }
 }

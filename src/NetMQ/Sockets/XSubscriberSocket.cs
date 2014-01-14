@@ -2,12 +2,12 @@
 
 namespace NetMQ.Sockets
 {
-	public class XSubscriberSocket : NetMQSocket
-	{
-		public XSubscriberSocket(SocketBase socketHandle)
-			: base(socketHandle)
-		{
-		}
+    public class XSubscriberSocket : NetMQSocket
+    {
+        public XSubscriberSocket(SocketBase socketHandle)
+            : base(socketHandle)
+        {
+        }
 
         public new virtual void Subscribe(string topic)
         {
@@ -28,5 +28,5 @@ namespace NetMQ.Sockets
         {
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
         }
-	}
+    }
 }

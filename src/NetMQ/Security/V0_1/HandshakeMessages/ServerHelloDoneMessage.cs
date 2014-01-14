@@ -5,21 +5,21 @@ using System.Text;
 
 namespace NetMQ.Security.V0_1.HandshakeMessages
 {
-  class ServerHelloDoneMessage : HandshakeMessage
-  {
-    public override HandshakeType HandshakeType
+    class ServerHelloDoneMessage : HandshakeMessage
     {
-      get { return HandshakeType.ServerHelloDone; }
+        public override HandshakeType HandshakeType
+        {
+            get { return HandshakeType.ServerHelloDone; }
+        }
+
+        public override void SetFromNetMQMessage(NetMQMessage message)
+        {
+            base.SetFromNetMQMessage(message);
+
+            if (message.FrameCount != 0)
+            {
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
+            }
+        }
     }
-
-		public override void SetFromNetMQMessage(NetMQMessage message)
-		{
-			base.SetFromNetMQMessage(message);
-
-			if (message.FrameCount != 0)
-			{
-				throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount,  "Malformed message");
-			}
-		}
-  }
 }

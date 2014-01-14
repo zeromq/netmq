@@ -1,15 +1,15 @@
 namespace NetMQ.zmq
 {
-	public interface IDecoder
-	{
-		void SetMsgSink (IMsgSink msgSink);
+    public interface IDecoder
+    {
+        void SetMsgSink(IMsgSink msgSink);
 
-		void GetBuffer(ref ByteArraySegment data, ref int size);
+        void GetBuffer(ref ByteArraySegment data, ref int size);
 
-		int ProcessBuffer(ByteArraySegment data, int size);
+        int ProcessBuffer(ByteArraySegment data, int size);
 
-	  bool MessageReadySize(int msgSize);
-    
-		bool Stalled ();
-	}
+        bool MessageReadySize(int msgSize);
+
+        bool Stalled();
+    }
 }

@@ -23,54 +23,62 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class Push : SocketBase {
+    public class Push : SocketBase
+    {
 
-		public class PushSession : SessionBase {
-			public PushSession(IOThread ioThread, bool connect,
-			                   SocketBase socket, Options options,
-			                   Address addr) : base(ioThread, connect, socket, options, addr) {
-			                   }
-		}
-    
-		//  Load balancer managing the outbound pipes.
-		private readonly LB lb;
-    
-		public Push(Ctx parent, int threadId, int sid) : base(parent, threadId, sid) {
+        public class PushSession : SessionBase
+        {
+            public PushSession(IOThread ioThread, bool connect,
+                               SocketBase socket, Options options,
+                               Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {
+            }
+        }
 
-			m_options.SocketType = ZmqSocketType.Push;
-        
-			lb = new LB();
-		}
+        //  Load balancer managing the outbound pipes.
+        private readonly LB lb;
 
-		override
-			protected void XAttachPipe(Pipe pipe, bool icanhasall) {
-			Debug.Assert(pipe != null);
-			lb.Attach (pipe);
-			}
-    
-		override
-			protected void XWriteActivated (Pipe pipe)
-		{
-			lb.Activated (pipe);
-		}
+        public Push(Ctx parent, int threadId, int sid)
+            : base(parent, threadId, sid)
+        {
+
+            m_options.SocketType = ZmqSocketType.Push;
+
+            lb = new LB();
+        }
+
+        override
+            protected void XAttachPipe(Pipe pipe, bool icanhasall)
+        {
+            Debug.Assert(pipe != null);
+            lb.Attach(pipe);
+        }
+
+        override
+            protected void XWriteActivated(Pipe pipe)
+        {
+            lb.Activated(pipe);
+        }
 
 
-		override
-			protected void XTerminated(Pipe pipe) {
-			lb.Terminated (pipe);
-			}
+        override
+            protected void XTerminated(Pipe pipe)
+        {
+            lb.Terminated(pipe);
+        }
 
-		override
-			protected bool XSend(Msg msg, SendReceiveOptions flags)
-		{
-			return lb.Send (msg, flags);
-		}
-    
-		override
-			protected bool XHasOut ()
-		{
-			return lb.HasOut ();
-		}
+        override
+            protected bool XSend(Msg msg, SendReceiveOptions flags)
+        {
+            return lb.Send(msg, flags);
+        }
 
-	}
+        override
+            protected bool XHasOut()
+        {
+            return lb.HasOut();
+        }
+
+    }
 }

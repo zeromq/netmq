@@ -9,219 +9,219 @@ using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
-	[TestFixture]
-	public class PubSubTests
-	{
-		[Test]
-		public void TopicPubSub()
-		{
-			using (NetMQContext contex = NetMQContext.Create())
-			{
-				using (var pub = contex.CreatePublisherSocket())
-				{
-					pub.Bind("tcp://127.0.0.1:5002");
+    [TestFixture]
+    public class PubSubTests
+    {
+        [Test]
+        public void TopicPubSub()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreatePublisherSocket())
+                {
+                    pub.Bind("tcp://127.0.0.1:5002");
 
-					using (var sub = contex.CreateSubscriberSocket())
-					{
-						sub.Connect("tcp://127.0.0.1:5002");
-						sub.Subscribe("A");
+                    using (var sub = contex.CreateSubscriberSocket())
+                    {
+                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Subscribe("A");
 
-						// let the subscrbier connect to the publisher before sending a message
-						Thread.Sleep(500);
+                        // let the subscrbier connect to the publisher before sending a message
+                        Thread.Sleep(500);
 
-						pub.SendMore("A");
-						pub.Send("Hello");
+                        pub.SendMore("A");
+                        pub.Send("Hello");
 
-						bool more;
+                        bool more;
 
-						string m = sub.ReceiveString(out more);
+                        string m = sub.ReceiveString(out more);
 
-						Assert.AreEqual("A", m);
-						Assert.IsTrue(more);
+                        Assert.AreEqual("A", m);
+                        Assert.IsTrue(more);
 
-						string m2 = sub.ReceiveString(out more);
+                        string m2 = sub.ReceiveString(out more);
 
-						Assert.AreEqual("Hello", m2);
-						Assert.False(more);
-					}
-				}
-			}
-		}
+                        Assert.AreEqual("Hello", m2);
+                        Assert.False(more);
+                    }
+                }
+            }
+        }
 
-		[Test]
-		public void SimplePubSub()
-		{
-			using (NetMQContext contex = NetMQContext.Create())
-			{
-				using (var pub = contex.CreatePublisherSocket())
-				{
-					pub.Bind("tcp://127.0.0.1:5002");
+        [Test]
+        public void SimplePubSub()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreatePublisherSocket())
+                {
+                    pub.Bind("tcp://127.0.0.1:5002");
 
-					using (var sub = contex.CreateSubscriberSocket())
-					{
-						sub.Connect("tcp://127.0.0.1:5002");						
-						sub.Subscribe("");
+                    using (var sub = contex.CreateSubscriberSocket())
+                    {
+                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Subscribe("");
 
-						// let the subscrbier connect to the publisher before sending a message
-						Thread.Sleep(500);
+                        // let the subscrbier connect to the publisher before sending a message
+                        Thread.Sleep(500);
 
-						pub.Send("Hello");
+                        pub.Send("Hello");
 
-						bool more;
-						
-						string m = sub.ReceiveString(out more);
+                        bool more;
 
-						Assert.AreEqual("Hello", m);
-						Assert.False(more);
-					}
-				}
-			}
-		}
+                        string m = sub.ReceiveString(out more);
 
-		[Test, ExpectedException(typeof(AgainException))]
-		public void NotSubscribed()
-		{
-			using (NetMQContext contex = NetMQContext.Create())
-			{
-				using (var pub = contex.CreatePublisherSocket())
-				{
-					pub.Bind("tcp://127.0.0.1:5002");
+                        Assert.AreEqual("Hello", m);
+                        Assert.False(more);
+                    }
+                }
+            }
+        }
 
-					using (var sub = contex.CreateSubscriberSocket())
-					{
-						sub.Connect("tcp://127.0.0.1:5002");						
+        [Test, ExpectedException(typeof(AgainException))]
+        public void NotSubscribed()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreatePublisherSocket())
+                {
+                    pub.Bind("tcp://127.0.0.1:5002");
 
-						// let the subscrbier connect to the publisher before sending a message
-						Thread.Sleep(500);
+                    using (var sub = contex.CreateSubscriberSocket())
+                    {
+                        sub.Connect("tcp://127.0.0.1:5002");
 
-						pub.Send("Hello");
+                        // let the subscrbier connect to the publisher before sending a message
+                        Thread.Sleep(500);
 
-						bool more;
+                        pub.Send("Hello");
 
-						string m = sub.ReceiveString(true, out more);						
-					}
-				}
-			}
-		}
+                        bool more;
 
-		/// <summary>
-		/// This test trying to reproduce bug #45 NetMQ.zmq.Utils.Realloc broken!
-		/// </summary>
-		[Test]		
-		public void MultipleSubscriptions()
-		{
-			using (NetMQContext contex = NetMQContext.Create())
-			{
-				using (var pub = contex.CreatePublisherSocket())
-				{
-					pub.Bind("tcp://127.0.0.1:5002");
+                        string m = sub.ReceiveString(true, out more);
+                    }
+                }
+            }
+        }
 
-					using (var sub = contex.CreateSubscriberSocket())
-					{
-						sub.Connect("tcp://127.0.0.1:5002");
-						sub.Subscribe("C");
-						sub.Subscribe("B");
-						sub.Subscribe("A");						
-						sub.Subscribe("D");
-						sub.Subscribe("E");
+        /// <summary>
+        /// This test trying to reproduce bug #45 NetMQ.zmq.Utils.Realloc broken!
+        /// </summary>
+        [Test]
+        public void MultipleSubscriptions()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreatePublisherSocket())
+                {
+                    pub.Bind("tcp://127.0.0.1:5002");
 
-						Thread.Sleep(500);
-						
-						sub.Unsubscribe("C");
-						sub.Unsubscribe("B");
-						sub.Unsubscribe("A");
-						sub.Unsubscribe("D");
-						sub.Unsubscribe("E");
+                    using (var sub = contex.CreateSubscriberSocket())
+                    {
+                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Subscribe("C");
+                        sub.Subscribe("B");
+                        sub.Subscribe("A");
+                        sub.Subscribe("D");
+                        sub.Subscribe("E");
 
-						Thread.Sleep(500);
-					}
-				}
-			}
-		}
+                        Thread.Sleep(500);
 
-		[Test]
-		public void MultipleSubscribers()
-		{
-			using (NetMQContext contex = NetMQContext.Create())
-			{
-				using (var pub = contex.CreatePublisherSocket())
-				{
-					pub.Bind("tcp://127.0.0.1:5002");
+                        sub.Unsubscribe("C");
+                        sub.Unsubscribe("B");
+                        sub.Unsubscribe("A");
+                        sub.Unsubscribe("D");
+                        sub.Unsubscribe("E");
 
-					using (var sub = contex.CreateSubscriberSocket())
-					using (var sub2 = contex.CreateSubscriberSocket())
-					{
-						sub.Connect("tcp://127.0.0.1:5002");
-						sub.Subscribe("A");
-						sub.Subscribe("AB");
-						sub.Subscribe("B");
-						sub.Subscribe("C");
+                        Thread.Sleep(500);
+                    }
+                }
+            }
+        }
 
-						sub2.Connect("tcp://127.0.0.1:5002");
-						sub2.Subscribe("A");
-						sub2.Subscribe("AB");
-						sub2.Subscribe("C");
+        [Test]
+        public void MultipleSubscribers()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreatePublisherSocket())
+                {
+                    pub.Bind("tcp://127.0.0.1:5002");
 
-						Thread.Sleep(500);
+                    using (var sub = contex.CreateSubscriberSocket())
+                    using (var sub2 = contex.CreateSubscriberSocket())
+                    {
+                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Subscribe("A");
+                        sub.Subscribe("AB");
+                        sub.Subscribe("B");
+                        sub.Subscribe("C");
 
-						pub.SendMore("AB");
-							pub.Send("1");
+                        sub2.Connect("tcp://127.0.0.1:5002");
+                        sub2.Subscribe("A");
+                        sub2.Subscribe("AB");
+                        sub2.Subscribe("C");
 
-						string message = sub.ReceiveStringMessages().First();
+                        Thread.Sleep(500);
 
-						Assert.AreEqual("AB", message, "First subscriber is expected to receive the message");
+                        pub.SendMore("AB");
+                        pub.Send("1");
 
-						message = sub2.ReceiveStringMessages().First();
+                        string message = sub.ReceiveStringMessages().First();
 
-						Assert.AreEqual("AB", message, "Second subscriber is expected to receive the message");
-					}
-				}
-			}
-		}
+                        Assert.AreEqual("AB", message, "First subscriber is expected to receive the message");
 
-		[Test, ExpectedException(typeof(AgainException))]
-		public void UnSubscribe()
-		{
-			using (NetMQContext contex = NetMQContext.Create())
-			{
-				using (var pub = contex.CreatePublisherSocket())
-				{
-					pub.Bind("tcp://127.0.0.1:5002");
+                        message = sub2.ReceiveStringMessages().First();
 
-					using (var sub = contex.CreateSubscriberSocket())
-					{
-						sub.Connect("tcp://127.0.0.1:5002");
-						sub.Subscribe("A");
+                        Assert.AreEqual("AB", message, "Second subscriber is expected to receive the message");
+                    }
+                }
+            }
+        }
 
-						// let the subscrbier connect to the publisher before sending a message
-						Thread.Sleep(500);
+        [Test, ExpectedException(typeof(AgainException))]
+        public void UnSubscribe()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreatePublisherSocket())
+                {
+                    pub.Bind("tcp://127.0.0.1:5002");
 
-						pub.SendMore("A");
-						pub.Send("Hello");
+                    using (var sub = contex.CreateSubscriberSocket())
+                    {
+                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Subscribe("A");
 
-						bool more;
+                        // let the subscrbier connect to the publisher before sending a message
+                        Thread.Sleep(500);
 
-						string m = sub.ReceiveString(out more);
+                        pub.SendMore("A");
+                        pub.Send("Hello");
 
-						Assert.AreEqual("A", m);
-						Assert.IsTrue(more);
+                        bool more;
 
-						string m2 = sub.ReceiveString(out more);
+                        string m = sub.ReceiveString(out more);
 
-						Assert.AreEqual("Hello", m2);
-						Assert.False(more);
+                        Assert.AreEqual("A", m);
+                        Assert.IsTrue(more);
 
-						sub.Unsubscribe("A");
+                        string m2 = sub.ReceiveString(out more);
 
-						Thread.Sleep(500);
+                        Assert.AreEqual("Hello", m2);
+                        Assert.False(more);
 
-						pub.SendMore("A");
-						pub.Send("Hello");
+                        sub.Unsubscribe("A");
 
-						string m3  = sub.ReceiveString(true, out more);
-					}
-				}
-			}
-		}
-	}
+                        Thread.Sleep(500);
+
+                        pub.SendMore("A");
+                        pub.Send("Hello");
+
+                        string m3 = sub.ReceiveString(true, out more);
+                    }
+                }
+            }
+        }
+    }
 }

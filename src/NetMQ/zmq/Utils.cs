@@ -24,112 +24,112 @@ using System.Runtime.InteropServices;
 
 namespace NetMQ.zmq
 {
-	public static class Utils
-	{
+    public static class Utils
+    {
 
-		private static readonly Random s_random = new Random();
+        private static readonly Random s_random = new Random();
 
-		public static int GenerateRandom()
-		{
-			return s_random.Next();
-		}
+        public static int GenerateRandom()
+        {
+            return s_random.Next();
+        }
 
 
-		public static void TuneTcpSocket(Socket fd)
-		{
-			//  Disable Nagle's algorithm. We are doing data batching on 0MQ level,
-			//  so using Nagle wouldn't improve throughput in anyway, but it would
-			//  hurt latency.
-			try
-			{
-				fd.NoDelay = (true);
-			}
-			catch (SocketException)
-			{
-			}
-		}
+        public static void TuneTcpSocket(Socket fd)
+        {
+            //  Disable Nagle's algorithm. We are doing data batching on 0MQ level,
+            //  so using Nagle wouldn't improve throughput in anyway, but it would
+            //  hurt latency.
+            try
+            {
+                fd.NoDelay = (true);
+            }
+            catch (SocketException)
+            {
+            }
+        }
 
-		
-		public static void TuneTcpKeepalives(Socket fd, int tcpKeepalive,
-																					 int tcpKeepaliveCnt, int tcpKeepaliveIdle,
-																					 int tcpKeepaliveIntvl)
-		{
 
-			if (tcpKeepalive != -1)
-			{
-				fd.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, tcpKeepalive);
+        public static void TuneTcpKeepalives(Socket fd, int tcpKeepalive,
+                                                                                     int tcpKeepaliveCnt, int tcpKeepaliveIdle,
+                                                                                     int tcpKeepaliveIntvl)
+        {
 
-				
-				if (tcpKeepaliveIdle != -1 && tcpKeepaliveIntvl != -1)
-				{
-					ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
+            if (tcpKeepalive != -1)
+            {
+                fd.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, tcpKeepalive);
 
-				  Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
 
-          bytes.PutInteger(endian, tcpKeepalive, 0);
-          bytes.PutInteger(endian, tcpKeepaliveIdle, 4);
-          bytes.PutInteger(endian, tcpKeepaliveIntvl, 8);
+                if (tcpKeepaliveIdle != -1 && tcpKeepaliveIntvl != -1)
+                {
+                    ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
 
-					fd.IOControl(IOControlCode.KeepAliveValues, (byte[]) bytes, null);
-				}
-			}
-		}
+                    Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
 
-		public static void UnblockSocket(Socket s)
-		{
-			s.Blocking = false;
-		}
+                    bytes.PutInteger(endian, tcpKeepalive, 0);
+                    bytes.PutInteger(endian, tcpKeepaliveIdle, 4);
+                    bytes.PutInteger(endian, tcpKeepaliveIntvl, 8);
 
-		//@SuppressWarnings("unchecked")
-		public static T[] Realloc<T>(T[] src, int size, bool ended)
-		{
-			T[] dest;
+                    fd.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                }
+            }
+        }
 
-			if (size > src.Length)
-			{
-				dest = new T[size];
-				if (ended)
-					Array.Copy(src, 0, dest, 0, src.Length);
-				else
-					Array.Copy(src, 0, dest, size - src.Length, src.Length);
-			}
-			else if (size < src.Length)
-			{
-				dest = new T[size];
-				if (ended)
-					Array.Copy(src, 0, dest, 0, size);
-				else
-					Array.Copy(src, src.Length - size, dest, 0, size);
+        public static void UnblockSocket(Socket s)
+        {
+            s.Blocking = false;
+        }
 
-			}
-			else
-			{
-				dest = src;
-			}
-			return dest;
-		}
+        //@SuppressWarnings("unchecked")
+        public static T[] Realloc<T>(T[] src, int size, bool ended)
+        {
+            T[] dest;
 
-		public static void Swap<T>(List<T> items, int index1, int index2) where T : class
-		{
-			if (index1 == index2)
-				return;
+            if (size > src.Length)
+            {
+                dest = new T[size];
+                if (ended)
+                    Array.Copy(src, 0, dest, 0, src.Length);
+                else
+                    Array.Copy(src, 0, dest, size - src.Length, src.Length);
+            }
+            else if (size < src.Length)
+            {
+                dest = new T[size];
+                if (ended)
+                    Array.Copy(src, 0, dest, 0, size);
+                else
+                    Array.Copy(src, src.Length - size, dest, 0, size);
 
-			T item1 = items[index1];
-			T item2 = items[index2];
-			if (item1 != null)
-				items[index2] = item1;
-			if (item2 != null)
-				items[index1] = item2;
-		}
+            }
+            else
+            {
+                dest = src;
+            }
+            return dest;
+        }
 
-		public static byte[] Realloc(byte[] src, int size)
-		{
+        public static void Swap<T>(List<T> items, int index1, int index2) where T : class
+        {
+            if (index1 == index2)
+                return;
 
-			byte[] dest = new byte[size];
-			if (src != null)
-				Buffer.BlockCopy(src, 0, dest, 0, src.Length);
+            T item1 = items[index1];
+            T item2 = items[index2];
+            if (item1 != null)
+                items[index2] = item1;
+            if (item2 != null)
+                items[index1] = item2;
+        }
 
-			return dest;
-		}
-	}
+        public static byte[] Realloc(byte[] src, int size)
+        {
+
+            byte[] dest = new byte[size];
+            if (src != null)
+                Buffer.BlockCopy(src, 0, dest, 0, src.Length);
+
+            return dest;
+        }
+    }
 }

@@ -191,7 +191,7 @@ namespace NetMQ.zmq
         private void CheckProtocol(String protocol)
         {
             //  First check out whether the protcol is something we are aware of.
-            if (!protocol.Equals(Address.InProcProtocol) && 
+            if (!protocol.Equals(Address.InProcProtocol) &&
                 !protocol.Equals(Address.IpcProtocol) && !protocol.Equals(Address.TcpProtocol) &&
                 !protocol.Equals(Address.PgmProtocol) && !protocol.Equals(Address.EpgmProtocol))
             {

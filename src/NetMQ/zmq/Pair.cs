@@ -23,104 +23,109 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class Pair : SocketBase {
-    
-		public class PairSession : SessionBase {
-			public PairSession(IOThread ioThread, bool connect,
-			                   SocketBase socket, Options options,
-			                   Address addr)
-				: base(ioThread, connect, socket, options, addr)
-			{
-        
-			}
-		}
+    public class Pair : SocketBase
+    {
 
-		private Pipe m_pipe;
+        public class PairSession : SessionBase
+        {
+            public PairSession(IOThread ioThread, bool connect,
+                               SocketBase socket, Options options,
+                               Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {
 
-		public Pair(Ctx parent, int threadId, int sid)
-			: base(parent, threadId, sid)
-		{
-			m_options.SocketType = ZmqSocketType.Pair;
-		}
+            }
+        }
 
-		override
-			protected void XAttachPipe (Pipe pipe, bool icanhasall)
-		{     
-			Debug.Assert(pipe != null);
-	          
-			//  ZMQ_PAIR socket can only be connected to a single peer.
-			//  The socket rejects any further connection requests.
-			if (m_pipe == null)
-				m_pipe = pipe;
-			else
-				pipe.Terminate (false);
-		}
-	
-		override
-			protected void XTerminated (Pipe pipe) {
-			if (pipe == m_pipe)
-				m_pipe = null;
-			}
+        private Pipe m_pipe;
 
-		override
-			protected void XReadActivated(Pipe pipe) {
-			//  There's just one pipe. No lists of active and inactive pipes.
-			//  There's nothing to do here.
-			}
+        public Pair(Ctx parent, int threadId, int sid)
+            : base(parent, threadId, sid)
+        {
+            m_options.SocketType = ZmqSocketType.Pair;
+        }
 
-    
-		override
-			protected void XWriteActivated (Pipe pipe)
-		{
-			//  There's just one pipe. No lists of active and inactive pipes.
-			//  There's nothing to do here.
-		}
-    
-		override
-			protected bool XSend(Msg msg, SendReceiveOptions flags)
-		{
-			if (m_pipe == null || !m_pipe.Write (msg))
-			{
-				return false;
-			}
+        override
+            protected void XAttachPipe(Pipe pipe, bool icanhasall)
+        {
+            Debug.Assert(pipe != null);
 
-			if ((flags & SendReceiveOptions.SendMore) == 0)
-				m_pipe.Flush ();
+            //  ZMQ_PAIR socket can only be connected to a single peer.
+            //  The socket rejects any further connection requests.
+            if (m_pipe == null)
+                m_pipe = pipe;
+            else
+                pipe.Terminate(false);
+        }
 
-			//  Detach the original message from the data buffer.
-			return true;
-		}
+        override
+            protected void XTerminated(Pipe pipe)
+        {
+            if (pipe == m_pipe)
+                m_pipe = null;
+        }
 
-		override
-			protected bool XRecv(SendReceiveOptions flags, out Msg msg)
-		{
-			//  Deallocate old content of the message.
-
-			msg = null;
-			if (m_pipe == null || (msg = m_pipe.Read ()) == null)
-			{
-				return false;
-			}
-			return true;
-		}
+        override
+            protected void XReadActivated(Pipe pipe)
+        {
+            //  There's just one pipe. No lists of active and inactive pipes.
+            //  There's nothing to do here.
+        }
 
 
-		override
-			protected bool XHasIn() {
-			if (m_pipe == null)
-				return false;
+        override
+            protected void XWriteActivated(Pipe pipe)
+        {
+            //  There's just one pipe. No lists of active and inactive pipes.
+            //  There's nothing to do here.
+        }
 
-			return m_pipe.CheckRead ();
-			}
-    
-		override
-			protected bool XHasOut ()
-		{
-			if (m_pipe == null)
-				return false;
+        override
+            protected bool XSend(Msg msg, SendReceiveOptions flags)
+        {
+            if (m_pipe == null || !m_pipe.Write(msg))
+            {
+                return false;
+            }
 
-			return m_pipe.CheckWrite ();
-		}
+            if ((flags & SendReceiveOptions.SendMore) == 0)
+                m_pipe.Flush();
 
-	}
+            //  Detach the original message from the data buffer.
+            return true;
+        }
+
+        override
+            protected bool XRecv(SendReceiveOptions flags, out Msg msg)
+        {
+            //  Deallocate old content of the message.
+
+            msg = null;
+            if (m_pipe == null || (msg = m_pipe.Read()) == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+
+        override
+            protected bool XHasIn()
+        {
+            if (m_pipe == null)
+                return false;
+
+            return m_pipe.CheckRead();
+        }
+
+        override
+            protected bool XHasOut()
+        {
+            if (m_pipe == null)
+                return false;
+
+            return m_pipe.CheckWrite();
+        }
+
+    }
 }

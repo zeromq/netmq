@@ -23,58 +23,64 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class Pull : SocketBase {
+    public class Pull : SocketBase
+    {
 
-		public class PullSession : SessionBase {
-			public PullSession(IOThread ioThread, bool connect,
-			                   SocketBase socket, Options options,
-			                   Address addr)
-				: base(ioThread, connect, socket, options, addr)
-			{
-            
-			}
-		}
-    
-		//  Fair queueing object for inbound pipes.
-		private readonly FQ m_fq;
-    
-		public Pull(Ctx parent, int threadId, int sid) : base(parent, threadId, sid){
+        public class PullSession : SessionBase
+        {
+            public PullSession(IOThread ioThread, bool connect,
+                               SocketBase socket, Options options,
+                               Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {
 
-			m_options.SocketType = ZmqSocketType.Pull;
-        
-			m_fq = new FQ();
-		}
+            }
+        }
 
-		override
-			protected void XAttachPipe(Pipe pipe, bool icanhasall) {
-			Debug.Assert(pipe!=null);
-			m_fq.Attach (pipe);
-			}
+        //  Fair queueing object for inbound pipes.
+        private readonly FQ m_fq;
 
-    
-		override
-			protected void XReadActivated (Pipe pipe)
-		{       
-			m_fq.Activated (pipe);
-		}   
+        public Pull(Ctx parent, int threadId, int sid)
+            : base(parent, threadId, sid)
+        {
 
-		override
-			protected void XTerminated(Pipe pipe) {
-			m_fq.Terminated (pipe);
-			}
+            m_options.SocketType = ZmqSocketType.Pull;
 
-		override
-			protected bool XRecv(SendReceiveOptions flags, out Msg msg)
-		{
-			return m_fq.Recv (out msg);
-		}
-    
-		override
-			protected bool XHasIn ()
-		{
-			return m_fq.HasIn ();
-		}       
+            m_fq = new FQ();
+        }
+
+        override
+            protected void XAttachPipe(Pipe pipe, bool icanhasall)
+        {
+            Debug.Assert(pipe != null);
+            m_fq.Attach(pipe);
+        }
 
 
-	}
+        override
+            protected void XReadActivated(Pipe pipe)
+        {
+            m_fq.Activated(pipe);
+        }
+
+        override
+            protected void XTerminated(Pipe pipe)
+        {
+            m_fq.Terminated(pipe);
+        }
+
+        override
+            protected bool XRecv(SendReceiveOptions flags, out Msg msg)
+        {
+            return m_fq.Recv(out msg);
+        }
+
+        override
+            protected bool XHasIn()
+        {
+            return m_fq.HasIn();
+        }
+
+
+    }
 }

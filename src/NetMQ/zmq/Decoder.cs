@@ -34,168 +34,184 @@ using System;
 
 namespace NetMQ.zmq
 {
-	public class Decoder : DecoderBase {
-    
-		private const int OneByteSizeReadyState = 0;
-		private const int EightByteSizeReadyState = 1;
-		private const int FlagsReadyState = 2;
-		private const int MessageReadyState = 3;
-    
-		private readonly ByteArraySegment m_tmpbuf;
-    
-		private Msg m_inProgress;
-		private readonly long m_maxmsgsize;
-		private IMsgSink m_msgSink;
+    public class Decoder : DecoderBase
+    {
 
-		public Decoder(int bufsize, long maxmsgsize, Endianness endian)
-			: base(bufsize, endian)
-		{
-			m_maxmsgsize = maxmsgsize;
-			m_tmpbuf = new ByteArraySegment(new byte[8]);
-           
-			//  At the beginning, read one byte and go to one_byte_size_ready state.
-			NextStep (m_tmpbuf, 1, OneByteSizeReadyState);
-		}
-    
-		//  Set the receiver of decoded messages.    
-		public override void SetMsgSink(IMsgSink msgSink) 
-		{
-			m_msgSink = msgSink;
-		}
+        private const int OneByteSizeReadyState = 0;
+        private const int EightByteSizeReadyState = 1;
+        private const int FlagsReadyState = 2;
+        private const int MessageReadyState = 3;
 
-		protected override bool Next() {
-			switch(State) {
-				case OneByteSizeReadyState:
-					return OneByteSizeReady ();
-				case EightByteSizeReadyState:
-					return EightByteSizeReady ();
-				case FlagsReadyState:
-					return FlagsReady ();
-				case MessageReadyState:
-					return MessageReady ();
-				default:
-					return false;
-			}
-		}
+        private readonly ByteArraySegment m_tmpbuf;
 
-		private bool OneByteSizeReady() {
-			m_tmpbuf.Reset();
-			
-			//  First byte of size is read. If it is 0xff read 8-byte size.
-			//  Otherwise allocate the buffer for message data and read the
-			//  message data into it.
-			byte first = m_tmpbuf[0];
-			if (first == 0xff) {
-				NextStep (m_tmpbuf, 8, EightByteSizeReadyState);
-			} else {
+        private Msg m_inProgress;
+        private readonly long m_maxmsgsize;
+        private IMsgSink m_msgSink;
 
-				//  There has to be at least one byte (the flags) in the message).
-				if (first == 0) {
-					DecodingError ();
-					return false;
-				}                       
+        public Decoder(int bufsize, long maxmsgsize, Endianness endian)
+            : base(bufsize, endian)
+        {
+            m_maxmsgsize = maxmsgsize;
+            m_tmpbuf = new ByteArraySegment(new byte[8]);
 
-				//  in_progress is initialised at this point so in theory we should
-				//  close it before calling zmq_msg_init_size, however, it's a 0-byte
-				//  message and thus we can treat it as uninitialised...
-				if (m_maxmsgsize >= 0 && (long) (first -1) > m_maxmsgsize) {
-					DecodingError ();
-					return false;
+            //  At the beginning, read one byte and go to one_byte_size_ready state.
+            NextStep(m_tmpbuf, 1, OneByteSizeReadyState);
+        }
 
-				}
-				else {
-					m_inProgress = new Msg(first-1);
-				}
+        //  Set the receiver of decoded messages.    
+        public override void SetMsgSink(IMsgSink msgSink)
+        {
+            m_msgSink = msgSink;
+        }
 
-				NextStep (m_tmpbuf,1, FlagsReadyState);
-			}
-			return true;
-		}
-    
-		private bool EightByteSizeReady() {
-			m_tmpbuf.Reset();
+        protected override bool Next()
+        {
+            switch (State)
+            {
+                case OneByteSizeReadyState:
+                    return OneByteSizeReady();
+                case EightByteSizeReadyState:
+                    return EightByteSizeReady();
+                case FlagsReadyState:
+                    return FlagsReady();
+                case MessageReadyState:
+                    return MessageReady();
+                default:
+                    return false;
+            }
+        }
 
-			//  8-byte payload length is read. Allocate the buffer
-			//  for message body and read the message data into it.
-			long payloadLength = m_tmpbuf.GetLong(Endian, 0);
-        
-			//  There has to be at least one byte (the flags) in the message).
-			if (payloadLength == 0) {
-				DecodingError ();
-				return false;
-			}
+        private bool OneByteSizeReady()
+        {
+            m_tmpbuf.Reset();
 
-			//  Message size must not exceed the maximum allowed size.
-			if (m_maxmsgsize >= 0 && payloadLength - 1 > m_maxmsgsize) {
-				DecodingError ();
-				return false;
-			}
+            //  First byte of size is read. If it is 0xff read 8-byte size.
+            //  Otherwise allocate the buffer for message data and read the
+            //  message data into it.
+            byte first = m_tmpbuf[0];
+            if (first == 0xff)
+            {
+                NextStep(m_tmpbuf, 8, EightByteSizeReadyState);
+            }
+            else
+            {
 
-			//  Message size must fit within range of size_t data type.
-			if (payloadLength - 1 > int.MaxValue) {
-				DecodingError ();
-				return false;
-			}
+                //  There has to be at least one byte (the flags) in the message).
+                if (first == 0)
+                {
+                    DecodingError();
+                    return false;
+                }
 
-			int msgSize =  (int)(payloadLength - 1);
-			//  in_progress is initialized at this point so in theory we should
-			//  close it before calling init_size, however, it's a 0-byte
-			//  message and thus we can treat it as uninitialized...
-			m_inProgress = new Msg(msgSize);
-        
-			NextStep (m_tmpbuf, 1, FlagsReadyState);
-        
-			return true;
+                //  in_progress is initialised at this point so in theory we should
+                //  close it before calling zmq_msg_init_size, however, it's a 0-byte
+                //  message and thus we can treat it as uninitialised...
+                if (m_maxmsgsize >= 0 && (long)(first - 1) > m_maxmsgsize)
+                {
+                    DecodingError();
+                    return false;
 
-		}
-    
-		private bool FlagsReady() {
-			m_tmpbuf.Reset();
+                }
+                else
+                {
+                    m_inProgress = new Msg(first - 1);
+                }
 
-			//  Store the flags from the wire into the message structure.
-        
-			int first = m_tmpbuf[0];
-        
-			m_inProgress.SetFlags ((MsgFlags)first & MsgFlags.More);
+                NextStep(m_tmpbuf, 1, FlagsReadyState);
+            }
+            return true;
+        }
 
-			NextStep (m_inProgress.Data,m_inProgress.Size,MessageReadyState);
+        private bool EightByteSizeReady()
+        {
+            m_tmpbuf.Reset();
 
-			return true;
-		}
-    
-		private bool MessageReady() {
-			m_tmpbuf.Reset();
+            //  8-byte payload length is read. Allocate the buffer
+            //  for message body and read the message data into it.
+            long payloadLength = m_tmpbuf.GetLong(Endian, 0);
 
-			//  Message is completely read. Push it further and start reading
-			//  new message. (in_progress is a 0-byte message after this point.)
-        
-			if (m_msgSink == null)
-				return false;
+            //  There has to be at least one byte (the flags) in the message).
+            if (payloadLength == 0)
+            {
+                DecodingError();
+                return false;
+            }
 
-			try
-			{
-				m_msgSink.PushMsg(m_inProgress);
-			
-			}
-			catch (NetMQException)
-			{
-				return false;
-			}
-        
-			NextStep (m_tmpbuf, 1, OneByteSizeReadyState);
-        
-			return true;
-		}
+            //  Message size must not exceed the maximum allowed size.
+            if (m_maxmsgsize >= 0 && payloadLength - 1 > m_maxmsgsize)
+            {
+                DecodingError();
+                return false;
+            }
+
+            //  Message size must fit within range of size_t data type.
+            if (payloadLength - 1 > int.MaxValue)
+            {
+                DecodingError();
+                return false;
+            }
+
+            int msgSize = (int)(payloadLength - 1);
+            //  in_progress is initialized at this point so in theory we should
+            //  close it before calling init_size, however, it's a 0-byte
+            //  message and thus we can treat it as uninitialized...
+            m_inProgress = new Msg(msgSize);
+
+            NextStep(m_tmpbuf, 1, FlagsReadyState);
+
+            return true;
+
+        }
+
+        private bool FlagsReady()
+        {
+            m_tmpbuf.Reset();
+
+            //  Store the flags from the wire into the message structure.
+
+            int first = m_tmpbuf[0];
+
+            m_inProgress.SetFlags((MsgFlags)first & MsgFlags.More);
+
+            NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState);
+
+            return true;
+        }
+
+        private bool MessageReady()
+        {
+            m_tmpbuf.Reset();
+
+            //  Message is completely read. Push it further and start reading
+            //  new message. (in_progress is a 0-byte message after this point.)
+
+            if (m_msgSink == null)
+                return false;
+
+            try
+            {
+                m_msgSink.PushMsg(m_inProgress);
+
+            }
+            catch (NetMQException)
+            {
+                return false;
+            }
+
+            NextStep(m_tmpbuf, 1, OneByteSizeReadyState);
+
+            return true;
+        }
 
 
-		//  Returns true if there is a decoded message
-		//  waiting to be delivered to the session.
-    
-		public override bool  Stalled ()
-		{
-			return State == MessageReadyState;
-		}
+        //  Returns true if there is a decoded message
+        //  waiting to be delivered to the session.
+
+        public override bool Stalled()
+        {
+            return State == MessageReadyState;
+        }
 
 
-	}
+    }
 }

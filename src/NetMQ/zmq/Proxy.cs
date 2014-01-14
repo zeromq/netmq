@@ -22,105 +22,105 @@ using NetMQ.zmq;
 
 namespace NetMQ.zmq
 {
-	public class Proxy
-	{
+    public class Proxy
+    {
 
-		public static bool CreateProxy(SocketBase frontend,
-						SocketBase backend, SocketBase capture)
-		{
+        public static bool CreateProxy(SocketBase frontend,
+                        SocketBase backend, SocketBase capture)
+        {
 
-			//  The algorithm below assumes ratio of requests and replies processed
-			//  under full load to be 1:1.
+            //  The algorithm below assumes ratio of requests and replies processed
+            //  under full load to be 1:1.
 
-			int more;
-			int rc;
-			Msg msg;
-			PollItem[] items = new PollItem[2];
+            int more;
+            int rc;
+            Msg msg;
+            PollItem[] items = new PollItem[2];
 
-			items[0] = new PollItem(frontend, PollEvents.PollIn);
-			items[1] = new PollItem(backend, PollEvents.PollIn);
+            items[0] = new PollItem(frontend, PollEvents.PollIn);
+            items[1] = new PollItem(backend, PollEvents.PollIn);
 
-			while (true)
-			{
-				//  Wait while there are either requests or replies to process.
-				rc = ZMQ.Poll(items, -1);
-				if (rc < 0)
-					return false;
+            while (true)
+            {
+                //  Wait while there are either requests or replies to process.
+                rc = ZMQ.Poll(items, -1);
+                if (rc < 0)
+                    return false;
 
-				//  Process a request.
-				if ((items[0].ResultEvent & PollEvents.PollIn) == PollEvents.PollIn)
-				{
-					while (true)
-					{
-						try
-						{
-							msg = frontend.Recv(0);
-						}
-						catch (TerminatingException)
-						{
-							return false;
-						}
+                //  Process a request.
+                if ((items[0].ResultEvent & PollEvents.PollIn) == PollEvents.PollIn)
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            msg = frontend.Recv(0);
+                        }
+                        catch (TerminatingException)
+                        {
+                            return false;
+                        }
 
-						if (msg == null)
-						{
-							return false;
-						}
+                        if (msg == null)
+                        {
+                            return false;
+                        }
 
-						more = frontend.GetSocketOption(ZmqSocketOptions.ReceiveMore);
+                        more = frontend.GetSocketOption(ZmqSocketOptions.ReceiveMore);
 
-						if (more < 0)
-							return false;
+                        if (more < 0)
+                            return false;
 
-						//  Copy message to capture socket if any
-						if (capture != null)
-						{
-							Msg ctrl = new Msg(msg);
-							capture.Send(ctrl, more > 0 ? SendReceiveOptions.SendMore : 0);							
-						}
+                        //  Copy message to capture socket if any
+                        if (capture != null)
+                        {
+                            Msg ctrl = new Msg(msg);
+                            capture.Send(ctrl, more > 0 ? SendReceiveOptions.SendMore : 0);
+                        }
 
-						backend.Send(msg, more > 0 ? SendReceiveOptions.SendMore : 0);
-						if (more == 0)
-							break;
-					}
-				}
-				//  Process a reply.
-				if ((items[1].ResultEvent & PollEvents.PollIn) == PollEvents.PollIn)
-				{
-					while (true)
-					{
-						try
-						{
-							msg = backend.Recv(0);
-						}
-						catch (TerminatingException)
-						{
-							return false;
-						}
+                        backend.Send(msg, more > 0 ? SendReceiveOptions.SendMore : 0);
+                        if (more == 0)
+                            break;
+                    }
+                }
+                //  Process a reply.
+                if ((items[1].ResultEvent & PollEvents.PollIn) == PollEvents.PollIn)
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            msg = backend.Recv(0);
+                        }
+                        catch (TerminatingException)
+                        {
+                            return false;
+                        }
 
-						if (msg == null)
-						{
-							return false;
-						}
+                        if (msg == null)
+                        {
+                            return false;
+                        }
 
-						more = backend.GetSocketOption(ZmqSocketOptions.ReceiveMore);
+                        more = backend.GetSocketOption(ZmqSocketOptions.ReceiveMore);
 
-						if (more < 0)
-							return false;
+                        if (more < 0)
+                            return false;
 
-						//  Copy message to capture socket if any
-						if (capture != null)
-						{
-							Msg ctrl = new Msg(msg);
-							capture.Send(ctrl, more > 0 ? SendReceiveOptions.SendMore : 0);
-							
-						}
+                        //  Copy message to capture socket if any
+                        if (capture != null)
+                        {
+                            Msg ctrl = new Msg(msg);
+                            capture.Send(ctrl, more > 0 ? SendReceiveOptions.SendMore : 0);
 
-						frontend.Send(msg, more > 0 ? SendReceiveOptions.SendMore : 0);
-						if (more == 0)
-							break;
-					}
-				}
-			}
-		}
-	}
+                        }
+
+                        frontend.Send(msg, more > 0 ? SendReceiveOptions.SendMore : 0);
+                        if (more == 0)
+                            break;
+                    }
+                }
+            }
+        }
+    }
 }

@@ -24,141 +24,141 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class Dealer : SocketBase
-	{
+    public class Dealer : SocketBase
+    {
 
-		public class DealerSession : SessionBase
-		{
-			public DealerSession(IOThread ioThread, bool connect,
-													 SocketBase socket, Options options,
-													 Address addr)
-				: base(ioThread, connect, socket, options, addr)
-			{
+        public class DealerSession : SessionBase
+        {
+            public DealerSession(IOThread ioThread, bool connect,
+                                                     SocketBase socket, Options options,
+                                                     Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {
 
-			}
-		}
+            }
+        }
 
-		//  Messages are fair-queued from inbound pipes. And load-balanced to
-		//  the outbound pipes.
-		private readonly FQ m_fq;
-		private readonly LB m_lb;
+        //  Messages are fair-queued from inbound pipes. And load-balanced to
+        //  the outbound pipes.
+        private readonly FQ m_fq;
+        private readonly LB m_lb;
 
-		//  Have we prefetched a message.
-		private bool m_prefetched;
+        //  Have we prefetched a message.
+        private bool m_prefetched;
 
-		private Msg m_prefetchedMsg;
+        private Msg m_prefetchedMsg;
 
-		//  Holds the prefetched message.
-		public Dealer(Ctx parent, int threadId, int sid)
-			: base(parent, threadId, sid)
-		{
+        //  Holds the prefetched message.
+        public Dealer(Ctx parent, int threadId, int sid)
+            : base(parent, threadId, sid)
+        {
 
-			m_prefetched = false;
-			m_options.SocketType = ZmqSocketType.Dealer;
+            m_prefetched = false;
+            m_options.SocketType = ZmqSocketType.Dealer;
 
-			m_fq = new FQ();
-			m_lb = new LB();
-			//  TODO: Uncomment the following line when DEALER will become true DEALER
-			//  rather than generic dealer socket.
-			//  If the socket is closing we can drop all the outbound requests. There'll
-			//  be noone to receive the replies anyway.
-			//  options.delay_on_close = false;
+            m_fq = new FQ();
+            m_lb = new LB();
+            //  TODO: Uncomment the following line when DEALER will become true DEALER
+            //  rather than generic dealer socket.
+            //  If the socket is closing we can drop all the outbound requests. There'll
+            //  be noone to receive the replies anyway.
+            //  options.delay_on_close = false;
 
-			m_options.RecvIdentity = true;
-		}
+            m_options.RecvIdentity = true;
+        }
 
-		protected override void XAttachPipe(Pipe pipe, bool icanhasall)
-		{
+        protected override void XAttachPipe(Pipe pipe, bool icanhasall)
+        {
 
-			Debug.Assert(pipe != null);
-			m_fq.Attach(pipe);
-			m_lb.Attach(pipe);
-		}
+            Debug.Assert(pipe != null);
+            m_fq.Attach(pipe);
+            m_lb.Attach(pipe);
+        }
 
-		protected override bool XSend(Msg msg, SendReceiveOptions flags)
-		{
-			return m_lb.Send(msg, flags);
-		}
+        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        {
+            return m_lb.Send(msg, flags);
+        }
 
 
-		protected override bool XRecv(SendReceiveOptions flags, out Msg msg_)
-		{
-			return xxrecv(flags, out msg_);
-		}
+        protected override bool XRecv(SendReceiveOptions flags, out Msg msg_)
+        {
+            return xxrecv(flags, out msg_);
+        }
 
-		private bool xxrecv(SendReceiveOptions flags_, out Msg msg_)
-		{
-			msg_ = null;
+        private bool xxrecv(SendReceiveOptions flags_, out Msg msg_)
+        {
+            msg_ = null;
 
-			//  If there is a prefetched message, return it.
-			if (m_prefetched)
-			{
-				msg_ = m_prefetchedMsg;
-				m_prefetched = false;
-				m_prefetchedMsg = null;
-				return true;
-			}
+            //  If there is a prefetched message, return it.
+            if (m_prefetched)
+            {
+                msg_ = m_prefetchedMsg;
+                m_prefetched = false;
+                m_prefetchedMsg = null;
+                return true;
+            }
 
-			//  DEALER socket doesn't use identities. We can safely drop it and 
-			while (true)
-			{
-				bool isMessageAvailable = m_fq.Recv(out msg_);
+            //  DEALER socket doesn't use identities. We can safely drop it and 
+            while (true)
+            {
+                bool isMessageAvailable = m_fq.Recv(out msg_);
 
-				if (!isMessageAvailable)
-				{
-					return false;
-				}
-				else if (msg_ == null)
-				{
-					return true;
-				}
-				if ((msg_.Flags & MsgFlags.Identity) == 0)
-					break;
-			}
+                if (!isMessageAvailable)
+                {
+                    return false;
+                }
+                else if (msg_ == null)
+                {
+                    return true;
+                }
+                if ((msg_.Flags & MsgFlags.Identity) == 0)
+                    break;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		protected override bool XHasIn()
-		{
-			//  We may already have a message pre-fetched.
-			if (m_prefetched)
-				return true;
+        protected override bool XHasIn()
+        {
+            //  We may already have a message pre-fetched.
+            if (m_prefetched)
+                return true;
 
-			//  Try to read the next message to the pre-fetch buffer.
+            //  Try to read the next message to the pre-fetch buffer.
 
-			bool isMessageAvailable = xxrecv(SendReceiveOptions.DontWait, out m_prefetchedMsg);
+            bool isMessageAvailable = xxrecv(SendReceiveOptions.DontWait, out m_prefetchedMsg);
 
-			if (!isMessageAvailable)
-			{
-				return false;
-			}
-			else
-			{
-				m_prefetched = true;
-				return true;
-			}
-		}
+            if (!isMessageAvailable)
+            {
+                return false;
+            }
+            else
+            {
+                m_prefetched = true;
+                return true;
+            }
+        }
 
-		protected override bool XHasOut()
-		{
-			return m_lb.HasOut();
-		}
+        protected override bool XHasOut()
+        {
+            return m_lb.HasOut();
+        }
 
-		protected override void XReadActivated(Pipe pipe)
-		{
-			m_fq.Activated(pipe);
-		}
+        protected override void XReadActivated(Pipe pipe)
+        {
+            m_fq.Activated(pipe);
+        }
 
-		protected override void XWriteActivated(Pipe pipe)
-		{
-			m_lb.Activated(pipe);
-		}
+        protected override void XWriteActivated(Pipe pipe)
+        {
+            m_lb.Activated(pipe);
+        }
 
-		protected override void XTerminated(Pipe pipe)
-		{
-			m_fq.Terminated(pipe);
-			m_lb.Terminated(pipe);
-		}
-	}
+        protected override void XTerminated(Pipe pipe)
+        {
+            m_fq.Terminated(pipe);
+            m_lb.Terminated(pipe);
+        }
+    }
 }

@@ -8,158 +8,158 @@ using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
-	[TestFixture]
-	public class ReqRepTests
-	{
-		[Test]
-		[TestCase("tcp://localhost:5001")]
-		[TestCase("tcp://127.0.0.1:5001")]
-		[TestCase("tcp://unknownhostname:5001", ExpectedException = typeof(System.Net.Sockets.SocketException))]
-		public void SimpleReqRep(string address)
-		{
-			using (NetMQContext ctx = NetMQContext.Create())
-			{
-				using (var rep = ctx.CreateResponseSocket())
-				{
-					rep.Bind(address);
+    [TestFixture]
+    public class ReqRepTests
+    {
+        [Test]
+        [TestCase("tcp://localhost:5001")]
+        [TestCase("tcp://127.0.0.1:5001")]
+        [TestCase("tcp://unknownhostname:5001", ExpectedException = typeof(System.Net.Sockets.SocketException))]
+        public void SimpleReqRep(string address)
+        {
+            using (NetMQContext ctx = NetMQContext.Create())
+            {
+                using (var rep = ctx.CreateResponseSocket())
+                {
+                    rep.Bind(address);
 
-					using (var req = ctx.CreateRequestSocket())
-					{
-						req.Connect(address);
+                    using (var req = ctx.CreateRequestSocket())
+                    {
+                        req.Connect(address);
 
-						req.Send("Hi");
+                        req.Send("Hi");
 
-						bool more;
+                        bool more;
 
-						string requestString = rep.ReceiveString(out more);
+                        string requestString = rep.ReceiveString(out more);
 
-						Assert.AreEqual("Hi", requestString);
-						Assert.IsFalse(more);
+                        Assert.AreEqual("Hi", requestString);
+                        Assert.IsFalse(more);
 
-						rep.Send("Hi2");
+                        rep.Send("Hi2");
 
-						string responseString = req.ReceiveString(out more);
+                        string responseString = req.ReceiveString(out more);
 
-						Assert.AreEqual("Hi2", responseString);
-						Assert.IsFalse(more);
-					}
-				}
-			}
-		}
+                        Assert.AreEqual("Hi2", responseString);
+                        Assert.IsFalse(more);
+                    }
+                }
+            }
+        }
 
-		[Test]
-		public void SendingTwoRequestsInaRow()
-		{
-			using (NetMQContext ctx = NetMQContext.Create())
-			{
-				using (var rep = ctx.CreateResponseSocket())
-				{
-					rep.Bind("tcp://localhost:5002");
+        [Test]
+        public void SendingTwoRequestsInaRow()
+        {
+            using (NetMQContext ctx = NetMQContext.Create())
+            {
+                using (var rep = ctx.CreateResponseSocket())
+                {
+                    rep.Bind("tcp://localhost:5002");
 
-					using (var req = ctx.CreateRequestSocket())
-					{						
-						req.Connect("tcp://localhost:5002");
+                    using (var req = ctx.CreateRequestSocket())
+                    {
+                        req.Connect("tcp://localhost:5002");
 
-						req.Send("Hi");
+                        req.Send("Hi");
 
-						bool more;
-						rep.Receive(out more);
+                        bool more;
+                        rep.Receive(out more);
 
-						var ex = Assert.Throws<NetMQException>(() => req.Send("Hi2"));
+                        var ex = Assert.Throws<NetMQException>(() => req.Send("Hi2"));
 
-						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);											
-					}
-				}
-			}
-		}
+                        Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
+                    }
+                }
+            }
+        }
 
-		[Test]
-		public void ReceiveBeforeSending()
-		{
-			using (NetMQContext ctx = NetMQContext.Create())
-			{
-				using (var rep = ctx.CreateResponseSocket())
-				{
-					rep.Bind("tcp://localhost:5001");
+        [Test]
+        public void ReceiveBeforeSending()
+        {
+            using (NetMQContext ctx = NetMQContext.Create())
+            {
+                using (var rep = ctx.CreateResponseSocket())
+                {
+                    rep.Bind("tcp://localhost:5001");
 
 
-					using (var req = ctx.CreateRequestSocket())
-					{
-						req.Connect("tcp://localhost:5001");
+                    using (var req = ctx.CreateRequestSocket())
+                    {
+                        req.Connect("tcp://localhost:5001");
 
-						bool more;
+                        bool more;
 
-						var ex = Assert.Throws<NetMQException>(() => req.ReceiveString(out more));
+                        var ex = Assert.Throws<NetMQException>(() => req.ReceiveString(out more));
 
-						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
-						
-					}
-				}
-			}
-		}
+                        Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
 
-		[Test]
-		public void SendMessageInResponeBeforeReceiving()
-		{
-			using (NetMQContext ctx = NetMQContext.Create())
-			{
-				using (var rep = ctx.CreateResponseSocket())
-				{
-					rep.Bind("tcp://localhost:5001");
+                    }
+                }
+            }
+        }
 
-					using (var req = ctx.CreateRequestSocket())
-					{
-						req.Connect("tcp://localhost:5001");
+        [Test]
+        public void SendMessageInResponeBeforeReceiving()
+        {
+            using (NetMQContext ctx = NetMQContext.Create())
+            {
+                using (var rep = ctx.CreateResponseSocket())
+                {
+                    rep.Bind("tcp://localhost:5001");
 
-						var ex = Assert.Throws<NetMQException>(() => rep.Send("1"));
+                    using (var req = ctx.CreateRequestSocket())
+                    {
+                        req.Connect("tcp://localhost:5001");
 
-						Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);											
-					}
-				}
-			}
-		}
+                        var ex = Assert.Throws<NetMQException>(() => rep.Send("1"));
 
-		[Test]
-		public void SendMultiplartMessage()
-		{
-			using (NetMQContext ctx = NetMQContext.Create())
-			{
-				using (var rep = ctx.CreateResponseSocket())
-				{
-					rep.Bind("tcp://localhost:5001");
+                        Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
+                    }
+                }
+            }
+        }
 
-					using (var req = ctx.CreateRequestSocket())
-					{
-						req.Connect("tcp://localhost:5001");
+        [Test]
+        public void SendMultiplartMessage()
+        {
+            using (NetMQContext ctx = NetMQContext.Create())
+            {
+                using (var rep = ctx.CreateResponseSocket())
+                {
+                    rep.Bind("tcp://localhost:5001");
 
-						req.SendMore("Hello").Send("World");
+                    using (var req = ctx.CreateRequestSocket())
+                    {
+                        req.Connect("tcp://localhost:5001");
 
-						bool more;
+                        req.SendMore("Hello").Send("World");
 
-						string m1 = rep.ReceiveString(out more);
+                        bool more;
 
-						Assert.IsTrue(more);
-						Assert.AreEqual("Hello", m1);						
+                        string m1 = rep.ReceiveString(out more);
 
-						string m2 = rep.ReceiveString(out more);
+                        Assert.IsTrue(more);
+                        Assert.AreEqual("Hello", m1);
 
-						Assert.IsFalse(more);
-						Assert.AreEqual("World", m2);
+                        string m2 = rep.ReceiveString(out more);
 
-						rep.SendMore("Hello").Send("Back");
+                        Assert.IsFalse(more);
+                        Assert.AreEqual("World", m2);
 
-						string m3 = req.ReceiveString(out more);
+                        rep.SendMore("Hello").Send("Back");
 
-						Assert.IsTrue(more);
-						Assert.AreEqual("Hello", m3);
+                        string m3 = req.ReceiveString(out more);
 
-						string m4 = req.ReceiveString(out more);
+                        Assert.IsTrue(more);
+                        Assert.AreEqual("Hello", m3);
 
-						Assert.IsFalse(more);
-						Assert.AreEqual("Back", m4);						
-					}
-				}
-			}
-		}
-	}
+                        string m4 = req.ReceiveString(out more);
+
+                        Assert.IsFalse(more);
+                        Assert.AreEqual("Back", m4);
+                    }
+                }
+            }
+        }
+    }
 }
