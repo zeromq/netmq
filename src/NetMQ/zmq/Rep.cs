@@ -24,145 +24,156 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	public class Rep : Router {
+    public class Rep : Router
+    {
 
-		public class RepSession : Router.RouterSession {
-			public RepSession(IOThread ioThread, bool connect,
-			                  SocketBase socket, Options options,
-			                  Address addr) : base(ioThread, connect, socket, options, addr)
-			{
-			}
-		}
-		//  If true, we are in process of sending the reply. If false we are
-		//  in process of receiving a request.
-		private bool m_sendingReply;
+        public class RepSession : Router.RouterSession
+        {
+            public RepSession(IOThread ioThread, bool connect,
+                              SocketBase socket, Options options,
+                              Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {
+            }
+        }
+        //  If true, we are in process of sending the reply. If false we are
+        //  in process of receiving a request.
+        private bool m_sendingReply;
 
-		//  If true, we are starting to receive a request. The beginning
-		//  of the request is the backtrace stack.
-		private bool m_requestBegins;
-    
-    
-		public Rep(Ctx parent, int threadId, int sid) : base(parent, threadId, sid)
-		{
-        
-			m_sendingReply = false;
-			m_requestBegins = true;
-
-			m_options.SocketType = ZmqSocketType.Rep;
-		}
-    
-		override
-			protected bool XSend(Msg msg, SendReceiveOptions flags)
-		{
-			//  If we are in the middle of receiving a request, we cannot send reply.
-			if (!m_sendingReply) {
-				throw NetMQException.Create("Cannot send another reply",ErrorCode.EFSM);				
-			}
-
-			bool more = msg.HasMore;
-
-			//  Push message to the reply pipe.
-			bool isMessageSent = base.XSend (msg, flags);
-
-			if (!isMessageSent)
-			{
-				return false;
-			}			
-			//  If the reply is complete flip the FSM back to request receiving state.
-			else if (!more)
-				m_sendingReply = false;
-
-			return true;
-		}
-    
-		override protected bool XRecv(SendReceiveOptions flags, out Msg msg)
-		{
-			bool isMessageAvailable;
-			
-			//  If we are in middle of sending a reply, we cannot receive next request.
-			if (m_sendingReply) {
-				throw NetMQException.Create("Cannot receive another request",ErrorCode.EFSM);
-				throw new InvalidOperationException();
-			}
-
-			//  First thing to do when receiving a request is to copy all the labels
-			//  to the reply pipe.
-			if (m_requestBegins) 
-			{
-				while (true) {
-					isMessageAvailable = base.XRecv (flags, out msg);
-
-					if (!isMessageAvailable)
-					{
-						return false;
-					}
-					else if (msg == null)
-					{
-						return true;
-					}
-
-					if (msg.HasMore) {
-						//  Empty message part delimits the traceback stack.
-						bool bottom = (msg.Size == 0);
-                    
-						//  Push it to the reply pipe.
-						isMessageAvailable = base.XSend(msg, flags);
-						if(!isMessageAvailable)
-						{
-							return false;
-						}
-
-						if (bottom)
-							break;
-					} else {
-						//  If the traceback stack is malformed, discard anything
-						//  already sent to pipe (we're at end of invalid message).
-						base.Rollback();
-					}
-				}
-				m_requestBegins = false;
-			}
-
-			//  Get next message part to return to the user.
-			isMessageAvailable = base.XRecv(flags, out msg);
-
-			if (!isMessageAvailable)
-			{
-				return false;
-			}
-			else if (msg == null)
-			{
-				return true;
-			}
-
-			//  If whole request is read, flip the FSM to reply-sending state.
-			if (!msg.HasMore) {
-				m_sendingReply = true;
-				m_requestBegins = true;
-			}
-
-			return true;
-		}
-
-		override
-			protected bool XHasIn ()
-		{
-			if (m_sendingReply)
-				return false;
-
-			return base.XHasIn ();
-		}
-    
-		override
-			protected bool XHasOut ()
-		{
-			if (!m_sendingReply)
-				return false;
-
-			return base.XHasOut ();
-		}
+        //  If true, we are starting to receive a request. The beginning
+        //  of the request is the backtrace stack.
+        private bool m_requestBegins;
 
 
+        public Rep(Ctx parent, int threadId, int sid)
+            : base(parent, threadId, sid)
+        {
 
-	}
+            m_sendingReply = false;
+            m_requestBegins = true;
+
+            m_options.SocketType = ZmqSocketType.Rep;
+        }
+
+        override
+            protected bool XSend(Msg msg, SendReceiveOptions flags)
+        {
+            //  If we are in the middle of receiving a request, we cannot send reply.
+            if (!m_sendingReply)
+            {
+                throw NetMQException.Create("Cannot send another reply", ErrorCode.EFSM);
+            }
+
+            bool more = msg.HasMore;
+
+            //  Push message to the reply pipe.
+            bool isMessageSent = base.XSend(msg, flags);
+
+            if (!isMessageSent)
+            {
+                return false;
+            }
+            //  If the reply is complete flip the FSM back to request receiving state.
+            else if (!more)
+                m_sendingReply = false;
+
+            return true;
+        }
+
+        override protected bool XRecv(SendReceiveOptions flags, out Msg msg)
+        {
+            bool isMessageAvailable;
+
+            //  If we are in middle of sending a reply, we cannot receive next request.
+            if (m_sendingReply)
+            {
+                throw NetMQException.Create("Cannot receive another request", ErrorCode.EFSM);
+                throw new InvalidOperationException();
+            }
+
+            //  First thing to do when receiving a request is to copy all the labels
+            //  to the reply pipe.
+            if (m_requestBegins)
+            {
+                while (true)
+                {
+                    isMessageAvailable = base.XRecv(flags, out msg);
+
+                    if (!isMessageAvailable)
+                    {
+                        return false;
+                    }
+                    else if (msg == null)
+                    {
+                        return true;
+                    }
+
+                    if (msg.HasMore)
+                    {
+                        //  Empty message part delimits the traceback stack.
+                        bool bottom = (msg.Size == 0);
+
+                        //  Push it to the reply pipe.
+                        isMessageAvailable = base.XSend(msg, flags);
+                        if (!isMessageAvailable)
+                        {
+                            return false;
+                        }
+
+                        if (bottom)
+                            break;
+                    }
+                    else
+                    {
+                        //  If the traceback stack is malformed, discard anything
+                        //  already sent to pipe (we're at end of invalid message).
+                        base.Rollback();
+                    }
+                }
+                m_requestBegins = false;
+            }
+
+            //  Get next message part to return to the user.
+            isMessageAvailable = base.XRecv(flags, out msg);
+
+            if (!isMessageAvailable)
+            {
+                return false;
+            }
+            else if (msg == null)
+            {
+                return true;
+            }
+
+            //  If whole request is read, flip the FSM to reply-sending state.
+            if (!msg.HasMore)
+            {
+                m_sendingReply = true;
+                m_requestBegins = true;
+            }
+
+            return true;
+        }
+
+        override
+            protected bool XHasIn()
+        {
+            if (m_sendingReply)
+                return false;
+
+            return base.XHasIn();
+        }
+
+        override
+            protected bool XHasOut()
+        {
+            if (!m_sendingReply)
+                return false;
+
+            return base.XHasOut();
+        }
+
+
+
+    }
 }

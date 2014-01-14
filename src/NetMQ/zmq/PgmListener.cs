@@ -8,160 +8,160 @@ using System.Text;
 
 namespace NetMQ.zmq
 {
-	class PgmListener : Own, IPollEvents
-	{
-		private PgmSocket m_pgmSocket;
+    class PgmListener : Own, IPollEvents
+    {
+        private PgmSocket m_pgmSocket;
 
-		private readonly SocketBase m_socket;
-		
-		private Socket m_handle;
+        private readonly SocketBase m_socket;
 
-		private readonly IOObject m_ioObject;
+        private Socket m_handle;
 
-		private PgmAddress m_address;
+        private readonly IOObject m_ioObject;
 
-		public PgmListener(IOThread ioThread, SocketBase socket, Options options)
-			: base(ioThread, options)
-		{
-			m_socket = socket;
-			
-			m_ioObject = new IOObject(ioThread);
-		}
+        private PgmAddress m_address;
 
-		public void Init(string network)
-		{
-			m_address = new PgmAddress(network);
+        public PgmListener(IOThread ioThread, SocketBase socket, Options options)
+            : base(ioThread, options)
+        {
+            m_socket = socket;
 
-			m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Listener, m_address);
-			m_pgmSocket.Init();
-			
-			m_handle = m_pgmSocket.FD;
+            m_ioObject = new IOObject(ioThread);
+        }
 
-			try
-			{
-				m_handle.Bind(m_address.Address);
-				m_pgmSocket.InitOptions();
-				m_handle.Listen(m_options.Backlog);
-			}
-			catch (SocketException ex)
-			{
-				Close();
+        public void Init(string network)
+        {
+            m_address = new PgmAddress(network);
 
-				throw NetMQException.Create(ex);
-			}
+            m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Listener, m_address);
+            m_pgmSocket.Init();
 
-			m_socket.EventListening(m_address.ToString(), m_handle);
-		}
+            m_handle = m_pgmSocket.FD;
 
-		public override void Destroy()
-		{
+            try
+            {
+                m_handle.Bind(m_address.Address);
+                m_pgmSocket.InitOptions();
+                m_handle.Listen(m_options.Backlog);
+            }
+            catch (SocketException ex)
+            {
+                Close();
 
-		}
+                throw NetMQException.Create(ex);
+            }
 
-		protected override void ProcessPlug()
-		{
-			//  Start polling for incoming connections.
-			m_ioObject.SetHandler(this);
-			m_ioObject.AddFd(m_handle);
-			m_ioObject.SetPollin(m_handle);
-			m_ioObject.SetPollout(m_handle);
-		}
+            m_socket.EventListening(m_address.ToString(), m_handle);
+        }
 
-		protected override void ProcessTerm(int linger)
-		{
-			m_ioObject.SetHandler(this);
-			m_ioObject.RmFd(m_handle);
-			Close();
-			base.ProcessTerm(linger);
-		}
+        public override void Destroy()
+        {
 
-		private void Close()
-		{
-			if (m_handle == null)
-				return;
+        }
 
-			try
-			{
-				m_handle.Close();
-				m_socket.EventClosed(m_address.ToString(), m_handle);
-			}
-			catch (SocketException ex)
-			{				
-				m_socket.EventCloseFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
-			}
-			catch (NetMQException ex)
-			{
-				//ZError.exc (e);
-				m_socket.EventCloseFailed(m_address.ToString(), ex.ErrorCode);
-			}
-			m_handle = null;
+        protected override void ProcessPlug()
+        {
+            //  Start polling for incoming connections.
+            m_ioObject.SetHandler(this);
+            m_ioObject.AddFd(m_handle);
+            m_ioObject.SetPollin(m_handle);
+            m_ioObject.SetPollout(m_handle);
+        }
 
-		}
+        protected override void ProcessTerm(int linger)
+        {
+            m_ioObject.SetHandler(this);
+            m_ioObject.RmFd(m_handle);
+            Close();
+            base.ProcessTerm(linger);
+        }
+
+        private void Close()
+        {
+            if (m_handle == null)
+                return;
+
+            try
+            {
+                m_handle.Close();
+                m_socket.EventClosed(m_address.ToString(), m_handle);
+            }
+            catch (SocketException ex)
+            {
+                m_socket.EventCloseFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+            }
+            catch (NetMQException ex)
+            {
+                //ZError.exc (e);
+                m_socket.EventCloseFailed(m_address.ToString(), ex.ErrorCode);
+            }
+            m_handle = null;
+
+        }
 
 
-		public void InEvent()
-		{
-			Socket fd;
+        public void InEvent()
+        {
+            Socket fd;
 
-			try
-			{
-				fd = Accept();
-			}
-			catch (SocketException ex)
-			{
-				m_socket.EventAcceptFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
-				return;
-			}
-			catch (NetMQException ex)
-			{
-				//  If connection was reset by the peer in the meantime, just ignore it.
-				//  TODO: Handle specific errors like ENFILE/EMFILE etc.
-				//ZError.exc (e);
-				m_socket.EventAcceptFailed(m_address.ToString(), ex.ErrorCode);
-				return;
-			}
+            try
+            {
+                fd = Accept();
+            }
+            catch (SocketException ex)
+            {
+                m_socket.EventAcceptFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+                return;
+            }
+            catch (NetMQException ex)
+            {
+                //  If connection was reset by the peer in the meantime, just ignore it.
+                //  TODO: Handle specific errors like ENFILE/EMFILE etc.
+                //ZError.exc (e);
+                m_socket.EventAcceptFailed(m_address.ToString(), ex.ErrorCode);
+                return;
+            }
 
-			PgmSocket pgmSocket = new PgmSocket(m_options, PgmSocketType.Receiver, m_address);
-			pgmSocket.Init(fd);
+            PgmSocket pgmSocket = new PgmSocket(m_options, PgmSocketType.Receiver, m_address);
+            pgmSocket.Init(fd);
 
-			PgmSession pgmSession = new PgmSession(pgmSocket, m_options);
+            PgmSession pgmSession = new PgmSession(pgmSocket, m_options);
 
-			IOThread ioThread = ChooseIOThread(m_options.Affinity);
+            IOThread ioThread = ChooseIOThread(m_options.Affinity);
 
-			SessionBase session = SessionBase.Create(ioThread, false, m_socket,
-																							 m_options, new Address(m_handle.LocalEndPoint));
-			session.IncSeqnum();
-			LaunchChild(session);
-			SendAttach(session, pgmSession, false);
-			m_socket.EventAccepted(m_address.ToString(), fd);		
-		}
+            SessionBase session = SessionBase.Create(ioThread, false, m_socket,
+                                                                                             m_options, new Address(m_handle.LocalEndPoint));
+            session.IncSeqnum();
+            LaunchChild(session);
+            SendAttach(session, pgmSession, false);
+            m_socket.EventAccepted(m_address.ToString(), fd);
+        }
 
-		private Socket Accept()
-		{
-			Socket socket;
+        private Socket Accept()
+        {
+            Socket socket;
 
-			try
-			{
-				socket = m_handle.Accept();
-				socket.Blocking = false;
-				m_pgmSocket.InitOptions();
-			}
-			catch (SocketException)
-			{
-				return null;
-			}
+            try
+            {
+                socket = m_handle.Accept();
+                socket.Blocking = false;
+                m_pgmSocket.InitOptions();
+            }
+            catch (SocketException)
+            {
+                return null;
+            }
 
-			return socket;
-		}
+            return socket;
+        }
 
-		public void OutEvent()
-		{
-			throw new NotSupportedException();
-		}
+        public void OutEvent()
+        {
+            throw new NotSupportedException();
+        }
 
-		public void TimerEvent(int id)
-		{
-			throw new NotSupportedException();
-		}
-	}
+        public void TimerEvent(int id)
+        {
+            throw new NotSupportedException();
+        }
+    }
 }

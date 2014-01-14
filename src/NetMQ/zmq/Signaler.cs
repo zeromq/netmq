@@ -33,118 +33,118 @@ using System.Runtime.InteropServices;
 
 namespace NetMQ.zmq
 {
-	public class Signaler
-	{
-		//  Underlying write & read file descriptor.
-		private Socket m_w;
-		private Socket m_r;
+    public class Signaler
+    {
+        //  Underlying write & read file descriptor.
+        private Socket m_w;
+        private Socket m_r;
 
-		public Signaler()
-		{
-			//  Create the socketpair for signaling.
-			MakeFDpair();
+        public Signaler()
+        {
+            //  Create the socketpair for signaling.
+            MakeFDpair();
 
-			//  Set both fds to non-blocking mode.
-			m_w.Blocking = false;
-			m_r.Blocking = false;
-		}
+            //  Set both fds to non-blocking mode.
+            m_w.Blocking = false;
+            m_r.Blocking = false;
+        }
 
-		public void Close()
-		{
-			try
-			{
-				m_w.Close();
-			}
-			catch (Exception)
-			{
-			}
+        public void Close()
+        {
+            try
+            {
+                m_w.Close();
+            }
+            catch (Exception)
+            {
+            }
 
-			try
-			{
-				m_r.Close();
-			}
-			catch (Exception)
-			{
-			}
-		}
-	
-		//  Creates a pair of filedescriptors that will be used
-		//  to pass the signals.
-		private void MakeFDpair()
-		{
-			Mutex sync;
+            try
+            {
+                m_r.Close();
+            }
+            catch (Exception)
+            {
+            }
+        }
 
-			try
-			{
-				sync = new Mutex(false, "Global\\netmq-signaler-port-sync");
-			}
-			catch (UnauthorizedAccessException)
-			{
-				sync = Mutex.OpenExisting("Global\\netmq-signaler-port-sync", MutexRights.Synchronize | MutexRights.Modify);
-			}
+        //  Creates a pair of filedescriptors that will be used
+        //  to pass the signals.
+        private void MakeFDpair()
+        {
+            Mutex sync;
 
-			Debug.Assert(sync != null);
+            try
+            {
+                sync = new Mutex(false, "Global\\netmq-signaler-port-sync");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                sync = Mutex.OpenExisting("Global\\netmq-signaler-port-sync", MutexRights.Synchronize | MutexRights.Modify);
+            }
 
-			sync.WaitOne();
+            Debug.Assert(sync != null);
 
-			Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
-			listner.NoDelay = true;
-			listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            sync.WaitOne();
 
-			IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, Config.SignalerPort);
+            Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
+            listner.NoDelay = true;
+            listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-			listner.Bind(endpoint);
-			listner.Listen(1);
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, Config.SignalerPort);
 
-			m_w = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
-			
-			m_w.NoDelay = true;
+            listner.Bind(endpoint);
+            listner.Listen(1);
 
-			m_w.Connect(endpoint);
+            m_w = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
 
-			m_r = listner.Accept();			
+            m_w.NoDelay = true;
 
-			listner.Close();
+            m_w.Connect(endpoint);
 
-			sync.ReleaseMutex();
+            m_r = listner.Accept();
 
-			// Release the kernel object
-			sync.Dispose();
-		}
+            listner.Close();
 
-		public Socket FD
-		{
-			get
-			{
-				return m_r;
-			}
-		}
+            sync.ReleaseMutex();
 
-		public void Send()
-		{
-			byte[] dummy = new byte[1] { 0 };
-			int nbytes = m_w.Send(dummy);
+            // Release the kernel object
+            sync.Dispose();
+        }
 
-			Debug.Assert(nbytes == 1);
-		}
+        public Socket FD
+        {
+            get
+            {
+                return m_r;
+            }
+        }
 
-		public bool WaitEvent(int timeout)
-		{
-			return m_r.Poll(timeout * 1000, SelectMode.SelectRead);
-		}
+        public void Send()
+        {
+            byte[] dummy = new byte[1] { 0 };
+            int nbytes = m_w.Send(dummy);
 
-		public void Recv()
-		{
-			byte[] dummy = new byte[1];
+            Debug.Assert(nbytes == 1);
+        }
 
-			int nbytes = m_r.Receive(dummy);
+        public bool WaitEvent(int timeout)
+        {
+            return m_r.Poll(timeout * 1000, SelectMode.SelectRead);
+        }
 
-			Debug.Assert(nbytes == 1);
-			Debug.Assert(dummy[0] == 0);
-		}
+        public void Recv()
+        {
+            byte[] dummy = new byte[1];
 
+            int nbytes = m_r.Receive(dummy);
 
+            Debug.Assert(nbytes == 1);
+            Debug.Assert(dummy[0] == 0);
+        }
 
 
-	}
+
+
+    }
 }

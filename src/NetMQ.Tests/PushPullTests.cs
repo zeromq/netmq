@@ -7,55 +7,55 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
-	[TestFixture]
-	public class PushPullTests
-	{
-		[Test]
-		public void SimplePushPull()
-		{
-			using (NetMQContext context = NetMQContext.Create())
-			{
-				using (var pullSocket = context.CreatePullSocket())
-				{
-					pullSocket.Bind("tcp://127.0.0.1:5004");
+    [TestFixture]
+    public class PushPullTests
+    {
+        [Test]
+        public void SimplePushPull()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (var pullSocket = context.CreatePullSocket())
+                {
+                    pullSocket.Bind("tcp://127.0.0.1:5004");
 
-					using (var pushSocket = context.CreatePushSocket())
-					{
-						pushSocket.Connect("tcp://127.0.0.1:5004");
+                    using (var pushSocket = context.CreatePushSocket())
+                    {
+                        pushSocket.Connect("tcp://127.0.0.1:5004");
 
-						pushSocket.Send("hello");
+                        pushSocket.Send("hello");
 
-						bool more;
-						string m  = pullSocket.ReceiveString(out more);
-					
-						Assert.AreEqual("hello", m);
-					}
-				}
-			}
-		}
+                        bool more;
+                        string m = pullSocket.ReceiveString(out more);
 
-		[Test]
-		public void EmptyMessage()
-		{
-			using (NetMQContext context = NetMQContext.Create())
-			{
-				using (var pullSocket = context.CreatePullSocket())
-				{
-					pullSocket.Bind("tcp://127.0.0.1:5004");
+                        Assert.AreEqual("hello", m);
+                    }
+                }
+            }
+        }
 
-					using (var pushSocket = context.CreatePushSocket())
-					{
-						pushSocket.Connect("tcp://127.0.0.1:5004");
+        [Test]
+        public void EmptyMessage()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (var pullSocket = context.CreatePullSocket())
+                {
+                    pullSocket.Bind("tcp://127.0.0.1:5004");
 
-						pushSocket.Send(new byte[300]);
+                    using (var pushSocket = context.CreatePushSocket())
+                    {
+                        pushSocket.Connect("tcp://127.0.0.1:5004");
 
-						bool more;
-						byte[] m = pullSocket.Receive(out more);
+                        pushSocket.Send(new byte[300]);
 
-						Assert.AreEqual(300, m.Length);						
-					}
-				}
-			}
-		}
-	}
+                        bool more;
+                        byte[] m = pullSocket.Receive(out more);
+
+                        Assert.AreEqual(300, m.Length);
+                    }
+                }
+            }
+        }
+    }
 }

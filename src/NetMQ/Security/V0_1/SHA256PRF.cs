@@ -6,74 +6,74 @@ using System.Text;
 
 namespace NetMQ.Security.V0_1
 {
-  public interface IPRF : IDisposable
-  {
-    byte[] Get(byte[] secret, string label, byte[] seed, int bytes);    
-  }
-
-  public class SHA256PRF : IPRF
-  {
-    public byte[] Get(byte[] secret, string label, byte[] seed, int bytes)
+    public interface IPRF : IDisposable
     {
-      byte[] prf = PRF(secret, label, seed, (bytes/32) + 1);
-
-      if (prf.Length == bytes)
-      {
-        return prf;
-      }
-      else
-      {
-        byte[] p = new byte[bytes];
-        Buffer.BlockCopy(prf, 0, p, 0, bytes);
-
-        return p;
-      }
+        byte[] Get(byte[] secret, string label, byte[] seed, int bytes);
     }
 
-    private static byte[] PRF(byte[] secret, string label, byte[] seed, int iterations)
+    public class SHA256PRF : IPRF
     {
-      byte[] ls = new byte[label.Length + seed.Length];
-
-      Buffer.BlockCopy(Encoding.ASCII.GetBytes(label), 0, ls, 0, label.Length);
-      Buffer.BlockCopy(seed, 0, ls, label.Length, seed.Length);
-
-      return PHash(secret, ls, iterations);
-    }
-
-    private static byte[] PHash(byte[] secret, byte[] seed, int iterations)
-    {
-      using (HMACSHA256 hmac = new HMACSHA256(secret))
-      {
-        byte[][] a = new byte[iterations + 1][];
-
-        a[0] = seed;
-
-        for (int i = 0; i < iterations; i++)
+        public byte[] Get(byte[] secret, string label, byte[] seed, int bytes)
         {
-          a[i + 1] = hmac.ComputeHash(a[i]);
+            byte[] prf = PRF(secret, label, seed, (bytes / 32) + 1);
+
+            if (prf.Length == bytes)
+            {
+                return prf;
+            }
+            else
+            {
+                byte[] p = new byte[bytes];
+                Buffer.BlockCopy(prf, 0, p, 0, bytes);
+
+                return p;
+            }
         }
 
-        byte[] prf = new byte[iterations * 32];
-
-        byte[] buffer = new byte[32 + seed.Length];
-        Buffer.BlockCopy(seed, 0, buffer, 32, seed.Length);
-
-        for (int i = 0; i < iterations; i++)
+        private static byte[] PRF(byte[] secret, string label, byte[] seed, int iterations)
         {
-          Buffer.BlockCopy(a[i + 1], 0, buffer, 0, 32);
+            byte[] ls = new byte[label.Length + seed.Length];
 
-          byte[] hash = hmac.ComputeHash(buffer);
+            Buffer.BlockCopy(Encoding.ASCII.GetBytes(label), 0, ls, 0, label.Length);
+            Buffer.BlockCopy(seed, 0, ls, label.Length, seed.Length);
 
-          Buffer.BlockCopy(hash, 0, prf, 32 * i, 32);
+            return PHash(secret, ls, iterations);
         }
 
-        return prf;
-      }
-    }
+        private static byte[] PHash(byte[] secret, byte[] seed, int iterations)
+        {
+            using (HMACSHA256 hmac = new HMACSHA256(secret))
+            {
+                byte[][] a = new byte[iterations + 1][];
 
-    public void Dispose()
-    {
-      
+                a[0] = seed;
+
+                for (int i = 0; i < iterations; i++)
+                {
+                    a[i + 1] = hmac.ComputeHash(a[i]);
+                }
+
+                byte[] prf = new byte[iterations * 32];
+
+                byte[] buffer = new byte[32 + seed.Length];
+                Buffer.BlockCopy(seed, 0, buffer, 32, seed.Length);
+
+                for (int i = 0; i < iterations; i++)
+                {
+                    Buffer.BlockCopy(a[i + 1], 0, buffer, 0, 32);
+
+                    byte[] hash = hmac.ComputeHash(buffer);
+
+                    Buffer.BlockCopy(hash, 0, prf, 32 * i, 32);
+                }
+
+                return prf;
+            }
+        }
+
+        public void Dispose()
+        {
+
+        }
     }
-  }
 }

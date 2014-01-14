@@ -34,148 +34,148 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-	abstract public class DecoderBase : IDecoder
-	{		
-		//  Where to store the read data.
-		private ByteArraySegment m_readPos;
+    abstract public class DecoderBase : IDecoder
+    {
+        //  Where to store the read data.
+        private ByteArraySegment m_readPos;
 
-		//  How much data to read before taking next step.
-		protected int m_toRead;
+        //  How much data to read before taking next step.
+        protected int m_toRead;
 
-		//  The buffer for data to decode.
-		private readonly int m_bufsize;
-		private readonly byte[] m_buf;
+        //  The buffer for data to decode.
+        private readonly int m_bufsize;
+        private readonly byte[] m_buf;
 
-		public DecoderBase(int bufsize, Endianness endian)
-		{
-			Endian = endian;
-			m_toRead = 0;
-			m_bufsize = bufsize;
-			m_buf = new byte[bufsize];
-			State = -1;
-		}
+        public DecoderBase(int bufsize, Endianness endian)
+        {
+            Endian = endian;
+            m_toRead = 0;
+            m_bufsize = bufsize;
+            m_buf = new byte[bufsize];
+            State = -1;
+        }
 
-		public Endianness Endian { get; private set; }
+        public Endianness Endian { get; private set; }
 
-		public abstract void SetMsgSink(IMsgSink msgSink);
-		public abstract bool Stalled();
-
-
-		//  Returns a buffer to be filled with binary data.
-		public void GetBuffer(ref ByteArraySegment data, ref int size)
-		{
-			//  If we are expected to read large message, we'll opt for zero-
-			//  copy, i.e. we'll ask caller to fill the data directly to the
-			//  message. Note that subsequent read(s) are non-blocking, thus
-			//  each single read reads at most SO_RCVBUF bytes at once not
-			//  depending on how large is the chunk returned from here.
-			//  As a consequence, large messages being received won't block
-			//  other engines running in the same I/O thread for excessive
-			//  amounts of time.
-
-			if (m_toRead >= m_bufsize)
-			{
-				data = m_readPos.Clone();
-				size = m_toRead;
-				return;
-			}
-
-			data = new ByteArraySegment(m_buf);
-			size = m_bufsize;
-		}
+        public abstract void SetMsgSink(IMsgSink msgSink);
+        public abstract bool Stalled();
 
 
-		//  Processes the data in the buffer previously allocated using
-		//  get_buffer function. size_ argument specifies nemuber of bytes
-		//  actually filled into the buffer. Function returns number of
-		//  bytes actually processed.
-		public int ProcessBuffer(ByteArraySegment data, int size)
-		{
-			//  Check if we had an error in previous attempt.
-			if (State < 0)
-			{
-				return -1;
-			}
+        //  Returns a buffer to be filled with binary data.
+        public void GetBuffer(ref ByteArraySegment data, ref int size)
+        {
+            //  If we are expected to read large message, we'll opt for zero-
+            //  copy, i.e. we'll ask caller to fill the data directly to the
+            //  message. Note that subsequent read(s) are non-blocking, thus
+            //  each single read reads at most SO_RCVBUF bytes at once not
+            //  depending on how large is the chunk returned from here.
+            //  As a consequence, large messages being received won't block
+            //  other engines running in the same I/O thread for excessive
+            //  amounts of time.
 
-			//  In case of zero-copy simply adjust the pointers, no copying
-			//  is required. Also, run the state machine in case all the data
-			//  were processed.
-			if (data.Equals(m_readPos))
-			{
-				m_readPos.AdvanceOffset(size);
-				m_toRead -= size;
+            if (m_toRead >= m_bufsize)
+            {
+                data = m_readPos.Clone();
+                size = m_toRead;
+                return;
+            }
 
-				while (m_toRead == 0)
-				{
-					if (!Next())
-					{
-						if (State < 0)
-						{
-							return -1;
-						}
-						return size;
-					}
-				}
-				return size;
-			}
+            data = new ByteArraySegment(m_buf);
+            size = m_bufsize;
+        }
 
-			int pos = 0;
-			while (true)
-			{
 
-				//  Try to get more space in the message to fill in.
-				//  If none is available, return.
-				while (m_toRead == 0)
-				{
-					if (!Next())
-					{
-						if (State <0)
-						{
-							return -1;
-						}
+        //  Processes the data in the buffer previously allocated using
+        //  get_buffer function. size_ argument specifies nemuber of bytes
+        //  actually filled into the buffer. Function returns number of
+        //  bytes actually processed.
+        public int ProcessBuffer(ByteArraySegment data, int size)
+        {
+            //  Check if we had an error in previous attempt.
+            if (State < 0)
+            {
+                return -1;
+            }
 
-						return pos;
-					}
-				}
+            //  In case of zero-copy simply adjust the pointers, no copying
+            //  is required. Also, run the state machine in case all the data
+            //  were processed.
+            if (data.Equals(m_readPos))
+            {
+                m_readPos.AdvanceOffset(size);
+                m_toRead -= size;
 
-				//  If there are no more data in the buffer, return.
-				if (pos == size)
-					return pos;
+                while (m_toRead == 0)
+                {
+                    if (!Next())
+                    {
+                        if (State < 0)
+                        {
+                            return -1;
+                        }
+                        return size;
+                    }
+                }
+                return size;
+            }
 
-				//  Copy the data from buffer to the message.
-				int toCopy = Math.Min(m_toRead, size - pos);
-				data.CopyTo(pos, m_readPos, 0, toCopy);
-				m_readPos.AdvanceOffset(toCopy);
-				pos += toCopy;
-				m_toRead -= toCopy;
-			}
-		}
+            int pos = 0;
+            while (true)
+            {
 
-		protected void NextStep(ByteArraySegment readPos, int toRead, int state)
-		{      
-			m_readPos = readPos;
-			m_toRead = toRead;
-			this.State = state;
-		}
+                //  Try to get more space in the message to fill in.
+                //  If none is available, return.
+                while (m_toRead == 0)
+                {
+                    if (!Next())
+                    {
+                        if (State < 0)
+                        {
+                            return -1;
+                        }
 
-		protected int State
-		{
-			get;
-			set;
-		}
+                        return pos;
+                    }
+                }
 
-		protected void DecodingError()
-		{
-			State = -1;
-		}
+                //  If there are no more data in the buffer, return.
+                if (pos == size)
+                    return pos;
 
-	  public virtual bool MessageReadySize(int msgSize)
-	  {
-	    Debug.Assert(false);
-      return false;	    
-	  }
+                //  Copy the data from buffer to the message.
+                int toCopy = Math.Min(m_toRead, size - pos);
+                data.CopyTo(pos, m_readPos, 0, toCopy);
+                m_readPos.AdvanceOffset(toCopy);
+                pos += toCopy;
+                m_toRead -= toCopy;
+            }
+        }
 
-	  abstract protected bool Next();
+        protected void NextStep(ByteArraySegment readPos, int toRead, int state)
+        {
+            m_readPos = readPos;
+            m_toRead = toRead;
+            this.State = state;
+        }
 
-	}
+        protected int State
+        {
+            get;
+            set;
+        }
+
+        protected void DecodingError()
+        {
+            State = -1;
+        }
+
+        public virtual bool MessageReadySize(int msgSize)
+        {
+            Debug.Assert(false);
+            return false;
+        }
+
+        abstract protected bool Next();
+
+    }
 }

@@ -20,7 +20,7 @@ namespace local_lat
             var context = ZMQ.CtxNew();
             var repSocket = ZMQ.Socket(context, ZmqSocketType.Rep);
             repSocket.Bind(bindTo);
-            
+
             for (int i = 0; i != roundtripCount; i++)
             {
                 Msg message = repSocket.Recv(SendReceiveOptions.None);
@@ -30,7 +30,7 @@ namespace local_lat
                     return -1;
                 }
 
-                repSocket.Send(message, SendReceiveOptions.None);                
+                repSocket.Send(message, SendReceiveOptions.None);
             }
 
             repSocket.Close();

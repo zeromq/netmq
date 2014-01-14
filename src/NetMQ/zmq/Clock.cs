@@ -25,80 +25,80 @@ using NetMQ.zmq.Native;
 
 namespace NetMQ.zmq
 {
-	public class Clock
-	{
-		//  TSC timestamp of when last time measurement was made.
-		private static long s_lastTsc;
+    public class Clock
+    {
+        //  TSC timestamp of when last time measurement was made.
+        private static long s_lastTsc;
 
-		//  Physical time corresponding to the TSC above (in milliseconds).
-		private static long s_lastTime;
+        //  Physical time corresponding to the TSC above (in milliseconds).
+        private static long s_lastTime;
 
-		private static bool s_rdtscSupported = false;
+        private static bool s_rdtscSupported = false;
 
-		static Clock()
-		{
-			try
-			{
-				if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Unix ||
-					Environment.OSVersion.Platform == (PlatformID)128)
-				{
-					Opcode.Open();
-					s_rdtscSupported = true;
-				}
-				else
-				{
-					s_rdtscSupported = false;
-				}
-			}
-			catch (Exception)
-			{
-				s_rdtscSupported = false;
-			}
-		}
+        static Clock()
+        {
+            try
+            {
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Unix ||
+                    Environment.OSVersion.Platform == (PlatformID)128)
+                {
+                    Opcode.Open();
+                    s_rdtscSupported = true;
+                }
+                else
+                {
+                    s_rdtscSupported = false;
+                }
+            }
+            catch (Exception)
+            {
+                s_rdtscSupported = false;
+            }
+        }
 
 
-		//  High precision timestamp.
-		public static long NowUs()
-		{
-			long ticksPerSecond = Stopwatch.Frequency;
-			long tick = Stopwatch.GetTimestamp();
+        //  High precision timestamp.
+        public static long NowUs()
+        {
+            long ticksPerSecond = Stopwatch.Frequency;
+            long tick = Stopwatch.GetTimestamp();
 
-			double ticks_div = ticksPerSecond / 1000000.0;
-			return (long)(tick / ticks_div);
-		}
+            double ticks_div = ticksPerSecond / 1000000.0;
+            return (long)(tick / ticks_div);
+        }
 
-		//  Low precision timestamp. In tight loops generating it can be
-		//  10 to 100 times faster than the high precision timestamp.
-		public static long NowMs()
-		{
-			long tsc = Rdtsc();
+        //  Low precision timestamp. In tight loops generating it can be
+        //  10 to 100 times faster than the high precision timestamp.
+        public static long NowMs()
+        {
+            long tsc = Rdtsc();
 
-			if (tsc == 0)
-			{
-				return NowUs() / 1000;
-			}
+            if (tsc == 0)
+            {
+                return NowUs() / 1000;
+            }
 
-			if (tsc - s_lastTsc <= Config.ClockPrecision / 2 && tsc >= s_lastTsc)
-			{
-				return s_lastTime;
-			}
+            if (tsc - s_lastTsc <= Config.ClockPrecision / 2 && tsc >= s_lastTsc)
+            {
+                return s_lastTime;
+            }
 
-			s_lastTsc = tsc;
-			s_lastTime = NowUs() / 1000;
-			return s_lastTime;
-		}
+            s_lastTsc = tsc;
+            s_lastTime = NowUs() / 1000;
+            return s_lastTime;
+        }
 
-		//  CPU's timestamp counter. Returns 0 if it's not available.
-		public static long Rdtsc()
-		{
-			if (s_rdtscSupported)
-			{
-				return (long)Opcode.Rdtsc();
-			}
-			else
-			{
-				return 0;
-			}
-		}
-	}
+        //  CPU's timestamp counter. Returns 0 if it's not available.
+        public static long Rdtsc()
+        {
+            if (s_rdtscSupported)
+            {
+                return (long)Opcode.Rdtsc();
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    }
 }

@@ -21,32 +21,38 @@
 
 namespace NetMQ.zmq
 {
-	public class Pub : XPub {
+    public class Pub : XPub
+    {
 
-		public class PubSession : XPub.XPubSession {
+        public class PubSession : XPub.XPubSession
+        {
 
-			public PubSession(IOThread ioThread, bool connect,
-			                  SocketBase socket, Options options, Address addr):base(ioThread, connect, socket, options, addr) {
-            
-			                  }
+            public PubSession(IOThread ioThread, bool connect,
+                              SocketBase socket, Options options, Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {
 
-		}
+            }
 
-		public Pub(Ctx parent, int threadId, int sid):base(parent, threadId, sid) {
+        }
 
-			m_options.SocketType = ZmqSocketType.Pub;
-		}
+        public Pub(Ctx parent, int threadId, int sid)
+            : base(parent, threadId, sid)
+        {
 
-		protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
-		{
-			//  Messages cannot be received from PUB socket.
-			throw NetMQException.Create("Messages cannot be received from PUB socket", ErrorCode.ENOTSUP);
-		}
+            m_options.SocketType = ZmqSocketType.Pub;
+        }
 
-		protected override bool XHasIn()
-		{
-			return false;
-		}
+        protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
+        {
+            //  Messages cannot be received from PUB socket.
+            throw NetMQException.Create("Messages cannot be received from PUB socket", ErrorCode.ENOTSUP);
+        }
 
-	}
+        protected override bool XHasIn()
+        {
+            return false;
+        }
+
+    }
 }

@@ -4,13 +4,13 @@ using NetMQ;
 
 namespace WeatherUpdateClient
 {
-	class WeatherUpdateClient
-	{
-	    private static void Main(string[] args)
-	    {
+    class WeatherUpdateClient
+    {
+        private static void Main(string[] args)
+        {
             const int zipToSubscribeTo = 10001;
             const int iterations = 100;
-            
+
             int totalTemp = 0;
             int totalHumdity = 0;
 
@@ -44,6 +44,6 @@ namespace WeatherUpdateClient
             Console.WriteLine();
             Console.WriteLine("Average temperature was: {0}", totalTemp / iterations);
             Console.WriteLine("Average relative humidity was: {0}", totalHumdity / iterations);
-	    }
-	}
+        }
+    }
 }

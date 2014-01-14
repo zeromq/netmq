@@ -25,98 +25,108 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
-	public class IOThread : ZObject, IPollEvents {
+    public class IOThread : ZObject, IPollEvents
+    {
 
-		//  I/O thread accesses incoming commands via this mailbox.
-		private readonly Mailbox m_mailbox;
+        //  I/O thread accesses incoming commands via this mailbox.
+        private readonly Mailbox m_mailbox;
 
-		//  Handle associated with mailbox' file descriptor.
-		private readonly Socket m_mailboxHandle;
+        //  Handle associated with mailbox' file descriptor.
+        private readonly Socket m_mailboxHandle;
 
-		//  I/O multiplexing is performed using a poller object.
-		private readonly Poller m_poller;
+        //  I/O multiplexing is performed using a poller object.
+        private readonly Poller m_poller;
 
-		readonly String m_name;
-    
-		public IOThread(Ctx ctx, int threadId) :base(ctx, threadId){			
+        readonly String m_name;
 
-			m_name = "iothread-" + threadId;
-			m_poller = new Poller(m_name);
+        public IOThread(Ctx ctx, int threadId)
+            : base(ctx, threadId)
+        {
 
-			m_mailbox = new Mailbox(m_name);
-			m_mailboxHandle = m_mailbox.FD;
-			m_poller.AddFD (m_mailboxHandle, this);
-			m_poller.SetPollin (m_mailboxHandle);
-        
-		}
-    
-		public void Start() {
-			m_poller.Start();
-		}
-    
-		public void Destroy() {
-			m_poller.Destroy();
-			m_mailbox.Close();
-		}
-		public void Stop ()
-		{
-			SendStop ();
-		}
+            m_name = "iothread-" + threadId;
+            m_poller = new Poller(m_name);
 
-		public Mailbox Mailbox {
-			get
-			{
-				return m_mailbox;
-			}
-		}
+            m_mailbox = new Mailbox(m_name);
+            m_mailboxHandle = m_mailbox.FD;
+            m_poller.AddFD(m_mailboxHandle, this);
+            m_poller.SetPollin(m_mailboxHandle);
 
-    
-		public int Load 
-		{
-			get { return m_poller.Load; }
-		}
+        }
 
-		public void InEvent() {
-			//  TODO: Do we want to limit number of commands I/O thread can
-			//  process in a single go?
+        public void Start()
+        {
+            m_poller.Start();
+        }
 
-			while (true) {
+        public void Destroy()
+        {
+            m_poller.Destroy();
+            m_mailbox.Close();
+        }
+        public void Stop()
+        {
+            SendStop();
+        }
 
-				//  Get the next command. If there is none, exit.
-				Command cmd = m_mailbox.Recv (0);
-				if (cmd == null)
-					break;
-
-				//  Process the command.
-            
-				cmd.Destination.ProcessCommand (cmd);
-			}
-
-		}
-    
-		public virtual void OutEvent() {
-			throw new NotSupportedException();
-		}  
-
-		public virtual void TimerEvent(int id)
-		{
-			throw new NotSupportedException();
-		}
+        public Mailbox Mailbox
+        {
+            get
+            {
+                return m_mailbox;
+            }
+        }
 
 
-		public Poller GetPoller() {
-			Debug.Assert(m_poller != null);
-			return m_poller;
-		}
-    
-		protected override void ProcessStop ()
-		{
-			m_poller.RemoveFD (m_mailboxHandle);
-        
-			m_poller.Stop ();
+        public int Load
+        {
+            get { return m_poller.Load; }
+        }
 
-		}
+        public void InEvent()
+        {
+            //  TODO: Do we want to limit number of commands I/O thread can
+            //  process in a single go?
+
+            while (true)
+            {
+
+                //  Get the next command. If there is none, exit.
+                Command cmd = m_mailbox.Recv(0);
+                if (cmd == null)
+                    break;
+
+                //  Process the command.
+
+                cmd.Destination.ProcessCommand(cmd);
+            }
+
+        }
+
+        public virtual void OutEvent()
+        {
+            throw new NotSupportedException();
+        }
+
+        public virtual void TimerEvent(int id)
+        {
+            throw new NotSupportedException();
+        }
 
 
-	}
+        public Poller GetPoller()
+        {
+            Debug.Assert(m_poller != null);
+            return m_poller;
+        }
+
+        protected override void ProcessStop()
+        {
+            m_poller.RemoveFD(m_mailboxHandle);
+
+            m_poller.Stop();
+
+        }
+
+
+    }
 }

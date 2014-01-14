@@ -28,128 +28,135 @@ using System.Diagnostics;
 //  service for decent senders.
 namespace NetMQ.zmq
 {
-	public class FQ {
+    public class FQ
+    {
 
-		//  Inbound pipes.
-		private readonly List<Pipe> m_pipes;
-    
-		//  Number of active pipes. All the active pipes are located at the
-		//  beginning of the pipes array.
-		private int m_active;
+        //  Inbound pipes.
+        private readonly List<Pipe> m_pipes;
 
-		//  Index of the next bound pipe to read a message from.
-		private int m_current;
+        //  Number of active pipes. All the active pipes are located at the
+        //  beginning of the pipes array.
+        private int m_active;
 
-		//  If true, part of a multipart message was already received, but
-		//  there are following parts still waiting in the current pipe.
-		private bool m_more;
-    
-		public FQ () {
-			m_active = 0;
-			m_current = 0;
-			m_more = false;
-        
-			m_pipes = new List<Pipe>();
-		}
-    
-		public void Attach (Pipe pipe)
-		{
-			m_pipes.Add (pipe);
-			Utils.Swap (m_pipes, m_active, m_pipes.Count - 1);
-			m_active++;
-		}
-    
-		public void Terminated (Pipe pipe)
-		{
-			int index = m_pipes.IndexOf (pipe);
+        //  Index of the next bound pipe to read a message from.
+        private int m_current;
 
-			//  Remove the pipe from the list; adjust number of active pipes
-			//  accordingly.
-			if (index < m_active) {
-				m_active--;
-				Utils.Swap (m_pipes, index, m_active);
-				if (m_current == m_active)
-					m_current = 0;
-			}
-			m_pipes.Remove (pipe);
-		}
+        //  If true, part of a multipart message was already received, but
+        //  there are following parts still waiting in the current pipe.
+        private bool m_more;
 
-		public void Activated (Pipe pipe)
-		{
-			//  Move the pipe to the list of active pipes.
-			Utils.Swap(m_pipes, m_pipes.IndexOf (pipe), m_active);
-			m_active++;
-		}
+        public FQ()
+        {
+            m_active = 0;
+            m_current = 0;
+            m_more = false;
 
-		public bool Recv (out Msg msg)
-		{
-			return RecvPipe(null, out msg);
-		}
+            m_pipes = new List<Pipe>();
+        }
 
-		public bool RecvPipe(Pipe[] pipe, out Msg msg_) {
-			//  Deallocate old content of the message.			
+        public void Attach(Pipe pipe)
+        {
+            m_pipes.Add(pipe);
+            Utils.Swap(m_pipes, m_active, m_pipes.Count - 1);
+            m_active++;
+        }
 
-			//  Round-robin over the pipes to get the next message.
-			while (m_active > 0) {
+        public void Terminated(Pipe pipe)
+        {
+            int index = m_pipes.IndexOf(pipe);
 
-				//  Try to fetch new message. If we've already read part of the message
-				//  subsequent part should be immediately available.
-				msg_ = m_pipes[m_current].Read ();
+            //  Remove the pipe from the list; adjust number of active pipes
+            //  accordingly.
+            if (index < m_active)
+            {
+                m_active--;
+                Utils.Swap(m_pipes, index, m_active);
+                if (m_current == m_active)
+                    m_current = 0;
+            }
+            m_pipes.Remove(pipe);
+        }
 
-				bool fetched = msg_ != null;
+        public void Activated(Pipe pipe)
+        {
+            //  Move the pipe to the list of active pipes.
+            Utils.Swap(m_pipes, m_pipes.IndexOf(pipe), m_active);
+            m_active++;
+        }
 
-				//  Note that when message is not fetched, current pipe is deactivated
-				//  and replaced by another active pipe. Thus we don't have to increase
-				//  the 'current' pointer.
-				if (fetched) {
-					if (pipe != null)
-						pipe[0] = m_pipes[m_current];
-					m_more = msg_.HasMore;
-					if (!m_more)
-						m_current = (m_current + 1) % m_active;
-					return true;
-				}
-            
-				//  Check the atomicity of the message.
-				//  If we've already received the first part of the message
-				//  we should get the remaining parts without blocking.
-				Debug.Assert(!m_more);
-            
-				m_active--;
-				Utils.Swap (m_pipes, m_current, m_active);
-				if (m_current == m_active)
-					m_current = 0;
-			}
+        public bool Recv(out Msg msg)
+        {
+            return RecvPipe(null, out msg);
+        }
 
-			//  No message is available. Initialise the output parameter
-			//  to be a 0-byte message.
-			msg_ = null;
-			return false;
-		}
+        public bool RecvPipe(Pipe[] pipe, out Msg msg_)
+        {
+            //  Deallocate old content of the message.			
 
-		public bool HasIn ()
-		{
-			//  There are subsequent parts of the partly-read message available.
-			if (m_more)
-				return true;
+            //  Round-robin over the pipes to get the next message.
+            while (m_active > 0)
+            {
 
-			//  Note that messing with current doesn't break the fairness of fair
-			//  queueing algorithm. If there are no messages available current will
-			//  get back to its original value. Otherwise it'll point to the first
-			//  pipe holding messages, skipping only pipes with no messages available.
-			while (m_active > 0) {
-				if (m_pipes[m_current].CheckRead ())
-					return true;
+                //  Try to fetch new message. If we've already read part of the message
+                //  subsequent part should be immediately available.
+                msg_ = m_pipes[m_current].Read();
 
-				//  Deactivate the pipe.
-				m_active--;
-				Utils.Swap (m_pipes, m_current, m_active);
-				if (m_current == m_active)
-					m_current = 0;
-			}
+                bool fetched = msg_ != null;
 
-			return false;
-		}
+                //  Note that when message is not fetched, current pipe is deactivated
+                //  and replaced by another active pipe. Thus we don't have to increase
+                //  the 'current' pointer.
+                if (fetched)
+                {
+                    if (pipe != null)
+                        pipe[0] = m_pipes[m_current];
+                    m_more = msg_.HasMore;
+                    if (!m_more)
+                        m_current = (m_current + 1) % m_active;
+                    return true;
+                }
 
-	}
+                //  Check the atomicity of the message.
+                //  If we've already received the first part of the message
+                //  we should get the remaining parts without blocking.
+                Debug.Assert(!m_more);
+
+                m_active--;
+                Utils.Swap(m_pipes, m_current, m_active);
+                if (m_current == m_active)
+                    m_current = 0;
+            }
+
+            //  No message is available. Initialise the output parameter
+            //  to be a 0-byte message.
+            msg_ = null;
+            return false;
+        }
+
+        public bool HasIn()
+        {
+            //  There are subsequent parts of the partly-read message available.
+            if (m_more)
+                return true;
+
+            //  Note that messing with current doesn't break the fairness of fair
+            //  queueing algorithm. If there are no messages available current will
+            //  get back to its original value. Otherwise it'll point to the first
+            //  pipe holding messages, skipping only pipes with no messages available.
+            while (m_active > 0)
+            {
+                if (m_pipes[m_current].CheckRead())
+                    return true;
+
+                //  Deactivate the pipe.
+                m_active--;
+                Utils.Swap(m_pipes, m_current, m_active);
+                if (m_current == m_active)
+                    m_current = 0;
+            }
+
+            return false;
+        }
+
+    }
 }

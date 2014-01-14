@@ -23,34 +23,37 @@ using System;
 // fake Unix domain socket
 namespace NetMQ.zmq
 {
-	public class IpcListener : TcpListener {
+    public class IpcListener : TcpListener
+    {
 
-		private readonly IpcAddress m_address;
-    
-		public IpcListener(IOThread ioThread, SocketBase socket, Options options) :base(ioThread, socket, options)
-		{
-			m_address = new IpcAddress();
-		}
+        private readonly IpcAddress m_address;
 
-		// Get the bound address for use with wildcards
-		public override String Address
-		{get
-			{
-				return m_address.ToString();
-			}
-		}
-    
+        public IpcListener(IOThread ioThread, SocketBase socket, Options options)
+            : base(ioThread, socket, options)
+        {
+            m_address = new IpcAddress();
+        }
 
-		//  Set address to listen on.
-		public override void SetAddress(String addr)
-		{        
-			m_address.Resolve (addr, false);
-        
-			String fake = m_address.Address.Address + ":" + m_address.Address.Port;
-			base.SetAddress(fake);
-		}
+        // Get the bound address for use with wildcards
+        public override String Address
+        {
+            get
+            {
+                return m_address.ToString();
+            }
+        }
 
 
-    
-	}
+        //  Set address to listen on.
+        public override void SetAddress(String addr)
+        {
+            m_address.Resolve(addr, false);
+
+            String fake = m_address.Address.Address + ":" + m_address.Address.Port;
+            base.SetAddress(fake);
+        }
+
+
+
+    }
 }

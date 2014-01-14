@@ -6,111 +6,111 @@ using System.Text;
 
 namespace NetMQ.zmq
 {
-	public class PgmAddress : Address.IZAddress
-	{
-		private string m_network;
-		
-		public PgmAddress(string network)
-		{
-			Resolve(network, true);
-		}
+    public class PgmAddress : Address.IZAddress
+    {
+        private string m_network;
 
-		public PgmAddress()
-		{
-		}
+        public PgmAddress(string network)
+        {
+            Resolve(network, true);
+        }
 
-		public void Resolve(string name, bool ip4Only)
-		{
-			m_network = name;
+        public PgmAddress()
+        {
+        }
 
-			int delimiter = name.LastIndexOf(':');
-			if (delimiter < 0)
-			{
-				throw InvalidException.Create();
-			}
+        public void Resolve(string name, bool ip4Only)
+        {
+            m_network = name;
 
-			//  Separate the address/port.
-			String addrStr = name.Substring(0, delimiter);
-			String portStr = name.Substring(delimiter + 1);
-	
-			if (addrStr.Contains(";"))
-			{
-				int semiColonDelimiter = addrStr.IndexOf(";");
-				string interfaceIP = addrStr.Substring(0, semiColonDelimiter);
-				addrStr = addrStr.Substring(semiColonDelimiter + 1);
+            int delimiter = name.LastIndexOf(':');
+            if (delimiter < 0)
+            {
+                throw InvalidException.Create();
+            }
 
-				InterfaceAddress = IPAddress.Parse(interfaceIP);
-			}
-			else
-			{
-				InterfaceAddress = null;
-			}
+            //  Separate the address/port.
+            String addrStr = name.Substring(0, delimiter);
+            String portStr = name.Substring(delimiter + 1);
 
-			//  Remove square brackets around the address, if any.
-			if (addrStr.Length >= 2 && addrStr[0] == '[' &&
-					addrStr[addrStr.Length - 1] == ']')
-				addrStr = addrStr.Substring(1, addrStr.Length - 2);
+            if (addrStr.Contains(";"))
+            {
+                int semiColonDelimiter = addrStr.IndexOf(";");
+                string interfaceIP = addrStr.Substring(0, semiColonDelimiter);
+                addrStr = addrStr.Substring(semiColonDelimiter + 1);
 
-			int port;
-			//  Allow 0 specifically, to detect invalid port error in atoi if not
-			if (portStr.Equals("*") || portStr.Equals("0"))
-				//  Resolve wildcard to 0 to allow autoselection of port
-				port = 0;
-			else
-			{
-				//  Parse the port number (0 is not a valid port).
-				port = Convert.ToInt32(portStr);
-				if (port == 0)
-				{
-					throw InvalidException.Create();
-				}
-			}
+                InterfaceAddress = IPAddress.Parse(interfaceIP);
+            }
+            else
+            {
+                InterfaceAddress = null;
+            }
 
-			IPEndPoint addrNet = null;
+            //  Remove square brackets around the address, if any.
+            if (addrStr.Length >= 2 && addrStr[0] == '[' &&
+                    addrStr[addrStr.Length - 1] == ']')
+                addrStr = addrStr.Substring(1, addrStr.Length - 2);
 
-			if (addrStr.Equals("*"))
-			{
-				addrStr = "0.0.0.0";
-			}
-			
-			IPAddress ipAddress;
+            int port;
+            //  Allow 0 specifically, to detect invalid port error in atoi if not
+            if (portStr.Equals("*") || portStr.Equals("0"))
+                //  Resolve wildcard to 0 to allow autoselection of port
+                port = 0;
+            else
+            {
+                //  Parse the port number (0 is not a valid port).
+                port = Convert.ToInt32(portStr);
+                if (port == 0)
+                {
+                    throw InvalidException.Create();
+                }
+            }
 
-			if (!IPAddress.TryParse(addrStr, out ipAddress))
-			{
-				throw InvalidException.Create();
-			}
+            IPEndPoint addrNet = null;
 
-			addrNet = new IPEndPoint(ipAddress, port);
-			
-			Address = addrNet;
-		}
+            if (addrStr.Equals("*"))
+            {
+                addrStr = "0.0.0.0";
+            }
 
-		public IPAddress InterfaceAddress { get; private set; }
+            IPAddress ipAddress;
 
-		public IPEndPoint Address { get; set; }
+            if (!IPAddress.TryParse(addrStr, out ipAddress))
+            {
+                throw InvalidException.Create();
+            }
 
-		public override String ToString()
-		{
-			if (Address == null)
-			{
-				return string.Empty;
-			}
+            addrNet = new IPEndPoint(ipAddress, port);
 
-			IPEndPoint endpoint = Address;
+            Address = addrNet;
+        }
 
-			if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-			{
+        public IPAddress InterfaceAddress { get; private set; }
+
+        public IPEndPoint Address { get; set; }
+
+        public override String ToString()
+        {
+            if (Address == null)
+            {
+                return string.Empty;
+            }
+
+            IPEndPoint endpoint = Address;
+
+            if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
                 return Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port;
-			}
-			else
-			{
+            }
+            else
+            {
                 return Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
-			}
-		}
+            }
+        }
 
         public String Protocol
         {
             get { return NetMQ.zmq.Address.PgmProtocol; }
         }
-	}
+    }
 }
