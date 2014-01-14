@@ -10,9 +10,6 @@ abstraction of asynchronous message queues, multiple messaging patterns,
 message filtering (subscriptions), seamless access to multiple transport
 protocols and more.
 
-NetMQ is still under development, although the current repository is pretty stable.
-
-
 ## Important note on backward compatibility 
 
 Since version 3.3.07 NetMQ changed the number serialization from Little Endian to Big Endian to be compatible with ZeroMQ.
@@ -57,20 +54,13 @@ NetMQ documentation is still work in progress, but you can find a small example 
 We need help, so if you have good knowledge of C# and ZeroMQ just grab one of the issues and add a pull request.
 We are using [C4 process](http://rfc.zeromq.org/spec:16), so make sure you read this before.
 
-Some of the areas we need help with:
-
-* Testing with libzmq (original zeromq library) in version 2.2 and 3.2.
-* Porting tests from ZeroMQ to c#.
-* Documenting the High Level API using C# style comments
-* Testing IPv6
-* Compiling on Mono and run on linux
-* Creating another High Level API which is the same as CLRZMQ
+Regarding coding stanard, we are using C# coding styles, to be a little more specific, we are using camelCase for variables and members (with m_ prefix) and CamelCase for methods, classes and constants. Make sure you are using Keep Spaces and 2 for tab and indent size.
 
 You can also help us by:
 
 * Joining our [mailing list](https://groups.google.com/d/forum/netmq-dev?hl=en) and be an active member
 * Writing tutorials in the github wiki
-* Writing about the project in your blog
+* Writing about the project in your blog (and add a pull request with a link to your blog at the bottom of this page)
 
 ## Mailing list
 
