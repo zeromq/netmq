@@ -54,7 +54,7 @@ NetMQ documentation is still work in progress, but you can find a small example 
 We need help, so if you have good knowledge of C# and ZeroMQ just grab one of the issues and add a pull request.
 We are using [C4 process](http://rfc.zeromq.org/spec:16), so make sure you read this before.
 
-Regarding coding stanard, we are using C# coding styles, to be a little more specific, we are using camelCase for variables and members (with m_ prefix) and CamelCase for methods, classes and constants. Make sure you are using Keep Spaces and 2 for tab and indent size.
+Regarding coding stanards, we are using C# coding styles, to be a little more specific: we are using camelCase for variables and members (with m_ prefix for members) and CamelCase for methods, classes and constants. Make sure you are using Keep Spaces and 2 for tab and indent size.
 
 You can also help us by:
 
