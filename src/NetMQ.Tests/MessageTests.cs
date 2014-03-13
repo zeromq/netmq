@@ -142,5 +142,16 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Test]
+        public void MessageToString()
+        {
+            var message = new NetMQMessage();
+            message.Append("Hello");
+            message.AppendEmptyFrame();
+            message.Append("World");
+
+            Assert.AreEqual("HelloWorld", message.ToString());
+        }
     }
 }

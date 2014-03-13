@@ -151,5 +151,17 @@ namespace NetMQ
         {
             return GetEnumerator();
         }
+
+        /// <summary>
+        /// Returns a string consisting of all frames concatenated together.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (NetMQFrame f in m_frames)
+                sb.Append(f.ConvertToString());
+            return sb.ToString();
+        }
     }
 }
