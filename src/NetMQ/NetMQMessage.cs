@@ -153,15 +153,23 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Returns a string consisting of all frames concatenated together.
+        /// Returns a string showing the frame contents.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            if (m_frames.Count == 0)
+                return "NetMQMessage[<no frames>]";
+            StringBuilder sb = new StringBuilder("NetMQMessage[");
+            bool first = true;
             foreach (NetMQFrame f in m_frames)
+            {
+                if (!first)
+                    sb.Append(",");
                 sb.Append(f.ConvertToString());
-            return sb.ToString();
+                first = false;
+            }
+            return sb.Append("]").ToString();
         }
     }
 }

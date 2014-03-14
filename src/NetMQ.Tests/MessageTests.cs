@@ -147,11 +147,14 @@ namespace NetMQ.Tests
         public void MessageToString()
         {
             var message = new NetMQMessage();
+            Assert.AreEqual("NetMQMessage[<no frames>]", message.ToString());
+
             message.Append("Hello");
+            Assert.AreEqual("NetMQMessage[Hello]", message.ToString());
+
             message.AppendEmptyFrame();
             message.Append("World");
-
-            Assert.AreEqual("HelloWorld", message.ToString());
+            Assert.AreEqual("NetMQMessage[Hello,,World]", message.ToString());
         }
     }
 }
