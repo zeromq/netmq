@@ -151,5 +151,25 @@ namespace NetMQ
         {
             return GetEnumerator();
         }
+
+        /// <summary>
+        /// Returns a string showing the frame contents.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if (m_frames.Count == 0)
+                return "NetMQMessage[<no frames>]";
+            StringBuilder sb = new StringBuilder("NetMQMessage[");
+            bool first = true;
+            foreach (NetMQFrame f in m_frames)
+            {
+                if (!first)
+                    sb.Append(",");
+                sb.Append(f.ConvertToString());
+                first = false;
+            }
+            return sb.Append("]").ToString();
+        }
     }
 }
