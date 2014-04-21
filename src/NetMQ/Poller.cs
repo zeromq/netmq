@@ -255,7 +255,8 @@ namespace NetMQ
                 throw new InvalidOperationException("Poller is started");
             }
 
-            Thread.CurrentThread.Name = "NetMQPollerThread";
+            if(Thread.CurrentThread.Name == null)
+                Thread.CurrentThread.Name = "NetMQPollerThread";
 
             m_isStoppedEvent.Reset();
             m_isStarted = true;
