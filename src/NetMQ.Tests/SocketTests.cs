@@ -309,7 +309,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Test, , Category("IPv6")]
         public void BindToLocal()
         {
             var validAliasesForLocalHost = new[] { "127.0.0.1", "localhost", System.Net.Dns.GetHostName() };
@@ -335,7 +335,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Test, Category("IPv6")]
         public void Ipv6ToIpv4()
         {
             using (NetMQContext context = NetMQContext.Create())
