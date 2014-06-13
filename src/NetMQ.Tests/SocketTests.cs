@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -311,7 +312,7 @@ namespace NetMQ.Tests
         [Test]
         public void BindToLocal()
         {
-            var validAliasesForLocalHost = new[] {"127.0.0.1", "localhost", System.Net.Dns.GetHostName() };
+            var validAliasesForLocalHost = new[] { "127.0.0.1", "localhost", System.Net.Dns.GetHostName() };
             foreach (var alias in validAliasesForLocalHost)
             {
                 using (NetMQContext context = NetMQContext.Create())
@@ -330,6 +331,50 @@ namespace NetMQ.Tests
                             Console.WriteLine(alias + " connected ");
                         }
                     }
+                }
+            }
+        }
+
+        [Test]
+        public void Ipv6ToIpv4()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (NetMQSocket localDealer = context.CreateDealerSocket())
+                {
+                    localDealer.Options.IPv4Only = false;
+                    localDealer.Bind(string.Format("tcp://*:5002"));
+                    using (NetMQSocket connectingDealer = context.CreateDealerSocket())
+                    {
+                        connectingDealer.Connect("tcp://" + IPAddress.Loopback.ToString() + ":5002");
+
+                        connectingDealer.Send("test");
+
+                        Assert.AreEqual("test", localDealer.ReceiveString());
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void Ipv6ToIpv6()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (NetMQSocket localDealer = context.CreateDealerSocket())
+                {
+                    localDealer.Options.IPv4Only = false;
+                    localDealer.Bind(string.Format("tcp://*:5002"));
+
+                    using (NetMQSocket connectingDealer = context.CreateDealerSocket())
+                    {
+                        connectingDealer.Options.IPv4Only = false;
+                        connectingDealer.Connect("tcp://" + IPAddress.IPv6Loopback.ToString() + ":5002");
+
+                        connectingDealer.Send("test");
+
+                        Assert.AreEqual("test", localDealer.ReceiveString());
+                    }                   
                 }
             }
         }
