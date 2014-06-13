@@ -307,5 +307,31 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Test]
+        public void BindToLocal()
+        {
+            var validAliasesForLocalHost = new[] {"127.0.0.1", "localhost", System.Net.Dns.GetHostName() };
+            foreach (var alias in validAliasesForLocalHost)
+            {
+                using (NetMQContext context = NetMQContext.Create())
+                {
+                    using (NetMQSocket localDealer = context.CreateDealerSocket())
+                    {
+                        localDealer.Bind("tcp://*:5002");
+
+                        using (NetMQSocket connectingDealer = context.CreateDealerSocket())
+                        {
+                            connectingDealer.Connect("tcp://" + alias + ":5002");
+
+                            localDealer.Send("test");
+
+                            Assert.AreEqual("test", connectingDealer.ReceiveString());
+                            Console.WriteLine(alias + " connected ");
+                        }
+                    }
+                }
+            }
+        }
     }
 }
