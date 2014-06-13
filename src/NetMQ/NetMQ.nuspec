@@ -17,6 +17,7 @@
         * ReceiveString with timeout
         * NetMQMessage.ToString give better description
         * Add ability to bind a random port 
+        * File is signed
         
       Bug Fixes:
         #127  NullReferenceException on socket monitoring

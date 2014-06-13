@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle("NetMQ")]
 [assembly: AssemblyDescription("NetMQ is 100% C# native port of ZeroMQ. " + 
-	"NetMQ is lightweight high performance messaging library. This current version is still in alpha phase and not recommended for production usage yet")]
+	"NetMQ is lightweight high performance messaging library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NetMQ")]
 //[assembly: AssemblyCompany("iMatix Corporation")]
