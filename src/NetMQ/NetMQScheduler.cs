@@ -21,11 +21,13 @@ namespace NetMQ
 
         private readonly NetMQContext m_context;
         private readonly NetMQSocket m_serverSocket;
+        private readonly NetMQSocket m_clientSocket;
 
-        private readonly ThreadLocal<NetMQSocket> m_clientSocket;
-        private readonly ThreadLocal<bool> m_schedulerThread;
+        private ThreadLocal<bool> m_schedulerThread;
 
-        private readonly ConcurrentBag<NetMQSocket> m_clientSockets;
+        private ConcurrentQueue<Task> m_tasksQueue;
+
+        private object m_syncObject;
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 
@@ -35,17 +37,16 @@ namespace NetMQ
             if (poller == null)
             {
                 m_ownPoller = true;
-
                 m_poller = new Poller();
             }
             else
             {
                 m_ownPoller = false;
-
                 m_poller = poller;
             }
 
-            m_clientSockets = new ConcurrentBag<NetMQSocket>();
+            m_tasksQueue = new ConcurrentQueue<Task>();
+            m_syncObject = new object();
 
             m_schedulerId = Interlocked.Increment(ref s_schedulerCounter);
 
@@ -61,15 +62,8 @@ namespace NetMQ
 
             m_poller.AddSocket(m_serverSocket);
 
-            m_clientSocket = new ThreadLocal<NetMQSocket>(() =>
-                    {
-                        var socket = m_context.CreatePushSocket();
-                        socket.Connect(m_address);
-
-                        m_clientSockets.Add(socket);
-
-                        return socket;
-                    });
+            m_clientSocket = m_context.CreatePushSocket();
+            m_clientSocket.Connect(m_address);
 
             m_schedulerThread = new ThreadLocal<bool>(() => false);
 
@@ -94,27 +88,15 @@ namespace NetMQ
 
         private void OnMessage(object sender, NetMQSocketEventArgs e)
         {
-            byte[] data = m_serverSocket.Receive();
+            // remove the awake command from the queue
+            m_serverSocket.Receive();
 
-            IntPtr address;
+            Task task;
 
-            // checking if 64bit or 32 bit
-            if (data.Length == 8)
+            while (m_tasksQueue.TryDequeue(out task))
             {
-                address = new IntPtr(BitConverter.ToInt64(data, 0));
+                TryExecuteTask(task);
             }
-            else
-            {
-                address = new IntPtr(BitConverter.ToInt32(data, 0));
-            }
-
-            GCHandle handle = GCHandle.FromIntPtr(address);
-
-            Task task = (Task)handle.Target;
-
-            TryExecuteTask(task);
-
-            handle.Free();
         }
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
@@ -149,11 +131,6 @@ namespace NetMQ
 
             m_serverSocket.ReceiveReady -= m_currentMessageHandler;
 
-            foreach (var clientSocket in m_clientSockets)
-            {
-                clientSocket.Dispose();
-            }
-
             m_serverSocket.Dispose();
             m_clientSocket.Dispose();
         }
@@ -166,23 +143,13 @@ namespace NetMQ
 
         protected override void QueueTask(Task task)
         {
-            GCHandle handle = GCHandle.Alloc(task, GCHandleType.Normal);
+            m_tasksQueue.Enqueue(task);
 
-            IntPtr address = GCHandle.ToIntPtr(handle);
-
-            byte[] data;
-
-            // checking if 64bit or 32 bit
-            if (IntPtr.Size == 8)
+            lock (m_syncObject)
             {
-                data = BitConverter.GetBytes(address.ToInt64());
+                // awake the scheduler
+                m_clientSocket.Send("");
             }
-            else
-            {
-                data = BitConverter.GetBytes(address.ToInt32());
-            }
-
-            m_clientSocket.Value.Send(data);
         }
     }
 }
