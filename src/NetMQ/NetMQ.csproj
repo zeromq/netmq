@@ -31,6 +31,12 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>NetMQ.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -132,6 +138,7 @@
     <Compile Include="zmq\Msg.cs" />
     <Compile Include="zmq\Mtrie.cs" />
     <None Include="NetMQ.nuspec" />
+    <None Include="NetMQ.snk" />
     <None Include="zmq\Native\NativeMethods.cs" />
     <Compile Include="zmq\Native\OpCode.cs" />
     <Compile Include="zmq\Options.cs" />

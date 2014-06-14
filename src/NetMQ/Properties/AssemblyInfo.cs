@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle("NetMQ")]
 [assembly: AssemblyDescription("NetMQ is 100% C# native port of ZeroMQ. " + 
-	"NetMQ is lightweight high performance messaging library. This current version is still in alpha phase and not recommended for production usage yet")]
+	"NetMQ is lightweight high performance messaging library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NetMQ")]
 //[assembly: AssemblyCompany("iMatix Corporation")]
@@ -34,5 +34,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.0.0.0")]
-[assembly: AssemblyFileVersion("4.0.0.0")]
+[assembly: AssemblyVersion("3.3.0.10")]
+[assembly: AssemblyFileVersion("3.3.0.10")]

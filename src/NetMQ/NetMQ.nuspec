@@ -12,13 +12,18 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
 	  <releaseNotes>
-      * NetMQ Secure Channel (SSL/DTLS over NetMQ)
-      * NetMQ Scheduler for TPL
-      * Bug fixes
-      
-      From version 3.3.0.7 NetMQ is using Big Endian by default (old versions used Little Endian) to be compitable with ZeroMQ,
-      In order to be compitable with older NetMQ versions you can set the Endian to Little on the Socket.Options.Endian.
-      You cannot support older versions of NetMQ and ZeroMQ with the same socket.            
+      New features:
+        * Stream socket type
+        * ReceiveString with timeout
+        * NetMQMessage.ToString give better description
+        * Add ability to bind a random port 
+        * File is signed
+        
+      Bug Fixes:
+        #127  NullReferenceException on socket monitoring
+        #118  NetMQScheduler Memory leak
+        #121  Binding and Connecting on local
+        #8    IPv6 support
     </releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>

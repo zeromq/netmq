@@ -22,21 +22,19 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
     public class TcpAddress : Address.IZAddress
     {
-
         public class TcpAddressMask : TcpAddress
         {
             public bool MatchAddress(IPEndPoint addr)
             {
                 return Address.Equals(addr);
             }
-        }
-
-        //protected IPEndPoint address;
+        }        
 
         public TcpAddress(String addr)
         {
@@ -97,35 +95,44 @@ namespace NetMQ.zmq
                 {
                     throw InvalidException.Create();
                 }
-            }
-
-            IPEndPoint addrNet = null;
-
-            if (addrStr.Equals("*"))
-            {
-                addrStr = "0.0.0.0";
-            }
+            }         
 
             IPAddress ipAddress;
 
-            if (!IPAddress.TryParse(addrStr, out ipAddress))
+            if (addrStr.Equals("*"))
             {
-                ipAddress = Dns.GetHostEntry(addrStr).AddressList.FirstOrDefault();
+                if (ip4Only)
+                {
+                    ipAddress = IPAddress.Any;
+                }
+                else
+                {
+                    ipAddress = IPAddress.IPv6Any;
+                }
+            }            
+            else if (!IPAddress.TryParse(addrStr, out ipAddress))
+            {
+                var availableAddresses = Dns.GetHostEntry(addrStr).AddressList;
 
+                if (ip4Only)
+                {
+                    ipAddress = 
+                        availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+                }
+                else
+                {
+                    ipAddress = Dns.GetHostEntry(addrStr).AddressList.FirstOrDefault(
+                        ip => ip.AddressFamily == AddressFamily.InterNetwork || 
+                            ip.AddressFamily == AddressFamily.InterNetworkV6);
+                }
+                
                 if (ipAddress == null)
                 {
                     throw InvalidException.Create(string.Format("Unable to find an IP address for {0}", name));
                 }
             }
 
-            addrNet = new IPEndPoint(ipAddress, port);
-
-            //if (addr_net == null) {
-            //    throw new ArgumentException(name_);
-            //}
-
-            Address = addrNet;
-
+            Address = new IPEndPoint(ipAddress, port);             
         }
 
         public IPEndPoint Address

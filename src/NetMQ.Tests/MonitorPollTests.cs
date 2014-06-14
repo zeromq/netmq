@@ -71,5 +71,57 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Test]
+        public void ErrorCodeTest()
+        {
+            bool eventArrived = false;
+
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var req = contex.CreateRequestSocket())
+                {
+                    using (var rep = contex.CreateResponseSocket())
+                    {
+                        using (NetMQMonitor monitor =
+                            new NetMQMonitor(contex, req, "inproc://rep.inproc", SocketEvent.ConnectDelayed))
+                        {
+                            monitor.ConnectDelayed += (s, a) =>
+                            {
+                                eventArrived = true;
+                            };
+
+                            monitor.Timeout = TimeSpan.FromMilliseconds(100);
+
+                            var pollerTask = Task.Factory.StartNew(monitor.Start);
+
+                            rep.Bind("tcp://127.0.0.1:5002");
+
+
+                            req.Connect("tcp://127.0.0.1:5002");
+                            req.Send("a");
+
+                            bool more;
+
+                            string m = rep.ReceiveString(out more);
+
+                            rep.Send("b");
+
+                            string m2 = req.ReceiveString(out more);
+
+                            Thread.Sleep(200);
+
+                            Assert.IsTrue(eventArrived);
+
+                            monitor.Stop();
+
+                            Thread.Sleep(200);
+
+                            Assert.IsTrue(pollerTask.IsCompleted);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

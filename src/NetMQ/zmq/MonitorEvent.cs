@@ -26,7 +26,25 @@ namespace NetMQ.zmq
             }
         }
 
-        public MonitorEvent(SocketEvent monitorEvent, String addr, Object arg)
+        public MonitorEvent(SocketEvent monitorEvent, String addr, ErrorCode arg) :
+            this(monitorEvent, addr, (int)arg)
+        {
+
+        }
+
+        public MonitorEvent(SocketEvent monitorEvent, String addr, int arg) : 
+            this(monitorEvent, addr, (object)arg)
+        {
+            
+        }
+
+        public MonitorEvent(SocketEvent monitorEvent, String addr, Socket arg) :
+            this(monitorEvent, addr, (object)arg)
+        {
+
+        }
+
+        private MonitorEvent(SocketEvent monitorEvent, String addr, Object arg)
         {
             this.m_monitorEvent = monitorEvent;
             this.m_addr = addr;

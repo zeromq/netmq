@@ -170,6 +170,18 @@ namespace NetMQ.zmq
                 m_handle =
                     new Socket(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
+                if (!m_options.IPv4Only && m_address.Address.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    try
+                    {
+                        // This is not supported on old windows operation system and might throw exception
+                        m_handle.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, 0);
+                    }
+                    catch (Exception ex)
+                    {                        
+                    }
+                }
+
                 //handle.Blocking = false;
 
                 m_handle.ExclusiveAddressUse = false;
