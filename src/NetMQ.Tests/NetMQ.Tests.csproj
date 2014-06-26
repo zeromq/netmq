@@ -66,6 +66,7 @@
     <Compile Include="MonitorPollTests.cs" />
     <Compile Include="NetMQSchedulerTest.cs" />
     <Compile Include="NetMQTestRunner.cs" />
+    <Compile Include="NetworkOrderBitsConverterTests.cs" />
     <Compile Include="PgmTests.cs" />
     <Compile Include="PollerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

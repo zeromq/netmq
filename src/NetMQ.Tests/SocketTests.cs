@@ -378,5 +378,80 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Test]
+        public void HasInTest()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (NetMQSocket server = context.CreateRouterSocket())
+                {
+                    server.Bind("tcp://*:5557");
+
+                    // no one sent a message so it should be fasle
+                    Assert.IsFalse(server.HasIn);
+
+                    using (NetMQSocket client = context.CreateDealerSocket())
+                    {
+                        client.Connect("tcp://localhost:5557");
+
+                        // wait for the client to connect
+                        Thread.Sleep(100);
+
+                        // now we have one client connected but didn't send a message yet
+                        Assert.IsFalse(server.HasIn);
+
+                        client.Send("1");
+
+                        // wait for the message to arrive
+                        Thread.Sleep(100);
+
+                        // the has in should indicate a message is ready
+                        Assert.IsTrue(server.HasIn);
+
+                        byte[] identity = server.Receive();
+                        string message = server.ReceiveString();
+
+                        Assert.AreEqual(message, "1");
+
+                        // we read the message, it should false again
+                        Assert.IsFalse(server.HasIn);
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void HasOutTest()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (NetMQSocket server = context.CreateDealerSocket())
+                {
+                    server.Bind("tcp://*:5557");
+
+                    // no client is connected so we don't have out
+                    Assert.IsFalse(server.HasOut);
+
+                    using (NetMQSocket client = context.CreateDealerSocket())
+                    {
+                        Assert.IsFalse(client.HasOut);
+
+                        client.Connect("tcp://localhost:5557");
+
+                        Thread.Sleep(100);
+
+                        // client is connected so server should have out now, client as well
+                        Assert.IsTrue(server.HasOut);
+                        Assert.IsTrue(client.HasOut);
+                    }
+
+                    Thread.Sleep(100);
+
+                    // client is disposed,server shouldn't have out now
+                    Assert.IsFalse(server.HasOut);
+                }
+            }
+        }
     }
 }

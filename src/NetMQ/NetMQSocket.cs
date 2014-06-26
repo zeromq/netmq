@@ -318,6 +318,26 @@ namespace NetMQ
             ZMQ.SocketMonitor(SocketHandle, endpoint, events);
         }
 
+        public bool HasIn
+        {
+            get
+            {
+                PollEvents pollEvents = (PollEvents)ZMQ.GetSocketOptionX(SocketHandle, ZmqSocketOptions.Events);
+
+                return pollEvents.HasFlag(PollEvents.PollIn);
+            }
+        }
+
+        public bool HasOut
+        {
+            get
+            {
+                PollEvents pollEvents = (PollEvents)ZMQ.GetSocketOptionX(SocketHandle, ZmqSocketOptions.Events);
+
+                return pollEvents.HasFlag(PollEvents.PollOut);
+            }
+        }
+
         internal int GetSocketOption(ZmqSocketOptions socketOptions)
         {
             return ZMQ.GetSocketOption(m_socketHandle, socketOptions);

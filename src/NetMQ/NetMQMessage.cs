@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -95,6 +96,26 @@ namespace NetMQ
             m_frames.Add(new NetMQFrame(message));
         }
 
+        public void Append(string message, Encoding encoding)
+        {
+            m_frames.Add(new NetMQFrame(message, encoding));
+        }
+
+        public void Append(int value)
+        {            
+            Append(NetworkOrderBitsConverter.GetBytes(value));
+        }
+
+        public void Append(long value)
+        {
+            Append(NetworkOrderBitsConverter.GetBytes(value));
+        }
+
+        public void Append(Blob blob)
+        {
+            Append(blob.Data);
+        }
+
         public void AppendEmptyFrame()
         {
             m_frames.Add(NetMQFrame.Empty);
@@ -113,6 +134,26 @@ namespace NetMQ
         public void Push(string message)
         {
             m_frames.Insert(0, new NetMQFrame(message));
+        }
+
+        public void Push(string message, Encoding encoding)
+        {
+            m_frames.Insert(0, new NetMQFrame(message, encoding));
+        }
+
+        public void Push(int value)
+        {
+            Push(NetworkOrderBitsConverter.GetBytes(value));
+        }
+
+        public void Push(long value)
+        {
+            Push(NetworkOrderBitsConverter.GetBytes(value));
+        }
+
+        public void Push(Blob blob)
+        {
+            Push(blob.Data);
         }
 
         /// <summary>

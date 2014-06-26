@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
-    public class NetMQFrame : IEquatable<NetMQFrame>
+    public class NetMQFrame : IEquatable<NetMQFrame>, IEquatable<byte[]>
     {
         private int m_messageSize;
+        private int m_hash = 0;
 
         public NetMQFrame(byte[] buffer)
         {
@@ -22,6 +25,12 @@ namespace NetMQ
 
         public NetMQFrame(string message)
             : this(Encoding.ASCII.GetBytes(message))
+        {
+
+        }
+
+        public NetMQFrame(string message, Encoding encoding)
+            : this(encoding.GetBytes(message))
         {
 
         }
@@ -102,6 +111,29 @@ namespace NetMQ
             return Encoding.ASCII.GetString(Buffer, 0, this.MessageSize);
         }
 
+        public string ConvertToString(Encoding encoding)
+        {
+            return encoding.GetString(Buffer, 0, this.MessageSize);
+        }
+
+        /// <summary>
+        /// Convert the buffer to integer in network byte order (Big endian)
+        /// </summary>
+        /// <returns></returns>
+        public int ConvertToInt32()
+        {
+            return NetworkOrderBitsConverter.ToInt32(Buffer);
+        }
+
+        /// <summary>
+        /// Convert the buffer to long in network byte order (Big endian)
+        /// </summary>
+        /// <returns></returns>
+        public long ConvertToInt64()
+        {
+            return NetworkOrderBitsConverter.ToInt64(Buffer);
+        }
+
         /// <summary>
         /// Create a copy of the supplied <see cref="NetMQFrame"/>.
         /// </summary>
@@ -123,6 +155,31 @@ namespace NetMQ
             return copy;
         }
 
+        public NetMQFrame Duplicate()
+        {
+            return Copy(this);
+        }
+
+        public bool Equals(byte[] other)
+        {
+            if (other == null)
+                return false;            
+
+            if (other.Length != MessageSize)
+                return false;
+
+            if (ReferenceEquals(Buffer, other))
+                return true;
+
+            for (int i = 0; i < MessageSize; i++)
+            {
+                if (Buffer[i] != other[i])
+                    return false;
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Determines whether the specified <see cref="NetMQFrame"/> is equal to the current <see cref="NetMQFrame"/>.
         /// </summary>
@@ -130,6 +187,12 @@ namespace NetMQ
         /// <returns>true if the specified System.Object is equal to the current System.Object; otherwise, false.</returns>
         public bool Equals(NetMQFrame other)
         {
+            if(other== null)
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
             if (MessageSize > other.BufferSize || MessageSize != other.MessageSize)
             {
                 return false;
@@ -145,6 +208,30 @@ namespace NetMQ
 
             return true;
         }
+
+        bool IEquatable<NetMQFrame>.Equals(NetMQFrame other)
+        {
+            return Equals(other);
+        }        
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NetMQFrame);
+        }
+
+        public override int GetHashCode()
+        {
+            if (m_hash == 0)
+            {
+                foreach (byte b in Buffer)
+                {
+                    m_hash = 31 * m_hash + b;
+                }
+            }
+
+            return m_hash;
+        }
+
 
         public byte[] ToByteArray(bool copy = false)
         {
