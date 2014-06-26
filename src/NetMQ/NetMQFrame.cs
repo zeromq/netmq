@@ -155,6 +155,11 @@ namespace NetMQ
             return copy;
         }
 
+        public NetMQFrame Duplicate()
+        {
+            return Copy(this);
+        }
+
         public bool Equals(byte[] other)
         {
             if (other == null)
