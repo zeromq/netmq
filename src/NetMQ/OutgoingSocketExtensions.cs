@@ -11,13 +11,24 @@ namespace NetMQ
 
         public static void Send(this IOutgoingSocket socket, string message, bool dontWait = false, bool sendMore = false)
         {
-            byte[] data = Encoding.ASCII.GetBytes(message);
+            Send(socket, message, Encoding.ASCII, dontWait, sendMore);
+        }
+
+        public static void Send(this IOutgoingSocket socket, string message, Encoding encoding, bool dontWait = false, bool sendMore = false)
+        {
+            byte[] data = encoding.GetBytes(message);
             socket.Send(data, data.Length, dontWait, sendMore);
         }
 
         public static IOutgoingSocket SendMore(this IOutgoingSocket socket, string message, bool dontWait = false)
         {
             socket.Send(message, false, true);
+            return socket;
+        }
+
+        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, string message, Encoding encoding, bool dontWait = false)
+        {
+            socket.Send(message,encoding, false, true);
             return socket;
         }
 

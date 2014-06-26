@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using NetMQ.zmq;
 
@@ -32,13 +33,23 @@ namespace NetMQ
 
         public static string ReceiveString(this IReceivingSocket socket, bool dontWait, out bool hasMore)
         {
+            return ReceiveString(socket, Encoding.ASCII, dontWait, out hasMore);
+        }
+
+        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, bool dontWait, out bool hasMore)
+        {
             byte[] data = socket.Receive(dontWait, out hasMore);
-            return Encoding.ASCII.GetString(data);
+            return encoding.GetString(data);
         }
 
         public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
         {
             return socket.ReceiveString(options.HasFlag(SendReceiveOptions.DontWait), out hasMore);
+        }
+
+        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options, out bool hasMore)
+        {
+            return socket.ReceiveString(encoding, options.HasFlag(SendReceiveOptions.DontWait),out hasMore);
         }
 
         public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options)
@@ -47,9 +58,26 @@ namespace NetMQ
             return socket.ReceiveString(options, out hasMore);
         }
 
+        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options)
+        {
+            bool hasMore;
+            return socket.ReceiveString(encoding, options, out hasMore);
+        }
+
         public static string ReceiveString(this IReceivingSocket socket, out bool hasMore)
         {
             return socket.ReceiveString(false, out hasMore);
+        }
+
+        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, out bool hasMore)
+        {
+            return socket.ReceiveString(encoding, false, out hasMore);
+        }
+
+        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding)
+        {
+            bool hasMore;
+            return socket.ReceiveString(encoding, false, out hasMore);
         }
 
         public static string ReceiveString(this IReceivingSocket socket)
@@ -59,6 +87,11 @@ namespace NetMQ
         }
 
         public static string ReceiveString(this NetMQSocket socket, TimeSpan timeout)
+        {
+            return ReceiveString(socket, Encoding.ASCII, timeout);
+        }
+
+        public static string ReceiveString(this NetMQSocket socket, Encoding encoding, TimeSpan timeout)
         {
             var item = new PollItem(socket.SocketHandle, PollEvents.PollIn);
             var items = new[] { item };
@@ -70,7 +103,7 @@ namespace NetMQ
             if (!item.ResultEvent.HasFlag(PollEvents.PollIn))
                 return null;
 
-            var msg = socket.ReceiveString();
+            var msg = socket.ReceiveString(encoding);
             return msg;
         }
 
@@ -120,10 +153,15 @@ namespace NetMQ
 
         public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket)
         {
+            return ReceiveStringMessages(socket, Encoding.ASCII);
+        }
+
+        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket, Encoding encoding)
+        {
             bool hasMore = true;
 
             while (hasMore)
-                yield return socket.ReceiveString(SendReceiveOptions.None, out hasMore);
+                yield return socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore);
         }
 
         [Obsolete("Use ReceiveMessages extension method instead")]
