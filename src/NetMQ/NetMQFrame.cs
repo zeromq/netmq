@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -24,6 +25,12 @@ namespace NetMQ
 
         public NetMQFrame(string message)
             : this(Encoding.ASCII.GetBytes(message))
+        {
+
+        }
+
+        public NetMQFrame(string message, Encoding encoding)
+            : this(encoding.GetBytes(message))
         {
 
         }
@@ -102,6 +109,29 @@ namespace NetMQ
         public string ConvertToString()
         {
             return Encoding.ASCII.GetString(Buffer, 0, this.MessageSize);
+        }
+
+        public string ConvertToString(Encoding encoding)
+        {
+            return encoding.GetString(Buffer, 0, this.MessageSize);
+        }
+
+        /// <summary>
+        /// Convert the buffer to integer in network byte order (Big endian)
+        /// </summary>
+        /// <returns></returns>
+        public int ConvertToInt32()
+        {
+            return NetworkOrderBitsConverter.ToInt32(Buffer);
+        }
+
+        /// <summary>
+        /// Convert the buffer to long in network byte order (Big endian)
+        /// </summary>
+        /// <returns></returns>
+        public long ConvertToInt64()
+        {
+            return NetworkOrderBitsConverter.ToInt64(Buffer);
         }
 
         /// <summary>

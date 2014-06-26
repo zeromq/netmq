@@ -156,5 +156,68 @@ namespace NetMQ.Tests
             message.Append("World");
             Assert.AreEqual("NetMQMessage[Hello,,World]", message.ToString());
         }
+
+        [Test]
+        public void SpecifyEncoding()
+        {
+            NetMQFrame frame =new NetMQFrame("Hello", Encoding.UTF32);
+            
+            // size should be 4 times the string length because of using utf32
+            Assert.AreEqual(20, frame.MessageSize);
+
+            Assert.AreEqual("Hello", frame.ConvertToString(Encoding.UTF32));
+        }
+
+        [Test]
+        public void AppendInt32()
+        {
+            NetMQMessage message = new NetMQMessage();
+
+            message.Append("Hello");
+            message.Append(5);
+
+            Assert.AreEqual(4, message[1].MessageSize);
+            Assert.AreEqual(5, message[1].ConvertToInt32());
+        }
+
+        [Test]
+        public void PushInt32()
+        {
+            NetMQMessage message = new NetMQMessage();
+
+            message.Append("Hello");
+            message.Push(5);
+
+            Assert.AreEqual(4, message[0].MessageSize);
+            Assert.AreEqual(5, message[0].ConvertToInt32());
+        }
+
+        [Test]
+        public void AppendInt64()
+        {
+            long num = (long)int.MaxValue + 1;            
+
+            NetMQMessage message = new NetMQMessage();
+
+            message.Append("Hello");
+            message.Append(num);
+
+            Assert.AreEqual(8, message[1].MessageSize);
+            Assert.AreEqual(num, message[1].ConvertToInt64());
+        }
+
+        [Test]
+        public void PushInt64()
+        {
+            long num = (long)int.MaxValue + 1;            
+
+            NetMQMessage message = new NetMQMessage();
+
+            message.Append("Hello");
+            message.Push(num);
+
+            Assert.AreEqual(8, message[0].MessageSize);
+            Assert.AreEqual(num, message[0].ConvertToInt64());
+        }
     }
 }
