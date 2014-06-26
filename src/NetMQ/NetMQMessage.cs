@@ -111,6 +111,11 @@ namespace NetMQ
             Append(NetworkOrderBitsConverter.GetBytes(value));
         }
 
+        public void Append(Blob blob)
+        {
+            Append(blob.Data);
+        }
+
         public void AppendEmptyFrame()
         {
             m_frames.Add(NetMQFrame.Empty);
@@ -144,6 +149,11 @@ namespace NetMQ
         public void Push(long value)
         {
             Push(NetworkOrderBitsConverter.GetBytes(value));
+        }
+
+        public void Push(Blob blob)
+        {
+            Push(blob.Data);
         }
 
         /// <summary>
