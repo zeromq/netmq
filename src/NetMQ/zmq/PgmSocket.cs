@@ -77,7 +77,7 @@ namespace NetMQ.zmq
             FD.SetSocketOption(PGM_LEVEL, EnableGigabitOption, BitConverter.GetBytes((uint)1));
 
             // set the receive buffer size for receiver and listener
-            if (m_options.ReceiveBuffer > 0 && m_pgmSocketType == PgmSocketType.Receiver || m_pgmSocketType == PgmSocketType.Listener)
+            if (m_options.ReceiveBuffer > 0 && (m_pgmSocketType == PgmSocketType.Receiver || m_pgmSocketType == PgmSocketType.Listener))
             {
                 FD.ReceiveBufferSize = m_options.ReceiveBuffer;
             }
