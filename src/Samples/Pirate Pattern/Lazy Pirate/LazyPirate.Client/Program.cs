@@ -45,9 +45,7 @@ namespace LazyPirate.Client
                             {
                                 Console.WriteLine("C: No response from server, retrying...");
 
-                                client.Disconnect(SERVER_ENDPOINT);
-                                client.Close();
-                                client.Dispose();
+                                TerminateClient(client);
 
                                 client = CreateServerSocket(context);
                                 client.Send(Encoding.Unicode.GetBytes(_sequence.ToString()));
@@ -55,7 +53,15 @@ namespace LazyPirate.Client
                         }
                     }
                 }
+                TerminateClient(client);
             }
+        }
+
+        private static void TerminateClient(RequestSocket client)
+        {
+            client.Disconnect(SERVER_ENDPOINT);
+            client.Close();
+            client.Dispose();
         }
 
         private static RequestSocket CreateServerSocket(NetMQContext context)
