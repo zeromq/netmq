@@ -101,6 +101,11 @@ namespace NetMQ
                     {
                         Stop(false);
                     }
+
+                    foreach (var socket in m_sockets.ToList())
+                    {
+                        RemoveSocket(socket);
+                    }
                 }
 
                 m_disposed = true;
