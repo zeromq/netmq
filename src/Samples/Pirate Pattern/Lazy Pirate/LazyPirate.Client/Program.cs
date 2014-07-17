@@ -61,7 +61,6 @@ namespace LazyPirate.Client
         {
             client.Disconnect(SERVER_ENDPOINT);
             client.Close();
-            client.Dispose();
         }
 
         private static RequestSocket CreateServerSocket(NetMQContext context)
