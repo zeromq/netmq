@@ -344,6 +344,11 @@ namespace NetMQ
             finally
             {
                 m_isStoppedEvent.Set();
+
+                foreach (var socket in m_sockets.ToList())
+                {
+                    RemoveSocket(socket);
+                }
             }
         }
 
