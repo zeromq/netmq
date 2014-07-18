@@ -646,6 +646,39 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void PollOnce()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            using (Poller poller = new Poller())
+            {
+
+                int count = 0;
+
+                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
+                timer.Elapsed += (a, s) =>
+                {
+                    count++;
+
+                    if (count == 3)
+                    {
+                        timer.Enable = false;
+                    }
+                };
+
+                poller.AddTimer(timer);
+                
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                poller.PollOnce();
+
+                var pollOnceElapsedTime = stopwatch.ElapsedMilliseconds;
+
+                Assert.AreEqual(1, count, "the timer should have fired just once during the call to PollOnce()");
+                Assert.Less(pollOnceElapsedTime, 90, "pollonce should return soon after the first timer firing.");
+            }
+        }
+
+        [Test]
         public void TwoTimers()
         {
             using (NetMQContext contex = NetMQContext.Create())

@@ -245,6 +245,17 @@ namespace NetMQ
 
         public void Start()
         {
+            PollWhile(() => !m_cancellationTokenSource.IsCancellationRequested);
+        }
+
+        public void PollOnce()
+        {
+            int timesToPoll = 1;
+            PollWhile(() => timesToPoll-- > 0);
+        }
+
+        private void PollWhile(Func<bool> condition)
+        {
             if (m_disposed)
             {
                 throw new ObjectDisposedException("Poller is disposed");
@@ -275,14 +286,23 @@ namespace NetMQ
                     }
                 }
 
-                while (!m_cancellationTokenSource.IsCancellationRequested)
+                while (condition())
                 {
                     if (m_isDirty)
                     {
                         RebuildPollset();
                     }
 
-                    ZMQ.Poll(m_pollset, m_pollSize, TicklessTimer());
+                    var pollStart = Clock.NowMs();
+                    var timeout = TicklessTimer();
+
+                    var nbEvents = ZMQ.Poll(m_pollset, m_pollSize, timeout);
+
+                    // Get the expected end time in case we time out. This looks redundant but, unfortunately,
+                    // it happens that Poll takes slightly less than the requested time and 'Clock.NowMs() >= timer.When'
+                    // may not true, even if it is supposed to be. In other words, even when Poll times out, it happens
+                    // that 'Clock.NowMs() < pollStart + timeout'
+                    var expectedPollEnd = nbEvents == 0 ? pollStart + timeout : -1;
 
                     // that way we make sure we can continue the loop if new timers are added.
                     // timers cannot be removed
@@ -291,7 +311,7 @@ namespace NetMQ
                     {
                         var timer = m_timers[i];
 
-                        if (Clock.NowMs() >= timer.When && timer.When != -1)
+                        if ((Clock.NowMs() >= timer.When || expectedPollEnd >= timer.When) && timer.When != -1)
                         {
                             timer.InvokeElapsed(this);
 
