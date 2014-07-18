@@ -646,6 +646,45 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void PollOnce()
+        {
+            // this test fails from time to time: the problem comes from the Poller implementation:
+            // we poll with a timeout = TicklessTimer(), which should ensure we wait at least until the timer fires
+            // (we don't have any sockets here), but when the condition Clock.NowMs() >= timer.When is evaluated, 
+            // it is still false because the time waited is not exact, we are still some fraction of ms short and nothing happens
+            // In the normal Start, it is not a problem since the next iteration will take care of invoking th eevent, 
+            // but it doesn't work for PollOnce.
+            using (NetMQContext contex = NetMQContext.Create())
+            using (Poller poller = new Poller())
+            {
+
+                int count = 0;
+
+                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
+                timer.Elapsed += (a, s) =>
+                {
+                    count++;
+
+                    if (count == 3)
+                    {
+                        timer.Enable = false;
+                    }
+                };
+
+                poller.AddTimer(timer);
+                
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                poller.PollOnce();
+
+                var pollOnceElapsedTime = stopwatch.ElapsedMilliseconds;
+
+                Assert.AreEqual(1, count, "the timer should have fired just once during the call to PollOnce()");
+                Assert.Less(pollOnceElapsedTime, 90, "pollonce should return soon after the first timer firing.");
+            }
+        }
+
+        [Test]
         public void TwoTimers()
         {
             using (NetMQContext contex = NetMQContext.Create())

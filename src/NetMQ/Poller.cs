@@ -245,6 +245,17 @@ namespace NetMQ
 
         public void Start()
         {
+            PollWhile(() => !m_cancellationTokenSource.IsCancellationRequested);
+        }
+
+        public void PollOnce()
+        {
+            int timesToPoll = 1;
+            PollWhile(() => timesToPoll-- > 0);
+        }
+
+        private void PollWhile(Func<bool> condition)
+        {
             if (m_disposed)
             {
                 throw new ObjectDisposedException("Poller is disposed");
@@ -275,7 +286,7 @@ namespace NetMQ
                     }
                 }
 
-                while (!m_cancellationTokenSource.IsCancellationRequested)
+                while (condition())
                 {
                     if (m_isDirty)
                     {
