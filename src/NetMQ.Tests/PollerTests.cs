@@ -648,12 +648,6 @@ namespace NetMQ.Tests
         [Test]
         public void PollOnce()
         {
-            // this test fails from time to time: the problem comes from the Poller implementation:
-            // we poll with a timeout = TicklessTimer(), which should ensure we wait at least until the timer fires
-            // (we don't have any sockets here), but when the condition Clock.NowMs() >= timer.When is evaluated, 
-            // it is still false because the time waited is not exact, we are still some fraction of ms short and nothing happens
-            // In the normal Start, it is not a problem since the next iteration will take care of invoking th eevent, 
-            // but it doesn't work for PollOnce.
             using (NetMQContext contex = NetMQContext.Create())
             using (Poller poller = new Poller())
             {
