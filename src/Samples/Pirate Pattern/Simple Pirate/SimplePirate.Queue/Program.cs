@@ -20,35 +20,39 @@ namespace SimplePirate.Queue
         {
             using (var context = NetMQContext.Create())
             {
-                frontend = context.CreateRouterSocket();
-                backend = context.CreateRouterSocket();
-
-                // For Clients
-                Console.WriteLine("Q: Binding frontend {0}", FRONTEND_ENDPOINT);
-                frontend.Bind(FRONTEND_ENDPOINT);
-
-                // For Workers
-                Console.WriteLine("Q: Binding backend {0}", BACKEND_ENDPOINT);
-                backend.Bind(BACKEND_ENDPOINT); 
-
-                //  Logic of LRU loop
-                //  - Poll backend always, frontend only if 1+ worker ready
-                //  - If worker replies, queue worker as ready and forward reply
-                //    to client if necessary
-                //  - If client requests, pop next worker and send request to it
-
-                //  Queue of available workers
-                workerQueue = new Queue<byte[]>();
-
-                //  Handle worker activity on backend
-                backend.ReceiveReady += BackendOnReceiveReady;
-                frontend.ReceiveReady += FrontendOnReceiveReady;
-
-                while (true)
+                using (frontend = context.CreateRouterSocket())
                 {
-                    backend.Poll(TimeSpan.FromMilliseconds(500));
-                    if (workerQueue.Count > 0)
-                        frontend.Poll(TimeSpan.FromMilliseconds(500));
+                    using (backend = context.CreateRouterSocket())
+                    {
+
+                        // For Clients
+                        Console.WriteLine("Q: Binding frontend {0}", FRONTEND_ENDPOINT);
+                        frontend.Bind(FRONTEND_ENDPOINT);
+
+                        // For Workers
+                        Console.WriteLine("Q: Binding backend {0}", BACKEND_ENDPOINT);
+                        backend.Bind(BACKEND_ENDPOINT);
+
+                        //  Logic of LRU loop
+                        //  - Poll backend always, frontend only if 1+ worker ready
+                        //  - If worker replies, queue worker as ready and forward reply
+                        //    to client if necessary
+                        //  - If client requests, pop next worker and send request to it
+
+                        //  Queue of available workers
+                        workerQueue = new Queue<byte[]>();
+
+                        //  Handle worker activity on backend
+                        backend.ReceiveReady += BackendOnReceiveReady;
+                        frontend.ReceiveReady += FrontendOnReceiveReady;
+
+                        while (true)
+                        {
+                            backend.Poll(TimeSpan.FromMilliseconds(500));
+                            if (workerQueue.Count > 0)
+                                frontend.Poll(TimeSpan.FromMilliseconds(500));
+                        }
+                    }
                 }
             }
         }
