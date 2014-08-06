@@ -396,7 +396,7 @@ namespace NetMQ.zmq
             //  First, delete all the unread messages in the pipe. We have to do it by
             //  hand because msg_t doesn't have automatic destructor. Then deallocate
             //  the ypipe itself.
-            while (m_inboundPipe.Read() != null)
+            while (m_inboundPipe != null && m_inboundPipe.Read() != null)
             {
             }
 
