@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -27,6 +28,7 @@ namespace NetMQ
             }
         }
 
+        private enum SuspendedOperation {AddSocket, RemoveSocket};
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
 
         private PollItem[] m_pollset;
@@ -35,7 +37,13 @@ namespace NetMQ
 
         readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
         readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
+        readonly ConcurrentQueue<Tuple<SuspendedOperation, NetMQSocket>> m_pendingOperations = new ConcurrentQueue<Tuple<SuspendedOperation, NetMQSocket>>();
 
+        // Keeping a reference to the poller thread and invoking Thread.CurrentThread tests 
+        // faster than ThreadLocal<bool>. Is there a reason to use ThreadLocal<bool>, as 
+        // NetMQScheduler does?
+        private Thread m_pollerLoopThread = null;
+        
         readonly CancellationTokenSource m_cancellationTokenSource;
         readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
         private bool m_isStarted;
@@ -46,7 +54,6 @@ namespace NetMQ
         public Poller()
         {
             PollTimeout = 1000;
-
             m_cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -122,7 +129,13 @@ namespace NetMQ
             {
                 throw new ArgumentNullException("stock");
             }
-
+            // A significant flaw in the pending operations queue approach is this:
+            // Whether or not m_sockets contains the passed socket must be checked later.
+            // for a list, that can get prohibitively expensive for extremely large lists
+            // of sockets. Moving to a HashSet would eliminate this performance gap, but
+            // then the collection would no longer be well-ordered. For what it's worth,
+            // I don't believe anything in this class actually requires the collection to
+            // be well-ordered. -KR
             if (m_sockets.Contains(socket))
             {
                 throw new ArgumentException("Socket already added to poller");
@@ -133,9 +146,21 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is disposed");
             }
 
-            m_sockets.Add(socket);
+            AddSocket(socket, Thread.CurrentThread == m_pollerLoopThread);            
+        }
 
-            socket.EventsChanged += OnSocketEventsChanged;
+        private void AddSocket(NetMQSocket socket, bool onPollerThread)
+        {
+            if (onPollerThread)
+            {
+                if(!m_sockets.Contains(socket))
+                    m_sockets.Add(socket);
+                socket.EventsChanged += OnSocketEventsChanged;
+            }
+            else
+            {
+                m_pendingOperations.Enqueue(new Tuple<SuspendedOperation, NetMQSocket>(SuspendedOperation.AddSocket, socket));
+            }
 
             m_isDirty = true;
         }
@@ -152,9 +177,22 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is disposed");
             }
 
-            socket.EventsChanged -= OnSocketEventsChanged;
+            RemoveSocket(socket, Thread.CurrentThread == m_pollerLoopThread);
+        }
 
-            m_sockets.Remove(socket);
+        private void RemoveSocket(NetMQSocket socket, bool onPollerThread)
+        {
+            if (onPollerThread)
+            {
+                socket.EventsChanged -= OnSocketEventsChanged;
+
+                m_sockets.Remove(socket);
+            }
+            else
+            {
+                m_pendingOperations.Enqueue(new Tuple<SuspendedOperation, NetMQSocket>(SuspendedOperation.RemoveSocket, socket));
+            }
+
             m_isDirty = true;
         }
 
@@ -195,8 +233,32 @@ namespace NetMQ
             m_zombies.Add(timer);
         }
 
+        private void EmptySuspendedOperationQueue()
+        {
+            Tuple<SuspendedOperation, NetMQSocket> pendingOperation;
+            while (m_pendingOperations.TryDequeue(out pendingOperation))
+            {
+                // could potentially be optimized by switching to Tuple<bool, NetMQSocket> 
+                // and performing a single if/else. For the initial commit, I decided to 
+                // err on the side of clarity.
+                switch (pendingOperation.Item1)
+                {
+                    case SuspendedOperation.AddSocket:
+                        AddSocket(pendingOperation.Item2, true);
+                        break;
+                    case SuspendedOperation.RemoveSocket:
+                        RemoveSocket(pendingOperation.Item2, true);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+        }
+
         private void RebuildPollset()
         {
+            EmptySuspendedOperationQueue();
+
             m_pollset = null;
             m_pollact = null;
 
@@ -265,9 +327,9 @@ namespace NetMQ
             {
                 throw new InvalidOperationException("Poller is started");
             }
-
-            if(Thread.CurrentThread.Name == null)
-                Thread.CurrentThread.Name = "NetMQPollerThread";
+            m_pollerLoopThread = Thread.CurrentThread;
+            if (m_pollerLoopThread.Name == null)
+                m_pollerLoopThread.Name = "NetMQPollerThread";
 
             m_isStoppedEvent.Reset();
             m_isStarted = true;
@@ -333,7 +395,7 @@ namespace NetMQ
 
                             if (socket.Errors > 1)
                             {
-                                RemoveSocket(socket);
+                                RemoveSocket(socket, true);
                                 item.ResultEvent = PollEvents.None;
                             }
                         }
@@ -364,11 +426,13 @@ namespace NetMQ
             finally
             {
                 m_isStoppedEvent.Set();
-
+                
                 foreach (var socket in m_sockets.ToList())
                 {
-                    RemoveSocket(socket);
+                    RemoveSocket(socket, true);
                 }
+
+                m_pollerLoopThread = null;
             }
         }
 
@@ -391,7 +455,7 @@ namespace NetMQ
                 {
                     m_isStoppedEvent.WaitOne();
                 }
-
+                
                 m_isStarted = false;
             }
             else
