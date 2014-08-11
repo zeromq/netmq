@@ -158,9 +158,10 @@ namespace NetMQ.Monitoring
 
         private void InvokeEvent<T>(EventHandler<T> handler, T args) where T : NetMQMonitorEventArgs
         {
-            if (handler != null)
+            var temp = handler;
+            if (temp != null)
             {
-                handler(this, args);
+                temp(this, args);
             }
         }
 
