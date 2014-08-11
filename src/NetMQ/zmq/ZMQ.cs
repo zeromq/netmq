@@ -468,10 +468,8 @@ namespace NetMQ.zmq
             List<Socket> errorset = new List<Socket>(errorList.Count);
 
             Stopwatch stopwatch = null;
-            int iterationCount = 0;
             while (true)
             {
-                iterationCount++;
                 int currentTimeoutMicroSeconds;
 
                 if (firstPass)
