@@ -100,7 +100,7 @@ namespace NetMQ.zmq
             //  In case of zero-copy simply adjust the pointers, no copying
             //  is required. Also, run the state machine in case all the data
             //  were processed.
-            if (data.Equals(m_readPos))
+            if (data != null && data.Equals(m_readPos))
             {
                 m_readPos.AdvanceOffset(size);
                 m_toRead -= size;
