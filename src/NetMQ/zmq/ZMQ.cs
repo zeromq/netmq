@@ -468,9 +468,10 @@ namespace NetMQ.zmq
             List<Socket> errorset = new List<Socket>(errorList.Count);
 
             Stopwatch stopwatch = null;
-
+            int iterationCount = 0;
             while (true)
             {
+                iterationCount++;
                 int currentTimeoutMicroSeconds;
 
                 if (firstPass)
@@ -491,9 +492,9 @@ namespace NetMQ.zmq
                     }
                 }
 
-                inset.AddRange(readList);
-                outset.AddRange(writeList);
-                errorset.AddRange(errorList);
+                inset.AddRange(readList.Where(x=>x.Connected));
+                outset.AddRange(writeList.Where(x => x.Connected));
+                errorset.AddRange(errorList.Where(x => x.Connected));
 
                 try
                 {
