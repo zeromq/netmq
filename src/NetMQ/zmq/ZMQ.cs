@@ -468,6 +468,7 @@ namespace NetMQ.zmq
             List<Socket> errorset = new List<Socket>(errorList.Count);
 
             Stopwatch stopwatch = null;
+
             while (true)
             {
                 int currentTimeoutMicroSeconds;
