@@ -130,7 +130,9 @@ namespace NetMQ.zmq
 
         public bool WaitEvent(int timeout)
         {
-            return m_r.Poll(timeout * 1000, SelectMode.SelectRead);
+            if(m_r.Connected)
+                return m_r.Poll(timeout * 1000, SelectMode.SelectRead);
+            return false;
         }
 
         public void Recv()
