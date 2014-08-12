@@ -491,9 +491,9 @@ namespace NetMQ.zmq
                     }
                 }
 
-                inset.AddRange(readList);
-                outset.AddRange(writeList);
-                errorset.AddRange(errorList);
+                inset.AddRange(readList.Where(x => x.Connected));
+                outset.AddRange(writeList.Where(x => x.Connected));
+                errorset.AddRange(errorList.Where(x => x.Connected));
 
                 try
                 {
