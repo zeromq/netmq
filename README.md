@@ -27,10 +27,15 @@ You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
 Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). You can also read more about NetMQ at [Somdorons blog](http://somdoron.com/category/netmq/).
 
 [Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber) wrote a series of posts about NetMQ in his blog, take a look:
+
 [Hello World](http://www.codeproject.com/Articles/809849/ZeroMq-sharp-Hello-World)
+
 [The Socket Types](http://www.codeproject.com/Articles/810302/ZeroMq-sharp-The-Socket-Types)
+
 [Socket Options/Identity and SendMore](http://www.codeproject.com/Articles/811851/ZeroMq-sharp-Socket-Options-Identity-And-SendMore)
+
 [Multiple Socket Polling](http://www.codeproject.com/Articles/812352/ZeroMQ-sharp-Multiple-Sockets-Polling)
+
 
 NetMQ documentation is still work in progress, but you can find a small example [here](https://gist.github.com/somdoron/5175967).
 
