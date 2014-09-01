@@ -138,27 +138,30 @@ namespace NetMQ.zmq
         protected override bool XSend(Msg msg, SendReceiveOptions flags)
         {
             byte[] data = msg.Data;
-            // Malformed subscriptions.
-            if (data.Length < 1 || (data[0] != 0 && data[0] != 1))
-            {
-                throw InvalidException.Create();
-            }
 
             // Process the subscription.
-            if (data[0] == 1)
+            if (data.Length > 0)
             {
-                if (m_subscriptions.Add(data, 1))
+                if (data[0] == 1)
                 {
-                    m_dist.SendToAll(msg, flags);
+                    if (m_subscriptions.Add(data, 1))
+                    {
+                        m_dist.SendToAll(msg, flags);
+                    }
+                    return true;
+                }
+                else if (data[0] == 0)
+                {
+                    if (m_subscriptions.Remove(data, 1))
+                    {
+                        m_dist.SendToAll(msg, flags);
+                    }
+                    return true;
                 }
             }
-            else
-            {
-                if (m_subscriptions.Remove(data, 1))
-                {
-                    m_dist.SendToAll(msg, flags);
-                }
-            }
+                
+            // upstream message unrelated to sub/unsub
+            m_dist.SendToAll(msg, flags);
 
             return true;
         }

@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteArraySegmentTests.cs" />
+    <Compile Include="XPubSubTests.cs" />
     <Compile Include="Devices\DeviceTestBase.cs" />
     <Compile Include="Devices\ForwarderDeviceTests.cs" />
     <Compile Include="Devices\QueueDeviceTests.cs" />
