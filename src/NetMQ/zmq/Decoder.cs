@@ -201,17 +201,6 @@ namespace NetMQ.zmq
             NextStep(m_tmpbuf, 1, OneByteSizeReadyState);
 
             return true;
-        }
-
-
-        //  Returns true if there is a decoded message
-        //  waiting to be delivered to the session.
-
-        public override bool Stalled()
-        {
-            return State == MessageReadyState;
-        }
-
-
+        }       
     }
 }
