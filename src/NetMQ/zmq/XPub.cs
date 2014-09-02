@@ -138,6 +138,8 @@ namespace NetMQ.zmq
                     if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
                         m_pending.Enqueue(new Blob(sub.Data));
                 }
+                else // process message unrelated to sub/unsub
+                    m_pending.Enqueue(new Blob(sub.Data));
             }
         }
 
