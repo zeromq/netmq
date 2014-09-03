@@ -71,7 +71,7 @@ namespace NetMQ.zmq
             //  Move the "flush up to here" poiter.
             if (!incomplete)
             {
-                m_flushToIndex = m_queue.BackPos;
+                Interlocked.Exchange(ref m_flushToIndex, m_queue.BackPos);
             }
         }
 
