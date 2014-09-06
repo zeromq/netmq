@@ -38,9 +38,12 @@ namespace NetMQ.zmq
         //  Underlying write & read file descriptor.
         private Socket m_w;
         private Socket m_r;
+        private byte[] m_dummy;
 
         public Signaler()
         {
+            m_dummy = new byte[1]{0};
+
             //  Create the socketpair for signaling.
             MakeFDpair();
 
@@ -53,9 +56,18 @@ namespace NetMQ.zmq
         {
             try
             {
+                m_w.LingerState = new LingerOption(true, 0);
+            }
+            catch (SocketException)
+            {                                
+            }
+
+            try
+            {
+                
                 m_w.Close();
             }
-            catch (Exception)
+            catch (SocketException)
             {
             }
 
@@ -63,7 +75,7 @@ namespace NetMQ.zmq
             {
                 m_r.Close();
             }
-            catch (Exception)
+            catch (SocketException)
             {
             }
         }
@@ -71,45 +83,24 @@ namespace NetMQ.zmq
         //  Creates a pair of filedescriptors that will be used
         //  to pass the signals.
         private void MakeFDpair()
-        {
-            Mutex sync;
-
-            try
-            {
-                sync = new Mutex(false, "Global\\netmq-signaler-port-sync");
-            }
-            catch (UnauthorizedAccessException)
-            {
-                sync = Mutex.OpenExisting("Global\\netmq-signaler-port-sync", MutexRights.Synchronize | MutexRights.Modify);
-            }
-
-            Debug.Assert(sync != null);
-
-            sync.WaitOne();
-
+        {            
             Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
             listner.NoDelay = true;
             listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-            IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, Config.SignalerPort);
-
-            listner.Bind(endpoint);
+            // using ephemeral port            
+            listner.Bind(new IPEndPoint(IPAddress.Loopback, 0));
             listner.Listen(1);
-
+            
             m_w = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
 
             m_w.NoDelay = true;
 
-            m_w.Connect(endpoint);
+            m_w.Connect(listner.LocalEndPoint);
 
             m_r = listner.Accept();
 
-            listner.Close();
-
-            sync.ReleaseMutex();
-
-            // Release the kernel object
-            sync.Dispose();
+            listner.Close();          
         }
 
         public Socket FD
@@ -121,9 +112,8 @@ namespace NetMQ.zmq
         }
 
         public void Send()
-        {
-            byte[] dummy = new byte[1] { 0 };
-            int nbytes = m_w.Send(dummy);
+        {            
+            int nbytes = m_w.Send(m_dummy);
 
             Debug.Assert(nbytes == 1);
         }
