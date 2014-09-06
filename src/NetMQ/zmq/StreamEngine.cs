@@ -40,7 +40,7 @@ namespace NetMQ.zmq
         private ByteArraySegment m_inpos;
         private int m_insize;
         private DecoderBase m_decoder;
-        private bool m_inputError;
+        private bool m_ioEnabled;
 
         private ByteArraySegment m_outpos;
         private int m_outsize;
@@ -90,7 +90,7 @@ namespace NetMQ.zmq
             m_handle = fd;
             //      inbuf = null;
             m_insize = 0;
-            m_inputError = false;
+            m_ioEnabled = false;
             //        outbuf = null;
             m_outsize = 0;
             m_handshaking = true;
@@ -150,6 +150,7 @@ namespace NetMQ.zmq
             //  Connect to I/O threads poller object.
             m_ioObject.Plug(ioThread);
             m_ioObject.AddFd(m_handle);
+            m_ioEnabled = true;
 
             if (m_options.RawSocket)
             {
@@ -183,8 +184,12 @@ namespace NetMQ.zmq
             m_plugged = false;
 
             //  Cancel all fd subscriptions.
-            if (!m_inputError)
+            if (m_ioEnabled)
+            {
                 m_ioObject.RmFd(m_handle);
+                m_ioEnabled = false;
+            }
+            
 
             //  Disconnect from I/O threads poller object.
             m_ioObject.Unplug();
@@ -275,7 +280,7 @@ namespace NetMQ.zmq
                 if (m_decoder.Stalled())
                 {
                     m_ioObject.RmFd(m_handle);
-                    m_inputError = true;
+                    m_ioEnabled = false;
                 }
                 else
                     Error();
@@ -343,7 +348,7 @@ namespace NetMQ.zmq
 
         public void ActivateIn()
         {
-            if (m_inputError)
+            if (!m_ioEnabled)
             {
                 //  There was an input error but the engine could not
                 //  be terminated (due to the stalled decoder).
