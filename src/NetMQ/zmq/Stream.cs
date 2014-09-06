@@ -167,7 +167,7 @@ namespace NetMQ.zmq
                     //  Find the pipe associated with the identity stored in the prefix.
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
-                    Blob identity = new Blob(msg.Data);
+                    Blob identity = new Blob(msg.Data, msg.Size);
                     Outpipe op;
 
                     if (m_outpipes.TryGetValue(identity, out op))
@@ -320,7 +320,7 @@ namespace NetMQ.zmq
             byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
             Buffer.BlockCopy(result, 0, buf, 1, 4);
-            identity = new Blob(buf);
+            identity = new Blob(buf, buf.Length);
             m_options.Identity = buf;
             m_options.IdentitySize = (byte)buf.Length;
 

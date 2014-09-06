@@ -30,7 +30,9 @@ namespace NetMQ.Tests.zmq
 
             Assert.DoesNotThrow(() => ZMQ.Poll(pollItems, -1));
 
-            var actual = Encoding.ASCII.GetString(ZMQ.Recv(receiver, SendReceiveOptions.DontWait).Data);
+            var msg = ZMQ.Recv(receiver, SendReceiveOptions.DontWait);
+
+            var actual = Encoding.ASCII.GetString(msg.Data, 0,msg.Size);
             Assert.AreEqual("ping", actual);
 
             ZMQ.Close(receiver);

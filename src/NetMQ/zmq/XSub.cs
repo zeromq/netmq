@@ -147,7 +147,7 @@ namespace NetMQ.zmq
             if (size > 0 && data[0] == 1)
             {
                 // Process the subscription.
-                if (m_subscriptions.Add(data, 1))
+                if (m_subscriptions.Add(data, 1, size-1))
                 {
                     m_dist.SendToAll(ref msg, flags);
                     return true;
@@ -155,7 +155,7 @@ namespace NetMQ.zmq
             }
             else if (size > 0 && data[0] == 0)
             {
-                if (m_subscriptions.Remove(data, 1))
+                if (m_subscriptions.Remove(data, 1,size-1))
                 {
                     m_dist.SendToAll(ref msg, flags);
                     return true;
@@ -276,7 +276,7 @@ namespace NetMQ.zmq
 
         private bool Match(Msg msg)
         {
-            return m_subscriptions.Check(msg.Data);
+            return m_subscriptions.Check(msg.Data, msg.Size);
         }
 
 

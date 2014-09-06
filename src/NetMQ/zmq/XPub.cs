@@ -62,13 +62,13 @@ namespace NetMQ.zmq
 
         static XPub()
         {
-            s_markAsMatching = (pipe, data, arg) =>
+            s_markAsMatching = (pipe, data,size, arg) =>
             {
                 XPub self = (XPub)arg;
                 self.m_dist.Match(pipe);
             };
 
-            s_SendUnsubscription = (pipe, data, arg) =>
+            s_SendUnsubscription = (pipe, data,size, arg) =>
             {
 
                 XPub self = (XPub)arg;
@@ -78,9 +78,9 @@ namespace NetMQ.zmq
 
                     //  Place the unsubscription to the queue of pending (un)sunscriptions
                     //  to be retrived by the user later on.
-                    Blob unsub = new Blob(data.Length + 1);
+                    Blob unsub = new Blob(size + 1);
                     unsub.Put(0, (byte)0);
-                    unsub.Put(1, data);
+                    unsub.Put(1, data, size);
                     self.m_pending.Enqueue(unsub);
 
                 }
@@ -108,7 +108,7 @@ namespace NetMQ.zmq
             //  If icanhasall_ is specified, the caller would like to subscribe
             //  to all data on this pipe, implicitly.
             if (icanhasall)
-                m_subscriptions.Add(null, pipe);
+                m_subscriptions.Add(null,0,0, pipe);
 
             //  The pipe is active when attached. Let's read the subscriptions from
             //  it, if any.
@@ -129,18 +129,18 @@ namespace NetMQ.zmq
                 {
                     bool unique;
                     if (data[0] == 0)
-                        unique = m_subscriptions.Remove(data, 1, pipe);
+                        unique = m_subscriptions.Remove(data, 1, size-1,pipe);
                     else
-                        unique = m_subscriptions.Add(data, 1, pipe);
+                        unique = m_subscriptions.Add(data, 1, size - 1, pipe);
 
                     //  If the subscription is not a duplicate, store it so that it can be
                     //  passed to used on next recv call.
                     if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
-                        m_pending.Enqueue(new Blob(sub.Data));
+                        m_pending.Enqueue(new Blob(sub.Data, sub.Size));
                 }
                 else // process message unrelated to sub/unsub
                 {
-                    m_pending.Enqueue(new Blob(sub.Data));
+                    m_pending.Enqueue(new Blob(sub.Data, sub.Size));
                 }
                 
                 sub.Close();

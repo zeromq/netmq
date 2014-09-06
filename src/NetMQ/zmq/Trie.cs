@@ -44,19 +44,14 @@ namespace NetMQ.zmq
 
             m_refcnt = 0;
             m_next = null;
-        }
+        }              
 
         //  Add key to the trie. Returns true if this is a new item in the trie
         //  rather than a duplicate.
-        public bool Add(byte[] prefix)
-        {
-            return Add(prefix, 0);
-        }
-
-        public bool Add(byte[] prefix, int start)
+        public bool Add(byte[] prefix, int start, int size)
         {
             //  We are at the node corresponding to the prefix. We are done.
-            if (prefix == null || prefix.Length == start)
+            if (size==0)
             {
                 ++m_refcnt;
                 return m_refcnt == 1;
@@ -110,7 +105,7 @@ namespace NetMQ.zmq
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.node);
                 }
-                return m_next[0].Add(prefix, start + 1);
+                return m_next[0].Add(prefix, start + 1,size-1);
             }
             else
             {
@@ -120,7 +115,7 @@ namespace NetMQ.zmq
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.table [c - min]);
                 }
-                return m_next[c - m_min].Add(prefix, start + 1);
+                return m_next[c - m_min].Add(prefix, start + 1, size-1);
             }
         }
 
@@ -131,9 +126,9 @@ namespace NetMQ.zmq
 
         //  Remove key from the trie. Returns true if the item is actually
         //  removed from the trie.
-        public bool Remove(byte[] prefix, int start)
+        public bool Remove(byte[] prefix, int start, int size)
         {
-            if (prefix == null || prefix.Length == start)
+            if (size==0)
             {
                 if (m_refcnt == 0)
                     return false;
@@ -151,7 +146,7 @@ namespace NetMQ.zmq
             if (nextNode == null)
                 return false;
 
-            bool ret = nextNode.Remove(prefix, start + 1);
+            bool ret = nextNode.Remove(prefix, start + 1, size-1);
             if (nextNode.IsRedundant())
             {
                 //delete next_node;
@@ -239,7 +234,7 @@ namespace NetMQ.zmq
         }
 
         //  Check whether particular key is in the trie.
-        public bool Check(byte[] data)
+        public bool Check(byte[] data, int size)
         {
             //  This function is on critical path. It deliberately doesn't use
             //  recursion to get a bit better performance.
@@ -253,7 +248,7 @@ namespace NetMQ.zmq
                     return true;
 
                 //  We've checked all the data and haven't found matching subscription.
-                if (data.Length == start)
+                if (size==0)
                     return false;
 
                 //  If there's no corresponding slot for the first character
@@ -272,6 +267,7 @@ namespace NetMQ.zmq
                         return false;
                 }
                 start++;
+                size--;
             }
         }
 

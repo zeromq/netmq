@@ -72,7 +72,7 @@ namespace NetMQ.zmq
                 msg.Put((byte)1);
             else if (option == ZmqSocketOptions.Unsubscribe)
                 msg.Put((byte)0);
-            msg.Put(val, 1);
+            msg.Put(val, 1, val.Length);
 
             try
             {

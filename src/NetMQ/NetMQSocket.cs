@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using NetMQ.zmq;
 
@@ -231,21 +232,30 @@ namespace NetMQ
             }
         }
 
-        protected internal virtual Msg ReceiveInternal(SendReceiveOptions options, out bool hasMore)
-        {
-            Msg msg = new Msg();
-            msg.Init();
-            
-            m_socketHandle.Recv(ref msg, options);            
-
-            hasMore = msg.HasMore;
-
-            return msg;
+        protected internal virtual void ReceiveInternal(ref Msg msg, SendReceiveOptions options)
+        {                        
+            m_socketHandle.Recv(ref msg, options);                        
         }
 
         public byte[] Receive(bool dontWait, out bool hasMore)
         {
-            return ReceiveInternal(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore).Data;
+            Msg msg = new Msg();
+            msg.Init();            
+
+            ReceiveInternal(ref msg, dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None);
+
+            hasMore = msg.HasMore;
+
+            byte[] data = new byte[msg.Size];
+
+            if (msg.Size > 0)
+            {
+                Buffer.BlockCopy(msg.Data, 0, data, 0, msg.Size);
+            }
+
+            msg.Close();
+
+            return data;
         }
 
         public void SendMessage(NetMQMessage message, bool dontWait = false)
@@ -263,7 +273,9 @@ namespace NetMQ
             Msg msg = new Msg();
             msg.InitData(data, length);
 
-            m_socketHandle.Send(ref msg, options);            
+            m_socketHandle.Send(ref msg, options);          
+
+            msg.Close();
         }
 
         public void Send(byte[] data, int length, bool dontWait = false, bool sendMore = false)

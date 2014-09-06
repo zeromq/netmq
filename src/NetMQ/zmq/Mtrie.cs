@@ -35,7 +35,7 @@ namespace NetMQ.zmq
         private int m_liveNodes;
         private Mtrie[] m_next;
 
-        public delegate void MtrieDelegate(Pipe pipe, byte[] data, Object arg);
+        public delegate void MtrieDelegate(Pipe pipe, byte[] data, int size, Object arg);
 
         public Mtrie()
         {
@@ -45,25 +45,20 @@ namespace NetMQ.zmq
 
             m_pipes = null;
             m_next = null;
-        }
-
-        public bool Add(byte[] prefix, Pipe pipe)
-        {
-            return AddHelper(prefix, 0, pipe);
-        }
+        }       
 
         //  Add key to the trie. Returns true if it's a new subscription
         //  rather than a duplicate.
-        public bool Add(byte[] prefix, int start, Pipe pipe)
+        public bool Add(byte[] prefix, int start, int size, Pipe pipe)
         {
-            return AddHelper(prefix, start, pipe);
+            return AddHelper(prefix, start, size, pipe);
         }
 
 
-        private bool AddHelper(byte[] prefix, int start, Pipe pipe)
+        private bool AddHelper(byte[] prefix, int start, int size, Pipe pipe)
         {
             //  We are at the node corresponding to the prefix. We are done.
-            if (prefix == null || prefix.Length == start)
+            if (size == 0)
             {
                 bool result = m_pipes == null;
                 if (m_pipes == null)
@@ -120,7 +115,7 @@ namespace NetMQ.zmq
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.node);
                 }
-                return m_next[0].AddHelper(prefix, start + 1, pipe);
+                return m_next[0].AddHelper(prefix, start + 1, size - 1, pipe);
             }
             else
             {
@@ -130,7 +125,7 @@ namespace NetMQ.zmq
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.table [c - min]);
                 }
-                return m_next[c - m_min].AddHelper(prefix, start + 1, pipe);
+                return m_next[c - m_min].AddHelper(prefix, start + 1, size - 1, pipe);
             }
         }
 
@@ -154,7 +149,7 @@ namespace NetMQ.zmq
             //  Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
             {
-                func(null, buff, arg);
+                func(null, buff, buffsize, arg);
                 m_pipes = null;
             }
 
@@ -271,15 +266,15 @@ namespace NetMQ.zmq
 
         //  Remove specific subscription from the trie. Return true is it was
         //  actually removed rather than de-duplicated.
-        public bool Remove(byte[] prefix, int start, Pipe pipe)
+        public bool Remove(byte[] prefix, int start, int size, Pipe pipe)
         {
-            return RemovemHelper(prefix, start, pipe);
+            return RemovemHelper(prefix, start, size, pipe);
         }
 
 
-        private bool RemovemHelper(byte[] prefix, int start, Pipe pipe)
+        private bool RemovemHelper(byte[] prefix, int start, int size, Pipe pipe)
         {
-            if (prefix == null || prefix.Length == start)
+            if (size == 0)
             {
                 if (m_pipes != null)
                 {
@@ -303,7 +298,7 @@ namespace NetMQ.zmq
             if (nextNode == null)
                 return false;
 
-            bool ret = nextNode.RemovemHelper(prefix, start + 1, pipe);
+            bool ret = nextNode.RemovemHelper(prefix, start + 1,size-1, pipe);
             if (nextNode.IsRedundant)
             {
                 Debug.Assert(m_count > 0);
@@ -389,13 +384,11 @@ namespace NetMQ.zmq
 
             while (true)
             {
-
-
                 //  Signal the pipes attached to this node.
                 if (current.m_pipes != null)
                 {
                     foreach (Pipe it in current.m_pipes)
-                        func(it, null, arg);
+                        func(it, null, 0, arg);
                 }
 
                 //  If we are at the end of the message, there's nothing more to match.

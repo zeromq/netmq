@@ -22,6 +22,7 @@
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.ServiceModel.Channels;
 using System.Text;
 
 namespace NetMQ.zmq
@@ -42,8 +43,29 @@ namespace NetMQ.zmq
         Min = 101,
         GCMessage = 102,
         PoolMessage = 103,
-        Delimiter = 104,        
+        Delimiter = 104,
         Max = 104
+    }
+
+    public static class BufferPool
+    {
+        private static BufferManager m_bufferManager;
+
+        static BufferPool()
+        {
+            // One Mega of buffer pool and maximum buffer of 1k
+            m_bufferManager = BufferManager.CreateBufferManager(1024 * 1024 * 1024, 1024);
+        }        
+
+        public static byte[] Take(int size)
+        {
+            return m_bufferManager.TakeBuffer(size);
+        }
+
+        public static void Return(byte[] buffer)
+        {
+            m_bufferManager.ReturnBuffer(buffer);
+        }
     }
 
     public struct Msg
@@ -114,7 +136,7 @@ namespace NetMQ.zmq
         {
             m_type = MsgType.PoolMessage;
             m_flags = MsgFlags.None;
-            m_data = new byte[size];
+            m_data = BufferPool.Take(size);
             m_size = size;
 
             m_atomicCounter = new AtomicCounter();
@@ -146,13 +168,15 @@ namespace NetMQ.zmq
             {
                 // if not shared or reference counter drop to zero
                 if ((m_flags & MsgFlags.Shared) == 0 || m_atomicCounter.Decrement() == 0)
-                {                    
-                    // TODO: return the buffer to buffer pool
+                {
+                    BufferPool.Return(m_data);
                 }
 
-                m_atomicCounter.Dispose();                
+                m_atomicCounter.Dispose();
                 m_atomicCounter = null;
             }
+
+            m_data = null;
 
             //  Make the message invalid.
             m_type = MsgType.Invalid;
@@ -196,7 +220,7 @@ namespace NetMQ.zmq
                 m_atomicCounter.Dispose();
                 m_atomicCounter = null;
 
-                // TODO: return buffer to buffer manager
+                BufferPool.Return(m_data);
             }
         }
 
@@ -215,15 +239,7 @@ namespace NetMQ.zmq
         public void ResetFlags(MsgFlags f)
         {
             m_flags = m_flags & ~f;
-        }
-
-        public void Put(byte[] src, int i)
-        {
-            if (src == null)
-                return;
-
-            Buffer.BlockCopy(src, 0, m_data, i, src.Length);
-        }
+        }       
 
         public void Put(byte[] src, int i, int len)
         {
@@ -241,18 +257,7 @@ namespace NetMQ.zmq
         public void Put(byte b, int i)
         {
             m_data[i] = b;
-        }
-
-        public void Put(String str, int i)
-        {
-            Put(Encoding.ASCII.GetBytes(str), i);
-        }
-
-        public void Put(Msg data, int i)
-        {
-            Put(data.m_data, i);
-        }
-
+        }        
 
         public void Copy(ref Msg src)
         {
@@ -277,7 +282,7 @@ namespace NetMQ.zmq
                 }
             }
 
-            this = src;            
+            this = src;
         }
 
         public void Move(ref Msg src)
