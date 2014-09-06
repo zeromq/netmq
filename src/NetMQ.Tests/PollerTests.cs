@@ -687,7 +687,7 @@ namespace NetMQ.Tests
 
                 int count = 0;
 
-                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
+                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(52));
 
                 NetMQTimer timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(24));
 
