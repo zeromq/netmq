@@ -233,7 +233,10 @@ namespace NetMQ
 
         protected internal virtual Msg ReceiveInternal(SendReceiveOptions options, out bool hasMore)
         {
-            var msg = ZMQ.Recv(m_socketHandle, options);
+            Msg msg = new Msg();
+            msg.Init();
+            
+            m_socketHandle.Recv(ref msg, options);            
 
             hasMore = msg.HasMore;
 
@@ -257,9 +260,10 @@ namespace NetMQ
 
         public virtual void Send(byte[] data, int length, SendReceiveOptions options)
         {
-            Msg msg = new Msg(data, length, Options.CopyMessages);
+            Msg msg = new Msg();
+            msg.InitData(data, length);
 
-            ZMQ.Send(m_socketHandle, msg, options);
+            m_socketHandle.Send(ref msg, options);            
         }
 
         public void Send(byte[] data, int length, bool dontWait = false, bool sendMore = false)

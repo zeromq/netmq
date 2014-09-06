@@ -37,6 +37,9 @@ namespace NetMQ.zmq
         public Encoder(int bufsize, Endianness endian)
             : base(bufsize, endian)
         {
+            m_inProgress = new Msg();
+            m_inProgress.Init();
+
             m_tmpbuf = new byte[10];
 
 
@@ -73,10 +76,10 @@ namespace NetMQ.zmq
 
         private bool MessageReady()
         {
-            m_tmpbuf.Reset();
+            //  Release the content of the old message.
+            m_inProgress.Close();
 
-            //  Destroy content of the old message.
-            // in_progress.close ();
+            m_tmpbuf.Reset();
 
             //  Read new message. If there is none, return false.
             //  Note that new state is set only if write is successful. That way
@@ -84,11 +87,15 @@ namespace NetMQ.zmq
             //  invocation.
 
             if (m_msgSource == null)
-                return false;
-
-            m_inProgress = m_msgSource.PullMsg();
-            if (m_inProgress == null)
             {
+                m_inProgress.Init();
+                return false;
+            }
+                
+            bool messagedPulled = m_msgSource.PullMsg(ref m_inProgress);
+            if (!messagedPulled)
+            {
+                m_inProgress.Init();
                 return false;
             }
 

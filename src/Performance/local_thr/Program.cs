@@ -22,12 +22,15 @@ namespace local_thr
             var pullSocket = ZMQ.Socket(context, ZmqSocketType.Pull);
             pullSocket.Bind(bindTo);
 
-            var message = pullSocket.Recv(SendReceiveOptions.None);
+            var message = new Msg();
+            message.Init();
+
+            pullSocket.Recv(ref message, SendReceiveOptions.None);
 
             var stopWatch = Stopwatch.StartNew();
             for (int i = 0; i != messageCount - 1; i++)
             {
-                message = pullSocket.Recv(SendReceiveOptions.None);
+                pullSocket.Recv(ref message, SendReceiveOptions.None);
                 if (message.Size != messageSize)
                 {
                     Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);

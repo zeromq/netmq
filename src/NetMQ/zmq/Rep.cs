@@ -56,7 +56,7 @@ namespace NetMQ.zmq
         }
 
         override
-            protected bool XSend(Msg msg, SendReceiveOptions flags)
+            protected bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  If we are in the middle of receiving a request, we cannot send reply.
             if (!m_sendingReply)
@@ -67,7 +67,7 @@ namespace NetMQ.zmq
             bool more = msg.HasMore;
 
             //  Push message to the reply pipe.
-            bool isMessageSent = base.XSend(msg, flags);
+            bool isMessageSent = base.XSend(ref msg, flags);
 
             if (!isMessageSent)
             {
@@ -80,7 +80,7 @@ namespace NetMQ.zmq
             return true;
         }
 
-        override protected bool XRecv(SendReceiveOptions flags, out Msg msg)
+        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             bool isMessageAvailable;
 
@@ -97,16 +97,12 @@ namespace NetMQ.zmq
             {
                 while (true)
                 {
-                    isMessageAvailable = base.XRecv(flags, out msg);
+                    isMessageAvailable = base.XRecv(flags, ref msg);
 
                     if (!isMessageAvailable)
                     {
                         return false;
-                    }
-                    else if (msg == null)
-                    {
-                        return true;
-                    }
+                    }                  
 
                     if (msg.HasMore)
                     {
@@ -114,7 +110,7 @@ namespace NetMQ.zmq
                         bool bottom = (msg.Size == 0);
 
                         //  Push it to the reply pipe.
-                        isMessageAvailable = base.XSend(msg, flags);
+                        isMessageAvailable = base.XSend(ref msg, flags);
                         if (!isMessageAvailable)
                         {
                             return false;
@@ -134,16 +130,12 @@ namespace NetMQ.zmq
             }
 
             //  Get next message part to return to the user.
-            isMessageAvailable = base.XRecv(flags, out msg);
+            isMessageAvailable = base.XRecv(flags, ref msg);
 
             if (!isMessageAvailable)
             {
                 return false;
-            }
-            else if (msg == null)
-            {
-                return true;
-            }
+            }          
 
             //  If whole request is read, flip the FSM to reply-sending state.
             if (!msg.HasMore)

@@ -34,7 +34,8 @@ namespace NetMQ.zmq
 
             int more;
             int rc;
-            Msg msg;
+            Msg msg = new Msg();
+            msg.Init();
             PollItem[] items = new PollItem[2];
 
             items[0] = new PollItem(frontend, PollEvents.PollIn);
@@ -54,17 +55,12 @@ namespace NetMQ.zmq
                     {
                         try
                         {
-                            msg = frontend.Recv(0);
+                            frontend.Recv(ref msg, SendReceiveOptions.None);                            
                         }
                         catch (TerminatingException)
                         {
                             return false;
-                        }
-
-                        if (msg == null)
-                        {
-                            return false;
-                        }
+                        }                       
 
                         more = frontend.GetSocketOption(ZmqSocketOptions.ReceiveMore);
 
@@ -74,11 +70,15 @@ namespace NetMQ.zmq
                         //  Copy message to capture socket if any
                         if (capture != null)
                         {
-                            Msg ctrl = new Msg(msg);
-                            capture.Send(ctrl, more > 0 ? SendReceiveOptions.SendMore : 0);
+                            Msg ctrl = new Msg();
+                            ctrl.Init();
+
+                            ctrl.Copy(ref msg);
+
+                            capture.Send(ref ctrl, more > 0 ? SendReceiveOptions.SendMore : 0);
                         }
 
-                        backend.Send(msg, more > 0 ? SendReceiveOptions.SendMore : 0);
+                        backend.Send(ref msg, more > 0 ? SendReceiveOptions.SendMore : 0);
                         if (more == 0)
                             break;
                     }
@@ -90,17 +90,12 @@ namespace NetMQ.zmq
                     {
                         try
                         {
-                            msg = backend.Recv(0);
+                            backend.Recv(ref msg, SendReceiveOptions.None);                          
                         }
                         catch (TerminatingException)
                         {
                             return false;
-                        }
-
-                        if (msg == null)
-                        {
-                            return false;
-                        }
+                        }                      
 
                         more = backend.GetSocketOption(ZmqSocketOptions.ReceiveMore);
 
@@ -110,12 +105,16 @@ namespace NetMQ.zmq
                         //  Copy message to capture socket if any
                         if (capture != null)
                         {
-                            Msg ctrl = new Msg(msg);
-                            capture.Send(ctrl, more > 0 ? SendReceiveOptions.SendMore : 0);
+                            Msg ctrl = new Msg();
+                            ctrl.Init();
+
+                            ctrl.Copy(ref msg);
+
+                            capture.Send(ref ctrl, more > 0 ? SendReceiveOptions.SendMore : 0);
 
                         }
 
-                        frontend.Send(msg, more > 0 ? SendReceiveOptions.SendMore : 0);
+                        frontend.Send(ref msg, more > 0 ? SendReceiveOptions.SendMore : 0);
                         if (more == 0)
                             break;
                     }

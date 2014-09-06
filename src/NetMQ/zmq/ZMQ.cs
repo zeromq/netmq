@@ -217,176 +217,8 @@ namespace NetMQ.zmq
                 throw NetMQException.Create(ErrorCode.EFAULT);
             }
             s.TermEndpoint(addr);
-        }
-
-        // Sending functions.
-        public static void Send(SocketBase s, String str, SendReceiveOptions flags)
-        {
-            byte[] data = Encoding.ASCII.GetBytes(str);
-            Send(s, data, data.Length, flags);
-        }
-
-        public static void Send(SocketBase s, Msg msg, SendReceiveOptions flags)
-        {
-            SendMsg(s, msg, flags);
-        }
-
-        public static void Send(SocketBase s, byte[] buf, int len, SendReceiveOptions flags)
-        {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
-
-            Msg msg = new Msg(len);
-            msg.Put(buf, 0, len);
-
-            SendMsg(s, msg, flags);
-        }
-
-        // Send multiple messages.
-        //
-        // If flag bit ZMQ_SNDMORE is set the vector is treated as
-        // a single multi-part message, i.e. the last message has
-        // ZMQ_SNDMORE bit switched off.
-        //
-        public void SendIOv(SocketBase s, byte[][] a, int count, SendReceiveOptions flags)
-        {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
-            Msg msg;
-
-            for (int i = 0; i < count; ++i)
-            {
-                msg = new Msg(a[i]);
-                if (i == count - 1)
-                    flags = flags & ~SendReceiveOptions.SendMore;
-                SendMsg(s, msg, flags);
-
-            }
-        }
-
-        private static void SendMsg(SocketBase s, Msg msg, SendReceiveOptions flags)
-        {
-            s.Send(msg, flags);
-        }
-
-
-        // Receiving functions.
-
-        public static Msg Recv(SocketBase s, SendReceiveOptions flags)
-        {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
-            Msg msg = RecvMsg(s, flags);
-            if (msg == null)
-            {
-                return null;
-            }
-
-            //  At the moment an oversized message is silently truncated.
-            //  TODO: Build in a notification mechanism to report the overflows.
-            //int to_copy = nbytes < len_ ? nbytes : len_;
-
-            return msg;
-        }
-
-        // Receive a multi-part message
-        // 
-        // Receives up to *count_ parts of a multi-part message.
-        // Sets *count_ to the actual number of parts read.
-        // ZMQ_RCVMORE is set to indicate if a complete multi-part message was read.
-        // Returns number of message parts read, or -1 on error.
-        //
-        // Note: even if -1 is returned, some parts of the message
-        // may have been read. Therefore the client must consult
-        // *count_ to retrieve message parts successfully read,
-        // even if -1 is returned.
-        //
-        // The iov_base* buffers of each iovec *a_ filled in by this 
-        // function may be freed using free().
-        //
-        // Implementation note: We assume zmq::msg_t buffer allocated
-        // by zmq::recvmsg can be freed by free().
-        // We assume it is safe to steal these buffers by simply
-        // not closing the zmq::msg_t.
-        //
-        public int RecvIOv(SocketBase s, byte[][] a, int count, SendReceiveOptions flags)
-        {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
-
-            int nread = 0;
-            bool recvmore = true;
-
-            for (int i = 0; recvmore && i < count; ++i)
-            {
-                // Cheat! We never close any msg
-                // because we want to steal the buffer.
-                Msg msg = RecvMsg(s, flags);
-                if (msg == null)
-                {
-                    nread = -1;
-                    break;
-                }
-
-                // Cheat: acquire zmq_msg buffer.
-                a[i] = msg.Data;
-
-                // Assume zmq_socket ZMQ_RVCMORE is properly set.
-                recvmore = msg.HasMore;
-            }
-            return nread;
-        }
-
-
-        public static Msg RecvMsg(SocketBase s, SendReceiveOptions flags)
-        {
-            return s.Recv(flags);
-        }
-
-        public static Msg MsgInit()
-        {
-            return new Msg();
-        }
-
-        public static Msg MsgInitSize(int messageSize)
-        {
-            return new Msg(messageSize);
-        }
-
-        public static int MsgSize(Msg msg)
-        {
-            return msg.Size;
-        }
-
-        public static int MsgGet(Msg msg)
-        {
-            return ZmqMsgGet(msg, MsgFlags.More);
-        }
-
-        public static int ZmqMsgGet(Msg msg, MsgFlags option)
-        {
-            switch (option)
-            {
-                case MsgFlags.More:
-                    return msg.HasMore ? 1 : 0;
-                default:
-                    throw InvalidException.Create();
-            }
-        }
-
-        public static void Sleep(int s)
-        {
-            Thread.Sleep(s * (1000));
-        }
-
+        }      
+    
         //  The proxy functionality
         public static bool Proxy(SocketBase frontend_, SocketBase backend_, SocketBase control_)
         {
@@ -398,14 +230,7 @@ namespace NetMQ.zmq
                     frontend_,
                     backend_,
                     control_);
-        }
-
-        //[Obsolete]
-        //public static bool zmq_device(int device_, SocketBase insocket_,
-        //        SocketBase outsocket_)
-        //{
-        //    return Proxy.proxy(insocket_, outsocket_, null);
-        //}
+        }       
 
         public static int Poll(PollItem[] items, int timeout)
         {
@@ -598,6 +423,28 @@ namespace NetMQ.zmq
         public static String ErrorText(ErrorCode errno)
         {
             return "Errno = " + errno.ToString();
+        }
+
+        [Obsolete]
+        public static void Send(SocketBase sender, string message, SendReceiveOptions options)
+        {
+            Msg msg = new Msg();
+            msg.InitSize(Encoding.ASCII.GetByteCount(message));
+
+            Encoding.ASCII.GetBytes(message, 0, message.Length, msg.Data, 0);
+
+            sender.Send(ref msg, options);
+        }
+
+        [Obsolete]
+        public static Msg Recv(SocketBase receiver, SendReceiveOptions options)
+        {
+            Msg msg = new Msg();
+            msg.Init();
+
+            receiver.Recv(ref msg, options);
+
+            return msg;
         }
     }
 }

@@ -21,18 +21,22 @@ namespace local_lat
             var repSocket = ZMQ.Socket(context, ZmqSocketType.Rep);
             repSocket.Bind(bindTo);
 
+            Msg message = new Msg();
+            message.Init();
+
             for (int i = 0; i != roundtripCount; i++)
             {
-                Msg message = repSocket.Recv(SendReceiveOptions.None);
-                if (ZMQ.MsgSize(message) != messageSize)
+                repSocket.Recv(ref message, SendReceiveOptions.None);
+                if (message.Size != messageSize)
                 {
                     Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
                     return -1;
                 }
 
-                repSocket.Send(message, SendReceiveOptions.None);
+                repSocket.Send(ref message, SendReceiveOptions.None);
             }
 
+            message.Close();
             repSocket.Close();
             context.Terminate();
 

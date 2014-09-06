@@ -35,7 +35,8 @@ namespace NetMQ.zmq
 
         public override bool MessageReadySize(int msgSize)
         {
-            m_inProgress = new Msg(msgSize);
+            m_inProgress = new Msg();
+            m_inProgress.InitSize(msgSize);
 
             NextStep(m_inProgress.Data, m_inProgress.Size, RawMessageReadyState);
 
@@ -63,7 +64,7 @@ namespace NetMQ.zmq
 
             try
             {
-                m_msgSink.PushMsg(m_inProgress);
+                m_msgSink.PushMsg(ref m_inProgress);
             }
             catch (AgainException)
             {
@@ -73,9 +74,7 @@ namespace NetMQ.zmq
             {
                 DecodingError();
                 return false;
-            }
-
-            m_inProgress = new Msg(1);
+            }            
 
             // NOTE: This is just to break out of process_buffer
             // raw_message_ready should never get called in state machine w/o

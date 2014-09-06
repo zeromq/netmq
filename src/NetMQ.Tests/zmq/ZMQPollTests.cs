@@ -21,7 +21,7 @@ namespace NetMQ.Tests.zmq
             {
                 Thread.Sleep(500);
                 SocketBase sender = ZMQ.Socket(contextNew, ZmqSocketType.Dealer);
-                ZMQ.Connect(sender, "inproc://test");
+                ZMQ.Connect(sender, "inproc://test");                
                 ZMQ.Send(sender, "ping", SendReceiveOptions.None);
                 ZMQ.Close(sender);
             });

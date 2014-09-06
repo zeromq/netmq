@@ -20,6 +20,9 @@ namespace NetMQ.zmq
         {
             m_msgSource = msgSource;
 
+            m_inProgress = new Msg();
+            m_inProgress.Init();
+
             NextStep(null, 0, RawMessageReadyState, true);
         }
 
@@ -53,7 +56,7 @@ namespace NetMQ.zmq
         bool RawMessageReady()
         {
             //  Destroy content of the old message.
-            m_inProgress = null;
+            m_inProgress.Close();
 
             //  Read new message. If there is none, return false.
             //  Note that new state is set only if write is successful. That way
@@ -64,10 +67,15 @@ namespace NetMQ.zmq
                 return false;
             }
 
-            m_inProgress = m_msgSource.PullMsg();
+            bool result = m_msgSource.PullMsg(ref m_inProgress);
 
-            if (m_inProgress == null)
+            if (!result)
+            {
+                m_inProgress.Init();
+
                 return false;
+            }
+
 
             m_inProgress.ResetFlags(MsgFlags.Shared | MsgFlags.More | MsgFlags.Identity);
 

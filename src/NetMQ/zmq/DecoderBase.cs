@@ -51,6 +51,8 @@ namespace NetMQ.zmq
             Endian = endian;
             m_toRead = 0;
             m_bufsize = bufsize;
+
+            // TODO: use buffer pool
             m_buf = new byte[bufsize];
             State = -1;
         }
@@ -58,8 +60,7 @@ namespace NetMQ.zmq
         public Endianness Endian { get; private set; }
 
         public abstract void SetMsgSink(IMsgSink msgSink);
-        public abstract bool Stalled();
-
+        public abstract bool Stalled();       
 
         //  Returns a buffer to be filled with binary data.
         public void GetBuffer(ref ByteArraySegment data, ref int size)

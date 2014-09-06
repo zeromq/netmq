@@ -139,20 +139,20 @@ namespace NetMQ.zmq
         }
 
         //  Send the message to all the outbound pipes.
-        public void SendToAll(Msg msg, SendReceiveOptions flags)
+        public void SendToAll(ref Msg msg, SendReceiveOptions flags)
         {
             m_matching = m_active;
-            SendToMatching(msg, flags);
+            SendToMatching(ref msg, flags);
         }
 
         //  Send the message to the matching outbound pipes.
-        public void SendToMatching(Msg msg, SendReceiveOptions flags)
+        public void SendToMatching(ref Msg msg, SendReceiveOptions flags)
         {
             //  Is this end of a multipart message?
             bool msg_more = msg.HasMore;
 
             //  Push the message to matching pipes.
-            Distribute(msg, flags);
+            Distribute(ref msg, flags);
 
             //  If mutlipart message is fully sent, activate all the eligible pipes.
             if (!msg_more)
@@ -162,17 +162,55 @@ namespace NetMQ.zmq
         }
 
         //  Put the message to all active pipes.
-        private void Distribute(Msg msg, SendReceiveOptions flags)
+        private void Distribute(ref Msg msg, SendReceiveOptions flags)
         {
             //  If there are no matching pipes available, simply drop the message.
             if (m_matching == 0)
             {
+                msg.Close();
+                msg.Init();
+
                 return;
             }
 
+            if (msg.MsgType == MsgType.GCMessage)
+            {
+                for (int i = 0; i < m_matching; ++i)
+                {
+                    if (!Write(m_pipes[i], ref msg))
+                    {
+                        --i; //  Retry last write because index will have been swapped                    
+                    }
+                        
+                }
+
+                msg.Close();
+                msg.Init();
+
+                return;
+            }
+
+            //  Add matching-1 references to the message. We already hold one reference,
+            //  that's why -1.
+            msg.AddReferences(m_matching-1);
+
+
+            //  Push copy of the message to each matching pipe.
+            int failed = 0;
             for (int i = 0; i < m_matching; ++i)
-                if (!Write(m_pipes[i], msg))
+            {
+                if (!Write(m_pipes[i], ref msg))
+                {
+                    ++failed;
                     --i; //  Retry last write because index will have been swapped
+                }
+            }
+            if (failed!= 0)
+                msg.RemoveReferences(failed);
+
+            //  Detach the original message from the data buffer. Note that we don't
+            //  close the message. That's because we've already used all the references.
+            msg.Init();            
         }
 
         public bool HasOut()
@@ -182,9 +220,9 @@ namespace NetMQ.zmq
 
         //  Write the message to the pipe. Make the pipe inactive if writing
         //  fails. In such a case false is returned.
-        private bool Write(Pipe pipe, Msg msg)
+        private bool Write(Pipe pipe, ref Msg msg)
         {
-            if (!pipe.Write(msg))
+            if (!pipe.Write(ref msg))
             {
                 Utils.Swap(m_pipes, m_pipes.IndexOf(pipe), m_matching - 1);
                 m_matching--;

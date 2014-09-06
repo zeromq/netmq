@@ -96,7 +96,9 @@ namespace NetMQ.zmq
 
             m_fq = new FQ();
             m_prefetchedId = new Msg();
+            m_prefetchedId.Init();
             m_prefetchedMsg = new Msg();
+            m_prefetchedMsg.Init();
 
             m_outpipes = new Dictionary<Blob, Outpipe>();
 
@@ -149,7 +151,7 @@ namespace NetMQ.zmq
         }
 
 
-        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  If this is the first part of the message it's the ID of the
             //  peer to send the message to.
@@ -205,7 +207,7 @@ namespace NetMQ.zmq
                     return true;
                 }
 
-                bool ok = m_currentOut.Write(msg);
+                bool ok = m_currentOut.Write(ref msg);
                 if (ok)
                 {
                     m_currentOut.Flush();
@@ -222,21 +224,18 @@ namespace NetMQ.zmq
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
-            msg = null;
             if (m_prefetched)
             {
                 if (!m_identitySent)
                 {
-                    msg = m_prefetchedId;
-                    m_prefetchedId = null;
+                    msg.Move(ref m_prefetchedId);
                     m_identitySent = true;
                 }
                 else
                 {
-                    msg = m_prefetchedMsg;
-                    m_prefetchedMsg = null;
+                    msg.Move(ref m_prefetchedMsg);
                     m_prefetched = false;
                 }
 
@@ -245,16 +244,12 @@ namespace NetMQ.zmq
 
             Pipe[] pipe = new Pipe[1];
 
-            bool isMessageAvailable = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
+            bool isMessageAvailable = m_fq.RecvPipe(pipe, ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
             {
                 return false;
-            }
-            else if (m_prefetchedMsg == null)
-            {
-                return true;
-            }
+            }            
 
             Debug.Assert(pipe[0] != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
@@ -262,9 +257,9 @@ namespace NetMQ.zmq
             //  We have received a frame with TCP data.
             //  Rather than sendig this frame, we keep it in prefetched
             //  buffer and send a frame with peer's ID.
-            Blob identity = pipe[0].Identity;
-
-            msg = new Msg(identity.Data, true);
+            Blob identity = pipe[0].Identity;            
+            msg.InitSize(identity.Size);
+            msg.Put(identity.Data, 0, identity.Size);
             msg.SetFlags(MsgFlags.More);
 
             m_prefetched = true;
@@ -283,23 +278,20 @@ namespace NetMQ.zmq
             //  The message, if read, is kept in the pre-fetch buffer.
             Pipe[] pipe = new Pipe[1];
 
-            bool isMessageAvailable = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
+            bool isMessageAvailable = m_fq.RecvPipe(pipe, ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
             {
                 return false;
-            }
-
-            if (m_prefetchedMsg == null)
-            {
-                return false;
-            }
+            }            
 
             Debug.Assert(pipe[0] != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
 
             Blob identity = pipe[0].Identity;
-            m_prefetchedId = new Msg(identity.Data);
+            m_prefetchedId = new Msg();
+            m_prefetchedId.InitSize(identity.Size);
+            m_prefetchedId.Put(identity.Data, 0, identity.Size);
             m_prefetchedId.SetFlags(MsgFlags.More);
 
             m_prefetched = true;

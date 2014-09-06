@@ -544,10 +544,11 @@ namespace NetMQ.zmq
                 //  If required, send the identity of the peer to the local socket.
                 if (peer.Options.RecvIdentity)
                 {
-                    Msg id = new Msg(peer.Options.IdentitySize);
+                    Msg id = new Msg();
+                    id.InitSize(peer.Options.IdentitySize);
                     id.Put(peer.Options.Identity, 0, peer.Options.IdentitySize);
                     id.SetFlags(MsgFlags.Identity);
-                    bool written = pipes[0].Write(id);
+                    bool written = pipes[0].Write(ref id);
                     Debug.Assert(written);
                     pipes[0].Flush();
                 }
@@ -555,10 +556,11 @@ namespace NetMQ.zmq
                 //  If required, send the identity of the local socket to the peer.
                 if (m_options.RecvIdentity)
                 {
-                    Msg id = new Msg(m_options.IdentitySize);
+                    Msg id = new Msg();
+                    id.InitSize(m_options.IdentitySize);
                     id.Put(m_options.Identity, 0, m_options.IdentitySize);
                     id.SetFlags(MsgFlags.Identity);
-                    bool written = pipes[1].Write(id);
+                    bool written = pipes[1].Write(ref id);
                     Debug.Assert(written);
                     pipes[1].Flush();
                 }
@@ -694,9 +696,9 @@ namespace NetMQ.zmq
             //}
             return true;
 
-        }
+        }        
 
-        public void Send(Msg msg, SendReceiveOptions flags)
+        public void Send(ref Msg msg, SendReceiveOptions flags)
         {
             if (m_ctxTerminated)
             {
@@ -704,7 +706,7 @@ namespace NetMQ.zmq
             }
 
             //  Check whether message passed to the function is valid.
-            if (msg == null)
+            if (!msg.Check())
             {
                 throw NetMQException.Create(ErrorCode.EFAULT);
             }
@@ -721,7 +723,7 @@ namespace NetMQ.zmq
 
             //  Try to send the message.
 
-            bool isMessageSent = XSend(msg, flags);
+            bool isMessageSent = XSend(ref msg, flags);
 
             if (isMessageSent)
             {
@@ -746,7 +748,7 @@ namespace NetMQ.zmq
             {
                 ProcessCommands(timeout, false);
 
-                isMessageSent = XSend(msg, flags);
+                isMessageSent = XSend(ref msg, flags);
                 if (isMessageSent)
                     break;
 
@@ -761,17 +763,21 @@ namespace NetMQ.zmq
             }
         }
 
-        public Msg Recv(SendReceiveOptions flags)
+        public void Recv(ref Msg msg, SendReceiveOptions flags)
         {
             if (m_ctxTerminated)
             {
                 throw TerminatingException.Create();
             }
 
-            Msg msg;
+            //  Check whether message passed to the function is valid.
+            if (!msg.Check())
+            {
+                throw NetMQException.Create(ErrorCode.EFAULT);                
+            }
 
             //  Get the message.
-            bool isMessageAvailable = XRecv(flags, out msg);
+            bool isMessageAvailable = XRecv(flags, ref msg);
 
             //  Once every inbound_poll_rate messages check for signals and process
             //  incoming commands. This happens only if we are not polling altogether
@@ -788,10 +794,10 @@ namespace NetMQ.zmq
             }
 
             //  If we have the message, return immediately.
-            if (isMessageAvailable && msg != null)
+            if (isMessageAvailable)
             {
-                ExtractFlags(msg);
-                return msg;
+                ExtractFlags(ref msg);
+                return;
             }
 
             //  If the message cannot be fetched immediately, there are two scenarios.
@@ -803,15 +809,15 @@ namespace NetMQ.zmq
                 ProcessCommands(0, false);
                 m_ticks = 0;
 
-                isMessageAvailable = XRecv(flags, out msg);
+                isMessageAvailable = XRecv(flags, ref msg);
                 if (!isMessageAvailable)
                 {
                     throw AgainException.Create();
                 }
-                else if (msg == null)
-                    return null;
-                ExtractFlags(msg);
-                return msg;
+                
+
+                ExtractFlags(ref msg);
+                return;
             }
 
             //  Compute the time when the timeout should occur.
@@ -826,8 +832,8 @@ namespace NetMQ.zmq
             {
                 ProcessCommands(block ? timeout : 0, false);
 
-                isMessageAvailable = XRecv(flags, out msg);
-                if (isMessageAvailable && msg != null)
+                isMessageAvailable = XRecv(flags, ref msg);
+                if (isMessageAvailable)
                 {
                     m_ticks = 0;
                     break;
@@ -844,8 +850,7 @@ namespace NetMQ.zmq
                 }
             }
 
-            ExtractFlags(msg);
-            return msg;
+            ExtractFlags(ref msg);            
         }
 
 
@@ -1002,7 +1007,7 @@ namespace NetMQ.zmq
             return false;
         }
 
-        protected virtual bool XSend(Msg msg, SendReceiveOptions flags)
+        protected virtual bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             throw new NotSupportedException("Must Override");
         }
@@ -1013,7 +1018,7 @@ namespace NetMQ.zmq
         }
 
 
-        protected virtual bool XRecv(SendReceiveOptions flags, out Msg msg)
+        protected virtual bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             throw new NotSupportedException("Must Override");
         }
@@ -1121,7 +1126,7 @@ namespace NetMQ.zmq
 
         //  Moves the flags from the message to local variables,
         //  to be later retrieved by getsockopt.
-        private void ExtractFlags(Msg msg)
+        private void ExtractFlags(ref Msg msg)
         {
             //  Test whether IDENTITY flag is valid for this socket type.
             if ((msg.Flags & MsgFlags.Identity) != 0)

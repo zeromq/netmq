@@ -118,15 +118,17 @@ namespace NetMQ.zmq
                 }
             }
 
-            Msg msg = new Msg((byte[])buffer);
-            s.Send(msg, 0);
+            Msg msg = new Msg();
+            msg.InitData((byte[])buffer, buffer.Size);
+            s.Send(ref msg, 0);
         }
 
         public static MonitorEvent Read(SocketBase s)
         {
-            Msg msg = s.Recv(0);
-            if (msg == null)
-                return null;
+            Msg msg = new Msg();
+            msg.Init();
+
+            s.Recv(ref msg, SendReceiveOptions.None);
 
             int pos = 0;
             ByteArraySegment data = msg.Data;

@@ -60,8 +60,10 @@ namespace NetMQ.zmq
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
 
-            Command cmd = m_cpipe.Read();
-            Debug.Assert(cmd == null);
+            Command cmd = new Command();
+            
+            bool ok = m_cpipe.Read(ref cmd);   
+            Debug.Assert(!ok);
             m_active = false;
 
             m_name = name;
@@ -79,7 +81,7 @@ namespace NetMQ.zmq
             bool ok = false;
             lock (m_sync)
             {
-                m_cpipe.Write(cmd, false);
+                m_cpipe.Write(ref cmd, false);
                 ok = m_cpipe.Flush();
             }
 
@@ -94,15 +96,16 @@ namespace NetMQ.zmq
 
         public Command Recv(int timeout)
         {
-            Command cmd_ = null;
+            Command cmd = null;
+            bool ok;
             //  Try to get the command straight away.
             if (m_active)
             {
-                cmd_ = m_cpipe.Read();
-                if (cmd_ != null)
+                ok = m_cpipe.Read(ref cmd);
+                if (cmd != null)
                 {
 
-                    return cmd_;
+                    return cmd;
                 }
 
                 //  If there are no more commands available, switch into passive state.
@@ -120,10 +123,10 @@ namespace NetMQ.zmq
             m_active = true;
 
             //  Get a command.
-            cmd_ = m_cpipe.Read();
-            Debug.Assert(cmd_ != null);
+            ok = m_cpipe.Read(ref cmd);
+            Debug.Assert(ok);
 
-            return cmd_;
+            return cmd;
         }
 
         public void Close()

@@ -20,6 +20,8 @@
 */
 
 using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace NetMQ.zmq
@@ -36,96 +38,22 @@ namespace NetMQ.zmq
     [Flags]
     public enum MsgType : byte
     {
+        Invalid = 0,
         Min = 101,
-        Vsm = 102,
-        LMsg = 103,
-        Delimiter = 104,
-        Max = 105
+        GCMessage = 102,
+        PoolMessage = 103,
+        Delimiter = 104,        
+        Max = 104
     }
 
-    public class Msg
+    public struct Msg
     {
-
-        //  Size in bytes of the largest message that is still copied around
-        //  rather than being reference-counted.
-
-
-        //private byte type;
         private MsgFlags m_flags;
         private int m_size;
-        private byte[] m_header;
+
         private byte[] m_data;
-        private byte[] m_buf;
-
-        public Msg()
-        {
-            Init(MsgType.Vsm);
-        }
-
-        public Msg(bool buffered)
-        {
-            if (buffered)
-                Init(MsgType.LMsg);
-            else
-                Init(MsgType.Vsm);
-        }
-
-        public Msg(int size)
-        {
-            Init(MsgType.Vsm);
-            Size = size;
-        }
-
-        public Msg(int size, bool buffered)
-        {
-            if (buffered)
-                Init(MsgType.LMsg);
-            else
-                Init(MsgType.Vsm);
-            Size = size;
-        }
-
-
-        public Msg(Msg m)
-        {
-            Clone(m);
-        }
-
-        public Msg(byte[] src)
-            : this(src, false)
-        {
-
-        }
-
-        public Msg(String src)
-            : this(Encoding.ASCII.GetBytes(src), false)
-        {
-
-        }
-
-        public Msg(byte[] src, bool copy)
-            : this(src, src.Length, copy)
-        {
-
-        }
-
-        public Msg(byte[] src, int size, bool copy)
-            : this()
-        {
-            if (src != null)
-            {
-                Size = size;
-                if (copy)
-                {
-                    m_data = new byte[size];
-                    Buffer.BlockCopy(src, 0, m_data, 0, size);
-                }
-                else
-                {
-                    m_data = src;
-                }
-            }
-        }
+        private AtomicCounter m_atomicCounter;
+        private MsgType m_type;
 
         public bool IsIdentity
         {
@@ -137,47 +65,13 @@ namespace NetMQ.zmq
             get { return MsgType == MsgType.Delimiter; }
         }
 
-        public bool Check()
-        {
-            return MsgType >= MsgType.Min && MsgType <= MsgType.Max;
-        }
-
-        private void Init(MsgType type)
-        {
-            this.MsgType = type;
-            m_flags = MsgFlags.None;
-            Size = 0;
-            m_data = null;
-            m_buf = null;
-            m_header = null;
-        }
-
         public int Size
         {
             get
             {
                 return m_size;
             }
-            set
-            {
-                m_size = value;
-                if (MsgType == MsgType.LMsg)
-                {
-                    m_flags = MsgFlags.None;
-
-                    m_buf = new byte[value];
-                    m_data = null;
-                }
-                else
-                {
-                    m_flags = 0;
-                    m_data = new byte[value];
-                    m_buf = null;
-                }
-            }
         }
-
-
 
         public bool HasMore
         {
@@ -186,8 +80,7 @@ namespace NetMQ.zmq
 
         public MsgType MsgType
         {
-            get;
-            set;
+            get { return m_type; }
         }
 
         public MsgFlags Flags
@@ -198,70 +91,48 @@ namespace NetMQ.zmq
             }
         }
 
-        public void SetFlags(MsgFlags flags)
+        public byte[] Data
         {
-            m_flags = m_flags | flags;
+            get { return m_data; }
+        }
+
+        public bool Check()
+        {
+            return MsgType >= MsgType.Min && MsgType <= MsgType.Max;
+        }
+
+        public void Init()
+        {
+            m_type = MsgType.GCMessage;
+            m_flags = MsgFlags.None;
+            m_size = 0;
+            m_data = null;
+            m_atomicCounter = null;
+        }
+
+        public void InitSize(int size)
+        {
+            m_type = MsgType.PoolMessage;
+            m_flags = MsgFlags.None;
+            m_data = new byte[size];
+            m_size = size;
+
+            m_atomicCounter = new AtomicCounter();
+        }
+
+        public void InitData(byte[] data, int size)
+        {
+            m_type = MsgType.GCMessage;
+            m_flags = MsgFlags.None;
+            m_data = data;
+            m_size = size;
+            m_atomicCounter = null;
         }
 
         public void InitDelimiter()
         {
-            MsgType = MsgType.Delimiter;
+            m_type = MsgType.Delimiter;
             m_flags = MsgFlags.None;
-        }
-
-
-        public byte[] Data
-        {
-            get
-            {
-                if (m_data == null && MsgType == MsgType.LMsg)
-                    m_data = m_buf;
-                return m_data;
-            }
-        }
-
-        public int HeaderSize
-        {
-            get
-            {
-                if (m_header == null)
-                {
-                    if (Size < 255)
-                        return 2;
-                    else
-                        return 10;
-                }
-                else if (m_header[0] == 0xff)
-                    return 10;
-                else
-                    return 2;
-            }
-        }
-
-        public byte[] Header
-        {
-            get
-            {
-                if (m_header == null)
-                {
-                    if (Size < 255)
-                    {
-                        m_header = new byte[2];
-                        m_header[0] = (byte)Size;
-                        m_header[1] = (byte)m_flags;
-                    }
-                    else
-                    {
-                        m_header = new byte[10];
-
-                        m_header[0] = 0xff;
-                        m_header[1] = (byte)m_flags;
-
-                        Buffer.BlockCopy(BitConverter.GetBytes((long)Size), 0, m_header, 2, 8);
-                    }
-                }
-                return m_header;
-            }
         }
 
         public void Close()
@@ -271,10 +142,62 @@ namespace NetMQ.zmq
                 throw NetMQException.Create(ErrorCode.EFAULT);
             }
 
-            // In C++ version of zero mq close would free all bytes array and init the msg type
-            // because in C# the GC is taking care or releasing resources and copying the message is expensive (because it's class and created on the heap)
-            // the close method on C# version does nothing
-            //Init(MsgType.Vsm);
+            if (m_type == MsgType.PoolMessage)
+            {
+                // if not shared or reference counter drop to zero
+                if ((m_flags & MsgFlags.Shared) == 0 || m_atomicCounter.Decrement() == 0)
+                {                    
+                    // TODO: return the buffer to buffer pool
+                }
+
+                m_atomicCounter.Dispose();                
+                m_atomicCounter = null;
+            }
+
+            //  Make the message invalid.
+            m_type = MsgType.Invalid;
+        }
+
+        public void AddReferences(int amount)
+        {
+            if (amount == 0)
+            {
+                return;
+            }
+
+            if (m_type == MsgType.PoolMessage)
+            {
+                if (m_flags == MsgFlags.Shared)
+                {
+                    m_atomicCounter.Increase(amount);
+                }
+                else
+                {
+                    m_atomicCounter.Set(amount);
+                    m_flags |= MsgFlags.Shared;
+                }
+            }
+        }
+
+        public void RemoveReferences(int amount)
+        {
+            if (amount == 0)
+            {
+                return;
+            }
+
+            if (m_type != MsgType.PoolMessage || (m_flags & MsgFlags.Shared) == 0)
+            {
+                Close();
+            }
+
+            if (m_atomicCounter.Decrement(amount) == 0)
+            {
+                m_atomicCounter.Dispose();
+                m_atomicCounter = null;
+
+                // TODO: return buffer to buffer manager
+            }
         }
 
         public override String ToString()
@@ -282,14 +205,12 @@ namespace NetMQ.zmq
             return base.ToString() + "[" + MsgType + "," + Size + "," + m_flags + "]";
         }
 
-        private void Clone(Msg m)
+
+        public void SetFlags(MsgFlags flags)
         {
-            MsgType = m.MsgType;
-            m_flags = m.m_flags;
-            m_size = m.m_size;
-            m_buf = m.m_buf;
-            m_data = m.m_data;
+            m_flags = m_flags | flags;
         }
+
 
         public void ResetFlags(MsgFlags f)
         {
@@ -312,15 +233,6 @@ namespace NetMQ.zmq
             Buffer.BlockCopy(src, 0, m_data, i, len);
         }
 
-        public bool IsVsm
-        {
-            get
-            {
-                return MsgType == MsgType.Vsm;
-            }
-        }
-
-
         public void Put(byte b)
         {
             m_data[0] = b;
@@ -342,5 +254,45 @@ namespace NetMQ.zmq
         }
 
 
+        public void Copy(ref Msg src)
+        {
+            //  Check the validity of the source.
+            if (!src.Check())
+            {
+                throw NetMQException.Create(ErrorCode.EFAULT);
+            }
+
+            Close();
+
+            if (m_type == MsgType.PoolMessage)
+            {
+                //  One reference is added to shared messages. Non-shared messages
+                //  are turned into shared messages and reference count is set to 2.
+                if (src.m_flags.HasFlag(MsgFlags.Shared))
+                    src.m_atomicCounter.Increase(1);
+                else
+                {
+                    src.m_flags |= MsgFlags.Shared;
+                    src.m_atomicCounter.Set(2);
+                }
+            }
+
+            this = src;            
+        }
+
+        public void Move(ref Msg src)
+        {
+            //  Check the validity of the source.
+            if (!src.Check())
+            {
+                throw NetMQException.Create(ErrorCode.EFAULT);
+            }
+
+            Close();
+
+            this = src;
+
+            src.Init();
+        }
     }
 }

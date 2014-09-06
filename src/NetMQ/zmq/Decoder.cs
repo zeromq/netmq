@@ -56,7 +56,10 @@ namespace NetMQ.zmq
 
             //  At the beginning, read one byte and go to one_byte_size_ready state.
             NextStep(m_tmpbuf, 1, OneByteSizeReadyState);
-        }
+
+            m_inProgress = new Msg();
+            m_inProgress.Init();
+        }        
 
         //  Set the receiver of decoded messages.    
         public override void SetMsgSink(IMsgSink msgSink)
@@ -114,7 +117,7 @@ namespace NetMQ.zmq
                 }
                 else
                 {
-                    m_inProgress = new Msg(first - 1);
+                    m_inProgress.InitSize(first - 1);
                 }
 
                 NextStep(m_tmpbuf, 1, FlagsReadyState);
@@ -155,7 +158,7 @@ namespace NetMQ.zmq
             //  in_progress is initialized at this point so in theory we should
             //  close it before calling init_size, however, it's a 0-byte
             //  message and thus we can treat it as uninitialized...
-            m_inProgress = new Msg(msgSize);
+            m_inProgress.InitSize(msgSize);
 
             NextStep(m_tmpbuf, 1, FlagsReadyState);
 
@@ -190,7 +193,7 @@ namespace NetMQ.zmq
 
             try
             {
-                m_msgSink.PushMsg(m_inProgress);
+                m_msgSink.PushMsg(ref m_inProgress);
 
             }
             catch (NetMQException)

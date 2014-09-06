@@ -62,7 +62,16 @@ namespace NetMQ.zmq
             SetPollout(m_socket);
 
             // get the first message from the session because we don't want to send identities
-            session.PullMsg();
+
+            Msg msg = new Msg();
+            msg.Init();
+
+            bool ok = session.PullMsg(ref msg);
+
+            if (ok)
+            {
+                msg.Close();
+            }                
         }
 
         public void Terminate()

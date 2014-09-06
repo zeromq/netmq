@@ -84,14 +84,15 @@ namespace NetMQ.zmq
             m_active++;
         }
 
-        public bool Recv(out Msg msg)
+        public bool Recv(ref Msg msg)
         {
-            return RecvPipe(null, out msg);
+            return RecvPipe(null, ref msg);
         }
 
-        public bool RecvPipe(Pipe[] pipe, out Msg msg_)
+        public bool RecvPipe(Pipe[] pipe, ref Msg msg)
         {
             //  Deallocate old content of the message.			
+            msg.Close();
 
             //  Round-robin over the pipes to get the next message.
             while (m_active > 0)
@@ -99,9 +100,7 @@ namespace NetMQ.zmq
 
                 //  Try to fetch new message. If we've already read part of the message
                 //  subsequent part should be immediately available.
-                msg_ = m_pipes[m_current].Read();
-
-                bool fetched = msg_ != null;
+                bool fetched = m_pipes[m_current].Read(ref msg);                
 
                 //  Note that when message is not fetched, current pipe is deactivated
                 //  and replaced by another active pipe. Thus we don't have to increase
@@ -110,7 +109,7 @@ namespace NetMQ.zmq
                 {
                     if (pipe != null)
                         pipe[0] = m_pipes[m_current];
-                    m_more = msg_.HasMore;
+                    m_more = msg.HasMore;
                     if (!m_more)
                         m_current = (m_current + 1) % m_active;
                     return true;
@@ -129,7 +128,7 @@ namespace NetMQ.zmq
 
             //  No message is available. Initialise the output parameter
             //  to be a 0-byte message.
-            msg_ = null;
+            msg.Init();
             return false;
         }
 

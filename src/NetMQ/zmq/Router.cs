@@ -113,7 +113,9 @@ namespace NetMQ.zmq
 
             m_fq = new FQ();
             m_prefetchedId = new Msg();
+            m_prefetchedId.Init();
             m_prefetchedMsg = new Msg();
+            m_prefetchedMsg.Init();
 
             m_anonymousPipes = new HashSet<Pipe>();
             m_outpipes = new Dictionary<Blob, Outpipe>();
@@ -125,6 +127,13 @@ namespace NetMQ.zmq
             //  options.delay_on_disconnect = false;
 
             m_options.RecvIdentity = true;
+        }
+
+        public override void Destroy()
+        {
+            base.Destroy();
+            m_prefetchedId.Close();
+            m_prefetchedMsg.Close();
         }
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
@@ -216,7 +225,7 @@ namespace NetMQ.zmq
         }
 
 
-        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  If this is the first part of the message it's the ID of the
             //  peer to send the message to.
@@ -259,6 +268,10 @@ namespace NetMQ.zmq
                     }
                 }
 
+                //  Detach the message from the data buffer.
+                msg.Close();
+                msg.Init();
+
                 return true;
             }
 
@@ -279,11 +292,13 @@ namespace NetMQ.zmq
                 if (m_rawSocket && msg.Size == 0)
                 {
                     m_currentOut.Terminate(false);
+                    msg.Close();
+                    msg.Init();
                     m_currentOut = null;
                     return true;
                 }
 
-                bool ok = m_currentOut.Write(msg);
+                bool ok = m_currentOut.Write(ref msg);
                 if (!ok)
                     m_currentOut = null;
                 else if (!m_moreOut)
@@ -294,30 +309,29 @@ namespace NetMQ.zmq
             }
             else
             {
+                msg.Close();
             }
 
-            //  Detach the message from the data buffer.
+            //  Detach the message from the data buffer.            
+            msg.Init();
 
             return true;
         }
 
 
 
-        protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
-        {
-            msg = null;
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        {            
             if (m_prefetched)
             {
                 if (!m_identitySent)
                 {
-                    msg = m_prefetchedId;
-                    m_prefetchedId = null;
+                    msg.Move(ref m_prefetchedId);                    
                     m_identitySent = true;
                 }
                 else
                 {
-                    msg = m_prefetchedMsg;
-                    m_prefetchedMsg = null;
+                    msg.Move(ref m_prefetchedMsg);                    
                     m_prefetched = false;
                 }
                 m_moreIn = msg.HasMore;
@@ -326,23 +340,19 @@ namespace NetMQ.zmq
 
             Pipe[] pipe = new Pipe[1];
 
-            bool isMessageAvailable = m_fq.RecvPipe(pipe, out msg);
+            bool isMessageAvailable = m_fq.RecvPipe(pipe, ref msg);
 
             //  It's possible that we receive peer's identity. That happens
             //  after reconnection. The current implementation assumes that
             //  the peer always uses the same identity.
             //  TODO: handle the situation when the peer changes its identity.
-            while (isMessageAvailable && msg != null && msg.IsIdentity)
-                isMessageAvailable = m_fq.RecvPipe(pipe, out msg);
+            while (isMessageAvailable && msg.IsIdentity)
+                isMessageAvailable = m_fq.RecvPipe(pipe, ref msg);
 
             if (!isMessageAvailable)
             {
                 return false;
-            }
-            else if (msg == null)
-            {
-                return true;
-            }
+            }            
 
             Debug.Assert(pipe[0] != null);
 
@@ -354,13 +364,15 @@ namespace NetMQ.zmq
                 //  We are at the beginning of a message.
                 //  Keep the message part we have in the prefetch buffer
                 //  and return the ID of the peer instead.
-                m_prefetchedMsg = msg;
+                m_prefetchedMsg.Move(ref msg);
 
                 m_prefetched = true;
 
                 Blob identity = pipe[0].Identity;
-                msg = new Msg(identity.Data);
+                msg.InitSize(identity.Size);               
+                msg.Put(identity.Data,0, identity.Size);
                 msg.SetFlags(MsgFlags.More);
+
                 m_identitySent = true;
             }
 
@@ -395,29 +407,18 @@ namespace NetMQ.zmq
             //  The message, if read, is kept in the pre-fetch buffer.
             Pipe[] pipe = new Pipe[1];
 
-            bool isMessageAvailable = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
-
-            if (!isMessageAvailable)
-            {
-                return false;
-            }
-
-
+            bool isMessageAvailable = m_fq.RecvPipe(pipe, ref m_prefetchedMsg);
+           
             //  It's possible that we receive peer's identity. That happens
             //  after reconnection. The current implementation assumes that
             //  the peer always uses the same identity.
             //  TODO: handle the situation when the peer changes its identity.
-            while (m_prefetchedMsg != null && m_prefetchedMsg.IsIdentity)
+            while (isMessageAvailable && m_prefetchedMsg.IsIdentity)
             {
-                isMessageAvailable = m_fq.RecvPipe(pipe, out m_prefetchedMsg);
-
-                if (!isMessageAvailable)
-                {
-                    return false;
-                }
+                isMessageAvailable = m_fq.RecvPipe(pipe, ref m_prefetchedMsg);              
             }
 
-            if (m_prefetchedMsg == null)
+            if (!isMessageAvailable)
             {
                 return false;
             }
@@ -425,7 +426,9 @@ namespace NetMQ.zmq
             Debug.Assert(pipe[0] != null);
 
             Blob identity = pipe[0].Identity;
-            m_prefetchedId = new Msg(identity.Data);
+            m_prefetchedId = new Msg();
+            m_prefetchedId.InitSize(identity.Size);
+            m_prefetchedId.Put(identity.Data, 0, identity.Size);            
             m_prefetchedId.SetFlags(MsgFlags.More);
 
             m_prefetched = true;
@@ -445,10 +448,11 @@ namespace NetMQ.zmq
 
         private bool IdentifyPeer(Pipe pipe)
         {
-            Blob identity;
+            Blob identity;            
 
             if (m_options.RawSocket)
             {
+                // Always assign identity for raw-socket
                 byte[] buf = new byte[5];
                 buf[0] = 0;
                 byte[] result = BitConverter.GetBytes(m_nextPeerId++);
@@ -457,8 +461,14 @@ namespace NetMQ.zmq
             }
             else
             {
-                Msg msg = pipe.Read();
-                if (msg == null)
+                //  Pick up handshake cases and also case where next identity is set
+                
+                Msg msg = new Msg();
+                msg.Init();
+
+                bool ok = pipe.Read(ref msg);
+
+                if (!ok)
                     return false;
 
                 if (msg.Size == 0)
@@ -472,6 +482,8 @@ namespace NetMQ.zmq
 
                     Buffer.BlockCopy(result, 0, buf, 1, 4);
                     identity = new Blob(buf);
+
+                    msg.Close();
                 }
                 else
                 {
@@ -479,7 +491,12 @@ namespace NetMQ.zmq
 
                     //  Ignore peers with duplicate ID.
                     if (m_outpipes.ContainsKey(identity))
-                        return false;
+                    {
+                        msg.Close();
+                        return false;                        
+                    }
+
+                    msg.Close();
                 }
             }
 

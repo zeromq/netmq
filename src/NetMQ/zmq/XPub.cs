@@ -98,7 +98,7 @@ namespace NetMQ.zmq
             m_subscriptions = new Mtrie();
             m_dist = new Dist();
             m_pending = new Queue<Blob>();
-        }
+        }        
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
@@ -118,8 +118,8 @@ namespace NetMQ.zmq
         protected override void XReadActivated(Pipe pipe)
         {
             //  There are some subscriptions waiting. Let's process them.
-            Msg sub;
-            while ((sub = pipe.Read()) != null)
+            Msg sub = new Msg();
+            while (pipe.Read(ref sub))
             {
 
                 //  Apply the subscription to the trie.
@@ -139,7 +139,11 @@ namespace NetMQ.zmq
                         m_pending.Enqueue(new Blob(sub.Data));
                 }
                 else // process message unrelated to sub/unsub
+                {
                     m_pending.Enqueue(new Blob(sub.Data));
+                }
+                
+                sub.Close();
             }
         }
 
@@ -169,7 +173,7 @@ namespace NetMQ.zmq
             m_dist.Terminated(pipe);
         }
 
-        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             bool msgMore = msg.HasMore;
 
@@ -180,7 +184,7 @@ namespace NetMQ.zmq
 
             //  Send the message to all the pipes that were marked as matching
             //  in the previous step.
-            m_dist.SendToMatching(msg, flags);
+            m_dist.SendToMatching(ref msg, flags);
 
             //  If we are at the end of multi-part message we can mark all the pipes
             //  as non-matching.
@@ -198,17 +202,20 @@ namespace NetMQ.zmq
             return m_dist.HasOut();
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             //  If there is at least one 
             if (m_pending.Count == 0)
-            {
-                msg = null;
+            {                
                 return false;
             }
 
+            msg.Close();
+            
             Blob first = m_pending.Dequeue();
-            msg = new Msg(first.Data);
+            msg.InitSize(first.Size);
+
+            msg.Put(first.Data,0, first.Size);
 
             return true;
         }

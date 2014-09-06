@@ -66,23 +66,31 @@ namespace NetMQ.zmq
                 throw InvalidException.Create();
 
             //  Create the subscription message.
-            Msg msg = new Msg(val.Length + 1);
+            Msg msg = new Msg();
+            msg.InitSize(val.Length + 1);
             if (option == ZmqSocketOptions.Subscribe)
                 msg.Put((byte)1);
             else if (option == ZmqSocketOptions.Unsubscribe)
                 msg.Put((byte)0);
             msg.Put(val, 1);
 
-            //  Pass it further on in the stack.
-            bool isMessageSent = base.XSend(msg, 0);
-
-            if (!isMessageSent)
+            try
             {
-                throw AgainException.Create();
+                //  Pass it further on in the stack.
+                bool isMessageSent = base.XSend(ref msg, 0);
+
+                if (!isMessageSent)
+                {
+                    throw AgainException.Create();
+                }
             }
+            finally
+            {
+                msg.Close();
+            }            
         }
 
-        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  Overload the XSUB's send.
             throw NetMQException.Create("Send not supported on sub socket", ErrorCode.ENOTSUP);
