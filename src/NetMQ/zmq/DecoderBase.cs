@@ -60,7 +60,28 @@ namespace NetMQ.zmq
         public Endianness Endian { get; private set; }
 
         public abstract void SetMsgSink(IMsgSink msgSink);
-        public abstract bool Stalled();       
+
+
+        //  Returns true if the decoder has been fed all required data
+        //  but cannot proceed with the next decoding step.
+        //  False is returned if the decoder has encountered an error.
+        public virtual bool Stalled()
+        {
+            //  Check whether there was decoding error.
+            if (!Next())
+                return false;
+
+            while (m_toRead == 0)
+            {
+                if (!Next())
+                {
+                    if (!Next())
+                        return false;
+                    return true;
+                }
+            }
+            return false;
+        }
 
         //  Returns a buffer to be filled with binary data.
         public void GetBuffer(ref ByteArraySegment data, ref int size)
