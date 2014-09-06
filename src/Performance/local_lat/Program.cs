@@ -22,7 +22,7 @@ namespace local_lat
             repSocket.Bind(bindTo);
 
             Msg message = new Msg();
-            message.Init();
+            message.InitEmpty();
 
             for (int i = 0; i != roundtripCount; i++)
             {

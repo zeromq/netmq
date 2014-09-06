@@ -64,7 +64,7 @@ namespace NetMQ.zmq
             if (m_messageBegins)
             {
                 Msg bottom = new Msg();
-                bottom.Init();
+                bottom.InitEmpty();
                 bottom.SetFlags(MsgFlags.More);
                 isMessageSent = base.XSend(ref bottom, 0);
 
@@ -126,7 +126,7 @@ namespace NetMQ.zmq
                     }
 
                     msg.Close();
-                    msg.Init();
+                    msg.InitEmpty();
                     return false;
                 }
 

@@ -13,7 +13,7 @@ namespace NetMQ.Sockets
         {
         }
 
-        protected internal override void ReceiveInternal(ref Msg msg, SendReceiveOptions options)
+        public override void Receive(ref Msg msg, SendReceiveOptions options)
         {
             throw new NotSupportedException("Publisher doesn't support receiving");
         }        

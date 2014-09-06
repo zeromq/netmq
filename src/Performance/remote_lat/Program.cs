@@ -24,7 +24,7 @@ namespace remote_lat
             reqSocket.Connect(connectTo);
 
             var message = new Msg();
-            message.InitSize(messageSize);
+            message.InitPool(messageSize);
 
             var stopWatch = Stopwatch.StartNew();
 

@@ -23,7 +23,7 @@ namespace local_thr
             pullSocket.Bind(bindTo);
 
             var message = new Msg();
-            message.Init();
+            message.InitEmpty();
 
             pullSocket.Recv(ref message, SendReceiveOptions.None);
 

@@ -92,7 +92,7 @@ namespace NetMQ.zmq
                 m_pipe.Flush();
 
             //  Detach the original message from the data buffer.
-            msg.Init();
+            msg.InitEmpty();
 
             return true;
         }
@@ -104,7 +104,7 @@ namespace NetMQ.zmq
             msg.Close();
             if (m_pipe == null || !m_pipe.Read(ref msg))
             {
-                msg.Init();
+                msg.InitEmpty();
                 return false;
             }
             return true;

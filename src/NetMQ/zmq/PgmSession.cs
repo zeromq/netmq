@@ -47,7 +47,7 @@ namespace NetMQ.zmq
             DropSubscriptions();
 
             var msg = new Msg();
-            msg.Init();
+            msg.InitEmpty();
 
             // push message to the session because there is no identity message with pgm
             session.PushMsg(ref msg);
@@ -222,7 +222,7 @@ namespace NetMQ.zmq
         private void DropSubscriptions()
         {
             Msg msg = new Msg();
-            msg.Init();
+            msg.InitEmpty();
 
             while (m_session.PullMsg(ref msg))
             {

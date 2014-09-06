@@ -67,7 +67,7 @@ namespace NetMQ.zmq
             m_options.RecvIdentity = true;
 
             m_prefetchedMsg = new Msg();
-            m_prefetchedMsg.Init();
+            m_prefetchedMsg.InitEmpty();
         }
 
         public override void Destroy()

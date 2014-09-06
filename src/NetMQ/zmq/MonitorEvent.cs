@@ -119,14 +119,14 @@ namespace NetMQ.zmq
             }
 
             Msg msg = new Msg();
-            msg.InitData((byte[])buffer, buffer.Size);
+            msg.InitGC((byte[])buffer, buffer.Size);
             s.Send(ref msg, 0);
         }
 
         public static MonitorEvent Read(SocketBase s)
         {
             Msg msg = new Msg();
-            msg.Init();
+            msg.InitEmpty();
 
             s.Recv(ref msg, SendReceiveOptions.None);
 

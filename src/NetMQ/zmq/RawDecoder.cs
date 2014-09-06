@@ -36,7 +36,7 @@ namespace NetMQ.zmq
         public override bool MessageReadySize(int msgSize)
         {
             m_inProgress = new Msg();
-            m_inProgress.InitSize(msgSize);
+            m_inProgress.InitPool(msgSize);
 
             NextStep(m_inProgress.Data, m_inProgress.Size, RawMessageReadyState);
 

@@ -128,7 +128,7 @@ namespace NetMQ.zmq
 
             //  No message is available. Initialise the output parameter
             //  to be a 0-byte message.
-            msg.Init();
+            msg.InitEmpty();
             return false;
         }
 

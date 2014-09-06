@@ -64,7 +64,7 @@ namespace NetMQ.zmq
             // get the first message from the session because we don't want to send identities
 
             Msg msg = new Msg();
-            msg.Init();
+            msg.InitEmpty();
 
             bool ok = session.PullMsg(ref msg);
 

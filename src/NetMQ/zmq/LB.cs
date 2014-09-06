@@ -100,7 +100,7 @@ namespace NetMQ.zmq
                 m_dropping = m_more;
 
                 msg.Close();
-                msg.Init();
+                msg.InitEmpty();
                 return true;
             }
 
@@ -134,7 +134,7 @@ namespace NetMQ.zmq
             }
 
             //  Detach the message from the data buffer.
-            msg.Init();
+            msg.InitEmpty();
 
             return true;
         }

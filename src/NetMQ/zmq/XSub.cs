@@ -65,7 +65,7 @@ namespace NetMQ.zmq
 
                 //  Create the subsctription message.
                 Msg msg = new Msg();
-                msg.InitSize(size + 1);
+                msg.InitPool(size + 1);
                 msg.Put((byte)1);
                 msg.Put(data, 1, size);
 
@@ -94,7 +94,7 @@ namespace NetMQ.zmq
             m_subscriptions = new Trie();
 
             m_message = new Msg();
-            m_message.Init();
+            m_message.InitEmpty();
         }
 
         public override void Destroy()
@@ -170,7 +170,7 @@ namespace NetMQ.zmq
             }
 
             msg.Close();
-            msg.Init();
+            msg.InitEmpty();
 
             return true;
         }

@@ -296,6 +296,10 @@ namespace NetMQ.Tests
                                                                                                      {
                                                                                                          pub.Send(BitConverter.GetBytes(i));
                                                                                                      }
+
+                                                                                                     // if we close the socket before the subscriber receives all messages subscriber
+                                                                                                     // might miss messages, lets wait another second
+                                                                                                     Thread.Sleep(1000);
                                                                                                  }
                                                                                              }
                                                                                          });

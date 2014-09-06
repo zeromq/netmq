@@ -67,7 +67,7 @@ namespace NetMQ.zmq
 
             //  Create the subscription message.
             Msg msg = new Msg();
-            msg.InitSize(val.Length + 1);
+            msg.InitPool(val.Length + 1);
             if (option == ZmqSocketOptions.Subscribe)
                 msg.Put((byte)1);
             else if (option == ZmqSocketOptions.Unsubscribe)

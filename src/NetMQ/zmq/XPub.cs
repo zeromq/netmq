@@ -213,7 +213,7 @@ namespace NetMQ.zmq
             msg.Close();
             
             Blob first = m_pending.Dequeue();
-            msg.InitSize(first.Size);
+            msg.InitPool(first.Size);
 
             msg.Put(first.Data,0, first.Size);
 

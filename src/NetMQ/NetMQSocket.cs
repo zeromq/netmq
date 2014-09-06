@@ -232,67 +232,16 @@ namespace NetMQ
             }
         }
 
-        protected internal virtual void ReceiveInternal(ref Msg msg, SendReceiveOptions options)
+        public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {                        
             m_socketHandle.Recv(ref msg, options);                        
         }
 
-        public byte[] Receive(bool dontWait, out bool hasMore)
+       
+                    
+        public virtual void Send(ref Msg msg, SendReceiveOptions options)
         {
-            Msg msg = new Msg();
-            msg.Init();            
-
-            ReceiveInternal(ref msg, dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None);
-
-            hasMore = msg.HasMore;
-
-            byte[] data = new byte[msg.Size];
-
-            if (msg.Size > 0)
-            {
-                Buffer.BlockCopy(msg.Data, 0, data, 0, msg.Size);
-            }
-
-            msg.Close();
-
-            return data;
-        }
-
-        public void SendMessage(NetMQMessage message, bool dontWait = false)
-        {
-            for (int i = 0; i < message.FrameCount - 1; i++)
-            {
-                Send(message[i].Buffer, message[i].MessageSize, dontWait, true);
-            }
-
-            Send(message.Last.Buffer, message.Last.MessageSize, dontWait);
-        }
-
-        public virtual void Send(byte[] data, int length, SendReceiveOptions options)
-        {
-            Msg msg = new Msg();
-            msg.InitData(data, length);
-
-            m_socketHandle.Send(ref msg, options);          
-
-            msg.Close();
-        }
-
-        public void Send(byte[] data, int length, bool dontWait = false, bool sendMore = false)
-        {
-            SendReceiveOptions sendReceiveOptions = SendReceiveOptions.None;
-
-            if (dontWait)
-            {
-                sendReceiveOptions |= SendReceiveOptions.DontWait;
-            }
-
-            if (sendMore)
-            {
-                sendReceiveOptions |= SendReceiveOptions.SendMore;
-            }
-
-            Send(data, length, sendReceiveOptions);
+            m_socketHandle.Send(ref msg, options);
         }
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]

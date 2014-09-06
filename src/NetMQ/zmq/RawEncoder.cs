@@ -21,7 +21,7 @@ namespace NetMQ.zmq
             m_msgSource = msgSource;
 
             m_inProgress = new Msg();
-            m_inProgress.Init();
+            m_inProgress.InitEmpty();
 
             NextStep(null, 0, RawMessageReadyState, true);
         }
@@ -71,7 +71,7 @@ namespace NetMQ.zmq
 
             if (!result)
             {
-                m_inProgress.Init();
+                m_inProgress.InitEmpty();
 
                 return false;
             }

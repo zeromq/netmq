@@ -429,7 +429,7 @@ namespace NetMQ.zmq
         public static void Send(SocketBase sender, string message, SendReceiveOptions options)
         {
             Msg msg = new Msg();
-            msg.InitSize(Encoding.ASCII.GetByteCount(message));
+            msg.InitPool(Encoding.ASCII.GetByteCount(message));
 
             Encoding.ASCII.GetBytes(message, 0, message.Length, msg.Data, 0);
 
@@ -440,7 +440,7 @@ namespace NetMQ.zmq
         public static Msg Recv(SocketBase receiver, SendReceiveOptions options)
         {
             Msg msg = new Msg();
-            msg.Init();
+            msg.InitEmpty();
 
             receiver.Recv(ref msg, options);
 

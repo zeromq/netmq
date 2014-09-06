@@ -487,7 +487,7 @@ namespace NetMQ.zmq
             
             //  Inject the subscription message so that the ZMQ 2.x peer
             //  receives our messages.
-            msg.InitSize(1);
+            msg.InitPool(1);
             msg.Put((byte)1);
 
             m_session.PushMsg(ref msg);

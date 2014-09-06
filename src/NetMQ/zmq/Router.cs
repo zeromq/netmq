@@ -113,9 +113,9 @@ namespace NetMQ.zmq
 
             m_fq = new FQ();
             m_prefetchedId = new Msg();
-            m_prefetchedId.Init();
+            m_prefetchedId.InitEmpty();
             m_prefetchedMsg = new Msg();
-            m_prefetchedMsg.Init();
+            m_prefetchedMsg.InitEmpty();
 
             m_anonymousPipes = new HashSet<Pipe>();
             m_outpipes = new Dictionary<Blob, Outpipe>();
@@ -270,7 +270,7 @@ namespace NetMQ.zmq
 
                 //  Detach the message from the data buffer.
                 msg.Close();
-                msg.Init();
+                msg.InitEmpty();
 
                 return true;
             }
@@ -293,7 +293,7 @@ namespace NetMQ.zmq
                 {
                     m_currentOut.Terminate(false);
                     msg.Close();
-                    msg.Init();
+                    msg.InitEmpty();
                     m_currentOut = null;
                     return true;
                 }
@@ -313,7 +313,7 @@ namespace NetMQ.zmq
             }
 
             //  Detach the message from the data buffer.            
-            msg.Init();
+            msg.InitEmpty();
 
             return true;
         }
@@ -369,7 +369,7 @@ namespace NetMQ.zmq
                 m_prefetched = true;
 
                 Blob identity = pipe[0].Identity;
-                msg.InitSize(identity.Size);               
+                msg.InitPool(identity.Size);               
                 msg.Put(identity.Data,0, identity.Size);
                 msg.SetFlags(MsgFlags.More);
 
@@ -427,7 +427,7 @@ namespace NetMQ.zmq
 
             Blob identity = pipe[0].Identity;
             m_prefetchedId = new Msg();
-            m_prefetchedId.InitSize(identity.Size);
+            m_prefetchedId.InitPool(identity.Size);
             m_prefetchedId.Put(identity.Data, 0, identity.Size);            
             m_prefetchedId.SetFlags(MsgFlags.More);
 
@@ -464,7 +464,7 @@ namespace NetMQ.zmq
                 //  Pick up handshake cases and also case where next identity is set
                 
                 Msg msg = new Msg();
-                msg.Init();
+                msg.InitEmpty();
 
                 bool ok = pipe.Read(ref msg);
 

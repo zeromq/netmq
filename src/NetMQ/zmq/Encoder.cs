@@ -38,7 +38,7 @@ namespace NetMQ.zmq
             : base(bufsize, endian)
         {
             m_inProgress = new Msg();
-            m_inProgress.Init();
+            m_inProgress.InitEmpty();
 
             m_tmpbuf = new byte[10];
 
@@ -88,14 +88,14 @@ namespace NetMQ.zmq
 
             if (m_msgSource == null)
             {
-                m_inProgress.Init();
+                m_inProgress.InitEmpty();
                 return false;
             }
                 
             bool messagedPulled = m_msgSource.PullMsg(ref m_inProgress);
             if (!messagedPulled)
             {
-                m_inProgress.Init();
+                m_inProgress.InitEmpty();
                 return false;
             }
 

@@ -96,13 +96,21 @@ namespace NetMQ.zmq
 
             m_fq = new FQ();
             m_prefetchedId = new Msg();
-            m_prefetchedId.Init();
+            m_prefetchedId.InitEmpty();
             m_prefetchedMsg = new Msg();
-            m_prefetchedMsg.Init();
+            m_prefetchedMsg.InitEmpty();
 
             m_outpipes = new Dictionary<Blob, Outpipe>();
 
             m_options.RawSocket = true;
+        }
+
+        public override void Destroy()
+        {
+            base.Destroy();
+
+            m_prefetchedId.Close();
+            m_prefetchedMsg.Close();
         }
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
@@ -188,6 +196,9 @@ namespace NetMQ.zmq
 
                 m_moreOut = true;
 
+                msg.Close();
+                msg.InitEmpty();
+
                 return true;
             }
 
@@ -220,6 +231,7 @@ namespace NetMQ.zmq
             }
 
             //  Detach the message from the data buffer.
+            msg.InitEmpty();
 
             return true;
         }
@@ -258,7 +270,7 @@ namespace NetMQ.zmq
             //  Rather than sendig this frame, we keep it in prefetched
             //  buffer and send a frame with peer's ID.
             Blob identity = pipe[0].Identity;            
-            msg.InitSize(identity.Size);
+            msg.InitPool(identity.Size);
             msg.Put(identity.Data, 0, identity.Size);
             msg.SetFlags(MsgFlags.More);
 
@@ -290,7 +302,7 @@ namespace NetMQ.zmq
 
             Blob identity = pipe[0].Identity;
             m_prefetchedId = new Msg();
-            m_prefetchedId.InitSize(identity.Size);
+            m_prefetchedId.InitPool(identity.Size);
             m_prefetchedId.Put(identity.Data, 0, identity.Size);
             m_prefetchedId.SetFlags(MsgFlags.More);
 

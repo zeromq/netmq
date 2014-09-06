@@ -41,8 +41,9 @@ namespace NetMQ.zmq
     {
         Invalid = 0,
         Min = 101,
-        GCMessage = 102,
-        PoolMessage = 103,
+        Empty=101,
+        GC = 102,
+        Pool = 103,
         Delimiter = 104,
         Max = 104
     }
@@ -123,18 +124,18 @@ namespace NetMQ.zmq
             return MsgType >= MsgType.Min && MsgType <= MsgType.Max;
         }
 
-        public void Init()
+        public void InitEmpty()
         {
-            m_type = MsgType.GCMessage;
+            m_type = MsgType.Empty;
             m_flags = MsgFlags.None;
             m_size = 0;
             m_data = null;
             m_atomicCounter = null;
         }
 
-        public void InitSize(int size)
+        public void InitPool(int size)
         {
-            m_type = MsgType.PoolMessage;
+            m_type = MsgType.Pool;
             m_flags = MsgFlags.None;
             m_data = BufferPool.Take(size);
             m_size = size;
@@ -142,9 +143,9 @@ namespace NetMQ.zmq
             m_atomicCounter = new AtomicCounter();
         }
 
-        public void InitData(byte[] data, int size)
+        public void InitGC(byte[] data, int size)
         {
-            m_type = MsgType.GCMessage;
+            m_type = MsgType.GC;
             m_flags = MsgFlags.None;
             m_data = data;
             m_size = size;
@@ -164,7 +165,7 @@ namespace NetMQ.zmq
                 throw NetMQException.Create(ErrorCode.EFAULT);
             }
 
-            if (m_type == MsgType.PoolMessage)
+            if (m_type == MsgType.Pool)
             {
                 // if not shared or reference counter drop to zero
                 if ((m_flags & MsgFlags.Shared) == 0 || m_atomicCounter.Decrement() == 0)
@@ -189,7 +190,7 @@ namespace NetMQ.zmq
                 return;
             }
 
-            if (m_type == MsgType.PoolMessage)
+            if (m_type == MsgType.Pool)
             {
                 if (m_flags == MsgFlags.Shared)
                 {
@@ -210,7 +211,7 @@ namespace NetMQ.zmq
                 return;
             }
 
-            if (m_type != MsgType.PoolMessage || (m_flags & MsgFlags.Shared) == 0)
+            if (m_type != MsgType.Pool || (m_flags & MsgFlags.Shared) == 0)
             {
                 Close();
             }
@@ -269,7 +270,7 @@ namespace NetMQ.zmq
 
             Close();
 
-            if (m_type == MsgType.PoolMessage)
+            if (m_type == MsgType.Pool)
             {
                 //  One reference is added to shared messages. Non-shared messages
                 //  are turned into shared messages and reference count is set to 2.
@@ -297,7 +298,7 @@ namespace NetMQ.zmq
 
             this = src;
 
-            src.Init();
+            src.InitEmpty();
         }
     }
 }

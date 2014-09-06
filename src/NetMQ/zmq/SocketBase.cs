@@ -545,7 +545,7 @@ namespace NetMQ.zmq
                 if (peer.Options.RecvIdentity)
                 {
                     Msg id = new Msg();
-                    id.InitSize(peer.Options.IdentitySize);
+                    id.InitPool(peer.Options.IdentitySize);
                     id.Put(peer.Options.Identity, 0, peer.Options.IdentitySize);
                     id.SetFlags(MsgFlags.Identity);
                     bool written = pipes[0].Write(ref id);
@@ -557,7 +557,7 @@ namespace NetMQ.zmq
                 if (m_options.RecvIdentity)
                 {
                     Msg id = new Msg();
-                    id.InitSize(m_options.IdentitySize);
+                    id.InitPool(m_options.IdentitySize);
                     id.Put(m_options.Identity, 0, m_options.IdentitySize);
                     id.SetFlags(MsgFlags.Identity);
                     bool written = pipes[1].Write(ref id);

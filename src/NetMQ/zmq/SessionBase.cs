@@ -195,7 +195,7 @@ namespace NetMQ.zmq
             //  First message to send is identity
             if (!m_identitySent)
             {
-                msg.InitSize(m_options.IdentitySize);
+                msg.InitPool(m_options.IdentitySize);
                 msg.Put(m_options.Identity, 0, m_options.IdentitySize);
                 m_identitySent = true;
                 m_incompleteIn = false;
@@ -223,14 +223,14 @@ namespace NetMQ.zmq
                 if (!m_options.RecvIdentity)
                 {
                     msg.Close();
-                    msg.Init();
+                    msg.InitEmpty();
                     return;
                 }
             }
 
             if (m_pipe != null && m_pipe.Write(ref msg))
             {
-                msg.Init();
+                msg.InitEmpty();
                 return;
             }
 
@@ -269,7 +269,7 @@ namespace NetMQ.zmq
                 while (m_incompleteIn)
                 {
                     Msg msg = new Msg();
-                    msg.Init();
+                    msg.InitEmpty();
                     
                     if (!PullMsg(ref msg))
                     {

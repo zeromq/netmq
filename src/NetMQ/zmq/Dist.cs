@@ -168,12 +168,12 @@ namespace NetMQ.zmq
             if (m_matching == 0)
             {
                 msg.Close();
-                msg.Init();
+                msg.InitEmpty();
 
                 return;
             }
 
-            if (msg.MsgType == MsgType.GCMessage)
+            if (msg.MsgType != MsgType.Pool)
             {
                 for (int i = 0; i < m_matching; ++i)
                 {
@@ -185,7 +185,7 @@ namespace NetMQ.zmq
                 }
 
                 msg.Close();
-                msg.Init();
+                msg.InitEmpty();
 
                 return;
             }
@@ -210,7 +210,7 @@ namespace NetMQ.zmq
 
             //  Detach the original message from the data buffer. Note that we don't
             //  close the message. That's because we've already used all the references.
-            msg.Init();            
+            msg.InitEmpty();            
         }
 
         public bool HasOut()

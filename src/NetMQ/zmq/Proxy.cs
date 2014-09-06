@@ -35,7 +35,7 @@ namespace NetMQ.zmq
             int more;
             int rc;
             Msg msg = new Msg();
-            msg.Init();
+            msg.InitEmpty();
             PollItem[] items = new PollItem[2];
 
             items[0] = new PollItem(frontend, PollEvents.PollIn);
@@ -71,7 +71,7 @@ namespace NetMQ.zmq
                         if (capture != null)
                         {
                             Msg ctrl = new Msg();
-                            ctrl.Init();
+                            ctrl.InitEmpty();
 
                             ctrl.Copy(ref msg);
 
@@ -106,7 +106,7 @@ namespace NetMQ.zmq
                         if (capture != null)
                         {
                             Msg ctrl = new Msg();
-                            ctrl.Init();
+                            ctrl.InitEmpty();
 
                             ctrl.Copy(ref msg);
 
