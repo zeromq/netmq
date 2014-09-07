@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.30110.0
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ", "NetMQ\NetMQ.csproj", "{82934BAC-07FB-41AC-AE59-46FEE6026A40}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance", "{1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}"
@@ -66,7 +64,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultithreadedService", "Samples\Multithreading\Multithreaded Service\MultithreadedService\MultithreadedService.csproj", "{47791A50-18FA-4534-974A-9C38AAF9EEAC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.SimpleTests", "Performance\NetMQ.SimpleTests\NetMQ.SimpleTests.csproj", "{9D199424-9F3A-442B-B74B-6C4A97D601F7}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extended Request Reply", "Extended Request Reply", "{31C67BA1-D6A4-4CA3-8332-D35F950C5F63}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestReplyBroker", "Samples\Load Balancing Pattern\Extended Request Reply\RequestReplyBroker\RequestReplyBroker.csproj", "{6CEDB2F2-013F-4EF2-BB69-16B6D5E8962A}"
