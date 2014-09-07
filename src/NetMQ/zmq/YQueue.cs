@@ -24,7 +24,7 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq
 {
-    public class YQueue<T> where T : class
+    public class YQueue<T>
     {
         /// <summary> Individual memory chunk to hold N elements. </summary>
         private class Chunk
@@ -105,7 +105,7 @@ namespace NetMQ.zmq
         public T Pop()
         {
             T value = m_beginChunk.Values[m_beginPositionInChunk];
-            m_beginChunk.Values[m_beginPositionInChunk] = null;
+            
             m_beginPositionInChunk++;
             if (m_beginPositionInChunk == m_size)
             {
@@ -119,7 +119,7 @@ namespace NetMQ.zmq
 
         /// <summary> Adds an element to the back end of the queue. </summary>
         /// <param name="val">The value to be pushed.</param>
-        public void Push(T val)
+        public void Push(ref T val)
         {
             m_backChunk.Values[m_backPositionInChunk] = val;
             m_backChunk = m_endChunk;
@@ -177,7 +177,7 @@ namespace NetMQ.zmq
 
             //capturing and removing the unpushed value from chunk.
             T value = m_backChunk.Values[m_backPositionInChunk];
-            m_backChunk.Values[m_backPositionInChunk] = null;
+            
             return value;
         }
     }

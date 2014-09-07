@@ -65,6 +65,16 @@ namespace NetMQ.zmq
             //  options.delay_on_close = false;
 
             m_options.RecvIdentity = true;
+
+            m_prefetchedMsg = new Msg();
+            m_prefetchedMsg.InitEmpty();
+        }
+
+        public override void Destroy()
+        {
+            base.Destroy();
+
+            m_prefetchedMsg.Close();
         }
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
@@ -75,44 +85,40 @@ namespace NetMQ.zmq
             m_lb.Attach(pipe);
         }
 
-        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
-            return m_lb.Send(msg, flags);
+            return m_lb.Send(ref msg, flags);
         }
 
 
-        protected override bool XRecv(SendReceiveOptions flags, out Msg msg_)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
-            return xxrecv(flags, out msg_);
+            return xxrecv(flags, ref msg);
         }
 
-        private bool xxrecv(SendReceiveOptions flags_, out Msg msg_)
-        {
-            msg_ = null;
-
+        private bool xxrecv(SendReceiveOptions flags, ref Msg msg)
+        {            
             //  If there is a prefetched message, return it.
             if (m_prefetched)
             {
-                msg_ = m_prefetchedMsg;
+                msg.Move(ref m_prefetchedMsg);
+                
                 m_prefetched = false;
-                m_prefetchedMsg = null;
+                
                 return true;
             }
 
             //  DEALER socket doesn't use identities. We can safely drop it and 
             while (true)
             {
-                bool isMessageAvailable = m_fq.Recv(out msg_);
+                bool isMessageAvailable = m_fq.Recv(ref msg);
 
                 if (!isMessageAvailable)
                 {
                     return false;
                 }
-                else if (msg_ == null)
-                {
-                    return true;
-                }
-                if ((msg_.Flags & MsgFlags.Identity) == 0)
+             
+                if ((msg.Flags & MsgFlags.Identity) == 0)
                     break;
             }
 
@@ -127,7 +133,7 @@ namespace NetMQ.zmq
 
             //  Try to read the next message to the pre-fetch buffer.
 
-            bool isMessageAvailable = xxrecv(SendReceiveOptions.DontWait, out m_prefetchedMsg);
+            bool isMessageAvailable = xxrecv(SendReceiveOptions.DontWait, ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
             {

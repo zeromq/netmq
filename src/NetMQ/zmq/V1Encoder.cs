@@ -15,6 +15,9 @@ namespace NetMQ.zmq
         public V1Encoder(int bufsize, IMsgSource session, Endianness endian)
             : base(bufsize, endian)
         {
+            m_inProgress = new Msg();
+            m_inProgress.InitEmpty();
+
             m_tmpbuf = new byte[9];
             m_msgSource = session;
 
@@ -52,6 +55,9 @@ namespace NetMQ.zmq
 
         private bool MessageReady()
         {
+            //  Release the content of the old message.
+            m_inProgress.Close();
+
             m_tmpbuf.Reset();
 
             //  Read new message. If there is none, return false.
@@ -60,11 +66,15 @@ namespace NetMQ.zmq
             //  invocation.
 
             if (m_msgSource == null)
-                return false;
-
-            m_inProgress = m_msgSource.PullMsg();
-            if (m_inProgress == null)
             {
+                m_inProgress.InitEmpty();
+                return false;
+            }
+
+            bool messagedPulled = m_msgSource.PullMsg(ref m_inProgress);
+            if (!messagedPulled)
+            {
+                m_inProgress.InitEmpty();
                 return false;
             }
 

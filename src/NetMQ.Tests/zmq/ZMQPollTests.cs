@@ -21,7 +21,7 @@ namespace NetMQ.Tests.zmq
             {
                 Thread.Sleep(500);
                 SocketBase sender = ZMQ.Socket(contextNew, ZmqSocketType.Dealer);
-                ZMQ.Connect(sender, "inproc://test");
+                ZMQ.Connect(sender, "inproc://test");                
                 ZMQ.Send(sender, "ping", SendReceiveOptions.None);
                 ZMQ.Close(sender);
             });
@@ -30,7 +30,9 @@ namespace NetMQ.Tests.zmq
 
             Assert.DoesNotThrow(() => ZMQ.Poll(pollItems, -1));
 
-            var actual = Encoding.ASCII.GetString(ZMQ.Recv(receiver, SendReceiveOptions.DontWait).Data);
+            var msg = ZMQ.Recv(receiver, SendReceiveOptions.DontWait);
+
+            var actual = Encoding.ASCII.GetString(msg.Data, 0,msg.Size);
             Assert.AreEqual("ping", actual);
 
             ZMQ.Close(receiver);

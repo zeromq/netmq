@@ -81,9 +81,9 @@ namespace NetMQ.zmq
         }
 
         override
-            protected bool XSend(Msg msg, SendReceiveOptions flags)
+            protected bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
-            if (m_pipe == null || !m_pipe.Write(msg))
+            if (m_pipe == null || !m_pipe.Write(ref msg))
             {
                 return false;
             }
@@ -92,17 +92,19 @@ namespace NetMQ.zmq
                 m_pipe.Flush();
 
             //  Detach the original message from the data buffer.
+            msg.InitEmpty();
+
             return true;
         }
 
-        override
-            protected bool XRecv(SendReceiveOptions flags, out Msg msg)
+        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             //  Deallocate old content of the message.
 
-            msg = null;
-            if (m_pipe == null || (msg = m_pipe.Read()) == null)
+            msg.Close();
+            if (m_pipe == null || !m_pipe.Read(ref msg))
             {
+                msg.InitEmpty();
                 return false;
             }
             return true;

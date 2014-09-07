@@ -20,11 +20,13 @@ namespace remote_thr
             var context = ZMQ.CtxNew();
             var pushSocket = ZMQ.Socket(context, ZmqSocketType.Push);
             pushSocket.Connect(connectTo);
-
+            
             for (int i = 0; i != messageCount; i++)
             {
-                var message = new Msg(messageSize);
-                pushSocket.Send(message, SendReceiveOptions.None);
+                var message = new Msg();
+                message.InitPool(messageSize);                
+                pushSocket.Send(ref message, SendReceiveOptions.None);
+                message.Close();
             }
 
             pushSocket.Close();

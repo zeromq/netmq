@@ -89,7 +89,7 @@ namespace NetMQ.zmq
             m_active++;
         }
 
-        public bool Send(Msg msg, SendReceiveOptions flags)
+        public bool Send(ref Msg msg, SendReceiveOptions flags)
         {
             //  Drop the message if required. If we are at the end of the message
             //  switch back to non-dropping mode.
@@ -100,12 +100,13 @@ namespace NetMQ.zmq
                 m_dropping = m_more;
 
                 msg.Close();
+                msg.InitEmpty();
                 return true;
             }
 
             while (m_active > 0)
             {
-                if (m_pipes[m_current].Write(msg))
+                if (m_pipes[m_current].Write(ref msg))
                     break;
 
                 Debug.Assert(!m_more);
@@ -131,6 +132,9 @@ namespace NetMQ.zmq
                 if (m_active > 1)
                     m_current = (m_current + 1) % m_active;
             }
+
+            //  Detach the message from the data buffer.
+            msg.InitEmpty();
 
             return true;
         }

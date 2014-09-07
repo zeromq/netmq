@@ -49,7 +49,7 @@ namespace NetMQ.zmq
         }
 
 
-        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  If we've sent a request and we still haven't got the reply,
             //  we can't send another request.
@@ -64,8 +64,9 @@ namespace NetMQ.zmq
             if (m_messageBegins)
             {
                 Msg bottom = new Msg();
+                bottom.InitEmpty();
                 bottom.SetFlags(MsgFlags.More);
-                isMessageSent = base.XSend(bottom, 0);
+                isMessageSent = base.XSend(ref bottom, 0);
 
                 if (!isMessageSent)
                 {
@@ -77,7 +78,7 @@ namespace NetMQ.zmq
 
             bool more = msg.HasMore;
 
-            isMessageSent = base.XSend(msg, flags);
+            isMessageSent = base.XSend(ref msg, flags);
 
             if (!isMessageSent)
             {
@@ -93,11 +94,10 @@ namespace NetMQ.zmq
             return true;
         }
 
-        override protected bool XRecv(SendReceiveOptions flags, out Msg msg)
+        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             bool isMessageAvailable;
-
-            msg = null;
+            
             //  If request wasn't send, we can't wait for reply.
             if (!m_receivingReply)
             {
@@ -107,44 +107,37 @@ namespace NetMQ.zmq
             //  First part of the reply should be the original request ID.
             if (m_messageBegins)
             {
-                isMessageAvailable = base.XRecv(flags, out msg);
+                isMessageAvailable = base.XRecv(flags, ref msg);
 
                 if (!isMessageAvailable)
                 {
                     return false;
-                }
-                else if (msg == null)
-                {
-                    return true;
-                }
+                }               
 
                 // TODO: This should also close the connection with the peer!
                 if (!msg.HasMore || msg.Size != 0)
                 {
                     while (true)
                     {
-                        isMessageAvailable = base.XRecv(flags, out msg);
-                        Debug.Assert(msg != null);
+                        isMessageAvailable = base.XRecv(flags, ref msg);
+                        Debug.Assert(isMessageAvailable);
                         if (!msg.HasMore)
                             break;
                     }
 
-                    msg = null;
+                    msg.Close();
+                    msg.InitEmpty();
                     return false;
                 }
 
                 m_messageBegins = false;
             }
 
-            isMessageAvailable = base.XRecv(flags, out msg);
+            isMessageAvailable = base.XRecv(flags, ref msg);
             if (!isMessageAvailable)
             {
                 return false;
-            }
-            else if (msg == null)
-            {
-                return true;
-            }
+            }            
 
             //  If the reply is fully received, flip the FSM into request-sending state.
             if (!msg.HasMore)
@@ -198,8 +191,7 @@ namespace NetMQ.zmq
                 m_state = State.Identity;
             }
 
-            override
-                public void PushMsg(Msg msg)
+            override public void PushMsg(ref Msg msg)
             {
                 switch (m_state)
                 {
@@ -207,23 +199,23 @@ namespace NetMQ.zmq
                         if (msg.Flags == MsgFlags.More && msg.Size == 0)
                         {
                             m_state = State.Body;
-                            base.PushMsg(msg);
+                            base.PushMsg(ref msg);
                         }
                         break;
                     case State.Body:
                         if (msg.Flags == MsgFlags.More)
-                            base.PushMsg(msg);
-                        if (msg.Flags == 0)
+                            base.PushMsg(ref msg);
+                        else if (msg.Flags == 0)
                         {
                             m_state = State.Bottom;
-                            base.PushMsg(msg);
+                            base.PushMsg(ref msg);
                         }
                         break;
                     case State.Identity:
                         if (msg.Flags == 0)
                         {
                             m_state = State.Bottom;
-                            base.PushMsg(msg);
+                            base.PushMsg(ref msg);
                         }
                         break;
                     default:

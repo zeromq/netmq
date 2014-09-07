@@ -69,9 +69,9 @@ namespace NetMQ.zmq
         }
 
         override
-            protected bool XSend(Msg msg, SendReceiveOptions flags)
+            protected bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
-            return lb.Send(msg, flags);
+            return lb.Send(ref msg, flags);
         }
 
         override

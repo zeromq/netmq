@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System.Configuration;
 using System.Diagnostics;
 
 namespace NetMQ.zmq
@@ -60,26 +61,22 @@ namespace NetMQ.zmq
         {
             s_sendSubscription = (data, size, arg) =>
             {
-
-
-
                 Pipe pipe = (Pipe)arg;
 
                 //  Create the subsctription message.
-                Msg msg = new Msg(size + 1);
+                Msg msg = new Msg();
+                msg.InitPool(size + 1);
                 msg.Put((byte)1);
                 msg.Put(data, 1, size);
 
                 //  Send it to the pipe.
-                bool sent = pipe.Write(msg);
+                bool sent = pipe.Write(ref msg);
                 //  If we reached the SNDHWM, and thus cannot send the subscription, drop
                 //  the subscription message instead. This matches the behaviour of
                 //  zmq_setsockopt(ZMQ_SUBSCRIBE, ...), which also drops subscriptions
                 //  when the SNDHWM is reached.
                 if (!sent)
                     msg.Close();
-
-
             };
         }
 
@@ -96,7 +93,14 @@ namespace NetMQ.zmq
             m_dist = new Dist();
             m_subscriptions = new Trie();
 
+            m_message = new Msg();
+            m_message.InitEmpty();
+        }
 
+        public override void Destroy()
+        {
+            base.Destroy();
+            m_message.Close();
         }
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
@@ -135,33 +139,38 @@ namespace NetMQ.zmq
             pipe.Flush();
         }
 
-        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             byte[] data = msg.Data;
-
-            // Process the subscription.
-            if (data.Length > 0)
+            int size = msg.Size;
+            
+            if (size > 0 && data[0] == 1)
             {
-                if (data[0] == 1)
+                // Process the subscription.
+                if (m_subscriptions.Add(data, 1, size-1))
                 {
-                    if (m_subscriptions.Add(data, 1))
-                    {
-                        m_dist.SendToAll(msg, flags);
-                    }
+                    m_dist.SendToAll(ref msg, flags);
                     return true;
-                }
-                else if (data[0] == 0)
+                }               
+            }
+            else if (size > 0 && data[0] == 0)
+            {
+                if (m_subscriptions.Remove(data, 1,size-1))
                 {
-                    if (m_subscriptions.Remove(data, 1))
-                    {
-                        m_dist.SendToAll(msg, flags);
-                    }
+                    m_dist.SendToAll(ref msg, flags);
                     return true;
                 }
             }
-                
-            // upstream message unrelated to sub/unsub
-            m_dist.SendToAll(msg, flags);
+            else
+            {
+                // upstream message unrelated to sub/unsub
+                m_dist.SendToAll(ref msg, flags);
+
+                return true;
+            }
+
+            msg.Close();
+            msg.InitEmpty();
 
             return true;
         }
@@ -172,14 +181,14 @@ namespace NetMQ.zmq
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             //  If there's already a message prepared by a previous call to zmq_poll,
             //  return it straight ahead.
 
             if (m_hasMessage)
             {
-                msg = new Msg(m_message);
+                msg.Move(ref m_message);
                 m_hasMessage = false;
                 m_more = msg.HasMore;
                 return true;
@@ -192,17 +201,13 @@ namespace NetMQ.zmq
             {
 
                 //  Get a message using fair queueing algorithm.
-                bool isMessageAvailable = m_fq.Recv(out msg);
+                bool isMessageAvailable = m_fq.Recv(ref msg);
 
                 //  If there's no message available, return immediately.
                 //  The same when error occurs.
                 if (!isMessageAvailable)
                 {
                     return false;
-                }
-                else if (msg == null)
-                {
-                    return true;
                 }
 
                 //  Check whether the message matches at least one subscription.
@@ -217,9 +222,9 @@ namespace NetMQ.zmq
                 //  from the pipe.
                 while (msg.HasMore)
                 {
-                    m_fq.Recv(out msg);
+                    isMessageAvailable = m_fq.Recv(ref msg);
 
-                    Debug.Assert(msg != null);
+                    Debug.Assert(isMessageAvailable);
                 }
             }
         }
@@ -241,16 +246,11 @@ namespace NetMQ.zmq
             {
 
                 //  Get a message using fair queueing algorithm.
-                bool isMessageAvailable = m_fq.Recv(out m_message);
-
-                if (!isMessageAvailable)
-                {
-                    return false;
-                }
+                bool isMessageAvailable = m_fq.Recv(ref m_message);
 
                 //  If there's no message available, return immediately.
                 //  The same when error occurs.
-                if (m_message == null)
+                if (!isMessageAvailable)
                 {
                     return false;
                 }
@@ -266,9 +266,9 @@ namespace NetMQ.zmq
                 //  from the pipe.
                 while (m_message.HasMore)
                 {
-                    m_fq.Recv(out m_message);
+                    isMessageAvailable = m_fq.Recv(ref m_message);
 
-                    Debug.Assert(m_message != null);
+                    Debug.Assert(isMessageAvailable);
                 }
             }
 
@@ -276,7 +276,7 @@ namespace NetMQ.zmq
 
         private bool Match(Msg msg)
         {
-            return m_subscriptions.Check(msg.Data);
+            return m_subscriptions.Check(msg.Data, msg.Size);
         }
 
 

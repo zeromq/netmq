@@ -1,7 +1,9 @@
-﻿namespace NetMQ
+﻿using NetMQ.zmq;
+
+namespace NetMQ
 {
     public interface IReceivingSocket
-    {
-        byte[] Receive(bool dontWait, out bool hasMore);
+    {        
+        void Receive(ref Msg msg, SendReceiveOptions options);
     }
 }

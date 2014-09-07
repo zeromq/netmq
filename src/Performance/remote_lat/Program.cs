@@ -23,15 +23,16 @@ namespace remote_lat
 
             reqSocket.Connect(connectTo);
 
-            var message = new Msg(messageSize);
+            var message = new Msg();
+            message.InitPool(messageSize);
 
             var stopWatch = Stopwatch.StartNew();
 
             for (int i = 0; i != roundtripCount; i++)
             {
-                reqSocket.Send(message, SendReceiveOptions.None);
+                reqSocket.Send(ref message, SendReceiveOptions.None);
 
-                message = reqSocket.Recv(SendReceiveOptions.None);
+                reqSocket.Recv(ref message, SendReceiveOptions.None);
                 if (message.Size != messageSize)
                 {
                     Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);

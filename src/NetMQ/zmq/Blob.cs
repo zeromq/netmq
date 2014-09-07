@@ -31,10 +31,11 @@ namespace NetMQ.zmq
         private readonly byte[] m_buf;
         private int m_hash = 0;
 
-        public Blob(byte[] data)
+        public Blob(byte[] data, int size)
         {
-            m_buf = new byte[data.Length];
-            data.CopyTo(m_buf, 0);
+            m_buf = new byte[size];
+
+            Buffer.BlockCopy(data, 0, m_buf, 0, size);            
         }
 
         public Blob(int size)
@@ -49,10 +50,10 @@ namespace NetMQ.zmq
             return this;
         }
 
-        public Blob Put(int pos, byte[] data)
+        public Blob Put(int pos, byte[] data, int count)
         {
 
-            Buffer.BlockCopy(data, 0, m_buf, pos, data.Length);
+            Buffer.BlockCopy(data, 0, m_buf, pos, count);
 
             m_hash = 0;
             return this;

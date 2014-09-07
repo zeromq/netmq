@@ -190,33 +190,29 @@ namespace NetMQ.zmq
             m_pipe.SetEventSink(this);
         }
 
-        public virtual Msg PullMsg()
-        {
-
-            Msg msg;
-
+        public virtual bool PullMsg(ref Msg msg)
+        {            
             //  First message to send is identity
             if (!m_identitySent)
             {
-                msg = new Msg(m_options.IdentitySize);
+                msg.InitPool(m_options.IdentitySize);
                 msg.Put(m_options.Identity, 0, m_options.IdentitySize);
                 m_identitySent = true;
                 m_incompleteIn = false;
 
-                return msg;
+                return true;
             }
 
-            if (m_pipe == null || (msg = m_pipe.Read()) == null)
+            if (m_pipe == null || !m_pipe.Read(ref msg))
             {
-                return null;
+                return false;
             }
             m_incompleteIn = msg.HasMore;
 
-            return msg;
-
+            return true;
         }
 
-        public virtual void PushMsg(Msg msg)
+        public virtual void PushMsg(ref Msg msg)
         {
             //  First message to receive is identity (if required).
             if (!m_identityReceived)
@@ -226,12 +222,15 @@ namespace NetMQ.zmq
 
                 if (!m_options.RecvIdentity)
                 {
+                    msg.Close();
+                    msg.InitEmpty();
                     return;
                 }
             }
 
-            if (m_pipe != null && m_pipe.Write(msg))
+            if (m_pipe != null && m_pipe.Write(ref msg))
             {
+                msg.InitEmpty();
                 return;
             }
 
@@ -269,8 +268,10 @@ namespace NetMQ.zmq
                 //  Remove any half-read message from the in pipe.
                 while (m_incompleteIn)
                 {
-                    Msg msg = PullMsg();
-                    if (msg == null)
+                    Msg msg = new Msg();
+                    msg.InitEmpty();
+                    
+                    if (!PullMsg(ref msg))
                     {
                         Debug.Assert(!m_incompleteIn);
                         break;

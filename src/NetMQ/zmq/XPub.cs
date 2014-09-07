@@ -62,13 +62,13 @@ namespace NetMQ.zmq
 
         static XPub()
         {
-            s_markAsMatching = (pipe, data, arg) =>
+            s_markAsMatching = (pipe, data,size, arg) =>
             {
                 XPub self = (XPub)arg;
                 self.m_dist.Match(pipe);
             };
 
-            s_SendUnsubscription = (pipe, data, arg) =>
+            s_SendUnsubscription = (pipe, data,size, arg) =>
             {
 
                 XPub self = (XPub)arg;
@@ -78,9 +78,9 @@ namespace NetMQ.zmq
 
                     //  Place the unsubscription to the queue of pending (un)sunscriptions
                     //  to be retrived by the user later on.
-                    Blob unsub = new Blob(data.Length + 1);
+                    Blob unsub = new Blob(size + 1);
                     unsub.Put(0, (byte)0);
-                    unsub.Put(1, data);
+                    unsub.Put(1, data, size);
                     self.m_pending.Enqueue(unsub);
 
                 }
@@ -98,7 +98,7 @@ namespace NetMQ.zmq
             m_subscriptions = new Mtrie();
             m_dist = new Dist();
             m_pending = new Queue<Blob>();
-        }
+        }        
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
@@ -108,7 +108,7 @@ namespace NetMQ.zmq
             //  If icanhasall_ is specified, the caller would like to subscribe
             //  to all data on this pipe, implicitly.
             if (icanhasall)
-                m_subscriptions.Add(null, pipe);
+                m_subscriptions.Add(null,0,0, pipe);
 
             //  The pipe is active when attached. Let's read the subscriptions from
             //  it, if any.
@@ -118,8 +118,8 @@ namespace NetMQ.zmq
         protected override void XReadActivated(Pipe pipe)
         {
             //  There are some subscriptions waiting. Let's process them.
-            Msg sub;
-            while ((sub = pipe.Read()) != null)
+            Msg sub = new Msg();
+            while (pipe.Read(ref sub))
             {
 
                 //  Apply the subscription to the trie.
@@ -129,17 +129,21 @@ namespace NetMQ.zmq
                 {
                     bool unique;
                     if (data[0] == 0)
-                        unique = m_subscriptions.Remove(data, 1, pipe);
+                        unique = m_subscriptions.Remove(data, 1, size-1,pipe);
                     else
-                        unique = m_subscriptions.Add(data, 1, pipe);
+                        unique = m_subscriptions.Add(data, 1, size - 1, pipe);
 
                     //  If the subscription is not a duplicate, store it so that it can be
                     //  passed to used on next recv call.
                     if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
-                        m_pending.Enqueue(new Blob(sub.Data));
+                        m_pending.Enqueue(new Blob(sub.Data, sub.Size));
                 }
                 else // process message unrelated to sub/unsub
-                    m_pending.Enqueue(new Blob(sub.Data));
+                {
+                    m_pending.Enqueue(new Blob(sub.Data, sub.Size));
+                }
+                
+                sub.Close();
             }
         }
 
@@ -169,7 +173,7 @@ namespace NetMQ.zmq
             m_dist.Terminated(pipe);
         }
 
-        protected override bool XSend(Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             bool msgMore = msg.HasMore;
 
@@ -180,7 +184,7 @@ namespace NetMQ.zmq
 
             //  Send the message to all the pipes that were marked as matching
             //  in the previous step.
-            m_dist.SendToMatching(msg, flags);
+            m_dist.SendToMatching(ref msg, flags);
 
             //  If we are at the end of multi-part message we can mark all the pipes
             //  as non-matching.
@@ -198,17 +202,20 @@ namespace NetMQ.zmq
             return m_dist.HasOut();
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, out Msg msg)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             //  If there is at least one 
             if (m_pending.Count == 0)
-            {
-                msg = null;
+            {                
                 return false;
             }
 
+            msg.Close();
+            
             Blob first = m_pending.Dequeue();
-            msg = new Msg(first.Data);
+            msg.InitPool(first.Size);
+
+            msg.Put(first.Data,0, first.Size);
 
             return true;
         }

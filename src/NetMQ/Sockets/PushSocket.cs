@@ -13,7 +13,7 @@ namespace NetMQ.Sockets
         {
         }
 
-        protected internal override Msg ReceiveInternal(SendReceiveOptions options, out bool hasMore)
+        public override void Receive(ref Msg msg, SendReceiveOptions options)
         {
             throw new NotSupportedException("Push socket doesn't support receiving");
         }

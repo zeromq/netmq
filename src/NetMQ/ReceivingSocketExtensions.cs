@@ -9,14 +9,27 @@ namespace NetMQ
 {
     public static class ReceivingSocketExtensions
     {
+        #region Byte Array
+
         public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
         {
-            return socket.Receive(options.HasFlag(SendReceiveOptions.DontWait), out hasMore);
-        }
+            Msg msg = new Msg();
+            msg.InitEmpty();
 
-        public static byte[] Receive(this IReceivingSocket socket, out bool hasMore)
-        {
-            return socket.Receive(false, out hasMore);
+            socket.Receive(ref msg, options);
+
+            byte[] data = new byte[msg.Size];
+
+            if (msg.Size > 0)
+            {
+                Buffer.BlockCopy(msg.Data, 0, data, 0, msg.Size);    
+            }
+            
+            hasMore = msg.HasMore;
+
+            msg.Close();
+
+            return data;            
         }
 
         public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options)
@@ -25,32 +38,66 @@ namespace NetMQ
             return socket.Receive(options, out hasMore);
         }
 
+        public static byte[] Receive(this IReceivingSocket socket, bool dontWait, out bool hasMore)
+        {           
+            SendReceiveOptions options =SendReceiveOptions.None;
+
+            if (dontWait)
+            {
+                options |= SendReceiveOptions.DontWait;
+            }
+
+            return socket.Receive(options, out hasMore);  
+        }
+      
+        public static byte[] Receive(this IReceivingSocket socket, out bool hasMore)
+        {
+            return socket.Receive(false, out hasMore);
+        }
+       
         public static byte[] Receive(this IReceivingSocket socket)
         {
             bool hasMore;
             return socket.Receive(false, out hasMore);
         }
 
-        public static string ReceiveString(this IReceivingSocket socket, bool dontWait, out bool hasMore)
+        public static IEnumerable<byte[]> ReceiveMessages(this IReceivingSocket socket)
         {
-            return ReceiveString(socket, Encoding.ASCII, dontWait, out hasMore);
+            bool hasMore = true;
+
+            while (hasMore)
+                yield return socket.Receive(false, out hasMore);
         }
 
-        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, bool dontWait, out bool hasMore)
+        #endregion
+
+        #region Strings
+
+        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options, out bool hasMore)
         {
-            byte[] data = socket.Receive(dontWait, out hasMore);
-            return encoding.GetString(data);
+            Msg msg = new Msg();
+            msg.InitEmpty();
+
+            socket.Receive(ref msg, options);
+
+            hasMore = msg.HasMore;
+
+            string data = string.Empty;
+
+            if (msg.Size > 0)
+            {
+                data = encoding.GetString(msg.Data, 0, msg.Size);
+            }
+
+            msg.Close();
+
+            return data;
         }
 
         public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
         {
-            return socket.ReceiveString(options.HasFlag(SendReceiveOptions.DontWait), out hasMore);
-        }
-
-        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options, out bool hasMore)
-        {
-            return socket.ReceiveString(encoding, options.HasFlag(SendReceiveOptions.DontWait),out hasMore);
-        }
+            return socket.ReceiveString(Encoding.ASCII, options, out hasMore);
+        }        
 
         public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options)
         {
@@ -64,6 +111,23 @@ namespace NetMQ
             return socket.ReceiveString(encoding, options, out hasMore);
         }
 
+        public static string ReceiveString(this IReceivingSocket socket, bool dontWait, out bool hasMore)
+        {
+            return ReceiveString(socket, Encoding.ASCII, dontWait, out hasMore);
+        }
+
+        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, bool dontWait, out bool hasMore)
+        {
+            SendReceiveOptions options = SendReceiveOptions.None;
+
+            if (dontWait)
+            {
+                options |= SendReceiveOptions.DontWait;
+            }
+
+            return socket.ReceiveString(encoding, options, out hasMore);
+        }
+        
         public static string ReceiveString(this IReceivingSocket socket, out bool hasMore)
         {
             return socket.ReceiveString(false, out hasMore);
@@ -107,6 +171,36 @@ namespace NetMQ
             return msg;
         }
 
+        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket)
+        {
+            return ReceiveStringMessages(socket, Encoding.ASCII);
+        }
+
+        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket, Encoding encoding)
+        {
+            bool hasMore = true;
+
+            while (hasMore)
+                yield return socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore);
+        }
+
+        #endregion
+
+        #region NetMQMessge
+
+        public static void ReceiveMessage(this IReceivingSocket socket, NetMQMessage message, bool dontWait = false)
+        {
+            message.Clear();
+
+            bool more = true;
+
+            while (more)
+            {
+                byte[] buffer = socket.Receive(dontWait, out more);
+                message.Append(buffer);
+            }
+        }
+
         public static NetMQMessage ReceiveMessage(this IReceivingSocket socket, bool dontWait = false)
         {
             NetMQMessage message = new NetMQMessage();
@@ -129,41 +223,9 @@ namespace NetMQ
             var msg = socket.ReceiveMessage();
             return msg;
         }
-
-        public static void ReceiveMessage(this IReceivingSocket socket, NetMQMessage message, bool dontWait = false)
-        {
-            message.Clear();
-
-            bool more = true;
-
-            while (more)
-            {
-                byte[] buffer = socket.Receive(dontWait, out more);
-                message.Append(buffer);
-            }
-        }
-
-        public static IEnumerable<byte[]> ReceiveMessages(this IReceivingSocket socket)
-        {
-            bool hasMore = true;
-
-            while (hasMore)
-                yield return socket.Receive(false, out hasMore);
-        }
-
-        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket)
-        {
-            return ReceiveStringMessages(socket, Encoding.ASCII);
-        }
-
-        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket, Encoding encoding)
-        {
-            bool hasMore = true;
-
-            while (hasMore)
-                yield return socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore);
-        }
-
+        
+        #endregion
+               
         [Obsolete("Use ReceiveMessages extension method instead")]
         public static IList<byte[]> ReceiveAll(this IReceivingSocket socket)
         {

@@ -51,6 +51,8 @@ namespace NetMQ.zmq
             Endian = endian;
             m_toRead = 0;
             m_bufsize = bufsize;
+
+            // TODO: use buffer pool
             m_buf = new byte[bufsize];
             State = -1;
         }
@@ -80,7 +82,6 @@ namespace NetMQ.zmq
             }
             return false;
         }
-
 
         //  Returns a buffer to be filled with binary data.
         public void GetBuffer(ref ByteArraySegment data, ref int size)

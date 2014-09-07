@@ -481,21 +481,21 @@ namespace NetMQ.zmq
             return true;
         }
 
-        public void PushMsg(Msg msg)
+        public void PushMsg(ref Msg msg)
         {
             Debug.Assert(m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub);
 
             //  The first message is identity.
             //  Let the session process it.
 
-            m_session.PushMsg(msg);
-
+            m_session.PushMsg(ref msg);
+            
             //  Inject the subscription message so that the ZMQ 2.x peer
             //  receives our messages.
-            msg = new Msg(1);
+            msg.InitPool(1);
             msg.Put((byte)1);
 
-            m_session.PushMsg(msg);
+            m_session.PushMsg(ref msg);
 
             m_session.Flush();
 

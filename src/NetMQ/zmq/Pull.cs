@@ -69,10 +69,9 @@ namespace NetMQ.zmq
             m_fq.Terminated(pipe);
         }
 
-        override
-            protected bool XRecv(SendReceiveOptions flags, out Msg msg)
+        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
-            return m_fq.Recv(out msg);
+            return m_fq.Recv(ref msg);
         }
 
         override
