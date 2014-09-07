@@ -41,7 +41,6 @@ namespace NetMQ.zmq
                     return RawMessageReady();
                 default:
                     return false;
-                    break;
             }
         }
 

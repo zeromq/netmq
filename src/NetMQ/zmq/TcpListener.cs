@@ -177,7 +177,7 @@ namespace NetMQ.zmq
                         // This is not supported on old windows operation system and might throw exception
                         m_handle.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, 0);
                     }
-                    catch (Exception ex)
+                    catch
                     {                        
                     }
                 }
