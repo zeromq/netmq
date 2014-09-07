@@ -96,6 +96,7 @@ Global
 		{82934BAC-07FB-41AC-AE59-46FEE6026A40}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{82934BAC-07FB-41AC-AE59-46FEE6026A40}.Release|x64.ActiveCfg = Release|Any CPU
 		{82934BAC-07FB-41AC-AE59-46FEE6026A40}.Release|x86.ActiveCfg = Release|Any CPU
+		{82934BAC-07FB-41AC-AE59-46FEE6026A40}.Release|x86.Build.0 = Release|Any CPU
 		{0CF55C84-64D1-4E50-BCD2-14F4D39DE2BF}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{0CF55C84-64D1-4E50-BCD2-14F4D39DE2BF}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{0CF55C84-64D1-4E50-BCD2-14F4D39DE2BF}.Debug|Mixed Platforms.Build.0 = Debug|x86
