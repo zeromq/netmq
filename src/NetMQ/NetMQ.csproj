@@ -44,6 +44,9 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InProcActors\Actor.cs" />
+    <Compile Include="InProcActors\IShimHandler.cs" />
+    <Compile Include="InProcActors\Shim.cs" />
     <Compile Include="IReceivingSocket.cs" />
     <Compile Include="NetMQScheduler.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
