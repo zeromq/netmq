@@ -23,6 +23,8 @@ namespace NetMQ.Tests.InProcActors.Echo
     {
 
         private bool shouldRun = true;
+        private bool shouldRaiseException=false;
+
 
         public void Run(PairSocket shim, object[] args, CancellationToken token)
         {
@@ -42,37 +44,26 @@ namespace NetMQ.Tests.InProcActors.Echo
                 //the payload is prefixed with "ECHO BACK "
                 NetMQMessage msg = null;
 
+                //this may throw NetMQException if we have disposed of the actor
+                //end of the pipe, and the CancellationToken.IsCancellationRequested 
+                //did not get picked up this loop cycle
+                msg = shim.ReceiveMessage();
 
 
-                try
+                if (msg == null)
+                    break;
+
+                if (msg[0].ConvertToString() == "ECHO")
                 {
-                    //this may throw NetMQException if we have disposed of the actor
-                    //end of the pipe, and the CancellationToken.IsCancellationRequested 
-                    //did not get picked up this loop cycle
-                    msg = shim.ReceiveMessage();
-
-                    if (token.IsCancellationRequested || !shouldRun)
-                        throw NetMQException.Create("Unexpected command",
-                             ErrorCode.EFAULT);
-
-                    if (msg == null)
-                        break;
-
-                    if (msg[0].ConvertToString() == "ECHO")
-                    {
-                        shim.Send(string.Format("ECHO BACK : {0}",
-                            msg[1].ConvertToString()));
-                    }
-                    else
-                    {
-                        throw NetMQException.Create("Unexpected command",
-                            ErrorCode.EFAULT);
-                    }
+                    shim.Send(string.Format("ECHO BACK : {0}",
+                        msg[1].ConvertToString()));
                 }
-                catch (Exception e)
+                else
                 {
-                    throw;
+                    throw NetMQException.Create("Unexpected command",
+                        ErrorCode.EFAULT);
                 }
+
             }
         }
 

@@ -52,10 +52,6 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                     //did not get picked up this loop cycle
                     msg = shim.ReceiveMessage();
 
-                    if (token.IsCancellationRequested || !shouldRun)
-                        throw NetMQException.Create("Unexpected command",
-                             ErrorCode.EFAULT);
-
                     if (msg == null)
                         break;
 

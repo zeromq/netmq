@@ -20,7 +20,7 @@ namespace NetMQ.Tests.InProcActors.Echo
             AccountAction accountAction = new AccountAction(TransactionType.Credit, 10);
             Account account = new Account(1, "Test Account", "11223", 0);
 
-            Actor accountActor = new Actor(NetMQContext.Create(), accountShimHandler,
+            Actor accountActor = new Actor(NetMQContext.Create(), null,accountShimHandler,
                 new object[] { JsonConvert.SerializeObject(accountAction) });
             accountActor.SendMore("AMEND ACCOUNT");
             accountActor.Send(JsonConvert.SerializeObject(account));

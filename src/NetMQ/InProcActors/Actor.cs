@@ -16,6 +16,7 @@ namespace NetMQ.Actors
     /// </summary>
     public class Actor : IOutgoingSocket, IReceivingSocket, IDisposable
     {
+        private readonly Action<Exception> pipeExceptionCallback;
         private readonly PairSocket self;
         private readonly Shim shim;
         private Random rand = new Random();
@@ -27,8 +28,10 @@ namespace NetMQ.Actors
                 rand.Next(0, 10000), rand.Next(0, 10000));
         }
 
-        public Actor(NetMQContext context, IShimHandler shimHandler, object[] args)
+        public Actor(NetMQContext context, Action<Exception> pipeExceptionCallback, 
+            IShimHandler shimHandler, object[] args)
         {
+            this.pipeExceptionCallback = pipeExceptionCallback;
             this.self = context.CreatePairSocket();
             this.shim = new Shim(shimHandler, context.CreatePairSocket());
             this.self.Options.SendHighWatermark = 1000;
@@ -78,13 +81,14 @@ namespace NetMQ.Actors
             shimTask.ContinueWith(ant =>
             {
                 if (ant.Exception == null) return;
+                if (pipeExceptionCallback == null) return;
 
-                Exception = ant.Exception.Flatten().GetBaseException();
+                var ex = ant.Exception.Flatten().GetBaseException();
+                pipeExceptionCallback(ex);
             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
 
-        public Exception Exception { get; set; }
 
         ~Actor()
         {

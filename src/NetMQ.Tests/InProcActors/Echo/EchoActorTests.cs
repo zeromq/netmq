@@ -16,7 +16,7 @@ namespace NetMQ.Tests.InProcActors.Echo
         public void EchoActorSendReceiveTests(string actorMessage)
         {
             EchoShimHandler echoShimHandler = new EchoShimHandler();
-            Actor actor = new Actor(NetMQContext.Create(), echoShimHandler, new object[] { "Hello World" });
+            Actor actor = new Actor(NetMQContext.Create(), null,echoShimHandler, new object[] { "Hello World" });
             actor.SendMore("ECHO");
             actor.Send(actorMessage);
             var result = actor.ReceiveString();
@@ -25,29 +25,23 @@ namespace NetMQ.Tests.InProcActors.Echo
             actor.Dispose();            
         }
 
-        //[TestCase("One")]
-        ////[ExpectedException(typeof(NetMQException))]
-        //public void ExceptionIsRaisedWhenTryingToUseDisposedActor(string actorMessage)
-        //{
-        //    EchoShimHandler echoShimHandler = new EchoShimHandler();
-        //    Actor actor = new Actor(NetMQContext.Create(), echoShimHandler, new object[] { "Hello World" });
-        //    actor.SendMore("ECHO");
-        //    actor.Send(actorMessage);
-        //    var result = actor.ReceiveString();
-        //    string expectedEchoHandlerResult = string.Format("ECHO BACK : {0}", actorMessage);
-        //    Assert.AreEqual(expectedEchoHandlerResult, result);
-        //    actor.Dispose();
-        //    GC.WaitForPendingFinalizers();
-          
-
-
-        //    //should not work, as Actor was just disposed
-        //    actor.SendMore("ECHO");
-        //    actor.Send(actorMessage);
-        //    result = actor.ReceiveString();
-        //    Assert.AreEqual(typeof(NetMQException), actor.Exception.GetType());
-            
-        //}
-  
+        [TestCase("BadCommand1")]
+        public void BadCommandTests(string command)
+        {
+            string actorMessage = "whatever";
+            EchoShimHandler echoShimHandler = new EchoShimHandler();
+            Action<Exception> pipeExceptionHandler = (ex) =>
+            {
+                Assert.AreEqual("Unexpected command",ex.Message);
+            };
+            Actor actor = new Actor(NetMQContext.Create(), pipeExceptionHandler, echoShimHandler, new object[] { "Hello World" });
+            actor.SendMore(command);
+            actor.Send(actorMessage);
+            var result = actor.ReceiveString();
+            string expectedEchoHandlerResult = string.Format("ECHO BACK : {0}", actorMessage);
+            Assert.AreEqual(expectedEchoHandlerResult, result);
+            actor.Dispose();
+        }
+ 
     }
 }
