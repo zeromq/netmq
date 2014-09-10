@@ -22,7 +22,6 @@
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.ServiceModel.Channels;
 using System.Text;
 
 namespace NetMQ.zmq
@@ -46,27 +45,6 @@ namespace NetMQ.zmq
         Pool = 103,
         Delimiter = 104,
         Max = 104
-    }
-
-    public static class BufferPool
-    {
-        private static BufferManager m_bufferManager;
-
-        static BufferPool()
-        {
-            // One Mega of buffer pool and maximum buffer of 1k
-            m_bufferManager = BufferManager.CreateBufferManager(1024 * 1024 * 1024, 1024);
-        }        
-
-        public static byte[] Take(int size)
-        {
-            return m_bufferManager.TakeBuffer(size);
-        }
-
-        public static void Return(byte[] buffer)
-        {
-            m_bufferManager.ReturnBuffer(buffer);
-        }
     }
 
     public struct Msg
