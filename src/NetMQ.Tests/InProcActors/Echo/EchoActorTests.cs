@@ -16,7 +16,7 @@ namespace NetMQ.Tests.InProcActors.Echo
         public void EchoActorSendReceiveTests(string actorMessage)
         {
             EchoShimHandler echoShimHandler = new EchoShimHandler();
-            Actor actor = new Actor(NetMQContext.Create(), null,echoShimHandler, new object[] { "Hello World" });
+            Actor<string> actor = new Actor<string>(NetMQContext.Create(), echoShimHandler, "Hello World");
             actor.SendMore("ECHO");
             actor.Send(actorMessage);
             var result = actor.ReceiveString();
@@ -30,17 +30,32 @@ namespace NetMQ.Tests.InProcActors.Echo
         {
             string actorMessage = "whatever";
             EchoShimHandler echoShimHandler = new EchoShimHandler();
-            Action<Exception> pipeExceptionHandler = (ex) =>
-            {
-                Assert.AreEqual("Unexpected command",ex.Message);
-            };
-            Actor actor = new Actor(NetMQContext.Create(), pipeExceptionHandler, echoShimHandler, new object[] { "Hello World" });
+            Actor<string> actor = new Actor<string>(NetMQContext.Create(), echoShimHandler, "Hello World");
             actor.SendMore(command);
             actor.Send(actorMessage);
             var result = actor.ReceiveString();
-            string expectedEchoHandlerResult = string.Format("ECHO BACK : {0}", actorMessage);
+            string expectedEchoHandlerResult = "Error: invalid message to actor";
             Assert.AreEqual(expectedEchoHandlerResult, result);
             actor.Dispose();
+        }
+
+        [TestCase("")]
+        [TestCase("12131")]
+        [TestCase("Hello")]
+        public void BadStatePassedToActor(string stateForActor)
+        {
+            string actorMessage = "whatever";
+            EchoShimHandler echoShimHandler = new EchoShimHandler();
+            
+            try
+            {
+                //this will throw in this testcase, asw are supplying bad state for this EchoHandler
+                Actor<string> actor = new Actor<string>(NetMQContext.Create(), echoShimHandler, stateForActor);
+            }
+            catch (Exception e)
+            {
+                Assert.AreEqual("Args were not correct, expected 'Hello World'", e.Message);
+            }
         }
  
     }

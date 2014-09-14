@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+
 namespace NetMQ.Tests.InProcActors.AccountJSON
 {
     public enum TransactionType { Debit = 1, Credit = 2 }

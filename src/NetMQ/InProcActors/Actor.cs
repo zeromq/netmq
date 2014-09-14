@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using NetMQ.InProcActors;
 using NetMQ.Sockets;
 using System.Threading.Tasks;
 using NetMQ.zmq;
@@ -14,13 +15,12 @@ namespace NetMQ.Actors
     /// the actor may be passed messages, that are sent to the other end of the pipe
     /// which I am calling the "shim"
     /// </summary>
-    public class Actor : IOutgoingSocket, IReceivingSocket, IDisposable
+    public class Actor<T> : IOutgoingSocket, IReceivingSocket, IDisposable
     {
-        private readonly Action<Exception> pipeExceptionCallback;
         private readonly PairSocket self;
-        private readonly Shim shim;
+        private readonly Shim<T> shim;
         private Random rand = new Random();
-        private CancellationTokenSource cts = new CancellationTokenSource();
+        private T state;
 
         private string GetEndPointName()
         {
@@ -28,14 +28,14 @@ namespace NetMQ.Actors
                 rand.Next(0, 10000), rand.Next(0, 10000));
         }
 
-        public Actor(NetMQContext context, Action<Exception> pipeExceptionCallback, 
-            IShimHandler shimHandler, object[] args)
+        public Actor(NetMQContext context,
+            IShimHandler<T> shimHandler, T state)
         {
-            this.pipeExceptionCallback = pipeExceptionCallback;
             this.self = context.CreatePairSocket();
-            this.shim = new Shim(shimHandler, context.CreatePairSocket());
+            this.shim = new Shim<T>(shimHandler, context.CreatePairSocket());
             this.self.Options.SendHighWatermark = 1000;
             this.self.Options.SendHighWatermark = 1000;
+            this.state = state;
 
             //now binding and connect pipe ends
             string endPoint = string.Empty;
@@ -64,30 +64,24 @@ namespace NetMQ.Actors
 
             shim.Pipe.Connect(endPoint);
 
+            //Initialise the shim handler
+            this.shim.Handler.Initialise(state);
+
             //Create Shim thread handler
-            CreateShimThread(args);
+            CreateShimThread(state);
         }
 
-        private void CreateShimThread(object[] args)
+
+       
+
+
+        private void CreateShimThread(T state)
         {
+            //start Shim thread
             Task shimTask = Task.Factory.StartNew(
-                (state) => this.shim.Handler.Run(this.shim.Pipe, (object[])state, cts.Token),
-                args,
-                cts.Token,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
-
-
-            shimTask.ContinueWith(ant =>
-            {
-                if (ant.Exception == null) return;
-                if (pipeExceptionCallback == null) return;
-
-                var ex = ant.Exception.Flatten().GetBaseException();
-                pipeExceptionCallback(ex);
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                x => this.shim.Handler.RunPipeline(this.shim.Pipe),
+                TaskCreationOptions.LongRunning);
         }
-
 
 
         ~Actor()
@@ -101,20 +95,17 @@ namespace NetMQ.Actors
             GC.SuppressFinalize(this);
         }
 
-        public void Cancel()
-        {
-            //cancel shim thread
-            cts.Cancel();
-        }
-
         protected virtual void Dispose(bool disposing)
         {
 
             // release other disposable objects
             if (disposing)
             {
+                //send destroy message to pipe
+                self.Send(ActorKnownMessages.END_PIPE);
+
+                //Dispose of own socket
                 if (self != null) self.Dispose();
-                if (shim != null) shim.Dispose();
             }
         }
 

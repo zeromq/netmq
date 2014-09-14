@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -8,7 +9,7 @@ using NetMQ.Sockets;
 using NetMQ.zmq;
 using NetMQ.Actors;
 
-namespace NetMQ.Tests.InProcActors.Echo
+namespace NetMQ.Tests.InProcActors.ShimExceptionExample
 {
     /// <summary>
     /// This hander class is specific implementation that you would need
@@ -29,14 +30,12 @@ namespace NetMQ.Tests.InProcActors.Echo
     ///    break out of the while loop, and dispose of the shim socket
     /// 3. When an Exception occurs you should send that down the wire to Actors calling code
     /// </summary>
-    public class EchoShimHandler : IShimHandler<string>
+    public class ExceptionShimHandler : IShimHandler<object>
     {
 
-        public void Initialise(string state)
+        public void Initialise(object state)
         {
-            if (string.IsNullOrEmpty(state) || state != "Hello World")
-                throw new InvalidOperationException(
-                    "Args were not correct, expected 'Hello World'");
+ 
         }
 
 
@@ -47,12 +46,6 @@ namespace NetMQ.Tests.InProcActors.Echo
             {
                 try
                 {
-                    //Message for this actor/shim handler is expected to be 
-                    //Frame[0] : Command
-                    //Frame[1] : Payload
-                    //
-                    //Result back to actor is a simple echoing of the Payload, where
-                    //the payload is prefixed with "ECHO BACK "
                     NetMQMessage msg = shim.ReceiveMessage();
 
                     string command = msg[0].ConvertToString();
@@ -60,15 +53,12 @@ namespace NetMQ.Tests.InProcActors.Echo
                     if (command == ActorKnownMessages.END_PIPE)
                         break;
 
-                    if (command == "ECHO")
-                    {
-                        shim.Send(string.Format("ECHO BACK : {0}",
-                            msg[1].ConvertToString()));
-                    }
-                    else
-                    {
-                        shim.Send("Error: invalid message to actor");
-                    }
+                    //Simulate a failure that should be sent back to Actor
+                    //Simulate a failure that should be sent back to Actor
+                    //Simulate a failure that should be sent back to Actor
+                    //Simulate a failure that should be sent back to Actor
+                    throw new InvalidOperationException("Actors Shim threw an Exception"); 
+
                 }
                 catch (Exception e)
                 {

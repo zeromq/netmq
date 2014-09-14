@@ -65,6 +65,8 @@
     <Compile Include="InProcActors\AccountJSON\AccountAction.cs" />
     <Compile Include="InProcActors\AccountJSON\AccountShimHandler.cs" />
     <Compile Include="InProcActors\AccountJSON\AccountActorTests.cs" />
+    <Compile Include="InProcActors\ExceptionShimExample\ExceptionShimActorTests.cs" />
+    <Compile Include="InProcActors\ExceptionShimExample\ExceptionShimHandler.cs" />
     <Compile Include="InProcActors\Echo\EchoShimHandler.cs" />
     <Compile Include="InProcActors\Echo\EchoActorTests.cs" />
     <Compile Include="XPubSubTests.cs" />

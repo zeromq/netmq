@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="InProcActors\Actor.cs" />
     <Compile Include="InProcActors\IShimHandler.cs" />
+    <Compile Include="InProcActors\KnownMessages.cs" />
     <Compile Include="InProcActors\Shim.cs" />
     <Compile Include="IReceivingSocket.cs" />
     <Compile Include="NetMQScheduler.cs" />

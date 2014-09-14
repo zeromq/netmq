@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using NetMQ.InProcActors;
 using NetMQ.Sockets;
 using NetMQ.zmq;
 using NetMQ.Actors;
@@ -19,65 +20,69 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
     /// 
     /// This is a VERY simple protocol but it just demonstrates what you would need
     /// to do to implement your own Shim handler
+    /// 
+    /// The only things you MUST do is to follow this example for handling
+    /// a fews things
+    /// 
+    /// 1. Bad commands should always send the following message
+    ///    "Error: invalid message to actor"
+    /// 2. When we recieve a command from the actor telling us to exit the pipeline we should immediately
+    ///    break out of the while loop, and dispose of the shim socket
+    /// 3. When an Exception occurs you should send that down the wire to Actors calling code
     /// </summary>
-    public class AccountShimHandler : IShimHandler, IDisposable
+    public class AccountShimHandler : IShimHandler<object>
     {
 
-        private bool shouldRun = true;
-
-        public void Run(PairSocket shim, object[] args, CancellationToken token)
+        public void Initialise(object state)
         {
-            if (args == null || args.Count() != 1)
-                throw new InvalidOperationException(
-                    "Args were not correct, expected one argument");
+            //not used in this example
+        }
 
-            AccountAction accountAction = JsonConvert.DeserializeObject<AccountAction>(args[0].ToString());
 
-            while (shouldRun)
+        public void RunPipeline(PairSocket shim)
+        {
+
+            while (true)
             {
-                token.ThrowIfCancellationRequested();
-
-                //Message for this actor/shim handler is expected to be 
-                //Frame[0] : Command
-                //Frame[1] : Payload
-                //
-                //Result back to actor is a simple echoing of the Payload, where
-                //the payload is prefixed with "ECHO BACK "
-                NetMQMessage msg = null;
-
                 try
                 {
-                    //this may throw NetMQException if we have disposed of the actor
-                    //end of the pipe, and the CancellationToken.IsCancellationRequested 
-                    //did not get picked up this loop cycle
-                    msg = shim.ReceiveMessage();
+                    //Message for this actor/shim handler is expected to be 
+                    //Frame[0] : Command
+                    //Frame[2] : AccountAction as JSON
+                    //Frame[1] : Account as JSON
+                    //
+                    //Result back to actor is a JSON message of the amended Account
+                    NetMQMessage msg = shim.ReceiveMessage();
 
-                    if (msg == null)
+                    string command = msg[0].ConvertToString();
+
+                    if (command == ActorKnownMessages.END_PIPE)
                         break;
 
                     if (msg[0].ConvertToString() == "AMEND ACCOUNT")
                     {
-                        string json = msg[1].ConvertToString();
-                        Account account = JsonConvert.DeserializeObject<Account>(json);
+                        string accountActionJson = msg[1].ConvertToString();
+                        AccountAction accountAction = JsonConvert.DeserializeObject<AccountAction>(accountActionJson);
+                        
+                        string accountJson = msg[2].ConvertToString();
+                        Account account = JsonConvert.DeserializeObject<Account>(accountJson);
                         AmmendAccount(accountAction, account);
                         shim.Send(JsonConvert.SerializeObject(account));
                     }
+
                     else
                     {
-                        throw NetMQException.Create("Unexpected command",
-                            ErrorCode.EFAULT);
+                        shim.Send("Error: invalid message to actor");
                     }
                 }
                 catch (Exception e)
                 {
-                    throw;
+                    shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
                 }
             }
-        }
 
-        public void Dispose()
-        {
-            shouldRun = false;
+            //broken out of work loop, so should dispose shim socket now
+            shim.Dispose();
         }
 
 
@@ -90,3 +95,4 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
         }
     }
 }
+

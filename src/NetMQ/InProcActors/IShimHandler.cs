@@ -8,10 +8,13 @@ using NetMQ.Sockets;
 namespace NetMQ.Actors
 {
     /// <summary>
-    /// Simple interface that all shims should implement
+    /// Simple interface that all shims should implement. 
+    /// T is the initial state that the <c>Actor</c> will provide
     /// </summary>
-    public interface IShimHandler : IDisposable
+    public interface IShimHandler<T>
     {
-        void Run(PairSocket shim, object[] args, CancellationToken token);
+        void Initialise(T state);
+
+        void RunPipeline(PairSocket shim);
     }
 }
