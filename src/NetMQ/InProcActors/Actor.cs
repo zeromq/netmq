@@ -81,6 +81,15 @@ namespace NetMQ.Actors
             Task shimTask = Task.Factory.StartNew(
                 x => this.shim.Handler.RunPipeline(this.shim.Pipe),
                 TaskCreationOptions.LongRunning);
+
+            //pipeline dead if task completed, no matter what state it completed in
+            //it is unusable to the Actors socket, to dispose of Actors socket
+            shimTask.ContinueWith(antecedant =>
+            {
+                //Dispose of own socket
+                if (self != null) self.Dispose();
+
+            });
         }
 
 
@@ -103,9 +112,6 @@ namespace NetMQ.Actors
             {
                 //send destroy message to pipe
                 self.Send(ActorKnownMessages.END_PIPE);
-
-                //Dispose of own socket
-                if (self != null) self.Dispose();
             }
         }
 

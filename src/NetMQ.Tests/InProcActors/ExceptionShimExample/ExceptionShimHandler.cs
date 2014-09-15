@@ -57,10 +57,12 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
                     //Simulate a failure that should be sent back to Actor
                     //Simulate a failure that should be sent back to Actor
                     //Simulate a failure that should be sent back to Actor
-                    throw new InvalidOperationException("Actors Shim threw an Exception"); 
+                    throw new InvalidOperationException("Actors Shim threw an Exception");
 
                 }
-                catch (Exception e)
+                //You WILL need to decide what Exceptions should be caught here, this is for 
+                //demonstration purposes only, any unhandled falut will bubble up to callers code
+                catch (InvalidOperationException e)
                 {
                     shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
                 }

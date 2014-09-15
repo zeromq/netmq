@@ -75,6 +75,8 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                         shim.Send("Error: invalid message to actor");
                     }
                 }
+                //You WILL need to decide what Exceptions should be caught here, this is for 
+                //demonstration purposes only, any unhandled falut will bubble up to callers code
                 catch (Exception e)
                 {
                     shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
