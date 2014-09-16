@@ -35,6 +35,10 @@
     <StartupObject>NetMQ.Tests.NetMQTestRunner</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="nunit-console-runner">
       <HintPath>..\Lib\nunit-console-runner.dll</HintPath>
     </Reference>
@@ -57,6 +61,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteArraySegmentTests.cs" />
+    <Compile Include="InProcActors\AccountJSON\Account.cs" />
+    <Compile Include="InProcActors\AccountJSON\AccountAction.cs" />
+    <Compile Include="InProcActors\AccountJSON\AccountShimHandler.cs" />
+    <Compile Include="InProcActors\AccountJSON\AccountActorTests.cs" />
+    <Compile Include="InProcActors\ExceptionShimExample\ExceptionShimActorTests.cs" />
+    <Compile Include="InProcActors\ExceptionShimExample\ExceptionShimHandler.cs" />
+    <Compile Include="InProcActors\Echo\EchoShimHandler.cs" />
+    <Compile Include="InProcActors\Echo\EchoActorTests.cs" />
     <Compile Include="XPubSubTests.cs" />
     <Compile Include="Devices\DeviceTestBase.cs" />
     <Compile Include="Devices\ForwarderDeviceTests.cs" />
@@ -95,6 +107,7 @@
     <None Include="NetMQ.Testing.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
