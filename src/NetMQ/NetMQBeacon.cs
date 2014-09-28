@@ -10,7 +10,17 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
-    public class NetMQBeacon : IDisposable
+    public class NetMQBeaconEventArgs : EventArgs
+    {
+        public NetMQBeaconEventArgs(NetMQBeacon beacon)
+        {
+            Beacon = beacon;
+        }
+
+        public NetMQBeacon Beacon { get; private set; }
+    }
+
+    public class NetMQBeacon : IDisposable, ISocketPollable
     {
         public const int UdpFrameMax = 255;
 
@@ -218,10 +228,37 @@ namespace NetMQ
         private Agent m_agent;
         private Actor<object> m_actor;
 
+        private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;        
+
         public NetMQBeacon(NetMQContext context)
         {
             m_agent = new Agent();
             m_actor = new Actor<object>(context, m_agent, null);
+
+            m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(() => m_actor.ReceiveReady += OnReceiveReady,
+                ()=> m_actor.ReceiveReady -= OnReceiveReady);
+        }
+
+        NetMQSocket ISocketPollable.Socket
+        {
+            get { return (m_actor as ISocketPollable).Socket; }
+        }       
+
+        public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
+        {
+            add
+            {
+                m_receiveEventHelper.Event += value;
+            }
+            remove
+            {
+                m_receiveEventHelper.Event -= value;
+            }
+        }
+
+        private void OnReceiveReady(object sender, NetMQActorEventArgs<object> args)
+        {
+            m_receiveEventHelper.Fire(this, new NetMQBeaconEventArgs(this));
         }
 
         public void Configure(int port)
@@ -261,5 +298,7 @@ namespace NetMQ
         {
             m_actor.Dispose();
         }
+
+      
     }
 }

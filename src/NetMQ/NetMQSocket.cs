@@ -6,7 +6,7 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, IDisposable
+    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket,ISocketPollable, IDisposable
     {
         readonly SocketBase m_socketHandle;
         private bool m_isClosed = false;
@@ -89,6 +89,11 @@ namespace NetMQ
             {
                 return m_socketHandle;
             }
+        }
+
+        NetMQSocket ISocketPollable.Socket
+        {
+            get { return this; }
         }
 
         /// <summary>
@@ -235,9 +240,7 @@ namespace NetMQ
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {                        
             m_socketHandle.Recv(ref msg, options);                        
-        }
-
-       
+        }       
                     
         public virtual void Send(ref Msg msg, SendReceiveOptions options)
         {

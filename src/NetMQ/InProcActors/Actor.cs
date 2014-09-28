@@ -10,17 +10,30 @@ using NetMQ.zmq;
 
 namespace NetMQ.Actors
 {
+    public class NetMQActorEventArgs<T> : EventArgs
+    {
+        public NetMQActorEventArgs(Actor<T> actor)
+        {
+            Actor = actor;
+        }
+
+        public Actor<T> Actor { get; private set; }
+    }
+
     /// <summary>
     /// The Actor represents one end of a two way pipe between 2 PairSocket(s). Where
     /// the actor may be passed messages, that are sent to the other end of the pipe
     /// which I am calling the "shim"
     /// </summary>
-    public class Actor<T> : IOutgoingSocket, IReceivingSocket, IDisposable
+    public class Actor<T> : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
         private readonly PairSocket m_self;
         private readonly Shim<T> m_shim;
         private readonly Random rand = new Random();
         private T m_state;
+
+        private EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
+        private EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
 
         private string GetEndPointName()
         {
@@ -36,6 +49,11 @@ namespace NetMQ.Actors
             this.m_self.Options.SendHighWatermark = 1000;
             this.m_self.Options.SendHighWatermark = 1000;
             this.m_state = state;
+
+            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(() => m_self.ReceiveReady += OnReceive,
+                () => m_self.ReceiveReady += OnReceive);
+            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(() => m_self.SendReady += OnReceive,
+                () => m_self.SendReady += OnSend);
 
             //now binding and connect pipe ends
             string endPoint = string.Empty;
@@ -74,7 +92,36 @@ namespace NetMQ.Actors
             //  when actor has also initialized. This eliminates timing issues at
             //  application start up.
             m_self.WaitForSignal();
-        }       
+        }
+
+      
+
+        public event EventHandler<NetMQActorEventArgs<T>> ReceiveReady
+        {
+            add { m_receiveEventDelegatorHelper.Event += value; }
+            remove { m_receiveEventDelegatorHelper.Event -= value; }
+        }
+
+        public event EventHandler<NetMQActorEventArgs<T>> SendReady
+        {
+            add { m_sendEventDelegatorHelper.Event += value; }
+            remove { m_sendEventDelegatorHelper.Event -= value; }
+        }
+
+        NetMQSocket ISocketPollable.Socket
+        {
+            get { return m_self; }
+        }
+
+        private void OnReceive(object sender, NetMQSocketEventArgs e)
+        {
+            m_receiveEventDelegatorHelper.Fire(this, new NetMQActorEventArgs<T>(this));
+        }
+
+        private void OnSend(object sender, NetMQSocketEventArgs e)
+        {
+            m_sendEventDelegatorHelper.Fire(this, new NetMQActorEventArgs<T>(this));
+        }
 
         private void CreateShimThread(T state)
         {
