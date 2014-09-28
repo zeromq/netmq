@@ -225,7 +225,29 @@ namespace NetMQ
         }
         
         #endregion
-               
+
+        #region Signals
+
+        public static bool WaitForSignal(this IReceivingSocket socket)
+        {
+            while (true)
+            {
+                var message = socket.ReceiveMessage();
+
+                if (message.FrameCount == 1 && message.First.MessageSize == 8)
+                {
+                    long signalValue = message.First.ConvertToInt64();
+
+                    if ((signalValue & 0x7FFFFFFFFFFFFF00L) == 0x7766554433221100L)
+                    {
+                        return (signalValue & 255) == 0;
+                    }
+                }
+            }
+        }
+
+        #endregion
+
         [Obsolete("Use ReceiveMessages extension method instead")]
         public static IList<byte[]> ReceiveAll(this IReceivingSocket socket)
         {

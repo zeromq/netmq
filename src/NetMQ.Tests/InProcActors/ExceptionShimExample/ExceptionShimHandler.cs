@@ -41,6 +41,7 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
 
         public void RunPipeline(PairSocket shim)
         {
+            shim.SignalOK();
 
             while (true)
             {

@@ -41,6 +41,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
 
         public void RunPipeline(PairSocket shim)
         {
+            shim.SignalOK();
 
             while (true)
             {

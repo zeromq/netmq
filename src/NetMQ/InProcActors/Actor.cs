@@ -17,10 +17,10 @@ namespace NetMQ.Actors
     /// </summary>
     public class Actor<T> : IOutgoingSocket, IReceivingSocket, IDisposable
     {
-        private readonly PairSocket self;
-        private readonly Shim<T> shim;
-        private Random rand = new Random();
-        private T state;
+        private readonly PairSocket m_self;
+        private readonly Shim<T> m_shim;
+        private readonly Random rand = new Random();
+        private T m_state;
 
         private string GetEndPointName()
         {
@@ -31,11 +31,11 @@ namespace NetMQ.Actors
         public Actor(NetMQContext context,
             IShimHandler<T> shimHandler, T state)
         {
-            this.self = context.CreatePairSocket();
-            this.shim = new Shim<T>(shimHandler, context.CreatePairSocket());
-            this.self.Options.SendHighWatermark = 1000;
-            this.self.Options.SendHighWatermark = 1000;
-            this.state = state;
+            this.m_self = context.CreatePairSocket();
+            this.m_shim = new Shim<T>(shimHandler, context.CreatePairSocket());
+            this.m_self.Options.SendHighWatermark = 1000;
+            this.m_self.Options.SendHighWatermark = 1000;
+            this.m_state = state;
 
             //now binding and connect pipe ends
             string endPoint = string.Empty;
@@ -44,7 +44,7 @@ namespace NetMQ.Actors
                 Action bindAction = () =>
                 {
                     endPoint = GetEndPointName();
-                    self.Bind(endPoint);
+                    m_self.Bind(endPoint);
                 };
 
                 try
@@ -62,24 +62,25 @@ namespace NetMQ.Actors
 
             }
 
-            shim.Pipe.Connect(endPoint);
+            m_shim.Pipe.Connect(endPoint);
 
             //Initialise the shim handler
-            this.shim.Handler.Initialise(state);
+            this.m_shim.Handler.Initialise(state);
 
             //Create Shim thread handler
             CreateShimThread(state);
-        }
 
-
-       
-
+            //  Mandatory handshake for new actor so that constructor returns only
+            //  when actor has also initialized. This eliminates timing issues at
+            //  application start up.
+            m_self.WaitForSignal();
+        }       
 
         private void CreateShimThread(T state)
         {
             //start Shim thread
             Task shimTask = Task.Factory.StartNew(
-                x => this.shim.Handler.RunPipeline(this.shim.Pipe),
+                x => this.m_shim.Handler.RunPipeline(this.m_shim.Pipe),
                 TaskCreationOptions.LongRunning);
 
             //pipeline dead if task completed, no matter what state it completed in
@@ -87,7 +88,7 @@ namespace NetMQ.Actors
             shimTask.ContinueWith(antecedant =>
             {
                 //Dispose of own socket
-                if (self != null) self.Dispose();
+                if (m_self != null) m_self.Dispose();
 
             });
         }
@@ -111,18 +112,18 @@ namespace NetMQ.Actors
             if (disposing)
             {
                 //send destroy message to pipe
-                self.Send(ActorKnownMessages.END_PIPE);
+                m_self.Send(ActorKnownMessages.END_PIPE);
             }
         }
 
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
-            self.Send(ref msg, options);
+            m_self.Send(ref msg, options);
         }
 
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
-            self.Receive(ref msg, options);
+            m_self.Receive(ref msg, options);
         }
     }
 }
