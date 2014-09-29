@@ -60,6 +60,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BeaconTests.cs" />
     <Compile Include="ByteArraySegmentTests.cs" />
     <Compile Include="InProcActors\AccountJSON\Account.cs" />
     <Compile Include="InProcActors\AccountJSON\AccountAction.cs" />

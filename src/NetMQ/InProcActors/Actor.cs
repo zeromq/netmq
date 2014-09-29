@@ -127,17 +127,35 @@ namespace NetMQ.Actors
         {
             //start Shim thread
             Task shimTask = Task.Factory.StartNew(
-                x => this.m_shim.Handler.RunPipeline(this.m_shim.Pipe),
-                TaskCreationOptions.LongRunning);
+                x =>
+                {
+                    try
+                    {
+                        this.m_shim.Handler.RunPipeline(this.m_shim.Pipe);
+                    }
+                    catch (TerminatingException)
+                    {
 
-            //pipeline dead if task completed, no matter what state it completed in
-            //it is unusable to the Actors socket, to dispose of Actors socket
-            shimTask.ContinueWith(antecedant =>
-            {
-                //Dispose of own socket
-                if (m_self != null) m_self.Dispose();
+                    }          
+                    catch (Exception)
+                    {
+                        throw;
+                    }
 
-            });
+                    //  Do not block, if the other end of the pipe is already deleted
+                    m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
+
+                    try
+                    {
+                        m_shim.Pipe.SignalOK();
+                    }
+                    catch (AgainException)
+                    {                                                
+                    }
+
+                    m_shim.Pipe.Dispose();
+                },
+                TaskCreationOptions.LongRunning);            
         }
 
 
@@ -154,12 +172,22 @@ namespace NetMQ.Actors
 
         protected virtual void Dispose(bool disposing)
         {
-
             // release other disposable objects
             if (disposing)
             {
                 //send destroy message to pipe
-                m_self.Send(ActorKnownMessages.END_PIPE);
+                m_self.Options.SendTimeout = TimeSpan.Zero;
+                try
+                {
+                    m_self.Send(ActorKnownMessages.END_PIPE);
+                    m_self.WaitForSignal();
+                }
+                catch (AgainException ex)
+                {
+                                        
+                }                                
+
+                m_self.Dispose();
             }
         }
 

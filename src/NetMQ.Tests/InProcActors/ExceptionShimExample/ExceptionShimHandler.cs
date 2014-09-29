@@ -54,10 +54,7 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
                     if (command == ActorKnownMessages.END_PIPE)
                         break;
 
-                    //Simulate a failure that should be sent back to Actor
-                    //Simulate a failure that should be sent back to Actor
-                    //Simulate a failure that should be sent back to Actor
-                    //Simulate a failure that should be sent back to Actor
+                    //Simulate a failure that should be sent back to Actor                    
                     throw new InvalidOperationException("Actors Shim threw an Exception");
 
                 }
@@ -69,8 +66,7 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
                 }
             }
 
-            //broken out of work loop, so should dispose shim socket now
-            shim.Dispose();
+  
         }
          
 

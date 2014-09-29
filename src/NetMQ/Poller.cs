@@ -50,7 +50,7 @@ namespace NetMQ
             m_cancellationTokenSource = new CancellationTokenSource();
         }
 
-        public Poller(params NetMQSocket[] sockets)
+        public Poller(params ISocketPollable[] sockets)
             : this()
         {
             if (sockets == null)

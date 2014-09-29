@@ -82,12 +82,8 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                 {
                     shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
                 }
-            }
-
-            //broken out of work loop, so should dispose shim socket now
-            shim.Dispose();
+            }        
         }
-
 
         private void AmmendAccount(AccountAction action, Account account)
         {
