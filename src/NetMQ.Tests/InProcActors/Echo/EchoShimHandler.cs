@@ -42,6 +42,7 @@ namespace NetMQ.Tests.InProcActors.Echo
 
         public void RunPipeline(PairSocket shim)
         {
+            shim.SignalOK();
 
             while (true)
             {
@@ -78,8 +79,7 @@ namespace NetMQ.Tests.InProcActors.Echo
                 }
             }
 
-            //broken out of work loop, so should dispose shim socket now
-            shim.Dispose();
+         
         }
          
 

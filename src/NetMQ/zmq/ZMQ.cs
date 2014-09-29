@@ -316,9 +316,9 @@ namespace NetMQ.zmq
                     }
                 }
 
-                inset.AddRange(readList.Where(x => x.Connected));
-                outset.AddRange(writeList.Where(x => x.Connected));
-                errorset.AddRange(errorList.Where(x => x.Connected));
+                inset.AddRange(readList.Where(x => x.Connected || x.ProtocolType != ProtocolType.Tcp));
+                outset.AddRange(writeList.Where(x => x.Connected || x.ProtocolType != ProtocolType.Tcp));
+                errorset.AddRange(errorList.Where(x => x.Connected || x.ProtocolType != ProtocolType.Tcp));
 
                 try
                 {

@@ -10,17 +10,30 @@ using NetMQ.zmq;
 
 namespace NetMQ.Actors
 {
+    public class NetMQActorEventArgs<T> : EventArgs
+    {
+        public NetMQActorEventArgs(Actor<T> actor)
+        {
+            Actor = actor;
+        }
+
+        public Actor<T> Actor { get; private set; }
+    }
+
     /// <summary>
     /// The Actor represents one end of a two way pipe between 2 PairSocket(s). Where
     /// the actor may be passed messages, that are sent to the other end of the pipe
     /// which I am calling the "shim"
     /// </summary>
-    public class Actor<T> : IOutgoingSocket, IReceivingSocket, IDisposable
+    public class Actor<T> : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
-        private readonly PairSocket self;
-        private readonly Shim<T> shim;
-        private Random rand = new Random();
-        private T state;
+        private readonly PairSocket m_self;
+        private readonly Shim<T> m_shim;
+        private readonly Random rand = new Random();
+        private T m_state;
+
+        private EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
+        private EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
 
         private string GetEndPointName()
         {
@@ -31,11 +44,16 @@ namespace NetMQ.Actors
         public Actor(NetMQContext context,
             IShimHandler<T> shimHandler, T state)
         {
-            this.self = context.CreatePairSocket();
-            this.shim = new Shim<T>(shimHandler, context.CreatePairSocket());
-            this.self.Options.SendHighWatermark = 1000;
-            this.self.Options.SendHighWatermark = 1000;
-            this.state = state;
+            this.m_self = context.CreatePairSocket();
+            this.m_shim = new Shim<T>(shimHandler, context.CreatePairSocket());
+            this.m_self.Options.SendHighWatermark = 1000;
+            this.m_self.Options.SendHighWatermark = 1000;
+            this.m_state = state;
+
+            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(() => m_self.ReceiveReady += OnReceive,
+                () => m_self.ReceiveReady += OnReceive);
+            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(() => m_self.SendReady += OnReceive,
+                () => m_self.SendReady += OnSend);
 
             //now binding and connect pipe ends
             string endPoint = string.Empty;
@@ -44,7 +62,7 @@ namespace NetMQ.Actors
                 Action bindAction = () =>
                 {
                     endPoint = GetEndPointName();
-                    self.Bind(endPoint);
+                    m_self.Bind(endPoint);
                 };
 
                 try
@@ -62,34 +80,82 @@ namespace NetMQ.Actors
 
             }
 
-            shim.Pipe.Connect(endPoint);
+            m_shim.Pipe.Connect(endPoint);
 
             //Initialise the shim handler
-            this.shim.Handler.Initialise(state);
+            this.m_shim.Handler.Initialise(state);
 
             //Create Shim thread handler
             CreateShimThread(state);
+
+            //  Mandatory handshake for new actor so that constructor returns only
+            //  when actor has also initialized. This eliminates timing issues at
+            //  application start up.
+            m_self.WaitForSignal();
         }
 
+      
 
-       
+        public event EventHandler<NetMQActorEventArgs<T>> ReceiveReady
+        {
+            add { m_receiveEventDelegatorHelper.Event += value; }
+            remove { m_receiveEventDelegatorHelper.Event -= value; }
+        }
 
+        public event EventHandler<NetMQActorEventArgs<T>> SendReady
+        {
+            add { m_sendEventDelegatorHelper.Event += value; }
+            remove { m_sendEventDelegatorHelper.Event -= value; }
+        }
+
+        NetMQSocket ISocketPollable.Socket
+        {
+            get { return m_self; }
+        }
+
+        private void OnReceive(object sender, NetMQSocketEventArgs e)
+        {
+            m_receiveEventDelegatorHelper.Fire(this, new NetMQActorEventArgs<T>(this));
+        }
+
+        private void OnSend(object sender, NetMQSocketEventArgs e)
+        {
+            m_sendEventDelegatorHelper.Fire(this, new NetMQActorEventArgs<T>(this));
+        }
 
         private void CreateShimThread(T state)
         {
             //start Shim thread
             Task shimTask = Task.Factory.StartNew(
-                x => this.shim.Handler.RunPipeline(this.shim.Pipe),
-                TaskCreationOptions.LongRunning);
+                x =>
+                {
+                    try
+                    {
+                        this.m_shim.Handler.RunPipeline(this.m_shim.Pipe);
+                    }
+                    catch (TerminatingException)
+                    {
 
-            //pipeline dead if task completed, no matter what state it completed in
-            //it is unusable to the Actors socket, to dispose of Actors socket
-            shimTask.ContinueWith(antecedant =>
-            {
-                //Dispose of own socket
-                if (self != null) self.Dispose();
+                    }          
+                    catch (Exception)
+                    {
+                        throw;
+                    }
 
-            });
+                    //  Do not block, if the other end of the pipe is already deleted
+                    m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
+
+                    try
+                    {
+                        m_shim.Pipe.SignalOK();
+                    }
+                    catch (AgainException)
+                    {                                                
+                    }
+
+                    m_shim.Pipe.Dispose();
+                },
+                TaskCreationOptions.LongRunning);            
         }
 
 
@@ -106,23 +172,33 @@ namespace NetMQ.Actors
 
         protected virtual void Dispose(bool disposing)
         {
-
             // release other disposable objects
             if (disposing)
             {
                 //send destroy message to pipe
-                self.Send(ActorKnownMessages.END_PIPE);
+                m_self.Options.SendTimeout = TimeSpan.Zero;
+                try
+                {
+                    m_self.Send(ActorKnownMessages.END_PIPE);
+                    m_self.WaitForSignal();
+                }
+                catch (AgainException ex)
+                {
+                                        
+                }                                
+
+                m_self.Dispose();
             }
         }
 
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
-            self.Send(ref msg, options);
+            m_self.Send(ref msg, options);
         }
 
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
-            self.Receive(ref msg, options);
+            m_self.Receive(ref msg, options);
         }
     }
 }

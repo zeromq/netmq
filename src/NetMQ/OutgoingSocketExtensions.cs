@@ -120,5 +120,29 @@ namespace NetMQ
         }       
 
         #endregion
+
+        #region Signals
+
+        private static void Signal(this IOutgoingSocket socket, byte status)
+        {
+            long signalValue = 0x7766554433221100L + status;
+            NetMQMessage message = new NetMQMessage();
+            message.Append(signalValue);
+
+            socket.SendMessage(message);
+        }
+
+        public static void SignalOK(this IOutgoingSocket socket)
+        {
+            Signal(socket, 0);
+        }
+
+        public static void SignalError(this IOutgoingSocket socket)
+        {
+            Signal(socket, 1);
+        }
+
+
+        #endregion       
     }
 }

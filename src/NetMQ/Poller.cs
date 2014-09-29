@@ -50,7 +50,7 @@ namespace NetMQ
             m_cancellationTokenSource = new CancellationTokenSource();
         }
 
-        public Poller(params NetMQSocket[] sockets)
+        public Poller(params ISocketPollable[] sockets)
             : this()
         {
             if (sockets == null)
@@ -116,14 +116,14 @@ namespace NetMQ
 
         public bool IsStarted { get { return m_isStarted; } }
 
-        public void AddSocket(NetMQSocket socket)
+        public void AddSocket(ISocketPollable socket)
         {
             if (socket == null)
             {
                 throw new ArgumentNullException("stock");
             }
 
-            if (m_sockets.Contains(socket))
+            if (m_sockets.Contains(socket.Socket))
             {
                 throw new ArgumentException("Socket already added to poller");
             }
@@ -133,14 +133,14 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is disposed");
             }
 
-            m_sockets.Add(socket);
+            m_sockets.Add(socket.Socket);
 
-            socket.EventsChanged += OnSocketEventsChanged;
+            socket.Socket.EventsChanged += OnSocketEventsChanged;
 
             m_isDirty = true;
         }
 
-        public void RemoveSocket(NetMQSocket socket)
+        public void RemoveSocket(ISocketPollable socket)
         {
             if (socket == null)
             {
@@ -152,9 +152,9 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is disposed");
             }
 
-            socket.EventsChanged -= OnSocketEventsChanged;
+            socket.Socket.EventsChanged -= OnSocketEventsChanged;
 
-            m_sockets.Remove(socket);
+            m_sockets.Remove(socket.Socket);
             m_isDirty = true;
         }
 
