@@ -192,6 +192,7 @@ namespace NetMQ.zmq
             if (m_type != MsgType.Pool || (m_flags & MsgFlags.Shared) == 0)
             {
                 Close();
+                return;
             }
 
             if (m_atomicCounter.Decrement(amount) == 0)
