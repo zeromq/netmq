@@ -128,6 +128,11 @@ namespace NetMQ.zmq
             m_ctx.RegisterEndpoint(addr, endpoint);
         }
 
+        protected void UnregisterEndpoint(string addr, SocketBase socket)
+        {
+            m_ctx.UnregisterEndpoint(addr, socket);
+        }
+
         protected void UnregisterEndpoints(SocketBase socket)
         {
             m_ctx.UnregisterEndpoints(socket);

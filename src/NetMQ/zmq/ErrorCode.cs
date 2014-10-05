@@ -4,6 +4,7 @@ namespace NetMQ.zmq
 {
     public enum ErrorCode
     {
+        ENOENT = 2,
         EINTR = 4,
         EACCESS = 13,
         EFAULT = 14,

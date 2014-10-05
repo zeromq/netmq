@@ -22,8 +22,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace NetMQ.zmq
@@ -34,6 +36,8 @@ namespace NetMQ.zmq
         //private static Logger LOG = LoggerFactory.getLogger(SocketBase.class);
 
         private readonly Dictionary<String, Own> m_endpoints;
+
+        private readonly Dictionary<string, Pipe> m_inprocs; 
 
         //  Used to check whether the object is a socket.
         private uint m_tag;
@@ -91,6 +95,7 @@ namespace NetMQ.zmq
             m_options.SocketId = sid;
 
             m_endpoints = new Dictionary<string, Own>();
+            m_inprocs = new Dictionary<string, Pipe>();
             m_pipes = new List<Pipe>();
 
             m_mailbox = new Mailbox("socket-" + sid);
@@ -573,6 +578,9 @@ namespace NetMQ.zmq
                 // Save last endpoint URI
                 m_options.LastEndpoint = addr;
 
+                // remember inproc connections for disconnect
+                m_inprocs.Add(addr, pipes[0]);
+
                 return;
             }
 
@@ -656,7 +664,7 @@ namespace NetMQ.zmq
             m_endpoints[addr] = endpoint;
         }
 
-        public bool TermEndpoint(String addr)
+        public void TermEndpoint(String addr)
         {
 
             if (m_ctxTerminated)
@@ -674,29 +682,56 @@ namespace NetMQ.zmq
             //  (from launch_child() for example) we're asked to terminate now.
             ProcessCommands(0, false);
 
-            if (!m_endpoints.ContainsKey(addr))
+            string protocol;
+            string address;
+
+            DecodeAddress(addr, out address, out protocol);
+
+            CheckProtocol(protocol);
+
+            if (protocol == Address.InProcProtocol)
             {
-                return false;
-            }
+                try
+                {
+                    UnregisterEndpoint(addr, this);
+                    return;
+                }
+                catch (NetMQException ex)
+                {
+                    if (ex.ErrorCode != ErrorCode.ENOENT)
+                    {
+                        throw;
+                    }
+                }
 
-            foreach (var e in m_endpoints)
+                Pipe pipe;
+
+                if (m_inprocs.TryGetValue(addr, out pipe))
+                {
+                    pipe.Terminate(true);
+                    m_inprocs.Remove(addr);
+                }
+                else
+                {
+                    throw NetMQException.Create(ErrorCode.ENOENT);
+                }
+            }
+            else
             {
-                TermChild(e.Value);
+                Own endpoint;
+
+                if (m_endpoints.TryGetValue(addr, out endpoint))
+                {
+                    TermChild(endpoint);
+
+                    m_endpoints.Remove(addr);
+                }
+                else
+                {
+                    throw NetMQException.Create(ErrorCode.ENOENT);
+                }
             }
-
-            m_endpoints.Clear();
-
-            //  Find the endpoints range (if any) corresponding to the addr_ string.
-            //Iterator<Entry<String, Own>> it = endpoints.entrySet().iterator();
-
-            //while(it.hasNext()) {
-            //    Entry<String, Own> e = it.next();
-            //    term_child(e.getValue());
-            //    it.remove();
-            //}
-            return true;
-
-        }        
+        }
 
         public void Send(ref Msg msg, SendReceiveOptions flags)
         {
@@ -773,7 +808,7 @@ namespace NetMQ.zmq
             //  Check whether message passed to the function is valid.
             if (!msg.Check())
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);                
+                throw NetMQException.Create(ErrorCode.EFAULT);
             }
 
             //  Get the message.
@@ -814,7 +849,7 @@ namespace NetMQ.zmq
                 {
                     throw AgainException.Create();
                 }
-                
+
 
                 ExtractFlags(ref msg);
                 return;
@@ -850,7 +885,7 @@ namespace NetMQ.zmq
                 }
             }
 
-            ExtractFlags(ref msg);            
+            ExtractFlags(ref msg);
         }
 
 
@@ -1113,6 +1148,13 @@ namespace NetMQ.zmq
         {
             //  Notify the specific socket type about the pipe termination.
             XTerminated(pipe);
+
+            // Remove pipe from inproc pipes
+            var pipesToDelete = m_inprocs.Where(i => i.Value == pipe).Select(i => i.Key).ToArray();
+            foreach (var addr in pipesToDelete)
+            {
+                m_inprocs.Remove(addr);
+            }
 
             //  Remove the pipe from the list of attached pipes and confirm its
             //  termination if we are already shutting down.

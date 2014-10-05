@@ -200,14 +200,13 @@ namespace NetMQ.zmq
             s.Connect(addr);
         }
 
-        public static bool Unbind(SocketBase s, String addr)
+        public static void Unbind(SocketBase s, String addr)
         {
-
             if (s == null || !s.CheckTag())
             {
                 throw NetMQException.Create(ErrorCode.EFAULT);
             }
-            return s.TermEndpoint(addr);
+            s.TermEndpoint(addr);
         }
 
         public static void Disconnect(SocketBase s, String addr)

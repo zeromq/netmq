@@ -453,5 +453,117 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Test, TestCase("tcp"), TestCase("inproc")]
+        public void Disconnect(string protocol)
+        {
+            using (var context = NetMQContext.Create())
+            {
+                using (var server1 = context.CreateDealerSocket())
+                {
+                    using (var server2 = context.CreateDealerSocket())
+                    {
+                        using (var client = context.CreateDealerSocket())
+                        {
+                            server1.Bind(protocol + "://localhost:55502");
+                            server2.Bind(protocol + "://localhost:55503");
+
+                            client.Connect(protocol + "://localhost:55502");
+                            client.Connect(protocol + "://localhost:55503");
+
+                            Thread.Sleep(100);
+
+                            // we shoud be connected to both server
+                            client.Send("1");
+                            client.Send("2");
+
+                            // make sure client is connected to both servers 
+                            server1.ReceiveString();
+                            server2.ReceiveString();
+
+                            // disconnect from server2, server 1 should receive all messages
+                            client.Disconnect(protocol + "://localhost:55503");
+                            Thread.Sleep(100);
+
+                            client.Send("1");
+                            client.Send("2");
+
+                            server1.ReceiveString();
+                            server1.ReceiveString();
+                        }
+                    }
+                }
+            }
+        }
+
+        [Test, TestCase("tcp"), TestCase("inproc")]
+        public void Unbind(string protocol)
+        {
+            using (var context = NetMQContext.Create())
+            {
+                using (var server = context.CreateDealerSocket())
+                {
+                    server.Bind(protocol + "://localhost:55502");
+                    server.Bind(protocol + "://localhost:55503");
+
+                    // just making sure can bind on both adddresses
+                    using (var client1 = context.CreateDealerSocket())
+                    {
+                        using (var client2 = context.CreateDealerSocket())
+                        {
+                            client1.Connect(protocol + "://localhost:55502");
+                            client2.Connect(protocol + "://localhost:55503");
+
+                            Thread.Sleep(100);
+
+                            // we shoud be connected to both server
+                            client1.Send("1");
+                            client2.Send("2");
+
+                            // the server receive from both
+                            server.ReceiveString();
+                            server.ReceiveString();                            
+                        }
+                    }
+
+                    // unbind second address
+                    server.Unbind(protocol + "://localhost:55503");
+                    Thread.Sleep(100);
+
+                    using (var client1 = context.CreateDealerSocket())
+                    {
+                        using (var client2 = context.CreateDealerSocket())
+                        {
+                            client1.Options.DelayAttachOnConnect = true;
+                            client1.Connect(protocol + "://localhost:55502");
+
+                            client2.Options.SendTimeout = TimeSpan.FromSeconds(2);
+                            client2.Options.DelayAttachOnConnect = true;
+
+                            if (protocol == "tcp")
+                            {
+                                client2.Connect(protocol + "://localhost:55503");
+
+                                client1.Send("1");
+                                server.ReceiveString();
+
+                                Assert.Throws<AgainException>(() =>
+                                {
+                                    // this should raise exception
+                                    client2.Send("2");
+                                });
+                            }
+                            else
+                            {
+                                var exception = Assert.Throws<InvalidException>(() =>
+                                {
+                                    client2.Connect(protocol + "://localhost:55503");
+                                });                                
+                            }                                                    
+                        }
+                    }
+                }
+            }
+        }
     }
 }

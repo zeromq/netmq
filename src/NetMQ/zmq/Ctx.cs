@@ -438,6 +438,28 @@ namespace NetMQ.zmq
             }
         }
 
+        public void UnregisterEndpoint(string addr, SocketBase socket)
+        {
+            lock (m_endpointsSync)
+            {
+                Endpoint endpoint;
+
+                if (m_endpoints.TryGetValue(addr, out endpoint))
+                {
+                    if (socket != endpoint.Socket)
+                    {
+                        throw NetMQException.Create(ErrorCode.ENOENT);    
+                    }
+
+                    m_endpoints.Remove(addr);
+                }
+                else
+                {
+                    throw NetMQException.Create(ErrorCode.ENOENT);    
+                }
+            }
+        }
+
         public void UnregisterEndpoints(SocketBase socket)
         {
             lock (m_endpointsSync)
