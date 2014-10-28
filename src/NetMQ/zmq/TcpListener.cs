@@ -30,6 +30,8 @@ namespace NetMQ.zmq
 {
     public class TcpListener : Own, IPollEvents
     {
+        private const SocketOptionName IPv6Only = (SocketOptionName) 27;
+
 
         //private static Logger LOG = LoggerFactory.getLogger(TcpListener.class);
         //  Address to listen on.
@@ -175,7 +177,7 @@ namespace NetMQ.zmq
                     try
                     {
                         // This is not supported on old windows operation system and might throw exception
-                        m_handle.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, 0);
+                        m_handle.SetSocketOption(SocketOptionLevel.IPv6, IPv6Only, 0);
                     }
                     catch
                     {                        
