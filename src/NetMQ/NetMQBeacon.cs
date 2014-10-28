@@ -49,7 +49,14 @@ namespace NetMQ
             }
 
             private void Configure(string interfaceName, int port)
-            {                
+            {
+                // incase the beacon was configured twice
+                if (m_udpSocket != null)
+                {
+                    m_poller.RemovePollInSocket(m_udpSocket);
+                    m_udpSocket.Dispose();                                    
+                }
+
                 m_udpPort = port;
                 m_udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
@@ -146,7 +153,11 @@ namespace NetMQ
 
                 m_poller.Start();
 
-                m_udpSocket.Dispose();
+                // the beacon might never been configured
+                if (m_udpSocket != null)
+                {
+                    m_udpSocket.Dispose();    
+                }                
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
