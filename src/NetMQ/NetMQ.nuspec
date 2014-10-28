@@ -12,18 +12,22 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
 	  <releaseNotes>
-      New features:
-        * Stream socket type
-        * ReceiveString with timeout
-        * NetMQMessage.ToString give better description
-        * Add ability to bind a random port 
-        * File is signed
-        
+      Features:
+      * Buffer Pooling - Buffer pooling can be enabled to reduce the memory allocation.
+      * NetMQBeacon - Port of CZMQ beacon to NetMQ.
+      * Actor - Port of CZMQ Actor to NetMQ.
+      * XSub can send messages (other than subscribe or unsubscribe) to XPub (messages should not start with 0 or 1). Ported from libzmq.
+      * Encoding overload to all Send/Receive string methods.
+      * Pushing and popping numbers from NetMQMessage
+      * NetworkOrderBitsConveter to convert numbers to byte array and vice versa
+      * NetMQFrame implements GetHashCode and Equals
+
       Bug Fixes:
-        #127  NullReferenceException on socket monitoring
-        #118  NetMQScheduler Memory leak
-        #121  Binding and Connecting on local
-        #8    IPv6 support
+      * Disconnect and Unbind fixed
+      * Mono address in use bug - using ephemeral port for Signaler
+      * Stream Engine fix - ported multiple bug fixes from libzmq
+      * PGM High Frequency Bug
+      * Poller Exception Bug
     </releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>
