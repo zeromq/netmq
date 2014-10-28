@@ -36,31 +36,34 @@ namespace NetMQ
             private NetMQSocket m_pipe;
             private Socket m_udpSocket;
             private int m_udpPort;
-            private int m_interval;
+            
             private EndPoint m_broadcastAddress;
-            bool m_terminated;
-            private long m_pingAt;
+
             private NetMQFrame m_transmit;
             private NetMQFrame m_filter;
+            private NetMQTimer m_pingTimer;
+            private Poller m_poller;
 
             public Agent()
-            {                
-            }            
+            {
+            }
 
             private void Configure(string interfaceName, int port)
-            {
+            {                
                 m_udpPort = port;
                 m_udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                
+
+                m_poller.AddPollInSocket(m_udpSocket, OnUdpReady);                
+
                 //  Ask operating system for broadcast permissions on socket
                 m_udpSocket.EnableBroadcast = true;
 
                 //  Allow multiple owners to bind to socket; incoming
                 //  messages will replicate to each owner
                 m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                
+
                 IPAddress bindTo = null;
-                IPAddress sendTo = null;                
+                IPAddress sendTo = null;
 
                 if (interfaceName.Equals("*"))
                 {
@@ -68,7 +71,7 @@ namespace NetMQ
                     sendTo = IPAddress.Broadcast;
                 }
                 else
-                {                    
+                {
                     InterfaceCollection interfaceCollection = new InterfaceCollection();
 
                     IPAddress interfaceAddress = null;
@@ -86,7 +89,7 @@ namespace NetMQ
                             bindTo = @interface.Address;
                             break;
                         }
-                    }    
+                    }
                 }
 
                 if (bindTo != null)
@@ -99,54 +102,59 @@ namespace NetMQ
                     try
                     {
                         var host = Dns.GetHostEntry(bindTo);
-                        hostname = host != null ? host.HostName : "";                        
+                        hostname = host != null ? host.HostName : "";
                     }
                     catch (Exception)
-                    {                                                
-                    }                                                                
+                    {
+                    }
 
-                    m_pipe.Send(hostname);  
-                }                
-            }           
-
-            public void HandlePipe()
-            {
-                NetMQMessage message = m_pipe.ReceiveMessage();
-
-                string command = message.Pop().ConvertToString();
-
-                switch (command)
-                {
-                    case ConfigureCommand:
-                        string interfaceName = message.Pop().ConvertToString();
-                        int port = message.Pop().ConvertToInt32();
-                        Configure(interfaceName, port);
-                        break;
-                    case PublishCommand:
-                        m_transmit = message.Pop();
-                        m_interval = message.Pop().ConvertToInt32();
-
-                        //  Start broadcasting immediately
-                        m_pingAt = Clock.NowMs();
-                        break;
-                    case SilenceCommand:
-                        m_transmit = null;
-                        break;
-                    case SubscribeCommand:
-                        m_filter = message.Pop();
-                        break;
-                    case UnsubscribeCommand:
-                        m_filter = null;
-                        break;
-                    case ActorKnownMessages.END_PIPE:
-                        m_terminated = true;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    m_pipe.Send(hostname);
                 }
             }
 
-            private void HandleUdp()
+            private bool Compare(NetMQFrame a, NetMQFrame b, int size)
+            {
+                for (int i = 0; i < size; i++)
+                {
+                    if (a.Buffer[i] != b.Buffer[i])
+                        return false;
+                }
+
+                return true;
+            }
+
+            public void Initialise(object state)
+            {
+
+            }
+
+            public void RunPipeline(Sockets.PairSocket shim)
+            {
+                m_pipe = shim;
+
+                shim.SignalOK();
+
+                m_pipe.ReceiveReady += OnPipeReady;
+
+                m_pingTimer = new NetMQTimer(0);
+                m_pingTimer.Elapsed += PingElapsed;
+                m_pingTimer.Enable = false;
+
+                m_poller = new Poller();
+                m_poller.AddSocket(m_pipe);                
+                m_poller.AddTimer(m_pingTimer);
+
+                m_poller.Start();
+
+                m_udpSocket.Dispose();
+            }
+
+            private void PingElapsed(object sender, NetMQTimerEventArgs e)
+            {
+                SendUdpFrame(m_transmit);
+            }
+
+            private void OnUdpReady(Socket socket)
             {
                 string peerName;
                 var frame = ReceiveUdpFrame(out peerName);
@@ -177,66 +185,43 @@ namespace NetMQ
                 }
             }
 
-            private bool Compare(NetMQFrame a, NetMQFrame b, int size)
+            private void OnPipeReady(object sender, NetMQSocketEventArgs e)
             {
-                for (int i = 0; i < size; i++)
+                NetMQMessage message = m_pipe.ReceiveMessage();
+
+                string command = message.Pop().ConvertToString();
+
+                switch (command)
                 {
-                    if (a.Buffer[i] != b.Buffer[i])
-                        return false;                    
-                }
+                    case ConfigureCommand:
+                        string interfaceName = message.Pop().ConvertToString();
+                        int port = message.Pop().ConvertToInt32();
+                        Configure(interfaceName, port);
+                        break;
+                    case PublishCommand:
+                        m_transmit = message.Pop();
+                        m_pingTimer.Interval = message.Pop().ConvertToInt32();
+                         
+                        m_pingTimer.Enable = true;
 
-                return true;
-            }
-
-            public void Initialise(object state)
-            {
-                
-            }
-
-            public void RunPipeline(Sockets.PairSocket shim)
-            {
-                m_pipe = shim;
-
-                shim.SignalOK();
-
-                while (!m_terminated)
-                {
-                    PollItem[] pollItems = new PollItem[]
-                    {
-                        new PollItem(m_pipe.SocketHandle, PollEvents.PollIn), 
-                        new PollItem(m_udpSocket, PollEvents.PollIn), 
-                    };
-
-                    long timeout = -1;
-
-                    if (m_transmit != null)
-                    {
-                        timeout = m_pingAt - Clock.NowMs();
-
-                        if (timeout < 0)
-                            timeout = 0;                        
-                    }
-
-                    ZMQ.Poll(pollItems, m_udpSocket != null ? 2 : 1, (int)timeout);
-
-                    if (pollItems[0].ResultEvent.HasFlag(PollEvents.PollIn))
-                    {
-                        HandlePipe();
-                    }
-
-                    if (pollItems[1].ResultEvent.HasFlag(PollEvents.PollIn))
-                    {
-                        HandleUdp();
-                    }
-
-                    if (m_transmit != null && Clock.NowMs() > m_pingAt)
-                    {
                         SendUdpFrame(m_transmit);
-                        m_pingAt = Clock.NowMs() + m_interval;
-                    }
+                        break;
+                    case SilenceCommand:
+                        m_transmit = null;
+                        m_pingTimer.Enable = false;
+                        break;
+                    case SubscribeCommand:
+                        m_filter = message.Pop();
+                        break;
+                    case UnsubscribeCommand:
+                        m_filter = null;
+                        break;
+                    case ActorKnownMessages.END_PIPE:
+                        m_poller.Stop(false);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-
-                m_udpSocket.Dispose();             
             }
 
             private void SendUdpFrame(NetMQFrame frame)
@@ -257,13 +242,13 @@ namespace NetMQ
                 peerName = peer.ToString();
 
                 return frame;
-            }           
+            }
         }
 
         private Agent m_agent;
         private Actor<object> m_actor;
 
-        private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;        
+        private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
         public NetMQBeacon(NetMQContext context)
         {
@@ -271,7 +256,7 @@ namespace NetMQ
             m_actor = new Actor<object>(context, m_agent, null);
 
             m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(() => m_actor.ReceiveReady += OnReceiveReady,
-                ()=> m_actor.ReceiveReady -= OnReceiveReady);
+                () => m_actor.ReceiveReady -= OnReceiveReady);
         }
 
         /// <summary>
@@ -282,7 +267,7 @@ namespace NetMQ
         NetMQSocket ISocketPollable.Socket
         {
             get { return (m_actor as ISocketPollable).Socket; }
-        }       
+        }
 
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
         {
@@ -349,7 +334,7 @@ namespace NetMQ
             message.Append((int)interval.TotalMilliseconds);
 
             m_actor.SendMessage(message);
-        }       
+        }
 
         /// <summary>
         /// Publish beacon immediately and continue to publish when interval elapsed 
@@ -426,6 +411,6 @@ namespace NetMQ
         public void Dispose()
         {
             m_actor.Dispose();
-        }        
+        }
     }
 }
