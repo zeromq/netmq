@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NetMQ</RootNamespace>
+    <AssemblyName>NetMQ</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <BaseIntermediateOutputPath>obj\3.5\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\3.5\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\3.5\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>NetMQ.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DnsEndPoint.cs" />
+    <Compile Include="EnumHelper.cs" />
+    <Compile Include="InterfaceCollection.cs" />
+    <Compile Include="ISocketPollable.cs" />
+    <Compile Include="IReceivingSocket.cs" />
+    <Compile Include="NetworkOrderBitsConverter.cs" />
+    <Compile Include="OutgoingSocketExtensions.cs" />
+    <Compile Include="ErrorPollingException.cs" />
+    <Compile Include="NetMQFrame.cs" />
+    <Compile Include="IOutgoingSocket.cs" />
+    <Compile Include="Monitoring\NetMQMonitorEventArgs.cs" />
+    <Compile Include="NetMQMessage.cs" />
+    <Compile Include="NetMQSocket.cs" />
+    <Compile Include="NetMQContext.cs" />
+    <Compile Include="NetMQSocketEventArgs.cs" />
+    <Compile Include="Poller.cs" />
+    <Compile Include="ReceivingSocketExtensions.cs" />
+    <Compile Include="Sockets\DealerSocket.cs" />
+    <Compile Include="Monitoring\NetMQMonitor.cs" />
+    <Compile Include="NetMQException.cs" />
+    <Compile Include="Sockets\PairSocket.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Proxy.cs" />
+    <Compile Include="Sockets\PublisherSocket.cs" />
+    <Compile Include="Sockets\PullSocket.cs" />
+    <Compile Include="Sockets\PushSocket.cs" />
+    <Compile Include="Sockets\RequestSocket.cs" />
+    <Compile Include="Sockets\ResponseSocket.cs" />
+    <Compile Include="Sockets\RouterSocket.cs" />
+    <Compile Include="SocketOptions.cs" />
+    <Compile Include="Sockets\StreamSocket.cs" />
+    <Compile Include="Sockets\SubscriberSocket.cs" />
+    <Compile Include="Sockets\XPublisherSocket.cs" />
+    <Compile Include="Sockets\XSubscriberSocket.cs" />
+    <Compile Include="NetMQTimer.cs" />
+    <Compile Include="zmq\Address.cs" />
+    <Compile Include="zmq\AtomicCounter.cs" />
+    <Compile Include="zmq\Blob.cs" />
+    <Compile Include="zmq\BufferPool.cs" />
+    <Compile Include="zmq\ByteArraySegment.cs" />
+    <Compile Include="zmq\Clock.cs" />
+    <Compile Include="zmq\Command.cs" />
+    <Compile Include="zmq\CommandType.cs" />
+    <Compile Include="zmq\Config.cs" />
+    <Compile Include="zmq\Ctx.cs" />
+    <Compile Include="zmq\Dealer.cs" />
+    <Compile Include="zmq\Decoder.cs" />
+    <Compile Include="zmq\DecoderBase.cs" />
+    <Compile Include="zmq\Dist.cs" />
+    <Compile Include="zmq\Encoder.cs" />
+    <Compile Include="zmq\EncoderBase.cs" />
+    <Compile Include="zmq\Enums.cs" />
+    <Compile Include="zmq\ErrorCode.cs" />
+    <Compile Include="zmq\ErrorHelper.cs" />
+    <Compile Include="zmq\FQ.cs" />
+    <Compile Include="zmq\IDecoder.cs" />
+    <Compile Include="zmq\IEncoder.cs" />
+    <Compile Include="zmq\IEngine.cs" />
+    <Compile Include="zmq\IMsgSink.cs" />
+    <Compile Include="zmq\IMsgSource.cs" />
+    <Compile Include="zmq\IOObject.cs" />
+    <Compile Include="zmq\IOThread.cs" />
+    <Compile Include="zmq\IpcAddress.cs" />
+    <Compile Include="zmq\IpcConnecter.cs" />
+    <Compile Include="zmq\IpcListener.cs" />
+    <Compile Include="zmq\IPollEvents.cs" />
+    <Compile Include="zmq\IZmqMonitor.cs" />
+    <Compile Include="zmq\LB.cs" />
+    <Compile Include="zmq\Mailbox.cs" />
+    <Compile Include="zmq\MonitorEvent.cs" />
+    <Compile Include="zmq\Msg.cs" />
+    <Compile Include="zmq\Mtrie.cs" />
+    <None Include="NetMQ.nuspec" />
+    <None Include="NetMQ.snk" />
+    <None Include="zmq\Native\NativeMethods.cs" />
+    <Compile Include="zmq\Native\OpCode.cs" />
+    <Compile Include="zmq\Options.cs" />
+    <Compile Include="zmq\Own.cs" />
+    <Compile Include="zmq\Pair.cs" />
+    <Compile Include="zmq\PgmAddress.cs" />
+    <Compile Include="zmq\PgmListener.cs" />
+    <Compile Include="zmq\PgmSender.cs" />
+    <Compile Include="zmq\PgmSession.cs" />
+    <Compile Include="zmq\PgmSocket.cs" />
+    <Compile Include="zmq\Pipe.cs" />
+    <None Include="zmq\Native\Poller.cs" />
+    <Compile Include="zmq\Poller.cs" />
+    <Compile Include="zmq\PollerBase.cs" />
+    <Compile Include="zmq\PollItem.cs" />
+    <Compile Include="zmq\Proxy.cs" />
+    <Compile Include="JetBrains.Annotations.cs" />
+    <None Include="zmq\Proxy.cs" />
+    <Compile Include="zmq\Pub.cs" />
+    <Compile Include="zmq\Pull.cs" />
+    <Compile Include="zmq\Push.cs" />
+    <Compile Include="zmq\RawDecoder.cs" />
+    <Compile Include="zmq\RawEncoder.cs" />
+    <Compile Include="zmq\Reaper.cs" />
+    <Compile Include="zmq\Rep.cs" />
+    <Compile Include="zmq\Req.cs" />
+    <Compile Include="zmq\Router.cs" />
+    <Compile Include="zmq\SessionBase.cs" />
+    <Compile Include="zmq\Signaler.cs" />
+    <Compile Include="zmq\SocketBase.cs" />
+    <Compile Include="zmq\Stream.cs" />
+    <Compile Include="zmq\StreamEngine.cs" />
+    <Compile Include="zmq\Sub.cs" />
+    <Compile Include="zmq\TcpAddress.cs" />
+    <Compile Include="zmq\TcpConnecter.cs" />
+    <Compile Include="zmq\TcpListener.cs" />
+    <Compile Include="zmq\Trie.cs" />
+    <Compile Include="zmq\Utils.cs" />
+    <Compile Include="zmq\V1Decoder.cs" />
+    <Compile Include="zmq\V1Encoder.cs" />
+    <Compile Include="zmq\V1Protocol.cs" />
+    <Compile Include="zmq\XPub.cs" />
+    <Compile Include="zmq\XSub.cs" />
+    <Compile Include="zmq\YPipe.cs" />
+    <Compile Include="zmq\YQueue.cs" />
+    <None Include="zmq\ZError.cs" />
+    <Compile Include="zmq\ZMQ.cs" />
+    <Compile Include="zmq\ZObject.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
