@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using AsyncIO;
 using NetMQ.zmq;
 
 namespace NetMQ.Monitoring
@@ -22,13 +23,13 @@ namespace NetMQ.Monitoring
 
     public class NetMQMonitorSocketEventArgs : NetMQMonitorEventArgs
     {
-        public NetMQMonitorSocketEventArgs(NetMQMonitor monitor, string address, Socket socket)
+        public NetMQMonitorSocketEventArgs(NetMQMonitor monitor, string address, AsyncSocket socket)
             : base(monitor, address)
         {
             Socket = socket;
         }
 
-        public Socket Socket { get; private set; }
+        public AsyncSocket Socket { get; private set; }
     }
 
     public class NetMQMonitorErrorEventArgs : NetMQMonitorEventArgs

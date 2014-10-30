@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.PGM
 {
-    class PgmSession : IEngine, IPollEvents
+    class PgmSession : IEngine, IProcatorEvents
     {
         private Socket m_handle;
         private readonly PgmSocket m_pgmSocket;
@@ -41,8 +41,8 @@ namespace NetMQ.zmq
             m_ioObject = new IOObject(null);
             m_ioObject.SetHandler(this);
             m_ioObject.Plug(ioThread);
-            m_ioObject.AddFd(m_handle);
-            m_ioObject.SetPollin(m_handle);
+            //m_ioObject.AddSocket(m_handle);
+            //m_ioObject.SetPollin(m_handle);
 
             DropSubscriptions();
 
@@ -70,7 +70,7 @@ namespace NetMQ.zmq
                     m_session.Flush();
                 }
 
-                m_ioObject.SetPollin(m_handle);
+                //m_ioObject.SetPollin(m_handle);
 
                 return;
             }
@@ -87,12 +87,12 @@ namespace NetMQ.zmq
                 return;
 
             //  Resume polling.
-            m_ioObject.SetPollin(m_handle);
+            //m_ioObject.SetPollin(m_handle);
 
-            InEvent();
+            //InCompleted(TODO, TODO);
         }
 
-        public void InEvent()
+        public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             if (m_pendingBytes > 0)
                 return;
@@ -167,7 +167,7 @@ namespace NetMQ.zmq
                 m_pendingData = new ByteArraySegment(data, processed);
 
                 //  Stop polling.
-                m_ioObject.ResetPollin(m_handle);
+                //m_ioObject.ResetPollin(m_handle);
 
                 return;
             }
@@ -182,7 +182,7 @@ namespace NetMQ.zmq
             m_session.Detach();
 
             //  Cancel all fd subscriptions.
-            m_ioObject.RmFd(m_handle);
+            //m_ioObject.RemoveSocket(m_handle);
 
             //  Disconnect from I/O threads poller object.
             m_ioObject.Unplug();
@@ -211,7 +211,7 @@ namespace NetMQ.zmq
             }
         }
 
-        public void OutEvent()
+        public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
         }
 

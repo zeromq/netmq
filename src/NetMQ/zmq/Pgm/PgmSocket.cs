@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.PGM
 {
     public enum PgmSocketType
     {

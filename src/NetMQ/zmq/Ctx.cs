@@ -83,7 +83,7 @@ namespace NetMQ.zmq
 
         //  Array of pointers to mailboxes for both application and I/O threads.
         private int m_slotCount;
-        private Mailbox[] m_slots;
+        private IMailbox[] m_slots;
 
         //  Mailbox for zmq_term thread.
         private readonly Mailbox m_termMailbox;
@@ -268,7 +268,7 @@ namespace NetMQ.zmq
                     throw InvalidException.Create("option = " + option);
                 }
             return rc;
-        }
+        }        
 
         public SocketBase CreateSocket(ZmqSocketType type)
         {
@@ -291,7 +291,7 @@ namespace NetMQ.zmq
                         ios = m_ioThreadCount;
                     }
                     m_slotCount = mazmq + ios + 2;
-                    m_slots = new Mailbox[m_slotCount];
+                    m_slots = new IMailbox[m_slotCount];
                     //alloc_Debug.Assert(slots);
 
                     //  Initialise the infrastructure for zmq_term thread.
@@ -363,7 +363,7 @@ namespace NetMQ.zmq
             int tid;
             //  Free the associated thread slot.
             lock (m_slotSync)
-            {
+            {                                
                 tid = socket.ThreadId;
                 m_emptySlots.Push(tid);
                 m_slots[tid].Close();
@@ -497,6 +497,6 @@ namespace NetMQ.zmq
                 endpoint.Socket.IncSeqnum();
             }
             return endpoint;
-        }
+        }        
     }
 }

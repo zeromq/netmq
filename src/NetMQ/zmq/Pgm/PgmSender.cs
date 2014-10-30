@@ -6,9 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Net;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.PGM
 {
-    class PgmSender : IOObject, IEngine, IPollEvents
+    class PgmSender : IOObject, IEngine, IProcatorEvents
     {
         private readonly Options m_options;
         private readonly Address m_addr;
@@ -58,8 +58,8 @@ namespace NetMQ.zmq
         {
             m_encoder.SetMsgSource(session);
 
-            AddFd(m_socket);
-            SetPollout(m_socket);
+            //AddSocket(m_socket);
+            //SetPollout(m_socket);
 
             // get the first message from the session because we don't want to send identities
 
@@ -76,15 +76,15 @@ namespace NetMQ.zmq
 
         public void Terminate()
         {
-            RmFd(m_socket);
+            //RemoveSocket(m_socket);
             m_encoder.SetMsgSource(null);
         }
 
 
         public void ActivateOut()
         {
-            SetPollout(m_socket);
-            OutEvent();
+            //SetPollout(m_socket);
+            //OutCompleted(TODO, TODO);
         }
 
         public void ActivateIn()
@@ -92,7 +92,7 @@ namespace NetMQ.zmq
             Debug.Assert(false);
         }
 
-        public override void OutEvent()
+        public override void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             //  POLLOUT event from send socket. If write buffer is empty, 
             //  try to read new data from the encoder.
@@ -110,7 +110,7 @@ namespace NetMQ.zmq
                 //  If there are no data to write stop polling for output.
                 if (bfsz == 0)
                 {
-                    ResetPollout(m_socket);
+                    //ResetPollout(m_socket);
                     return;
                 }
 
@@ -151,7 +151,7 @@ namespace NetMQ.zmq
             }
         }
 
-        public override void InEvent()
+        public override void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
         }

@@ -6,9 +6,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.PGM
 {
-    class PgmListener : Own, IPollEvents
+    class PgmListener : Own, IProcatorEvents
     {
         private PgmSocket m_pgmSocket;
 
@@ -50,7 +50,7 @@ namespace NetMQ.zmq
                 throw NetMQException.Create(ex);
             }
 
-            m_socket.EventListening(m_address.ToString(), m_handle);
+            //m_socket.EventListening(m_address.ToString(), m_handle);
         }
 
         public override void Destroy()
@@ -62,15 +62,15 @@ namespace NetMQ.zmq
         {
             //  Start polling for incoming connections.
             m_ioObject.SetHandler(this);
-            m_ioObject.AddFd(m_handle);
-            m_ioObject.SetPollin(m_handle);
-            m_ioObject.SetPollout(m_handle);
+            //m_ioObject.AddSocket(m_handle);
+            //m_ioObject.SetPollin(m_handle);
+            //m_ioObject.SetPollout(m_handle);
         }
 
         protected override void ProcessTerm(int linger)
         {
             m_ioObject.SetHandler(this);
-            m_ioObject.RmFd(m_handle);
+            //m_ioObject.RemoveSocket(m_handle);
             Close();
             base.ProcessTerm(linger);
         }
@@ -83,7 +83,7 @@ namespace NetMQ.zmq
             try
             {
                 m_handle.Close();
-                m_socket.EventClosed(m_address.ToString(), m_handle);
+                //m_socket.EventClosed(m_address.ToString(), m_handle);
             }
             catch (SocketException ex)
             {
@@ -99,7 +99,7 @@ namespace NetMQ.zmq
         }
 
 
-        public void InEvent()
+        public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             Socket fd;
 
@@ -133,7 +133,7 @@ namespace NetMQ.zmq
             session.IncSeqnum();
             LaunchChild(session);
             SendAttach(session, pgmSession, false);
-            m_socket.EventAccepted(m_address.ToString(), fd);
+            //m_socket.EventAccepted(m_address.ToString(), fd);
         }
 
         private Socket Accept()
@@ -154,7 +154,7 @@ namespace NetMQ.zmq
             return socket;
         }
 
-        public void OutEvent()
+        public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
         }
