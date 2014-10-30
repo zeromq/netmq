@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -666,7 +667,7 @@ namespace NetMQ.Tests
                 };
 
                 poller.AddTimer(timer);
-                
+
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
                 poller.PollOnce();
@@ -898,6 +899,67 @@ namespace NetMQ.Tests
                 Assert.GreaterOrEqual(length2, 18);
                 Assert.LessOrEqual(length2, 22);
             }
+        }
+
+        [Test]
+        public void NativeSocket()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (var streamServer = context.CreateStreamSocket())
+                {
+                    streamServer.Bind("tcp://*:5557");
+
+                    using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                    {
+                        socket.Connect("127.0.0.1", 5557);
+
+                        byte[] buffer = new byte[] { 1 };
+                        socket.Send(buffer);
+
+                        byte[] identity = streamServer.Receive();
+                        byte[] message = streamServer.Receive();
+
+                        Assert.AreEqual(buffer[0], message[0]);
+
+                        ManualResetEvent socketSignal = new ManualResetEvent(false);
+
+                        Poller poller = new Poller();
+                        poller.AddPollInSocket(socket, s =>
+                        {
+                            socket.Receive(buffer);
+
+                            socketSignal.Set();
+
+                            // removing the socket
+                            poller.RemovePollInSocket(socket);
+                        });
+
+                        Task.Factory.StartNew(poller.Start);
+
+                        // no message is waiting for the socket so it should fail
+                        Assert.IsFalse(socketSignal.WaitOne(200));
+
+                        // sending a message back to the socket
+                        streamServer.SendMore(identity).Send("a");
+
+                        Assert.IsTrue(socketSignal.WaitOne(200));
+
+                        socketSignal.Reset();
+
+                        // sending a message back to the socket
+                        streamServer.SendMore(identity).Send("a");
+
+                        // we remove the native socket so it should fail
+                        Assert.IsFalse(socketSignal.WaitOne(200));
+
+                        poller.Stop(true);
+                    }
+                }
+            }
+
+
+
         }
     }
 }

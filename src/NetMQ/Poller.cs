@@ -28,6 +28,7 @@ namespace NetMQ
         }
 
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
+        private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();        
 
         private PollItem[] m_pollset;
         private NetMQSocket[] m_pollact;
@@ -116,11 +117,50 @@ namespace NetMQ
 
         public bool IsStarted { get { return m_isStarted; } }
 
+        public void AddPollInSocket(Socket socket, Action<Socket> callback)
+        {
+            if (socket == null)
+            {
+                throw new ArgumentNullException("socket");
+            }
+
+            if (m_pollinSockets.ContainsKey(socket))
+            {
+                throw new ArgumentException("Socket already added to poller");
+            }
+
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            m_pollinSockets.Add(socket, callback);
+
+            m_isDirty = true;
+        }
+
+        public void RemovePollInSocket(Socket socket)
+        {
+            if (socket == null)
+            {
+                throw new ArgumentNullException("socket");
+            }
+
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            m_pollinSockets.Remove(socket);
+
+            m_isDirty = true;
+        }
+
         public void AddSocket(ISocketPollable socket)
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("stock");
+                throw new ArgumentNullException("socket");
             }
 
             if (m_sockets.Contains(socket.Socket))
@@ -200,9 +240,10 @@ namespace NetMQ
             m_pollset = null;
             m_pollact = null;
 
-            m_pollSize = m_sockets.Count;
+            m_pollSize = m_sockets.Count + m_pollinSockets.Count;
             m_pollset = new PollItem[m_pollSize];
-            m_pollact = new NetMQSocket[m_pollSize];
+            
+            m_pollact = new NetMQSocket[m_sockets.Count];
 
             uint itemNbr = 0;
             foreach (var socket in m_sockets)
@@ -211,6 +252,13 @@ namespace NetMQ
                 m_pollact[itemNbr] = socket;
                 itemNbr++;
             }
+
+            foreach (var socket in m_pollinSockets)
+            {
+                m_pollset[itemNbr] = new PollItem(socket.Key, PollEvents.PollError | PollEvents.PollIn);                
+                itemNbr++;
+            }
+
             m_isDirty = false;
         }
 
@@ -324,27 +372,43 @@ namespace NetMQ
 
                     for (int itemNbr = 0; itemNbr < m_pollSize; itemNbr++)
                     {
-                        NetMQSocket socket = m_pollact[itemNbr];
                         PollItem item = m_pollset[itemNbr];
 
-                        if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
+                        if (item.Socket != null)
                         {
-                            socket.Errors++;
-
-                            if (socket.Errors > 1)
+                            NetMQSocket socket = m_pollact[itemNbr] as NetMQSocket;
+                            
+                            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
                             {
-                                RemoveSocket(socket);
-                                item.ResultEvent = PollEvents.None;
+                                socket.Errors++;
+
+                                if (socket.Errors > 1)
+                                {
+                                    RemoveSocket(socket);
+                                    item.ResultEvent = PollEvents.None;
+                                }
+                            }
+                            else
+                            {
+                                socket.Errors = 0;
+                            }
+
+                            if (item.ResultEvent != PollEvents.None)
+                            {
+                                socket.InvokeEvents(this, item.ResultEvent);
                             }
                         }
                         else
-                        {
-                            socket.Errors = 0;
-                        }
+                        {                            
+                            if (item.ResultEvent.HasFlag(PollEvents.PollError) || item.ResultEvent.HasFlag(PollEvents.PollIn))
+                            {
+                                Action<Socket> action;
 
-                        if (item.ResultEvent != PollEvents.None)
-                        {
-                            socket.InvokeEvents(this, item.ResultEvent);
+                                if (m_pollinSockets.TryGetValue(item.FileDescriptor, out action))
+                                {
+                                    action(item.FileDescriptor);
+                                }                                
+                            }
                         }
                     }
 

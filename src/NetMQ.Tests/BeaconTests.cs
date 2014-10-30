@@ -185,5 +185,45 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Test]
+        public void NeverConfigured()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (NetMQBeacon speaker = new NetMQBeacon(context))
+                {
+                }
+            }
+        }
+
+        [Test]
+        public void ConfigureTwice()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                using (NetMQBeacon speaker = new NetMQBeacon(context))
+                {
+                    speaker.Configure(5555);
+                    speaker.Configure(9999);
+                    Console.WriteLine(speaker.Hostname);
+
+                    speaker.Publish("Hello");
+
+                    using (NetMQBeacon listener = new NetMQBeacon(context))
+                    {
+                        listener.Configure(9999);
+                        listener.Subscribe("H");
+
+                        string peerName;
+                        string message = listener.ReceiveString(out peerName);
+
+                        Console.WriteLine(peerName);
+
+                        Assert.AreEqual("Hello", message);
+                    }
+                }
+            }
+        }       
     }
 }
