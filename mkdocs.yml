@@ -5,7 +5,7 @@ pages:
 - ['introduction.md', 'Introduction']
 - ['transports.md', 'Transports']
 - ['request-response.md', 'Request-Response']
-- ['pubsub.md', 'PubSub']
+- ['pub-sub.md', 'Pub-Sub']
 - ['push-pull.md', 'Push-Pull']
 - ['receiving-sending.md', 'Receiving and Sending']
 - ['message.md', 'NetMQ Message']
@@ -15,7 +15,10 @@ pages:
 - ['xpub.md', 'XPub']
 - ['stream.md', 'Stream']
 - ['poller.md', 'Poller']
+- ['scheduler.md', 'NetMQ Scheduler']
 - ['actor.md', 'Actor']
 - ['beacon.md', 'Beacon']
+- ['devices.md', 'Devices']
+- ['security.md', 'Security']
 
 
