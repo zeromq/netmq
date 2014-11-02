@@ -1,0 +1,7 @@
+site_name: NetMQ Documentation
+
+pages:
+
+
+- ['index.md', 'About', 'NetMQ']
+- ['getting-started.md', 'Getting Started', 'Introduction']
