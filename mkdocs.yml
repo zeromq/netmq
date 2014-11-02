@@ -3,6 +3,7 @@ site_name: NetMQ
 pages:
 - ['index.md', 'Home']
 - ['introduction.md', 'Introduction']
+- ['transports.md', 'Transports']
 - ['request-response.md', 'Request-Response']
 - ['pubsub.md', 'PubSub']
 - ['push-pull.md', 'Push-Pull']
