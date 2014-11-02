@@ -1,4 +1,4 @@
-NetMQ Documentation
+NetMQ
 ===================
 
 NetMQ is 100% native C# port of ZeroMQ.
