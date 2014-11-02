@@ -2,4 +2,4 @@ site_name: NetMQ
 
 pages:
 - [index.md, Home]
-- [docs\getting-started.md, Getting Started]
+- [getting-started.md, Getting Started]
