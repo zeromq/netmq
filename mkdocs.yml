@@ -2,6 +2,6 @@ site_name: NetMQ
 
 pages:
 - [index.md, Home]
-- [intro/getting-started.md, Getting Started, Introduction]
-- [intro/philosophy.md, Philosophy, Introduction]
-- [intro/example.md, Example, Introduction]
+- [intro/getting-started.md, Introduction,Getting Started]
+- [intro/philosophy.md, Introduction,Philosophy]
+- [intro/example.md, Introduction,Example]
