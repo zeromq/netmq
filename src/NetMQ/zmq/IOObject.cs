@@ -24,17 +24,18 @@ using System.Diagnostics;
 //  Simple base class for objects that live in I/O threads.
 //  It makes communication with the poller object easier and
 //  makes defining unneeded event handlers unnecessary.
+using System.Net.Sockets;
+using AsyncIO;
 
 namespace NetMQ.zmq
 {
-    public class IOObject : IPollEvents
+    public class IOObject : IProcatorEvents
     {
-
-        private Poller m_poller;
-        private IPollEvents m_handler;
+        private IOThread m_ioThread;
+        private IProcatorEvents m_handler;
 
         public IOObject(IOThread ioThread)
-        {
+        {            
             if (ioThread != null)
             {
                 Plug(ioThread);
@@ -44,66 +45,46 @@ namespace NetMQ.zmq
         //  When migrating an object from one I/O thread to another, first
         //  unplug it, then migrate it, then plug it to the new thread.
 
+        public void Plug()
+        {
+            Plug(null);
+        }
+
         public void Plug(IOThread ioThread)
         {
-
-
             Debug.Assert(ioThread != null);
-            Debug.Assert(m_poller == null);
 
-            //  Retrieve the poller from the thread we are running in.
-            m_poller = ioThread.GetPoller();
+            m_ioThread = ioThread;                        
         }
 
         public void Unplug()
         {
-            Debug.Assert(m_poller != null);
+            Debug.Assert(m_ioThread != null);
 
             //  Forget about old poller in preparation to be migrated
             //  to a different I/O thread.
-            m_poller = null;
+            m_ioThread = null;
             m_handler = null;
         }
 
-        public void AddFd(System.Net.Sockets.Socket fd)
+        public void AddSocket(AsyncSocket socket)
         {
-            m_poller.AddFD(fd, this);
+            m_ioThread.Proactor.AddSocket(socket, this);
         }
 
-        public void RmFd(System.Net.Sockets.Socket handle)
+        public void RemoveSocket(AsyncSocket socket)
         {
-            m_poller.RemoveFD(handle);
+            m_ioThread.Proactor.RemoveSocket(socket);
+        }        
+
+        public virtual void InCompleted(SocketError socketError, int bytesTransferred)
+        {
+            m_handler.InCompleted(socketError, bytesTransferred);
         }
 
-        public void SetPollin(System.Net.Sockets.Socket handle)
+        public virtual void OutCompleted(SocketError socketError, int bytesTransferred)
         {
-            m_poller.SetPollin(handle);
-        }
-
-        public void SetPollout(System.Net.Sockets.Socket handle)
-        {
-            m_poller.SetPollout(handle);
-        }
-
-        public void ResetPollin(System.Net.Sockets.Socket handle)
-        {
-            m_poller.ResetPollin(handle);
-        }
-
-
-        public void ResetPollout(System.Net.Sockets.Socket handle)
-        {
-            m_poller.ResetPollout(handle);
-        }
-
-        public virtual void InEvent()
-        {
-            m_handler.InEvent();
-        }
-
-        public virtual void OutEvent()
-        {
-            m_handler.OutEvent();
+            m_handler.OutCompleted(socketError, bytesTransferred);
         }
 
 
@@ -114,23 +95,17 @@ namespace NetMQ.zmq
 
         public void AddTimer(long timeout, int id)
         {
-            m_poller.AddTimer(timeout, this, id);
+            m_ioThread.Proactor.AddTimer(timeout, this, id);
         }
 
-        public void SetHandler(IPollEvents handler)
+        public void SetHandler(IProcatorEvents handler)
         {
             this.m_handler = handler;
         }
 
-
-
-
         public void CancelTimer(int id)
         {
-            m_poller.CancelTimer(this, id);
+            m_ioThread.Proactor.CancelTimer(this, id);
         }
-
-
-
     }
 }

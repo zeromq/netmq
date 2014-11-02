@@ -19,9 +19,9 @@
 */
 
 using System;
+using NetMQ.zmq.Tcp;
 
-// fake Unix domain socket
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Ipc
 {
     public class IpcListener : TcpListener
     {
