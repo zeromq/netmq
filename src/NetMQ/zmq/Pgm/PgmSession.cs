@@ -4,12 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using AsyncIO;
 
 namespace NetMQ.zmq.PGM
 {
     class PgmSession : IEngine, IProcatorEvents
     {
-        private Socket m_handle;
+        private AsyncSocket m_handle;
         private readonly PgmSocket m_pgmSocket;
         private readonly Options m_options;
         private IOObject m_ioObject;
@@ -23,13 +24,25 @@ namespace NetMQ.zmq.PGM
 
         private readonly ByteArraySegment data;
 
+        enum State
+        {
+            Idle,
+            Receiving,
+            Stuck,
+            Error
+        }
+
+        private State m_state;
 
         public PgmSession(PgmSocket pgmSocket, Options options)
         {
-            m_handle = pgmSocket.FD;
+            m_handle = pgmSocket.Handle;
             m_pgmSocket = pgmSocket;
             m_options = options;
             data = new byte[Config.PgmMaxTPDU];
+            m_joined = false;
+
+            m_state = State.Idle;
         }
 
         public void Plug(IOThread ioThread, SessionBase session)
@@ -41,8 +54,7 @@ namespace NetMQ.zmq.PGM
             m_ioObject = new IOObject(null);
             m_ioObject.SetHandler(this);
             m_ioObject.Plug(ioThread);
-            //m_ioObject.AddSocket(m_handle);
-            //m_ioObject.SetPollin(m_handle);
+            m_ioObject.AddSocket(m_handle);
 
             DropSubscriptions();
 
@@ -51,128 +63,100 @@ namespace NetMQ.zmq.PGM
 
             // push message to the session because there is no identity message with pgm
             session.PushMsg(ref msg);
+
+            m_state = State.Receiving;
+            BeginReceive();
         }
 
         public void Terminate()
         {
         }
 
+        public void BeginReceive()
+        {
+            data.Reset();
+            m_handle.Receive((byte[])data);
+        }
+
         public void ActivateIn()
         {
-            //  It is possible that the most recently used decoder
-            //  processed the whole buffer but failed to write
-            //  the last message into the pipe.
-            if (m_pendingBytes == 0)
+            if (m_state == State.Stuck)
             {
-                if (m_decoder != null)
+                Debug.Assert(m_decoder != null);
+                Debug.Assert(m_pendingData != null);
+
+                //  Ask the decoder to process remaining data.
+                int n = m_decoder.ProcessBuffer(m_pendingData, m_pendingBytes);
+                m_pendingBytes -= n;
+                m_session.Flush();
+
+                if (m_pendingBytes == 0)
                 {
-                    m_decoder.ProcessBuffer(null, 0);
-                    m_session.Flush();
+                    m_state = State.Receiving;
+                    BeginReceive();
                 }
-
-                //m_ioObject.SetPollin(m_handle);
-
-                return;
             }
-
-            Debug.Assert(m_decoder != null);
-            Debug.Assert(m_pendingData != null);
-
-            //  Ask the decoder to process remaining data.
-            int n = m_decoder.ProcessBuffer(m_pendingData, m_pendingBytes);
-            m_pendingBytes -= n;
-            m_session.Flush(); ;
-
-            if (m_pendingBytes > 0)
-                return;
-
-            //  Resume polling.
-            //m_ioObject.SetPollin(m_handle);
-
-            //InCompleted(TODO, TODO);
         }
 
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
-            if (m_pendingBytes > 0)
-                return;
-
-            //  Get new batch of data.
-            //  Note the workaround made not to break strict-aliasing rules.
-            data.Reset();
-
-            int received = 0;
-
-            try
+            if (socketError != SocketError.Success || bytesTransferred == 0)
             {
-                received = m_handle.Receive((byte[])data);
+                m_joined = false;
+                Error();
             }
-            catch (SocketException ex)
+            else
             {
-                if (ex.SocketErrorCode == SocketError.WouldBlock)
+                //  Read the offset of the fist message in the current packet.
+                Debug.Assert(bytesTransferred >= sizeof(ushort));
+
+                ushort offset = data.GetUnsignedShort(m_options.Endian, 0);
+                data.AdvanceOffset(sizeof(ushort));
+                bytesTransferred -= sizeof(ushort);
+
+                //  Join the stream if needed.
+                if (!m_joined)
                 {
-                    return;
-                    //break;
+                    //  There is no beginning of the message in current packet.
+                    //  Ignore the data.
+                    if (offset == 0xffff)
+                    {
+                        BeginReceive();
+                        return;
+                    }
+
+                    Debug.Assert(offset <= bytesTransferred);
+                    Debug.Assert(m_decoder == null);
+
+                    //  We have to move data to the begining of the first message.
+                    data.AdvanceOffset(offset);
+                    bytesTransferred -= offset;
+
+                    //  Mark the stream as joined.
+                    m_joined = true;
+
+                    //  Create and connect decoder for the peer.
+                    m_decoder = new Decoder(0, m_options.Maxmsgsize, m_options.Endian);
+                    m_decoder.SetMsgSink(m_session);
+                }
+
+                //  Push all the data to the decoder.
+                int processed = m_decoder.ProcessBuffer(data, bytesTransferred);
+                if (processed < bytesTransferred)
+                {
+                    //  Save some state so we can resume the decoding process later.
+                    m_pendingBytes = bytesTransferred - processed;
+                    m_pendingData = new ByteArraySegment(data, processed);
+
+                    m_state = State.Stuck;
                 }
                 else
                 {
-                    m_joined = false;
-                    Error();
-                    return;
+                    m_session.Flush();
+
+                    BeginReceive();
                 }
             }
-
-            //  No data to process. This may happen if the packet received is
-            //  neither ODATA nor ODATA.
-            if (received == 0)
-            {
-                return;
-            }
-
-            //  Read the offset of the fist message in the current packet.
-            Debug.Assert(received >= sizeof(ushort));
-            ushort offset = data.GetUnsignedShort(m_options.Endian, 0);
-            data.AdvanceOffset(sizeof(ushort));
-            received -= sizeof(ushort);
-
-            //  Join the stream if needed.
-            if (!m_joined)
-            {
-                //  There is no beginning of the message in current packet.
-                //  Ignore the data.
-                if (offset == 0xffff)
-                    return;
-
-                Debug.Assert(offset <= received);
-                Debug.Assert(m_decoder == null);
-
-                //  We have to move data to the begining of the first message.
-                data.AdvanceOffset(offset);
-                received -= offset;
-
-                //  Mark the stream as joined.
-                m_joined = true;
-
-                //  Create and connect decoder for the peer.
-                m_decoder = new Decoder(0, m_options.Maxmsgsize, m_options.Endian);
-                m_decoder.SetMsgSink(m_session);
-            }
-
-            //  Push all the data to the decoder.
-            int processed = m_decoder.ProcessBuffer(data, received);
-            if (processed < received)
-            {
-                //  Save some state so we can resume the decoding process later.
-                m_pendingBytes = received - processed;
-                m_pendingData = new ByteArraySegment(data, processed);
-
-                //  Stop polling.
-                //m_ioObject.ResetPollin(m_handle);
-
-                return;
-            }
-
-            m_session.Flush();
         }
 
         private void Error()
@@ -182,7 +166,7 @@ namespace NetMQ.zmq.PGM
             m_session.Detach();
 
             //  Cancel all fd subscriptions.
-            //m_ioObject.RemoveSocket(m_handle);
+            m_ioObject.RemoveSocket(m_handle);
 
             //  Disconnect from I/O threads poller object.
             m_ioObject.Unplug();
@@ -193,6 +177,8 @@ namespace NetMQ.zmq.PGM
 
             m_session = null;
 
+            m_state = State.Error;
+
             Destroy();
         }
 
@@ -202,7 +188,7 @@ namespace NetMQ.zmq.PGM
             {
                 try
                 {
-                    m_handle.Close();
+                    m_handle.Dispose();
                 }
                 catch (SocketException)
                 {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using AsyncIO;
 
 namespace NetMQ.zmq.PGM
 {
@@ -59,33 +60,31 @@ namespace NetMQ.zmq.PGM
 
         internal void Init()
         {
-            FD = new Socket(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE);
-            FD.ExclusiveAddressUse = false;
-            FD.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-        }
+            Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE);
+            Handle.ExclusiveAddressUse = false;
+            Handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        }        
 
-        internal void Init(Socket fd)
+        internal void InitReceiver()
         {
-            FD = fd;
-
+            Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE);
         }
-
-
+        
         internal void InitOptions()
         {
             // Enable gigabit on the socket
-            FD.SetSocketOption(PGM_LEVEL, EnableGigabitOption, BitConverter.GetBytes((uint)1));
+            Handle.SetSocketOption(PGM_LEVEL, EnableGigabitOption, BitConverter.GetBytes((uint)1));
 
             // set the receive buffer size for receiver and listener
             if (m_options.ReceiveBuffer > 0 && (m_pgmSocketType == PgmSocketType.Receiver || m_pgmSocketType == PgmSocketType.Listener))
             {
-                FD.ReceiveBufferSize = m_options.ReceiveBuffer;
+                Handle.ReceiveBufferSize = m_options.ReceiveBuffer;
             }
 
             // set the send buffer for the publisher
             if (m_options.SendBuffer > 0 && m_pgmSocketType == PgmSocketType.Publisher)
             {
-                FD.SendBufferSize = m_options.SendBuffer;
+                Handle.SendBufferSize = m_options.SendBuffer;
             }
 
             // set the receive interface on the listener and receiver
@@ -93,18 +92,18 @@ namespace NetMQ.zmq.PGM
             {
                 if (m_pgmAddress.InterfaceAddress != null)
                 {
-                    FD.SetSocketOption(PGM_LEVEL, RM_ADD_RECEIVE_IF, m_pgmAddress.InterfaceAddress.GetAddressBytes());
+                    Handle.SetSocketOption(PGM_LEVEL, RM_ADD_RECEIVE_IF, m_pgmAddress.InterfaceAddress.GetAddressBytes());
                 }
             }
             else if (m_pgmSocketType == PgmSocketType.Publisher)
             {
                 // set multicast hops for the publisher
-                FD.SetSocketOption(PGM_LEVEL, RM_SET_MCAST_TTL, m_options.MulticastHops);
+                Handle.SetSocketOption(PGM_LEVEL, RM_SET_MCAST_TTL, m_options.MulticastHops);
 
                 // set the publisher send interface
                 if (m_pgmAddress.InterfaceAddress != null)
                 {
-                    FD.SetSocketOption(PGM_LEVEL, RM_SET_SEND_IF, m_pgmAddress.InterfaceAddress.GetAddressBytes());
+                    Handle.SetSocketOption(PGM_LEVEL, RM_SET_SEND_IF, m_pgmAddress.InterfaceAddress.GetAddressBytes());
                 }
 
                 // instead of using the struct _RM_SEND_WINDOW we are using byte array of size 12 (the size of the original struct and the size of three ints)
@@ -127,10 +126,10 @@ namespace NetMQ.zmq.PGM
                 //uint sizeInBytes = (uint)((rate / 8.0) * sizeInMS);
                 //Array.Copy(BitConverter.GetBytes(sizeInBytes), 0, sendWindow, 8, 4);
 
-                FD.SetSocketOption(PGM_LEVEL, RM_RATE_WINDOW_SIZE, sendWindow);
+                Handle.SetSocketOption(PGM_LEVEL, RM_RATE_WINDOW_SIZE, sendWindow);
             }
         }
 
-        public Socket FD { get; private set; }
+        public AsyncSocket Handle { get; private set; }
     }
 }

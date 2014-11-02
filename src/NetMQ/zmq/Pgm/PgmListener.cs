@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using AsyncIO;
 
 namespace NetMQ.zmq.PGM
 {
@@ -14,7 +15,9 @@ namespace NetMQ.zmq.PGM
 
         private readonly SocketBase m_socket;
 
-        private Socket m_handle;
+        private AsyncSocket m_handle;
+
+        private PgmSocket m_acceptedSocket;
 
         private readonly IOObject m_ioObject;
 
@@ -35,7 +38,7 @@ namespace NetMQ.zmq.PGM
             m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Listener, m_address);
             m_pgmSocket.Init();
 
-            m_handle = m_pgmSocket.FD;
+            m_handle = m_pgmSocket.Handle;
 
             try
             {
@@ -50,7 +53,7 @@ namespace NetMQ.zmq.PGM
                 throw NetMQException.Create(ex);
             }
 
-            //m_socket.EventListening(m_address.ToString(), m_handle);
+            m_socket.EventListening(m_address.ToString(), m_handle);
         }
 
         public override void Destroy()
@@ -62,15 +65,15 @@ namespace NetMQ.zmq.PGM
         {
             //  Start polling for incoming connections.
             m_ioObject.SetHandler(this);
-            //m_ioObject.AddSocket(m_handle);
-            //m_ioObject.SetPollin(m_handle);
-            //m_ioObject.SetPollout(m_handle);
+            m_ioObject.AddSocket(m_handle);
+
+            Accept();
         }
 
         protected override void ProcessTerm(int linger)
         {
             m_ioObject.SetHandler(this);
-            //m_ioObject.RemoveSocket(m_handle);
+            m_ioObject.RemoveSocket(m_handle);
             Close();
             base.ProcessTerm(linger);
         }
@@ -82,76 +85,57 @@ namespace NetMQ.zmq.PGM
 
             try
             {
-                m_handle.Close();
-                //m_socket.EventClosed(m_address.ToString(), m_handle);
+                m_handle.Dispose();
+                m_socket.EventClosed(m_address.ToString(), m_handle);
             }
             catch (SocketException ex)
             {
                 m_socket.EventCloseFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
             }
             catch (NetMQException ex)
-            {
-                //ZError.exc (e);
+            {             
                 m_socket.EventCloseFailed(m_address.ToString(), ex.ErrorCode);
             }
             m_handle = null;
-
         }
 
 
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
-            Socket fd;
-
-            try
+            if (socketError != SocketError.Success)
             {
-                fd = Accept();
+                m_socket.EventAcceptFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(socketError));
+
+                // dispose old object                
+                m_acceptedSocket.Handle.Dispose();
+
+                Accept();
             }
-            catch (SocketException ex)
+            else
             {
-                m_socket.EventAcceptFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
-                return;
+                m_acceptedSocket.InitOptions();
+
+                PgmSession pgmSession = new PgmSession(m_acceptedSocket, m_options);
+
+                IOThread ioThread = ChooseIOThread(m_options.Affinity);
+
+                SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
+
+                session.IncSeqnum();
+                LaunchChild(session);
+                SendAttach(session, pgmSession, false);
+                m_socket.EventAccepted(m_address.ToString(), m_acceptedSocket.Handle);
+
+                Accept();
             }
-            catch (NetMQException ex)
-            {
-                //  If connection was reset by the peer in the meantime, just ignore it.
-                //  TODO: Handle specific errors like ENFILE/EMFILE etc.
-                //ZError.exc (e);
-                m_socket.EventAcceptFailed(m_address.ToString(), ex.ErrorCode);
-                return;
-            }
-
-            PgmSocket pgmSocket = new PgmSocket(m_options, PgmSocketType.Receiver, m_address);
-            pgmSocket.Init(fd);
-
-            PgmSession pgmSession = new PgmSession(pgmSocket, m_options);
-
-            IOThread ioThread = ChooseIOThread(m_options.Affinity);
-
-            SessionBase session = SessionBase.Create(ioThread, false, m_socket,
-                                                                                             m_options, new Address(m_handle.LocalEndPoint));
-            session.IncSeqnum();
-            LaunchChild(session);
-            SendAttach(session, pgmSession, false);
-            //m_socket.EventAccepted(m_address.ToString(), fd);
         }
 
-        private Socket Accept()
+        private void Accept()
         {
-            Socket socket;
+            m_acceptedSocket = new PgmSocket(m_options, PgmSocketType.Receiver, m_address);
+            m_acceptedSocket.Init();
 
-            try
-            {
-                socket = m_handle.Accept();
-                socket.Blocking = false;
-                m_pgmSocket.InitOptions();
-            }
-            catch (SocketException)
-            {
-                return null;
-            }
-
-            return socket;
+            m_handle.Accept(m_acceptedSocket.Handle);
         }
 
         public void OutCompleted(SocketError socketError, int bytesTransferred)
