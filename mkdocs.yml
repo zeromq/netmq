@@ -2,6 +2,19 @@ site_name: NetMQ
 
 pages:
 - ['index.md', 'Home']
-- ['intro/getting-started.md', 'Introduction', 'Getting Started']
-- ['intro/philosophy.md', 'Introduction', 'Philosophy']
-- ['intro/example.md', 'Introduction', 'Example']
+- ['introduction.md', 'Introduction']
+- ['request-response.md', 'Request-Response']
+- ['pubsub.md', 'PubSub']
+- ['push-pull.md', 'Push-Pull']
+- ['receiving-sending.md', 'Receiving and Sending']
+- ['message.md', 'NetMQ Message']
+- ['dealer.md', 'Dealer']
+- ['router.md', 'Router'] 
+- ['xsub.md', 'XSub']
+- ['xpub.md', 'XPub']
+- ['stream.md', 'Stream']
+- ['poller.md', 'Poller']
+- ['actor.md', 'Actor']
+- ['beacon.md', 'Beacon']
+
+
