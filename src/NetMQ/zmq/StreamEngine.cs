@@ -31,6 +31,7 @@ namespace NetMQ.zmq
         //  Size of the greeting message:
         //  Preamble (10 bytes) + version (1 byte) + socket type (1 byte).
         private const int GreetingSize = 12;
+        private const int PreambleSize = 10;
 
         //  Position of the version field in the greeting.
         private const int VersionPos = 10;
@@ -46,13 +47,6 @@ namespace NetMQ.zmq
         private ByteArraySegment m_outpos;
         private int m_outsize;
         private EncoderBase m_encoder;
-
-        //  When true, we are still trying to determine whether
-        //  the peer is using versioned protocol, and if so, which
-        //  version.  When false, normal message flow has started.
-        private bool m_handshaking;
-
-        //const int greeting_size = 12;
 
         //  The receive buffer holding the greeting message
         //  that we are receiving from the peer.
@@ -85,8 +79,11 @@ namespace NetMQ.zmq
 
         private IOObject m_ioObject;
 
-        private SendState m_sending;
-        private ReceiveState m_receiving;
+        private SendState m_sendingState;
+        private ReceiveState m_receivingState;
+
+        private State m_state;
+        private HandshakeState m_handshakeState;
 
         enum ReceiveState
         {
@@ -95,19 +92,44 @@ namespace NetMQ.zmq
 
         enum SendState
         {
-            Idle, Active
+            Idle, Active,
+            Error
         }
 
+        enum State
+        {
+            Closed,
+            Handshaking,
+            Active,
+            Stalled,
+        }
+
+        enum HandshakeState
+        {
+            Closed,
+            SendingGreeting,
+            ReceivingGreeting,
+            SendingRestOfGreeting,
+            ReceivingRestOfGreeting
+        }
+
+        enum Action
+        {
+            Start,
+            InCompleted,
+            OutCompleted,
+            ActivateOut,
+            ActivateIn
+        }
 
         public StreamEngine(AsyncSocket fd, Options options, String endpoint)
         {
             m_handle = fd;
             m_insize = 0;
             m_ioEnabled = false;
-            m_sending = SendState.Idle;
-            m_receiving = ReceiveState.Idle;
+            m_sendingState = SendState.Idle;
+            m_receivingState = ReceiveState.Idle;
             m_outsize = 0;
-            m_handshaking = true;
             m_session = null;
             m_options = options;
             m_plugged = false;
@@ -164,28 +186,13 @@ namespace NetMQ.zmq
             m_ioObject.AddSocket(m_handle);
             m_ioEnabled = true;
 
-            if (m_options.RawSocket)
-            {
-                m_encoder = new RawEncoder(Config.OutBatchSize, session, m_options.Endian);
-                m_decoder = new RawDecoder(Config.InBatchSize, m_options.Maxmsgsize, session, m_options.Endian);
-                m_handshaking = false;
-            }
-            else
-            {
-                //  Send the 'length' and 'flags' fields of the identity message.
-                //  The 'length' field is encoded in the long format.
+            Handle(Action.Start, SocketError.Success, 0);
+        }
 
-                m_greetingOutputBuffer[m_outsize++] = ((byte)0xff);
-                m_greetingOutputBuffer.PutLong(m_options.Endian, (long)m_options.IdentitySize + 1, 1);
-                m_outsize += 8;
-                m_greetingOutputBuffer[m_outsize++] = ((byte)0x7f);
-
-                m_outpos = new ByteArraySegment(m_greetingOutputBuffer);
-            }
-
-            //  Flush all the data that may have been already received downstream.
-            BeginReceiving();
-            BeginSending();
+        public void Terminate()
+        {
+            Unplug();
+            Destroy();
         }
 
         private void Unplug()
@@ -200,9 +207,10 @@ namespace NetMQ.zmq
                 m_ioEnabled = false;
             }
 
-
             //  Disconnect from I/O threads poller object.
             m_ioObject.Unplug();
+
+            m_state = State.Closed;
 
             //  Disconnect from session object.
             if (m_encoder != null)
@@ -212,76 +220,396 @@ namespace NetMQ.zmq
             m_session = null;
         }
 
-        public void Terminate()
+        private void Error()
         {
+            Debug.Assert(m_session != null);
+            m_socket.EventDisconnected(m_endpoint, m_handle);
+            m_session.Detach();
             Unplug();
             Destroy();
         }
 
-        private void BeginReceiving()
+        private void Handle(Action action, SocketError socketError, int bytesTransferred)
         {
-            if (m_handshaking)
-            {                
-                BeginHandshake();
+            switch (m_state)
+            {
+                case State.Closed:
+                    switch (action)
+                    {
+                        case Action.Start:
+                            if (m_options.RawSocket)
+                            {
+                                m_encoder = new RawEncoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                m_decoder = new RawDecoder(Config.InBatchSize, m_options.Maxmsgsize, m_session, m_options.Endian);
+
+                                Activate();
+                            }
+                            else
+                            {
+                                m_state = State.Handshaking;
+                                m_handshakeState = HandshakeState.Closed;
+                                HandleHandshake(action, socketError, bytesTransferred);
+                            }
+
+                            break;
+                    }
+                    break;
+                case State.Handshaking:
+                    HandleHandshake(action, socketError, bytesTransferred);
+                    break;
+                case State.Active:
+                    switch (action)
+                    {
+                        case Action.InCompleted:
+                            m_insize = EndRead(socketError, bytesTransferred);                            
+
+                            ProcessInput();
+                            break;
+                        case Action.ActivateIn:
+                            
+                            // if we stuck let's continue, other than that nothing to do
+                            if (m_receivingState == ReceiveState.Stuck)
+                            {
+                                m_receivingState = ReceiveState.Active;
+                                ProcessInput();
+                            }
+                            break;
+                        case Action.OutCompleted:
+                            int bytesSent = EndWrite(socketError, bytesTransferred);
+
+                            //  IO error has occurred. We stop waiting for output events.
+                            //  The engine is not terminated until we detect input error;
+                            //  this is necessary to prevent losing incomming messages.
+                            if (bytesSent == -1)
+                            {
+                                m_sendingState = SendState.Error;
+                            }
+                            else
+                            {
+                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outsize -= bytesSent;
+
+                                BeginSending();
+                            }
+                            break;
+                        case Action.ActivateOut:
+                            // if we idle we start sending, other than do nothing
+                            if (m_sendingState == SendState.Idle)
+                            {
+                                m_sendingState = SendState.Active;
+                                BeginSending();
+                            }
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case State.Stalled:
+                    switch (action)
+                    {
+                        //  There was an input error but the engine could not
+                        //  be terminated (due to the stalled decoder).
+                        //  Flush the pending message and terminate the engine now.
+                        case Action.ActivateIn:
+                            m_decoder.ProcessBuffer(m_inpos, 0);
+                            Debug.Assert(!m_decoder.Stalled());
+                            m_session.Flush();
+                            Error();
+                            break;
+                        case Action.ActivateOut:
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        private void BeginSending()
+        {
+            if (m_outsize == 0)
+            {
+                m_outpos = null;
+                m_encoder.GetData(ref m_outpos, ref m_outsize);
+
+                if (m_outsize == 0)
+                {
+                    m_sendingState = SendState.Idle;
+                }
+                else
+                {                    
+                    BeginWrite(m_outpos, m_outsize);
+                }
             }
             else
-            {
-                m_receiving = ReceiveState.Active;
+            {                
+                BeginWrite(m_outpos, m_outsize);
+            }
+        }
 
-                //  Retrieve the buffer and read as much data as possible.
-                //  Note that buffer can be arbitrarily large. However, we assume
-                //  the underlying TCP layer has fixed buffer size and thus the
-                //  number of bytes read will be always limited.
+        private void HandleHandshake(Action action, SocketError socketError, int bytesTransferred)
+        {
+            int bytesSent;
+            int bytesReceived;
+
+            switch (m_handshakeState)
+            {
+                case HandshakeState.Closed:
+                    switch (action)
+                    {
+                        case Action.Start:
+                            //  Send the 'length' and 'flags' fields of the identity message.
+                            //  The 'length' field is encoded in the long format.
+
+                            m_greetingOutputBuffer[m_outsize++] = ((byte)0xff);
+                            m_greetingOutputBuffer.PutLong(m_options.Endian, (long)m_options.IdentitySize + 1, 1);
+                            m_outsize += 8;
+                            m_greetingOutputBuffer[m_outsize++] = ((byte)0x7f);
+
+                            m_outpos = new ByteArraySegment(m_greetingOutputBuffer);
+
+                            BeginWrite(m_outpos, m_outsize);
+
+                            m_handshakeState = HandshakeState.SendingGreeting;
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case HandshakeState.SendingGreeting:
+                    switch (action)
+                    {
+                        case Action.OutCompleted:
+                            bytesSent = EndWrite(socketError, bytesTransferred);
+
+                            if (bytesSent == -1)
+                            {
+                                Error();
+                            }
+                            else
+                            {
+                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outsize -= bytesSent;
+
+                                if (m_outsize > 0)
+                                {
+                                    BeginWrite(m_outpos, m_outsize);
+                                }
+                                else
+                                {
+                                    m_greetingBytesRead = 0;
+
+                                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    BeginRead(greetingSegment, PreambleSize);
+                                    m_handshakeState = HandshakeState.ReceivingGreeting;
+                                }
+                            }
+                            break;
+                        case Action.ActivateIn:
+                        case Action.ActivateOut:
+                            // nothing todo
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case HandshakeState.ReceivingGreeting:
+                    switch (action)
+                    {
+                        case Action.InCompleted:
+                            bytesReceived = EndRead(socketError, bytesTransferred);
+
+                            if (bytesReceived == -1)
+                            {
+                                Error();
+                            }
+                            else
+                            {
+                                m_greetingBytesRead += bytesReceived;
+
+                                // check if it is an unversion protocol
+                                if (m_greeting[0] != 0xff || (m_greetingBytesRead == 10 && (m_greeting[9] & 0x01) == 0))
+                                {
+                                    m_encoder = new Encoder(Config.OutBatchSize, m_options.Endian);
+                                    m_encoder.SetMsgSource(m_session);
+
+                                    m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
+                                    m_decoder.SetMsgSink(m_session);
+
+                                    //  We have already sent the message header.
+                                    //  Since there is no way to tell the encoder to
+                                    //  skip the message header, we simply throw that
+                                    //  header data away.
+                                    int headerSize = m_options.IdentitySize + 1 >= 255 ? 10 : 2;
+                                    byte[] tmp = new byte[10];
+                                    ByteArraySegment bufferp = new ByteArraySegment(tmp);
+
+                                    int bufferSize = headerSize;
+
+                                    m_encoder.GetData(ref bufferp, ref bufferSize);
+
+                                    Debug.Assert(bufferSize == headerSize);
+
+                                    //  Make sure the decoder sees the data we have already received.
+                                    m_inpos = new ByteArraySegment(m_greeting);
+                                    m_insize = m_greetingBytesRead;
+
+                                    //  To allow for interoperability with peers that do not forward
+                                    //  their subscriptions, we inject a phony subsription
+                                    //  message into the incomming message stream. To put this
+                                    //  message right after the identity message, we temporarily
+                                    //  divert the message stream from session to ourselves.
+                                    if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
+                                        m_decoder.SetMsgSink(this);
+
+                                    ActivateOut();
+                                }
+                                else if (m_greetingBytesRead < 10)
+                                {
+                                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    BeginRead(greetingSegment, PreambleSize - m_greetingBytesRead);
+                                }
+                                else
+                                {
+                                    //  The peer is using versioned protocol.
+                                    //  Send the rest of the greeting.
+                                    m_outpos[m_outsize++] = 1; // Protocol version
+                                    m_outpos[m_outsize++] = (byte)m_options.SocketType;
+
+                                    BeginWrite(m_outpos, m_outsize);
+
+                                    m_handshakeState = HandshakeState.SendingRestOfGreeting;
+                                }
+                            }
+                            break;
+                        case Action.ActivateIn:
+                        case Action.ActivateOut:
+                            // nothing todo
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case HandshakeState.SendingRestOfGreeting:
+                    switch (action)
+                    {
+                        case Action.OutCompleted:
+                            bytesSent = EndWrite(socketError, bytesTransferred);
+
+                            if (bytesSent == -1)
+                            {
+                                Error();
+                            }
+                            else
+                            {
+                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outsize -= bytesSent;
+
+                                if (m_outsize > 0)
+                                {
+                                    BeginWrite(m_outpos, m_outsize);
+                                }
+                                else
+                                {
+                                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
+                                    m_handshakeState = HandshakeState.ReceivingRestOfGreeting;
+                                }
+                            }
+                            break;
+                        case Action.ActivateIn:
+                        case Action.ActivateOut:
+                            // nothing todo
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case HandshakeState.ReceivingRestOfGreeting:
+                    switch (action)
+                    {
+                        case Action.InCompleted:
+                            bytesReceived = EndRead(socketError, bytesTransferred);
+
+                            if (bytesReceived == -1)
+                            {
+                                Error();
+                            }
+                            else
+                            {
+                                m_greetingBytesRead += bytesReceived;
+
+                                if (m_greetingBytesRead < GreetingSize)
+                                {
+                                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    BeginRead(greetingSegment, GreetingSize);
+                                }
+                                else
+                                {
+                                    if (m_greeting[VersionPos] == 0)
+                                    {
+                                        //  ZMTP/1.0 framing.
+                                        m_encoder = new Encoder(Config.OutBatchSize, m_options.Endian);
+                                        m_encoder.SetMsgSource(m_session);
+
+                                        m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
+                                        m_decoder.SetMsgSink(m_session);
+                                    }
+                                    else
+                                    {
+                                        //  v1 framing protocol.
+                                        m_encoder = new V1Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                        m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_session, m_options.Endian);
+                                    }
+
+                                    // handshake is done
+                                    Activate();
+                                }
+                            }
+                            break;
+                        case Action.ActivateIn:
+                        case Action.ActivateOut:
+                            // nothing todo
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                default:
+                    Debug.Assert(false);
+                    break;
+            }
+        }
+
+        private void Activate()
+        {
+            //  Handshaking was successful.
+            //  Switch into the normal message flow.            
+            m_state = State.Active;
+
+            m_outsize = 0;
+
+            m_sendingState = SendState.Active;
+            BeginSending();
+
+            m_receivingState = ReceiveState.Active;
+
+            if (m_insize == 0)
+            {
                 m_decoder.GetBuffer(ref m_inpos, ref m_insize);
                 BeginRead(m_inpos, m_insize);
             }
-        }
-
-        public void InCompleted(SocketError socketError, int bytesTransferred)
-        {            
-            m_receiving = ReceiveState.Idle;
-
-            //  If still handshaking, receive and process the greeting message.
-            if (m_handshaking)
-            {
-                Handshake(socketError, bytesTransferred);
-            }
             else
-            {                
-                Debug.Assert(m_decoder != null);
-
-                Console.WriteLine("{0} Receiving {1} {2}", m_socket.ThreadId, socketError, bytesTransferred);
-
-                m_insize = EndRead(socketError, bytesTransferred);
-
-                ProcessIn();
+            {
+                ProcessInput();
             }
         }
 
-        public void ActivateIn()
-        {
-            if (!m_ioEnabled)
-            {
-                //  There was an input error but the engine could not
-                //  be terminated (due to the stalled decoder).
-                //  Flush the pending message and terminate the engine now.
-                m_decoder.ProcessBuffer(m_inpos, 0);
-                Debug.Assert(!m_decoder.Stalled());
-                m_session.Flush();
-                Error();
-                return;
-            }
-            else if (m_receiving == ReceiveState.Idle)
-            {
-                BeginReceiving();
-            }
-            else if (m_receiving == ReceiveState.Stuck)
-            {
-                ProcessIn();
-            }
-        }
-
-        private void ProcessIn()
+        private void ProcessInput()
         {
             bool disconnection = false;
             int processed;
@@ -318,7 +646,7 @@ namespace NetMQ.zmq
                 //  Stop polling for input if we got stuck.
                 if (processed < m_insize)
                 {
-                    m_receiving = ReceiveState.Stuck;
+                    m_receivingState = ReceiveState.Stuck;                    
                 }
 
                 m_inpos.AdvanceOffset(processed);
@@ -338,226 +666,38 @@ namespace NetMQ.zmq
                 {
                     m_ioObject.RemoveSocket(m_handle);
                     m_ioEnabled = false;
+                    m_state = State.Stalled;
                 }
                 else
+                {
                     Error();
+                }
             }
-            else if (m_receiving != ReceiveState.Stuck)
+            else if (m_receivingState != ReceiveState.Stuck)
             {
-                BeginReceiving();
+                m_decoder.GetBuffer(ref m_inpos, ref m_insize);
+                BeginRead(m_inpos, m_insize);
             }
         }
 
-        private void BeginSending()
+        public void InCompleted(SocketError socketError, int bytesTransferred)
         {
-            if (m_outsize == 0)
-            {
-                if (m_encoder == null)
-                {
-                    Debug.Assert(m_handshaking);
-                    return;
-                }
-                else
-                {
-                    m_outpos = null;
-                    m_encoder.GetData(ref m_outpos, ref m_outsize);
+            Handle(Action.InCompleted, socketError, bytesTransferred);
+        }
 
-                    if (m_outsize == 0)
-                    {
-                        return;
-                    }
-                }
-            }
-
-            //  If there are any data to write in write buffer, write as much as
-            //  possible to the socket. Note that amount of data to write can be
-            //  arbitratily large. However, we assume that underlying TCP layer has
-            //  limited transmission buffer and thus the actual number of bytes
-            //  written should be reasonably modest.
-            m_sending = SendState.Active;     
-       
-            if (!m_handshaking)
-                Console.WriteLine("{0} Sending {1}", m_socket.ThreadId, m_outsize);
-
-            BeginWrite(m_outpos, m_outsize);
+        public void ActivateIn()
+        {
+            Handle(Action.ActivateIn, SocketError.Success, 0);
         }
 
         public void OutCompleted(SocketError socketError, int bytesTransferred)
-        {            
-            int nbytes = EndWrite(socketError, bytesTransferred);
-
-            m_sending = SendState.Idle;
-
-            //  IO error has occurred. We stop waiting for output events.
-            //  The engine is not terminated until we detect input error;
-            //  this is necessary to prevent losing incomming messages.
-            if (nbytes != -1)
-            {
-                m_outpos.AdvanceOffset(nbytes);
-                m_outsize -= nbytes;
-
-                //  If we are still handshaking and there are no data
-                //  to send, stop polling for output.
-                if (!(m_handshaking && m_outsize == 0))
-                {
-                    BeginSending();
-                }                
-            }            
+        {
+            Handle(Action.OutCompleted, socketError, bytesTransferred);
         }
 
         public void ActivateOut()
         {
-            if (m_sending == SendState.Idle)
-            {
-                BeginSending();    
-            }            
-        }
-
-        private void BeginHandshake()
-        {
-            m_receiving = ReceiveState.Active;
-
-            ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
-            BeginRead(greetingSegment, GreetingSize);
-        }
-
-        private void Handshake(SocketError socketError, int bytesTransferred)
-        {
-            Debug.Assert(m_handshaking);
-
-            int n = EndRead(socketError, bytesTransferred);
-
-            if (n == -1)
-            {
-                Error();
-                return;
-            }
-
-            m_greetingBytesRead += n;
-
-            //  We have received at least one byte from the peer.
-            //  If the first byte is not 0xff, we know that the
-            //  peer is using unversioned protocol.
-            if (m_greeting[0] != 0xff)
-            {
-                UnversionProtocol();
-            }
-            else
-            {
-                if (m_greetingBytesRead >= 10)
-                {
-                    //  Inspect the right-most bit of the 10th byte (which coincides
-                    //  with the 'flags' field if a regular message was sent).
-                    //  Zero indicates this is a header of identity message
-                    //  (i.e. the peer is using the unversioned protocol).
-                    if ((m_greeting[9] & 0x01) == 0)
-                    {
-                        UnversionProtocol();
-                        return;
-                    }
-                    else
-                    {
-                        //  The peer is using versioned protocol.
-                        //  Send the rest of the greeting, if necessary.
-                        if (!(((byte[])m_outpos) == ((byte[])m_greetingOutputBuffer) &&
-                              m_outpos.Offset + m_outsize == GreetingSize))
-                        {
-                            m_outpos[m_outsize++] = 1; // Protocol version
-                            m_outpos[m_outsize++] = (byte)m_options.SocketType;
-
-                            if (m_sending == SendState.Idle)
-                                BeginSending();
-                        }
-                    }
-                }
-
-                if (m_greetingBytesRead < GreetingSize)
-                {
-                    m_receiving = ReceiveState.Active;
-
-                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
-                    BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
-                }
-                else
-                {
-                    if (m_greeting[VersionPos] == 0)
-                    {
-                        //  ZMTP/1.0 framing.
-                        m_encoder = new Encoder(Config.OutBatchSize, m_options.Endian);
-                        m_encoder.SetMsgSource(m_session);
-
-                        m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
-                        m_decoder.SetMsgSink(m_session);
-                    }
-                    else
-                    {
-                        //  v1 framing protocol.
-                        m_encoder = new V1Encoder(Config.OutBatchSize, m_session, m_options.Endian);
-
-                        m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_session, m_options.Endian);
-                    }
-
-                    //  Handshaking was successful.
-                    //  Switch into the normal message flow.
-                    m_handshaking = false;
-
-                    if (m_sending == SendState.Idle)
-                        BeginSending();
-
-                    BeginReceiving();
-                }
-            }
-        }
-
-        private void UnversionProtocol()
-        {
-            m_encoder = new Encoder(Config.OutBatchSize, m_options.Endian);
-            m_encoder.SetMsgSource(m_session);
-
-            m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
-            m_decoder.SetMsgSink(m_session);
-
-            //  We have already sent the message header.
-            //  Since there is no way to tell the encoder to
-            //  skip the message header, we simply throw that
-            //  header data away.
-            int headerSize = m_options.IdentitySize + 1 >= 255 ? 10 : 2;
-            byte[] tmp = new byte[10];
-            ByteArraySegment bufferp = new ByteArraySegment(tmp);
-
-            int bufferSize = headerSize;
-
-            m_encoder.GetData(ref bufferp, ref bufferSize);
-
-            Debug.Assert(bufferSize == headerSize);
-
-            //  Make sure the decoder sees the data we have already received.
-            m_inpos = new ByteArraySegment(m_greeting);
-            m_insize = m_greetingBytesRead;
-
-            //  To allow for interoperability with peers that do not forward
-            //  their subscriptions, we inject a phony subsription
-            //  message into the incomming message stream. To put this
-            //  message right after the identity message, we temporarily
-            //  divert the message stream from session to ourselves.
-            if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
-                m_decoder.SetMsgSink(this);
-
-            //  Handshaking was successful.
-            //  Switch into the normal message flow.
-            m_handshaking = false;
-
-            if (m_sending == SendState.Idle)
-                BeginSending();
-
-            if (m_insize == 0)
-            {
-                BeginReceiving();
-            }
-            else
-            {
-                ProcessIn();
-            }
+            Handle(Action.ActivateOut, SocketError.Success, 0);
         }
 
         public void PushMsg(ref Msg msg)
@@ -584,14 +724,7 @@ namespace NetMQ.zmq
             m_decoder.SetMsgSink(m_session);
         }
 
-        private void Error()
-        {
-            Debug.Assert(m_session != null);
-            m_socket.EventDisconnected(m_endpoint, m_handle);
-            m_session.Detach();
-            Unplug();
-            Destroy();
-        }
+
 
         private int EndWrite(SocketError socketError, int bytesTransferred)
         {
