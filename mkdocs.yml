@@ -2,7 +2,6 @@ site_name: NetMQ
 
 pages:
 - ['index.md', 'Home']
-- ['intro/intro.md','Introduction']
-- ['intro/getting-started.md','Introduction', 'Getting Started']
-- ['intro/philosophy.md','Introduction','Philosophy']
-- ['intro/example.md','Introduction','Example']
+- ['intro/getting-started.md', 'Introduction', 'Getting Started']
+- ['intro/philosophy.md', 'Introduction', 'Philosophy']
+- ['intro/example.md', 'Introduction', 'Example']
