@@ -1,19 +1,26 @@
+Introduction
+=====
+
 So you are looking for a messaging library, you might got frustrated from WCF or MSMQ (I know I'm) and heard that ZeroMQ is very fast and then you got here, NetMQ, the .net port of ZeroMQ.
 So yes, NetMQ is a messaging library and it is fast, but NetMQ has a bit of learning curve, and hopefully you will get it fast.
 
-## Where to start
+Where to start
+=====
 ZeroMQ and NetMQ is not just a library that you download, looks at the some code samples and you are done, there is a philosophy behind it and to make good use of it you have to understand it. So the best place to start is with the [ZeroMQ guide]( http://zguide.zeromq.org/page:all), read it, even twice and then come back here.
 
-## The Zero in ZeroMQ
+The Zero in ZeroMQ
+=====
 The philosophy of ZeroMQ start with the zero, the zero is for zero broker (ZeroMQ is brokerless), zero latency, zero cost (it's free), zero administration.
 
 More generally, "zero" refers to the culture of minimalism that permeates the project. We add power by removing complexity rather than by exposing new functionality.
 
-## Getting the library
+Getting the library
+=====
 
 You can get NetMQ library from [nuget](https://nuget.org/packages/NetMQ/).
 
-## First Example
+First Example
+=====
 So let's start with some code, the Hello world example of course.
 Server:
     
@@ -81,16 +88,22 @@ You can however call receive or send with the DontWait flag to avoid the waiting
         Console.WriteLine(ex);                        
     }
 
-## Context
+Context
+=====
 
-## Multithreading
+Multithreading
+=====
 
-## Patterns
+Patterns
+=====
 
-## Sending and Receiving
+Sending and Receiving
+=====
 
-## High Watermark
+High Watermark
+=====
 
-## Multipart messages
+Multipart messages
+=====
 
 
