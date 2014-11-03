@@ -16,6 +16,7 @@ You can get NetMQ library from [nuget](https://nuget.org/packages/NetMQ/).
 ## First Example
 So let's start with some code, the Hello world example of course.
 Server:
+    
     static void Main(string[] args)
     {
         using (var context = NetMQContext.Create())
@@ -43,6 +44,7 @@ Server:
 The server create a socket of type response (you can read more on the reqeust-response chapter), bind it to port 5555 and wait for messages. You can also see that we have zero configuration, we just sending strings. NetMQ can send much more than strings, but NetMQ doesn't come with any serialization feature and you have to do it by hand, but you will learn some cool tricks for that (Multi part messages).
   
 Client:
+    
     static void Main(string[] args)
     {
         using (var context = NetMQContext.Create())
