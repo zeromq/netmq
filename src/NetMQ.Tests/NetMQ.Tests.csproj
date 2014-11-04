@@ -35,6 +35,10 @@
     <StartupObject>NetMQ.Tests.NetMQTestRunner</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AsyncIO, Version=0.1.15.0, Culture=neutral, PublicKeyToken=44a94435bd6f33f8, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\AsyncIO.0.1.15.0\lib\net40\AsyncIO.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net40\Newtonsoft.Json.dll</HintPath>

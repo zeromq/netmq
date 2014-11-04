@@ -29,7 +29,7 @@ namespace NetMQ.Tests
                         monitor.Accepted += (s, a) =>
                             {
                                 accepted = true;
-                                Console.WriteLine(a.Socket.RemoteEndPoint.ToString());
+                                //Console.WriteLine(a.Socket.LocalEndPoint.ToString());
                             };
                         monitor.Listening += (s, a) =>
                             {

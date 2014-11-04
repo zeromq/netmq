@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using AsyncIO;
 
 namespace NetMQ.zmq
 {
@@ -38,7 +39,7 @@ namespace NetMQ.zmq
             
         }
 
-        public MonitorEvent(SocketEvent monitorEvent, String addr, Socket arg) :
+        public MonitorEvent(SocketEvent monitorEvent, String addr, AsyncSocket arg) :
             this(monitorEvent, addr, (object)arg)
         {
 
@@ -51,7 +52,7 @@ namespace NetMQ.zmq
             this.m_arg = arg;
             if (arg is int)
                 m_flag = ValueInteger;
-            else if (arg is System.Net.Sockets.Socket)
+            else if (arg is AsyncSocket)
                 m_flag = ValueChannel;
             else
                 m_flag = 0;
@@ -159,11 +160,11 @@ namespace NetMQ.zmq
                 }
 
                 GCHandle handle = GCHandle.FromIntPtr(value);
-                Socket socket = null;
+                AsyncSocket socket = null;
 
                 if (handle.IsAllocated)
                 {
-                    socket = handle.Target as Socket;
+                    socket = handle.Target as AsyncSocket;
                 }
 
                 handle.Free();

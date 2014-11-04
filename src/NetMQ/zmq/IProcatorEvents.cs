@@ -1,6 +1,7 @@
 /*
-    Copyright (c) 2011 250bpm s.r.o.
-    Copyright (c) 2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2009-2011 250bpm s.r.o.
+    Copyright (c) 2007-2009 iMatix Corporation
+    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -18,17 +19,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System.Net.Sockets;
+
 namespace NetMQ.zmq
 {
-    public class IpcConnecter : TcpConnecter
+    public interface IProcatorEvents : ITimerEvent
     {
+        // Called by I/O thread when file descriptor is ready for reading.
+        void InCompleted(SocketError socketError, int bytesTransferred);
 
-        public IpcConnecter(IOThread ioThread,
-                             SessionBase session, Options options,
-                             Address addr, bool wait)
-            : base(ioThread, session, options, addr, wait)
-        {
+        // Called by I/O thread when file descriptor is ready for writing.
+        void OutCompleted(SocketError socketError, int bytesTransferred);
 
-        }
+                  
     }
 }

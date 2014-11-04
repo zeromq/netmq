@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ", "NetMQ\NetMQ.csproj", "{82934BAC-07FB-41AC-AE59-46FEE6026A40}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance", "{1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}"
@@ -26,6 +28,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherUpdateClient", "Samples\WeatherUpdater\WeatherUpdateClient\WeatherUpdateClient.csproj", "{37B320C0-9E44-44EF-B89A-E671DBA4986B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherUpdateServer", "Samples\WeatherUpdater\WeatherUpdateServer\WeatherUpdateServer.csproj", "{5B8F7740-EFD5-46B9-8A96-2E1F47385295}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ3.5", "NetMQ\NetMQ3.5.csproj", "{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ3.5.Tests", "NetMQ.Tests\NetMQ3.5.Tests.csproj", "{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -147,6 +153,30 @@ Global
 		{5B8F7740-EFD5-46B9-8A96-2E1F47385295}.Release|x64.ActiveCfg = Release|x86
 		{5B8F7740-EFD5-46B9-8A96-2E1F47385295}.Release|x86.ActiveCfg = Release|x86
 		{5B8F7740-EFD5-46B9-8A96-2E1F47385295}.Release|x86.Build.0 = Release|x86
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Release|x64.ActiveCfg = Release|Any CPU
+		{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}.Release|x86.ActiveCfg = Release|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Release|x64.ActiveCfg = Release|Any CPU
+		{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -158,8 +188,8 @@ Global
 		{4BB8D1CB-12E1-4C88-ABE0-29358CD02101} = {1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}
 		{C6CA5118-649F-4389-A36E-70F7600FB99B} = {0D41951D-83C3-45B0-B319-A424EBF530E2}
 		{5A526E6B-083E-419A-A2BD-A0C807E6FA0E} = {0D41951D-83C3-45B0-B319-A424EBF530E2}
+		{7AB16EE9-4A79-4BFB-8C0B-D1A076E34896} = {5A526E6B-083E-419A-A2BD-A0C807E6FA0E}
 		{37B320C0-9E44-44EF-B89A-E671DBA4986B} = {C6CA5118-649F-4389-A36E-70F7600FB99B}
 		{5B8F7740-EFD5-46B9-8A96-2E1F47385295} = {C6CA5118-649F-4389-A36E-70F7600FB99B}
-		{7AB16EE9-4A79-4BFB-8C0B-D1A076E34896} = {5A526E6B-083E-419A-A2BD-A0C807E6FA0E}
 	EndGlobalSection
 EndGlobal

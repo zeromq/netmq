@@ -23,11 +23,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Sockets;
+using NetMQ.zmq.Ipc;
+using NetMQ.zmq.PGM;
+using NetMQ.zmq.Tcp;
 
 namespace NetMQ.zmq
 {
     public class SessionBase : Own,
-                                                         Pipe.IPipeEvents, IPollEvents,
+                                                         Pipe.IPipeEvents, IProcatorEvents,
                                                          IMsgSink, IMsgSource
     {
         //  If true, this session (re)connects to the peer. Otherwise, it's
@@ -547,13 +551,13 @@ namespace NetMQ.zmq
             return base.ToString() + "[" + m_options.SocketId + "]";
         }
 
-        public virtual void InEvent()
+        public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
 
         }
 
-        public virtual void OutEvent()
+        public virtual void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
 

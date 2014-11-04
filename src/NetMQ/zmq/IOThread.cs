@@ -25,17 +25,14 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
-    public class IOThread : ZObject, IPollEvents
+    public class IOThread : ZObject, IMailboxEvent
     {
 
         //  I/O thread accesses incoming commands via this mailbox.
-        private readonly Mailbox m_mailbox;
-
-        //  Handle associated with mailbox' file descriptor.
-        private readonly Socket m_mailboxHandle;
-
+        private readonly IOThreadMailbox m_mailbox;
+        
         //  I/O multiplexing is performed using a poller object.
-        private readonly Poller m_poller;
+        private readonly Proactor m_proactor;
 
         readonly String m_name;
 
@@ -44,23 +41,24 @@ namespace NetMQ.zmq
         {
 
             m_name = "iothread-" + threadId;
-            m_poller = new Poller(m_name);
+            m_proactor = new Proactor(m_name);            
 
-            m_mailbox = new Mailbox(m_name);
-            m_mailboxHandle = m_mailbox.FD;
-            m_poller.AddFD(m_mailboxHandle, this);
-            m_poller.SetPollin(m_mailboxHandle);
+            m_mailbox = new IOThreadMailbox(m_name, m_proactor, this);                        
+        }
 
+        public Proactor Proactor
+        {
+            get { return m_proactor; }
         }
 
         public void Start()
         {
-            m_poller.Start();
+            m_proactor.Start();
         }
 
         public void Destroy()
         {
-            m_poller.Destroy();
+            m_proactor.Destroy();
             m_mailbox.Close();
         }
         public void Stop()
@@ -68,7 +66,7 @@ namespace NetMQ.zmq
             SendStop();
         }
 
-        public Mailbox Mailbox
+        public IMailbox Mailbox
         {
             get
             {
@@ -76,57 +74,34 @@ namespace NetMQ.zmq
             }
         }
 
-
         public int Load
         {
-            get { return m_poller.Load; }
+            get { return m_proactor.Load; }
+        }                  
+
+        //public Poller GetPoller()
+        //{
+        //    Debug.Assert(m_poller != null);
+        //    return m_poller;
+        //}
+
+        protected override void ProcessStop()
+        {            
+            m_proactor.Stop();
         }
 
-        public void InEvent()
+        public void Ready()
         {
-            //  TODO: Do we want to limit number of commands I/O thread can
-            //  process in a single go?
-
             while (true)
             {
-
                 //  Get the next command. If there is none, exit.
-                Command cmd = m_mailbox.Recv(0);
+                Command cmd = m_mailbox.Recv();
                 if (cmd == null)
                     break;
 
                 //  Process the command.
-
                 cmd.Destination.ProcessCommand(cmd);
             }
-
         }
-
-        public virtual void OutEvent()
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual void TimerEvent(int id)
-        {
-            throw new NotSupportedException();
-        }
-
-
-        public Poller GetPoller()
-        {
-            Debug.Assert(m_poller != null);
-            return m_poller;
-        }
-
-        protected override void ProcessStop()
-        {
-            m_poller.RemoveFD(m_mailboxHandle);
-
-            m_poller.Stop();
-
-        }
-
-
     }
 }

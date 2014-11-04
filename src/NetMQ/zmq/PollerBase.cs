@@ -34,13 +34,13 @@ namespace NetMQ.zmq
 
         private class TimerInfo
         {
-            public TimerInfo(IPollEvents sink, int id)
+            public TimerInfo(ITimerEvent sink, int id)
             {
                 Sink = sink;
                 Id = id;
             }
 
-            public IPollEvents Sink { get; private set; }
+            public ITimerEvent Sink { get; private set; }
             public int Id { get; private set; }
         }
 
@@ -71,7 +71,7 @@ namespace NetMQ.zmq
         //  Add a timeout to expire in timeout_ milliseconds. After the
         //  expiration timer_event on sink_ object will be called with
         //  argument set to id_.
-        public void AddTimer(long timeout, IPollEvents sink, int id)
+        public void AddTimer(long timeout, IProcatorEvents sink, int id)
         {
             long expiration = Clock.NowMs() + timeout;
             TimerInfo info = new TimerInfo(sink, id);
@@ -83,7 +83,7 @@ namespace NetMQ.zmq
         }
 
         //  Cancel the timer created by sink_ object with ID equal to id_.
-        public void CancelTimer(IPollEvents sink, int id)
+        public void CancelTimer(ITimerEvent sink, int id)
         {
 
             //  Complexity of this operation is O(n). We assume it is rarely used.

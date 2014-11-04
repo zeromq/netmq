@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using AsyncIO;
 
 namespace NetMQ.zmq
 {
@@ -35,14 +36,14 @@ namespace NetMQ.zmq
         }
 
 
-        public static void TuneTcpSocket(Socket fd)
+        public static void TuneTcpSocket(AsyncSocket socket)
         {
             //  Disable Nagle's algorithm. We are doing data batching on 0MQ level,
             //  so using Nagle wouldn't improve throughput in anyway, but it would
             //  hurt latency.
             try
             {
-                fd.NoDelay = (true);
+                socket.NoDelay = (true);
             }
             catch (SocketException)
             {
@@ -50,15 +51,18 @@ namespace NetMQ.zmq
         }
 
 
-        public static void TuneTcpKeepalives(Socket fd, int tcpKeepalive,
-                                                                                     int tcpKeepaliveCnt, int tcpKeepaliveIdle,
-                                                                                     int tcpKeepaliveIntvl)
+        public static void TuneTcpKeepalives(AsyncSocket socket, int tcpKeepalive, int tcpKeepaliveCnt, int tcpKeepaliveIdle, int tcpKeepaliveIntvl)
         {
-
             if (tcpKeepalive != -1)
             {
-                fd.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, tcpKeepalive);
-
+                try
+                {
+                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, tcpKeepalive);
+                }
+                catch (SocketException)
+                {
+                    return;
+                }
 
                 if (tcpKeepaliveIdle != -1 && tcpKeepaliveIntvl != -1)
                 {
@@ -70,7 +74,15 @@ namespace NetMQ.zmq
                     bytes.PutInteger(endian, tcpKeepaliveIdle, 4);
                     bytes.PutInteger(endian, tcpKeepaliveIntvl, 8);
 
-                    fd.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                    try
+                    {
+                        // socket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                        // TODO: add IOControl to AsyncSocket
+                    }
+                    catch (SocketException)
+                    {
+                        return;
+                    }
                 }
             }
         }
