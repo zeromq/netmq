@@ -95,7 +95,6 @@
     <Compile Include="Security\SecureChannelTests.cs" />
     <Compile Include="SocketTests.cs" />
     <Compile Include="StreamTests.cs" />
-    <Compile Include="zmq\YQueueTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NetMQ\NetMQ.csproj">

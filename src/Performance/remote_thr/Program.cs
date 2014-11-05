@@ -29,8 +29,8 @@ namespace remote_thr
                 message.Close();
             }
 
-            pushSocket.Close();
-            context.Terminate();
+            pushSocket.Dispose();
+            context.Dispose();
 
             return 0;
         }

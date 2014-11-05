@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using NetMQ.Actors;
 using NetMQ.InProcActors;
+using NetMQ.Utils;
 
 namespace NetMQ
 {

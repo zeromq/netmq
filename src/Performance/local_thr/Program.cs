@@ -52,8 +52,8 @@ namespace local_thr
             Console.WriteLine("mean throughput: {0:0.000} [msg/s]", messagesPerSecond);
             Console.WriteLine("mean throughput: {0:0.000} [Mb/s]", megabits);
 
-            pullSocket.Close();
-            context.Terminate();
+            pullSocket.Dispose();
+            context.Dispose();
 
             return 0;
         }

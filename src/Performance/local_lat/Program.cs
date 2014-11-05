@@ -37,8 +37,8 @@ namespace local_lat
             }
 
             message.Close();
-            repSocket.Close();
-            context.Terminate();
+            repSocket.Dispose();
+            context.Dispose();
 
             return 0;
         }

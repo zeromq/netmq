@@ -59,7 +59,6 @@
     <Compile Include="DnsEndPoint.cs" />
     <Compile Include="Endianness.cs" />
     <Compile Include="EnumHelper.cs" />
-    <Compile Include="InterfaceCollection.cs" />
     <Compile Include="ISocketPollable.cs" />
     <Compile Include="IReceivingSocket.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />

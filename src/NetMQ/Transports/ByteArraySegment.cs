@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NetMQ.Transports
 {
-    class ByteArraySegment
+    public class ByteArraySegment
     {
         private readonly byte[] m_innerBuffer;
 

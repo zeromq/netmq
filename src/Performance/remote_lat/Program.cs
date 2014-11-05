@@ -51,8 +51,8 @@ namespace remote_lat
             Console.WriteLine("roundtrip count: {0}", roundtripCount);
             Console.WriteLine("average latency: {0:0.000} [µs]", latency);
 
-            reqSocket.Close();
-            context.Terminate();
+            reqSocket.Dispose();
+            context.Dispose();
 
             return 0;
         }

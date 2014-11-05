@@ -99,7 +99,7 @@
     <Compile Include="InProcActors\IShimHandler.cs" />
     <Compile Include="InProcActors\KnownMessages.cs" />
     <Compile Include="InProcActors\Shim.cs" />
-    <Compile Include="InterfaceCollection.cs" />
+    <Compile Include="Utils\InterfaceCollection.cs" />
     <Compile Include="ISocketPollable.cs" />
     <Compile Include="IReceivingSocket.cs" />
     <Compile Include="Monitoring\IZmqMonitor.cs" />

@@ -6,9 +6,9 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 
-namespace NetMQ
+namespace NetMQ.Utils
 {
-    public class InterfaceItem
+    class InterfaceItem
     {
         public InterfaceItem(IPAddress address, IPAddress broadcastAddress)
         {
@@ -20,7 +20,7 @@ namespace NetMQ
         public IPAddress BroadcastAddress { get; private set; }
     }
 
-    public class InterfaceCollection : IEnumerable<InterfaceItem>
+    class InterfaceCollection : IEnumerable<InterfaceItem>
     {
         private List<InterfaceItem> m_interfaceItems;
 
