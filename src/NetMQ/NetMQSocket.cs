@@ -9,7 +9,7 @@ namespace NetMQ
     public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
         readonly SocketBase m_socketHandle;
-        private bool m_isClosed = false;
+        private bool m_isDisposed = false;
         private NetMQSocketEventArgs m_socketEventArgs;
 
         internal NetMQSocket(SocketBase socketHandle)
@@ -51,12 +51,22 @@ namespace NetMQ
             get { return this; }
         }
 
+        private void CheckDisposed()
+        {
+            if (m_isDisposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+        }
+
         /// <summary>
         /// Bind the socket to an address
         /// </summary>
         /// <param name="address">The address of the socket</param>
         public void Bind(string address)
         {
+            CheckDisposed();
+
             m_socketHandle.Bind(address);
         }
 
@@ -67,6 +77,8 @@ namespace NetMQ
         /// <returns>Chosen port number</returns>
         public int BindRandomPort(string address)
         {
+            CheckDisposed();
+
             return m_socketHandle.BindRandomPort(address);
         }
 
@@ -76,6 +88,8 @@ namespace NetMQ
         /// <param name="address">Address to connect to</param>
         public void Connect(string address)
         {
+            CheckDisposed();
+
             m_socketHandle.Connect(address);
         }
 
@@ -85,6 +99,8 @@ namespace NetMQ
         /// <param name="address">The address to disconnect from</param>
         public void Disconnect(string address)
         {
+            CheckDisposed();
+
             m_socketHandle.TermEndpoint(address);
         }
 
@@ -94,19 +110,30 @@ namespace NetMQ
         /// <param name="address">The address to unbind from</param>
         public void Unbind(string address)
         {
+            CheckDisposed();
+
             m_socketHandle.TermEndpoint(address);
         }
 
         /// <summary>
         /// Close the socket
         /// </summary>
+        [Obsolete("Use dispose method")]
         public void Close()
         {
-            if (!m_isClosed)
+           Dispose();
+        }
+
+        /// <summary>
+        /// Dispose the socket
+        /// </summary>
+        public void Dispose()
+        {
+            if (!m_isDisposed)
             {
-                m_isClosed = true;
+                m_isDisposed = true;
                 m_socketHandle.Close();
-            }
+            }            
         }
 
         /// <summary> Wait until message is ready to be received from the socket. </summary>
@@ -168,7 +195,7 @@ namespace NetMQ
 
         internal bool InvokeEvents(object sender)
         {
-            if (!m_isClosed)
+            if (!m_isDisposed)
             {                
                 PollEvents events = SocketHandle.GetEvents(GetPollEvents());
                                 
@@ -228,6 +255,8 @@ namespace NetMQ
 
         public void Monitor(string endpoint, SocketEvent events = SocketEvent.All)
         {
+            CheckDisposed();
+
             if (endpoint == null)
             {
                 throw new ArgumentNullException("endpoint");
@@ -265,42 +294,53 @@ namespace NetMQ
 
         internal int GetSocketOption(ZmqSocketOptions socketOptions)
         {
+            CheckDisposed();
+
             return m_socketHandle.GetSocketOption(socketOptions);
         }
 
         internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
         {
+            CheckDisposed();
+
             return TimeSpan.FromMilliseconds(m_socketHandle.GetSocketOption(socketOptions));
         }
 
         internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
         {
+            CheckDisposed();
+
             return (long)m_socketHandle.GetSocketOptionX(socketOptions);
         }
 
         internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
         {
+            CheckDisposed();
+
             return (T)m_socketHandle.GetSocketOptionX(socketOptions);
         }
 
         internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
         {
+            CheckDisposed();
+
             m_socketHandle.SetSocketOption(socketOptions, value);
         }
 
         internal void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
         {
+            CheckDisposed();
+
             m_socketHandle.SetSocketOption(socketOptions, (int)value.TotalMilliseconds);
         }
 
         internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
         {
+            CheckDisposed();
+
             m_socketHandle.SetSocketOption(socketOptions, value);
         }
 
-        public void Dispose()
-        {
-            Close();
-        }
+        
     }
 }

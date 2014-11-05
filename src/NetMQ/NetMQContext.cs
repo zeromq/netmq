@@ -15,12 +15,20 @@ namespace NetMQ
     public class NetMQContext : IDisposable
     {
         readonly Ctx m_ctx;
-        private int m_isClosed = 0;
+        private int m_isDisposed = 0;
 
 
         private NetMQContext(Ctx ctx)
         {
             m_ctx = ctx;
+        }
+
+        private void CheckDisposed()
+        {
+            if (m_isDisposed != 0)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
         }
 
         /// <summary>
@@ -38,7 +46,12 @@ namespace NetMQ
         public int ThreadPoolSize
         {
             get { return m_ctx.Get(ContextOption.IOThreads); }
-            set { m_ctx.Set(ContextOption.IOThreads, value); }
+            set
+            {
+                CheckDisposed();
+
+                m_ctx.Set(ContextOption.IOThreads, value);
+            }
         }
 
         /// <summary>
@@ -47,12 +60,19 @@ namespace NetMQ
         public int MaxSockets
         {
             get { return m_ctx.Get(ContextOption.MaxSockets); }
-            set { m_ctx.Set(ContextOption.MaxSockets, value); }
+            set
+            {                
+                CheckDisposed();
+
+                m_ctx.Set(ContextOption.MaxSockets, value);
+            }
         }
 
         [Obsolete("Use Create specific socket instead")]
         public NetMQSocket CreateSocket(ZmqSocketType socketType)
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(socketType);
 
             switch (socketType)
@@ -92,6 +112,8 @@ namespace NetMQ
         /// <returns></returns>
         public RequestSocket CreateRequestSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Req);
 
             return new RequestSocket(socketHandle);
@@ -103,6 +125,8 @@ namespace NetMQ
         /// <returns></returns>
         public ResponseSocket CreateResponseSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Rep);
 
             return new ResponseSocket(socketHandle);
@@ -114,6 +138,8 @@ namespace NetMQ
         /// <returns></returns>
         public DealerSocket CreateDealerSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Dealer);
 
             return new DealerSocket(socketHandle);
@@ -125,6 +151,8 @@ namespace NetMQ
         /// <returns></returns>
         public RouterSocket CreateRouterSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Router);
 
             return new RouterSocket(socketHandle);
@@ -136,6 +164,8 @@ namespace NetMQ
         /// <returns></returns>
         public XPublisherSocket CreateXPublisherSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Xpub);
 
             return new XPublisherSocket(socketHandle);
@@ -147,6 +177,8 @@ namespace NetMQ
         /// <returns></returns>
         public PairSocket CreatePairSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Pair);
 
             return new PairSocket(socketHandle);
@@ -158,6 +190,8 @@ namespace NetMQ
         /// <returns></returns>
         public PushSocket CreatePushSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Push);
 
             return new PushSocket(socketHandle);
@@ -169,6 +203,8 @@ namespace NetMQ
         /// <returns></returns>
         public PublisherSocket CreatePublisherSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Pub);
 
             return new PublisherSocket(socketHandle);
@@ -180,6 +216,8 @@ namespace NetMQ
         /// <returns></returns>
         public PullSocket CreatePullSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Pull);
 
             return new PullSocket(socketHandle);
@@ -191,6 +229,8 @@ namespace NetMQ
         /// <returns></returns>
         public SubscriberSocket CreateSubscriberSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Sub);
 
             return new SubscriberSocket(socketHandle);
@@ -202,6 +242,8 @@ namespace NetMQ
         /// <returns></returns>
         public XSubscriberSocket CreateXSubscriberSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Xsub);
 
             return new XSubscriberSocket(socketHandle);
@@ -209,6 +251,8 @@ namespace NetMQ
 
         public StreamSocket CreateStreamSocket()
         {
+            CheckDisposed();
+
             var socketHandle = m_ctx.CreateSocket(ZmqSocketType.Stream);
 
             return new StreamSocket(socketHandle);
@@ -216,6 +260,8 @@ namespace NetMQ
 
         public NetMQMonitor CreateMonitorSocket(string endpoint)
         {
+            CheckDisposed();
+
             if (endpoint == null)
             {
                 throw new ArgumentNullException("endpoint");
@@ -232,17 +278,18 @@ namespace NetMQ
         /// <summary>
         /// Close the context
         /// </summary>
+        [Obsolete("Use dispose method")]
         public void Terminate()
         {
-            if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) == 0)
-            {
-                m_ctx.Terminate();                
-            }
+            Dispose();
         }
 
         public void Dispose()
         {
-            Terminate();
+            if (Interlocked.CompareExchange(ref m_isDisposed, 1, 0) == 0)
+            {
+                m_ctx.Terminate();
+            }            
         }
     }
 }

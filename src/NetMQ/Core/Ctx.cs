@@ -50,10 +50,7 @@ namespace NetMQ.Core
 
             public SocketBase Socket { get; private set; }
             public Options Options { get; private set; }
-        }
-
-        //  Used to check whether the object is a context.
-        private uint m_tag;
+        }        
 
         //  Sockets belonging to this context. We need the list so that
         //  we can notify the sockets when zmq_term() is called. The sockets
@@ -112,8 +109,7 @@ namespace NetMQ.Core
         public const int ReaperTid = 1;
 
         public Ctx()
-        {
-            m_tag = 0xabadcafe;
+        {            
             m_starting = true;
             m_terminating = false;
             m_reaper = null;
@@ -148,16 +144,8 @@ namespace NetMQ.Core
 
             if (m_reaper != null)
                 m_reaper.Destroy();
-            m_termMailbox.Close();
-
-            m_tag = 0xdeadbeef;
-        }
-
-        //  Returns false if object is not a context.
-        public bool CheckTag()
-        {
-            return m_tag == 0xabadcafe;
-        }
+            m_termMailbox.Close();            
+        }        
 
         //  This function is called when user invokes zmq_term. If there are
         //  no more sockets open it'll cause all the infrastructure to be shut
@@ -165,10 +153,7 @@ namespace NetMQ.Core
         //  after the last one is closed.
 
         public void Terminate()
-        {
-
-            m_tag = 0xdeadbeef;
-
+        {            
             Monitor.Enter(m_slotSync);
 
             if (!m_starting)

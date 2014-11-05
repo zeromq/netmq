@@ -26,10 +26,9 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
+
 using AsyncIO;
 using NetMQ.Core.Patterns;
-using NetMQ.Monitoring;
 using NetMQ.Transports.Ipc;
 using NetMQ.Transports.PGM;
 using NetMQ.Transports.Tcp;
@@ -47,10 +46,7 @@ namespace NetMQ.Core
 
         private readonly Dictionary<String, Own> m_endpoints;
 
-        private readonly Dictionary<string, Pipe> m_inprocs; 
-
-        //  Used to check whether the object is a socket.
-        private uint m_tag;
+        private readonly Dictionary<string, Pipe> m_inprocs;         
 
         //  If true, associated context was already terminated.
         private bool m_ctxTerminated;
@@ -92,8 +88,7 @@ namespace NetMQ.Core
 
         protected SocketBase(Ctx parent, int threadId, int sid)
             : base(parent, threadId)
-        {
-            m_tag = 0xbaddecaf;
+        {            
             m_ctxTerminated = false;
             m_destroyed = false;
             m_lastTsc = 0;
@@ -114,14 +109,7 @@ namespace NetMQ.Core
         //  Concrete algorithms for the x- methods are to be defined by
         //  individual socket types.
         abstract protected void XAttachPipe(Pipe pipe, bool icanhasall);
-        abstract protected void XTerminated(Pipe pipe);
-
-
-        //  Returns false if object is not a socket.
-        public bool CheckTag()
-        {
-            return m_tag == 0xbaddecaf;
-        }
+        abstract protected void XTerminated(Pipe pipe);        
 
 
         //  Create a socket of a specified type.
@@ -952,17 +940,12 @@ namespace NetMQ.Core
 
 
         public void Close()
-        {
-            //  Mark the socket as dead
-            m_tag = 0xdeadbeef;
-
+        {            
             //  Transfer the ownership of the socket from this application thread
             //  to the reaper thread which will take care of the rest of shutdown
             //  process.
             SendReap(this);
-
         }
-
 
         //  These functions are used by the polling mechanism to determine
         //  which events are to be reported from this socket.
