@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading;
 using NetMQ.InProcActors;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 using NetMQ.Actors;
 
 namespace NetMQ.Tests.InProcActors.Echo

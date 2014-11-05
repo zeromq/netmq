@@ -1,5 +1,5 @@
-﻿using NUnit.Framework;
-using NetMQ.zmq;
+﻿using NetMQ.Core;
+using NUnit.Framework;
 
 namespace NetMQ.Tests.zmq
 {

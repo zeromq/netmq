@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
@@ -110,6 +109,7 @@ namespace NetMQ.Tests
 
                                     Assert.IsTrue(listeningEvent.WaitOne(300));
                                     Assert.IsTrue(connectedEvent.WaitOne(300));
+
                                     Assert.IsTrue(acceptedEvent.WaitOne(300));
                                 }
                                 finally

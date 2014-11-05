@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading;
 using NUnit.Framework;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {

@@ -82,7 +82,6 @@
     <Compile Include="SocketTests.cs" />
     <Compile Include="StreamTests.cs" />
     <Compile Include="zmq\YQueueTests.cs" />
-    <Compile Include="zmq\ZMQPollTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NetMQ\NetMQ3.5.csproj">

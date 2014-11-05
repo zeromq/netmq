@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Threading;
 using AsyncIO;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ.Monitoring
 {
@@ -23,7 +23,7 @@ namespace NetMQ.Monitoring
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
 
-            ZMQ.SocketMonitor(monitoredSocket.SocketHandle, Endpoint, eventsToMonitor);
+            monitoredSocket.Monitor(Endpoint, eventsToMonitor);            
 
             MonitoringSocket = context.CreatePairSocket();
             MonitoringSocket.Options.Linger = TimeSpan.Zero;

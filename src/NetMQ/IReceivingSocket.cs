@@ -1,4 +1,5 @@
-﻿using NetMQ.zmq;
+﻿using NetMQ.Core;
+
 
 namespace NetMQ
 {

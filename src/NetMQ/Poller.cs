@@ -5,34 +5,28 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
-using NetMQ.zmq;
+using NetMQ.Core;
+using NetMQ.Core.Patterns;
+using NetMQ.Utils;
 
 namespace NetMQ
 {
     public class Poller : IDisposable
     {
-        class PollerPollItem : PollItem
+        class PollinSocket
         {
-            private NetMQSocket m_socket;
-
-            public PollerPollItem(NetMQSocket socket, PollEvents events)
-                : base(socket.SocketHandle, events)
+            public PollinSocket(Socket socket, Action<Socket> action)
             {
-                m_socket = socket;
+                Socket = socket;
+                Action = action;
             }
 
-            public NetMQSocket NetMQSocket
-            {
-                get { return m_socket; }
-            }
+            public Socket Socket { get; private set; }
+            public Action<Socket> Action { get; private set; }
         }
 
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
-        private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();        
-
-        private PollItem[] m_pollset;
-        private NetMQSocket[] m_pollact;
-        private int m_pollSize;
+        private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
 
         readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
         readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
@@ -43,6 +37,13 @@ namespace NetMQ
 
         private bool m_isDirty = true;
         private bool m_disposed = false;
+
+        List<Socket> m_writeList = new List<Socket>();
+        List<Socket> m_readList = new List<Socket>();
+        List<Socket> m_errorList = new List<Socket>();
+
+        private List<NetMQSocket> m_finalSockets = new List<NetMQSocket>();
+        private List<PollinSocket> m_finalPollinSockets = new List<PollinSocket>();
 
         public Poller()
         {
@@ -175,8 +176,6 @@ namespace NetMQ
 
             m_sockets.Add(socket.Socket);
 
-            socket.Socket.EventsChanged += OnSocketEventsChanged;
-
             m_isDirty = true;
         }
 
@@ -192,15 +191,7 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is disposed");
             }
 
-            socket.Socket.EventsChanged -= OnSocketEventsChanged;
-
             m_sockets.Remove(socket.Socket);
-            m_isDirty = true;
-        }
-
-        private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
-        {
-            // when the sockets SendReady or ReceiveReady changed we marked the poller as dirty in order to reset the poll events
             m_isDirty = true;
         }
 
@@ -234,34 +225,6 @@ namespace NetMQ
             timer.When = -1;
             m_zombies.Add(timer);
         }
-
-        private void RebuildPollset()
-        {
-            m_pollset = null;
-            m_pollact = null;
-
-            m_pollSize = m_sockets.Count + m_pollinSockets.Count;
-            m_pollset = new PollItem[m_pollSize];
-            
-            m_pollact = new NetMQSocket[m_sockets.Count];
-
-            uint itemNbr = 0;
-            foreach (var socket in m_sockets)
-            {
-                m_pollset[itemNbr] = new PollItem(socket.SocketHandle, socket.GetPollEvents());
-                m_pollact[itemNbr] = socket;
-                itemNbr++;
-            }
-
-            foreach (var socket in m_pollinSockets)
-            {
-                m_pollset[itemNbr] = new PollItem(socket.Key, PollEvents.PollError | PollEvents.PollIn);                
-                itemNbr++;
-            }
-
-            m_isDirty = false;
-        }
-
 
         int TicklessTimer()
         {
@@ -314,17 +277,16 @@ namespace NetMQ
                 throw new InvalidOperationException("Poller is started");
             }
 
-            if(Thread.CurrentThread.Name == null)
+            if (Thread.CurrentThread.Name == null)
                 Thread.CurrentThread.Name = "NetMQPollerThread";
 
             m_isStoppedEvent.Reset();
             m_isStarted = true;
+
+            bool eventsReady = true;
+
             try
             {
-                // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barried
-                // at the begining of the loop
-                Thread.MemoryBarrier();
-
                 //  Recalculate all timers now
                 foreach (NetMQTimer netMQTimer in m_timers)
                 {
@@ -333,32 +295,93 @@ namespace NetMQ
                         netMQTimer.When = Clock.NowMs() + netMQTimer.Interval;
                     }
                 }
-
+                
                 while (condition())
                 {
                     if (m_isDirty)
                     {
-                        RebuildPollset();
+                        m_finalPollinSockets.Clear();
+                        m_finalSockets.Clear();
+
+                        foreach (var socket in m_sockets)
+                        {
+                            m_finalSockets.Add(socket);
+                        }
+
+                        foreach (var pollinSocket in m_pollinSockets)
+                        {
+                            m_finalPollinSockets.Add(new PollinSocket(pollinSocket.Key, pollinSocket.Value));
+                        }
+
+                        m_isDirty = false;
+                    }
+
+                    m_readList.Clear();
+                    m_writeList.Clear();
+                    m_errorList.Clear();
+
+                    foreach (var socket in m_sockets)
+                    {
+                        if (socket.GetPollEvents() != PollEvents.None &&
+                            (socket.SocketHandle.FD.ProtocolType == ProtocolType.Tcp || socket.SocketHandle.FD.Connected))
+                        {
+                            m_readList.Add(socket.SocketHandle.FD);
+                        }
+                    }
+
+                    foreach (var pollinSocket in m_pollinSockets.Keys)
+                    {
+                        m_readList.Add(pollinSocket);
                     }
 
                     var pollStart = Clock.NowMs();
                     var timeout = TicklessTimer();
 
-                    var nbEvents = ZMQ.Poll(m_pollset, m_pollSize, timeout);
+                    if (m_readList.Count == 0 && m_errorList.Count == 0 && m_writeList.Count == 0)
+                    {
+                        Thread.Sleep(timeout);
+                    }
+                    else
+                    {
+                        int selectTimeout;
+
+                        // if events are ready we don't wait
+                        if (eventsReady)
+                        {
+                            selectTimeout = 0;
+                        }
+                        else if (timeout == -1)
+                        {
+                            selectTimeout = -1;
+                        }
+                        else
+                        {
+                            selectTimeout = timeout * 1000;
+                        }
+
+                        try
+                        {
+                            Socket.Select(m_readList, m_writeList, m_errorList, selectTimeout);
+                        }
+                        catch (SocketException ex)
+                        {
+                            throw NetMQException.Create(ErrorCode.ESOCKET, ex);
+                        }
+                    }
+
+
+                    bool empty = m_readList.Count == 0 && m_errorList.Count == 0 && m_writeList.Count == 0;
 
                     // Get the expected end time in case we time out. This looks redundant but, unfortunately,
                     // it happens that Poll takes slightly less than the requested time and 'Clock.NowMs() >= timer.When'
                     // may not true, even if it is supposed to be. In other words, even when Poll times out, it happens
                     // that 'Clock.NowMs() < pollStart + timeout'
-                    var expectedPollEnd = nbEvents == 0 ? pollStart + timeout : -1;
+                    var expectedPollEnd = empty ? pollStart + timeout : -1;
 
                     // that way we make sure we can continue the loop if new timers are added.
-                    // timers cannot be removed
-                    int timersCount = m_timers.Count;
-                    for (int i = 0; i < timersCount; i++)
+                    // timers cannot be removed                    
+                    foreach (var timer in m_timers)
                     {
-                        var timer = m_timers[i];
-
                         if ((Clock.NowMs() >= timer.When || expectedPollEnd >= timer.When) && timer.When != -1)
                         {
                             timer.InvokeElapsed(this);
@@ -370,45 +393,18 @@ namespace NetMQ
                         }
                     }
 
-                    for (int itemNbr = 0; itemNbr < m_pollSize; itemNbr++)
+                    eventsReady = false;
+
+                    foreach (var socket in m_finalSockets)
                     {
-                        PollItem item = m_pollset[itemNbr];
+                        eventsReady |= socket.InvokeEvents(this);
+                    }
 
-                        if (item.Socket != null)
+                    foreach (var pollinSocket in m_finalPollinSockets)
+                    {
+                        if (m_readList.Contains(pollinSocket.Socket))
                         {
-                            NetMQSocket socket = m_pollact[itemNbr] as NetMQSocket;
-                            
-                            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
-                            {
-                                socket.Errors++;
-
-                                if (socket.Errors > 1)
-                                {
-                                    RemoveSocket(socket);
-                                    item.ResultEvent = PollEvents.None;
-                                }
-                            }
-                            else
-                            {
-                                socket.Errors = 0;
-                            }
-
-                            if (item.ResultEvent != PollEvents.None)
-                            {
-                                socket.InvokeEvents(this, item.ResultEvent);
-                            }
-                        }
-                        else
-                        {                            
-                            if (item.ResultEvent.HasFlag(PollEvents.PollError) || item.ResultEvent.HasFlag(PollEvents.PollIn))
-                            {
-                                Action<Socket> action;
-
-                                if (m_pollinSockets.TryGetValue(item.FileDescriptor, out action))
-                                {
-                                    action(item.FileDescriptor);
-                                }                                
-                            }
+                            pollinSocket.Action(pollinSocket.Socket);
                         }
                     }
 
@@ -468,7 +464,5 @@ namespace NetMQ
         {
             Stop(true);
         }
-
-
     }
 }
