@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NetMQ.Core;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ
 {

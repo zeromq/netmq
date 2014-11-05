@@ -1,11 +1,11 @@
 ﻿using System.Text;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ.Sockets
 {
     public class XSubscriberSocket : NetMQSocket
     {
-        public XSubscriberSocket(SocketBase socketHandle)
+        internal XSubscriberSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

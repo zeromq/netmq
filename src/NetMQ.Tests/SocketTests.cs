@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {

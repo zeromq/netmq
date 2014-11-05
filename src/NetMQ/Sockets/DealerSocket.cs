@@ -1,5 +1,5 @@
 ﻿using System;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ.Sockets
 {
@@ -8,7 +8,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class DealerSocket : NetMQSocket
     {
-        public DealerSocket(SocketBase socketHandle)
+        internal DealerSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

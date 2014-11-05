@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using NetMQ.zmq;
+using NetMQ;
 
 namespace remote_lat
 {
@@ -18,8 +18,8 @@ namespace remote_lat
             int messageSize = int.Parse(args[1]);
             int roundtripCount = int.Parse(args[2]);
 
-            var context = ZMQ.CtxNew();
-            var reqSocket = ZMQ.Socket(context, ZmqSocketType.Req);
+            var context = NetMQContext.Create();
+            var reqSocket = context.CreateRequestSocket();
 
             reqSocket.Connect(connectTo);
 
@@ -32,7 +32,7 @@ namespace remote_lat
             {
                 reqSocket.Send(ref message, SendReceiveOptions.None);
 
-                reqSocket.Recv(ref message, SendReceiveOptions.None);
+                reqSocket.Receive(ref message, SendReceiveOptions.None);
                 if (message.Size != messageSize)
                 {
                     Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
@@ -51,8 +51,8 @@ namespace remote_lat
             Console.WriteLine("roundtrip count: {0}", roundtripCount);
             Console.WriteLine("average latency: {0:0.000} [µs]", latency);
 
-            reqSocket.Close();
-            context.Terminate();
+            reqSocket.Dispose();
+            context.Dispose();
 
             return 0;
         }

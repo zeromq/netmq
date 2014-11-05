@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using NetMQ.zmq;
+using NetMQ.Core;
+
 
 namespace NetMQ
 {
@@ -156,15 +157,10 @@ namespace NetMQ
         }
 
         public static string ReceiveString(this NetMQSocket socket, Encoding encoding, TimeSpan timeout)
-        {
-            var item = new PollItem(socket.SocketHandle, PollEvents.PollIn);
-            var items = new[] { item };
-            ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
+        {                        
+            var result = socket.SocketHandle.Poll(PollEvents.PollIn, (int) timeout.TotalMilliseconds);           
 
-            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
-                throw new ErrorPollingException("Error while polling", socket);
-
-            if (!item.ResultEvent.HasFlag(PollEvents.PollIn))
+            if (!result.HasFlag(PollEvents.PollIn))
                 return null;
 
             var msg = socket.ReceiveString(encoding);
@@ -210,14 +206,9 @@ namespace NetMQ
 
         public static NetMQMessage ReceiveMessage(this NetMQSocket socket, TimeSpan timeout)
         {
-            var item = new PollItem(socket.SocketHandle, PollEvents.PollIn);
-            var items = new[] { item };
-            ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
+            var result = socket.SocketHandle.Poll(PollEvents.PollIn, (int)timeout.TotalMilliseconds);
 
-            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
-                throw new ErrorPollingException("Error while polling", socket);
-
-            if (!item.ResultEvent.HasFlag(PollEvents.PollIn))
+            if (!result.HasFlag(PollEvents.PollIn))
                 return null;
 
             var msg = socket.ReceiveMessage();

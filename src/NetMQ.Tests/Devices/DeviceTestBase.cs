@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using NetMQ.Devices;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests.Devices
 {

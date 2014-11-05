@@ -1,6 +1,6 @@
 using System;
 using System.Net.Sockets;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ
 {

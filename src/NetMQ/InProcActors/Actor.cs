@@ -6,7 +6,6 @@ using System.Threading;
 using NetMQ.InProcActors;
 using NetMQ.Sockets;
 using System.Threading.Tasks;
-using NetMQ.zmq;
 
 namespace NetMQ.Actors
 {
@@ -182,7 +181,7 @@ namespace NetMQ.Actors
                     m_self.Send(ActorKnownMessages.END_PIPE);
                     m_self.WaitForSignal();
                 }
-                catch (AgainException ex)
+                catch (AgainException)
                 {
                                         
                 }                                

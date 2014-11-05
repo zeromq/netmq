@@ -5,6 +5,7 @@ using System.Text;
 
 namespace NetMQ
 {
+    [Obsolete("Exception is not used")]
     public class ErrorPollingException : Exception
     {
         public ErrorPollingException(string message, NetMQSocket socket)
