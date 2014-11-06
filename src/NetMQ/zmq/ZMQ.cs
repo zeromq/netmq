@@ -65,10 +65,7 @@ namespace NetMQ.zmq
 
         private static void CtxDestroy(Ctx ctx)
         {
-            if (ctx == null || !ctx.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            ctx.CheckDisposed();
 
             ctx.Terminate();
         }
@@ -76,19 +73,15 @@ namespace NetMQ.zmq
 
         public static void CtxSet(Ctx ctx, ContextOption option, int optval)
         {
-            if (ctx == null || !ctx.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            ctx.CheckDisposed();
+
             ctx.Set(option, optval);
         }
 
         public static int CtxGet(Ctx ctx, ContextOption option)
         {
-            if (ctx == null || !ctx.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            ctx.CheckDisposed();
+
             return ctx.Get(option);
         }
 
@@ -113,58 +106,41 @@ namespace NetMQ.zmq
         // Sockets
         public static SocketBase Socket(Ctx ctx, ZmqSocketType type)
         {
-            if (ctx == null || !ctx.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            ctx.CheckDisposed();
+
             SocketBase s = ctx.CreateSocket(type);
             return s;
         }
 
         public static void Close(SocketBase s)
         {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            s.CheckDisposed();
+            
             s.Close();
         }
 
         public static void SetSocketOption(SocketBase s, ZmqSocketOptions option, Object optval)
         {
-
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
-
+            s.CheckDisposed();
+            
             s.SetSocketOption(option, optval);
-
         }
 
         public static Object GetSocketOptionX(SocketBase s, ZmqSocketOptions option)
         {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            s.CheckDisposed();
 
             return s.GetSocketOptionX(option);
         }
 
         public static int GetSocketOption(SocketBase s, ZmqSocketOptions opt)
         {
-
             return s.GetSocketOption(opt);
         }
 
         public static void SocketMonitor(SocketBase s, String addr, SocketEvent events)
         {
-
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            s.CheckDisposed();
 
             s.Monitor(addr, events);
         }
@@ -172,49 +148,36 @@ namespace NetMQ.zmq
 
         public static void Bind(SocketBase s, String addr)
         {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            s.CheckDisposed();
 
             s.Bind(addr);
         }
 
         public static int BindRandomPort(SocketBase s, String addr)
         {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            s.CheckDisposed();
 
             return s.BindRandomPort(addr);
         }
 
         public static void Connect(SocketBase s, String addr)
         {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            s.CheckDisposed();
 
             s.Connect(addr);
         }
 
         public static void Unbind(SocketBase s, String addr)
         {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            s.CheckDisposed();
+
             s.TermEndpoint(addr);
         }
 
         public static void Disconnect(SocketBase s, String addr)
         {
-            if (s == null || !s.CheckTag())
-            {
-                throw NetMQException.Create(ErrorCode.EFAULT);
-            }
+            s.CheckDisposed();
+
             s.TermEndpoint(addr);
         }      
     

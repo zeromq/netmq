@@ -40,10 +40,9 @@ namespace NetMQ.zmq
     {        
         private readonly Dictionary<String, Own> m_endpoints;
 
-        private readonly Dictionary<string, Pipe> m_inprocs; 
+        private readonly Dictionary<string, Pipe> m_inprocs;
 
-        //  Used to check whether the object is a socket.
-        private uint m_tag;
+        private bool m_disposed;
 
         //  If true, associated context was already terminated.
         private bool m_ctxTerminated;
@@ -84,7 +83,7 @@ namespace NetMQ.zmq
         protected SocketBase(Ctx parent, int threadId, int sid)
             : base(parent, threadId)
         {
-            m_tag = 0xbaddecaf;
+            m_disposed = false;
             m_ctxTerminated = false;
             m_destroyed = false;
             m_lastTsc = 0;
@@ -108,9 +107,12 @@ namespace NetMQ.zmq
         abstract protected void XTerminated(Pipe pipe);
 
         //  Returns false if object is not a socket.
-        public bool CheckTag()
+        public void CheckDisposed()
         {
-            return m_tag == 0xbaddecaf;
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
         }
 
         //  Create a socket of a specified type.
@@ -878,8 +880,8 @@ namespace NetMQ.zmq
 
         public void Close()
         {
-            //  Mark the socket as dead
-            m_tag = 0xdeadbeef;
+            //  Mark the socket as disposed
+            m_disposed = true;
 
             //  Transfer the ownership of the socket from this application thread
             //  to the reaper thread which will take care of the rest of shutdown
