@@ -29,10 +29,10 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using AsyncIO;
 using NetMQ.zmq.Patterns;
-using NetMQ.zmq.PGM;
-using NetMQ.zmq.Tcp;
-using NetMQ.zmq.Ipc;
-using TcpListener = NetMQ.zmq.Tcp.TcpListener;
+using NetMQ.zmq.Transports.PGM;
+using NetMQ.zmq.Transports.Tcp;
+using NetMQ.zmq.Transports.Ipc;
+using TcpListener = NetMQ.zmq.Transports.Tcp.TcpListener;
 
 namespace NetMQ.zmq
 {

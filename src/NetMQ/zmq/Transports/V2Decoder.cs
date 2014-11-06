@@ -1,6 +1,6 @@
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public class V1Decoder : DecoderBase
+    class V2Decoder : DecoderBase
     {
         private const int OneByteSizeReadyState = 0;
         private const int EightByteSizeReadyState = 1;
@@ -13,7 +13,7 @@ namespace NetMQ.zmq
         private readonly long m_maxmsgsize;
         private MsgFlags m_msgFlags;
 
-        public V1Decoder(int bufsize, long maxmsgsize, IMsgSink session, Endianness endian)
+        public V2Decoder(int bufsize, long maxmsgsize, IMsgSink session, Endianness endian)
             : base(bufsize, endian)
         {
             m_maxmsgsize = maxmsgsize;
@@ -119,12 +119,12 @@ namespace NetMQ.zmq
             //  Store the flags from the wire into the message structure.
             m_msgFlags = 0;
             int first = m_tmpbuf[0];
-            if ((first & V1Protocol.MoreFlag) > 0)
+            if ((first & V2Protocol.MoreFlag) > 0)
                 m_msgFlags |= MsgFlags.More;
 
             //  The payload length is either one or eight bytes,
             //  depending on whether the 'large' bit is set.
-            if ((first & V1Protocol.LargeFlag) > 0)
+            if ((first & V2Protocol.LargeFlag) > 0)
                 NextStep(m_tmpbuf, 8, EightByteSizeReadyState);
             else
                 NextStep(m_tmpbuf, 1, OneByteSizeReadyState);

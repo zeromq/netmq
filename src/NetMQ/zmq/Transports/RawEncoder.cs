@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public class RawEncoder : EncoderBase
+    class RawEncoder : EncoderBase
     {
         IMsgSource m_msgSource;
         Msg m_inProgress;

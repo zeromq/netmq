@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
-namespace NetMQ.zmq.PGM
+namespace NetMQ.zmq.Transports.PGM
 {
     public class PgmAddress : Address.IZAddress
     {

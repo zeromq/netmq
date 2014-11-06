@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using AsyncIO;
 
-namespace NetMQ.zmq.PGM
+namespace NetMQ.zmq.Transports.PGM
 {
     public enum PgmSocketType
     {

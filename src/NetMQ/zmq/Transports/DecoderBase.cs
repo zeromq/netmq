@@ -32,9 +32,9 @@ using System;
 //  Derived class should implement individual state machine actions.
 using System.Diagnostics;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    abstract public class DecoderBase : IDecoder
+    abstract class DecoderBase : IDecoder
     {
         //  Where to store the read data.
         private ByteArraySegment m_readPos;

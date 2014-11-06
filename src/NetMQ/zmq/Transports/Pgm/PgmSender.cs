@@ -7,13 +7,13 @@ using System.Text;
 using System.Net;
 using AsyncIO;
 
-namespace NetMQ.zmq.PGM
+namespace NetMQ.zmq.Transports.PGM
 {
     class PgmSender : IOObject, IEngine, IProcatorEvents
     {
         private readonly Options m_options;
         private readonly Address m_addr;
-        private Encoder m_encoder;
+        private V1Encoder m_encoder;
 
         private AsyncSocket m_socket;
         private PgmSocket m_pgmSocket;
@@ -44,7 +44,7 @@ namespace NetMQ.zmq.PGM
             m_outBuffer = null;
             m_outBufferSize = 0;
             m_writeSize = 0;
-            m_encoder = new Encoder(0, m_options.Endian);
+            m_encoder = new V1Encoder(0, m_options.Endian);
 
             m_state = State.Idle;
         }

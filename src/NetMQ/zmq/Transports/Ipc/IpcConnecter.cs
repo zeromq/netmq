@@ -18,9 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using NetMQ.zmq.Tcp;
+using NetMQ.zmq.Transports.Tcp;
 
-namespace NetMQ.zmq.Ipc
+namespace NetMQ.zmq.Transports.Ipc
 {
     public class IpcConnecter : TcpConnecter
     {

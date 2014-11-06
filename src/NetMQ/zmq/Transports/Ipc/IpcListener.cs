@@ -19,9 +19,9 @@
 */
 
 using System;
-using NetMQ.zmq.Tcp;
+using NetMQ.zmq.Transports.Tcp;
 
-namespace NetMQ.zmq.Ipc
+namespace NetMQ.zmq.Transports.Ipc
 {
     public class IpcListener : TcpListener
     {

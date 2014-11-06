@@ -1,10 +1,8 @@
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public static class V1Protocol
+    static class V2Protocol
     {
-
         public const int MoreFlag = 1;
         public const int LargeFlag = 2;
-
     }
 }

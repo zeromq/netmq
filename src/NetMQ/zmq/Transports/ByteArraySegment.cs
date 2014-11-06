@@ -2,9 +2,9 @@
 using System.Text;
 using System.Linq;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public class ByteArraySegment
+    class ByteArraySegment
     {
         private readonly byte[] m_innerBuffer;
 

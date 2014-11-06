@@ -24,7 +24,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
-namespace NetMQ.zmq.Tcp
+namespace NetMQ.zmq.Transports.Tcp
 {
     public class TcpAddress : Address.IZAddress
     {

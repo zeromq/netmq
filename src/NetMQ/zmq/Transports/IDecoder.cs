@@ -1,6 +1,6 @@
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public interface IDecoder
+    interface IDecoder
     {
         void SetMsgSink(IMsgSink msgSink);
 

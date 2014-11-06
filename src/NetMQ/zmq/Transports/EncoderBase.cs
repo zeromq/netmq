@@ -22,9 +22,9 @@
 
 using System;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    abstract public class EncoderBase : IEncoder
+    abstract class EncoderBase : IEncoder
     {
         //  Where to get the data to write from.    
         private ByteArraySegment m_writePos;

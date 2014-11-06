@@ -27,7 +27,7 @@ using System.Security;
 using System.Runtime.InteropServices;
 using AsyncIO;
 
-namespace NetMQ.zmq.Tcp
+namespace NetMQ.zmq.Transports.Tcp
 {
     public class TcpListener : Own, IProcatorEvents
     {

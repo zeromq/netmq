@@ -27,7 +27,7 @@ using System.Diagnostics;
 //  connection process.
 using AsyncIO;
 
-namespace NetMQ.zmq.Tcp
+namespace NetMQ.zmq.Transports.Tcp
 {
     public class TcpConnecter : Own, IProcatorEvents
     {

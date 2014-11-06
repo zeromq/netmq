@@ -32,9 +32,9 @@
 
 using System;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public class Decoder : DecoderBase
+    class V1Decoder : DecoderBase
     {
 
         private const int OneByteSizeReadyState = 0;
@@ -48,7 +48,7 @@ namespace NetMQ.zmq
         private readonly long m_maxmsgsize;
         private IMsgSink m_msgSink;
 
-        public Decoder(int bufsize, long maxmsgsize, Endianness endian)
+        public V1Decoder(int bufsize, long maxmsgsize, Endianness endian)
             : base(bufsize, endian)
         {
             m_maxmsgsize = maxmsgsize;

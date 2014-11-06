@@ -21,7 +21,7 @@
 using System;
 using System.Net;
 
-namespace NetMQ.zmq.Ipc
+namespace NetMQ.zmq.Transports.Ipc
 {
     public class IpcAddress : Address.IZAddress
     {

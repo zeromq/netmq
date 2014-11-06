@@ -26,9 +26,9 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public class StreamEngine : IEngine, IProcatorEvents, IMsgSink
+    class StreamEngine : IEngine, IProcatorEvents, IMsgSink
     {
         class StateMachineAction
         {
@@ -471,10 +471,10 @@ namespace NetMQ.zmq
                                 // check if it is an unversion protocol
                                 if (m_greeting[0] != 0xff || (m_greetingBytesRead == 10 && (m_greeting[9] & 0x01) == 0))
                                 {
-                                    m_encoder = new Encoder(Config.OutBatchSize, m_options.Endian);
+                                    m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
                                     m_encoder.SetMsgSource(m_session);
 
-                                    m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
+                                    m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
                                     m_decoder.SetMsgSink(m_session);
 
                                     //  We have already sent the message header.
@@ -593,17 +593,17 @@ namespace NetMQ.zmq
                                     if (m_greeting[VersionPos] == 0)
                                     {
                                         //  ZMTP/1.0 framing.
-                                        m_encoder = new Encoder(Config.OutBatchSize, m_options.Endian);
+                                        m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
                                         m_encoder.SetMsgSource(m_session);
 
-                                        m_decoder = new Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
+                                        m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
                                         m_decoder.SetMsgSink(m_session);
                                     }
                                     else
                                     {
                                         //  v1 framing protocol.
-                                        m_encoder = new V1Encoder(Config.OutBatchSize, m_session, m_options.Endian);
-                                        m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_session, m_options.Endian);
+                                        m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_session, m_options.Endian);
                                     }
 
                                     // handshake is done

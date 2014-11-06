@@ -21,7 +21,7 @@
 */
 
 //  Abstract interface to be implemented by various engines.
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
     public interface IEngine
     {

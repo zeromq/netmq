@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public class RawDecoder : DecoderBase
+    class RawDecoder : DecoderBase
     {
         readonly long m_maxMsgSize;
 

@@ -1,51 +1,30 @@
-/*
-    Copyright (c) 2007-2012 iMatix Corporation
-    Copyright (c) 2009-2011 250bpm s.r.o.
-    Copyright (c) 2011 VMware, Inc.
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+// Encoder for 0MQ framing protocol. Converts messages into data stream.
 
-    This file is part of 0MQ.
-
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Transports
 {
-    public class Encoder : EncoderBase
+    class V2Encoder : EncoderBase
     {
-
         private const int SizeReadyState = 0;
         private const int MessageReadyState = 1;
-
 
         private Msg m_inProgress;
         private readonly ByteArraySegment m_tmpbuf;
 
         private IMsgSource m_msgSource;
 
-        public Encoder(int bufsize, Endianness endian)
+        public V2Encoder(int bufsize, IMsgSource session, Endianness endian)
             : base(bufsize, endian)
         {
             m_inProgress = new Msg();
             m_inProgress.InitEmpty();
 
-            m_tmpbuf = new byte[10];
-
+            m_tmpbuf = new byte[9];
+            m_msgSource = session;
 
             //  Write 0 bytes to the batch and go to message_ready state.
             NextStep(m_tmpbuf, 0, MessageReadyState, true);
         }
+
 
         public override void SetMsgSource(IMsgSource msgSource)
         {
@@ -65,11 +44,11 @@ namespace NetMQ.zmq
             }
         }
 
-
         private bool SizeReady()
         {
             //  Write message body into the buffer.
-            NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState, !m_inProgress.HasMore);
+            NextStep(m_inProgress.Data, m_inProgress.Size,
+                     MessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 
@@ -91,7 +70,7 @@ namespace NetMQ.zmq
                 m_inProgress.InitEmpty();
                 return false;
             }
-                
+
             bool messagedPulled = m_msgSource.PullMsg(ref m_inProgress);
             if (!messagedPulled)
             {
@@ -99,31 +78,28 @@ namespace NetMQ.zmq
                 return false;
             }
 
-            //  Get the message size.
+            int protocolFlags = 0;
+            if (m_inProgress.HasMore)
+                protocolFlags |= V2Protocol.MoreFlag;
+            if (m_inProgress.Size > 255)
+                protocolFlags |= V2Protocol.LargeFlag;
+            m_tmpbuf[0] = (byte)protocolFlags;
+
+            //  Encode the message length. For messages less then 256 bytes,
+            //  the length is encoded as 8-bit unsigned integer. For larger
+            //  messages, 64-bit unsigned integer in network byte order is used.
             int size = m_inProgress.Size;
-
-            //  Account for the 'flags' byte.
-            size++;
-
-            //  For messages less than 255 bytes long, write one byte of message size.
-            //  For longer messages write 0xff escape character followed by 8-byte
-            //  message size. In both cases 'flags' field follows.
-
-            if (size < 255)
+            if (size > 255)
             {
-                m_tmpbuf[0] = (byte)size;
-                m_tmpbuf[1] = (byte)(m_inProgress.Flags & MsgFlags.More);
-                NextStep(m_tmpbuf, 2, SizeReadyState, false);
+                m_tmpbuf.PutLong(Endian, size, 1);
+
+                NextStep(m_tmpbuf, 9, SizeReadyState, false);
             }
             else
             {
-                m_tmpbuf[0] = 0xff;
-                m_tmpbuf.PutLong(Endian, size, 1);
-                m_tmpbuf[9] = (byte)(m_inProgress.Flags & MsgFlags.More);
-
-                NextStep(m_tmpbuf, 10, SizeReadyState, false);
+                m_tmpbuf[1] = (byte)(size);
+                NextStep(m_tmpbuf, 2, SizeReadyState, false);
             }
-
             return true;
         }
 

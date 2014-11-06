@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using AsyncIO;
 
-namespace NetMQ.zmq.PGM
+namespace NetMQ.zmq.Transports.PGM
 {
     class PgmSession : IEngine, IProcatorEvents
     {
@@ -16,7 +16,7 @@ namespace NetMQ.zmq.PGM
         private IOObject m_ioObject;
         private SessionBase m_session;
         private SocketBase m_socket;
-        private Decoder m_decoder;
+        private V1Decoder m_decoder;
         private bool m_joined;
 
         private int m_pendingBytes;
@@ -136,7 +136,7 @@ namespace NetMQ.zmq.PGM
                     m_joined = true;
 
                     //  Create and connect decoder for the peer.
-                    m_decoder = new Decoder(0, m_options.Maxmsgsize, m_options.Endian);
+                    m_decoder = new V1Decoder(0, m_options.Maxmsgsize, m_options.Endian);
                     m_decoder.SetMsgSink(m_session);
                 }
 
