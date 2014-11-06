@@ -26,11 +26,10 @@ using System.Diagnostics;
 //  Class manages a set of inbound pipes. On receive it performs fair
 //  queueing so that senders gone berserk won't cause denial of
 //  service for decent senders.
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns.Utils
 {
-    public class FQ
+    class FairQueueing
     {
-
         //  Inbound pipes.
         private readonly List<Pipe> m_pipes;
 
@@ -45,7 +44,7 @@ namespace NetMQ.zmq
         //  there are following parts still waiting in the current pipe.
         private bool m_more;
 
-        public FQ()
+        public FairQueueing()
         {
             m_active = 0;
             m_current = 0;
@@ -57,7 +56,7 @@ namespace NetMQ.zmq
         public void Attach(Pipe pipe)
         {
             m_pipes.Add(pipe);
-            Utils.Swap(m_pipes, m_active, m_pipes.Count - 1);
+            m_pipes.Swap(m_active, m_pipes.Count - 1);
             m_active++;
         }
 
@@ -70,7 +69,7 @@ namespace NetMQ.zmq
             if (index < m_active)
             {
                 m_active--;
-                Utils.Swap(m_pipes, index, m_active);
+                m_pipes.Swap(index, m_active);
                 if (m_current == m_active)
                     m_current = 0;
             }
@@ -80,7 +79,7 @@ namespace NetMQ.zmq
         public void Activated(Pipe pipe)
         {
             //  Move the pipe to the list of active pipes.
-            Utils.Swap(m_pipes, m_pipes.IndexOf(pipe), m_active);
+            m_pipes.Swap(m_pipes.IndexOf(pipe), m_active);
             m_active++;
         }
 
@@ -100,7 +99,7 @@ namespace NetMQ.zmq
 
                 //  Try to fetch new message. If we've already read part of the message
                 //  subsequent part should be immediately available.
-                bool fetched = m_pipes[m_current].Read(ref msg);                
+                bool fetched = m_pipes[m_current].Read(ref msg);
 
                 //  Note that when message is not fetched, current pipe is deactivated
                 //  and replaced by another active pipe. Thus we don't have to increase
@@ -121,7 +120,7 @@ namespace NetMQ.zmq
                 Debug.Assert(!m_more);
 
                 m_active--;
-                Utils.Swap(m_pipes, m_current, m_active);
+                m_pipes.Swap(m_current, m_active);
                 if (m_current == m_active)
                     m_current = 0;
             }
@@ -149,13 +148,12 @@ namespace NetMQ.zmq
 
                 //  Deactivate the pipe.
                 m_active--;
-                Utils.Swap(m_pipes, m_current, m_active);
+                m_pipes.Swap(m_current, m_active);
                 if (m_current == m_active)
                     m_current = 0;
             }
 
             return false;
         }
-
     }
 }

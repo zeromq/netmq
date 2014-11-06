@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
 using NetMQ.zmq.Ipc;
+using NetMQ.zmq.Patterns;
 using NetMQ.zmq.PGM;
 using NetMQ.zmq.Tcp;
 

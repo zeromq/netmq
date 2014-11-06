@@ -21,10 +21,11 @@
 
 using System;
 using System.Diagnostics;
+using NetMQ.zmq.Patterns.Utils;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Dealer : SocketBase
+    class Dealer : SocketBase
     {
 
         public class DealerSession : SessionBase
@@ -40,8 +41,8 @@ namespace NetMQ.zmq
 
         //  Messages are fair-queued from inbound pipes. And load-balanced to
         //  the outbound pipes.
-        private readonly FQ m_fq;
-        private readonly LB m_lb;
+        private readonly FairQueueing m_fairQueueing;
+        private readonly LoadBalancer m_loadBalancer;
 
         //  Have we prefetched a message.
         private bool m_prefetched;
@@ -56,13 +57,8 @@ namespace NetMQ.zmq
             m_prefetched = false;
             m_options.SocketType = ZmqSocketType.Dealer;
 
-            m_fq = new FQ();
-            m_lb = new LB();
-            //  TODO: Uncomment the following line when DEALER will become true DEALER
-            //  rather than generic dealer socket.
-            //  If the socket is closing we can drop all the outbound requests. There'll
-            //  be noone to receive the replies anyway.
-            //  options.delay_on_close = false;
+            m_fairQueueing = new FairQueueing();
+            m_loadBalancer = new LoadBalancer();            
 
             m_options.RecvIdentity = true;
 
@@ -81,22 +77,21 @@ namespace NetMQ.zmq
         {
 
             Debug.Assert(pipe != null);
-            m_fq.Attach(pipe);
-            m_lb.Attach(pipe);
+            m_fairQueueing.Attach(pipe);
+            m_loadBalancer.Attach(pipe);
         }
 
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
-            return m_lb.Send(ref msg, flags);
+            return m_loadBalancer.Send(ref msg, flags);
         }
-
 
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
-            return xxrecv(flags, ref msg);
+            return ReceiveInternal(flags, ref msg);
         }
 
-        private bool xxrecv(SendReceiveOptions flags, ref Msg msg)
+        private bool ReceiveInternal(SendReceiveOptions flags, ref Msg msg)
         {            
             //  If there is a prefetched message, return it.
             if (m_prefetched)
@@ -111,7 +106,7 @@ namespace NetMQ.zmq
             //  DEALER socket doesn't use identities. We can safely drop it and 
             while (true)
             {
-                bool isMessageAvailable = m_fq.Recv(ref msg);
+                bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
 
                 if (!isMessageAvailable)
                 {
@@ -133,7 +128,7 @@ namespace NetMQ.zmq
 
             //  Try to read the next message to the pre-fetch buffer.
 
-            bool isMessageAvailable = xxrecv(SendReceiveOptions.DontWait, ref m_prefetchedMsg);
+            bool isMessageAvailable = ReceiveInternal(SendReceiveOptions.DontWait, ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
             {
@@ -148,23 +143,23 @@ namespace NetMQ.zmq
 
         protected override bool XHasOut()
         {
-            return m_lb.HasOut();
+            return m_loadBalancer.HasOut();
         }
 
         protected override void XReadActivated(Pipe pipe)
         {
-            m_fq.Activated(pipe);
+            m_fairQueueing.Activated(pipe);
         }
 
         protected override void XWriteActivated(Pipe pipe)
         {
-            m_lb.Activated(pipe);
+            m_loadBalancer.Activated(pipe);
         }
 
         protected override void XTerminated(Pipe pipe)
         {
-            m_fq.Terminated(pipe);
-            m_lb.Terminated(pipe);
+            m_fairQueueing.Terminated(pipe);
+            m_loadBalancer.Terminated(pipe);
         }
     }
 }

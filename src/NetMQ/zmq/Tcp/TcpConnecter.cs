@@ -184,8 +184,9 @@ namespace NetMQ.zmq.Tcp
                 m_ioObject.RemoveSocket(m_s);
                 m_handleValid = false;
 
-                Utils.TuneTcpSocket(m_s);
-                Utils.TuneTcpKeepalives(m_s, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
+                m_s.NoDelay = true;
+                
+                //Utils.TuneTcpKeepalives(m_s, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
 
                 //  Create the engine object for this connection.
                 StreamEngine engine = new StreamEngine(m_s, m_options, m_endpoint);
@@ -223,8 +224,7 @@ namespace NetMQ.zmq.Tcp
         private int GetNewReconnectIvl()
         {
             //  The new interval is the current interval + random value.
-            int thisInterval = m_currentReconnectIvl +
-                                                    (Utils.GenerateRandom() % m_options.ReconnectIvl);
+            int thisInterval = m_currentReconnectIvl + new Random().Next(0, m_options.ReconnectIvl);
 
             //  Only change the current reconnect interval  if the maximum reconnect
             //  interval was set and if it's larger than the reconnect interval.

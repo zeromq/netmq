@@ -20,66 +20,56 @@
 */
 
 using System.Diagnostics;
+using NetMQ.zmq.Patterns.Utils;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Pull : SocketBase
+    class Pull : SocketBase
     {
-
         public class PullSession : SessionBase
         {
             public PullSession(IOThread ioThread, bool connect,
                                SocketBase socket, Options options,
-                               Address addr)
-                : base(ioThread, connect, socket, options, addr)
+                               Address addr) : base(ioThread, connect, socket, options, addr)
             {
 
             }
         }
 
         //  Fair queueing object for inbound pipes.
-        private readonly FQ m_fq;
+        private readonly FairQueueing m_fairQueueing;
 
-        public Pull(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Pull(Ctx parent, int threadId, int sid) : base(parent, threadId, sid)
         {
-
             m_options.SocketType = ZmqSocketType.Pull;
 
-            m_fq = new FQ();
+            m_fairQueueing = new FairQueueing();
         }
 
-        override
-            protected void XAttachPipe(Pipe pipe, bool icanhasall)
+        protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
-            m_fq.Attach(pipe);
+            m_fairQueueing.Attach(pipe);
         }
 
-
-        override
-            protected void XReadActivated(Pipe pipe)
+        protected override void XReadActivated(Pipe pipe)
         {
-            m_fq.Activated(pipe);
+            m_fairQueueing.Activated(pipe);
         }
 
-        override
-            protected void XTerminated(Pipe pipe)
+        protected override void XTerminated(Pipe pipe)
         {
-            m_fq.Terminated(pipe);
+            m_fairQueueing.Terminated(pipe);
         }
 
-        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
-            return m_fq.Recv(ref msg);
+            return m_fairQueueing.Recv(ref msg);
         }
 
-        override
-            protected bool XHasIn()
+        protected override bool XHasIn()
         {
-            return m_fq.HasIn();
+            return m_fairQueueing.HasIn();
         }
-
-
     }
 }

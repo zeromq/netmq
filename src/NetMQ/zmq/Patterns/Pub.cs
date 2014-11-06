@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Pub : XPub
+    class Pub : XPub
     {
 
         public class PubSession : XPub.XPubSession

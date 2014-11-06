@@ -23,13 +23,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using NetMQ.zmq.Patterns.Utils;
 
-//TODO: This class uses O(n) scheduling. Rewrite it to use O(1) algorithm.
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Router : SocketBase
+    class Router : SocketBase
     {
-
         public class RouterSession : SessionBase
         {
             public RouterSession(IOThread ioThread, bool connect,
@@ -42,7 +41,7 @@ namespace NetMQ.zmq
         }
 
         //  Fair queueing object for inbound pipes.
-        private readonly FQ m_fq;
+        private readonly FairQueueing m_fairQueueing;
 
         //  True iff there is a message held in the pre-fetch buffer.
         private bool m_prefetched;
@@ -92,26 +91,22 @@ namespace NetMQ.zmq
         // the message targeting an unknown peer.
         private bool m_mandatory;
 
-
         private bool m_rawSocket;
 
-        public Router(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Router(Ctx parent, int threadId, int sid) : base(parent, threadId, sid)
         {
-
             m_prefetched = false;
             m_identitySent = false;
             m_moreIn = false;
             m_currentOut = null;
             m_moreOut = false;
-            m_nextPeerId = Utils.GenerateRandom();
+            m_nextPeerId = new Random().Next();
             m_mandatory = false;
             m_rawSocket = false;
 
             m_options.SocketType = ZmqSocketType.Router;
 
-
-            m_fq = new FQ();
+            m_fairQueueing = new FairQueueing();
             m_prefetchedId = new Msg();
             m_prefetchedId.InitEmpty();
             m_prefetchedMsg = new Msg();
@@ -119,13 +114,7 @@ namespace NetMQ.zmq
 
             m_anonymousPipes = new HashSet<Pipe>();
             m_outpipes = new Dictionary<Blob, Outpipe>();
-
-            //  TODO: Uncomment the following line when ROUTER will become true ROUTER
-            //  rather than generic router socket.
-            //  If peer disconnect there's noone to send reply to anyway. We can drop
-            //  all the outstanding requests from that peer.
-            //  options.delay_on_disconnect = false;
-
+         
             m_options.RecvIdentity = true;
         }
 
@@ -142,7 +131,7 @@ namespace NetMQ.zmq
 
             bool identityOk = IdentifyPeer(pipe);
             if (identityOk)
-                m_fq.Attach(pipe);
+                m_fairQueueing.Attach(pipe);
             else
                 m_anonymousPipes.Add(pipe);
         }
@@ -174,7 +163,6 @@ namespace NetMQ.zmq
         {
             if (!m_anonymousPipes.Remove(pipe))
             {
-
                 Outpipe old;
 
                 m_outpipes.TryGetValue(pipe.Identity, out  old);
@@ -182,28 +170,26 @@ namespace NetMQ.zmq
 
                 Debug.Assert(old != null);
 
-                m_fq.Terminated(pipe);
+                m_fairQueueing.Terminated(pipe);
                 if (pipe == m_currentOut)
                     m_currentOut = null;
             }
         }
 
-
         protected override void XReadActivated(Pipe pipe)
         {
             if (!m_anonymousPipes.Contains(pipe))
-                m_fq.Activated(pipe);
+                m_fairQueueing.Activated(pipe);
             else
             {
                 bool identityOk = IdentifyPeer(pipe);
                 if (identityOk)
                 {
                     m_anonymousPipes.Remove(pipe);
-                    m_fq.Attach(pipe);
+                    m_fairQueueing.Attach(pipe);
                 }
             }
         }
-
 
         protected override void XWriteActivated(Pipe pipe)
         {
@@ -223,7 +209,6 @@ namespace NetMQ.zmq
             Debug.Assert(outpipe != null);
         }
 
-
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  If this is the first part of the message it's the ID of the
@@ -237,7 +222,6 @@ namespace NetMQ.zmq
                 //  TODO: The connections should be killed instead.
                 if (msg.HasMore)
                 {
-
                     m_moreOut = true;
 
                     //  Find the pipe associated with the identity stored in the prefix.
@@ -317,8 +301,6 @@ namespace NetMQ.zmq
             return true;
         }
 
-
-
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {            
             if (m_prefetched)
@@ -339,14 +321,13 @@ namespace NetMQ.zmq
 
             Pipe[] pipe = new Pipe[1];
 
-            bool isMessageAvailable = m_fq.RecvPipe(pipe, ref msg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
 
             //  It's possible that we receive peer's identity. That happens
             //  after reconnection. The current implementation assumes that
-            //  the peer always uses the same identity.
-            //  TODO: handle the situation when the peer changes its identity.
+            //  the peer always uses the same identity.            
             while (isMessageAvailable && msg.IsIdentity)
-                isMessageAvailable = m_fq.RecvPipe(pipe, ref msg);
+                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
 
             if (!isMessageAvailable)
             {
@@ -390,7 +371,6 @@ namespace NetMQ.zmq
             }
         }
 
-
         protected override bool XHasIn()
         {
             //  If we are in the middle of reading the messages, there are
@@ -406,7 +386,7 @@ namespace NetMQ.zmq
             //  The message, if read, is kept in the pre-fetch buffer.
             Pipe[] pipe = new Pipe[1];
 
-            bool isMessageAvailable = m_fq.RecvPipe(pipe, ref m_prefetchedMsg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
            
             //  It's possible that we receive peer's identity. That happens
             //  after reconnection. The current implementation assumes that
@@ -414,7 +394,7 @@ namespace NetMQ.zmq
             //  TODO: handle the situation when the peer changes its identity.
             while (isMessageAvailable && m_prefetchedMsg.IsIdentity)
             {
-                isMessageAvailable = m_fq.RecvPipe(pipe, ref m_prefetchedMsg);              
+                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);              
             }
 
             if (!isMessageAvailable)
@@ -435,7 +415,6 @@ namespace NetMQ.zmq
 
             return true;
         }
-
 
         protected override bool XHasOut()
         {
@@ -506,7 +485,5 @@ namespace NetMQ.zmq
 
             return true;
         }
-
-
     }
 }

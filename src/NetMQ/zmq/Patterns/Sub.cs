@@ -22,11 +22,10 @@
 using System;
 using System.Text;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Sub : XSub
+    class Sub : XSub
     {
-
         public class SubSession : XSub.XSubSession
         {
 

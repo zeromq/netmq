@@ -24,28 +24,28 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 //Multi-trie. Each node in the trie is a set of pointers to pipes.
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns.Utils
 {
-    public class Mtrie
+    class MultiTrie
     {
         private HashSet<Pipe> m_pipes;
 
-        private int m_min;
+        private int m_minCharacter;
         private int m_count;
         private int m_liveNodes;
-        private Mtrie[] m_next;
+        private MultiTrie[] m_next;
 
-        public delegate void MtrieDelegate(Pipe pipe, byte[] data, int size, Object arg);
+        public delegate void MultiTrieDelegate(Pipe pipe, byte[] data, int size, Object arg);
 
-        public Mtrie()
+        public MultiTrie()
         {
-            m_min = 0;
+            m_minCharacter = 0;
             m_count = 0;
             m_liveNodes = 0;
 
             m_pipes = null;
             m_next = null;
-        }       
+        }
 
         //  Add key to the trie. Returns true if it's a new subscription
         //  rather than a duplicate.
@@ -54,54 +54,53 @@ namespace NetMQ.zmq
             return AddHelper(prefix, start, size, pipe);
         }
 
-
         private bool AddHelper(byte[] prefix, int start, int size, Pipe pipe)
         {
             //  We are at the node corresponding to the prefix. We are done.
             if (size == 0)
             {
                 bool result = m_pipes == null;
+
                 if (m_pipes == null)
                     m_pipes = new HashSet<Pipe>();
+
                 m_pipes.Add(pipe);
                 return result;
             }
 
-            byte c = prefix[start];
-            if (c < m_min || c >= m_min + m_count)
-            {
+            byte currentCharacter = prefix[start];
 
+            if (currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
+            {
                 //  The character is out of range of currently handled
                 //  charcters. We have to extend the table.
                 if (m_count == 0)
                 {
-                    m_min = c;
+                    m_minCharacter = currentCharacter;
                     m_count = 1;
                     m_next = null;
                 }
                 else if (m_count == 1)
                 {
-                    int oldc = m_min;
-                    Mtrie oldp = m_next[0];
-                    m_count = (m_min < c ? c - m_min : m_min - c) + 1;
-                    m_next = new Mtrie[m_count];
-                    m_min = Math.Min(m_min, c);
-                    m_next[oldc - m_min] = oldp;
+                    int oldc = m_minCharacter;
+                    MultiTrie oldp = m_next[0];
+                    m_count = (m_minCharacter < currentCharacter ? currentCharacter - m_minCharacter : m_minCharacter - currentCharacter) + 1;
+                    m_next = new MultiTrie[m_count];
+                    m_minCharacter = Math.Min(m_minCharacter, currentCharacter);
+                    m_next[oldc - m_minCharacter] = oldp;
                 }
-                else if (m_min < c)
+                else if (m_minCharacter < currentCharacter)
                 {
-
                     //  The new character is above the current character range.
-                    m_count = c - m_min + 1;
-                    m_next = Realloc(m_next, m_count, true);
+                    m_count = currentCharacter - m_minCharacter + 1;
+                    m_next = m_next.Resize(m_count, true);
                 }
                 else
                 {
-
                     //  The new character is below the current character range.
-                    m_count = (m_min + m_count) - c;
-                    m_next = Realloc(m_next, m_count, false);
-                    m_min = c;
+                    m_count = (m_minCharacter + m_count) - currentCharacter;
+                    m_next = m_next.Resize(m_count, false);
+                    m_minCharacter = currentCharacter;
                 }
             }
 
@@ -110,54 +109,54 @@ namespace NetMQ.zmq
             {
                 if (m_next == null)
                 {
-                    m_next = new Mtrie[1];
-                    m_next[0] = new Mtrie();
+                    m_next = new MultiTrie[1];
+                    m_next[0] = new MultiTrie();
                     ++m_liveNodes;
-                    //alloc_Debug.Assert(next.node);
                 }
+                
                 return m_next[0].AddHelper(prefix, start + 1, size - 1, pipe);
             }
             else
             {
-                if (m_next[c - m_min] == null)
+                if (m_next[currentCharacter - m_minCharacter] == null)
                 {
-                    m_next[c - m_min] = new Mtrie();
-                    ++m_liveNodes;
-                    //alloc_Debug.Assert(next.table [c - min]);
+                    m_next[currentCharacter - m_minCharacter] = new MultiTrie();
+                    ++m_liveNodes;                
                 }
-                return m_next[c - m_min].AddHelper(prefix, start + 1, size - 1, pipe);
+
+                return m_next[currentCharacter - m_minCharacter].AddHelper(prefix, start + 1, size - 1, pipe);
             }
         }
 
-        private Mtrie[] Realloc(Mtrie[] table, int size, bool ended)
-        {
-            return Utils.Realloc(table, size, ended);
-        }
-
-        //  Remove all subscriptions for a specific peer from the trie.
-        //  If there are no subscriptions left on some topics, invoke the
-        //  supplied callback function.
-        public bool RemoveHelper(Pipe pipe, MtrieDelegate func, Object arg)
+        
+        /// <summary>
+        /// Remove all subscriptions for a specific peer from the trie.
+        ///  If there are no subscriptions left on some topics, invoke the
+        ///  supplied callback function.
+        /// </summary>
+        /// <param name="pipe"></param>
+        /// <param name="func"></param>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        public bool RemoveHelper(Pipe pipe, MultiTrieDelegate func, Object arg)
         {
             return RemoveHelper(pipe, new byte[0], 0, 0, func, arg);
         }
 
-        private bool RemoveHelper(Pipe pipe, byte[] buff, int buffsize, int maxbuffsize,
-                               MtrieDelegate func, Object arg)
+        private bool RemoveHelper(Pipe pipe, byte[] buffer, int bufferSize, int maxBufferSize, MultiTrieDelegate func, Object arg)
         {
-
             //  Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
             {
-                func(null, buff, buffsize, arg);
+                func(null, buffer, bufferSize, arg);
                 m_pipes = null;
             }
 
             //  Adjust the buffer.
-            if (buffsize >= maxbuffsize)
+            if (bufferSize >= maxBufferSize)
             {
-                maxbuffsize = buffsize + 256;
-                buff = Utils.Realloc(buff, maxbuffsize);
+                maxBufferSize = bufferSize + 256;
+                Array.Resize(ref buffer, maxBufferSize);
             }
 
             //  If there are no subnodes in the trie, return.
@@ -167,10 +166,9 @@ namespace NetMQ.zmq
             //  If there's one subnode (optimisation).
             if (m_count == 1)
             {
-                buff[buffsize] = (byte)m_min;
-                buffsize++;
-                m_next[0].RemoveHelper(pipe, buff, buffsize, maxbuffsize,
-                                   func, arg);
+                buffer[bufferSize] = (byte)m_minCharacter;
+                bufferSize++;
+                m_next[0].RemoveHelper(pipe, buffer, bufferSize, maxBufferSize, func, arg);
 
                 //  Prune the node if it was made redundant by the removal
                 if (m_next[0].IsRedundant)
@@ -184,23 +182,25 @@ namespace NetMQ.zmq
             }
 
             //  If there are multiple subnodes.
-            //
+            
             //  New min non-null character in the node table after the removal
-            int newMin = m_min + m_count - 1;
+            int newMin = m_minCharacter + m_count - 1;
+            
             //  New max non-null character in the node table after the removal
-            int newMax = m_min;
-            for (int c = 0; c != m_count; c++)
+            int newMax = m_minCharacter;
+            
+            for (int currentCharacter = 0; currentCharacter != m_count; currentCharacter++)
             {
-                buff[buffsize] = (byte)(m_min + c);
-                if (m_next[c] != null)
+                buffer[bufferSize] = (byte)(m_minCharacter + currentCharacter);
+                if (m_next[currentCharacter] != null)
                 {
-                    m_next[c].RemoveHelper(pipe, buff, buffsize + 1,
-                                       maxbuffsize, func, arg);
+                    m_next[currentCharacter].RemoveHelper(pipe, buffer, bufferSize + 1,
+                                       maxBufferSize, func, arg);
 
                     //  Prune redundant nodes from the mtrie
-                    if (m_next[c].IsRedundant)
+                    if (m_next[currentCharacter].IsRedundant)
                     {
-                        m_next[c] = null;
+                        m_next[currentCharacter] = null;
 
                         Debug.Assert(m_liveNodes > 0);
                         --m_liveNodes;
@@ -214,10 +214,11 @@ namespace NetMQ.zmq
                         //  first non-null, non-redundant node encountered is the new
                         //  minimum index. Conversely, the last non-redundant, non-null
                         //  node encountered is the new maximum index.
-                        if (c + m_min < newMin)
-                            newMin = c + m_min;
-                        if (c + m_min > newMax)
-                            newMax = c + m_min;
+                        if (currentCharacter + m_minCharacter < newMin)
+                            newMin = currentCharacter + m_minCharacter;
+
+                        if (currentCharacter + m_minCharacter > newMax)
+                            newMax = currentCharacter + m_minCharacter;
                     }
                 }
             }
@@ -237,40 +238,49 @@ namespace NetMQ.zmq
                 //  switch to using the more compact single-node
                 //  representation
                 Debug.Assert(newMin == newMax);
-                Debug.Assert(newMin >= m_min && newMin < m_min + m_count);
-                Mtrie node = m_next[newMin - m_min];
+                Debug.Assert(newMin >= m_minCharacter && newMin < m_minCharacter + m_count);
+                
+                MultiTrie node = m_next[newMin - m_minCharacter];
+                
                 Debug.Assert(node != null);
+                
                 m_next = null;
-                m_next = new Mtrie[] { node };
+                m_next = new MultiTrie[] { node };
                 m_count = 1;
-                m_min = newMin;
+                m_minCharacter = newMin;
             }
-            else if (m_liveNodes > 1 && (newMin > m_min || newMax < m_min + m_count - 1))
+            else if (m_liveNodes > 1 && (newMin > m_minCharacter || newMax < m_minCharacter + m_count - 1))
             {
                 Debug.Assert(newMax - newMin + 1 > 1);
 
-                Mtrie[] old_table = m_next;
-                Debug.Assert(newMin > m_min || newMax < m_min + m_count - 1);
-                Debug.Assert(newMin >= m_min);
-                Debug.Assert(newMax <= m_min + m_count - 1);
+                MultiTrie[] old_table = m_next;
+                Debug.Assert(newMin > m_minCharacter || newMax < m_minCharacter + m_count - 1);
+                Debug.Assert(newMin >= m_minCharacter);
+                Debug.Assert(newMax <= m_minCharacter + m_count - 1);
                 Debug.Assert(newMax - newMin + 1 < m_count);
                 m_count = newMax - newMin + 1;
-                m_next = new Mtrie[m_count];
+                m_next = new MultiTrie[m_count];
 
-                Array.Copy(old_table, (newMin - m_min), m_next, 0, m_count);
+                Array.Copy(old_table, (newMin - m_minCharacter), m_next, 0, m_count);
 
-                m_min = newMin;
+                m_minCharacter = newMin;
             }
             return true;
         }
-
-        //  Remove specific subscription from the trie. Return true is it was
-        //  actually removed rather than de-duplicated.
+        
+        /// <summary>
+        /// Remove specific subscription from the trie. Return true is it was
+        ///  actually removed rather than de-duplicated.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="start"></param>
+        /// <param name="size"></param>
+        /// <param name="pipe"></param>
+        /// <returns></returns>
         public bool Remove(byte[] prefix, int start, int size, Pipe pipe)
         {
             return RemovemHelper(prefix, start, size, pipe);
         }
-
 
         private bool RemovemHelper(byte[] prefix, int start, int size, Pipe pipe)
         {
@@ -288,17 +298,16 @@ namespace NetMQ.zmq
                 return m_pipes == null;
             }
 
-            byte c = prefix[start];
-            if (m_count == 0 || c < m_min || c >= m_min + m_count)
+            byte currentCharacter = prefix[start];
+            if (m_count == 0 || currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
                 return false;
 
-            Mtrie nextNode =
-                m_count == 1 ? m_next[0] : m_next[c - m_min];
+            MultiTrie nextNode = m_count == 1 ? m_next[0] : m_next[currentCharacter - m_minCharacter];
 
             if (nextNode == null)
                 return false;
 
-            bool ret = nextNode.RemovemHelper(prefix, start + 1,size-1, pipe);
+            bool ret = nextNode.RemovemHelper(prefix, start + 1, size - 1, pipe);
             if (nextNode.IsRedundant)
             {
                 Debug.Assert(m_count > 0);
@@ -312,7 +321,7 @@ namespace NetMQ.zmq
                 }
                 else
                 {
-                    m_next[c - m_min] = null;
+                    m_next[currentCharacter - m_minCharacter] = null;
                     Debug.Assert(m_liveNodes > 1);
                     --m_liveNodes;
 
@@ -332,12 +341,12 @@ namespace NetMQ.zmq
                         }
 
                         Debug.Assert(i < m_count);
-                        m_min += i;
+                        m_minCharacter += i;
                         m_count = 1;
-                        Mtrie old = m_next[i];
-                        m_next = new Mtrie[] { old };
+                        MultiTrie old = m_next[i];
+                        m_next = new MultiTrie[] { old };
                     }
-                    else if (c == m_min)
+                    else if (currentCharacter == m_minCharacter)
                     {
                         //  We can compact the table "from the left"
                         int i;
@@ -350,11 +359,11 @@ namespace NetMQ.zmq
                         }
 
                         Debug.Assert(i < m_count);
-                        m_min += i;
+                        m_minCharacter += i;
                         m_count -= i;
-                        m_next = Realloc(m_next, m_count, false);
+                        m_next = m_next.Resize(m_count, false);
                     }
-                    else if (c == m_min + m_count - 1)
+                    else if (currentCharacter == m_minCharacter + m_count - 1)
                     {
                         //  We can compact the table "from the right"
                         int i;
@@ -367,7 +376,7 @@ namespace NetMQ.zmq
                         }
                         Debug.Assert(i < m_count);
                         m_count -= i;
-                        m_next = Realloc(m_next, m_count, true);
+                        m_next = m_next.Resize(m_count, true);
                     }
                 }
             }
@@ -376,11 +385,11 @@ namespace NetMQ.zmq
         }
 
         //  Signal all the matching pipes.
-        public void Match(byte[] data, int size, MtrieDelegate func, Object arg)
+        public void Match(byte[] data, int size, MultiTrieDelegate func, Object arg)
         {
-            Mtrie current = this;
+            MultiTrie current = this;
 
-            int idx = 0;
+            int index = 0;
 
             while (true)
             {
@@ -399,26 +408,26 @@ namespace NetMQ.zmq
                 if (current.m_count == 0)
                     break;
 
-                byte c = data[idx];
+                byte c = data[index];
                 //  If there's one subnode (optimisation).
                 if (current.m_count == 1)
                 {
-                    if (c != current.m_min)
+                    if (c != current.m_minCharacter)
                         break;
                     current = current.m_next[0];
-                    idx++;
+                    index++;
                     size--;
                     continue;
                 }
 
                 //  If there are multiple subnodes.
-                if (c < current.m_min || c >=
-                    current.m_min + current.m_count)
+                if (c < current.m_minCharacter || c >=
+                    current.m_minCharacter + current.m_count)
                     break;
-                if (current.m_next[c - current.m_min] == null)
+                if (current.m_next[c - current.m_minCharacter] == null)
                     break;
-                current = current.m_next[c - current.m_min];
-                idx++;
+                current = current.m_next[c - current.m_minCharacter];
+                index++;
                 size--;
             }
         }

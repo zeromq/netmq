@@ -22,10 +22,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using NetMQ.zmq.Patterns.Utils;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class XPub : SocketBase
+    class XPub : SocketBase
     {
 
         public class XPubSession : SessionBase
@@ -41,10 +42,10 @@ namespace NetMQ.zmq
         }
 
         //  List of all subscriptions mapped to corresponding pipes.
-        private readonly Mtrie m_subscriptions;
+        private readonly MultiTrie m_subscriptions;
 
         //  Distributor of messages holding the list of outbound pipes.
-        private readonly Dist m_dist;
+        private readonly Distribution m_distribution;
 
         // If true, send all subscription messages upstream, not just
         // unique ones
@@ -57,15 +58,15 @@ namespace NetMQ.zmq
         //  applied to the trie, but not yet received by the user.
         private readonly Queue<Blob> m_pending;
 
-        private static readonly Mtrie.MtrieDelegate s_markAsMatching;
-        private static readonly Mtrie.MtrieDelegate s_SendUnsubscription;
+        private static readonly MultiTrie.MultiTrieDelegate s_markAsMatching;
+        private static readonly MultiTrie.MultiTrieDelegate s_SendUnsubscription;
 
         static XPub()
         {
             s_markAsMatching = (pipe, data,size, arg) =>
             {
                 XPub self = (XPub)arg;
-                self.m_dist.Match(pipe);
+                self.m_distribution.Match(pipe);
             };
 
             s_SendUnsubscription = (pipe, data,size, arg) =>
@@ -95,15 +96,15 @@ namespace NetMQ.zmq
             m_verbose = false;
             m_more = false;
 
-            m_subscriptions = new Mtrie();
-            m_dist = new Dist();
+            m_subscriptions = new MultiTrie();
+            m_distribution = new Distribution();
             m_pending = new Queue<Blob>();
         }        
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
-            m_dist.Attach(pipe);
+            m_distribution.Attach(pipe);
 
             //  If icanhasall_ is specified, the caller would like to subscribe
             //  to all data on this pipe, implicitly.
@@ -149,7 +150,7 @@ namespace NetMQ.zmq
 
         protected override void XWriteActivated(Pipe pipe)
         {
-            m_dist.Activated(pipe);
+            m_distribution.Activated(pipe);
         }
 
         protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
@@ -172,7 +173,7 @@ namespace NetMQ.zmq
 
             m_subscriptions.RemoveHelper(pipe, s_SendUnsubscription, this);
 
-            m_dist.Terminated(pipe);
+            m_distribution.Terminated(pipe);
         }
 
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
@@ -186,12 +187,12 @@ namespace NetMQ.zmq
 
             //  Send the message to all the pipes that were marked as matching
             //  in the previous step.
-            m_dist.SendToMatching(ref msg, flags);
+            m_distribution.SendToMatching(ref msg, flags);
 
             //  If we are at the end of multi-part message we can mark all the pipes
             //  as non-matching.
             if (!msgMore)
-                m_dist.Unmatch();
+                m_distribution.Unmatch();
 
             m_more = msgMore;
 
@@ -201,7 +202,7 @@ namespace NetMQ.zmq
 
         protected override bool XHasOut()
         {
-            return m_dist.HasOut();
+            return m_distribution.HasOut();
         }
 
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
@@ -226,7 +227,5 @@ namespace NetMQ.zmq
         {
             return m_pending.Count != 0;
         }
-
-
     }
 }

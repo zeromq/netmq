@@ -20,12 +20,12 @@
 */
 
 using System.Diagnostics;
+using NetMQ.zmq.Patterns.Utils;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Push : SocketBase
+    class Push : SocketBase
     {
-
         public class PushSession : SessionBase
         {
             public PushSession(IOThread ioThread, bool connect,
@@ -37,48 +37,39 @@ namespace NetMQ.zmq
         }
 
         //  Load balancer managing the outbound pipes.
-        private readonly LB lb;
+        private readonly LoadBalancer m_loadBalancer;
 
-        public Push(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Push(Ctx parent, int threadId, int sid) : base(parent, threadId, sid)
         {
-
             m_options.SocketType = ZmqSocketType.Push;
 
-            lb = new LB();
+            m_loadBalancer = new LoadBalancer();
         }
 
-        override
-            protected void XAttachPipe(Pipe pipe, bool icanhasall)
+        protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
-            lb.Attach(pipe);
+            m_loadBalancer.Attach(pipe);
         }
 
-        override
-            protected void XWriteActivated(Pipe pipe)
+        protected override void XWriteActivated(Pipe pipe)
         {
-            lb.Activated(pipe);
+            m_loadBalancer.Activated(pipe);
         }
 
-
-        override
-            protected void XTerminated(Pipe pipe)
+        protected override void XTerminated(Pipe pipe)
         {
-            lb.Terminated(pipe);
+            m_loadBalancer.Terminated(pipe);
         }
 
-        override
-            protected bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
-            return lb.Send(ref msg, flags);
+            return m_loadBalancer.Send(ref msg, flags);
         }
 
-        override
-            protected bool XHasOut()
+        protected override bool XHasOut()
         {
-            return lb.HasOut();
+            return m_loadBalancer.HasOut();
         }
-
     }
 }

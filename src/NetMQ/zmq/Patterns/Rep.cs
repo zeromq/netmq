@@ -22,11 +22,10 @@
 using System;
 using System.Diagnostics;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Rep : Router
+    class Rep : Router
     {
-
         public class RepSession : Router.RouterSession
         {
             public RepSession(IOThread ioThread, bool connect,
@@ -55,8 +54,7 @@ namespace NetMQ.zmq
             m_options.SocketType = ZmqSocketType.Rep;
         }
 
-        override
-            protected bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  If we are in the middle of receiving a request, we cannot send reply.
             if (!m_sendingReply)
@@ -80,7 +78,7 @@ namespace NetMQ.zmq
             return true;
         }
 
-        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             bool isMessageAvailable;
 
@@ -147,8 +145,7 @@ namespace NetMQ.zmq
             return true;
         }
 
-        override
-            protected bool XHasIn()
+        protected override bool XHasIn()
         {
             if (m_sendingReply)
                 return false;
@@ -156,16 +153,12 @@ namespace NetMQ.zmq
             return base.XHasIn();
         }
 
-        override
-            protected bool XHasOut()
+        protected override bool XHasOut()
         {
             if (!m_sendingReply)
                 return false;
 
             return base.XHasOut();
         }
-
-
-
     }
 }

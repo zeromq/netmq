@@ -25,10 +25,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using NetMQ.zmq.Patterns.Utils;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Stream : SocketBase
+    class Stream : SocketBase
     {
         public class StreamSession : SessionBase
         {
@@ -40,22 +41,6 @@ namespace NetMQ.zmq
 
             }
         }
-
-        //  Fair queueing object for inbound pipes.
-        private readonly FQ m_fq;
-
-        //  True iff there is a message held in the pre-fetch buffer.
-        private bool m_prefetched;
-
-        //  If true, the receiver got the message part with
-        //  the peer's identity.
-        private bool m_identitySent;
-
-        //  Holds the prefetched identity.
-        private Msg m_prefetchedId;
-
-        //  Holds the prefetched message.
-        private Msg m_prefetchedMsg;
 
         class Outpipe
         {
@@ -69,6 +54,22 @@ namespace NetMQ.zmq
             public bool Active;
         };
 
+        //  Fair queueing object for inbound pipes.
+        private readonly FairQueueing m_fairQueueing;
+
+        //  True iff there is a message held in the pre-fetch buffer.
+        private bool m_prefetched;
+
+        //  If true, the receiver got the message part with
+        //  the peer's identity.
+        private bool m_identitySent;
+
+        //  Holds the prefetched identity.
+        private Msg m_prefetchedId;
+
+        //  Holds the prefetched message.
+        private Msg m_prefetchedMsg;                
+
         //  Outbound pipes indexed by the peer IDs.
         private readonly Dictionary<Blob, Outpipe> m_outpipes;
 
@@ -80,7 +81,7 @@ namespace NetMQ.zmq
 
         //  Peer ID are generated. It's a simple increment and wrap-over
         //  algorithm. This value is the next ID to use (if not used already).
-        private int m_nextPeerId;
+        private int m_nextPeerId;        
 
         public Stream(Ctx parent, int threadId, int sid)
             : base(parent, threadId, sid)
@@ -89,12 +90,11 @@ namespace NetMQ.zmq
             m_identitySent = false;
             m_currentOut = null;
             m_moreOut = false;
-            m_nextPeerId = Utils.GenerateRandom();
+            m_nextPeerId = new Random().Next();
 
             m_options.SocketType = ZmqSocketType.Stream;
 
-
-            m_fq = new FQ();
+            m_fairQueueing = new FairQueueing();
             m_prefetchedId = new Msg();
             m_prefetchedId.InitEmpty();
             m_prefetchedMsg = new Msg();
@@ -118,7 +118,7 @@ namespace NetMQ.zmq
             Debug.Assert(pipe != null);
 
             IdentifyPeer(pipe);
-            m_fq.Attach(pipe);
+            m_fairQueueing.Attach(pipe);
         }
 
         protected override void XTerminated(Pipe pipe)
@@ -130,14 +130,14 @@ namespace NetMQ.zmq
 
             Debug.Assert(old != null);
 
-            m_fq.Terminated(pipe);
+            m_fairQueueing.Terminated(pipe);
             if (pipe == m_currentOut)
                 m_currentOut = null;
         }
 
         protected override void XReadActivated(Pipe pipe)
         {
-            m_fq.Activated(pipe);
+            m_fairQueueing.Activated(pipe);
         }
 
         protected override void XWriteActivated(Pipe pipe)
@@ -256,7 +256,7 @@ namespace NetMQ.zmq
 
             Pipe[] pipe = new Pipe[1];
 
-            bool isMessageAvailable = m_fq.RecvPipe(pipe, ref m_prefetchedMsg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
             {
@@ -290,7 +290,7 @@ namespace NetMQ.zmq
             //  The message, if read, is kept in the pre-fetch buffer.
             Pipe[] pipe = new Pipe[1];
 
-            bool isMessageAvailable = m_fq.RecvPipe(pipe, ref m_prefetchedMsg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
             {
@@ -311,7 +311,6 @@ namespace NetMQ.zmq
 
             return true;
         }
-
 
         protected override bool XHasOut()
         {

@@ -22,9 +22,9 @@
 
 using System.Collections.Generic;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns.Utils
 {
-    public class Dist
+    class Distribution
     {
         //  List of outbound pipes.		
         private readonly List<Pipe> m_pipes;
@@ -47,7 +47,7 @@ namespace NetMQ.zmq
         //  True if last we are in the middle of a multipart message.
         private bool m_more;
 
-        public Dist()
+        public Distribution()
         {
             m_matching = 0;
             m_active = 0;
@@ -56,7 +56,10 @@ namespace NetMQ.zmq
             m_pipes = new List<Pipe>();
         }
 
-        //  Adds the pipe to the distributor object.
+        /// <summary>
+        /// Adds the pipe to the distributor object.
+        /// </summary>
+        /// <param name="pipe"></param>  
         public void Attach(Pipe pipe)
         {
             //  If we are in the middle of sending a message, we'll add new pipe
@@ -64,50 +67,53 @@ namespace NetMQ.zmq
             //  of active pipes. 
             if (m_more)
             {
-                m_pipes.Add(pipe);
-                //pipes.swap (eligible, pipes.size () - 1);
-                Utils.Swap(m_pipes, m_eligible, m_pipes.Count - 1);
+                m_pipes.Add(pipe);                
+                m_pipes.Swap(m_eligible, m_pipes.Count - 1);
                 m_eligible++;
             }
             else
             {
-                m_pipes.Add(pipe);
-                //pipes.swap (active, pipes.size () - 1);
-                Utils.Swap(m_pipes, m_active, m_pipes.Count - 1);
+                m_pipes.Add(pipe);                
+                m_pipes.Swap(m_active, m_pipes.Count - 1);
                 m_active++;
                 m_eligible++;
             }
         }
-
-        //  Mark the pipe as matching. Subsequent call to send_to_matching
+        
+        /// <summary>
+        /// Mark the pipe as matching. Subsequent call to send_to_matching
         //  will send message also to this pipe.
+        /// </summary>
+        /// <param name="pipe"></param>
         public void Match(Pipe pipe)
         {
-
-            int idx = m_pipes.IndexOf(pipe);
+            int index = m_pipes.IndexOf(pipe);
+         
             //  If pipe is already matching do nothing.
-            if (idx < m_matching)
+            if (index < m_matching)
                 return;
 
             //  If the pipe isn't eligible, ignore it.
-            if (idx >= m_eligible)
+            if (index >= m_eligible)
                 return;
 
             //  Mark the pipe as matching.
-            Utils.Swap(m_pipes, idx, m_matching);
+            m_pipes.Swap(index, m_matching);
             m_matching++;
-
         }
-
-
-        //  Mark all pipes as non-matching.
+        
+        /// <summary>
+        /// Mark all pipes as non-matching.
+        /// </summary>
         public void Unmatch()
         {
             m_matching = 0;
         }
-
-
-        //  Removes the pipe from the distributor object.
+        
+        /// <summary>
+        /// Removes the pipe from the distributor object.
+        /// </summary>
+        /// <param name="pipe"></param>
         public void Terminated(Pipe pipe)
         {
             //  Remove the pipe from the list; adjust number of matching, active and/or
@@ -121,44 +127,54 @@ namespace NetMQ.zmq
             m_pipes.Remove(pipe);
         }
 
-        //  Activates pipe that have previously reached high watermark.
+        /// <summary>
+        /// Activates pipe that have previously reached high watermark.
+        /// </summary>
+        /// <param name="pipe"></param>  
         public void Activated(Pipe pipe)
         {
             //  Move the pipe from passive to eligible state.
-            Utils.Swap(m_pipes, m_pipes.IndexOf(pipe), m_eligible);
+            m_pipes.Swap(m_pipes.IndexOf(pipe), m_eligible);
             m_eligible++;
 
             //  If there's no message being sent at the moment, move it to
             //  the active state.
             if (!m_more)
             {
-                Utils.Swap(m_pipes, m_eligible - 1, m_active);
+                m_pipes.Swap(m_eligible - 1, m_active);
                 m_active++;
             }
-
         }
 
-        //  Send the message to all the outbound pipes.
+        /// <summary>
+        /// Send the message to all the outbound pipes.
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="flags"></param>  
         public void SendToAll(ref Msg msg, SendReceiveOptions flags)
         {
             m_matching = m_active;
             SendToMatching(ref msg, flags);
         }
 
-        //  Send the message to the matching outbound pipes.
+        /// <summary>
+        /// Send the message to the matching outbound pipes.
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="flags"></param>  
         public void SendToMatching(ref Msg msg, SendReceiveOptions flags)
         {
             //  Is this end of a multipart message?
-            bool msg_more = msg.HasMore;
+            bool hasMore = msg.HasMore;
 
             //  Push the message to matching pipes.
             Distribute(ref msg, flags);
 
             //  If mutlipart message is fully sent, activate all the eligible pipes.
-            if (!msg_more)
+            if (!hasMore)
                 m_active = m_eligible;
 
-            m_more = msg_more;
+            m_more = hasMore;
         }
 
         //  Put the message to all active pipes.
@@ -181,7 +197,6 @@ namespace NetMQ.zmq
                     {
                         --i; //  Retry last write because index will have been swapped                    
                     }
-                        
                 }
 
                 msg.Close();
@@ -192,8 +207,7 @@ namespace NetMQ.zmq
 
             //  Add matching-1 references to the message. We already hold one reference,
             //  that's why -1.
-            msg.AddReferences(m_matching-1);
-
+            msg.AddReferences(m_matching - 1);
 
             //  Push copy of the message to each matching pipe.
             int failed = 0;
@@ -205,12 +219,12 @@ namespace NetMQ.zmq
                     --i; //  Retry last write because index will have been swapped
                 }
             }
-            if (failed!= 0)
+            if (failed != 0)
                 msg.RemoveReferences(failed);
 
             //  Detach the original message from the data buffer. Note that we don't
             //  close the message. That's because we've already used all the references.
-            msg.InitEmpty();            
+            msg.InitEmpty();
         }
 
         public bool HasOut()
@@ -224,11 +238,11 @@ namespace NetMQ.zmq
         {
             if (!pipe.Write(ref msg))
             {
-                Utils.Swap(m_pipes, m_pipes.IndexOf(pipe), m_matching - 1);
+                m_pipes.Swap(m_pipes.IndexOf(pipe), m_matching - 1);
                 m_matching--;
-                Utils.Swap(m_pipes, m_pipes.IndexOf(pipe), m_active - 1);
+                m_pipes.Swap(m_pipes.IndexOf(pipe), m_active - 1);
                 m_active--;
-                Utils.Swap(m_pipes, m_active, m_eligible - 1);
+                m_pipes.Swap(m_active, m_eligible - 1);
                 m_eligible--;
                 return false;
             }
@@ -236,9 +250,5 @@ namespace NetMQ.zmq
                 pipe.Flush();
             return true;
         }
-
-
-
-
     }
 }

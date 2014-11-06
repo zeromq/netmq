@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using AsyncIO;
+using NetMQ.zmq.Patterns;
 using NetMQ.zmq.PGM;
 using NetMQ.zmq.Tcp;
 using NetMQ.zmq.Ipc;

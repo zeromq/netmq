@@ -21,12 +21,12 @@
 
 using System.Configuration;
 using System.Diagnostics;
+using NetMQ.zmq.Patterns.Utils;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class XSub : SocketBase
+    class XSub : SocketBase
     {
-
         public class XSubSession : SessionBase
         {
 
@@ -39,10 +39,10 @@ namespace NetMQ.zmq
         }
 
         //  Fair queueing object for inbound pipes.
-        private readonly FQ m_fq;
+        private readonly FairQueueing m_fairQueueing;
 
         //  Object for distributing the subscriptions upstream.
-        private readonly Dist m_dist;
+        private readonly Distribution m_distribution;
 
         //  The repository of subscriptions.
         private readonly Trie m_subscriptions;
@@ -89,8 +89,8 @@ namespace NetMQ.zmq
             m_more = false;
 
             m_options.Linger = 0;
-            m_fq = new FQ();
-            m_dist = new Dist();
+            m_fairQueueing = new FairQueueing();
+            m_distribution = new Distribution();
             m_subscriptions = new Trie();
 
             m_message = new Msg();
@@ -106,30 +106,28 @@ namespace NetMQ.zmq
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
-            m_fq.Attach(pipe);
-            m_dist.Attach(pipe);
+            m_fairQueueing.Attach(pipe);
+            m_distribution.Attach(pipe);
 
             //  Send all the cached subscriptions to the new upstream peer.
             m_subscriptions.Apply(s_sendSubscription, pipe);
             pipe.Flush();
         }
 
-
-
         protected override void XReadActivated(Pipe pipe)
         {
-            m_fq.Activated(pipe);
+            m_fairQueueing.Activated(pipe);
         }
 
         protected override void XWriteActivated(Pipe pipe)
         {
-            m_dist.Activated(pipe);
+            m_distribution.Activated(pipe);
         }
 
         protected override void XTerminated(Pipe pipe)
         {
-            m_fq.Terminated(pipe);
-            m_dist.Terminated(pipe);
+            m_fairQueueing.Terminated(pipe);
+            m_distribution.Terminated(pipe);
         }
 
         protected override void XHiccuped(Pipe pipe)
@@ -149,7 +147,7 @@ namespace NetMQ.zmq
                 // Process the subscription.
                 if (m_subscriptions.Add(data, 1, size-1))
                 {
-                    m_dist.SendToAll(ref msg, flags);
+                    m_distribution.SendToAll(ref msg, flags);
                     return true;
                 }               
             }
@@ -157,14 +155,14 @@ namespace NetMQ.zmq
             {
                 if (m_subscriptions.Remove(data, 1,size-1))
                 {
-                    m_dist.SendToAll(ref msg, flags);
+                    m_distribution.SendToAll(ref msg, flags);
                     return true;
                 }
             }
             else
             {
                 // upstream message unrelated to sub/unsub
-                m_dist.SendToAll(ref msg, flags);
+                m_distribution.SendToAll(ref msg, flags);
 
                 return true;
             }
@@ -201,7 +199,7 @@ namespace NetMQ.zmq
             {
 
                 //  Get a message using fair queueing algorithm.
-                bool isMessageAvailable = m_fq.Recv(ref msg);
+                bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
 
                 //  If there's no message available, return immediately.
                 //  The same when error occurs.
@@ -222,7 +220,7 @@ namespace NetMQ.zmq
                 //  from the pipe.
                 while (msg.HasMore)
                 {
-                    isMessageAvailable = m_fq.Recv(ref msg);
+                    isMessageAvailable = m_fairQueueing.Recv(ref msg);
 
                     Debug.Assert(isMessageAvailable);
                 }
@@ -246,7 +244,7 @@ namespace NetMQ.zmq
             {
 
                 //  Get a message using fair queueing algorithm.
-                bool isMessageAvailable = m_fq.Recv(ref m_message);
+                bool isMessageAvailable = m_fairQueueing.Recv(ref m_message);
 
                 //  If there's no message available, return immediately.
                 //  The same when error occurs.
@@ -266,19 +264,16 @@ namespace NetMQ.zmq
                 //  from the pipe.
                 while (m_message.HasMore)
                 {
-                    isMessageAvailable = m_fq.Recv(ref m_message);
+                    isMessageAvailable = m_fairQueueing.Recv(ref m_message);
 
                     Debug.Assert(isMessageAvailable);
                 }
             }
-
         }
 
         private bool Match(Msg msg)
         {
             return m_subscriptions.Check(msg.Data, msg.Size);
         }
-
-
     }
 }

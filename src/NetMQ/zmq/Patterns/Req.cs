@@ -23,12 +23,10 @@
 using System;
 using System.Diagnostics;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
-    public class Req : Dealer
+    class Req : Dealer
     {
-
-
         //  If true, request was already sent and reply wasn't received yet or
         //  was raceived partially.
         private bool m_receivingReply;
@@ -37,17 +35,13 @@ namespace NetMQ.zmq
         //  of the message must be empty message part (backtrace stack bottom).
         private bool m_messageBegins;
 
-
         public Req(Ctx parent, int threadId, int sid)
             : base(parent, threadId, sid)
         {
-
-
             m_receivingReply = false;
             m_messageBegins = true;
             m_options.SocketType = ZmqSocketType.Req;
         }
-
 
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
@@ -94,7 +88,7 @@ namespace NetMQ.zmq
             return true;
         }
 
-        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             bool isMessageAvailable;
             
@@ -113,8 +107,7 @@ namespace NetMQ.zmq
                 {
                     return false;
                 }               
-
-                // TODO: This should also close the connection with the peer!
+                
                 if (!msg.HasMore || msg.Size != 0)
                 {
                     while (true)
@@ -149,19 +142,15 @@ namespace NetMQ.zmq
             return true;
         }
 
-        override
-            protected bool XHasIn()
-        {
-            //  TODO: Duplicates should be removed here.
-
+        protected override bool XHasIn()
+        {            
             if (!m_receivingReply)
                 return false;
 
             return base.XHasIn();
         }
 
-        override
-            protected bool XHasOut()
+        protected override bool XHasOut()
         {
             if (m_receivingReply)
                 return false;
@@ -169,11 +158,8 @@ namespace NetMQ.zmq
             return base.XHasOut();
         }
 
-
         public class ReqSession : Dealer.DealerSession
         {
-
-
             enum State
             {
                 Identity,
@@ -229,8 +215,6 @@ namespace NetMQ.zmq
                 base.Reset();
                 m_state = State.Identity;
             }
-
         }
-
     }
 }

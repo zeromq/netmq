@@ -23,75 +23,79 @@
 using System;
 using System.Diagnostics;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns.Utils
 {
-    public class Trie
+    class Trie
     {
-        private int m_refcnt;
+        private int m_referenceCount;
 
-        private byte m_min;
+        private byte m_minCharacter;
         private short m_count;
         private short m_liveNodes;
 
         public delegate void TrieDelegate(byte[] data, int size, Object arg);
+
         Trie[] m_next;
 
         public Trie()
         {
-            m_min = 0;
+            m_minCharacter = 0;
             m_count = 0;
             m_liveNodes = 0;
 
-            m_refcnt = 0;
+            m_referenceCount = 0;
             m_next = null;
-        }              
-
-        //  Add key to the trie. Returns true if this is a new item in the trie
-        //  rather than a duplicate.
+        }
+        
+        /// <summary>
+        /// Add key to the trie. Returns true if this is a new item in the trie
+        ///  rather than a duplicate.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="start"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         public bool Add(byte[] prefix, int start, int size)
         {
             //  We are at the node corresponding to the prefix. We are done.
-            if (size==0)
+            if (size == 0)
             {
-                ++m_refcnt;
-                return m_refcnt == 1;
+                ++m_referenceCount;
+                return m_referenceCount == 1;
             }
 
-            byte c = prefix[start];
-            if (c < m_min || c >= m_min + m_count)
+            byte currentCharacter = prefix[start];
+            if (currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
             {
-
                 //  The character is out of range of currently handled
                 //  charcters. We have to extend the table.
                 if (m_count == 0)
                 {
-                    m_min = c;
+                    m_minCharacter = currentCharacter;
                     m_count = 1;
                     m_next = null;
                 }
                 else if (m_count == 1)
                 {
-                    byte oldc = m_min;
+                    byte oldc = m_minCharacter;
                     Trie oldp = m_next[0];
-                    m_count = (short)((m_min < c ? c - m_min : m_min - c) + 1);
+                    m_count = (short)((m_minCharacter < currentCharacter ? currentCharacter - m_minCharacter : m_minCharacter - currentCharacter) + 1);
                     m_next = new Trie[m_count];
-                    m_min = Math.Min(m_min, c);
-                    m_next[oldc - m_min] = oldp;
+                    m_minCharacter = Math.Min(m_minCharacter, currentCharacter);
+                    m_next[oldc - m_minCharacter] = oldp;
                 }
-                else if (m_min < c)
+                else if (m_minCharacter < currentCharacter)
                 {
-
                     //  The new character is above the current character range.
-                    m_count = (short)(c - m_min + 1);
-                    m_next = realloc(m_next, m_count, true);
+                    m_count = (short)(currentCharacter - m_minCharacter + 1);
+                    m_next = m_next.Resize(m_count, true);
                 }
                 else
                 {
-
                     //  The new character is below the current character range.
-                    m_count = (short)((m_min + m_count) - c);
-                    m_next = realloc(m_next, m_count, false);
-                    m_min = c;
+                    m_count = (short)((m_minCharacter + m_count) - currentCharacter);
+                    m_next = m_next.Resize(m_count, false);
+                    m_minCharacter = currentCharacter;
                 }
             }
 
@@ -105,48 +109,50 @@ namespace NetMQ.zmq
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.node);
                 }
-                return m_next[0].Add(prefix, start + 1,size-1);
+                return m_next[0].Add(prefix, start + 1, size - 1);
             }
             else
             {
-                if (m_next[c - m_min] == null)
+                if (m_next[currentCharacter - m_minCharacter] == null)
                 {
-                    m_next[c - m_min] = new Trie();
+                    m_next[currentCharacter - m_minCharacter] = new Trie();
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.table [c - min]);
                 }
-                return m_next[c - m_min].Add(prefix, start + 1, size-1);
+                return m_next[currentCharacter - m_minCharacter].Add(prefix, start + 1, size - 1);
             }
         }
 
-        private Trie[] realloc(Trie[] table, short size, bool ended)
-        {
-            return Utils.Realloc(table, size, ended);
-        }
-
+        
+        /// <summary>
         //  Remove key from the trie. Returns true if the item is actually
-        //  removed from the trie.
+        ///  removed from the trie.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="start"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         public bool Remove(byte[] prefix, int start, int size)
         {
-            if (size==0)
+            if (size == 0)
             {
-                if (m_refcnt == 0)
+                if (m_referenceCount == 0)
                     return false;
-                m_refcnt--;
-                return m_refcnt == 0;
+                m_referenceCount--;
+                return m_referenceCount == 0;
             }
 
-            byte c = prefix[start];
-            if (m_count == 0 || c < m_min || c >= m_min + m_count)
+            byte currentCharacter = prefix[start];
+            if (m_count == 0 || currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
                 return false;
 
-            Trie nextNode =
-                m_count == 1 ? m_next[0] : m_next[c - m_min];
+            Trie nextNode = m_count == 1 ? m_next[0] : m_next[currentCharacter - m_minCharacter];
 
             if (nextNode == null)
                 return false;
 
-            bool ret = nextNode.Remove(prefix, start + 1, size-1);
+            bool wasRemoved = nextNode.Remove(prefix, start + 1, size - 1);
+
             if (nextNode.IsRedundant())
             {
                 //delete next_node;
@@ -161,7 +167,7 @@ namespace NetMQ.zmq
                 }
                 else
                 {
-                    m_next[c - m_min] = null;
+                    m_next[currentCharacter - m_minCharacter] = null;
                     Debug.Assert(m_liveNodes > 1);
                     --m_liveNodes;
 
@@ -177,40 +183,40 @@ namespace NetMQ.zmq
                             if (m_next[i] != null)
                             {
                                 node = m_next[i];
-                                m_min = (byte)(i + m_min);
+                                m_minCharacter = (byte)(i + m_minCharacter);
                                 break;
                             }
                         }
 
                         Debug.Assert(node != null);
-                        //free (next.table);
+                        
                         m_next = null;
                         m_next = new Trie[] { node };
                         m_count = 1;
                     }
-                    else if (c == m_min)
+                    else if (currentCharacter == m_minCharacter)
                     {
                         //  We can compact the table "from the left"
-                        byte newMin = m_min;
+                        byte newMin = m_minCharacter;
                         for (short i = 1; i < m_count; ++i)
                         {
                             if (m_next[i] != null)
                             {
-                                newMin = (byte)(i + m_min);
+                                newMin = (byte)(i + m_minCharacter);
                                 break;
                             }
                         }
-                        Debug.Assert(newMin != m_min);
+                        Debug.Assert(newMin != m_minCharacter);
 
-                        Debug.Assert(newMin > m_min);
-                        Debug.Assert(m_count > newMin - m_min);
-                        m_count = (short)(m_count - (newMin - m_min));
+                        Debug.Assert(newMin > m_minCharacter);
+                        Debug.Assert(m_count > newMin - m_minCharacter);
+                        m_count = (short)(m_count - (newMin - m_minCharacter));
 
-                        m_next = realloc(m_next, m_count, true);
+                        m_next = m_next.Resize(m_count, true);
 
-                        m_min = newMin;
+                        m_minCharacter = newMin;
                     }
-                    else if (c == m_min + m_count - 1)
+                    else if (currentCharacter == m_minCharacter + m_count - 1)
                     {
                         //  We can compact the table "from the right"
                         short newCount = m_count;
@@ -225,15 +231,20 @@ namespace NetMQ.zmq
                         Debug.Assert(newCount != m_count);
                         m_count = newCount;
 
-                        m_next = realloc(m_next, m_count, false);
+                        m_next = m_next.Resize(m_count, false);
                     }
                 }
             }
 
-            return ret;
+            return wasRemoved;
         }
-
-        //  Check whether particular key is in the trie.
+                
+        /// <summary>
+        ///  Check whether particular key is in the trie.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         public bool Check(byte[] data, int size)
         {
             //  This function is on critical path. It deliberately doesn't use
@@ -242,19 +253,18 @@ namespace NetMQ.zmq
             int start = 0;
             while (true)
             {
-
                 //  We've found a corresponding subscription!
-                if (current.m_refcnt > 0)
+                if (current.m_referenceCount > 0)
                     return true;
 
                 //  We've checked all the data and haven't found matching subscription.
-                if (size==0)
+                if (size == 0)
                     return false;
 
                 //  If there's no corresponding slot for the first character
                 //  of the prefix, the message does not match.
-                byte c = data[start];
-                if (c < current.m_min || c >= current.m_min + current.m_count)
+                byte character = data[start];
+                if (character < current.m_minCharacter || character >= current.m_minCharacter + current.m_count)
                     return false;
 
                 //  Move to the next character.
@@ -262,7 +272,8 @@ namespace NetMQ.zmq
                     current = current.m_next[0];
                 else
                 {
-                    current = current.m_next[c - current.m_min];
+                    current = current.m_next[character - current.m_minCharacter];
+                    
                     if (current == null)
                         return false;
                 }
@@ -277,19 +288,18 @@ namespace NetMQ.zmq
             ApplyHelper(null, 0, 0, func, arg);
         }
 
-        private void ApplyHelper(byte[] buff, int buffsize, int maxbuffsize, TrieDelegate func,
-                                  Object arg)
+        private void ApplyHelper(byte[] buffer, int bufferSize, int maxBufferSize, TrieDelegate func, Object arg)
         {
             //  If this node is a subscription, apply the function.
-            if (m_refcnt > 0)
-                func(buff, buffsize, arg);
+            if (m_referenceCount > 0)
+                func(buffer, bufferSize, arg);
 
             //  Adjust the buffer.
-            if (buffsize >= maxbuffsize)
+            if (bufferSize >= maxBufferSize)
             {
-                maxbuffsize = buffsize + 256;
-                buff = Utils.Realloc(buff, maxbuffsize);
-                Debug.Assert(buff != null);
+                maxBufferSize = bufferSize + 256;
+                Array.Resize(ref buffer, maxBufferSize);
+                Debug.Assert(buffer != null);
             }
 
             //  If there are no subnodes in the trie, return.
@@ -299,30 +309,24 @@ namespace NetMQ.zmq
             //  If there's one subnode (optimisation).
             if (m_count == 1)
             {
-                buff[buffsize] = m_min;
-                buffsize++;
-                m_next[0].ApplyHelper(buff, buffsize, maxbuffsize, func, arg);
+                buffer[bufferSize] = m_minCharacter;
+                bufferSize++;
+                m_next[0].ApplyHelper(buffer, bufferSize, maxBufferSize, func, arg);
                 return;
             }
 
             //  If there are multiple subnodes.
             for (short c = 0; c != m_count; c++)
             {
-                buff[buffsize] = (byte)(m_min + c);
+                buffer[bufferSize] = (byte)(m_minCharacter + c);
                 if (m_next[c] != null)
-                    m_next[c].ApplyHelper(buff, buffsize + 1, maxbuffsize,
-                                          func, arg);
+                    m_next[c].ApplyHelper(buffer, bufferSize + 1, maxBufferSize, func, arg);
             }
         }
 
-
         private bool IsRedundant()
         {
-            return m_refcnt == 0 && m_liveNodes == 0;
+            return m_referenceCount == 0 && m_liveNodes == 0;
         }
-
-
-
-
     }
 }

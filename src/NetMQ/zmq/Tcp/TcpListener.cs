@@ -156,9 +156,8 @@ namespace NetMQ.zmq.Tcp
                 // TODO: check TcpFilters
 
                 m_acceptedSocket.NoDelay = true;
-
-                Utils.TuneTcpSocket(m_acceptedSocket);
-                Utils.TuneTcpKeepalives(m_acceptedSocket, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
+                
+                // Utils.TuneTcpKeepalives(m_acceptedSocket, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
 
                 //  Create the engine object for this connection.
                 StreamEngine engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);

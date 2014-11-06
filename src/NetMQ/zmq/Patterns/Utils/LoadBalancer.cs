@@ -23,11 +23,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns.Utils
 {
-    public class LB
+    class LoadBalancer
     {
-
         //  List of outbound pipes.
         private readonly List<Pipe> m_pipes;
 
@@ -44,7 +43,7 @@ namespace NetMQ.zmq
         //  True if we are dropping current message.
         private bool m_dropping;
 
-        public LB()
+        public LoadBalancer()
         {
             m_active = 0;
             m_current = 0;
@@ -74,7 +73,7 @@ namespace NetMQ.zmq
             if (index < m_active)
             {
                 m_active--;
-                Utils.Swap(m_pipes, index, m_active);
+                m_pipes.Swap(index, m_active);
                 if (m_current == m_active)
                     m_current = 0;
             }
@@ -85,7 +84,7 @@ namespace NetMQ.zmq
         public void Activated(Pipe pipe)
         {
             //  Move the pipe to the list of active pipes.
-            Utils.Swap(m_pipes, m_pipes.IndexOf(pipe), m_active);
+            m_pipes.Swap(m_pipes.IndexOf(pipe), m_active);
             m_active++;
         }
 
@@ -95,7 +94,6 @@ namespace NetMQ.zmq
             //  switch back to non-dropping mode.
             if (m_dropping)
             {
-
                 m_more = msg.HasMore;
                 m_dropping = m_more;
 
@@ -112,7 +110,7 @@ namespace NetMQ.zmq
                 Debug.Assert(!m_more);
                 m_active--;
                 if (m_current < m_active)
-                    Utils.Swap(m_pipes, m_current, m_active);
+                    m_pipes.Swap(m_current, m_active);
                 else
                     m_current = 0;
             }
@@ -155,7 +153,7 @@ namespace NetMQ.zmq
 
                 //  Deactivate the pipe.
                 m_active--;
-                Utils.Swap(m_pipes, m_current, m_active);
+                m_pipes.Swap(m_current, m_active);
                 if (m_current == m_active)
                     m_current = 0;
             }

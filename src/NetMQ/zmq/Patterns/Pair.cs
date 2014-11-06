@@ -21,7 +21,7 @@
 
 using System.Diagnostics;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Patterns
 {
     public class Pair : SocketBase
     {
