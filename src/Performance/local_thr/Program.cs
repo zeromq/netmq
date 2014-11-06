@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using NetMQ;
 using NetMQ.zmq;
 
 namespace local_thr
@@ -18,19 +19,19 @@ namespace local_thr
             int messageSize = int.Parse(args[1]);
             int messageCount = int.Parse(args[2]);
 
-            var context = ZMQ.CtxNew();
-            var pullSocket = ZMQ.Socket(context, ZmqSocketType.Pull);
+            var context = NetMQContext.Create();
+            var pullSocket = context.CreatePullSocket();
             pullSocket.Bind(bindTo);
 
             var message = new Msg();
             message.InitEmpty();
 
-            pullSocket.Recv(ref message, SendReceiveOptions.None);
+            pullSocket.Receive(ref message, SendReceiveOptions.None);
 
             var stopWatch = Stopwatch.StartNew();
             for (int i = 0; i != messageCount - 1; i++)
             {
-                pullSocket.Recv(ref message, SendReceiveOptions.None);
+                pullSocket.Receive(ref message, SendReceiveOptions.None);
                 if (message.Size != messageSize)
                 {
                     Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);

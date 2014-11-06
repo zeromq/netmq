@@ -63,6 +63,8 @@ namespace NetMQ.zmq
                 {
                 }
 
+                m_stopped = true;
+
                 m_completionPort.Dispose();
             }
         }

@@ -310,7 +310,7 @@ namespace NetMQ.zmq
 
             if (option == ZmqSocketOptions.ReceiveMore)
             {
-                return m_rcvMore ? 1 : 0;
+                return m_rcvMore;
             }
 
             if (option == ZmqSocketOptions.FD)
@@ -338,11 +338,11 @@ namespace NetMQ.zmq
                     }
                 }
 
-                int val = 0;
+                PollEvents val = 0;
                 if (HasOut())
-                    val |= ZMQ.ZmqPollout;
+                    val |= PollEvents.PollOut;
                 if (HasIn())
-                    val |= ZMQ.ZmqPollin;
+                    val |= PollEvents.PollIn;
                 return val;
             }
             //  If the socket type doesn't support the option, pass it to
@@ -350,7 +350,7 @@ namespace NetMQ.zmq
             return m_options.GetSocketOption(option);
 
         }
-
+       
         public void Bind(String addr)
         {
             if (m_ctxTerminated)

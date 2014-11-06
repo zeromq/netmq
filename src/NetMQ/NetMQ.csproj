@@ -119,6 +119,7 @@
     <Compile Include="zmq\AtomicCounter.cs" />
     <Compile Include="zmq\Blob.cs" />
     <Compile Include="zmq\BufferPool.cs" />
+    <Compile Include="zmq\Selector.cs" />
     <Compile Include="zmq\Transports\ByteArraySegment.cs" />
     <Compile Include="zmq\Clock.cs" />
     <Compile Include="zmq\Command.cs" />
@@ -172,11 +173,8 @@
     <None Include="zmq\Native\Poller.cs" />
     <Compile Include="zmq\Poller.cs" />
     <Compile Include="zmq\PollerBase.cs" />
-    <Compile Include="zmq\PollItem.cs" />
     <Compile Include="zmq\Proactor.cs" />
-    <Compile Include="zmq\Proxy.cs" />
     <Compile Include="JetBrains.Annotations.cs" />
-    <None Include="zmq\Proxy.cs" />
     <Compile Include="zmq\Patterns\Pub.cs" />
     <Compile Include="zmq\Patterns\Pull.cs" />
     <Compile Include="zmq\Patterns\Push.cs" />
@@ -203,7 +201,6 @@
     <Compile Include="zmq\Patterns\XSub.cs" />
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\YQueue.cs" />
-    <Compile Include="zmq\ZMQ.cs" />
     <Compile Include="zmq\ZObject.cs" />
   </ItemGroup>
   <ItemGroup />

@@ -31,7 +31,11 @@ using System.Diagnostics;
 namespace NetMQ.zmq
 {
     public class Ctx
-    {        
+    {
+        /*  Default for new contexts                                                  */
+        public const int DefaultIOThreads = 1;
+        public const int DefaultMaxSockets = 1024;
+
         //  Information associated with inproc endpoint. Note that endpoint options
         //  are registered as well so that the peer can access them without a need
         //  for synchronisation, handshaking or similar.
@@ -86,7 +90,7 @@ namespace NetMQ.zmq
         private readonly Mailbox m_termMailbox;
 
         //  List of inproc endpoints within this context.
-        private readonly Dictionary<String, Endpoint> m_endpoints;
+        private readonly Dictionary<string, Endpoint> m_endpoints;
 
         //  Synchronisation of access to the list of inproc endpoints.		
         private readonly object m_endpointsSync;
@@ -114,8 +118,8 @@ namespace NetMQ.zmq
             m_reaper = null;
             m_slotCount = 0;
             m_slots = null;
-            m_maxSockets = ZMQ.ZmqMaxSocketsDflt;
-            m_ioThreadCount = ZMQ.ZmqIOThreadsDflt;
+            m_maxSockets = DefaultMaxSockets;
+            m_ioThreadCount = DefaultIOThreads;
 
             m_slotSync = new object();
             m_endpointsSync = new object();
@@ -126,7 +130,7 @@ namespace NetMQ.zmq
             m_emptySlots = new Stack<int>();
             m_ioThreads = new List<IOThread>();
             m_sockets = new List<SocketBase>();
-            m_endpoints = new Dictionary<String, Endpoint>();
+            m_endpoints = new Dictionary<string, Endpoint>();
         }
 
         protected void Destroy()
@@ -496,6 +500,6 @@ namespace NetMQ.zmq
                 endpoint.Socket.IncSeqnum();
             }
             return endpoint;
-        }        
+        }
     }
 }

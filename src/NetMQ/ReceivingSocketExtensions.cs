@@ -8,7 +8,7 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     public static class ReceivingSocketExtensions
-    {
+    {        
         #region Byte Array
 
         public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
@@ -157,14 +157,9 @@ namespace NetMQ
 
         public static string ReceiveString(this NetMQSocket socket, Encoding encoding, TimeSpan timeout)
         {
-            var item = new PollItem(socket.SocketHandle, PollEvents.PollIn);
-            var items = new[] { item };
-            ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
+            var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
-                throw new ErrorPollingException("Error while polling", socket);
-
-            if (!item.ResultEvent.HasFlag(PollEvents.PollIn))
+            if (!result.HasFlag(PollEvents.PollIn))
                 return null;
 
             var msg = socket.ReceiveString(encoding);
@@ -210,14 +205,9 @@ namespace NetMQ
 
         public static NetMQMessage ReceiveMessage(this NetMQSocket socket, TimeSpan timeout)
         {
-            var item = new PollItem(socket.SocketHandle, PollEvents.PollIn);
-            var items = new[] { item };
-            ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
+            var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
-                throw new ErrorPollingException("Error while polling", socket);
-
-            if (!item.ResultEvent.HasFlag(PollEvents.PollIn))
+            if (!result.HasFlag(PollEvents.PollIn))
                 return null;
 
             var msg = socket.ReceiveMessage();

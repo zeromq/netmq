@@ -136,12 +136,10 @@
     <None Include="zmq\Native\Poller.cs" />
     <Compile Include="zmq\Poller.cs" />
     <Compile Include="zmq\PollerBase.cs" />
-    <Compile Include="zmq\PollItem.cs" />
     <Compile Include="zmq\Proactor.cs" />
-    <Compile Include="zmq\Proxy.cs" />
     <Compile Include="JetBrains.Annotations.cs" />
-    <None Include="zmq\Proxy.cs" />
     <Compile Include="zmq\Reaper.cs" />
+    <Compile Include="zmq\Selector.cs" />
     <Compile Include="zmq\SessionBase.cs" />
     <Compile Include="zmq\Signaler.cs" />
     <Compile Include="zmq\SocketBase.cs" />
@@ -172,7 +170,6 @@
     <Compile Include="zmq\Transports\V2Protocol.cs" />
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\YQueue.cs" />
-    <Compile Include="zmq\ZMQ.cs" />
     <Compile Include="zmq\ZObject.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
