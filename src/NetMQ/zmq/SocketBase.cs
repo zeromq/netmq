@@ -36,10 +36,7 @@ using TcpListener = NetMQ.zmq.Tcp.TcpListener;
 namespace NetMQ.zmq
 {
     public abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
-    {
-
-        //private static Logger LOG = LoggerFactory.getLogger(SocketBase.class);
-
+    {        
         private readonly Dictionary<String, Own> m_endpoints;
 
         private readonly Dictionary<string, Pipe> m_inprocs; 
@@ -58,14 +55,12 @@ namespace NetMQ.zmq
         //  Socket's mailbox object.
         private readonly Mailbox m_mailbox;
 
-        //  List of attached pipes.
-        //typedef array_t <pipe_t, 3> pipes_t;
+        //  List of attached pipes.        
         private readonly List<Pipe> m_pipes;
 
         //  Reaper's poller and handle of this socket within it.
         private Poller m_poller;
         private Socket m_handle;
-
 
         //  Timestamp of when commands were processed the last time.
         private long m_lastTsc;
@@ -111,13 +106,11 @@ namespace NetMQ.zmq
         abstract protected void XAttachPipe(Pipe pipe, bool icanhasall);
         abstract protected void XTerminated(Pipe pipe);
 
-
         //  Returns false if object is not a socket.
         public bool CheckTag()
         {
             return m_tag == 0xbaddecaf;
         }
-
 
         //  Create a socket of a specified type.
         public static SocketBase Create(ZmqSocketType type, Ctx parent,
@@ -255,24 +248,16 @@ namespace NetMQ.zmq
             }
 
             //  First, check whether specific socket type overloads the option.
-
-            try
+            if (!XSetSocketOption(option, optval))
             {
-                XSetSocketOption(option, optval);
-                return;
-            }
-            catch (InvalidException)
-            {
-            }
-
-            //  If the socket type doesn't support the option, pass it to
-            //  the generic option parser.
-            m_options.SetSocketOption(option, optval);
+                //  If the socket type doesn't support the option, pass it to
+                //  the generic option parser.
+                m_options.SetSocketOption(option, optval);    
+            }                       
         }
 
         public int GetSocketOption(ZmqSocketOptions option)
         {
-
             if (m_ctxTerminated)
             {
                 throw TerminatingException.Create();
@@ -762,14 +747,12 @@ namespace NetMQ.zmq
                 msg.SetFlags(MsgFlags.More);
 
             //  Try to send the message.
-
             bool isMessageSent = XSend(ref msg, flags);
 
             if (isMessageSent)
             {
                 return;
             }
-
 
             //  In case of non-blocking send we'll simply propagate
             //  the error - including EAGAIN - up the stack.
@@ -855,7 +838,6 @@ namespace NetMQ.zmq
                     throw AgainException.Create();
                 }
 
-
                 ExtractFlags(ref msg);
                 return;
             }
@@ -893,7 +875,6 @@ namespace NetMQ.zmq
             ExtractFlags(ref msg);
         }
 
-
         public void Close()
         {
             //  Mark the socket as dead
@@ -903,9 +884,7 @@ namespace NetMQ.zmq
             //  to the reaper thread which will take care of the rest of shutdown
             //  process.
             SendReap(this);
-
         }
-
 
         //  These functions are used by the polling mechanism to determine
         //  which events are to be reported from this socket.
@@ -919,7 +898,6 @@ namespace NetMQ.zmq
             return XHasOut();
         }
 
-
         //  Using this function reaper thread ask the socket to register with
         //  its poller.
         public void StartReaping(Poller poller)
@@ -932,7 +910,6 @@ namespace NetMQ.zmq
 
             //  Initialise the termination and check whether it can be deallocated
             //  immediately.
-
             Terminate();
             CheckDestroy();
         }
@@ -1003,7 +980,6 @@ namespace NetMQ.zmq
             //  responsible for calling zmq_close on the socket though!
             StopMonitor();
             m_ctxTerminated = true;
-
         }
 
         protected override void ProcessBind(Pipe pipe)
@@ -1036,11 +1012,10 @@ namespace NetMQ.zmq
         //  The default implementation assumes there are no specific socket
         //  options for the particular socket type. If not so, overload this
         //  method.
-        protected virtual void XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected virtual bool XSetSocketOption(ZmqSocketOptions option, Object optval)
         {
-            throw InvalidException.Create();
+            return false;
         }
-
 
         protected virtual bool XHasOut()
         {
@@ -1104,7 +1079,6 @@ namespace NetMQ.zmq
         {
             throw new NotSupportedException();
         }
-
 
         //  To be called after processing commands or invoking any command
         //  handlers explicitly. If required, it will deallocate the socket.

@@ -49,11 +49,11 @@ namespace NetMQ.zmq
             m_options.Filter = true;
         }
 
-        protected override void XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
         {
             if (option != ZmqSocketOptions.Subscribe && option != ZmqSocketOptions.Unsubscribe)
             {
-                throw InvalidException.Create();
+                return false;
             }
 
             byte[] val;
@@ -87,7 +87,9 @@ namespace NetMQ.zmq
             finally
             {
                 msg.Close();
-            }            
+            }
+
+            return true;
         }
 
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
@@ -101,7 +103,5 @@ namespace NetMQ.zmq
             //  Overload the XSUB's send.
             return false;
         }
-
-
     }
 }

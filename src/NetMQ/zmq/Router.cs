@@ -148,12 +148,8 @@ namespace NetMQ.zmq
         }
 
 
-        protected override void XSetSocketOption(ZmqSocketOptions option, Object optval)
-        {
-            if (option != ZmqSocketOptions.RouterMandatory && option != ZmqSocketOptions.RouterRawSocket)
-            {
-                throw InvalidException.Create();
-            }
+        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+        {            
             if (option == ZmqSocketOptions.RouterRawSocket)
             {
                 m_rawSocket = (bool)optval;
@@ -162,14 +158,17 @@ namespace NetMQ.zmq
                     m_options.RecvIdentity = false;
                     m_options.RawSocket = true;
                 }
+
+                return true;
             }
-            else
+            else if ( option == ZmqSocketOptions.RouterRawSocket)
             {
                 m_mandatory = (bool)optval;
+                return true;
             }
+
+            return false;
         }
-
-
 
         protected override void XTerminated(Pipe pipe)
         {

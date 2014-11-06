@@ -152,13 +152,15 @@ namespace NetMQ.zmq
             m_dist.Activated(pipe);
         }
 
-        protected override void XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
         {
-            if (option != ZmqSocketOptions.XpubVerbose)
+            if (option == ZmqSocketOptions.XpubVerbose)
             {
-                throw InvalidException.Create();
+                m_verbose = (int)optval == 1;
+                return true;
             }
-            m_verbose = (int)optval == 1;
+
+            return false;
         }
 
         protected override void XTerminated(Pipe pipe)
