@@ -23,7 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using NetMQ.zmq.Tcp;
+using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq
 {

@@ -29,7 +29,7 @@ namespace NetMQ
         /// <returns>The new context</returns>
         public static NetMQContext Create()
         {
-            return new NetMQContext(ZMQ.CtxNew());
+            return new NetMQContext(new Ctx());
         }
 
         /// <summary>
@@ -37,8 +37,18 @@ namespace NetMQ
         /// </summary>
         public int ThreadPoolSize
         {
-            get { return ZMQ.CtxGet(m_ctx, ContextOption.IOThreads); }
-            set { ZMQ.CtxSet(m_ctx, ContextOption.IOThreads, value); }
+            get
+            {
+                m_ctx.CheckDisposed();
+
+                return m_ctx.Get(ContextOption.IOThreads);                 
+            }
+            set
+            {
+                m_ctx.CheckDisposed();
+
+                m_ctx.Set(ContextOption.IOThreads, value);                               
+            }
         }
 
         /// <summary>
@@ -46,13 +56,30 @@ namespace NetMQ
         /// </summary>
         public int MaxSockets
         {
-            get { return ZMQ.CtxGet(m_ctx, zmq.ContextOption.MaxSockets); }
-            set { ZMQ.CtxSet(m_ctx, ContextOption.MaxSockets, value); }
+            get
+            {
+                m_ctx.CheckDisposed();
+
+                return m_ctx.Get(ContextOption.MaxSockets);
+            }
+            set
+            {
+                m_ctx.CheckDisposed();
+
+                m_ctx.Set(ContextOption.MaxSockets, value);
+            }
+        }
+
+        private SocketBase CreateHandle(ZmqSocketType socketType)
+        {
+            m_ctx.CheckDisposed();
+
+            return m_ctx.CreateSocket(socketType);
         }
 
         public NetMQSocket CreateSocket(ZmqSocketType socketType)
         {
-            var socketHandle = ZMQ.Socket(m_ctx, socketType);
+            var socketHandle = CreateHandle(socketType);
 
             switch (socketType)
             {
@@ -91,7 +118,7 @@ namespace NetMQ
         /// <returns></returns>
         public RequestSocket CreateRequestSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Req);
+            var socketHandle = CreateHandle(ZmqSocketType.Req);
 
             return new RequestSocket(socketHandle);
         }
@@ -102,7 +129,7 @@ namespace NetMQ
         /// <returns></returns>
         public ResponseSocket CreateResponseSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Rep);
+            var socketHandle = CreateHandle(ZmqSocketType.Rep);
 
             return new ResponseSocket(socketHandle);
         }
@@ -113,7 +140,7 @@ namespace NetMQ
         /// <returns></returns>
         public DealerSocket CreateDealerSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Dealer);
+            var socketHandle = CreateHandle(ZmqSocketType.Dealer);
 
             return new DealerSocket(socketHandle);
         }
@@ -124,7 +151,7 @@ namespace NetMQ
         /// <returns></returns>
         public RouterSocket CreateRouterSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Router);
+            var socketHandle = CreateHandle(ZmqSocketType.Router);
 
             return new RouterSocket(socketHandle);
         }
@@ -135,7 +162,7 @@ namespace NetMQ
         /// <returns></returns>
         public XPublisherSocket CreateXPublisherSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xpub);
+            var socketHandle = CreateHandle(ZmqSocketType.Xpub);
 
             return new XPublisherSocket(socketHandle);
         }
@@ -146,7 +173,7 @@ namespace NetMQ
         /// <returns></returns>
         public PairSocket CreatePairSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pair);
+            var socketHandle = CreateHandle(ZmqSocketType.Pair);
 
             return new PairSocket(socketHandle);
         }
@@ -157,7 +184,7 @@ namespace NetMQ
         /// <returns></returns>
         public PushSocket CreatePushSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Push);
+            var socketHandle = CreateHandle(ZmqSocketType.Push);
 
             return new PushSocket(socketHandle);
         }
@@ -168,7 +195,7 @@ namespace NetMQ
         /// <returns></returns>
         public PublisherSocket CreatePublisherSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pub);
+            var socketHandle = CreateHandle(ZmqSocketType.Pub);
 
             return new PublisherSocket(socketHandle);
         }
@@ -179,7 +206,7 @@ namespace NetMQ
         /// <returns></returns>
         public PullSocket CreatePullSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Pull);
+            var socketHandle = CreateHandle(ZmqSocketType.Pull);
 
             return new PullSocket(socketHandle);
         }
@@ -190,7 +217,7 @@ namespace NetMQ
         /// <returns></returns>
         public SubscriberSocket CreateSubscriberSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Sub);
+            var socketHandle = CreateHandle(ZmqSocketType.Sub);
 
             return new SubscriberSocket(socketHandle);
         }
@@ -201,14 +228,14 @@ namespace NetMQ
         /// <returns></returns>
         public XSubscriberSocket CreateXSubscriberSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Xsub);
+            var socketHandle = CreateHandle(ZmqSocketType.Xsub);
 
             return new XSubscriberSocket(socketHandle);
         }
 
         public StreamSocket CreateStreamSocket()
         {
-            var socketHandle = ZMQ.Socket(m_ctx, ZmqSocketType.Stream);
+            var socketHandle = CreateHandle(ZmqSocketType.Stream);
 
             return new StreamSocket(socketHandle);
         }
@@ -235,7 +262,9 @@ namespace NetMQ
         {
             if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) == 0)
             {
-                ZMQ.Term(m_ctx);
+                m_ctx.CheckDisposed();
+
+                m_ctx.Terminate();                
             }
         }
 

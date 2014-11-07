@@ -1,4 +1,5 @@
 ﻿using System;
+using NetMQ;
 using NetMQ.zmq;
 
 namespace remote_thr
@@ -17,8 +18,8 @@ namespace remote_thr
             int messageSize = int.Parse(args[1]);
             int messageCount = int.Parse(args[2]);
 
-            var context = ZMQ.CtxNew();
-            var pushSocket = ZMQ.Socket(context, ZmqSocketType.Push);
+            var context = NetMQContext.Create();
+            var pushSocket = context.CreatePushSocket();
             pushSocket.Connect(connectTo);
             
             for (int i = 0; i != messageCount; i++)

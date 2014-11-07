@@ -24,9 +24,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
-using NetMQ.zmq.Ipc;
-using NetMQ.zmq.PGM;
-using NetMQ.zmq.Tcp;
+using NetMQ.zmq.Transports;
+using NetMQ.zmq.Transports.Ipc;
+using NetMQ.zmq.Patterns;
+using NetMQ.zmq.Transports.PGM;
+using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq
 {

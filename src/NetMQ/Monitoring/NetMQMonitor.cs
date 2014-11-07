@@ -23,7 +23,7 @@ namespace NetMQ.Monitoring
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
 
-            ZMQ.SocketMonitor(monitoredSocket.SocketHandle, Endpoint, eventsToMonitor);
+            monitoredSocket.Monitor(endpoint, eventsToMonitor);            
 
             MonitoringSocket = context.CreatePairSocket();
             MonitoringSocket.Options.Linger = TimeSpan.Zero;

@@ -32,8 +32,9 @@ namespace NetMQ.zmq
 {
     public class Ctx
     {
-
-        // private static Logger LOG = LoggerFactory.getLogger(Ctx.class);
+        /*  Default for new contexts                                                  */
+        public const int DefaultIOThreads = 1;
+        public const int DefaultMaxSockets = 1024;
 
         //  Information associated with inproc endpoint. Note that endpoint options
         //  are registered as well so that the peer can access them without a need
@@ -50,8 +51,8 @@ namespace NetMQ.zmq
             public SocketBase Socket { get; private set; }
             public Options Options { get; private set; }
         }
-        //  Used to check whether the object is a context.
-        private uint m_tag;
+             
+        private bool m_disposed;
 
         //  Sockets belonging to this context. We need the list so that
         //  we can notify the sockets when zmq_term() is called. The sockets
@@ -89,7 +90,7 @@ namespace NetMQ.zmq
         private readonly Mailbox m_termMailbox;
 
         //  List of inproc endpoints within this context.
-        private readonly Dictionary<String, Endpoint> m_endpoints;
+        private readonly Dictionary<string, Endpoint> m_endpoints;
 
         //  Synchronisation of access to the list of inproc endpoints.		
         private readonly object m_endpointsSync;
@@ -111,14 +112,14 @@ namespace NetMQ.zmq
 
         public Ctx()
         {
-            m_tag = 0xabadcafe;
+            m_disposed = false;
             m_starting = true;
             m_terminating = false;
             m_reaper = null;
             m_slotCount = 0;
             m_slots = null;
-            m_maxSockets = ZMQ.ZmqMaxSocketsDflt;
-            m_ioThreadCount = ZMQ.ZmqIOThreadsDflt;
+            m_maxSockets = DefaultMaxSockets;
+            m_ioThreadCount = DefaultIOThreads;
 
             m_slotSync = new object();
             m_endpointsSync = new object();
@@ -129,7 +130,7 @@ namespace NetMQ.zmq
             m_emptySlots = new Stack<int>();
             m_ioThreads = new List<IOThread>();
             m_sockets = new List<SocketBase>();
-            m_endpoints = new Dictionary<String, Endpoint>();
+            m_endpoints = new Dictionary<string, Endpoint>();
         }
 
         protected void Destroy()
@@ -148,13 +149,16 @@ namespace NetMQ.zmq
                 m_reaper.Destroy();
             m_termMailbox.Close();
 
-            m_tag = 0xdeadbeef;
+            m_disposed = true;
         }
 
         //  Returns false if object is not a context.
-        public bool CheckTag()
+        public void CheckDisposed()
         {
-            return m_tag == 0xabadcafe;
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
         }
 
         //  This function is called when user invokes zmq_term. If there are
@@ -164,8 +168,7 @@ namespace NetMQ.zmq
 
         public void Terminate()
         {
-
-            m_tag = 0xdeadbeef;
+            m_disposed = true;
 
             Monitor.Enter(m_slotSync);
 
@@ -497,6 +500,6 @@ namespace NetMQ.zmq
                 endpoint.Socket.IncSeqnum();
             }
             return endpoint;
-        }        
+        }
     }
 }
