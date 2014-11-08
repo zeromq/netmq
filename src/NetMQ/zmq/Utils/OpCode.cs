@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace NetMQ.zmq.Native
+namespace NetMQ.zmq.Utils
 {
 
     public static class Opcode

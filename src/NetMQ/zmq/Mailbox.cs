@@ -40,7 +40,7 @@ namespace NetMQ.zmq
         void Ready();
     }
 
-    public class IOThreadMailbox : IMailbox
+    class IOThreadMailbox : IMailbox
     {
         private readonly Proactor m_procator;
 

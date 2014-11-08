@@ -32,6 +32,7 @@ using NetMQ.zmq.Patterns;
 using NetMQ.zmq.Transports.PGM;
 using NetMQ.zmq.Transports.Tcp;
 using NetMQ.zmq.Transports.Ipc;
+using NetMQ.zmq.Utils;
 using TcpListener = NetMQ.zmq.Transports.Tcp.TcpListener;
 
 namespace NetMQ.zmq
@@ -59,7 +60,7 @@ namespace NetMQ.zmq
         private readonly List<Pipe> m_pipes;
 
         //  Reaper's poller and handle of this socket within it.
-        private Poller m_poller;
+        private Utils.Poller m_poller;
         private Socket m_handle;
 
         //  Timestamp of when commands were processed the last time.
@@ -871,7 +872,7 @@ namespace NetMQ.zmq
 
         //  Using this function reaper thread ask the socket to register with
         //  its poller.
-        public void StartReaping(Poller poller)
+        internal void StartReaping(Utils.Poller poller)
         {
             //  Plug the socket to the reaper thread.
             m_poller = poller;

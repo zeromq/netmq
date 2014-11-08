@@ -22,6 +22,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
@@ -46,7 +47,7 @@ namespace NetMQ.zmq
             m_mailbox = new IOThreadMailbox(m_name, m_proactor, this);                        
         }
 
-        public Proactor Proactor
+        internal Proactor Proactor
         {
             get { return m_proactor; }
         }
@@ -78,13 +79,7 @@ namespace NetMQ.zmq
         {
             get { return m_proactor.Load; }
         }                  
-
-        //public Poller GetPoller()
-        //{
-        //    Debug.Assert(m_poller != null);
-        //    return m_poller;
-        //}
-
+      
         protected override void ProcessStop()
         {            
             m_proactor.Stop();

@@ -26,11 +26,10 @@ using System.Threading;
 using System.Collections;
 using System.Linq;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
-    public class Poller : PollerBase
+    class Poller : PollerBase
     {
-
         private class PollSet
         {
             public Socket Socket { get; private set; }
@@ -105,7 +104,6 @@ namespace NetMQ.zmq
             AdjustLoad(1);
         }
 
-
         public void RemoveFD(Socket handle)
         {
             PollSet pollSet;
@@ -132,12 +130,10 @@ namespace NetMQ.zmq
             AdjustLoad(-1);
         }
 
-
         public void SetPollin(Socket handle)
         {
             m_checkRead.Add(handle);
         }
-
 
         public void ResetPollin(Socket handle)
         {
@@ -264,7 +260,5 @@ namespace NetMQ.zmq
                 }
             }
         }
-
-
     }
 }
