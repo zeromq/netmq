@@ -85,7 +85,6 @@ namespace NetMQ.Tests
         {
             using (var context = NetMQContext.Create())
             {
-
                 var pubSync = new AutoResetEvent(false);
                 var msg = new byte[300];
                 var waitTime = 500;
@@ -99,6 +98,7 @@ namespace NetMQ.Tests
                     pubSocket.Send(msg);
                     pubSync.WaitOne();
                     pubSocket.Dispose();
+
                 }, TaskCreationOptions.LongRunning);
 
                 var t2 = new Task(() =>
@@ -109,16 +109,17 @@ namespace NetMQ.Tests
                     Thread.Sleep(100);
                     pubSync.Set();
 
-                    var msg2 = subSocket.ReceiveMessage(TimeSpan.FromMilliseconds(10));
+                    var msg2 = subSocket.ReceiveMessage(TimeSpan.FromMilliseconds(100));
                     Assert.IsNull(msg2, "The first receive should be null!");
 
                     msg2 = subSocket.ReceiveMessage(TimeSpan.FromMilliseconds(waitTime));
 
+                    Assert.NotNull(msg2);
                     Assert.AreEqual(1, msg2.FrameCount);
                     Assert.AreEqual(300, msg2.First.MessageSize);
                     pubSync.Set();
                     subSocket.Dispose();
-                }, TaskCreationOptions.LongRunning);
+                }, TaskCreationOptions.LongRunning);                
 
                 t1.Start();
                 t2.Start();
