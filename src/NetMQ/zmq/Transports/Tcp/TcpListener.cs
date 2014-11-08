@@ -73,6 +73,8 @@ namespace NetMQ.zmq.Transports.Tcp
         {
             m_ioObject.SetHandler(this);
             m_ioObject.AddSocket(m_handle);
+
+            Accept();
         }
 
         protected override void ProcessTerm(int linger)
@@ -111,9 +113,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
                 m_socket.EventListening(m_endpoint, m_handle);
 
-                m_port = m_handle.LocalEndPoint.Port;
-                
-                Accept();
+                m_port = m_handle.LocalEndPoint.Port;                               
             }
             catch (SocketException ex)
             {
