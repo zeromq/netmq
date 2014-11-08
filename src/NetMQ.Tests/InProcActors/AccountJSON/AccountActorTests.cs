@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using NetMQ.Actors;
 using NetMQ.Tests.InProcActors.AccountJSON;
@@ -20,15 +21,19 @@ namespace NetMQ.Tests.InProcActors.Echo
             AccountAction accountAction = new AccountAction(TransactionType.Credit, 10);
             Account account = new Account(1, "Test Account", "11223", 0);
 
-            Actor<object> accountActor = new Actor<object>(NetMQContext.Create(), accountShimHandler,null);
-            accountActor.SendMore("AMEND ACCOUNT");
-            accountActor.SendMore(JsonConvert.SerializeObject(accountAction));
-            accountActor.Send(JsonConvert.SerializeObject(account));
-            Account updatedAccount =
-                         JsonConvert.DeserializeObject<Account>(accountActor.ReceiveString());
-            decimal expectedAccountBalance = 10.0m;
-            Assert.AreEqual(expectedAccountBalance, updatedAccount.Balance);
-            accountActor.Dispose();
+            using (var context = NetMQContext.Create())
+            {
+                using (Actor<object> accountActor = new Actor<object>(context, accountShimHandler, null))
+                {
+                    accountActor.SendMore("AMEND ACCOUNT");
+                    accountActor.SendMore(JsonConvert.SerializeObject(accountAction));
+                    accountActor.Send(JsonConvert.SerializeObject(account));
+                    Account updatedAccount =
+                        JsonConvert.DeserializeObject<Account>(accountActor.ReceiveString());
+                    decimal expectedAccountBalance = 10.0m;
+                    Assert.AreEqual(expectedAccountBalance, updatedAccount.Balance);
+                }
+            }            
         }
     }
 }
