@@ -26,11 +26,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 
-//  This is a cross-platform equivalent to signal_fd. However, as opposed
-//  to signal_fd there can be at most one signal in the signaler at any
-//  given moment. Attempt to send a signal before receiving the previous
-//  one will result in undefined behaviour.
-
 namespace NetMQ.zmq.Utils
 {
     class Signaler
@@ -47,9 +42,8 @@ namespace NetMQ.zmq.Utils
             m_receiveDummy = new byte[1];
 
             //  Create the socketpair for signaling.
-            MakeFDpair();
-
-            //  Set both fds to non-blocking mode.
+            MakeSocketsPair();
+            
             m_writeSocket.Blocking = false;
             m_readSocket.Blocking = false;
         }
@@ -84,7 +78,7 @@ namespace NetMQ.zmq.Utils
 
         //  Creates a pair of filedescriptors that will be used
         //  to pass the signals.
-        private void MakeFDpair()
+        private void MakeSocketsPair()
         {
             using (Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
             {

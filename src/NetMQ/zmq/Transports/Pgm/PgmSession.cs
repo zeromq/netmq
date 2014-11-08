@@ -162,10 +162,9 @@ namespace NetMQ.zmq.Transports.PGM
         private void Error()
         {
             Debug.Assert(m_session != null);
-            //m_socket.EventDisconnected(m_endpoint, m_handle);
+                        
             m_session.Detach();
-
-            //  Cancel all fd subscriptions.
+            
             m_ioObject.RemoveSocket(m_handle);
 
             //  Disconnect from I/O threads poller object.

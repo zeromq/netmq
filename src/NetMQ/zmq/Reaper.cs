@@ -55,8 +55,8 @@ namespace NetMQ.zmq
 
             mailbox = new Mailbox(m_name);
 
-            m_mailboxHandle = mailbox.FD;
-            m_poller.AddFD(m_mailboxHandle, this);
+            m_mailboxHandle = mailbox.Handle;
+            m_poller.AddHandle(m_mailboxHandle, this);
             m_poller.SetPollin(m_mailboxHandle);
         }
 
@@ -119,7 +119,7 @@ namespace NetMQ.zmq
             if (m_sockets == 0)
             {
                 SendDone();
-                m_poller.RemoveFD(m_mailboxHandle);
+                m_poller.RemoveHandle(m_mailboxHandle);
                 m_poller.Stop();
             }
         }
@@ -145,7 +145,7 @@ namespace NetMQ.zmq
             if (m_sockets == 0 && m_terminating)
             {
                 SendDone();
-                m_poller.RemoveFD(m_mailboxHandle);
+                m_poller.RemoveHandle(m_mailboxHandle);
                 m_poller.Stop();
 
             }

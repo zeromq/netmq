@@ -95,9 +95,9 @@ namespace NetMQ.zmq.Utils
 
                         if (pollItem.Socket != null)
                         {
-                            if (pollItem.Event != PollEvents.None && pollItem.Socket.FD.Connected)
+                            if (pollItem.Event != PollEvents.None && pollItem.Socket.Handle.Connected)
                             {
-                                m_checkRead.Add(pollItem.Socket.FD);
+                                m_checkRead.Add(pollItem.Socket.Handle);
                             }
                         }
                         else
@@ -119,7 +119,7 @@ namespace NetMQ.zmq.Utils
                 {
                     Socket.Select(m_checkRead, m_checkWrite, m_checkError, currentTimeoutMicroSeconds);
                 }
-                catch (SocketException ex)
+                catch (SocketException)
                 {
                     throw new FaultException();
                 }

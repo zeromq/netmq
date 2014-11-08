@@ -307,9 +307,9 @@ namespace NetMQ.zmq
                 return m_rcvMore;
             }
 
-            if (option == ZmqSocketOptions.FD)
+            if (option == ZmqSocketOptions.Handle)
             {
-                return m_mailbox.FD;
+                return m_mailbox.Handle;
             }
 
             if (option == ZmqSocketOptions.Events)
@@ -876,8 +876,8 @@ namespace NetMQ.zmq
         {
             //  Plug the socket to the reaper thread.
             m_poller = poller;
-            m_handle = m_mailbox.FD;
-            m_poller.AddFD(m_handle, this);
+            m_handle = m_mailbox.Handle;
+            m_poller.AddHandle(m_handle, this);
             m_poller.SetPollin(m_handle);
 
             //  Initialise the termination and check whether it can be deallocated
@@ -1059,7 +1059,7 @@ namespace NetMQ.zmq
             {
 
                 //  Remove the socket from the reaper's poller.
-                m_poller.RemoveFD(m_handle);
+                m_poller.RemoveHandle(m_handle);
                 //  Remove the socket from the context.
                 DestroySocket(this);
 
@@ -1288,9 +1288,9 @@ namespace NetMQ.zmq
             return base.ToString() + "[" + m_options.SocketId + "]";
         }
 
-        public Socket FD
+        public Socket Handle
         {
-            get { return m_mailbox.FD; }
+            get { return m_mailbox.Handle; }
         }
 
         public String GetTypeString()

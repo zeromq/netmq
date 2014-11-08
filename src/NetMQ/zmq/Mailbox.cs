@@ -161,7 +161,7 @@ namespace NetMQ.zmq
             m_name = name;
         }
 
-        public System.Net.Sockets.Socket FD
+        public System.Net.Sockets.Socket Handle
         {
             get { return m_signaler.Handle; }
         }
