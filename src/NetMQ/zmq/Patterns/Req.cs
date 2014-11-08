@@ -35,8 +35,8 @@ namespace NetMQ.zmq.Patterns
         //  of the message must be empty message part (backtrace stack bottom).
         private bool m_messageBegins;
 
-        public Req(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Req(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
             m_receivingReply = false;
             m_messageBegins = true;

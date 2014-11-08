@@ -81,7 +81,7 @@ namespace NetMQ.zmq
         // The tcp port that was bound to, if any
         private int m_port;
 
-        protected SocketBase(Ctx parent, int threadId, int sid)
+        protected SocketBase(Ctx parent, int threadId, int socketId)
             : base(parent, threadId)
         {
             m_disposed = false;
@@ -93,13 +93,13 @@ namespace NetMQ.zmq
             m_monitorSocket = null;
             m_monitorEvents = 0;
 
-            m_options.SocketId = sid;
+            m_options.SocketId = socketId;
 
             m_endpoints = new Dictionary<string, Own>();
             m_inprocs = new Dictionary<string, Pipe>();
             m_pipes = new List<Pipe>();
 
-            m_mailbox = new Mailbox("socket-" + sid);
+            m_mailbox = new Mailbox("socket-" + socketId);
         }
 
         //  Concrete algorithms for the x- methods are to be defined by
@@ -128,55 +128,53 @@ namespace NetMQ.zmq
         }
 
         //  Create a socket of a specified type.
-        public static SocketBase Create(ZmqSocketType type, Ctx parent,
-                                                                                                                                        int tid, int sid)
+        public static SocketBase Create(ZmqSocketType type, Ctx parent,int threadId, int socketId)
         {
-            SocketBase s;
+            SocketBase socketBase;
             switch (type)
             {
-
                 case ZmqSocketType.Pair:
-                    s = new Pair(parent, tid, sid);
+                    socketBase = new Pair(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Pub:
-                    s = new Pub(parent, tid, sid);
+                    socketBase = new Pub(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Sub:
-                    s = new Sub(parent, tid, sid);
+                    socketBase = new Sub(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Req:
-                    s = new Req(parent, tid, sid);
+                    socketBase = new Req(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Rep:
-                    s = new Rep(parent, tid, sid);
+                    socketBase = new Rep(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Dealer:
-                    s = new Dealer(parent, tid, sid);
+                    socketBase = new Dealer(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Router:
-                    s = new Router(parent, tid, sid);
+                    socketBase = new Router(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Pull:
-                    s = new Pull(parent, tid, sid);
+                    socketBase = new Pull(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Push:
-                    s = new Push(parent, tid, sid);
+                    socketBase = new Push(parent, threadId, socketId);
                     break;
 
                 case ZmqSocketType.Xpub:
-                    s = new XPub(parent, tid, sid);
+                    socketBase = new XPub(parent, threadId, socketId);
                     break;
 
                 case ZmqSocketType.Xsub:
-                    s = new XSub(parent, tid, sid);
+                    socketBase = new XSub(parent, threadId, socketId);
                     break;
                 case ZmqSocketType.Stream:
-                    s = new Stream(parent, tid, sid);
+                    socketBase = new Stream(parent, threadId, socketId);
                     break;
                 default:
                     throw new InvalidException("type=" + type);
             }
-            return s;
+            return socketBase;
         }
 
         public override void Destroy()

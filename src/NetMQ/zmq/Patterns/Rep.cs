@@ -44,8 +44,8 @@ namespace NetMQ.zmq.Patterns
         private bool m_requestBegins;
 
 
-        public Rep(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Rep(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
 
             m_sendingReply = false;

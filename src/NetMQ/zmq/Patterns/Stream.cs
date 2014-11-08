@@ -83,8 +83,8 @@ namespace NetMQ.zmq.Patterns
         //  algorithm. This value is the next ID to use (if not used already).
         private int m_nextPeerId;        
 
-        public Stream(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Stream(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
             m_prefetched = false;
             m_identitySent = false;

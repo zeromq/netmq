@@ -39,7 +39,7 @@ namespace NetMQ.zmq.Patterns
         //  Fair queueing object for inbound pipes.
         private readonly FairQueueing m_fairQueueing;
 
-        public Pull(Ctx parent, int threadId, int sid) : base(parent, threadId, sid)
+        public Pull(Ctx parent, int threadId, int socketId) : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pull;
 

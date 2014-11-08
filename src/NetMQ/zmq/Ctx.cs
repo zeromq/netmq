@@ -322,10 +322,10 @@ namespace NetMQ.zmq
                 int slot = m_emptySlots.Pop();
 
                 //  Generate new unique socket ID.
-                int sid = Interlocked.Increment(ref s_maxSocketId);
+                int socketId = Interlocked.Increment(ref s_maxSocketId);
 
                 //  Create the socket and register its mailbox.
-                s = SocketBase.Create(type, this, slot, sid);
+                s = SocketBase.Create(type, this, slot, socketId);
                 if (s == null)
                 {
                     m_emptySlots.Push(slot);
@@ -343,14 +343,13 @@ namespace NetMQ.zmq
 
         public void DestroySocket(SocketBase socket)
         {
-            int tid;
             //  Free the associated thread slot.
             lock (m_slotSync)
             {
-                tid = socket.ThreadId;
-                m_emptySlots.Push(tid);
-                m_slots[tid].Close();
-                m_slots[tid] = null;
+                int threadId = socket.ThreadId;
+                m_emptySlots.Push(threadId);
+                m_slots[threadId].Close();
+                m_slots[threadId] = null;
 
                 //  Remove the socket from the list of sockets.
                 m_sockets.Remove(socket);
@@ -371,9 +370,9 @@ namespace NetMQ.zmq
         }
 
         //  Send command to the destination thread.
-        public void SendCommand(int tid, Command command)
+        public void SendCommand(int threadId, Command command)
         {
-            m_slots[tid].Send(command);
+            m_slots[threadId].Send(command);
         }
 
         //  Returns the I/O thread that is the least busy at the moment.
