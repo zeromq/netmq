@@ -62,7 +62,7 @@ namespace NetMQ.zmq.Patterns
             else if (optval is byte[])
                 val = (byte[])optval;
             else
-                throw InvalidException.Create();
+                throw new InvalidException();
 
             //  Create the subscription message.
             Msg msg = new Msg();
@@ -80,7 +80,7 @@ namespace NetMQ.zmq.Patterns
 
                 if (!isMessageSent)
                 {
-                    throw AgainException.Create();
+                    throw new AgainException();
                 }
             }
             finally
@@ -94,7 +94,7 @@ namespace NetMQ.zmq.Patterns
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  Overload the XSUB's send.
-            throw NetMQException.Create("Send not supported on sub socket", ErrorCode.ENOTSUP);
+            throw new NotSupportedException("Send not supported on sub socket");
         }
 
         protected override bool XHasOut()

@@ -65,9 +65,7 @@ namespace NetMQ.Tests
                         bool more;
                         rep.Receive(out more);
 
-                        var ex = Assert.Throws<NetMQException>(() => req.Send("Hi2"));
-
-                        Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
+                        var ex = Assert.Throws<FiniteStateMachineException>(() => req.Send("Hi2"));                        
                     }
                 }
             }
@@ -89,10 +87,7 @@ namespace NetMQ.Tests
 
                         bool more;
 
-                        var ex = Assert.Throws<NetMQException>(() => req.ReceiveString(out more));
-
-                        Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
-
+                        var ex = Assert.Throws<FiniteStateMachineException>(() => req.ReceiveString(out more));                        
                     }
                 }
             }
@@ -111,9 +106,7 @@ namespace NetMQ.Tests
                     {
                         req.Connect("tcp://localhost:5001");
 
-                        var ex = Assert.Throws<NetMQException>(() => rep.Send("1"));
-
-                        Assert.AreEqual(ErrorCode.EFSM, ex.ErrorCode);
+                        var ex = Assert.Throws<FiniteStateMachineException>(() => rep.Send("1"));                        
                     }
                 }
             }

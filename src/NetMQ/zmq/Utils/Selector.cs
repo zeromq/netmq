@@ -48,7 +48,7 @@ namespace NetMQ.zmq.Utils
         {
             if (items == null)
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);
+                throw new FaultException();
             }
             if (itemsCount == 0)
             {
@@ -121,7 +121,7 @@ namespace NetMQ.zmq.Utils
                 }
                 catch (SocketException ex)
                 {
-                    throw NetMQException.Create(ErrorCode.ESOCKET, ex);
+                    throw new FaultException();
                 }
 
                 for (int i = 0; i < itemsCount; i++)

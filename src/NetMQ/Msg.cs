@@ -142,7 +142,7 @@ namespace NetMQ
         {
             if (!Check())
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);
+                throw new FaultException();
             }
 
             if (m_type == MsgType.Pool)
@@ -246,7 +246,7 @@ namespace NetMQ
             //  Check the validity of the source.
             if (!src.Check())
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);
+                throw new FaultException();
             }
 
             Close();
@@ -272,7 +272,7 @@ namespace NetMQ
             //  Check the validity of the source.
             if (!src.Check())
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);
+                throw new FaultException();
             }
 
             Close();

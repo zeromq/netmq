@@ -785,7 +785,7 @@ namespace NetMQ.zmq.Transports
             }
             else
             {
-                throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(socketError));
+                throw NetMQException.Create(socketError);
             }
         }
 
@@ -819,7 +819,7 @@ namespace NetMQ.zmq.Transports
             }
             else
             {
-                throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(socketError));
+                throw NetMQException.Create(socketError);
             }
         }
 

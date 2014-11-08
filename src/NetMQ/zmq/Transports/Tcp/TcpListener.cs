@@ -145,10 +145,10 @@ namespace NetMQ.zmq.Transports.Tcp
                 {
                     m_acceptedSocket.Dispose();
 
-                    ErrorCode errorCode = ErrorHelper.SocketErrorToErrorCode(socketError);
+                    NetMQException exception = NetMQException.Create(socketError);
 
-                    m_socket.EventAcceptFailed(m_endpoint, errorCode);
-                    throw NetMQException.Create(errorCode);
+                    m_socket.EventAcceptFailed(m_endpoint, exception.ErrorCode);
+                    throw exception;
                 }
             }
             else

@@ -247,7 +247,7 @@ namespace NetMQ.zmq.Patterns
                     else if (m_mandatory)
                     {
                         m_moreOut = false;
-                        throw NetMQException.Create(ErrorCode.EHOSTUNREACH);
+                        throw new HostUnreachableException();
                     }
                 }
 

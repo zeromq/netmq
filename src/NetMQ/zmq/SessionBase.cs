@@ -135,7 +135,7 @@ namespace NetMQ.zmq
                     s = new Stream.StreamSession(ioThread, connect, socket, options, addr);
                     break;
                 default:
-                    throw InvalidException.Create("type=" + options.SocketType);
+                    throw new InvalidException("type=" + options.SocketType);
 
             }
             return s;
@@ -197,7 +197,7 @@ namespace NetMQ.zmq
         }
 
         public virtual bool PullMsg(ref Msg msg)
-        {            
+        {
             //  First message to send is identity
             if (!m_identitySent)
             {
@@ -240,7 +240,7 @@ namespace NetMQ.zmq
                 return;
             }
 
-            throw AgainException.Create();
+            throw new AgainException();
         }
 
 
@@ -276,7 +276,7 @@ namespace NetMQ.zmq
                 {
                     Msg msg = new Msg();
                     msg.InitEmpty();
-                    
+
                     if (!PullMsg(ref msg))
                     {
                         Debug.Assert(!m_incompleteIn);

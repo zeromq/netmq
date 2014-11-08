@@ -49,7 +49,7 @@ namespace NetMQ.zmq.Patterns
             //  we can't send another request.
             if (m_receivingReply)
             {
-                throw NetMQException.Create("Cannot send another request", ErrorCode.EFSM);
+                throw new FiniteStateMachineException("Cannot send another request");                
             }
 
             bool isMessageSent;
@@ -95,7 +95,7 @@ namespace NetMQ.zmq.Patterns
             //  If request wasn't send, we can't wait for reply.
             if (!m_receivingReply)
             {
-                throw NetMQException.Create(ErrorCode.EFSM);
+                throw new FiniteStateMachineException("Cannot receive another reply"); 
             }
 
             //  First part of the reply should be the original request ID.
@@ -206,7 +206,7 @@ namespace NetMQ.zmq.Patterns
                         break;
                     default:
 
-                        throw NetMQException.Create(ErrorCode.EFAULT);
+                        throw new FaultException();
                 }
             }
 

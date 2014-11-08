@@ -53,6 +53,7 @@
     <Compile Include="BufferPool.cs" />
     <Compile Include="DnsEndPoint.cs" />
     <Compile Include="EnumHelper.cs" />
+    <Compile Include="ErrorCode.cs" />
     <Compile Include="InterfaceCollection.cs" />
     <Compile Include="ISocketPollable.cs" />
     <Compile Include="IReceivingSocket.cs" />
@@ -94,7 +95,6 @@
     <Compile Include="zmq\Config.cs" />
     <Compile Include="zmq\Ctx.cs" />
     <Compile Include="zmq\Enums.cs" />
-    <Compile Include="zmq\ErrorCode.cs" />
     <Compile Include="zmq\ErrorHelper.cs" />
     <Compile Include="zmq\IMsgSink.cs" />
     <Compile Include="zmq\IMsgSource.cs" />

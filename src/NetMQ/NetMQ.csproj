@@ -134,7 +134,7 @@
     <Compile Include="zmq\Transports\V1Encoder.cs" />
     <Compile Include="zmq\Transports\EncoderBase.cs" />
     <Compile Include="zmq\Enums.cs" />
-    <Compile Include="zmq\ErrorCode.cs" />
+    <Compile Include="ErrorCode.cs" />
     <Compile Include="zmq\ErrorHelper.cs" />
     <Compile Include="zmq\Transports\IDecoder.cs" />
     <Compile Include="zmq\Transports\IEncoder.cs" />

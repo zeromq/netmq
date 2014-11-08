@@ -190,7 +190,7 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        throw NetMQException.Create(ErrorCode.EHOSTUNREACH);
+                        throw new HostUnreachableException();
                     }
                 }
 
