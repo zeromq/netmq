@@ -31,32 +31,34 @@ using System.Runtime.InteropServices;
 //  given moment. Attempt to send a signal before receiving the previous
 //  one will result in undefined behaviour.
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
-    public class Signaler
+    class Signaler
     {
         //  Underlying write & read file descriptor.
-        private Socket m_w;
-        private Socket m_r;
+        private Socket m_writeSocket;
+        private Socket m_readSocket;
         private byte[] m_dummy;
+        private byte[] m_receiveDummy;
 
         public Signaler()
         {
             m_dummy = new byte[1]{0};
+            m_receiveDummy = new byte[1];
 
             //  Create the socketpair for signaling.
             MakeFDpair();
 
             //  Set both fds to non-blocking mode.
-            m_w.Blocking = false;
-            m_r.Blocking = false;
+            m_writeSocket.Blocking = false;
+            m_readSocket.Blocking = false;
         }
 
         public void Close()
         {
             try
             {
-                m_w.LingerState = new LingerOption(true, 0);
+                m_writeSocket.LingerState = new LingerOption(true, 0);
             }
             catch (SocketException)
             {                                
@@ -65,7 +67,7 @@ namespace NetMQ.zmq
             try
             {
                 
-                m_w.Close();
+                m_writeSocket.Close();
             }
             catch (SocketException)
             {
@@ -73,7 +75,7 @@ namespace NetMQ.zmq
 
             try
             {
-                m_r.Close();
+                m_readSocket.Close();
             }
             catch (SocketException)
             {
@@ -83,60 +85,53 @@ namespace NetMQ.zmq
         //  Creates a pair of filedescriptors that will be used
         //  to pass the signals.
         private void MakeFDpair()
-        {            
-            Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
-            listner.NoDelay = true;
-            listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        {
+            using (Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
+            {
+                listner.NoDelay = true;
+                listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-            // using ephemeral port            
-            listner.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-            listner.Listen(1);
-            
-            m_w = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
+                // using ephemeral port            
+                listner.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+                listner.Listen(1);
 
-            m_w.NoDelay = true;
+                m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
+                m_writeSocket.NoDelay = true;
 
-            m_w.Connect(listner.LocalEndPoint);
-
-            m_r = listner.Accept();
-
-            listner.Close();          
+                m_writeSocket.Connect(listner.LocalEndPoint);
+                m_readSocket = listner.Accept();
+            }            
         }
 
-        public Socket FD
+        public Socket Handle
         {
             get
             {
-                return m_r;
+                return m_readSocket;
             }
         }
 
         public void Send()
         {            
-            int nbytes = m_w.Send(m_dummy);
+            int sent = m_writeSocket.Send(m_dummy);
 
-            Debug.Assert(nbytes == 1);
+            Debug.Assert(sent == 1);
         }
 
         public bool WaitEvent(int timeout)
         {
-            if(m_r.Connected)
-                return m_r.Poll(timeout * 1000, SelectMode.SelectRead);
+            if(m_readSocket.Connected)
+                return m_readSocket.Poll(timeout * 1000, SelectMode.SelectRead);
+
             return false;
         }
 
         public void Recv()
-        {
-            byte[] dummy = new byte[1];
+        {            
+            int received = m_readSocket.Receive(m_receiveDummy);
 
-            int nbytes = m_r.Receive(dummy);
-
-            Debug.Assert(nbytes == 1);
-            Debug.Assert(dummy[0] == 0);
+            Debug.Assert(received == 1);
+            Debug.Assert(m_receiveDummy[0] == 0);
         }
-
-
-
-
     }
 }

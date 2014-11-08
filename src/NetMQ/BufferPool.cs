@@ -1,7 +1,7 @@
 using System.ServiceModel.Channels;
 using System.Threading;
 
-namespace NetMQ.zmq
+namespace NetMQ
 {
     public interface IBufferPool
     {

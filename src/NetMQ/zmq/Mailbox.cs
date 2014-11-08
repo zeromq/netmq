@@ -25,6 +25,7 @@ using System.Diagnostics;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 using AsyncIO;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
@@ -162,7 +163,7 @@ namespace NetMQ.zmq
 
         public System.Net.Sockets.Socket FD
         {
-            get { return m_signaler.FD; }
+            get { return m_signaler.Handle; }
         }
 
         public void Send(Command cmd)

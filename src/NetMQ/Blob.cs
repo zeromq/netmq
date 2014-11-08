@@ -23,37 +23,35 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using System.Linq;
 
-namespace NetMQ.zmq
+namespace NetMQ
 {
     public class Blob
     {
-
-        private readonly byte[] m_buf;
+        private readonly byte[] m_buffer;
         private int m_hash = 0;
 
         public Blob(byte[] data, int size)
         {
-            m_buf = new byte[size];
+            m_buffer = new byte[size];
 
-            Buffer.BlockCopy(data, 0, m_buf, 0, size);            
+            Buffer.BlockCopy(data, 0, m_buffer, 0, size);            
         }
 
         public Blob(int size)
         {
-            m_buf = new byte[size];
+            m_buffer = new byte[size];
         }
 
         public Blob Put(int pos, byte b)
         {
-            m_buf[pos] = b;
+            m_buffer[pos] = b;
             m_hash = 0;
             return this;
         }
 
         public Blob Put(int pos, byte[] data, int count)
         {
-
-            Buffer.BlockCopy(data, 0, m_buf, pos, count);
+            Buffer.BlockCopy(data, 0, m_buffer, pos, count);
 
             m_hash = 0;
             return this;
@@ -61,12 +59,12 @@ namespace NetMQ.zmq
 
         public int Size
         {
-            get { return m_buf.Length; }
+            get { return m_buffer.Length; }
         }
 
         public byte[] Data
         {
-            get { return m_buf; }
+            get { return m_buffer; }
         }
 
         public override bool Equals(Object t)
@@ -74,12 +72,12 @@ namespace NetMQ.zmq
             if (t is Blob)
             {
                 Blob b = (Blob)t;
-                if (b.m_buf.Length != m_buf.Length)
+                if (b.m_buffer.Length != m_buffer.Length)
                 {
                     return false;
                 }
 
-                return m_buf.SequenceEqual(b.m_buf);
+                return m_buffer.SequenceEqual(b.m_buffer);
             }
             return false;
         }
@@ -88,7 +86,7 @@ namespace NetMQ.zmq
         {
             if (m_hash == 0)
             {
-                foreach (byte b in m_buf)
+                foreach (byte b in m_buffer)
                 {
                     m_hash = 31 * m_hash + b;
                 }

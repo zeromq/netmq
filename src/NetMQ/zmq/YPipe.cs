@@ -21,6 +21,7 @@
 
 using System.Diagnostics;
 using System.Threading;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {

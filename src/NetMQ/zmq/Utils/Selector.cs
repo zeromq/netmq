@@ -7,7 +7,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
     class SelectItem
     {

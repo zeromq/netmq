@@ -116,10 +116,10 @@
     <Compile Include="Sockets\XSubscriberSocket.cs" />
     <Compile Include="NetMQTimer.cs" />
     <Compile Include="zmq\Address.cs" />
-    <Compile Include="zmq\AtomicCounter.cs" />
-    <Compile Include="zmq\Blob.cs" />
-    <Compile Include="zmq\BufferPool.cs" />
-    <Compile Include="zmq\Selector.cs" />
+    <Compile Include="zmq\Utils\AtomicCounter.cs" />
+    <Compile Include="Blob.cs" />
+    <Compile Include="BufferPool.cs" />
+    <Compile Include="zmq\Utils\Selector.cs" />
     <Compile Include="zmq\Transports\ByteArraySegment.cs" />
     <Compile Include="zmq\Clock.cs" />
     <Compile Include="zmq\Command.cs" />
@@ -154,7 +154,7 @@
     <Compile Include="zmq\Patterns\Utils\LoadBalancer.cs" />
     <Compile Include="zmq\Mailbox.cs" />
     <Compile Include="zmq\MonitorEvent.cs" />
-    <Compile Include="zmq\Msg.cs" />
+    <Compile Include="Msg.cs" />
     <Compile Include="zmq\Patterns\Utils\MultiTrie.cs" />
     <None Include="NetMQ.nuspec" />
     <None Include="NetMQ.snk" />
@@ -185,7 +185,7 @@
     <Compile Include="zmq\Patterns\Req.cs" />
     <Compile Include="zmq\Patterns\Router.cs" />
     <Compile Include="zmq\SessionBase.cs" />
-    <Compile Include="zmq\Signaler.cs" />
+    <Compile Include="zmq\Utils\Signaler.cs" />
     <Compile Include="zmq\SocketBase.cs" />
     <Compile Include="zmq\Patterns\Stream.cs" />
     <Compile Include="zmq\Transports\StreamEngine.cs" />
@@ -200,7 +200,7 @@
     <Compile Include="zmq\Patterns\XPub.cs" />
     <Compile Include="zmq\Patterns\XSub.cs" />
     <Compile Include="zmq\YPipe.cs" />
-    <Compile Include="zmq\YQueue.cs" />
+    <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="zmq\ZObject.cs" />
   </ItemGroup>
   <ItemGroup />

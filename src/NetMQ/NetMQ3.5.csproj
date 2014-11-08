@@ -49,11 +49,14 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Blob.cs" />
+    <Compile Include="BufferPool.cs" />
     <Compile Include="DnsEndPoint.cs" />
     <Compile Include="EnumHelper.cs" />
     <Compile Include="InterfaceCollection.cs" />
     <Compile Include="ISocketPollable.cs" />
     <Compile Include="IReceivingSocket.cs" />
+    <Compile Include="Msg.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
     <Compile Include="ErrorPollingException.cs" />
@@ -85,9 +88,6 @@
     <Compile Include="Sockets\XSubscriberSocket.cs" />
     <Compile Include="NetMQTimer.cs" />
     <Compile Include="zmq\Address.cs" />
-    <Compile Include="zmq\AtomicCounter.cs" />
-    <Compile Include="zmq\Blob.cs" />
-    <Compile Include="zmq\BufferPool.cs" />
     <Compile Include="zmq\Clock.cs" />
     <Compile Include="zmq\Command.cs" />
     <Compile Include="zmq\CommandType.cs" />
@@ -106,7 +106,6 @@
     <Compile Include="zmq\IZmqMonitor.cs" />
     <Compile Include="zmq\Mailbox.cs" />
     <Compile Include="zmq\MonitorEvent.cs" />
-    <Compile Include="zmq\Msg.cs" />
     <None Include="NetMQ.nuspec" />
     <None Include="NetMQ.snk" />
     <None Include="packages.NetMQ3.5.config" />
@@ -139,9 +138,7 @@
     <Compile Include="zmq\Proactor.cs" />
     <Compile Include="JetBrains.Annotations.cs" />
     <Compile Include="zmq\Reaper.cs" />
-    <Compile Include="zmq\Selector.cs" />
     <Compile Include="zmq\SessionBase.cs" />
-    <Compile Include="zmq\Signaler.cs" />
     <Compile Include="zmq\SocketBase.cs" />
     <Compile Include="zmq\Transports\ByteArraySegment.cs" />
     <Compile Include="zmq\Transports\DecoderBase.cs" />
@@ -168,8 +165,11 @@
     <Compile Include="zmq\Transports\V2Decoder.cs" />
     <Compile Include="zmq\Transports\V2Encoder.cs" />
     <Compile Include="zmq\Transports\V2Protocol.cs" />
+    <Compile Include="zmq\Utils\AtomicCounter.cs" />
+    <Compile Include="zmq\Utils\Selector.cs" />
+    <Compile Include="zmq\Utils\Signaler.cs" />
+    <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="zmq\YPipe.cs" />
-    <Compile Include="zmq\YQueue.cs" />
     <Compile Include="zmq\ZObject.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
