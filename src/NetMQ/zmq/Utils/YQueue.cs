@@ -22,7 +22,7 @@
 using System;
 using System.Diagnostics;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
     public class YQueue<T>
     {
@@ -58,7 +58,7 @@ namespace NetMQ.zmq
         private Chunk m_backChunk;
         private int m_backPositionInChunk;
         private Chunk m_endChunk;
-        private int m_endPos;
+        private int m_endPosition;
         private Chunk m_spareChunk;
         private readonly int m_size;
 
@@ -83,7 +83,7 @@ namespace NetMQ.zmq
             m_backChunk = m_beginChunk;
             m_spareChunk = m_beginChunk;
             m_endChunk = m_beginChunk;
-            m_endPos = 1;
+            m_endPosition = 1;
         }
 
         /// <summary> Gets the index of the front element of the queue. </summary>
@@ -123,10 +123,10 @@ namespace NetMQ.zmq
         {
             m_backChunk.Values[m_backPositionInChunk] = val;
             m_backChunk = m_endChunk;
-            m_backPositionInChunk = m_endPos;
+            m_backPositionInChunk = m_endPosition;
 
-            m_endPos++;
-            if (m_endPos != m_size)
+            m_endPosition++;
+            if (m_endPosition != m_size)
                 return;
 
             Chunk sc = m_spareChunk;
@@ -143,7 +143,7 @@ namespace NetMQ.zmq
                 m_endChunk.Next.Previous = m_endChunk;
             }
             m_endChunk = m_endChunk.Next;
-            m_endPos = 0;
+            m_endPosition = 0;
         }
 
         /// <summary> Removes element from the back end of the queue. In other words it rollbacks last push to the queue. </summary>
@@ -166,11 +166,11 @@ namespace NetMQ.zmq
             //  is not used as a spare chunk. The analysis shows that doing so
             //  would require free and atomic operation per chunk deallocated
             //  instead of a simple free.
-            if (m_endPos > 0)
-                m_endPos--;
+            if (m_endPosition > 0)
+                m_endPosition--;
             else
             {
-                m_endPos = m_size - 1;
+                m_endPosition = m_size - 1;
                 m_endChunk = m_endChunk.Previous;
                 m_endChunk.Next = null;
             }

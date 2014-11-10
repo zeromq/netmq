@@ -26,11 +26,10 @@ using System.Threading;
 using System.Collections;
 using System.Linq;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
-    public class Poller : PollerBase
+    class Poller : PollerBase
     {
-
         private class PollSet
         {
             public Socket Socket { get; private set; }
@@ -46,7 +45,7 @@ namespace NetMQ.zmq
             }
         }
         //  This table stores data for registered descriptors.
-        private readonly List<PollSet> m_fdTable;
+        private readonly List<PollSet> m_handles;
 
         private readonly List<PollSet> m_addList;
 
@@ -78,7 +77,7 @@ namespace NetMQ.zmq
             m_stopping = false;
             m_stopped = false;
 
-            m_fdTable = new List<PollSet>();
+            m_handles = new List<PollSet>();
             m_addList = new List<PollSet>();
         }
 
@@ -96,17 +95,16 @@ namespace NetMQ.zmq
             }
         }
 
-        public void AddFD(Socket fd, IPollEvents events)
+        public void AddHandle(Socket handle, IPollEvents events)
         {
-            m_addList.Add(new PollSet(fd, events));
+            m_addList.Add(new PollSet(handle, events));
 
-            m_checkError.Add(fd);
+            m_checkError.Add(handle);
 
             AdjustLoad(1);
         }
 
-
-        public void RemoveFD(Socket handle)
+        public void RemoveHandle(Socket handle)
         {
             PollSet pollSet;
 
@@ -118,7 +116,7 @@ namespace NetMQ.zmq
             }
             else
             {
-                pollSet = m_fdTable.First(p => p.Socket == handle);
+                pollSet = m_handles.First(p => p.Socket == handle);
                 pollSet.Cancelled = true;
 
                 m_retired = true;
@@ -132,12 +130,10 @@ namespace NetMQ.zmq
             AdjustLoad(-1);
         }
 
-
         public void SetPollin(Socket handle)
         {
             m_checkRead.Add(handle);
         }
-
 
         public void ResetPollin(Socket handle)
         {
@@ -177,7 +173,7 @@ namespace NetMQ.zmq
             {
                 foreach (var pollSet in m_addList)
                 {
-                    m_fdTable.Add(pollSet);
+                    m_handles.Add(pollSet);
                 }
                 m_addList.Clear();
 
@@ -197,7 +193,7 @@ namespace NetMQ.zmq
                     continue;
                 }
 
-                foreach (var pollSet in m_fdTable)
+                foreach (var pollSet in m_handles)
                 {
                     if (pollSet.Cancelled)
                     {
@@ -255,16 +251,14 @@ namespace NetMQ.zmq
 
                 if (m_retired)
                 {
-                    foreach (var item in m_fdTable.Where(k => k.Cancelled).ToList())
+                    foreach (var item in m_handles.Where(k => k.Cancelled).ToList())
                     {
-                        m_fdTable.Remove(item);
+                        m_handles.Remove(item);
                     }
 
                     m_retired = false;
                 }
             }
         }
-
-
     }
 }

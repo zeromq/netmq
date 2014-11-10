@@ -21,11 +21,11 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using NetMQ.zmq.Native;
+using NetMQ.zmq;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
-    public class Clock
+    class Clock
     {
         //  TSC timestamp of when last time measurement was made.
         private static long s_lastTsc;

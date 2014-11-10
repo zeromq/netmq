@@ -82,8 +82,18 @@ namespace NetMQ.Actors
 
             m_shim.Pipe.Connect(endPoint);
 
-            //Initialise the shim handler
-            this.m_shim.Handler.Initialise(state);
+            try
+            {
+                //Initialise the shim handler
+                this.m_shim.Handler.Initialise(state);
+            }
+            catch (Exception)
+            {
+                m_self.Dispose();
+                m_shim.Pipe.Dispose();
+
+                throw;
+            }            
 
             //Create Shim thread handler
             CreateShimThread(state);

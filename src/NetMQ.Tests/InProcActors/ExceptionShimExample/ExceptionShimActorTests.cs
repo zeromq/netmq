@@ -14,14 +14,18 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
         [Test]
         public void ShimExceptionTest()
         {
-            ExceptionShimHandler exceptionShimHandler = new ExceptionShimHandler();
-            Actor<object> actor = new Actor<object>(NetMQContext.Create(), exceptionShimHandler, null);
-            actor.SendMore("SOME_COMMAND");
-            actor.Send("Whatever");
-            var result = actor.ReceiveString();
-            string expectedHandlerResult = "Error: Exception occurred Actors Shim threw an Exception";
-            Assert.AreEqual(expectedHandlerResult, result);
-            actor.Dispose();            
+            using (var context = NetMQContext.Create())
+            {
+                ExceptionShimHandler exceptionShimHandler = new ExceptionShimHandler();
+                using (Actor<object> actor = new Actor<object>(context, exceptionShimHandler, null))
+                {
+                    actor.SendMore("SOME_COMMAND");
+                    actor.Send("Whatever");
+                    var result = actor.ReceiveString();
+                    string expectedHandlerResult = "Error: Exception occurred Actors Shim threw an Exception";
+                    Assert.AreEqual(expectedHandlerResult, result);
+                }
+            }
         }
     }
 }

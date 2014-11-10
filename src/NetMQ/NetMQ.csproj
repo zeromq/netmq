@@ -116,12 +116,12 @@
     <Compile Include="Sockets\XSubscriberSocket.cs" />
     <Compile Include="NetMQTimer.cs" />
     <Compile Include="zmq\Address.cs" />
-    <Compile Include="zmq\AtomicCounter.cs" />
-    <Compile Include="zmq\Blob.cs" />
-    <Compile Include="zmq\BufferPool.cs" />
-    <Compile Include="zmq\Selector.cs" />
+    <Compile Include="zmq\Utils\AtomicCounter.cs" />
+    <Compile Include="Blob.cs" />
+    <Compile Include="BufferPool.cs" />
+    <Compile Include="zmq\Utils\Selector.cs" />
     <Compile Include="zmq\Transports\ByteArraySegment.cs" />
-    <Compile Include="zmq\Clock.cs" />
+    <Compile Include="zmq\Utils\Clock.cs" />
     <Compile Include="zmq\Command.cs" />
     <Compile Include="zmq\CommandType.cs" />
     <Compile Include="zmq\Config.cs" />
@@ -134,7 +134,7 @@
     <Compile Include="zmq\Transports\V1Encoder.cs" />
     <Compile Include="zmq\Transports\EncoderBase.cs" />
     <Compile Include="zmq\Enums.cs" />
-    <Compile Include="zmq\ErrorCode.cs" />
+    <Compile Include="ErrorCode.cs" />
     <Compile Include="zmq\ErrorHelper.cs" />
     <Compile Include="zmq\Transports\IDecoder.cs" />
     <Compile Include="zmq\Transports\IEncoder.cs" />
@@ -154,13 +154,12 @@
     <Compile Include="zmq\Patterns\Utils\LoadBalancer.cs" />
     <Compile Include="zmq\Mailbox.cs" />
     <Compile Include="zmq\MonitorEvent.cs" />
-    <Compile Include="zmq\Msg.cs" />
+    <Compile Include="Msg.cs" />
     <Compile Include="zmq\Patterns\Utils\MultiTrie.cs" />
     <None Include="NetMQ.nuspec" />
     <None Include="NetMQ.snk" />
     <None Include="packages.config" />
-    <None Include="zmq\Native\NativeMethods.cs" />
-    <Compile Include="zmq\Native\OpCode.cs" />
+    <Compile Include="zmq\Utils\OpCode.cs" />
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
     <Compile Include="zmq\Patterns\Pair.cs" />
@@ -170,10 +169,9 @@
     <Compile Include="zmq\Transports\Pgm\PgmSession.cs" />
     <Compile Include="zmq\Transports\Pgm\PgmSocket.cs" />
     <Compile Include="zmq\Pipe.cs" />
-    <None Include="zmq\Native\Poller.cs" />
-    <Compile Include="zmq\Poller.cs" />
-    <Compile Include="zmq\PollerBase.cs" />
-    <Compile Include="zmq\Proactor.cs" />
+    <Compile Include="zmq\Utils\Poller.cs" />
+    <Compile Include="zmq\Utils\PollerBase.cs" />
+    <Compile Include="zmq\Utils\Proactor.cs" />
     <Compile Include="JetBrains.Annotations.cs" />
     <Compile Include="zmq\Patterns\Pub.cs" />
     <Compile Include="zmq\Patterns\Pull.cs" />
@@ -185,7 +183,7 @@
     <Compile Include="zmq\Patterns\Req.cs" />
     <Compile Include="zmq\Patterns\Router.cs" />
     <Compile Include="zmq\SessionBase.cs" />
-    <Compile Include="zmq\Signaler.cs" />
+    <Compile Include="zmq\Utils\Signaler.cs" />
     <Compile Include="zmq\SocketBase.cs" />
     <Compile Include="zmq\Patterns\Stream.cs" />
     <Compile Include="zmq\Transports\StreamEngine.cs" />
@@ -200,7 +198,7 @@
     <Compile Include="zmq\Patterns\XPub.cs" />
     <Compile Include="zmq\Patterns\XSub.cs" />
     <Compile Include="zmq\YPipe.cs" />
-    <Compile Include="zmq\YQueue.cs" />
+    <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="zmq\ZObject.cs" />
   </ItemGroup>
   <ItemGroup />

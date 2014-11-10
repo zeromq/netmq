@@ -143,9 +143,9 @@ namespace NetMQ.zmq.Transports
 
 
 
-        public StreamEngine(AsyncSocket fd, Options options, String endpoint)
+        public StreamEngine(AsyncSocket handle, Options options, String endpoint)
         {
-            m_handle = fd;
+            m_handle = handle;
             m_insize = 0;
             m_ioEnabled = false;
             m_sendingState = SendState.Idle;
@@ -222,7 +222,7 @@ namespace NetMQ.zmq.Transports
             Debug.Assert(m_plugged);
             m_plugged = false;
 
-            //  Cancel all fd subscriptions.
+            //  remove handle from proactor.
             if (m_ioEnabled)
             {
                 m_ioObject.RemoveSocket(m_handle);
@@ -785,7 +785,7 @@ namespace NetMQ.zmq.Transports
             }
             else
             {
-                throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(socketError));
+                throw NetMQException.Create(socketError);
             }
         }
 
@@ -819,7 +819,7 @@ namespace NetMQ.zmq.Transports
             }
             else
             {
-                throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(socketError));
+                throw NetMQException.Create(socketError);
             }
         }
 

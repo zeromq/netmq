@@ -125,7 +125,7 @@ namespace NetMQ.zmq.Transports.PGM
                 else
                 {
                     m_state = State.Error;
-                    NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(socketError));
+                    NetMQException.Create(socketError);
                 }
             }
             else if (m_state == State.Active)
@@ -182,7 +182,7 @@ namespace NetMQ.zmq.Transports.PGM
             }
             catch (SocketException ex)
             {
-                NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+                NetMQException.Create(ex.SocketErrorCode);
             }                      
         }
 

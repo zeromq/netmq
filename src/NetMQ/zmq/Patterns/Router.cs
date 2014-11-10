@@ -93,7 +93,7 @@ namespace NetMQ.zmq.Patterns
 
         private bool m_rawSocket;
 
-        public Router(Ctx parent, int threadId, int sid) : base(parent, threadId, sid)
+        public Router(Ctx parent, int threadId, int socketId) : base(parent, threadId, socketId)
         {
             m_prefetched = false;
             m_identitySent = false;
@@ -247,7 +247,7 @@ namespace NetMQ.zmq.Patterns
                     else if (m_mandatory)
                     {
                         m_moreOut = false;
-                        throw NetMQException.Create(ErrorCode.EHOSTUNREACH);
+                        throw new HostUnreachableException();
                     }
                 }
 

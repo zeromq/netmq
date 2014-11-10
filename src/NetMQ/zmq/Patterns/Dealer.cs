@@ -50,8 +50,8 @@ namespace NetMQ.zmq.Patterns
         private Msg m_prefetchedMsg;
 
         //  Holds the prefetched message.
-        public Dealer(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Dealer(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
 
             m_prefetched = false;

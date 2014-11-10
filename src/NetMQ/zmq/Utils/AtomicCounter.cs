@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
-    public class AtomicCounter : IDisposable
+    class AtomicCounter : IDisposable
     {
         private int m_value;
 

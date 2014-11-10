@@ -20,6 +20,7 @@
 
 using System;
 using System.Net.Sockets;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
@@ -33,7 +34,7 @@ namespace NetMQ.zmq
         private readonly Socket m_mailboxHandle;
 
         //  I/O multiplexing is performed using a poller object.
-        private readonly Poller m_poller;
+        private readonly Utils.Poller m_poller;
 
         //  Number of sockets being reaped at the moment.
         private int m_sockets;
@@ -50,12 +51,12 @@ namespace NetMQ.zmq
             m_sockets = 0;
             m_terminating = false;
             m_name = "reaper-" + threadId;
-            m_poller = new Poller(m_name);
+            m_poller = new Utils.Poller(m_name);
 
             mailbox = new Mailbox(m_name);
 
-            m_mailboxHandle = mailbox.FD;
-            m_poller.AddFD(m_mailboxHandle, this);
+            m_mailboxHandle = mailbox.Handle;
+            m_poller.AddHandle(m_mailboxHandle, this);
             m_poller.SetPollin(m_mailboxHandle);
         }
 
@@ -118,7 +119,7 @@ namespace NetMQ.zmq
             if (m_sockets == 0)
             {
                 SendDone();
-                m_poller.RemoveFD(m_mailboxHandle);
+                m_poller.RemoveHandle(m_mailboxHandle);
                 m_poller.Stop();
             }
         }
@@ -144,7 +145,7 @@ namespace NetMQ.zmq
             if (m_sockets == 0 && m_terminating)
             {
                 SendDone();
-                m_poller.RemoveFD(m_mailboxHandle);
+                m_poller.RemoveHandle(m_mailboxHandle);
                 m_poller.Stop();
 
             }

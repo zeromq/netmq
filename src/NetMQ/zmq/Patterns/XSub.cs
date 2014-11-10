@@ -80,8 +80,8 @@ namespace NetMQ.zmq.Patterns
             };
         }
 
-        public XSub(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public XSub(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
 
             m_options.SocketType = ZmqSocketType.Xsub;
