@@ -667,19 +667,17 @@ namespace NetMQ.zmq
 
                 if (!found)
                 {
-                    throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
-                }
+                    Pipe pipe;
 
-                Pipe pipe;
-
-                if (m_inprocs.TryGetValue(addr, out pipe))
-                {
-                    pipe.Terminate(true);
-                    m_inprocs.Remove(addr);
-                }
-                else
-                {
-                    throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
+                    if (m_inprocs.TryGetValue(addr, out pipe))
+                    {
+                        pipe.Terminate(true);
+                        m_inprocs.Remove(addr);
+                    }
+                    else
+                    {
+                        throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
+                    }
                 }
             }
             else
@@ -730,7 +728,7 @@ namespace NetMQ.zmq
             //  In case of non-blocking send we'll simply propagate
             //  the error - including EAGAIN - up the stack.
             if ((flags & SendReceiveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
-                throw new InvalidException();
+                throw new AgainException();
 
             //  Compute the time when the timeout should occur.
             //  If the timeout is infite, don't care. 

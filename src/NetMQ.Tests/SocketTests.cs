@@ -568,7 +568,7 @@ namespace NetMQ.Tests
                             }
                             else
                             {
-                                var exception = Assert.Throws<InvalidException>(() =>
+                                var exception = Assert.Throws<EndpointNotFoundException>(() =>
                                 {
                                     client2.Connect(protocol + "://localhost:55503");
                                 });                                
