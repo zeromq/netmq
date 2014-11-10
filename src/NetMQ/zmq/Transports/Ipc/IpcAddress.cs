@@ -40,7 +40,6 @@ namespace NetMQ.zmq.Transports.Ipc
 
         public void Resolve(String name, bool ip4Only)
         {
-
             this.m_name = name;
 
             int hash = name.GetHashCode();
@@ -49,15 +48,7 @@ namespace NetMQ.zmq.Transports.Ipc
             hash = hash % 55536;
             hash += 10000;
 
-
-            try
-            {
-                Address = new IPEndPoint(IPAddress.Loopback, hash);
-            }
-            catch (Exception ex)
-            {
-                throw InvalidException.Create(ex);
-            }
+            Address = new IPEndPoint(IPAddress.Loopback, hash);
         }
 
         public IPEndPoint Address

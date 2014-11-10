@@ -39,7 +39,7 @@ namespace NetMQ.zmq.Patterns
         //  Load balancer managing the outbound pipes.
         private readonly LoadBalancer m_loadBalancer;
 
-        public Push(Ctx parent, int threadId, int sid) : base(parent, threadId, sid)
+        public Push(Ctx parent, int threadId, int socketId) : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Push;
 

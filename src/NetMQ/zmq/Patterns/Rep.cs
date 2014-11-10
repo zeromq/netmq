@@ -44,8 +44,8 @@ namespace NetMQ.zmq.Patterns
         private bool m_requestBegins;
 
 
-        public Rep(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Rep(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
 
             m_sendingReply = false;
@@ -59,7 +59,7 @@ namespace NetMQ.zmq.Patterns
             //  If we are in the middle of receiving a request, we cannot send reply.
             if (!m_sendingReply)
             {
-                throw NetMQException.Create("Cannot send another reply", ErrorCode.EFSM);
+                throw new FiniteStateMachineException("Cannot send another reply");        
             }
 
             bool more = msg.HasMore;
@@ -85,8 +85,7 @@ namespace NetMQ.zmq.Patterns
             //  If we are in middle of sending a reply, we cannot receive next request.
             if (m_sendingReply)
             {
-                throw NetMQException.Create("Cannot receive another request", ErrorCode.EFSM);
-                throw new InvalidOperationException();
+                throw new FiniteStateMachineException("Cannot receive another request");                 
             }
 
             //  First thing to do when receiving a request is to copy all the labels

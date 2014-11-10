@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading;
 using AsyncIO;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
-    public class Proactor : PollerBase
+    class Proactor : PollerBase
     {
         private readonly string m_name;
         private CompletionPort m_completionPort;

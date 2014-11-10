@@ -70,7 +70,7 @@ namespace NetMQ.zmq.Transports.Tcp
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
-                throw InvalidException.Create();
+                throw new InvalidException();
             }
 
             //  Separate the address/port.
@@ -93,7 +93,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 port = Convert.ToInt32(portStr);
                 if (port == 0)
                 {
-                    throw InvalidException.Create();
+                    throw new InvalidException();
                 }
             }         
 
@@ -128,7 +128,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 
                 if (ipAddress == null)
                 {
-                    throw InvalidException.Create(string.Format("Unable to find an IP address for {0}", name));
+                    throw new InvalidException(string.Format("Unable to find an IP address for {0}", name));
                 }
             }
 

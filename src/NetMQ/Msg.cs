@@ -23,8 +23,10 @@ using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using NetMQ.zmq;
+using NetMQ.zmq.Utils;
 
-namespace NetMQ.zmq
+namespace NetMQ
 {
     [Flags]
     public enum MsgFlags
@@ -140,7 +142,7 @@ namespace NetMQ.zmq
         {
             if (!Check())
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);
+                throw new FaultException();
             }
 
             if (m_type == MsgType.Pool)
@@ -244,7 +246,7 @@ namespace NetMQ.zmq
             //  Check the validity of the source.
             if (!src.Check())
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);
+                throw new FaultException();
             }
 
             Close();
@@ -270,7 +272,7 @@ namespace NetMQ.zmq
             //  Check the validity of the source.
             if (!src.Check())
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);
+                throw new FaultException();
             }
 
             Close();

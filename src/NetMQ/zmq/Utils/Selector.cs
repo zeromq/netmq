@@ -7,7 +7,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
     class SelectItem
     {
@@ -48,7 +48,7 @@ namespace NetMQ.zmq
         {
             if (items == null)
             {
-                throw NetMQException.Create(ErrorCode.EFAULT);
+                throw new FaultException();
             }
             if (itemsCount == 0)
             {
@@ -95,9 +95,9 @@ namespace NetMQ.zmq
 
                         if (pollItem.Socket != null)
                         {
-                            if (pollItem.Event != PollEvents.None && pollItem.Socket.FD.Connected)
+                            if (pollItem.Event != PollEvents.None && pollItem.Socket.Handle.Connected)
                             {
-                                m_checkRead.Add(pollItem.Socket.FD);
+                                m_checkRead.Add(pollItem.Socket.Handle);
                             }
                         }
                         else
@@ -119,9 +119,9 @@ namespace NetMQ.zmq
                 {
                     Socket.Select(m_checkRead, m_checkWrite, m_checkError, currentTimeoutMicroSeconds);
                 }
-                catch (SocketException ex)
+                catch (SocketException)
                 {
-                    throw NetMQException.Create(ErrorCode.ESOCKET, ex);
+                    throw new FaultException();
                 }
 
                 for (int i = 0; i < itemsCount; i++)

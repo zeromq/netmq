@@ -14,45 +14,43 @@ namespace NetMQ.zmq
             switch (error)
             {
                 case SocketError.AccessDenied:
-                    return ErrorCode.EACCESS;
+                    return ErrorCode.AccessDenied;
                 case SocketError.Fault:
-                    return ErrorCode.EFAULT;
+                    return ErrorCode.Fault;
                 case SocketError.InvalidArgument:
-                    return ErrorCode.EINVAL;
+                    return ErrorCode.Invalid;
                 case SocketError.TooManyOpenSockets:
-                    return ErrorCode.EMFILE;
+                    return ErrorCode.TooManyOpenSockets;
                 case SocketError.InProgress:
-                    return ErrorCode.EAGAIN;
+                    return ErrorCode.TryAgain;
                 case SocketError.MessageSize:
-                    return ErrorCode.EMSGSIZE;
+                    return ErrorCode.MessageSize;
                 case SocketError.ProtocolNotSupported:
-                    return ErrorCode.EPROTONOSUPPORT;
+                    return ErrorCode.ProtocolNotSupported;
                 case SocketError.AddressFamilyNotSupported:
-                    return ErrorCode.EAFNOSUPPORT;
-                case SocketError.AddressAlreadyInUse:
-                    return ErrorCode.EADDRINUSE;
+                    return ErrorCode.AddressFamilyNotSupported;
                 case SocketError.AddressNotAvailable:
-                    return ErrorCode.EADDRNOTAVAIL;
+                    return ErrorCode.AddressNotAvailable;
                 case SocketError.NetworkDown:
-                    return ErrorCode.ENETDOWN;
+                    return ErrorCode.NetworkDown;
                 case SocketError.NetworkUnreachable:
-                    return ErrorCode.ENETUNREACH;
+                    return ErrorCode.NetworkUnreachable;
                 case SocketError.NetworkReset:
-                    return ErrorCode.ENETRESET;
+                    return ErrorCode.NetworkReset;
                 case SocketError.ConnectionAborted:
-                    return ErrorCode.ECONNABORTED;
+                    return ErrorCode.ConnectionAborted;
                 case SocketError.ConnectionReset:
-                    return ErrorCode.ECONNRESET;
+                    return ErrorCode.ConnectionReset;
                 case SocketError.NoBufferSpaceAvailable:
-                    return ErrorCode.ENOBUFS;
+                    return ErrorCode.NoBufferSpaceAvailable;
                 case SocketError.NotConnected:
-                    return ErrorCode.ENOTCONN;
+                    return ErrorCode.NotConnected;
                 case SocketError.TimedOut:
-                    return ErrorCode.ETIMEDOUT;
+                    return ErrorCode.TimedOut;
                 case SocketError.ConnectionRefused:
-                    return ErrorCode.ECONNREFUSED;
+                    return ErrorCode.ConnectionRefused;
                 case SocketError.HostUnreachable:
-                    return ErrorCode.EHOSTUNREACH;
+                    return ErrorCode.HostUnreachable;
                 default:
                     Debug.Assert(false);
                     return 0;

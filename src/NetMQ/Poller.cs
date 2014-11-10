@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using NetMQ.zmq;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {

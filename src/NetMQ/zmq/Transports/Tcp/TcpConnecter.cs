@@ -137,7 +137,7 @@ namespace NetMQ.zmq.Transports.Tcp
             {
                 m_s = AsyncSocket.Create(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             }
-            catch (SocketException ex)
+            catch (SocketException)
             {
                 AddReconnectTimer();
                 return;
@@ -150,7 +150,7 @@ namespace NetMQ.zmq.Transports.Tcp
             try
             {
                 m_s.Connect(m_addr.Resolved.Address.Address, m_addr.Resolved.Address.Port);
-                m_socket.EventConnectDelayed(m_endpoint, ErrorCode.EINPROGRESS);
+                m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgres);
             }
             catch (SocketException ex)
             {
@@ -176,7 +176,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 }
                 else
                 {
-                    throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(socketError));
+                    throw NetMQException.Create(socketError);
                 }
             }
             else

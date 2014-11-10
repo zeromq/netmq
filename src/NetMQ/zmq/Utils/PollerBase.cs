@@ -23,9 +23,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace NetMQ.zmq
+namespace NetMQ.zmq.Utils
 {
-    abstract public class PollerBase
+    abstract class PollerBase
     {
 
         //  Load of the poller. Currently the number of file descriptors

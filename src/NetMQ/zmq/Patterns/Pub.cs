@@ -19,6 +19,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
+
 namespace NetMQ.zmq.Patterns
 {
     class Pub : XPub
@@ -36,8 +38,8 @@ namespace NetMQ.zmq.Patterns
 
         }
 
-        public Pub(Ctx parent, int threadId, int sid)
-            : base(parent, threadId, sid)
+        public Pub(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
 
             m_options.SocketType = ZmqSocketType.Pub;
@@ -46,7 +48,7 @@ namespace NetMQ.zmq.Patterns
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             //  Messages cannot be received from PUB socket.
-            throw NetMQException.Create("Messages cannot be received from PUB socket", ErrorCode.ENOTSUP);
+            throw new NotSupportedException("Messages cannot be received from PUB socket");
         }
 
         protected override bool XHasIn()

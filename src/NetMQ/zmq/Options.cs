@@ -183,12 +183,12 @@ namespace NetMQ.zmq
                         val = (byte[])optval;
                     else
                     {
-                        throw InvalidException.Create();
+                        throw new InvalidException();
                     }
 
                     if (val.Length == 0 || val.Length > 255)
                     {
-                        throw InvalidException.Create();
+                        throw new InvalidException();
                     }
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
@@ -214,7 +214,7 @@ namespace NetMQ.zmq
 
                     if (ReconnectIvl < -1)
                     {
-                        throw InvalidException.Create();
+                        throw new InvalidException();
                     }
 
                     break;
@@ -223,7 +223,7 @@ namespace NetMQ.zmq
 
                     if (ReconnectIvlMax < 0)
                     {
-                        throw InvalidException.Create();
+                        throw new InvalidException();
                     }
 
                     break;
@@ -253,7 +253,7 @@ namespace NetMQ.zmq
                     TcpKeepalive = (int)optval;
                     if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
                     {
-                        throw InvalidException.Create();
+                        throw new InvalidException();
                     }
                     break;
                 case ZmqSocketOptions.DelayAttachOnConnect:
@@ -278,7 +278,7 @@ namespace NetMQ.zmq
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw InvalidException.Create();
+                        throw new InvalidException();
                     }
                     else
                     {
@@ -291,7 +291,7 @@ namespace NetMQ.zmq
                     Endian = (Endianness)optval;
                     break;
                 default:
-                    throw InvalidException.Create();
+                    throw new InvalidException();
             }
         }
 
@@ -373,7 +373,7 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.Endian:
                     return Endian;
                 default:
-                    throw InvalidException.Create();
+                    throw new InvalidException();
             }
         }
     }

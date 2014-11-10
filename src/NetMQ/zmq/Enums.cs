@@ -37,7 +37,13 @@ namespace NetMQ.zmq
         SendBuffer = 11,
         ReceivevBuffer = 12,
         ReceiveMore = 13,
+        
+        [Obsolete("Use Handle")]
         FD = 14,
+        Handle = 14,
+
+
+
         Events = 15,
         Type = 16,
         Linger = 17,
