@@ -177,7 +177,7 @@ namespace NetMQ.zmq.Patterns
                 m_state = State.Identity;
             }
 
-            override public void PushMsg(ref Msg msg)
+            public override bool PushMsg(ref Msg msg)
             {
                 switch (m_state)
                 {
@@ -185,29 +185,30 @@ namespace NetMQ.zmq.Patterns
                         if (msg.Flags == MsgFlags.More && msg.Size == 0)
                         {
                             m_state = State.Body;
-                            base.PushMsg(ref msg);
+                            return base.PushMsg(ref msg);
                         }
                         break;
                     case State.Body:
                         if (msg.Flags == MsgFlags.More)
-                            base.PushMsg(ref msg);
+                        {
+                            return base.PushMsg(ref msg);
+                        }
                         else if (msg.Flags == 0)
                         {
                             m_state = State.Bottom;
-                            base.PushMsg(ref msg);
+                            return base.PushMsg(ref msg);
                         }
                         break;
                     case State.Identity:
                         if (msg.Flags == 0)
                         {
                             m_state = State.Bottom;
-                            base.PushMsg(ref msg);
+                            return base.PushMsg(ref msg);
                         }
-                        break;
-                    default:
-
-                        throw new FaultException();
+                        break;                    
                 }
+
+                throw new FaultException();
             }
 
             protected override void Reset()

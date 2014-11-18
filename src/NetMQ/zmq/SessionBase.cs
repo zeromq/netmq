@@ -218,7 +218,7 @@ namespace NetMQ.zmq
             return true;
         }
 
-        public virtual void PushMsg(ref Msg msg)
+        public virtual bool PushMsg(ref Msg msg)
         {
             //  First message to receive is identity (if required).
             if (!m_identityReceived)
@@ -230,17 +230,17 @@ namespace NetMQ.zmq
                 {
                     msg.Close();
                     msg.InitEmpty();
-                    return;
+                    return true;
                 }
             }
 
             if (m_pipe != null && m_pipe.Write(ref msg))
             {
                 msg.InitEmpty();
-                return;
+                return true;
             }
 
-            throw new AgainException();
+            return false;
         }
 
 
