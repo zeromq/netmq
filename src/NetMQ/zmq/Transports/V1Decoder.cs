@@ -59,7 +59,7 @@ namespace NetMQ.zmq.Transports
 
             m_inProgress = new Msg();
             m_inProgress.InitEmpty();
-        }        
+        }
 
         //  Set the receiver of decoded messages.    
         public override void SetMsgSink(IMsgSink msgSink)
@@ -193,17 +193,21 @@ namespace NetMQ.zmq.Transports
 
             try
             {
-                m_msgSink.PushMsg(ref m_inProgress);
+                bool isMessagedPushed = m_msgSink.PushMsg(ref m_inProgress);
 
+                if (isMessagedPushed)
+                {
+                    NextStep(m_tmpbuf, 1, OneByteSizeReadyState);
+                }
+
+                return isMessagedPushed;
             }
             catch (NetMQException)
             {
+                DecodingError();
                 return false;
             }
-
-            NextStep(m_tmpbuf, 1, OneByteSizeReadyState);
-
-            return true;
-        }       
+            
+        }
     }
 }

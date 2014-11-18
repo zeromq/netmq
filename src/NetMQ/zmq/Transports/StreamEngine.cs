@@ -741,7 +741,7 @@ namespace NetMQ.zmq.Transports
             FeedAction(Action.ActivateOut, SocketError.Success, 0);
         }
 
-        public void PushMsg(ref Msg msg)
+        public bool PushMsg(ref Msg msg)
         {
             Debug.Assert(m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub);
 
@@ -755,7 +755,7 @@ namespace NetMQ.zmq.Transports
             msg.InitPool(1);
             msg.Put((byte)1);
 
-            m_session.PushMsg(ref msg);
+            bool isMessagePushed = m_session.PushMsg(ref msg);
 
             m_session.Flush();
 
@@ -763,6 +763,8 @@ namespace NetMQ.zmq.Transports
             //  Divert the message flow back to the session.
             Debug.Assert(m_decoder != null);
             m_decoder.SetMsgSink(m_session);
+
+            return isMessagePushed;
         }
 
 

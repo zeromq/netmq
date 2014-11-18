@@ -251,10 +251,7 @@ namespace NetMQ.zmq
                 return false;
 
             bool more = msg.HasMore;
-            m_outboundPipe.Write(ref msg, more);
-            //if (LOG.isDebugEnabled()) {
-            //    LOG.debug(parent.ToString() + " write " + msg_);
-            //}
+            m_outboundPipe.Write(ref msg, more);            
 
             if (!more)
                 m_numberOfMessagesWritten++;

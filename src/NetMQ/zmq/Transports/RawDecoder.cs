@@ -64,24 +64,24 @@ namespace NetMQ.zmq.Transports
 
             try
             {
-                m_msgSink.PushMsg(ref m_inProgress);
-            }
-            catch (AgainException)
-            {
-                return false;
+
+                bool isMessagedPushed = m_msgSink.PushMsg(ref m_inProgress);
+
+                if (isMessagedPushed)
+                {
+                    // NOTE: This is just to break out of process_buffer
+                    // raw_message_ready should never get called in state machine w/o
+                    // message_ready_size from stream_engine.    
+                    NextStep(m_inProgress.Data, 1, RawMessageReadyState);
+                }
+
+                return isMessagedPushed;
             }
             catch (NetMQException)
             {
                 DecodingError();
                 return false;
-            }            
-
-            // NOTE: This is just to break out of process_buffer
-            // raw_message_ready should never get called in state machine w/o
-            // message_ready_size from stream_engine.    
-            NextStep(m_inProgress.Data, 1, RawMessageReadyState);
-
-            return true;
+            }
         }
     }
 }

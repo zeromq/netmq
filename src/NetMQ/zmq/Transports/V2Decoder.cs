@@ -1,3 +1,5 @@
+using System;
+
 namespace NetMQ.zmq.Transports
 {
     class V2Decoder : DecoderBase
@@ -145,25 +147,20 @@ namespace NetMQ.zmq.Transports
 
             try
             {
-                m_msgSink.PushMsg(ref m_inProgress);
-            }
-            catch (AgainException)
-            {
-                return false;
+                bool isMessagedPushed = m_msgSink.PushMsg(ref m_inProgress);
+
+                if (isMessagedPushed)
+                {
+                    NextStep(m_tmpbuf, 1, FlagsReadyState);
+                }
+
+                return isMessagedPushed;
             }
             catch (NetMQException)
             {
                 DecodingError();
                 return false;
             }
-
-            NextStep(m_tmpbuf, 1, FlagsReadyState);
-
-            return true;
         }
-
-
-        
-
     }
 }
