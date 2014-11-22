@@ -14,15 +14,15 @@ namespace NetMQ
 
             if (value == null)
                 throw new ArgumentNullException("value");
-            
-            if (!Enum.IsDefined(value.GetType(), value))
+
+            if (!Enum.IsDefined(value.GetType(), flag))
             {
                 throw new ArgumentException(string.Format(
                     "Enumeration type mismatch.  The flag is of type '{0}', was expecting '{1}'.",
-                    value.GetType(), value.GetType()));
+                    flag.GetType(), value.GetType()));
             }
 
-            ulong num = Convert.ToUInt64(value);
+            ulong num = Convert.ToUInt64(flag);
             return ((Convert.ToUInt64(value) & num) == num);
         }
     }
