@@ -191,5 +191,10 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.Endian, value); }
         }
 
+        public bool ManualPublisher
+        {
+            // get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XPublisherManual); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.XPublisherManual, value); }
+        }
     }
 }

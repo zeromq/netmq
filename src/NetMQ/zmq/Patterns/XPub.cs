@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
@@ -50,6 +51,12 @@ namespace NetMQ.zmq.Patterns
         // If true, send all subscription messages upstream, not just
         // unique ones
         bool m_verbose;
+
+        private bool m_manual;
+
+        private Pipe m_lastPipe;
+
+        private Msg m_welcomeMessage;
 
         //  True if we are in the middle of sending a multi-part message.
         private bool m_more;
@@ -94,12 +101,16 @@ namespace NetMQ.zmq.Patterns
 
             m_options.SocketType = ZmqSocketType.Xpub;
             m_verbose = false;
+            m_manual = false;
             m_more = false;
+
+            m_welcomeMessage = new Msg();
+            m_welcomeMessage.InitEmpty();
 
             m_subscriptions = new MultiTrie();
             m_distribution = new Distribution();
             m_pending = new Queue<Blob>();
-        }        
+        }                
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
@@ -110,6 +121,17 @@ namespace NetMQ.zmq.Patterns
             //  to all data on this pipe, implicitly.
             if (icanhasall)
                 m_subscriptions.Add(null,0,0, pipe);
+
+            // if welcome message was set
+            if (m_welcomeMessage.Size > 0)
+            {
+                Msg copy = new Msg();
+                copy.InitEmpty();
+                copy.Copy(ref m_welcomeMessage);
+
+                pipe.Write(ref copy);
+                pipe.Flush();
+            }
 
             //  The pipe is active when attached. Let's read the subscriptions from
             //  it, if any.
@@ -122,22 +144,29 @@ namespace NetMQ.zmq.Patterns
             Msg sub = new Msg();
             while (pipe.Read(ref sub))
             {
-
                 //  Apply the subscription to the trie.
                 byte[] data = sub.Data;
                 int size = sub.Size;
                 if (size > 0 && (data[0] == 0 || data[0] == 1))
                 {
-                    bool unique;
-                    if (data[0] == 0)
-                        unique = m_subscriptions.Remove(data, 1, size-1,pipe);
-                    else
-                        unique = m_subscriptions.Add(data, 1, size - 1, pipe);
-
-                    //  If the subscription is not a duplicate, store it so that it can be
-                    //  passed to used on next recv call.
-                    if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
+                    if (m_manual)
+                    {
+                        m_lastPipe = pipe;
                         m_pending.Enqueue(new Blob(sub.Data, sub.Size));
+                    }
+                    else
+                    {
+                        bool unique;
+                        if (data[0] == 0)
+                            unique = m_subscriptions.Remove(data, 1, size - 1, pipe);
+                        else
+                            unique = m_subscriptions.Add(data, 1, size - 1, pipe);
+
+                        //  If the subscription is not a duplicate, store it so that it can be
+                        //  passed to used on next recv call.
+                        if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
+                            m_pending.Enqueue(new Blob(sub.Data, sub.Size));
+                    }
                 }
                 else // process message unrelated to sub/unsub
                 {
@@ -158,6 +187,70 @@ namespace NetMQ.zmq.Patterns
             if (option == ZmqSocketOptions.XpubVerbose)
             {
                 m_verbose = (int)optval == 1;
+                return true;
+            }
+            if (option == ZmqSocketOptions.XPublisherManual)
+            {
+                m_manual = true;
+                return true;
+            }            
+            else if (option == ZmqSocketOptions.Subscribe && m_manual && m_lastPipe != null)
+            {
+                byte[] subscription;
+
+                if (optval is byte[])
+                {
+                    subscription = optval as byte[];
+                }
+                else
+                {
+                   subscription = Encoding.ASCII.GetBytes((String)optval);
+                }
+
+                m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
+                return true;
+            }
+            else if (option == ZmqSocketOptions.Unsubscribe && m_manual && m_lastPipe != null)
+            {
+                byte[] subscription;
+
+                if (optval is byte[])
+                {
+                    subscription = optval as byte[];
+                }
+                else
+                {
+                    subscription = Encoding.ASCII.GetBytes((String)optval);
+                }
+
+                m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
+                return true;
+            }
+            else if (option == ZmqSocketOptions.XPublisherWelcomeMessage)
+            {
+                m_welcomeMessage.Close();
+
+                if (optval != null)
+                {                    
+                    if (optval is byte[])
+                    {
+                        byte[] value = (byte[]) optval;
+
+                        byte[] welcomeBytes = new byte[value.Length];
+                        value.CopyTo(welcomeBytes, 0);
+
+                        m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);
+                    }
+                    else
+                    {
+                        throw new InvalidException();
+                    }                    
+                }
+                else
+                {
+                    m_welcomeMessage.InitEmpty();
+                }
+
                 return true;
             }
 
