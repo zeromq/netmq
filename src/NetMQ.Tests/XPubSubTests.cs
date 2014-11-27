@@ -24,7 +24,7 @@ namespace NetMQ.Tests
                     using (var sub = contex.CreateXSubscriberSocket())
                     {
                         sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Send(new byte[] { 1, (byte)'A' });
+                        sub.Send(new byte[] {1, (byte) 'A'});
 
                         // let the subscriber connect to the publisher before sending a message
                         Thread.Sleep(500);
@@ -75,11 +75,11 @@ namespace NetMQ.Tests
                         var txt = pub.ReceiveString();
                         Assert.AreEqual("Message from subscriber", txt);
 
-                        sub.Send(new byte[] { });
+                        sub.Send(new byte[] {});
 
                         var msg = pub.Receive();
                         Assert.True(msg.Length == 0);
-                        
+
                     }
                 }
             }
@@ -97,7 +97,7 @@ namespace NetMQ.Tests
                     using (var sub = contex.CreateXSubscriberSocket())
                     {
                         sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Send(new byte[] { 1 });
+                        sub.Send(new byte[] {1});
 
                         // let the subscriber connect to the publisher before sending a message
                         Thread.Sleep(500);
@@ -115,7 +115,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test, ExpectedException(typeof(AgainException))]
+        [Test, ExpectedException(typeof (AgainException))]
         public void NotSubscribed()
         {
             using (NetMQContext contex = NetMQContext.Create())
@@ -156,19 +156,19 @@ namespace NetMQ.Tests
                     using (var sub = contex.CreateXSubscriberSocket())
                     {
                         sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Send(new byte[] { 1, (byte)'C'});
-                        sub.Send(new byte[] { 1, (byte)'B'});
-                        sub.Send(new byte[] { 1, (byte)'A'});
-                        sub.Send(new byte[] { 1, (byte)'D'});
-                        sub.Send(new byte[] { 1, (byte)'E' });
+                        sub.Send(new byte[] {1, (byte) 'C'});
+                        sub.Send(new byte[] {1, (byte) 'B'});
+                        sub.Send(new byte[] {1, (byte) 'A'});
+                        sub.Send(new byte[] {1, (byte) 'D'});
+                        sub.Send(new byte[] {1, (byte) 'E'});
 
                         Thread.Sleep(500);
 
-                        sub.Send(new byte[] { 0, (byte)'C' });
-                        sub.Send(new byte[] { 0, (byte)'B' });
-                        sub.Send(new byte[] { 0, (byte)'A' });
-                        sub.Send(new byte[] { 0, (byte)'D' });
-                        sub.Send(new byte[] { 0, (byte)'E' });
+                        sub.Send(new byte[] {0, (byte) 'C'});
+                        sub.Send(new byte[] {0, (byte) 'B'});
+                        sub.Send(new byte[] {0, (byte) 'A'});
+                        sub.Send(new byte[] {0, (byte) 'D'});
+                        sub.Send(new byte[] {0, (byte) 'E'});
 
                         Thread.Sleep(500);
                     }
@@ -189,15 +189,15 @@ namespace NetMQ.Tests
                     using (var sub2 = contex.CreateXSubscriberSocket())
                     {
                         sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Send(new byte[] { 1, (byte)'A' });
-                        sub.Send(new byte[] { 1, (byte)'A', (byte)'B' });
-                        sub.Send(new byte[] { 1, (byte)'B' });
-                        sub.Send(new byte[] { 1, (byte)'C' });
+                        sub.Send(new byte[] {1, (byte) 'A'});
+                        sub.Send(new byte[] {1, (byte) 'A', (byte) 'B'});
+                        sub.Send(new byte[] {1, (byte) 'B'});
+                        sub.Send(new byte[] {1, (byte) 'C'});
 
                         sub2.Connect("tcp://127.0.0.1:5002");
-                        sub2.Send(new byte[] { 1, (byte)'A' });
-                        sub2.Send(new byte[] { 1, (byte)'A', (byte)'B' });
-                        sub2.Send(new byte[] { 1, (byte)'C' });
+                        sub2.Send(new byte[] {1, (byte) 'A'});
+                        sub2.Send(new byte[] {1, (byte) 'A', (byte) 'B'});
+                        sub2.Send(new byte[] {1, (byte) 'C'});
 
                         Thread.Sleep(500);
 
@@ -216,7 +216,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test, ExpectedException(typeof(AgainException))]
+        [Test, ExpectedException(typeof (AgainException))]
         public void UnSubscribe()
         {
             using (NetMQContext contex = NetMQContext.Create())
@@ -228,7 +228,7 @@ namespace NetMQ.Tests
                     using (var sub = contex.CreateXSubscriberSocket())
                     {
                         sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Send(new byte[] { 1, (byte)'A' });
+                        sub.Send(new byte[] {1, (byte) 'A'});
 
                         // let the subscrbier connect to the publisher before sending a message
                         Thread.Sleep(500);
@@ -248,7 +248,7 @@ namespace NetMQ.Tests
                         Assert.AreEqual("Hello", m2);
                         Assert.False(more);
 
-                        sub.Send(new byte[] { 0, (byte)'A' });
+                        sub.Send(new byte[] {0, (byte) 'A'});
 
                         Thread.Sleep(500);
 
@@ -256,6 +256,37 @@ namespace NetMQ.Tests
                         pub.Send("Hello");
 
                         string m3 = sub.ReceiveString(true, out more);
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void Manual()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreateXPublisherSocket())
+                {
+                    pub.Bind("inproc://manual");
+                    pub.Options.ManualPublisher = true;
+
+                    using (var sub = contex.CreateXSubscriberSocket())
+                    {
+                        sub.Connect("inproc://manual");
+
+                        sub.Send(new byte[]{1, (byte)'A'});
+                        var subscription = pub.Receive();
+
+                        Assert.AreEqual(subscription[1], (byte)'A');
+
+                        pub.Subscribe("B");
+                        pub.Send("A");
+                        pub.Send("B");
+
+                        var topic = sub.ReceiveString();
+
+                        Assert.AreEqual("B", topic);
                     }
                 }
             }

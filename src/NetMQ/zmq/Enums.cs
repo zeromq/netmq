@@ -67,6 +67,7 @@ namespace NetMQ.zmq
         DelayAttachOnConnect = 39,
         XpubVerbose = 40,
         RouterRawSocket = 41,
+        XPublisherManual = 42,
 
         Endian = 1000,
 
