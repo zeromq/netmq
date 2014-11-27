@@ -66,5 +66,25 @@ namespace NetMQ.Sockets
         {
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
         }
+
+        public void ClearWelcomeMessage()
+        {
+            SetSocketOption(ZmqSocketOptions.XPublisherWelcomeMessage, null);
+        }
+
+        public void SetWelcomeMessage(string welcomeMessage, Encoding encoding)
+        {
+            SetWelcomeMessage(encoding.GetBytes(welcomeMessage));
+        }
+
+        public void SetWelcomeMessage(string welcomeMessage)
+        {
+            SetWelcomeMessage(Encoding.ASCII.GetBytes(welcomeMessage));
+        }
+
+        public void SetWelcomeMessage(byte[] welcomeMessage)
+        {
+            SetSocketOption(ZmqSocketOptions.XPublisherWelcomeMessage, welcomeMessage);
+        }
     }
 }

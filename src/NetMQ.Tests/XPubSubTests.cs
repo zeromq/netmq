@@ -291,5 +291,58 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Test]
+        public void WelcomeMessage()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreateXPublisherSocket())
+                {
+                    pub.Bind("inproc://welcome");
+                    pub.SetWelcomeMessage("W");
+
+                    using (var sub = contex.CreateSubscriberSocket())
+                    {
+                        sub.Subscribe("W");
+                        sub.Connect("inproc://welcome");
+                        
+                        var subscription = pub.Receive();
+
+                        Assert.AreEqual(subscription[1], (byte)'W');
+                        
+                        var welcomeMessage = sub.ReceiveString();
+
+                        Assert.AreEqual("W", welcomeMessage);
+                    }
+                }
+            }
+        }
+
+        [Test, ExpectedException(typeof(AgainException))]
+        public void ClearWelcomeMessage()
+        {
+            using (NetMQContext contex = NetMQContext.Create())
+            {
+                using (var pub = contex.CreateXPublisherSocket())
+                {
+                    pub.Bind("inproc://welcome");
+                    pub.SetWelcomeMessage("W");
+                    pub.ClearWelcomeMessage();
+
+                    using (var sub = contex.CreateSubscriberSocket())
+                    {
+                        sub.Subscribe("W");
+                        sub.Connect("inproc://welcome");
+
+                        var subscription = pub.Receive();
+
+                        Assert.AreEqual(subscription[1], (byte)'W');
+                        
+                        sub.ReceiveString(SendReceiveOptions.DontWait);                        
+                    }
+                }
+            }
+        }
     }
 }

@@ -56,6 +56,8 @@ namespace NetMQ.zmq.Patterns
 
         private Pipe m_lastPipe;
 
+        private Msg m_welcomeMessage;
+
         //  True if we are in the middle of sending a multi-part message.
         private bool m_more;
 
@@ -102,6 +104,9 @@ namespace NetMQ.zmq.Patterns
             m_manual = false;
             m_more = false;
 
+            m_welcomeMessage = new Msg();
+            m_welcomeMessage.InitEmpty();
+
             m_subscriptions = new MultiTrie();
             m_distribution = new Distribution();
             m_pending = new Queue<Blob>();
@@ -116,6 +121,17 @@ namespace NetMQ.zmq.Patterns
             //  to all data on this pipe, implicitly.
             if (icanhasall)
                 m_subscriptions.Add(null,0,0, pipe);
+
+            // if welcome message was set
+            if (m_welcomeMessage.Size > 0)
+            {
+                Msg copy = new Msg();
+                copy.InitEmpty();
+                copy.Copy(ref m_welcomeMessage);
+
+                pipe.Write(ref copy);
+                pipe.Flush();
+            }
 
             //  The pipe is active when attached. Let's read the subscriptions from
             //  it, if any.
@@ -177,8 +193,8 @@ namespace NetMQ.zmq.Patterns
             {
                 m_manual = true;
                 return true;
-            }
-            else if (option == ZmqSocketOptions.Subscribe)
+            }            
+            else if (option == ZmqSocketOptions.Subscribe && m_manual && m_lastPipe != null)
             {
                 byte[] subscription;
 
@@ -194,7 +210,7 @@ namespace NetMQ.zmq.Patterns
                 m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
                 return true;
             }
-            else if (option == ZmqSocketOptions.Unsubscribe)
+            else if (option == ZmqSocketOptions.Unsubscribe && m_manual && m_lastPipe != null)
             {
                 byte[] subscription;
 
@@ -208,6 +224,33 @@ namespace NetMQ.zmq.Patterns
                 }
 
                 m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
+                return true;
+            }
+            else if (option == ZmqSocketOptions.XPublisherWelcomeMessage)
+            {
+                m_welcomeMessage.Close();
+
+                if (optval != null)
+                {                    
+                    if (optval is byte[])
+                    {
+                        byte[] value = (byte[]) optval;
+
+                        byte[] welcomeBytes = new byte[value.Length];
+                        value.CopyTo(welcomeBytes, 0);
+
+                        m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);
+                    }
+                    else
+                    {
+                        throw new InvalidException();
+                    }                    
+                }
+                else
+                {
+                    m_welcomeMessage.InitEmpty();
+                }
+
                 return true;
             }
 

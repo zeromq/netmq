@@ -68,6 +68,7 @@ namespace NetMQ.zmq
         XpubVerbose = 40,
         RouterRawSocket = 41,
         XPublisherManual = 42,
+        XPublisherWelcomeMessage = 43,
 
         Endian = 1000,
 
