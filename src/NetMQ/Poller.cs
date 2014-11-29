@@ -312,7 +312,7 @@ namespace NetMQ
         /// The non blocking version of PollTillCancelled, starting the PollTillCancelled on new thread. 
         /// Will poll till Cancel or CancelAndJoin is called. Method is not blocking.
         /// </summary>
-        public void PollTillCancelledNNonBlocking()
+        public void PollTillCancelledNonBlocking()
         {
             Thread thread = new Thread(PollTillCancelled);
             thread.Start();

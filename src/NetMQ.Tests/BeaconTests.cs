@@ -171,7 +171,7 @@ namespace NetMQ.Tests
                         };
 
                         Poller poller = new Poller(listener);
-                        poller.PollTillCancelledNNonBlocking();                        
+                        poller.PollTillCancelledNonBlocking();                        
                         
                         manualResetEvent.WaitOne();
                         

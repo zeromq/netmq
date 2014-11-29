@@ -69,7 +69,7 @@ namespace NetMQ
 
             if (m_ownPoller)
             {
-                m_poller.PollTillCancelledNNonBlocking();                
+                m_poller.PollTillCancelledNonBlocking();                
             }
         }
 

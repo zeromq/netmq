@@ -79,7 +79,7 @@ namespace NetMQ.Tests
 
                 using (NetMQScheduler scheduler = new NetMQScheduler(context, poller))
                 {
-                    poller.PollTillCancelledNNonBlocking();
+                    poller.PollTillCancelledNonBlocking();
 
                     Task task = new Task(() =>
                     {

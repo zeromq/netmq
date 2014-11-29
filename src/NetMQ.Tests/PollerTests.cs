@@ -95,7 +95,7 @@ namespace NetMQ.Tests
                                 reqMonitor.AttachToPoller(poller);
                                 try
                                 {
-                                    poller.PollTillCancelledNNonBlocking();
+                                    poller.PollTillCancelledNonBlocking();
 
                                     req.Connect("tcp://127.0.0.1:5002");
                                     req.Send("a");
@@ -167,7 +167,7 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(router);
 
-                        poller.PollTillCancelledNNonBlocking();
+                        poller.PollTillCancelledNonBlocking();
 
                         dealer.Send("1");
                         Thread.Sleep(300);
@@ -243,7 +243,7 @@ namespace NetMQ.Tests
                                                                             };
                         poller.AddSocket(router2);
 
-                        poller.PollTillCancelledNNonBlocking();
+                        poller.PollTillCancelledNonBlocking();
 
                         dealer.Send("1");
                         Thread.Sleep(300);
@@ -340,7 +340,7 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(router2);
 
-                        poller.PollTillCancelledNNonBlocking();
+                        poller.PollTillCancelledNonBlocking();
 
                         dealer.Send("1");
                         Thread.Sleep(300);
@@ -535,7 +535,7 @@ namespace NetMQ.Tests
                                                             };
                         poller.AddTimer(timer);
 
-                        poller.PollTillCancelledNNonBlocking();
+                        poller.PollTillCancelledNonBlocking();
 
                         Thread.Sleep(150);
 
@@ -594,7 +594,7 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(router);
 
-                        poller.PollTillCancelledNNonBlocking();
+                        poller.PollTillCancelledNonBlocking();
 
                         Thread.Sleep(20);
 
@@ -633,7 +633,7 @@ namespace NetMQ.Tests
 
                 poller.AddTimer(timer);
 
-                poller.PollTillCancelledNNonBlocking();
+                poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(300);
 
@@ -708,7 +708,7 @@ namespace NetMQ.Tests
                 timer2.Elapsed += (s, a) => { count2++; };
                 poller.AddTimer(timer2);
 
-                poller.PollTillCancelledNNonBlocking();
+                poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(300);
 
@@ -762,7 +762,7 @@ namespace NetMQ.Tests
                 poller.AddTimer(timer);
                 poller.AddTimer(timer2);
 
-                poller.PollTillCancelledNNonBlocking();
+                poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(300);
 
@@ -816,7 +816,7 @@ namespace NetMQ.Tests
 
                 poller.AddTimer(timer);
 
-                poller.PollTillCancelledNNonBlocking();
+                poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(500);
 
@@ -875,7 +875,7 @@ namespace NetMQ.Tests
                 Poller poller;
                 using (poller = new Poller(timer))
                 {
-                    poller.PollTillCancelledNNonBlocking();
+                    poller.PollTillCancelledNonBlocking();
                     Thread.Sleep(500);
                     Assert.Throws<InvalidOperationException>(() => { poller.PollTillCancelled(); });
                 }
@@ -932,7 +932,7 @@ namespace NetMQ.Tests
                             poller.RemovePollInSocket(socket);
                         });
 
-                        poller.PollTillCancelledNNonBlocking();
+                        poller.PollTillCancelledNonBlocking();
 
                         // no message is waiting for the socket so it should fail
                         Assert.IsFalse(socketSignal.WaitOne(200));
