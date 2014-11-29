@@ -79,7 +79,7 @@ namespace NetMQ.Tests
 
                 using (NetMQScheduler scheduler = new NetMQScheduler(context, poller))
                 {
-                    Task.Factory.StartNew(poller.Start);
+                    poller.PollTillCancelledNNonBlocking();
 
                     Task task = new Task(() =>
                     {
@@ -91,7 +91,7 @@ namespace NetMQ.Tests
                     Assert.IsTrue(triggered);
                 }
 
-                poller.Stop();
+                poller.CancelAndJoin();
             }
         }
 

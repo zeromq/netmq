@@ -151,7 +151,7 @@ namespace NetMQ
                 m_poller.AddSocket(m_pipe);                
                 m_poller.AddTimer(m_pingTimer);
 
-                m_poller.Start();
+                m_poller.PollTillCancelled();
 
                 // the beacon might never been configured
                 if (m_udpSocket != null)

@@ -45,7 +45,7 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(rep);
 
-                        Task pollerTask = Task.Factory.StartNew(poller.Start);
+                        Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
 
                         req.Send("Hello");
 
@@ -55,7 +55,7 @@ namespace NetMQ.Tests
                         Assert.IsFalse(more2);
                         Assert.AreEqual("World", m1);
 
-                        poller.Stop();
+                        poller.CancelAndJoin();
 
                         Thread.Sleep(100);
                         Assert.IsTrue(pollerTask.IsCompleted);
@@ -95,7 +95,7 @@ namespace NetMQ.Tests
                                 reqMonitor.AttachToPoller(poller);
                                 try
                                 {
-                                    var pollerTask = Task.Factory.StartNew(poller.Start);
+                                    poller.PollTillCancelledNNonBlocking();
 
                                     req.Connect("tcp://127.0.0.1:5002");
                                     req.Send("a");
@@ -114,7 +114,7 @@ namespace NetMQ.Tests
                                 }
                                 finally
                                 {
-                                    poller.Stop();
+                                    poller.CancelAndJoin();
                                 }
                             }
                         }
@@ -167,15 +167,14 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(router);
 
-                        Task task = Task.Factory.StartNew(poller.Start);
+                        poller.PollTillCancelledNNonBlocking();
 
                         dealer.Send("1");
                         Thread.Sleep(300);
                         dealer2.Send("2");
                         Thread.Sleep(300);
 
-                        poller.Stop(true);
-                        task.Wait();
+                        poller.Stop(true);                        
 
                         Assert.IsTrue(router1arrived);
                         Assert.IsTrue(router2arrived);
@@ -244,7 +243,7 @@ namespace NetMQ.Tests
                                                                             };
                         poller.AddSocket(router2);
 
-                        Task task = Task.Factory.StartNew(poller.Start);
+                        poller.PollTillCancelledNNonBlocking();
 
                         dealer.Send("1");
                         Thread.Sleep(300);
@@ -254,7 +253,6 @@ namespace NetMQ.Tests
                         Thread.Sleep(300);
 
                         poller.Stop(true);
-                        task.Wait();
 
                         Assert.IsTrue(router1arrived);
                         Assert.IsTrue(router2arrived);
@@ -342,7 +340,7 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(router2);
 
-                        Task task = Task.Factory.StartNew(poller.Start);
+                        poller.PollTillCancelledNNonBlocking();
 
                         dealer.Send("1");
                         Thread.Sleep(300);
@@ -355,8 +353,7 @@ namespace NetMQ.Tests
                         Thread.Sleep(300);
 
                         poller.Stop(true);
-                        task.Wait();
-
+                        
                         router.Receive(true, out more);
 
                         Assert.IsTrue(more);
@@ -455,7 +452,7 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(router3);
 
-                        Task pollerTask = Task.Factory.StartNew(poller.Start);
+                        Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
 
                         dealer.Send("Hello");
 
@@ -484,7 +481,7 @@ namespace NetMQ.Tests
                         // we have to give this some time if we want to make sure it's really not happening and it not only because of time
                         Thread.Sleep(300);
 
-                        poller.Stop();
+                        poller.CancelAndJoin();
 
                         Thread.Sleep(100);
                         Assert.IsTrue(pollerTask.IsCompleted);
@@ -538,7 +535,7 @@ namespace NetMQ.Tests
                                                             };
                         poller.AddTimer(timer);
 
-                        Task.Factory.StartNew(poller.Start);
+                        poller.PollTillCancelledNNonBlocking();
 
                         Thread.Sleep(150);
 
@@ -546,7 +543,7 @@ namespace NetMQ.Tests
 
                         Thread.Sleep(300);
 
-                        poller.Stop();
+                        poller.CancelAndJoin();
 
                         Assert.IsTrue(messageArrived);
                         Assert.IsTrue(timerTriggered);
@@ -597,7 +594,7 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(router);
 
-                        Task.Factory.StartNew(poller.Start);
+                        poller.PollTillCancelledNNonBlocking();
 
                         Thread.Sleep(20);
 
@@ -605,7 +602,7 @@ namespace NetMQ.Tests
 
                         Thread.Sleep(300);
 
-                        poller.Stop();
+                        poller.CancelAndJoin();
 
                         Assert.IsTrue(messageArrived);
                         Assert.IsFalse(timerTriggered);
@@ -636,11 +633,11 @@ namespace NetMQ.Tests
 
                 poller.AddTimer(timer);
 
-                Task.Factory.StartNew(poller.Start);
+                poller.PollTillCancelledNNonBlocking();
 
                 Thread.Sleep(300);
 
-                poller.Stop();
+                poller.CancelAndJoin();
 
                 Assert.AreEqual(3, count);
             }
@@ -711,11 +708,11 @@ namespace NetMQ.Tests
                 timer2.Elapsed += (s, a) => { count2++; };
                 poller.AddTimer(timer2);
 
-                Task.Factory.StartNew(poller.Start);
+                poller.PollTillCancelledNNonBlocking();
 
                 Thread.Sleep(300);
 
-                poller.Stop();
+                poller.CancelAndJoin();
 
                 Assert.AreEqual(3, count);
                 Assert.AreEqual(6, count2);
@@ -765,11 +762,11 @@ namespace NetMQ.Tests
                 poller.AddTimer(timer);
                 poller.AddTimer(timer2);
 
-                Task.Factory.StartNew(poller.Start);
+                poller.PollTillCancelledNNonBlocking();
 
                 Thread.Sleep(300);
 
-                poller.Stop();
+                poller.CancelAndJoin();
 
                 Assert.AreEqual(2, count);
                 Assert.AreEqual(1, count2);
@@ -819,11 +816,11 @@ namespace NetMQ.Tests
 
                 poller.AddTimer(timer);
 
-                Task.Factory.StartNew(poller.Start);
+                poller.PollTillCancelledNNonBlocking();
 
                 Thread.Sleep(500);
 
-                poller.Stop();
+                poller.CancelAndJoin();
 
                 Assert.AreEqual(3, count);
 
@@ -878,14 +875,14 @@ namespace NetMQ.Tests
                 Poller poller;
                 using (poller = new Poller(timer))
                 {
-                    Task task = Task.Factory.StartNew(poller.Start);
+                    poller.PollTillCancelledNNonBlocking();
                     Thread.Sleep(500);
-                    Assert.Throws<InvalidOperationException>(() => { poller.Start(); });
+                    Assert.Throws<InvalidOperationException>(() => { poller.PollTillCancelled(); });
                 }
 
                 Assert.That(!poller.IsStarted);
-                Assert.Throws<ObjectDisposedException>(() => { poller.Start(); });
-                Assert.Throws<ObjectDisposedException>(() => { poller.Stop(); });
+                Assert.Throws<ObjectDisposedException>(() => { poller.PollTillCancelled(); });
+                Assert.Throws<ObjectDisposedException>(() => { poller.CancelAndJoin(); });
                 Assert.Throws<ObjectDisposedException>(() => { poller.AddTimer(timer); });
                 Assert.Throws<ObjectDisposedException>(() => { poller.RemoveTimer(timer); });
 
@@ -935,7 +932,7 @@ namespace NetMQ.Tests
                             poller.RemovePollInSocket(socket);
                         });
 
-                        Task.Factory.StartNew(poller.Start);
+                        poller.PollTillCancelledNNonBlocking();
 
                         // no message is waiting for the socket so it should fail
                         Assert.IsFalse(socketSignal.WaitOne(200));

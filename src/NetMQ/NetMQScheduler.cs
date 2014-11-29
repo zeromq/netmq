@@ -69,7 +69,7 @@ namespace NetMQ
 
             if (m_ownPoller)
             {
-                Task.Factory.StartNew(m_poller.Start, TaskCreationOptions.LongRunning);
+                m_poller.PollTillCancelledNNonBlocking();                
             }
         }
 
@@ -119,7 +119,7 @@ namespace NetMQ
             // poller cannot be stopped from poller thread
             if (m_ownPoller)
             {
-                m_poller.Stop();
+                m_poller.CancelAndJoin();
             }
         }
 
