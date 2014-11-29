@@ -47,6 +47,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NetMQActor.cs" />
     <Compile Include="EventDelegator.cs" />
     <Compile Include="InProcActors\Actor.cs" />
     <Compile Include="InProcActors\IShimHandler.cs" />
