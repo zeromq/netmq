@@ -5,8 +5,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
-using NetMQ.Actors;
-using NetMQ.InProcActors;
+using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -31,7 +30,7 @@ namespace NetMQ
         public const string SubscribeCommand = "SUBSCRIBE";
         public const string UnsubscribeCommand = "UNSUBSCRIBE";
 
-        private class Agent : IShimHandler<object>
+        private class Shim : IShimHandler
         {
             private NetMQSocket m_pipe;
             private Socket m_udpSocket;
@@ -44,7 +43,7 @@ namespace NetMQ
             private NetMQTimer m_pingTimer;
             private Poller m_poller;
 
-            public Agent()
+            public Shim()
             {
             }
 
@@ -54,7 +53,7 @@ namespace NetMQ
                 if (m_udpSocket != null)
                 {
                     m_poller.RemovePollInSocket(m_udpSocket);
-                    m_udpSocket.Dispose();                                    
+                    m_udpSocket.Close();                                    
                 }
 
                 m_udpPort = port;
@@ -130,13 +129,9 @@ namespace NetMQ
                 return true;
             }
 
-            public void Initialise(object state)
-            {
 
-            }
-
-            public void RunPipeline(Sockets.PairSocket shim)
-            {
+            public void Run(PairSocket shim)
+            {             
                 m_pipe = shim;
 
                 shim.SignalOK();
@@ -156,7 +151,7 @@ namespace NetMQ
                 // the beacon might never been configured
                 if (m_udpSocket != null)
                 {
-                    m_udpSocket.Dispose();    
+                    m_udpSocket.Close();
                 }                
             }
 
@@ -227,7 +222,7 @@ namespace NetMQ
                     case UnsubscribeCommand:
                         m_filter = null;
                         break;
-                    case ActorKnownMessages.END_PIPE:
+                    case NetMQActor.EndShimMessage:
                         m_poller.Stop(false);
                         break;
                     default:
@@ -256,15 +251,15 @@ namespace NetMQ
             }
         }
 
-        private Agent m_agent;
-        private Actor<object> m_actor;
+        private Shim m_shim;
+        private NetMQActor m_actor;
 
         private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
         public NetMQBeacon(NetMQContext context)
         {
-            m_agent = new Agent();
-            m_actor = new Actor<object>(context, m_agent, null);
+            m_shim = new Shim();
+            m_actor = NetMQActor.Create(context, m_shim);
 
             m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(() => m_actor.ReceiveReady += OnReceiveReady,
                 () => m_actor.ReceiveReady -= OnReceiveReady);
@@ -292,7 +287,7 @@ namespace NetMQ
             }
         }
 
-        private void OnReceiveReady(object sender, NetMQActorEventArgs<object> args)
+        private void OnReceiveReady(object sender, NetMQActorEventArgs args)
         {
             m_receiveEventHelper.Fire(this, new NetMQBeaconEventArgs(this));
         }

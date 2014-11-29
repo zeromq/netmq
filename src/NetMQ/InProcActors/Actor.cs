@@ -10,6 +10,7 @@ using NetMQ.zmq;
 
 namespace NetMQ.Actors
 {
+    [Obsolete("Use non generic NetMQActor")]
     public class NetMQActorEventArgs<T> : EventArgs
     {
         public NetMQActorEventArgs(Actor<T> actor)

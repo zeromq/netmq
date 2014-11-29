@@ -60,6 +60,7 @@
     <Compile Include="IReceivingSocket.cs" />
     <Compile Include="Msg.cs" />
     <Compile Include="NetMQActor.cs" />
+    <Compile Include="NetMQBeacon.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
     <Compile Include="ErrorPollingException.cs" />

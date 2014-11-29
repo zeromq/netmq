@@ -25,7 +25,7 @@ namespace NetMQ.Tests
 
                         string command = msg[0].ConvertToString();
 
-                        if (command == NetMQActor.DisposePipeMessage)
+                        if (command == NetMQActor.EndShimMessage)
                             break;
 
                         else if (command == "Hello")
