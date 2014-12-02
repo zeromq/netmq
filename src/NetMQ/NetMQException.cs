@@ -5,6 +5,7 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
+    [Serializable]
     public class NetMQException : Exception
     {
         protected NetMQException(Exception ex, string message, ErrorCode errorCode)
@@ -154,6 +155,7 @@ namespace NetMQ
         }
     }
 
+    [Serializable]
     public class EndpointNotFoundException : NetMQException
     {
         public EndpointNotFoundException(Exception ex, string message)
@@ -173,6 +175,7 @@ namespace NetMQ
         }
     }
 
+    [Serializable]
     public class AgainException : NetMQException
     {
         internal AgainException(Exception ex, string message)
@@ -186,6 +189,7 @@ namespace NetMQ
         }
     }
 
+    [Serializable]
     public class TerminatingException : NetMQException
     {
         internal TerminatingException(Exception ex, string message)
@@ -200,6 +204,7 @@ namespace NetMQ
         }
     }
 
+    [Serializable]
     public class InvalidException : NetMQException
     {
         internal InvalidException(Exception ex, string message)
@@ -218,6 +223,7 @@ namespace NetMQ
         }
     }
 
+    [Serializable]
     public class FaultException : NetMQException
     {
         internal FaultException(Exception ex, string message)
@@ -236,6 +242,7 @@ namespace NetMQ
         }
     }
 
+    [Serializable]
     public class ProtocolNotSupportedException : NetMQException
     {
         internal ProtocolNotSupportedException(Exception ex, string message)
@@ -254,6 +261,7 @@ namespace NetMQ
         }
     }
 
+    [Serializable]
     public class HostUnreachableException : NetMQException
     {
         internal HostUnreachableException(Exception ex, string message)
@@ -272,6 +280,7 @@ namespace NetMQ
         }
     }
 
+    [Serializable]
     public class FiniteStateMachineException : NetMQException
     {
         internal FiniteStateMachineException(Exception ex, string message)
