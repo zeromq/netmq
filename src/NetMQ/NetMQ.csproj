@@ -38,8 +38,9 @@
     <AssemblyOriginatorKeyFile>NetMQ.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AsyncIO">
-      <HintPath>..\packages\AsyncIO.0.1.15.0\lib\net40\AsyncIO.dll</HintPath>
+    <Reference Include="AsyncIO, Version=0.1.16.0, Culture=neutral, PublicKeyToken=44a94435bd6f33f8, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\AsyncIO.0.1.16.0\lib\net40\AsyncIO.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -159,7 +160,6 @@
     <Compile Include="zmq\Patterns\Utils\MultiTrie.cs" />
     <None Include="NetMQ.nuspec" />
     <None Include="NetMQ.snk" />
-    <None Include="packages.config" />
     <Compile Include="zmq\Utils\OpCode.cs" />
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
@@ -201,6 +201,7 @@
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="zmq\ZObject.cs" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

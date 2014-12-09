@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}</ProjectGuid>
+    <ProjectGuid>{94551D26-2DC2-4319-B0FD-AC09C79D2D03}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NetMQ</RootNamespace>
@@ -13,13 +13,13 @@
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-    <BaseIntermediateOutputPath>obj\3.5\</BaseIntermediateOutputPath>
+    <BaseIntermediateOutputPath>obj\Unity\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\3.5\Debug\</OutputPath>
+    <OutputPath>bin\Unity\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\3.5\Release\</OutputPath>
+    <OutputPath>bin\Unity\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -40,9 +40,8 @@
     <AssemblyOriginatorKeyFile>NetMQ.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AsyncIO, Version=0.1.16.0, Culture=neutral, PublicKeyToken=44a94435bd6f33f8, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\AsyncIO.0.1.16.0\lib\net35\AsyncIO.dll</HintPath>
+    <Reference Include="AsyncIO">
+      <HintPath>..\packages\AsyncIO.Unity.0.1.16.0\lib\net35\AsyncIO.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,13 +53,10 @@
     <Compile Include="DnsEndPoint.cs" />
     <Compile Include="EnumHelper.cs" />
     <Compile Include="ErrorCode.cs" />
-    <Compile Include="EventDelegator.cs" />
     <Compile Include="InterfaceCollection.cs" />
     <Compile Include="ISocketPollable.cs" />
     <Compile Include="IReceivingSocket.cs" />
     <Compile Include="Msg.cs" />
-    <Compile Include="NetMQActor.cs" />
-    <Compile Include="NetMQBeacon.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
     <Compile Include="ErrorPollingException.cs" />
@@ -108,7 +104,6 @@
     <Compile Include="zmq\IZmqMonitor.cs" />
     <Compile Include="zmq\Mailbox.cs" />
     <Compile Include="zmq\MonitorEvent.cs" />
-    <None Include="NetMQ.nuspec" />
     <None Include="NetMQ.snk" />
     <Compile Include="zmq\Options.cs" />
     <Compile Include="zmq\Own.cs" />
@@ -171,7 +166,9 @@
     <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\ZObject.cs" />
-    <None Include="packages.NetMQ3.5.config" />
+    <None Include="packages.NetMQ.Unity.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

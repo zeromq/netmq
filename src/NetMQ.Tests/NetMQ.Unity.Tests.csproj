@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{526095CB-16A6-47C3-9F45-72A8530E5762}</ProjectGuid>
+    <ProjectGuid>{AD5FB500-8822-4570-BB87-9647046FE5F8}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NetMQ.Tests</RootNamespace>
-    <AssemblyName>NetMQ.Tests</AssemblyName>
+    <AssemblyName>NetMQ.Unity.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -37,7 +37,7 @@
   <ItemGroup>
     <Reference Include="AsyncIO, Version=0.1.16.0, Culture=neutral, PublicKeyToken=44a94435bd6f33f8, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\AsyncIO.0.1.16.0\lib\net40\AsyncIO.dll</HintPath>
+      <HintPath>..\packages\AsyncIO.Unity.0.1.16.0\lib\net35\AsyncIO.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -64,42 +64,25 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActorTests.cs" />
-    <Compile Include="BeaconTests.cs" />
     <Compile Include="ByteArraySegmentTests.cs" />
-    <Compile Include="InProcActors\AccountJSON\Account.cs" />
-    <Compile Include="InProcActors\AccountJSON\AccountAction.cs" />
-    <Compile Include="InProcActors\AccountJSON\AccountShimHandler.cs" />
-    <Compile Include="InProcActors\AccountJSON\AccountActorTests.cs" />
-    <Compile Include="InProcActors\ExceptionShimExample\ExceptionShimActorTests.cs" />
-    <Compile Include="InProcActors\ExceptionShimExample\ExceptionShimHandler.cs" />
-    <Compile Include="InProcActors\Echo\EchoShimHandler.cs" />
-    <Compile Include="InProcActors\Echo\EchoActorTests.cs" />
     <Compile Include="XPubSubTests.cs" />
-    <Compile Include="Devices\DeviceTestBase.cs" />
-    <Compile Include="Devices\ForwarderDeviceTests.cs" />
-    <Compile Include="Devices\QueueDeviceTests.cs" />
-    <Compile Include="Devices\StreamerDeviceTests.cs" />
     <Compile Include="ExpectedZmqException.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
-    <Compile Include="NetMQSchedulerTest.cs" />
     <Compile Include="NetMQTestRunner.cs" />
     <Compile Include="NetworkOrderBitsConverterTests.cs" />
-    <Compile Include="PgmTests.cs" />
     <Compile Include="PollerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyTests.cs" />
     <Compile Include="PubSubTests.cs" />
     <Compile Include="PushPullTests.cs" />
     <Compile Include="ReqRepTests.cs" />
-    <Compile Include="Security\SecureChannelTests.cs" />
     <Compile Include="SocketTests.cs" />
     <Compile Include="StreamTests.cs" />
     <Compile Include="zmq\YQueueTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NetMQ\NetMQ.csproj">
+    <ProjectReference Include="..\NetMQ\NetMQ.Unity.csproj">
       <Project>{82934BAC-07FB-41AC-AE59-46FEE6026A40}</Project>
       <Name>NetMQ</Name>
     </ProjectReference>
@@ -112,7 +95,7 @@
     <None Include="NetMQ.Testing.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
+    <None Include="packages.NetMQ.Unity.Tests.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
