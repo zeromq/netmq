@@ -294,9 +294,28 @@ namespace NetMQ
             return timeout;
         }
 
+        [Obsolete("Use PollTillCancelled instead")]
         public void Start()
         {
+            PollTillCancelled();
+        }
+
+        /// <summary>
+        /// Poll till Cancel or CancelAndJoin is called. Blocking method.
+        /// </summary>
+        public void PollTillCancelled()
+        {
             PollWhile(() => m_cancel == 0);
+        }
+
+        /// <summary>
+        /// The non blocking version of PollTillCancelled, starting the PollTillCancelled on new thread. 
+        /// Will poll till Cancel or CancelAndJoin is called. Method is not blocking.
+        /// </summary>
+        public void PollTillCancelledNonBlocking()
+        {
+            Thread thread = new Thread(PollTillCancelled);
+            thread.Start();
         }
 
         public void PollOnce()
@@ -443,7 +462,35 @@ namespace NetMQ
         /// Stop the poller job, it may take a while until the poller is fully stopped
         /// </summary>
         /// <param name="waitForCloseToComplete">if true the method will block until the poller is fully stopped</param>
+        [Obsolete("Use Cancel or CancelAndJoin")]
         public void Stop(bool waitForCloseToComplete)
+        {
+            Cancel(waitForCloseToComplete);
+        }
+
+        [Obsolete("Use Cancel or CancelAndJoin")]
+        public void Stop()
+        {
+            Cancel(true);
+        }
+
+        /// <summary>
+        /// Cancel poller job when PollTillCancelled is called
+        /// </summary>
+        public void Cancel()
+        {
+            Cancel(false);
+        }
+
+        /// <summary>
+        /// Cancel poller job when PollTillCancelled is called and wait for for the PollTillCancelled to complete
+        /// </summary>
+        public void CancelAndJoin()
+        {
+            Cancel(true);
+        }
+
+        private void Cancel(bool waitForCloseToComplete)
         {
             if (m_disposed)
             {
@@ -466,12 +513,5 @@ namespace NetMQ
                 throw new InvalidOperationException("Poller is unstarted");
             }
         }
-
-        public void Stop()
-        {
-            Stop(true);
-        }
-
-
     }
 }

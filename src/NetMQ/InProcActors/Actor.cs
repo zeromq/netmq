@@ -10,6 +10,7 @@ using NetMQ.zmq;
 
 namespace NetMQ.Actors
 {
+    [Obsolete("Use non generic NetMQActor")]
     public class NetMQActorEventArgs<T> : EventArgs
     {
         public NetMQActorEventArgs(Actor<T> actor)
@@ -25,6 +26,7 @@ namespace NetMQ.Actors
     /// the actor may be passed messages, that are sent to the other end of the pipe
     /// which I am calling the "shim"
     /// </summary>
+    [Obsolete("Use non generic NetMQActor")]
     public class Actor<T> : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
         private readonly PairSocket m_self;

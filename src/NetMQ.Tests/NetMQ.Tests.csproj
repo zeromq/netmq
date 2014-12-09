@@ -64,6 +64,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActorTests.cs" />
     <Compile Include="BeaconTests.cs" />
     <Compile Include="ByteArraySegmentTests.cs" />
     <Compile Include="InProcActors\AccountJSON\Account.cs" />

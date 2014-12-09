@@ -33,12 +33,12 @@ namespace NetMQ
             m_backend.ReceiveReady += OnBackendReady;
 
             m_poller = new Poller(m_frontend, m_backend);
-            m_poller.Start();
+            m_poller.PollTillCancelled();
         }
 
         public void Stop()
         {
-            m_poller.Stop();
+            m_poller.CancelAndJoin();
         }
 
         private void OnFrontendReady(object sender, NetMQSocketEventArgs e)

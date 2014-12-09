@@ -11,6 +11,7 @@ namespace NetMQ.Actors
     /// Simple interface that all shims should implement. 
     /// T is the initial state that the <c>Actor</c> will provide
     /// </summary>
+    [Obsolete("Use non generic NetMQActor and IShimHandler")]
     public interface IShimHandler<T>
     {
         void Initialise(T state);
