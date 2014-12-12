@@ -25,6 +25,7 @@ using System.Linq;
 
 namespace NetMQ
 {
+    [Obsolete("Use NetMQFrame instead of Blob")]
     public class Blob
     {
         private readonly byte[] m_buffer;

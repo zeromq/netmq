@@ -63,7 +63,7 @@ namespace NetMQ.zmq.Patterns
 
         //  List of pending (un)subscriptions, ie. those that were already
         //  applied to the trie, but not yet received by the user.
-        private readonly Queue<Blob> m_pending;
+        private readonly Queue<byte[]> m_pending;
 
         private static readonly MultiTrie.MultiTrieDelegate s_markAsMatching;
         private static readonly MultiTrie.MultiTrieDelegate s_SendUnsubscription;
@@ -83,14 +83,14 @@ namespace NetMQ.zmq.Patterns
 
                 if (self.m_options.SocketType != ZmqSocketType.Pub)
                 {
-
                     //  Place the unsubscription to the queue of pending (un)sunscriptions
                     //  to be retrived by the user later on.
-                    Blob unsub = new Blob(size + 1);
-                    unsub.Put(0, (byte)0);
-                    unsub.Put(1, data, size);
-                    self.m_pending.Enqueue(unsub);
 
+                    byte[] unsub = new byte[size+1];
+                    unsub[0] = 0;
+                    Buffer.BlockCopy(data, 0, unsub, 1, size);
+                    
+                    self.m_pending.Enqueue(unsub);
                 }
             };
         }
@@ -109,7 +109,7 @@ namespace NetMQ.zmq.Patterns
 
             m_subscriptions = new MultiTrie();
             m_distribution = new Distribution();
-            m_pending = new Queue<Blob>();
+            m_pending = new Queue<byte[]>();
         }                
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
@@ -151,8 +151,9 @@ namespace NetMQ.zmq.Patterns
                 {
                     if (m_manual)
                     {
-                        m_lastPipe = pipe;
-                        m_pending.Enqueue(new Blob(sub.Data, sub.Size));
+                        m_lastPipe = pipe;                        
+
+                        m_pending.Enqueue(GetBytesFromMsg(ref sub));
                     }
                     else
                     {
@@ -165,12 +166,12 @@ namespace NetMQ.zmq.Patterns
                         //  If the subscription is not a duplicate, store it so that it can be
                         //  passed to used on next recv call.
                         if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
-                            m_pending.Enqueue(new Blob(sub.Data, sub.Size));
+                            m_pending.Enqueue(GetBytesFromMsg(ref sub));
                     }
                 }
                 else // process message unrelated to sub/unsub
                 {
-                    m_pending.Enqueue(new Blob(sub.Data, sub.Size));
+                    m_pending.Enqueue(GetBytesFromMsg(ref sub));
                 }
                 
                 sub.Close();
@@ -308,10 +309,10 @@ namespace NetMQ.zmq.Patterns
 
             msg.Close();
             
-            Blob first = m_pending.Dequeue();
-            msg.InitPool(first.Size);
+            byte[] first = m_pending.Dequeue();
+            msg.InitPool(first.Length);
 
-            msg.Put(first.Data,0, first.Size);
+            msg.Put(first,0, first.Length);
 
             return true;
         }
@@ -319,6 +320,14 @@ namespace NetMQ.zmq.Patterns
         protected override bool XHasIn()
         {
             return m_pending.Count != 0;
+        }
+
+        private byte[] GetBytesFromMsg(ref Msg msg)
+        {
+            byte[] bytes = new byte[msg.Size];
+            Buffer.BlockCopy(msg.Data, 0, bytes, 0, msg.Size);
+
+            return bytes;
         }
     }
 }

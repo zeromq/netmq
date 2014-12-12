@@ -164,7 +164,7 @@ namespace NetMQ.zmq
             m_sink = sink;
         }
 
-        public Blob Identity { get; set; }
+        public byte[] Identity { get; set; }
 
         /// <summary> Checks if there is at least one message to read in the pipe. </summary>
         /// <returns> Returns <c>true</c> if there is at least one message to read in the pipe; <c>false</c> otherwise. </returns>

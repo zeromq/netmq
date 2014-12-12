@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using NetMQ.zmq.Patterns.Utils;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
@@ -75,7 +76,7 @@ namespace NetMQ.zmq.Patterns
         private readonly HashSet<Pipe> m_anonymousPipes;
 
         //  Outbound pipes indexed by the peer IDs.
-        private readonly Dictionary<Blob, Outpipe> m_outpipes;
+        private readonly Dictionary<byte[], Outpipe> m_outpipes;
 
         //  The pipe we are currently writing to.
         private Pipe m_currentOut;
@@ -113,8 +114,7 @@ namespace NetMQ.zmq.Patterns
             m_prefetchedMsg.InitEmpty();
 
             m_anonymousPipes = new HashSet<Pipe>();
-            m_outpipes = new Dictionary<Blob, Outpipe>();
-         
+            m_outpipes = new Dictionary<byte[], Outpipe>(new ByteArrayEqualityComparer());       
             m_options.RecvIdentity = true;
         }
 
@@ -165,7 +165,7 @@ namespace NetMQ.zmq.Patterns
             {
                 Outpipe old;
 
-                m_outpipes.TryGetValue(pipe.Identity, out  old);
+                m_outpipes.TryGetValue(pipe.Identity, out old);
                 m_outpipes.Remove(pipe.Identity);
 
                 Debug.Assert(old != null);
@@ -227,7 +227,15 @@ namespace NetMQ.zmq.Patterns
                     //  Find the pipe associated with the identity stored in the prefix.
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
-                    Blob identity = new Blob(msg.Data, msg.Size);
+
+                    byte[] identity = msg.Data;
+
+                    if (msg.Size != msg.Data.Length)
+                    {
+                        identity = new byte[msg.Size];
+                        Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
+                    }
+                    
                     Outpipe op;
 
                     if (m_outpipes.TryGetValue(identity, out op))
@@ -348,9 +356,9 @@ namespace NetMQ.zmq.Patterns
 
                 m_prefetched = true;
 
-                Blob identity = pipe[0].Identity;
-                msg.InitPool(identity.Size);               
-                msg.Put(identity.Data,0, identity.Size);
+                byte[] identity = pipe[0].Identity;
+                msg.InitPool(identity.Length);               
+                msg.Put(identity,0, identity.Length);
                 msg.SetFlags(MsgFlags.More);
 
                 m_identitySent = true;
@@ -404,10 +412,10 @@ namespace NetMQ.zmq.Patterns
 
             Debug.Assert(pipe[0] != null);
 
-            Blob identity = pipe[0].Identity;
+            byte[] identity = pipe[0].Identity;
             m_prefetchedId = new Msg();
-            m_prefetchedId.InitPool(identity.Size);
-            m_prefetchedId.Put(identity.Data, 0, identity.Size);            
+            m_prefetchedId.InitPool(identity.Length);
+            m_prefetchedId.Put(identity, 0, identity.Length);            
             m_prefetchedId.SetFlags(MsgFlags.More);
 
             m_prefetched = true;
@@ -426,16 +434,15 @@ namespace NetMQ.zmq.Patterns
 
         private bool IdentifyPeer(Pipe pipe)
         {
-            Blob identity;            
+            byte[] identity;            
 
             if (m_options.RawSocket)
             {
                 // Always assign identity for raw-socket
-                byte[] buf = new byte[5];
-                buf[0] = 0;
+                identity = new byte[5];
+                identity[0] = 0;                
                 byte[] result = BitConverter.GetBytes(m_nextPeerId++);
-                Buffer.BlockCopy(result, 0, buf, 1, 4);
-                identity = new Blob(buf, buf.Length);
+                Buffer.BlockCopy(result, 0, identity, 1, 4);                
             }
             else
             {
@@ -452,20 +459,19 @@ namespace NetMQ.zmq.Patterns
                 if (msg.Size == 0)
                 {
                     //  Fall back on the auto-generation
-                    byte[] buf = new byte[5];
-
-                    buf[0] = 0;
+                    identity = new byte[5];
+                    identity[0] = 0;        
 
                     byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
-                    Buffer.BlockCopy(result, 0, buf, 1, 4);
-                    identity = new Blob(buf, buf.Length);
+                    Buffer.BlockCopy(result, 0, identity, 1, 4);                    
 
                     msg.Close();
                 }
                 else
                 {
-                    identity = new Blob(msg.Data, msg.Size);
+                    identity = new byte[msg.Size];
+                    Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
 
                     //  Ignore peers with duplicate ID.
                     if (m_outpipes.ContainsKey(identity))
