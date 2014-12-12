@@ -12,27 +12,24 @@ namespace NetMQ.zmq.Utils
 
         public bool Equals(byte[] x, byte[] y)
         {
-            unchecked
+            if (x.Length != y.Length)
             {
-                if (x.Length != y.Length)
+                return false;
+            }
+
+            for (int i = 0; i < x.Length; i++)
+            {
+                if (x[i] != y[i])
                 {
                     return false;
                 }
-
-                for (int i = 0; i < x.Length; i++)
-                {
-                    if (x[i] != y[i])
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
             }
+
+            return true;
         }
 
         public int GetHashCode(byte[] data)
-        {            
+        {
             unchecked
             {
                 int remainder = data.Length & 3;
