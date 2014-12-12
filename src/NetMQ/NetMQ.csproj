@@ -120,6 +120,7 @@
     <Compile Include="zmq\Utils\AtomicCounter.cs" />
     <Compile Include="Blob.cs" />
     <Compile Include="BufferPool.cs" />
+    <Compile Include="zmq\Utils\ByteArrayEqualityComparer.cs" />
     <Compile Include="zmq\Utils\Selector.cs" />
     <Compile Include="zmq\Transports\ByteArraySegment.cs" />
     <Compile Include="zmq\Utils\Clock.cs" />

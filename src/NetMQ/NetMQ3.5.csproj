@@ -162,6 +162,7 @@
     <Compile Include="zmq\Transports\V2Encoder.cs" />
     <Compile Include="zmq\Transports\V2Protocol.cs" />
     <Compile Include="zmq\Utils\AtomicCounter.cs" />
+    <Compile Include="zmq\Utils\ByteArrayEqualityComparer.cs" />
     <Compile Include="zmq\Utils\Clock.cs" />
     <Compile Include="zmq\Utils\OpCode.cs" />
     <Compile Include="zmq\Utils\Poller.cs" />

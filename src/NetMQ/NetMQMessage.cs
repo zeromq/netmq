@@ -111,6 +111,7 @@ namespace NetMQ
             Append(NetworkOrderBitsConverter.GetBytes(value));
         }
 
+        [Obsolete("Use NetMQFrame instead of blobs")]
         public void Append(Blob blob)
         {
             Append(blob.Data);
@@ -151,6 +152,7 @@ namespace NetMQ
             Push(NetworkOrderBitsConverter.GetBytes(value));
         }
 
+        [Obsolete("Use NetMQFrame instead of blobs")]
         public void Push(Blob blob)
         {
             Push(blob.Data);

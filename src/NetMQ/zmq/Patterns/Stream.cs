@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using NetMQ.zmq.Patterns.Utils;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
@@ -71,7 +72,7 @@ namespace NetMQ.zmq.Patterns
         private Msg m_prefetchedMsg;                
 
         //  Outbound pipes indexed by the peer IDs.
-        private readonly Dictionary<Blob, Outpipe> m_outpipes;
+        private readonly Dictionary<byte[], Outpipe> m_outpipes;
 
         //  The pipe we are currently writing to.
         private Pipe m_currentOut;
@@ -100,7 +101,7 @@ namespace NetMQ.zmq.Patterns
             m_prefetchedMsg = new Msg();
             m_prefetchedMsg.InitEmpty();
 
-            m_outpipes = new Dictionary<Blob, Outpipe>();
+            m_outpipes = new Dictionary<byte[], Outpipe>(new ByteArrayEqualityComparer());
 
             m_options.RawSocket = true;
         }
@@ -175,7 +176,13 @@ namespace NetMQ.zmq.Patterns
                     //  Find the pipe associated with the identity stored in the prefix.
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
-                    Blob identity = new Blob(msg.Data, msg.Size);
+                    byte[] identity = msg.Data;
+
+                    if (msg.Size != msg.Data.Length)
+                    {
+                        identity = new byte[msg.Size];
+                        Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
+                    }
                     Outpipe op;
 
                     if (m_outpipes.TryGetValue(identity, out op))
@@ -269,9 +276,9 @@ namespace NetMQ.zmq.Patterns
             //  We have received a frame with TCP data.
             //  Rather than sendig this frame, we keep it in prefetched
             //  buffer and send a frame with peer's ID.
-            Blob identity = pipe[0].Identity;            
-            msg.InitPool(identity.Size);
-            msg.Put(identity.Data, 0, identity.Size);
+            byte[] identity = pipe[0].Identity;            
+            msg.InitPool(identity.Length);
+            msg.Put(identity, 0, identity.Length);
             msg.SetFlags(MsgFlags.More);
 
             m_prefetched = true;
@@ -300,10 +307,10 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(pipe[0] != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
 
-            Blob identity = pipe[0].Identity;
+            byte[] identity = pipe[0].Identity;
             m_prefetchedId = new Msg();
-            m_prefetchedId.InitPool(identity.Size);
-            m_prefetchedId.Put(identity.Data, 0, identity.Size);
+            m_prefetchedId.InitPool(identity.Length);
+            m_prefetchedId.Put(identity, 0, identity.Length);
             m_prefetchedId.SetFlags(MsgFlags.More);
 
             m_prefetched = true;
@@ -322,18 +329,18 @@ namespace NetMQ.zmq.Patterns
 
         private void IdentifyPeer(Pipe pipe)
         {
-            Blob identity;
+            byte[] identity;
 
             // Always assign identity for raw-socket
-            byte[] buf = new byte[5];
-            buf[0] = 0;
+            identity = new byte[5];
+            identity[0] = 0;
 
             byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
-            Buffer.BlockCopy(result, 0, buf, 1, 4);
-            identity = new Blob(buf, buf.Length);
-            m_options.Identity = buf;
-            m_options.IdentitySize = (byte)buf.Length;
+            Buffer.BlockCopy(result, 0, identity, 1, 4);
+            
+            m_options.Identity = identity;
+            m_options.IdentitySize = (byte)identity.Length;
 
             pipe.Identity = identity;
             //  Add the record into output pipes lookup table
