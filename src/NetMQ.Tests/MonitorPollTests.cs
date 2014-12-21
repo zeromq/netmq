@@ -20,11 +20,11 @@ namespace NetMQ.Tests
             bool listening = false;
             bool accepted = false;
 
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var rep = contex.CreateResponseSocket())
                 {
-                    using (NetMQMonitor monitor = new NetMQMonitor(contex, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
+					using (var monitor = contex.Factory.CreateMonitor(contex, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
                     {
                         monitor.Accepted += (s, a) =>
                             {
@@ -77,14 +77,13 @@ namespace NetMQ.Tests
         {
             bool eventArrived = false;
 
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var req = contex.CreateRequestSocket())
                 {
                     using (var rep = contex.CreateResponseSocket())
                     {
-                        using (NetMQMonitor monitor =
-                            new NetMQMonitor(contex, req, "inproc://rep.inproc", SocketEvent.ConnectDelayed))
+                        using (var monitor = contex.Factory.CreateMonitor(contex, req, "inproc://rep.inproc", SocketEvent.ConnectDelayed))
                         {
                             monitor.ConnectDelayed += (s, a) =>
                             {

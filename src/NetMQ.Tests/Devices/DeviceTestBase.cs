@@ -10,7 +10,7 @@ namespace NetMQ.Tests.Devices
 {
     public abstract class DeviceTestBase<TDevice, TWorkerSocket>
         where TDevice : IDevice
-        where TWorkerSocket : NetMQSocket
+        where TWorkerSocket : INetMQSocket
     {
 
         protected const string Frontend = "inproc://front.addr";
@@ -18,13 +18,13 @@ namespace NetMQ.Tests.Devices
 
         protected readonly Random Random = new Random();
 
-        protected NetMQContext Context;
+        protected INetMQContext Context;
         protected TDevice Device;
 
-        protected Func<NetMQContext, TDevice> CreateDevice;
+        protected Func<INetMQContext, TDevice> CreateDevice;
 
-        protected Func<NetMQContext, NetMQSocket> CreateClientSocket;
-        protected abstract TWorkerSocket CreateWorkerSocket(NetMQContext context);
+        protected Func<INetMQContext, INetMQSocket> CreateClientSocket;
+        protected abstract TWorkerSocket CreateWorkerSocket(INetMQContext context);
 
         protected int WorkerReceiveCount;
 
@@ -41,7 +41,7 @@ namespace NetMQ.Tests.Devices
             m_workCancelationSource = new CancellationTokenSource();
             m_workerCancelationToken = m_workCancelationSource.Token;
 
-            Context = NetMQContext.Create();
+			Context = new Factory().CreateContext();
             SetupTest();
             Device = CreateDevice(Context);
             Device.Start();
@@ -57,7 +57,7 @@ namespace NetMQ.Tests.Devices
             Context.Dispose();
         }
 
-        protected abstract void DoWork(NetMQSocket socket);
+        protected abstract void DoWork(INetMQSocket socket);
 
         protected virtual void WorkerSocketAfterConnect(TWorkerSocket socket) { }
 
@@ -98,7 +98,7 @@ namespace NetMQ.Tests.Devices
             WorkerDone.WaitOne();
         }
 
-        protected abstract void DoClient(int id, NetMQSocket socket);
+        protected abstract void DoClient(int id, INetMQSocket socket);
 
         protected void StartClient(int id, int waitBeforeSending = 0)
         {

@@ -14,20 +14,20 @@ namespace NetMQ.Devices
     public class DeviceSocketSetup
     {
 
-        private readonly NetMQSocket m_socket;
-        private readonly List<Action<NetMQSocket>> m_socketInitializers;
+        private readonly INetMQSocket m_socket;
+        private readonly List<Action<INetMQSocket>> m_socketInitializers;
         private readonly List<string> m_bindings;
         private readonly List<string> m_connections;
 
         private bool m_isConfigured;
 
-        internal DeviceSocketSetup(NetMQSocket socket)
+        internal DeviceSocketSetup(INetMQSocket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
 
             m_socket = socket;
-            m_socketInitializers = new List<Action<NetMQSocket>>();
+            m_socketInitializers = new List<Action<INetMQSocket>>();
             m_bindings = new List<string>();
             m_connections = new List<string>();
         }
@@ -66,7 +66,7 @@ namespace NetMQ.Devices
         /// <param name="property">The <see cref="TSocket"/> property to set.</param>
         /// <param name="value">The int value to assign.</param>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
-        public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, int>> property, int value)
+        public DeviceSocketSetup SetSocketOption(Expression<Func<INetMQSocket, int>> property, int value)
         {
             return SetSocketOption<int>(property, value);
         }
@@ -77,7 +77,7 @@ namespace NetMQ.Devices
         /// <param name="property">The <see cref="TSocket"/> property to set.</param>
         /// <param name="value">The timespan value to assign.</param>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
-        public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, TimeSpan>> property, TimeSpan value)
+        public DeviceSocketSetup SetSocketOption(Expression<Func<INetMQSocket, TimeSpan>> property, TimeSpan value)
         {
             return SetSocketOption<TimeSpan>(property, value);
         }
@@ -88,7 +88,7 @@ namespace NetMQ.Devices
         /// <param name="property">The <see cref="TSocket"/> property to set.</param>
         /// <param name="value">The object value to assign.</param>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
-        public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, object>> property, object value)
+        public DeviceSocketSetup SetSocketOption(Expression<Func<INetMQSocket, object>> property, object value)
         {
             return SetSocketOption<object>(property, value);
         }
@@ -96,7 +96,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Configure the socket to subscribe to a specific prefix. 
         /// Note: This method should ONLY be called on <typeparam name="TSocket" />
-        /// of type <see cref="SubscriberSocket"/>.
+        /// of type <see cref="ISubscriberSocket"/>.
         /// </summary>
         /// <param name="prefix">A byte array containing the prefix to which the socket will subscribe.</param>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
@@ -104,7 +104,7 @@ namespace NetMQ.Devices
         {
             return AddSocketInitializer(s =>
             {
-                var sck = s as SubscriberSocket;
+                var sck = s as ISubscriberSocket;
 
                 if (sck == null)
                     throw new ArgumentException("This socket type does not support Subscription");
@@ -124,7 +124,7 @@ namespace NetMQ.Devices
         {
             return AddSocketInitializer(s =>
             {
-                var sck = s as SubscriberSocket;
+                var sck = s as ISubscriberSocket;
 
                 if (sck == null)
                     throw new ArgumentException("This socket type does not support Subscription");
@@ -138,7 +138,7 @@ namespace NetMQ.Devices
         /// </summary>
         /// <param name="setupMethod"></param>
         /// <returns></returns>
-        internal DeviceSocketSetup AddSocketInitializer(Action<NetMQSocket> setupMethod)
+        internal DeviceSocketSetup AddSocketInitializer(Action<INetMQSocket> setupMethod)
         {
             m_socketInitializers.Add(setupMethod);
             return this;
@@ -171,7 +171,7 @@ namespace NetMQ.Devices
             m_isConfigured = true;
         }
 
-        private DeviceSocketSetup SetSocketOption<T>(Expression<Func<NetMQSocket, T>> property, T value)
+        private DeviceSocketSetup SetSocketOption<T>(Expression<Func<INetMQSocket, T>> property, T value)
         {
             var propertyInfo = property.Body is MemberExpression
                                ? ((MemberExpression)property.Body).Member as PropertyInfo

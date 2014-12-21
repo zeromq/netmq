@@ -13,12 +13,12 @@ namespace SimplePirate.Queue
         private const string BACKEND_ENDPOINT = "tcp://localhost:5556";
 
         private static Queue<byte[]> workerQueue;
-        private static RouterSocket frontend;
-        private static RouterSocket backend;
+        private static INetMQSocket frontend;
+        private static INetMQSocket backend;
 
         static void Main(string[] args)
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (frontend = context.CreateRouterSocket())
                 {

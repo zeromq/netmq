@@ -6,7 +6,7 @@ namespace NetMQ.Sockets
     /// <summary>
     /// Publisher socket, is the pub in pubsub pattern. publish a message to all subscribers which subscribed for the topic
     /// </summary>
-    public class PublisherSocket : NetMQSocket
+    public class PublisherSocket : NetMQSocket, IPublisherSocket
     {
         public PublisherSocket(SocketBase socketHandle)
             : base(socketHandle)

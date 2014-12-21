@@ -18,7 +18,7 @@ namespace local_lat
             int messageSize = int.Parse(args[1]);
             int roundtripCount = int.Parse(args[2]);
 
-            var context = NetMQContext.Create();
+            var context = new Factory().CreateContext();
             var repSocket = context.CreateResponseSocket();
             repSocket.Bind(bindTo);
 

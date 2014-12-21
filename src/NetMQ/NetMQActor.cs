@@ -10,7 +10,7 @@ namespace NetMQ
 {
     public interface IShimHandler
     {
-        void Run(PairSocket shim);
+		void Run(IPairSocket shim);
     }
 
     public class NetMQActorEventArgs : EventArgs
@@ -23,9 +23,9 @@ namespace NetMQ
         public NetMQActor Actor { get; private set; }
     }
 
-    public delegate void ShimAction(PairSocket shim);
+	public delegate void ShimAction(IPairSocket shim);
 
-    public delegate void ShimAction<T>(PairSocket shim, T state);
+	public delegate void ShimAction<T>(IPairSocket shim, T state);
 
     /// <summary>
     /// The Actor represents one end of a two way pipe between 2 PairSocket(s). Where
@@ -49,7 +49,7 @@ namespace NetMQ
                 m_state = state;
             }
 
-            public void Run(PairSocket shim)
+			public void Run(IPairSocket shim)
             {
                 m_action(shim, m_state);
             }
@@ -64,7 +64,7 @@ namespace NetMQ
                 m_action = action;
             }
 
-            public void Run(PairSocket shim)
+			public void Run(IPairSocket shim)
             {
                 m_action(shim);
             }
@@ -72,8 +72,8 @@ namespace NetMQ
 
         #endregion
 
-        private readonly PairSocket m_self;
-        private readonly PairSocket m_shim;
+        private readonly IPairSocket m_self;
+        private readonly IPairSocket m_shim;
         
         private Thread m_shimThread;        
         private IShimHandler m_shimHandler;
@@ -83,7 +83,7 @@ namespace NetMQ
 
         #region Creating Actor
 
-        private NetMQActor(NetMQContext context, IShimHandler shimHandler)
+        private NetMQActor(INetMQContext context, IShimHandler shimHandler)
         {
             m_shimHandler = shimHandler;
 
@@ -124,17 +124,17 @@ namespace NetMQ
             m_self.WaitForSignal();
         }
 
-        public static NetMQActor Create(NetMQContext context, IShimHandler shimHandler)
+        public static NetMQActor Create(INetMQContext context, IShimHandler shimHandler)
         {
             return new NetMQActor(context, shimHandler);
         }
 
-        public static NetMQActor Create<T>(NetMQContext context, ShimAction<T> action, T state)
+        public static NetMQActor Create<T>(INetMQContext context, ShimAction<T> action, T state)
         {
             return new NetMQActor(context, new ActionShimHandler<T>(action, state));
         }
 
-        public static NetMQActor Create(NetMQContext context, ShimAction action)
+        public static NetMQActor Create(INetMQContext context, ShimAction action)
         {
             return new NetMQActor(context, new ActionShimHandler(action));
         }
@@ -190,7 +190,7 @@ namespace NetMQ
             remove { m_sendEventDelegatorHelper.Event -= value; }
         }
 
-        NetMQSocket ISocketPollable.Socket
+		INetMQSocket ISocketPollable.Socket
         {
             get { return m_self; }
         }

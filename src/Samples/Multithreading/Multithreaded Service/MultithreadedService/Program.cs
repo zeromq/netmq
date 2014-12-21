@@ -16,7 +16,7 @@ namespace MultithreadedService
 
         static void Main(string[] args)
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 //var queue = new QueueDevice(context, "tcp://localhost:5555", "inproc://workers", DeviceMode.Threaded);
                 var queue = new QueueDevice(context, "tcp://localhost:5555", "tcp://localhost:5556", DeviceMode.Threaded);
@@ -27,7 +27,7 @@ namespace MultithreadedService
                 List<Task> workerThreads = new List<Task>();
                 for (int threadId = 0; threadId < 10; threadId++)
                 {
-                    NetMQContext ctx = context;
+                    var ctx = context;
                     workerThreads.Add(Task.Factory.StartNew(() => WorkerRoutine(new Worker(Guid.NewGuid(), ctx)), token));
                 }
 
@@ -55,9 +55,9 @@ namespace MultithreadedService
         {
             try
             {
-                using (NetMQContext context = NetMQContext.Create())
+                using (var context = new Factory().CreateContext())
                 {
-                    using (RequestSocket req = context.CreateRequestSocket())
+                    using (var req = context.CreateRequestSocket())
                     {
                         req.Connect("tcp://localhost:5555");
 
@@ -84,7 +84,7 @@ namespace MultithreadedService
             {
                 Worker thisWorkerContext = (Worker)workerContext;
 
-                using (ResponseSocket rep = thisWorkerContext.Context.CreateResponseSocket())
+                using (var rep = thisWorkerContext.Context.CreateResponseSocket())
                 {
                     rep.Options.Identity = Encoding.Unicode.GetBytes(Guid.NewGuid().ToString());
                     rep.Connect("tcp://localhost:5556");
@@ -130,9 +130,9 @@ namespace MultithreadedService
     public class Worker
     {
         public Guid WorkerId { get; private set; }
-        public NetMQContext Context { get; private set; }
+        public INetMQContext Context { get; private set; }
 
-        public Worker(Guid workerId, NetMQContext context)
+        public Worker(Guid workerId, INetMQContext context)
         {
             WorkerId = workerId;
             Context = context;

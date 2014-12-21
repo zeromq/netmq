@@ -13,14 +13,14 @@ namespace NetMQ.Actors
     /// </summary>
     public class Shim<T>
     {
-        public Shim(IShimHandler<T> shimHandler, PairSocket pipe)
+        public Shim(IShimHandler<T> shimHandler, IPairSocket pipe)
         {
             this.Handler = shimHandler;
             this.Pipe = pipe;
         }
 
         public IShimHandler<T> Handler { get; private set; }
-        public PairSocket Pipe { get; private set; }
+		public IPairSocket Pipe { get; private set; }
 
     }
 }

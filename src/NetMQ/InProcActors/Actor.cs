@@ -29,7 +29,7 @@ namespace NetMQ.Actors
     [Obsolete("Use non generic NetMQActor")]
     public class Actor<T> : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
-        private readonly PairSocket m_self;
+        private readonly IPairSocket m_self;
         private readonly Shim<T> m_shim;
         private readonly Random rand = new Random();
         private T m_state;
@@ -43,7 +43,7 @@ namespace NetMQ.Actors
                 rand.Next(0, 10000), rand.Next(0, 10000));
         }
 
-        public Actor(NetMQContext context,
+        public Actor(INetMQContext context,
             IShimHandler<T> shimHandler, T state)
         {
             this.m_self = context.CreatePairSocket();
@@ -120,7 +120,7 @@ namespace NetMQ.Actors
             remove { m_sendEventDelegatorHelper.Event -= value; }
         }
 
-        NetMQSocket ISocketPollable.Socket
+		INetMQSocket ISocketPollable.Socket
         {
             get { return m_self; }
         }

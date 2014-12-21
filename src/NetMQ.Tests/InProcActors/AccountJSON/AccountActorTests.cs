@@ -21,7 +21,7 @@ namespace NetMQ.Tests.InProcActors.Echo
             AccountAction accountAction = new AccountAction(TransactionType.Credit, 10);
             Account account = new Account(1, "Test Account", "11223", 0);
 
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (Actor<object> accountActor = new Actor<object>(context, accountShimHandler, null))
                 {

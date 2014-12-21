@@ -6,7 +6,7 @@ using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
-    public class StreamSocket : NetMQSocket
+    public class StreamSocket : NetMQSocket, IStreamSocket
     {
         public StreamSocket(SocketBase socketHandle)
             : base(socketHandle)

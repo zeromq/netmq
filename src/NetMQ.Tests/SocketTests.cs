@@ -18,7 +18,7 @@ namespace NetMQ.Tests
         [Test, ExpectedException(typeof(AgainException))]
         public void CheckRecvAgainException()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var routerSocket = context.CreateRouterSocket())
                 {
@@ -32,7 +32,7 @@ namespace NetMQ.Tests
         [Test, ExpectedException(typeof(AgainException))]
         public void CheckSendAgainException()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var routerSocket = context.CreateRouterSocket())
                 {
@@ -55,7 +55,7 @@ namespace NetMQ.Tests
         [Test]
         public void LargeMessage()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pubSocket = context.CreatePublisherSocket())
                 {
@@ -83,7 +83,7 @@ namespace NetMQ.Tests
         [Test]
         public void ReceiveMessageWithTimeout()
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 var pubSync = new AutoResetEvent(false);
                 var msg = new byte[300];
@@ -131,7 +131,7 @@ namespace NetMQ.Tests
         [Test]
         public void LargeMessageLittleEndian()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pubSocket = context.CreatePublisherSocket())
                 {
@@ -162,7 +162,7 @@ namespace NetMQ.Tests
         public void TestKeepAlive()
         {
             // there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var responseSocket = context.CreateResponseSocket())
                 {
@@ -217,13 +217,13 @@ namespace NetMQ.Tests
                 largeMessage[i] = (byte)(i % 256);
             }
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (NetMQSocket pubSocket = context.CreatePublisherSocket())
+                using (var pubSocket = context.CreatePublisherSocket())
                 {
                     pubSocket.Bind("tcp://127.0.0.1:5558");
 
-                    using (NetMQSocket subSocket = context.CreateSubscriberSocket())
+                    using (var subSocket = context.CreateSubscriberSocket())
                     {
                         subSocket.Connect("tcp://127.0.0.1:5558");
                         subSocket.Subscribe("");
@@ -255,7 +255,7 @@ namespace NetMQ.Tests
             byte[] message;
             byte[] id;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var routerSocket = context.CreateRouterSocket())
                 {
@@ -292,13 +292,13 @@ namespace NetMQ.Tests
         [Test]
         public void BindRandom()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (NetMQSocket randomDealer = context.CreateDealerSocket())
+                using (var randomDealer = context.CreateDealerSocket())
                 {
                     int port = randomDealer.BindRandomPort("tcp://*");
 
-                    using (NetMQSocket connectingDealer = context.CreateDealerSocket())
+                    using (var connectingDealer = context.CreateDealerSocket())
                     {
                         connectingDealer.Connect("tcp://127.0.0.1:" + port);
 
@@ -316,13 +316,13 @@ namespace NetMQ.Tests
             var validAliasesForLocalHost = new[] { "127.0.0.1", "localhost", System.Net.Dns.GetHostName() };
             foreach (var alias in validAliasesForLocalHost)
             {
-                using (NetMQContext context = NetMQContext.Create())
+                using (var context = new Factory().CreateContext())
                 {
-                    using (NetMQSocket localDealer = context.CreateDealerSocket())
+                    using (var localDealer = context.CreateDealerSocket())
                     {
                         localDealer.Bind("tcp://*:5002");
 
-                        using (NetMQSocket connectingDealer = context.CreateDealerSocket())
+                        using (var connectingDealer = context.CreateDealerSocket())
                         {
                             connectingDealer.Connect("tcp://" + alias + ":5002");
 
@@ -339,13 +339,13 @@ namespace NetMQ.Tests
         [Test, Category("IPv6")]
         public void Ipv6ToIpv4()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (NetMQSocket localDealer = context.CreateDealerSocket())
+                using (var localDealer = context.CreateDealerSocket())
                 {
                     localDealer.Options.IPv4Only = false;
                     localDealer.Bind(string.Format("tcp://*:5002"));
-                    using (NetMQSocket connectingDealer = context.CreateDealerSocket())
+					using (var connectingDealer = context.CreateDealerSocket())
                     {
                         connectingDealer.Connect("tcp://" + IPAddress.Loopback.ToString() + ":5002");
 
@@ -360,14 +360,14 @@ namespace NetMQ.Tests
         [Test, Category("IPv6")]
         public void Ipv6ToIpv6()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (NetMQSocket localDealer = context.CreateDealerSocket())
+				using (var localDealer = context.CreateDealerSocket())
                 {
                     localDealer.Options.IPv4Only = false;
                     localDealer.Bind(string.Format("tcp://*:5002"));
 
-                    using (NetMQSocket connectingDealer = context.CreateDealerSocket())
+					using (var connectingDealer = context.CreateDealerSocket())
                     {
                         connectingDealer.Options.IPv4Only = false;
                         connectingDealer.Connect("tcp://" + IPAddress.IPv6Loopback.ToString() + ":5002");
@@ -383,16 +383,16 @@ namespace NetMQ.Tests
         [Test]
         public void HasInTest()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (NetMQSocket server = context.CreateRouterSocket())
+				using (var server = context.CreateRouterSocket())
                 {
                     server.Bind("tcp://*:5557");
 
                     // no one sent a message so it should be fasle
                     Assert.IsFalse(server.HasIn);
 
-                    using (NetMQSocket client = context.CreateDealerSocket())
+					using (var client = context.CreateDealerSocket())
                     {
                         client.Connect("tcp://localhost:5557");
 
@@ -425,9 +425,9 @@ namespace NetMQ.Tests
         [Test]
         public void DisposeImmediatly()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (NetMQSocket server = context.CreateDealerSocket())
+				using (var server = context.CreateDealerSocket())
                 {
                     server.Bind("tcp://*:5557");
                 }
@@ -437,16 +437,16 @@ namespace NetMQ.Tests
         [Test]
         public void HasOutTest()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (NetMQSocket server = context.CreateDealerSocket())
+				using (var server = context.CreateDealerSocket())
                 {
                     server.Bind("tcp://*:5557");
 
                     // no client is connected so we don't have out
                     Assert.IsFalse(server.HasOut);
 
-                    using (NetMQSocket client = context.CreateDealerSocket())
+					using (var client = context.CreateDealerSocket())
                     {
                         Assert.IsFalse(client.HasOut);
 
@@ -470,7 +470,7 @@ namespace NetMQ.Tests
         [Test, TestCase("tcp"), TestCase("inproc")]
         public void Disconnect(string protocol)
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var server1 = context.CreateDealerSocket())
                 {
@@ -512,7 +512,7 @@ namespace NetMQ.Tests
         [Test, TestCase("tcp"), TestCase("inproc")]
         public void Unbind(string protocol)
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var server = context.CreateDealerSocket())
                 {

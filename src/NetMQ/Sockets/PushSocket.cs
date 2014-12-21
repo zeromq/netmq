@@ -6,7 +6,7 @@ namespace NetMQ.Sockets
     /// <summary>
     /// Part of the push pull pattern, will push messages to push sockets
     /// </summary>
-    public class PushSocket : NetMQSocket
+	public class PushSocket : NetMQSocket, IPushSocket
     {
         public PushSocket(SocketBase socketHandle)
             : base(socketHandle)

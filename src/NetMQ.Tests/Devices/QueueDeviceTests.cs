@@ -8,7 +8,7 @@ using NetMQ.Sockets;
 namespace NetMQ.Tests.Devices
 {
 
-    public abstract class QueueDeviceTestBase : DeviceTestBase<QueueDevice, ResponseSocket>
+    public abstract class QueueDeviceTestBase : DeviceTestBase<QueueDevice, IResponseSocket>
     {
         protected override void SetupTest()
         {
@@ -17,7 +17,7 @@ namespace NetMQ.Tests.Devices
             //CreateWorkerSocket = c => c.CreateResponseSocket();
         }
 
-        protected override void DoWork(NetMQSocket socket)
+        protected override void DoWork(INetMQSocket socket)
         {
             var received = socket.ReceiveStringMessages().ToList();
 
@@ -34,7 +34,7 @@ namespace NetMQ.Tests.Devices
             }
         }
 
-        protected override void DoClient(int id, NetMQSocket socket)
+        protected override void DoClient(int id, INetMQSocket socket)
         {
             const string value = "Hello World";
             var expected = value + " " + id;
@@ -49,7 +49,7 @@ namespace NetMQ.Tests.Devices
             Console.WriteLine("Client: {0} received: {1}", id, response[0]);
         }
 
-        protected override ResponseSocket CreateWorkerSocket(NetMQContext context)
+        protected override IResponseSocket CreateWorkerSocket(INetMQContext context)
         {
             return context.CreateResponseSocket();
         }

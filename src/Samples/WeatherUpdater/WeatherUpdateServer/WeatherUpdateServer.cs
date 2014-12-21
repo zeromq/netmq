@@ -15,7 +15,7 @@ namespace WeatherUpdateServer
 
             Console.WriteLine("Publishing weather updates...");
 
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             using (var publisher = context.CreatePublisherSocket())
             {
                 publisher.Bind("tcp://127.0.0.1:5556");

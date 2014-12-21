@@ -7,7 +7,7 @@ namespace HelloWorld
     {
         private static void Main(string[] args)
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             {
                 using (var server = ctx.CreateResponseSocket())
                 {

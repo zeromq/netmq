@@ -14,7 +14,7 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
         [Test]
         public void ShimExceptionTest()
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 ExceptionShimHandler exceptionShimHandler = new ExceptionShimHandler();
                 using (Actor<object> actor = new Actor<object>(context, exceptionShimHandler, null))

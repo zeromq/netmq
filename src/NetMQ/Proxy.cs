@@ -12,16 +12,18 @@ namespace NetMQ
     /// </summary>
     public class Proxy
     {
-        NetMQSocket m_frontend;
-        NetMQSocket m_backend;
-        NetMQSocket m_control;
-        private Poller m_poller;
+	    INetMQFactory m_factory;
+        INetMQSocket m_frontend;
+        INetMQSocket m_backend;
+        INetMQSocket m_control;
+        private IPoller m_poller;
 
-        public Proxy(NetMQSocket frontend, NetMQSocket backend, NetMQSocket control)
+        public Proxy(INetMQSocket frontend, INetMQSocket backend, INetMQSocket control, INetMQFactory factory)
         {
             m_frontend = frontend;
             m_backend = backend;
             m_control = control;
+	        m_factory = factory;
         }
 
         /// <summary>
@@ -32,7 +34,7 @@ namespace NetMQ
             m_frontend.ReceiveReady += OnFrontendReady;
             m_backend.ReceiveReady += OnBackendReady;
 
-            m_poller = new Poller(m_frontend, m_backend);
+			m_poller = m_factory.CreatePoller(m_frontend, m_backend);
             m_poller.PollTillCancelled();
         }
 

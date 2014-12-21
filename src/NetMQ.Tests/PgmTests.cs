@@ -16,7 +16,7 @@ namespace NetMQ.Tests
         [Test]
         public void SimplePubSub()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pub = context.CreatePublisherSocket())
                 {
@@ -43,7 +43,7 @@ namespace NetMQ.Tests
         [Test]
         public void BindBothSockets()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pub = context.CreatePublisherSocket())
                 {
@@ -70,7 +70,7 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectBothSockets()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pub = context.CreatePublisherSocket())
                 {
@@ -104,7 +104,7 @@ namespace NetMQ.Tests
                                  select addr.ToString()
                     ).FirstOrDefault();
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pub = context.CreatePublisherSocket())
                 {
@@ -134,7 +134,7 @@ namespace NetMQ.Tests
             const int MegaBit = 1024;
             const int MegaByte = 1024;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pub = context.CreatePublisherSocket())
                 {
@@ -173,7 +173,7 @@ namespace NetMQ.Tests
         [Test]
         public void TwoSubscribers()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pub = context.CreatePublisherSocket())
                 {
@@ -210,7 +210,7 @@ namespace NetMQ.Tests
         [Test]
         public void TwoPublishers()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pub = context.CreatePublisherSocket())
                 {
@@ -257,7 +257,7 @@ namespace NetMQ.Tests
 
             Task subTask = Task.Factory.StartNew(() =>
                                                                                          {
-                                                                                             using (NetMQContext context = NetMQContext.Create())
+                                                                                             using (var context = new Factory().CreateContext())
                                                                                              {
                                                                                                  using (var sub = context.CreateSubscriberSocket())
                                                                                                  {
@@ -286,7 +286,7 @@ namespace NetMQ.Tests
 
             Task pubTask = Task.Factory.StartNew(() =>
                                                                                          {
-                                                                                             using (NetMQContext context = NetMQContext.Create())
+                                                                                             using (var context = new Factory().CreateContext())
                                                                                              {
                                                                                                  using (var pub = context.CreatePublisherSocket())
                                                                                                  {
@@ -316,7 +316,7 @@ namespace NetMQ.Tests
         [Test]
         public void LargeMessage()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pub = context.CreatePublisherSocket())
                 {

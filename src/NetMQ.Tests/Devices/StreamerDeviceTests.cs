@@ -6,7 +6,7 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Tests.Devices
 {
-    public abstract class StreamerDeviceTestBase : DeviceTestBase<StreamerDevice, PullSocket>
+	public abstract class StreamerDeviceTestBase : DeviceTestBase<StreamerDevice, IPullSocket>
     {
         protected override void SetupTest()
         {
@@ -14,7 +14,7 @@ namespace NetMQ.Tests.Devices
             CreateClientSocket = c => c.CreatePushSocket();
         }
 
-        protected override void DoWork(NetMQSocket socket)
+		protected override void DoWork(INetMQSocket socket)
         {
             var received = socket.ReceiveStringMessages().ToList();
             Console.WriteLine("Pulled: ");
@@ -28,7 +28,7 @@ namespace NetMQ.Tests.Devices
             Console.WriteLine("------");
         }
 
-        protected override void DoClient(int id, NetMQSocket socket)
+		protected override void DoClient(int id, INetMQSocket socket)
         {
             const string value = "Hello World";
             var expected = value + " " + id;
@@ -36,7 +36,7 @@ namespace NetMQ.Tests.Devices
             socket.Send(expected);
         }
 
-        protected override PullSocket CreateWorkerSocket(NetMQContext context)
+		protected override IPullSocket CreateWorkerSocket(INetMQContext context)
         {
             return context.CreatePullSocket();
         }

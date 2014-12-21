@@ -15,7 +15,7 @@ namespace NetMQ.Tests.InProcActors.Echo
         [TestCase("Agreed sockets on steroids with isotopes")]
         public void EchoActorSendReceiveTests(string actorMessage)
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 EchoShimHandler echoShimHandler = new EchoShimHandler();
                 using (Actor<string> actor = new Actor<string>(context, echoShimHandler, "Hello World"))
@@ -32,7 +32,7 @@ namespace NetMQ.Tests.InProcActors.Echo
         [TestCase("BadCommand1")]
         public void BadCommandTests(string command)
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 string actorMessage = "whatever";
                 EchoShimHandler echoShimHandler = new EchoShimHandler();
@@ -52,7 +52,7 @@ namespace NetMQ.Tests.InProcActors.Echo
         [TestCase("Hello")]
         public void BadStatePassedToActor(string stateForActor)
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 string actorMessage = "whatever";
                 EchoShimHandler echoShimHandler = new EchoShimHandler();

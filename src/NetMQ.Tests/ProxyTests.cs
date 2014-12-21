@@ -9,14 +9,14 @@ namespace NetMQ.Tests
         [Test]
         public void TestProxySendAndReceive()
         {
-            using (var ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             using (var front = ctx.CreateRouterSocket())
             using (var back = ctx.CreateDealerSocket())
             {
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
 
-                var proxy = new Proxy(front, back, null);
+                var proxy = new Proxy(front, back, null, ctx.Factory);
                 Task.Factory.StartNew(proxy.Start);
 
                 using (var client = ctx.CreateRequestSocket())

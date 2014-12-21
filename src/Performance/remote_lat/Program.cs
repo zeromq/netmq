@@ -19,7 +19,7 @@ namespace remote_lat
             int messageSize = int.Parse(args[1]);
             int roundtripCount = int.Parse(args[2]);
 
-            var context = NetMQContext.Create();
+            var context = new Factory().CreateContext();
             var reqSocket = context.CreateRequestSocket();
 
             reqSocket.Connect(connectTo);

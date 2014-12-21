@@ -12,16 +12,16 @@ namespace NetMQ
     public class NetMQScheduler : TaskScheduler, IDisposable
     {
         private readonly bool m_ownPoller;
-        private readonly Poller m_poller;
+		private readonly IPoller m_poller;
 
         private static int s_schedulerCounter = 0;
 
         private readonly int m_schedulerId;
         private readonly string m_address;
 
-        private readonly NetMQContext m_context;
-        private readonly NetMQSocket m_serverSocket;
-        private readonly NetMQSocket m_clientSocket;
+        private readonly INetMQContext m_context;
+		private readonly INetMQSocket m_serverSocket;
+		private readonly INetMQSocket m_clientSocket;
 
         private ThreadLocal<bool> m_schedulerThread;
 
@@ -31,13 +31,13 @@ namespace NetMQ
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 
-        public NetMQScheduler(NetMQContext context, Poller poller = null)
+	    public NetMQScheduler(INetMQContext context, IPoller poller = null)
         {
             m_context = context;
             if (poller == null)
             {
-                m_ownPoller = true;
-                m_poller = new Poller();
+				m_ownPoller = true;
+				m_poller = context.Factory.CreatePoller();
             }
             else
             {

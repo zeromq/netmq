@@ -29,7 +29,7 @@
 
         private static void ProxyPullThread()
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             using (var socket = context.CreatePullSocket())
             {
                 socket.Bind("tcp://*:9091");
@@ -67,7 +67,7 @@
 
         private static void ProxyPushThread()
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             using (var socket = context.CreatePushSocket())
             {
                 socket.Connect("tcp://127.0.0.1:9091");

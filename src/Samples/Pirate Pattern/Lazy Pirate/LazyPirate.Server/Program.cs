@@ -12,11 +12,11 @@ namespace LazyPirate.Server
         {
             const string SERVER_ENDPOINT = "tcp://127.0.0.1:5555";
 
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 var randomizer = new Random();
 
-                using (ResponseSocket server = context.CreateResponseSocket())
+                using (var server = context.CreateResponseSocket())
                 {
                     Console.WriteLine("S: Binding address {0}", SERVER_ENDPOINT);
                     server.Bind(SERVER_ENDPOINT);

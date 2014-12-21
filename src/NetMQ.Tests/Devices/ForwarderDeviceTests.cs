@@ -6,7 +6,7 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Tests.Devices
 {
-    public abstract class ForwarderDeviceTestBase : DeviceTestBase<ForwarderDevice, SubscriberSocket>
+    public abstract class ForwarderDeviceTestBase : DeviceTestBase<ForwarderDevice, ISubscriberSocket>
     {
 
         protected const string Topic = "CanHazTopic";
@@ -23,12 +23,12 @@ namespace NetMQ.Tests.Devices
             CreateClientSocket = c => c.CreatePublisherSocket();
         }
 
-        protected override void WorkerSocketAfterConnect(SubscriberSocket socket)
+        protected override void WorkerSocketAfterConnect(ISubscriberSocket socket)
         {
             socket.Subscribe(Topic);
         }
 
-        protected override void DoWork(NetMQSocket socket)
+        protected override void DoWork(INetMQSocket socket)
         {
             var received = socket.ReceiveStringMessages().ToList();
             Console.WriteLine("Worker received: ");
@@ -42,7 +42,7 @@ namespace NetMQ.Tests.Devices
             Console.WriteLine("------");
         }
 
-        protected override void DoClient(int id, NetMQSocket socket)
+        protected override void DoClient(int id, INetMQSocket socket)
         {
             const string value = "Hello World";
             var expected = value + " " + id;
@@ -51,7 +51,7 @@ namespace NetMQ.Tests.Devices
             socket.Send(expected);
         }
 
-        protected override SubscriberSocket CreateWorkerSocket(NetMQContext context)
+        protected override ISubscriberSocket CreateWorkerSocket(INetMQContext context)
         {
             return context.CreateSubscriberSocket();
         }

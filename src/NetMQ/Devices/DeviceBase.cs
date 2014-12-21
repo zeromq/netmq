@@ -13,15 +13,15 @@ namespace NetMQ.Devices
         /// <summary>
         /// The frontend socket that will normally pass messages to <see cref="BackendSocket"/>.
         /// </summary>
-        protected readonly NetMQSocket FrontendSocket;
+        protected readonly INetMQSocket FrontendSocket;
 
         /// <summary>
         /// The backend socket that will normally receive messages from (and possibly send replies to) <see cref="FrontendSocket"/>.
         /// </summary>
-        protected readonly NetMQSocket BackendSocket;
+        protected readonly INetMQSocket BackendSocket;
 
         // Poller which will handle socket coordination.
-        private readonly Poller m_poller;
+		private readonly IPoller m_poller;
 
         // Threading model to use
         private readonly DeviceRunner m_runner;
@@ -41,18 +41,15 @@ namespace NetMQ.Devices
         /// </summary>
         public DeviceSocketSetup BackendSetup { get; private set; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DeviceBase"/> class.
-        /// </summary>		
-        /// <param name="frontendSocket">
-        /// A <see cref="NetMQSocket"/> that will pass incoming messages to <paramref name="backendSocket"/>.
-        /// </param>
-        /// <param name="backendSocket">
-        /// A <see cref="NetMQSocket"/> that will receive messages from (and optionally send replies to) <paramref name="frontendSocket"/>.
-        /// </param>
-        /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
-        protected DeviceBase(NetMQSocket frontendSocket, NetMQSocket backendSocket, DeviceMode mode)
-            : this(new Poller(), frontendSocket, backendSocket, mode)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DeviceBase" /> class.
+		/// </summary>
+		/// <param name="context">The context.</param>
+		/// <param name="frontendSocket">A <see cref="NetMQSocket" /> that will pass incoming messages to <paramref name="backendSocket" />.</param>
+		/// <param name="backendSocket">A <see cref="NetMQSocket" /> that will receive messages from (and optionally send replies to) <paramref name="frontendSocket" />.</param>
+		/// <param name="mode">The <see cref="DeviceMode" /> for the current device.</param>
+        protected DeviceBase(INetMQContext context, INetMQSocket frontendSocket, INetMQSocket backendSocket, DeviceMode mode)
+			: this(context.Factory.CreatePoller(), frontendSocket, backendSocket, mode)
         {
             m_pollerIsOwned = true;
         }
@@ -67,8 +64,8 @@ namespace NetMQ.Devices
         /// A <see cref="NetMQSocket"/> that will receive messages from (and optionally send replies to) <paramref name="frontendSocket"/>.
         /// </param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
-        /// <param name="poller">The <see cref="Poller"/> to use.</param>		
-        protected DeviceBase(Poller poller, NetMQSocket frontendSocket, NetMQSocket backendSocket, DeviceMode mode)
+		/// <param name="poller">The <see cref="IPoller"/> to use.</param>		
+		protected DeviceBase(IPoller poller, INetMQSocket frontendSocket, INetMQSocket backendSocket, DeviceMode mode)
         {
             if (frontendSocket == null)
                 throw new ArgumentNullException("frontendSocket");

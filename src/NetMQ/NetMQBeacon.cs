@@ -32,7 +32,8 @@ namespace NetMQ
 
         private class Shim : IShimHandler
         {
-            private NetMQSocket m_pipe;
+			private readonly INetMQFactory m_factory;
+            private INetMQSocket m_pipe;
             private Socket m_udpSocket;
             private int m_udpPort;
             
@@ -41,10 +42,11 @@ namespace NetMQ
             private NetMQFrame m_transmit;
             private NetMQFrame m_filter;
             private NetMQTimer m_pingTimer;
-            private Poller m_poller;
+            private IPoller m_poller;
 
-            public Shim()
+            public Shim(INetMQFactory factory)
             {
+	            m_factory = factory;
             }
 
             private void Configure(string interfaceName, int port)
@@ -130,7 +132,7 @@ namespace NetMQ
             }
 
 
-            public void Run(PairSocket shim)
+			public void Run(IPairSocket shim)
             {             
                 m_pipe = shim;
 
@@ -142,7 +144,7 @@ namespace NetMQ
                 m_pingTimer.Elapsed += PingElapsed;
                 m_pingTimer.Enable = false;
 
-                m_poller = new Poller();
+                m_poller = m_factory.CreatePoller();
                 m_poller.AddSocket(m_pipe);                
                 m_poller.AddTimer(m_pingTimer);
 
@@ -256,9 +258,9 @@ namespace NetMQ
 
         private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
-        public NetMQBeacon(NetMQContext context)
+        public NetMQBeacon(INetMQContext context)
         {
-            m_shim = new Shim();
+            m_shim = new Shim(context.Factory);
             m_actor = NetMQActor.Create(context, m_shim);
 
             m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(() => m_actor.ReceiveReady += OnReceiveReady,
@@ -270,7 +272,7 @@ namespace NetMQ
         /// </summary>
         public string Hostname { get; private set; }
 
-        NetMQSocket ISocketPollable.Socket
+		INetMQSocket ISocketPollable.Socket
         {
             get { return (m_actor as ISocketPollable).Socket; }
         }

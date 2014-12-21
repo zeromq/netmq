@@ -15,7 +15,7 @@ namespace NetMQ.Tests
         [Test]
         public void TopicPubSub()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -56,7 +56,7 @@ namespace NetMQ.Tests
         [Test]
         public void Census()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -88,7 +88,7 @@ namespace NetMQ.Tests
         [Test]
         public void SimplePubSub()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -118,7 +118,7 @@ namespace NetMQ.Tests
         [Test, ExpectedException(typeof (AgainException))]
         public void NotSubscribed()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -147,7 +147,7 @@ namespace NetMQ.Tests
         [Test]
         public void MultipleSubscriptions()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -179,7 +179,7 @@ namespace NetMQ.Tests
         [Test]
         public void MultipleSubscribers()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -219,7 +219,7 @@ namespace NetMQ.Tests
         [Test, ExpectedException(typeof (AgainException))]
         public void UnSubscribe()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -264,7 +264,7 @@ namespace NetMQ.Tests
         [Test]
         public void Manual()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -295,7 +295,7 @@ namespace NetMQ.Tests
         [Test]
         public void WelcomeMessage()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {
@@ -322,7 +322,7 @@ namespace NetMQ.Tests
         [Test, ExpectedException(typeof(AgainException))]
         public void ClearWelcomeMessage()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var pub = contex.CreateXPublisherSocket())
                 {

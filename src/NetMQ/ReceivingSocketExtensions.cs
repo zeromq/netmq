@@ -203,7 +203,7 @@ namespace NetMQ
             return message;
         }
 
-        public static NetMQMessage ReceiveMessage(this NetMQSocket socket, TimeSpan timeout)
+        public static NetMQMessage ReceiveMessage(this INetMQSocket socket, TimeSpan timeout)
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 

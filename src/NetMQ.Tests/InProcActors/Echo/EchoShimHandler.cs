@@ -40,7 +40,7 @@ namespace NetMQ.Tests.InProcActors.Echo
         }
 
 
-        public void RunPipeline(PairSocket shim)
+        public void RunPipeline(IPairSocket shim)
         {
             shim.SignalOK();
 

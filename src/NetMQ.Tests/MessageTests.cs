@@ -84,7 +84,7 @@ namespace NetMQ.Tests
         [Test]
         public void RouterDealerMessaging()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var server = context.CreateRouterSocket())
                 {
@@ -126,9 +126,9 @@ namespace NetMQ.Tests
         [Test]
         public void Issue52_ReqToRouterBug()
         {
-            using (var ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             {
-                using (NetMQSocket router = ctx.CreateRouterSocket(), req = ctx.CreateRequestSocket())
+                using (INetMQSocket router = ctx.CreateRouterSocket(), req = ctx.CreateRequestSocket())
                 {
                     router.Bind("inproc://example");
                     req.Connect("inproc://example");

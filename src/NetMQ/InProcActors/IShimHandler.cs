@@ -16,6 +16,6 @@ namespace NetMQ.Actors
     {
         void Initialise(T state);
 
-        void RunPipeline(PairSocket shim);
+		void RunPipeline(IPairSocket shim);
     }
 }

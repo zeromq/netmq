@@ -13,7 +13,7 @@ namespace NetMQ.Tests
         [Test]
         public void Simple()
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQActor actor = NetMQActor.Create(context, shim =>
                 {

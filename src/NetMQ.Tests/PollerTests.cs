@@ -20,14 +20,14 @@ namespace NetMQ.Tests
         [Test]
         public void ResponsePoll()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 using (var rep = contex.CreateResponseSocket())
                 {
                     rep.Bind("tcp://127.0.0.1:5002");
 
                     using (var req = contex.CreateRequestSocket())
-                    using (Poller poller = new Poller())
+                    using (var poller = contex.Factory.CreatePoller())
                     {
                         req.Connect("tcp://127.0.0.1:5002");
 
@@ -72,12 +72,12 @@ namespace NetMQ.Tests
             ManualResetEvent connectedEvent = new ManualResetEvent(false);
 
 
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            using (var contex = new Factory().CreateContext())
+            using (var poller = contex.Factory.CreatePoller())
             {
                 using (var rep = contex.CreateResponseSocket())
                 {
-                    using (NetMQMonitor monitor = new NetMQMonitor(contex, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
+					using (var monitor = contex.Factory.CreateMonitor(contex, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
                     {
                         monitor.Accepted += (s, a) => acceptedEvent.Set();
                         monitor.Listening += (s, a) => listeningEvent.Set();
@@ -88,7 +88,7 @@ namespace NetMQ.Tests
 
                         using (var req = contex.CreateRequestSocket())
                         {
-                            using (NetMQMonitor reqMonitor = new NetMQMonitor(contex, req, "inproc://req.inproc", SocketEvent.Connected))
+							using (var reqMonitor = contex.Factory.CreateMonitor(contex, req, "inproc://req.inproc", SocketEvent.Connected))
                             {
                                 reqMonitor.Connected += (s, a) => connectedEvent.Set();
 
@@ -126,7 +126,7 @@ namespace NetMQ.Tests
         [Test]
         public void AddSocketDuringWork()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 // we are using three responses to make sure we actually move the correct socket and other sockets still work
                 using (var router = contex.CreateRouterSocket())
@@ -137,7 +137,7 @@ namespace NetMQ.Tests
 
                     using (var dealer = contex.CreateDealerSocket())
                     using (var dealer2 = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
+					using (var poller = contex.Factory.CreatePoller())
                     {
                         dealer.Connect("tcp://127.0.0.1:5002");
                         dealer2.Connect("tcp://127.0.0.1:5003");
@@ -186,7 +186,7 @@ namespace NetMQ.Tests
         [Test]
         public void AddSocketAfterRemoving()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 // we are using three responses to make sure we actually move the correct socket and other sockets still work
                 using (var router = contex.CreateRouterSocket())
@@ -200,7 +200,7 @@ namespace NetMQ.Tests
                     using (var dealer = contex.CreateDealerSocket())
                     using (var dealer2 = contex.CreateDealerSocket())
                     using (var dealer3 = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
+					using (var poller = contex.Factory.CreatePoller())
                     {
                         dealer.Connect("tcp://127.0.0.1:5002");
                         dealer2.Connect("tcp://127.0.0.1:5003");
@@ -265,7 +265,7 @@ namespace NetMQ.Tests
         [Test]
         public void AddTwoSocketAfterRemoving()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 // we are using three responses to make sure we actually move the correct socket and other sockets still work
                 using (var router = contex.CreateRouterSocket())
@@ -282,7 +282,7 @@ namespace NetMQ.Tests
                     using (var dealer2 = contex.CreateDealerSocket())
                     using (var dealer3 = contex.CreateDealerSocket())
                     using (var dealer4 = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
+					using (var poller = contex.Factory.CreatePoller())
                     {
                         dealer.Connect("tcp://127.0.0.1:5002");
                         dealer2.Connect("tcp://127.0.0.1:5003");
@@ -375,7 +375,7 @@ namespace NetMQ.Tests
         [Test]
         public void CancelSocket()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 // we are using three responses to make sure we actually move the correct socket and other sockets still work
                 using (var router = contex.CreateRouterSocket())
@@ -389,7 +389,7 @@ namespace NetMQ.Tests
                     using (var dealer = contex.CreateDealerSocket())
                     using (var dealer2 = contex.CreateDealerSocket())
                     using (var dealer3 = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
+					using (var poller = contex.Factory.CreatePoller())
                     {
                         dealer.Connect("tcp://127.0.0.1:5002");
                         dealer2.Connect("tcp://127.0.0.1:5003");
@@ -493,7 +493,7 @@ namespace NetMQ.Tests
         [Test]
         public void SimpleTimer()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 // we are using three responses to make sure we actually move the correct socket and other sockets still work
                 using (var router = contex.CreateRouterSocket())
@@ -501,7 +501,7 @@ namespace NetMQ.Tests
                     router.Bind("tcp://127.0.0.1:5002");
 
                     using (var dealer = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
+                    using (var poller = contex.Factory.CreatePoller())
                     {
                         dealer.Connect("tcp://127.0.0.1:5002");
 
@@ -556,7 +556,7 @@ namespace NetMQ.Tests
         [Test]
         public void CancelTimer()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
                 // we are using three responses to make sure we actually move the correct socket and other sockets still work
                 using (var router = contex.CreateRouterSocket())
@@ -564,7 +564,7 @@ namespace NetMQ.Tests
                     router.Bind("tcp://127.0.0.1:5002");
 
                     using (var dealer = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
+					using (var poller = contex.Factory.CreatePoller())
                     {
                         dealer.Connect("tcp://127.0.0.1:5002");
 
@@ -614,8 +614,8 @@ namespace NetMQ.Tests
         [Test]
         public void RunMultipleTimes()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            using (var contex = new Factory().CreateContext())
+			using (var poller = contex.Factory.CreatePoller())
             {
 
                 int count = 0;
@@ -646,8 +646,8 @@ namespace NetMQ.Tests
         [Test]
         public void PollOnce()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            using (var contex = new Factory().CreateContext())
+			using (var poller = contex.Factory.CreatePoller())
             {
 
                 int count = 0;
@@ -679,8 +679,8 @@ namespace NetMQ.Tests
         [Test]
         public void TwoTimers()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            using (var contex = new Factory().CreateContext())
+			using (var poller = contex.Factory.CreatePoller())
             {
 
                 int count = 0;
@@ -722,8 +722,8 @@ namespace NetMQ.Tests
         [Test]
         public void EnableTimer()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            using (var contex = new Factory().CreateContext())
+			using (var poller = contex.Factory.CreatePoller())
             {
 
                 int count = 0;
@@ -776,8 +776,8 @@ namespace NetMQ.Tests
         [Test]
         public void ChangeTimerInterval()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            using (var contex = new Factory().CreateContext())
+			using (var poller = contex.Factory.CreatePoller())
             {
 
                 int count = 0;
@@ -837,7 +837,7 @@ namespace NetMQ.Tests
         [Test]
         public void TestPollerDispose()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var contex = new Factory().CreateContext())
             {
 
                 int count = 0;
@@ -872,8 +872,8 @@ namespace NetMQ.Tests
                     }
                 };
 
-                Poller poller;
-                using (poller = new Poller(timer))
+                IPoller poller;
+				using (poller = contex.Factory.CreatePoller(timer))
                 {
                     poller.PollTillCancelledNonBlocking();
                     Thread.Sleep(500);
@@ -901,7 +901,7 @@ namespace NetMQ.Tests
         [Test]
         public void NativeSocket()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var streamServer = context.CreateStreamSocket())
                 {
@@ -921,7 +921,7 @@ namespace NetMQ.Tests
 
                         ManualResetEvent socketSignal = new ManualResetEvent(false);
 
-                        Poller poller = new Poller();
+						var poller = context.Factory.CreatePoller();
                         poller.AddPollInSocket(socket, s =>
                         {
                             socket.Receive(buffer);

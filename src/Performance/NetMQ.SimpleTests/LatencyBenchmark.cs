@@ -32,7 +32,7 @@
 
         private static void ClientThread()
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             using (var socket = context.CreateRequestSocket())
             {
                 socket.Connect("tcp://127.0.0.1:9000");
@@ -66,7 +66,7 @@
 
         private static void ServerThread()
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             using (var socket = context.CreateResponseSocket())
             {
                 socket.Bind("tcp://*:9000");

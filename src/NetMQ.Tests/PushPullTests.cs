@@ -13,7 +13,7 @@ namespace NetMQ.Tests
         [Test]
         public void SimplePushPull()
         {
-            using (NetMQContext context = NetMQContext.Create())
+			using (var context = new Factory().CreateContext())
             {
                 using (var pullSocket = context.CreatePullSocket())
                 {
@@ -37,7 +37,7 @@ namespace NetMQ.Tests
         [Test]
         public void EmptyMessage()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var pullSocket = context.CreatePullSocket())
                 {

@@ -18,7 +18,7 @@ namespace remote_thr
             int messageSize = int.Parse(args[1]);
             int messageCount = int.Parse(args[2]);
 
-            var context = NetMQContext.Create();
+            var context = new Factory().CreateContext();
             var pushSocket = context.CreatePushSocket();
             pushSocket.Connect(connectTo);
             

@@ -9,6 +9,6 @@ namespace NetMQ
 {
     public interface ISocketPollable
     {
-        NetMQSocket Socket { get; }        
+		INetMQSocket Socket { get; }        
     }
 }

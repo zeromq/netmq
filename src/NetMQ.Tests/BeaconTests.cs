@@ -14,7 +14,7 @@ namespace NetMQ.Tests
         [Test]
         public void SimplePublishSubscribe()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQBeacon speaker = new NetMQBeacon(context))
                 {
@@ -42,7 +42,7 @@ namespace NetMQ.Tests
         [Test]
         public void Silence()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQBeacon speaker = new NetMQBeacon(context))
                 {
@@ -78,7 +78,7 @@ namespace NetMQ.Tests
         [Test]
         public void Unsubscribe()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQBeacon speaker = new NetMQBeacon(context))
                 {
@@ -114,7 +114,7 @@ namespace NetMQ.Tests
         [Test]        
         public void SubscribeToDifferentTopic()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQBeacon speaker = new NetMQBeacon(context))
                 {
@@ -145,7 +145,7 @@ namespace NetMQ.Tests
         [Test]
         public void Polling()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQBeacon speaker = new NetMQBeacon(context))
                 {
@@ -170,7 +170,7 @@ namespace NetMQ.Tests
                             manualResetEvent.Set();
                         };
 
-                        Poller poller = new Poller(listener);
+                        var poller = context.Factory.CreatePoller(listener);
                         poller.PollTillCancelledNonBlocking();                        
                         
                         manualResetEvent.WaitOne();
@@ -188,7 +188,7 @@ namespace NetMQ.Tests
         [Test]
         public void NeverConfigured()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQBeacon speaker = new NetMQBeacon(context))
                 {
@@ -199,7 +199,7 @@ namespace NetMQ.Tests
         [Test]
         public void ConfigureTwice()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQBeacon speaker = new NetMQBeacon(context))
                 {

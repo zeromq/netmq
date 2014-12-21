@@ -9,11 +9,11 @@ namespace SimplePirate.Worker
         private const string LRU_READY = "READY";
         private const string SERVER_ENDPOINT = "tcp://localhost:5556";
 
-        private static NetMQSocket worker;
+        private static INetMQSocket worker;
 
         static void Main(string[] args)
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (worker = context.CreateRequestSocket())
                 {

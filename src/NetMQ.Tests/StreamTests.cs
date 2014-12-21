@@ -13,7 +13,7 @@ namespace NetMQ.Tests
         [Test]
         public void StreamToStream()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var server = context.CreateStreamSocket())
                 {

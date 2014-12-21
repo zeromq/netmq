@@ -17,7 +17,7 @@ namespace NetMQ.Tests
         {
             bool triggered = false;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQScheduler scheduler = new NetMQScheduler(context))
                 {
@@ -42,7 +42,7 @@ namespace NetMQ.Tests
             int runCount1 = 0;
             int runCount2 = 0;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQScheduler scheduler = new NetMQScheduler(context))
                 {
@@ -73,9 +73,9 @@ namespace NetMQ.Tests
         {
             bool triggered = false;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                Poller poller = new Poller();
+                var poller = context.Factory.CreatePoller();
 
                 using (NetMQScheduler scheduler = new NetMQScheduler(context, poller))
                 {
@@ -103,7 +103,7 @@ namespace NetMQ.Tests
 
             ConcurrentBag<Task> allTasks = new ConcurrentBag<Task>();
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (NetMQScheduler scheduler = new NetMQScheduler(context))
                 {

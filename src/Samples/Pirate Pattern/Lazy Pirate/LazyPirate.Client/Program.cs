@@ -17,9 +17,9 @@ namespace LazyPirate.Client
 
         static void Main(string[] args)
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                RequestSocket client = CreateServerSocket(context);
+                var client = CreateServerSocket(context);
 
                 while (_retriesLeft > 0)
                 {
@@ -57,13 +57,13 @@ namespace LazyPirate.Client
             }
         }
 
-        private static void TerminateClient(RequestSocket client)
+		private static void TerminateClient(IRequestSocket client)
         {
             client.Disconnect(SERVER_ENDPOINT);
             client.Close();
         }
 
-        private static RequestSocket CreateServerSocket(NetMQContext context)
+        private static IRequestSocket CreateServerSocket(INetMQContext context)
         {
             Console.WriteLine("C: Connecting to server...");
 

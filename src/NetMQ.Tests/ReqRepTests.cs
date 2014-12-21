@@ -17,7 +17,7 @@ namespace NetMQ.Tests
         [TestCase("tcp://unknownhostname:5001", ExpectedException = typeof(System.Net.Sockets.SocketException))]
         public void SimpleReqRep(string address)
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
@@ -50,7 +50,7 @@ namespace NetMQ.Tests
         [Test]
         public void SendingTwoRequestsInaRow()
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
@@ -74,7 +74,7 @@ namespace NetMQ.Tests
         [Test]
         public void ReceiveBeforeSending()
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
@@ -96,7 +96,7 @@ namespace NetMQ.Tests
         [Test]
         public void SendMessageInResponeBeforeReceiving()
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
@@ -115,7 +115,7 @@ namespace NetMQ.Tests
         [Test]
         public void SendMultiplartMessage()
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {

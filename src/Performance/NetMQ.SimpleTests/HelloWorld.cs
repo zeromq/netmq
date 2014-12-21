@@ -28,7 +28,7 @@
         {
             Thread.Sleep(10);
 
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             using (var socket = context.CreateRequestSocket())
             {
                 socket.Connect("tcp://127.0.0.1:8989");
@@ -47,7 +47,7 @@
 
         private static void ServerThread()
         {
-            using (var context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             using (var socket = context.CreateResponseSocket())
             {
                 socket.Bind("tcp://*:8989");

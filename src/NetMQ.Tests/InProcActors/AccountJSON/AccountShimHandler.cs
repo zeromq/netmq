@@ -39,7 +39,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
         }
 
 
-        public void RunPipeline(PairSocket shim)
+		public void RunPipeline(IPairSocket shim)
         {
             shim.SignalOK();
 

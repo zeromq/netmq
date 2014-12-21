@@ -7,7 +7,9 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket,ISocketPollable, IDisposable
+	using NetMQ.zmq.Patterns;
+
+	public abstract class NetMQSocket : INetMQSocket
     {
         readonly SocketBase m_socketHandle;
         private bool m_isClosed = false;
@@ -64,9 +66,9 @@ namespace NetMQ
         [Obsolete]
         public bool IgnoreErrors { get; set; }
 
-        internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
+        public event EventHandler<NetMQSocketEventArgs> EventsChanged;
 
-        internal int Errors { get; set; }
+        public int Errors { get; set; }
 
 
         private void InvokeEventsChanged()
@@ -85,7 +87,7 @@ namespace NetMQ
         /// </summary>
         public SocketOptions Options { get; private set; }
 
-        internal SocketBase SocketHandle
+        public SocketBase SocketHandle
         {
             get
             {
@@ -93,7 +95,7 @@ namespace NetMQ
             }
         }
 
-        NetMQSocket ISocketPollable.Socket
+		INetMQSocket ISocketPollable.Socket
         {
             get { return this; }
         }
@@ -190,7 +192,7 @@ namespace NetMQ
             return result != PollEvents.None;
         }
 
-        internal PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
+        public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
         {
             SelectItem[] items = new[] {new SelectItem(SocketHandle, pollEvents),};
 
@@ -198,7 +200,7 @@ namespace NetMQ
             return items[0].ResultEvent;
         }
 
-        internal PollEvents GetPollEvents()
+        public PollEvents GetPollEvents()
         {
             PollEvents events = PollEvents.PollError;
 
@@ -215,7 +217,7 @@ namespace NetMQ
             return events;
         }
 
-        internal void InvokeEvents(object sender, PollEvents events)
+        public void InvokeEvents(object sender, PollEvents events)
         {
             if (!m_isClosed)
             {
