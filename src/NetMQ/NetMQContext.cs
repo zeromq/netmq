@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NetMQ.zmq;
-using NetMQ.Monitoring;
 
 namespace NetMQ
 {
@@ -27,10 +27,9 @@ namespace NetMQ
 
 			private int m_isClosed = 0;
 
-
 			private NetMQContext(Ctx ctx, INetMQFactory factory)
 			{
-				factory = factory;
+				m_factory = factory;
 				m_ctx = ctx;
 			}
 
@@ -68,6 +67,7 @@ namespace NetMQ
 
 					return m_ctx.Get(ContextOption.IOThreads);
 				}
+
 				set
 				{
 					m_ctx.CheckDisposed();
@@ -87,6 +87,7 @@ namespace NetMQ
 
 					return m_ctx.Get(ContextOption.MaxSockets);
 				}
+
 				set
 				{
 					m_ctx.CheckDisposed();
