@@ -16,7 +16,7 @@ namespace Freelance.ModelOne.Client
             endpoints.Add("tcp://*** Add your first endpoint ***");
             endpoints.Add("tcp://*** Add your second endpoint ***");
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 if (endpoints.Count == 1)
                 {
@@ -44,10 +44,10 @@ namespace Freelance.ModelOne.Client
             Console.ReadLine();
         }
 
-        private static bool TryRequest(NetMQContext context, string endpoint, string requestString)
+        private static bool TryRequest(INetMQContext context, string endpoint, string requestString)
         {
             Console.WriteLine("Trying echo service at {0}", endpoint);
-            NetMQSocket client = context.CreateRequestSocket();
+			var client = context.CreateRequestSocket();
             client.Options.Linger = TimeSpan.Zero;
             client.Connect(endpoint);
             client.Send(requestString);

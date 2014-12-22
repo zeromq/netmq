@@ -16,9 +16,9 @@ namespace ROUTERbrokerREQworkers
         {
             var workers = new List<Thread>(WORKERS_COUNT);
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (RouterSocket client = context.CreateRouterSocket())
+				using (var client = context.CreateRouterSocket())
                 {
                     string cnn = string.Format("tcp://localhost:{0}", PORT_NUMBER);
                     client.Bind(cnn);
@@ -75,9 +75,9 @@ namespace ROUTERbrokerREQworkers
         {
             var randomizer = new Random(DateTime.Now.Millisecond);
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (RequestSocket worker = context.CreateRequestSocket())
+				using (var worker = context.CreateRequestSocket())
                 {
                     //  We use a string identity for ease here
                     string id = ZHelpers.SetID(worker, Encoding.Unicode);
@@ -119,7 +119,7 @@ namespace ROUTERbrokerREQworkers
 
     public class ZHelpers
     {
-        public static string SetID(NetMQSocket client, Encoding unicode)
+        public static string SetID(INetMQSocket client, Encoding unicode)
         {
             var str = Guid.NewGuid().ToString(); // client.GetHashCode().ToString();
             client.Options.Identity = unicode.GetBytes(str);

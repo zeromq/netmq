@@ -18,9 +18,9 @@ namespace ROUTERbrokerDEALERworkers
             var randomizer = new Random(DateTime.Now.Millisecond);
             var workers = new List<Thread>(new[] { new Thread(WorkerTaskA), new Thread(WorkerTaskB) });
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (RouterSocket client = context.CreateRouterSocket())
+                using (var client = context.CreateRouterSocket())
                 {
                     client.Bind(string.Format("tcp://localhost:{0}", PORT_NUMBER));
                     foreach (Thread thread in workers)
@@ -54,9 +54,9 @@ namespace ROUTERbrokerDEALERworkers
 
         private static void WorkerTaskA(object portNumber)
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (DealerSocket worker = context.CreateDealerSocket())
+				using (var worker = context.CreateDealerSocket())
                 {
                     worker.Options.Identity = Encoding.Unicode.GetBytes("A");
                     worker.Connect(string.Format("tcp://localhost:{0}", portNumber));
@@ -86,9 +86,9 @@ namespace ROUTERbrokerDEALERworkers
 
         private static void WorkerTaskB(object portNumber)
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (DealerSocket worker = context.CreateDealerSocket())
+				using (var worker = context.CreateDealerSocket())
                 {
                     worker.Options.Identity = Encoding.Unicode.GetBytes("B");
                     worker.Connect(string.Format("tcp://localhost:{0}", portNumber));

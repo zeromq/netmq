@@ -9,9 +9,9 @@ namespace ExtendedRequestReply
 
         private static void Main(string[] args)
         {
-            using (var ctx = NetMQContext.Create())
+			using (var ctx = new Factory().CreateContext())
             {
-                using (NetMQSocket frontend = ctx.CreateRouterSocket(), backend = ctx.CreateDealerSocket())
+                using (INetMQSocket frontend = ctx.CreateRouterSocket(), backend = ctx.CreateDealerSocket())
                 {
                     frontend.Bind(FRONTEND_ENDPOINT);
                     backend.Bind(BACKEND_ENDPOINT);
@@ -30,7 +30,7 @@ namespace ExtendedRequestReply
                             frontend.SendMessage(msg); //Relay this message to the frontend
                         };
 
-                    using (var poller = new Poller())
+                    using (var poller = ctx.Factory.CreatePoller())
                     {
                         poller.AddSocket(backend);
                         poller.AddSocket(frontend);

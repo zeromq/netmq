@@ -11,9 +11,9 @@ namespace Freelance.ModelOne.Server
 
         static void Main(string[] args)
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
-                using (NetMQSocket response = context.CreateResponseSocket())
+				using (var response = context.CreateResponseSocket())
                 {
                     string address = GetComputerLanIP();
 

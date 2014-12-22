@@ -19,14 +19,14 @@ namespace RouterPerformance
 
             //BufferPool.SetBufferManagerBufferPool(1024 * 1024 * 10, 1024);
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = new Factory().CreateContext())
             {
                 using (var router = context.CreateRouterSocket())
                 {
                     router.Options.SendHighWatermark = 0;
                     router.Bind("tcp://*:5555");
 
-                    List<DealerSocket> dealers = new List<DealerSocket>();
+                    List<IDealerSocket> dealers = new List<IDealerSocket>();
                     List<byte[]> identities = new List<byte[]>();
 
                     Random random = new Random();

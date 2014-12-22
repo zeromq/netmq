@@ -10,7 +10,7 @@ namespace ExtendedRequestReply
         
         static void Main(string[] args)
         {
-            using (var ctx = NetMQContext.Create())
+            using (var ctx = new Factory().CreateContext())
             {
                 using (var worker = ctx.CreateResponseSocket())
                 {
