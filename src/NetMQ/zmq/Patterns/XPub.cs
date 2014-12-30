@@ -187,7 +187,7 @@ namespace NetMQ.zmq.Patterns
         {
             if (option == ZmqSocketOptions.XpubVerbose)
             {
-                m_verbose = (int)optval == 1;
+                m_verbose = (bool)optval;
                 return true;
             }
             if (option == ZmqSocketOptions.XPublisherManual)
