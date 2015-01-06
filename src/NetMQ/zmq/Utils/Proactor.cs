@@ -101,7 +101,7 @@ namespace NetMQ.zmq.Utils
                 //  Execute any due timers.
                 int timeout = ExecuteTimers();
 
-                if (m_completionPort.GetQueuedCompletionStatus(timeout != 0 ? timeout * 1000 : -1, out completionStatus))
+                if (m_completionPort.GetQueuedCompletionStatus(timeout != 0 ? timeout : -1, out completionStatus))
                 {
                     if (completionStatus.OperationType == OperationType.Signal)
                     {

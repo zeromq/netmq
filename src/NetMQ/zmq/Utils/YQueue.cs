@@ -105,6 +105,7 @@ namespace NetMQ.zmq.Utils
         public T Pop()
         {
             T value = m_beginChunk.Values[m_beginPositionInChunk];
+            m_beginChunk.Values[m_beginPositionInChunk] = default(T);
             
             m_beginPositionInChunk++;
             if (m_beginPositionInChunk == m_size)
@@ -177,6 +178,7 @@ namespace NetMQ.zmq.Utils
 
             //capturing and removing the unpushed value from chunk.
             T value = m_backChunk.Values[m_backPositionInChunk];
+            m_backChunk.Values[m_backPositionInChunk] = default (T);
             
             return value;
         }
