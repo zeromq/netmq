@@ -95,8 +95,10 @@ The code below is a fully working Console application that demonstrates a single
 When you run this you should see something like this appear in the Console ouyput:
 
 <p>
+<i>
 messageIn = Hello<br/>  
 messageBack = World<br/>
+</i>
 </p>
 
 
@@ -184,10 +186,11 @@ Here is the new modified code
 
 Which when run gives this output now.
 
-<p>
+<p><i>
 messageIn = Hello<br/>  
 messageBack = World<br/>
 Carrying on doing the rest<br/>
+</i>
 </p>
 
 
