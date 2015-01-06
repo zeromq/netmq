@@ -94,8 +94,12 @@ The code below is a fully working Console application that demonstrates a single
 
 When you run this you should see something like this appear in the Console ouyput:
 
-    messageIn = Hello
-    messageBack = World
+<p>
+messageIn = Hello<br/>  
+messageBack = World<br/>
+</p>
+
+
 
 
 Building on this example. What we can now do is to remove the ResponseSocket from the Poller once we see the 1st message, which should mean that we no longer recieve any messages on the removed ResponseSocket. We will stick with the same example code, but this time we have added a Poller.RemoveSocket(..) in the rep.ReceiveReady event handler code.
@@ -180,9 +184,15 @@ Here is the new modified code
 
 Which when run gives this output now.
 
-    messageIn = Hello
-    messageBack = World
-    Carrying on doing the rest
+<p>
+messageIn = Hello<br/>  
+messageBack = World<br/>
+Carrying on doing the rest<br/>
+</p>
+
+
+See how we did not get any output for the "Hello Again" message we attempted to send. This is due to the ResponseSocket being removed from the Poller earlier.
+
 
 
 
