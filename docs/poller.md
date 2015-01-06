@@ -199,7 +199,9 @@ See how we did not get any output for the "Hello Again" message we attempted to 
 
 Timer(s)
 =====
-Another thing the Poller allows is to add/remove NetMQTimer instances. These will also get called back the Poller. Here is a simple example that adds a NetMQTimer which expects to wait for 5 Seconds. The NetMQTimer instance is added to the Poller, which internally calls the  NetMQTimer.Elapsed event handler callback delegates.
+Another thing the Poller allows is to add/remove NetMQTimer instances, which you may do using the AddTimer(..) / RemoveTimer(..) methods. 
+
+Where the added timers get called back the Poller. Here is a simple example that adds a NetMQTimer which expects to wait for 5 Seconds. The NetMQTimer instance is added to the Poller, which internally calls the  NetMQTimer.Elapsed event handler callback delegates.
 
     using System;
     using System.Collections.Generic;
