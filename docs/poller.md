@@ -97,6 +97,7 @@ to the Poller) is "Ready".
 When you run this you should see something like this appear in the Console ouyput:
 
 messageIn = Hello
+
 messageBack = World
 
 
@@ -185,7 +186,9 @@ Here is the new modified code
 Which when run gives this output now.
 
 messageIn = Hello
+
 messageBack = World
+
 Carrying on doing the rest
 
 
