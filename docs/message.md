@@ -200,6 +200,7 @@ Just to solidify this information here is a complete example showing everything 
 Which when run will give you some output like this:
 
 <p>
+<i>
 string messagePart1 = server.ReceiveString(out more)<br/>
 messagePart1=A<br/>
 HasMore=True<br/>
@@ -212,7 +213,7 @@ message4=NetMQMessage[From,Server]<br/>
 message4.FrameCount=2<br/>
 message4[0]=From<br/>
 message4[1]=Server<br/>
-<i>
+
 
 </i>
 </p>
