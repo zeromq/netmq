@@ -197,6 +197,57 @@ Carrying on doing the rest<br/>
 See how we did not get any output for the "Hello Again" message we attempted to send. This is due to the ResponseSocket being removed from the Poller earlier.
 
 
+Timer(s)
+=====
+Another thing the Poller allows is to add/remove NetMQTimer instances. These will also get called back the Poller. Here is a simple example that adds a NetMQTimer which expects to wait for 5 Seconds. The NetMQTimer instance is added to the Poller, which internally calls the  NetMQTimer.Elapsed event handler callback delegates.
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using NetMQ;
+
+    namespace ConsoleApplication1
+    {
+        class Program
+        {
+            static void Main(string[] args)
+            {
+
+                using (Poller poller = new Poller())
+                {
+                    NetMQTimer timer = new NetMQTimer(TimeSpan.FromSeconds(5));
+                    timer.Elapsed += (s, a) =>
+                            {
+                                Console.WriteLine("Timer done");
+                            }; ;
+                    poller.AddTimer(timer);
+
+
+                    Task pollerTask = Task.Factory.StartNew(poller.Start);
+
+
+                    //give the poller enough time to run the timer (set at 5 seconds)
+                    Thread.Sleep(10000);
+
+                }
+
+                Console.ReadLine();
+            }
+        }
+    }
+
+
+Which when run gives this output now.
+
+<p><i>
+Timer done<br/>  
+</i>
+</p>
+
 
 
 
