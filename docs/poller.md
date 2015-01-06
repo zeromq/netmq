@@ -23,8 +23,8 @@ Poller Methods
 =====
 
 There are several methods available on the Poller to help you. Most notably AddSocket(..)/RemoveSocket(..) and Start()/Stop(). 
-The idea is that you would use the AddSocket to add the socket you want to monitor for "readiness" to the Poller instance, and then
-some time later call the Poller.Start() method, at which point the Poller will call back any registered ReceiveReady event handler delegates
+
+The idea is that you would use the AddSocket to add the socket you want to monitor for "readiness" to the Poller instance, and then some time later call the Poller.Start() method, at which point the Poller will call back any registered ReceiveReady event handler delegates
 
 
 Poller Example
@@ -32,9 +32,7 @@ Poller Example
 
 So now that you know what the "Poller" does, perhaps it is time to see an example. 
 
-The code below is a fully working Console application that demonstrates a single socket being added to the Poller. It can also be
-seen that the ReceiveReady event is hooked up too. The Poller will call this event handler back when the Socket (the one that is added
-to the Poller) is "Ready".
+The code below is a fully working Console application that demonstrates a single socket being added to the Poller. It can also be seen that the ReceiveReady event is hooked up too. The Poller will call this event handler back when the Socket (the one that is added to the Poller) is "Ready".
 
 
     using System;
@@ -96,14 +94,11 @@ to the Poller) is "Ready".
 
 When you run this you should see something like this appear in the Console ouyput:
 
-messageIn = Hello
+    messageIn = Hello
+    messageBack = World
 
-messageBack = World
 
-
-Building on this example. What we can now do is to remove the ResponseSocket from the Poller once we see the 1st message, which
-should mean that we no longer recieve any messages on the removed ResponseSocket. We will stick with the same example code, but this
-time we have added a Poller.RemoveSocket(..) in the rep.ReceiveReady event handler code.
+Building on this example. What we can now do is to remove the ResponseSocket from the Poller once we see the 1st message, which should mean that we no longer recieve any messages on the removed ResponseSocket. We will stick with the same example code, but this time we have added a Poller.RemoveSocket(..) in the rep.ReceiveReady event handler code.
 
 Here is the new modified code
 
@@ -185,11 +180,9 @@ Here is the new modified code
 
 Which when run gives this output now.
 
-messageIn = Hello
-
-messageBack = World
-
-Carrying on doing the rest
+    messageIn = Hello
+    messageBack = World
+    Carrying on doing the rest
 
 
 
