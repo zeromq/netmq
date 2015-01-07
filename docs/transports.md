@@ -183,8 +183,8 @@ Where it can be seen that the format of the Inproc information used in the Bind(
 
 This is made up of 2 parts : 
 
-+ [0] the "inroc" protocol part
-+ [1] the "224.0.0.1" part, which is an unique string that suits your needs
++ [0] the "inproc" protocol part
++ [1] the "InprocTest_5555" part, which is an unique string that suits your needs
 
 
 
