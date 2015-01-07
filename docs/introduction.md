@@ -31,6 +31,14 @@ You should create and use exactly one context in your process. Technically, the 
 Have one NetMQContext ONLY. This will be used to created ALL sockets within the process.
 
 
+Sending and Receiving
+=====
+
+
+Multithreading
+=====
+
+
 First Example
 =====
 So let's start with some code, the Hello world example of course.
@@ -105,9 +113,6 @@ You can however call receive or send with the DontWait flag to avoid the waiting
 
 
 
-Multithreading
-=====
-
 Patterns
 =====
 [ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about patterns, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
@@ -130,8 +135,6 @@ Here are some links to the patterns that are available within the NetMQ codebase
 For other patterns, the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) will be your first port of call
 
 
-Sending and Receiving
-=====
 
 
 
