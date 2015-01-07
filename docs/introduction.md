@@ -1,7 +1,8 @@
 Introduction
 =====
 
-So you are looking for a messaging library, you might got frustrated from WCF or MSMQ (I know I'm) and heard that ZeroMQ is very fast and then you got here, NetMQ, the .net port of ZeroMQ.
+So you are looking for a messaging library, you might have become frustrated with WCF or MSMQ (I know I'm) and heard that ZeroMQ is very fast and then you got here, NetMQ, the .net port of ZeroMQ.
+
 So yes, NetMQ is a messaging library and it is fast, but NetMQ has a bit of learning curve, and hopefully you will get it fast.
 
 Where to start
