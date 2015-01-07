@@ -96,7 +96,7 @@ Multithreading
 
 Patterns
 =====
-[ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about pattern, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with [ZeroMQ](http://zguide.zeromq.org/page:all)/NetMQ. You should make sure you read these sections before you attempt to start work with NetMQ.
+[ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about patterns, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
 
 + [Chapter 2 - Sockets and Patterns] (http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns)
 + [Chapter 3 - Advanced Request-Reply Patterns] (http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns)
@@ -104,9 +104,9 @@ Patterns
 + [Chapter 5 - Advanced Pub-Sub Patterns] (http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns)
 
 
-NetMQ also has some examples of a few of these patterns. Should you find the pattern you are looking for in the  [ZeroMQ Guide](http://zguide.zeromq.org/page:all) it should be fairly easy to translate that into NetMQ usage.
+NetMQ also has some examples of a few of these patterns written using the NetMQ APIs. Should you find the pattern you are looking for in the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) it should be fairly easy to translate that into NetMQ usage.
 
-Here are some links to the NetMQ patterns that are covered:
+Here are some links to the patterns that are available within the NetMQ codebase:
 
 + [Borkerless Reliability Pattern - Freelance Model one] (https://github.com/zeromq/netmq/tree/master/src/Samples/Brokerless%20Reliability%20(Freelance%20Pattern)/Model%20One)
 + [Load Balancer Pattern] (https://github.com/zeromq/netmq/tree/master/src/Samples/Load%20Balancing%20Pattern)
