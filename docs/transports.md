@@ -90,7 +90,7 @@ This is made up of 3 parts :
 InProc
 =====
 
-InProc (In process) allows you to connect different parts of your single application. This is actually quite useful, and
+InProc (In process) allows you to connect different parts the current process. This is actually quite useful, and
 you may do this for several reasons:
  
 + To do away with shared state/locks. When you send data down the wire (socket) there is no shared state to worry about
@@ -101,7 +101,7 @@ NetMQ comes with several components that use InProc, such as [Actor model] (http
 in thier relevant documentation pages.
 
 
-For now to demonstrate a simple InProc arrangement, lets try and send some message (a string to keep it simple, but this could be some serialized object) between 2 threads.
+For now to demonstrate a simple InProc arrangement, let's try and send some message (a string to keep it simple, but this could be some serialized object) between 2 threads.
 
 Here is some demo code:
 
