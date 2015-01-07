@@ -110,34 +110,34 @@ Depending on the type of sockets you are using, or the topology you are attempti
 
 Here is a listing of the available properties that you may set on a xxxxSocket. It is hard to say exactly which of these values you may need to set, as that obviously depends entirely on what you are trying to achieve. All I can do is list the options, and make you aware of them. So here they are
 
-+Affinity
-+BackLog
-+CopyMessages
-+DelayAttachOnConnect
-+Endian
-+GetLastEndpoint
-+IPv4Only
-+Identity
-+Linger
-+MaxMsgSize
-+MulticastHops
-+MulticastRate
-+MulticastRecoveryInterval
-+ReceiveHighWaterMark
-+ReceiveMore
-+ReceiveTimeout
-+ReceiveBuffer
-+ReconnectInterval
-+ReconnectIntervalMax
-+SendHighWaterMark
-+SendTimeout
-+SendBuffer
-+TcpAcceptFilter
-+TcpKeepAlive
-+TcpKeepaliveCnt
-+TcpKeepaliveIdle
-+TcpKeepaliveInterval
-+XPubVerbos
++ Affinity  
++ BackLog  
++ CopyMessages
++ DelayAttachOnConnect
++ Endian
++ GetLastEndpoint
++ IPv4Only
++ Identity
++ Linger
++ MaxMsgSize
++ MulticastHops
++ MulticastRate
++ MulticastRecoveryInterval
++ ReceiveHighWaterMark
++ ReceiveMore
++ ReceiveTimeout
++ ReceiveBuffer
++ ReconnectInterval
++ ReconnectIntervalMax
++ SendHighWaterMark
++ SendTimeout
++ SendBuffer
++ TcpAcceptFilter
++ TcpKeepAlive
++ TcpKeepaliveCnt
++ TcpKeepaliveIdle
++ TcpKeepaliveInterval
++ XPubVerbos
 
 We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that you have read something in the [ZeroMQ guide]( http://zguide.zeromq.org/page:all) that mentions some option, that this is most likely the place you will need to set it/read from it
 
