@@ -96,7 +96,7 @@ Multithreading
 
 Patterns
 =====
-[ZeroMQ](http://zguide.zeromq.org/page:all) is all about pattern, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with [ZeroMQ](http://zguide.zeromq.org/page:all)/NetMQ. You should make sure you read these sections before you attempt to start work with NetMQ.
+[ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about pattern, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with [ZeroMQ](http://zguide.zeromq.org/page:all)/NetMQ. You should make sure you read these sections before you attempt to start work with NetMQ.
 
 + [Chapter 2 - Sockets and Patterns] (http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns)
 + [Chapter 3 - Advanced Request-Reply Patterns] (http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns)
