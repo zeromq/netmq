@@ -20,6 +20,17 @@ Getting the library
 
 You can get NetMQ library from [nuget](https://nuget.org/packages/NetMQ/).
 
+
+Context
+=====
+
+The NetMQContext is what is used to create ALL sockets. Therefore any NetMQ code should start by creating a NetMQContext, which can be done by using the NetMQContext.Create() method. NetMQContext is IDisposable so can be used within a using block.
+
+You should create and use exactly one context in your process. Technically, the context is the container for all sockets in a single process, and acts as the transport for inproc sockets, which are the fastest way to connect threads in one process. If at runtime a process has two contexts, these are like separate NetMQ instances. If that's explicitly what you want, OK, but otherwise you should follow these rules:
+
+Have one NetMQContext ONLY. This will be used to created ALL sockets within the process.
+
+
 First Example
 =====
 So let's start with some code, the Hello world example of course.
@@ -90,8 +101,9 @@ You can however call receive or send with the DontWait flag to avoid the waiting
         Console.WriteLine(ex);                        
     }
 
-Context
-=====
+
+
+
 
 Multithreading
 =====
