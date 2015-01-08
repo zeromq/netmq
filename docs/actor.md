@@ -44,7 +44,7 @@ A fairly common thing to do is have multiple threads running to speed things up,
 
 
 <br/>
-![alt text]https://github.com/zeromq/netmq/blob/master/docs/Images/ActorTrad.png "ActorTrad")
+![alt text](https://github.com/zeromq/netmq/blob/master/docs/Images/ActorTrad.png "ActorTrad")
 
 
 
@@ -186,7 +186,7 @@ The basic idea is that each thread would talk to an Actor, and send/receive mess
 If you wanted to get even more isolation, you could use thread local storage where each thread could have its own copy of the actor which it, and it alone talks to.
 
 <br/>
-![alt text]https://github.com/zeromq/netmq/blob/master/docs/Images/ActorPass.png "ActorPass")
+![alt text](https://github.com/zeromq/netmq/blob/master/docs/Images/ActorPass.png "ActorPass")
 
 
 Anyway enough talking, I am sure some of you want to see the code right?
