@@ -37,9 +37,6 @@ Sending and Receiving
 Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common are of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (https://github.com/zeromq/netmq/blob/master/docs/receiving-sending.md)
 
 
-Multithreading
-=====
-
 
 First Example
 =====
