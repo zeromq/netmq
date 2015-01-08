@@ -459,7 +459,7 @@ ActorsOut.png
 
 
 <br/>
-![alt text]https://github.com/zeromq/netmq/blob/master/docs/Images/ActorsOut.png "ActorsOut")
+![alt text](https://github.com/zeromq/netmq/blob/master/docs/Images/ActorsOut.png "ActorsOut")
 
 
 We hope that gives you a taster of what you could do with an Actor
