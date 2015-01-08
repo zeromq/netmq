@@ -31,14 +31,14 @@ You should create and use exactly one context in your process. Technically, the 
 Have one NetMQContext ONLY. This will be used to created ALL sockets within the process.
 
 
-Sending and Receiving
+Sending and receiving
 =====
 
 Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common are of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (https://github.com/zeromq/netmq/blob/master/docs/receiving-sending.md)
 
 
 
-First Example
+First example
 =====
 So let's start with some code, the Hello world example of course.
 
