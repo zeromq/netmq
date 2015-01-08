@@ -109,6 +109,13 @@ You can however call receive or send with the DontWait flag to avoid the waiting
     }
 
 
+Multipart messages
+=====
+
+ZeroMQ/NetMQ work on the concept of frames, as such most messages are considered to be made up of one or more frames. NetMQ provides some convenience methods to allow you to send string messages. You should however, familiarise yourself with the the idea of multiple frames and how they work.
+
+This is covered in much more detail in the [Message](https://github.com/zeromq/netmq/blob/master/docs/router.md) documentation page
+
 
 
 
@@ -176,11 +183,4 @@ Here is a listing of the available properties that you may set on a xxxxSocket. 
 
 We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that you have read something in the [ZeroMQ guide]( http://zguide.zeromq.org/page:all) that mentions some option, that this is most likely the place you will need to set it/read from it
 
-
-Multipart messages
-=====
-
-ZeroMQ/NetMQ work on the concept of frames, as such most messages are considered to be made up of one or more frames. NetMQ provides some convenience methods to allow you to send string messages. You should however, familiarise yourself with the the idea of multiple frames and how they work.
-
-This is covered in much more detail in the [Message](https://github.com/zeromq/netmq/blob/master/docs/router.md) documentation page
 
