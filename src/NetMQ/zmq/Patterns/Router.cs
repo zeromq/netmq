@@ -150,7 +150,7 @@ namespace NetMQ.zmq.Patterns
 
                 return true;
             }
-            else if ( option == ZmqSocketOptions.RouterRawSocket)
+            else if ( option == ZmqSocketOptions.RouterMandatory)
             {
                 m_mandatory = (bool)optval;
                 return true;

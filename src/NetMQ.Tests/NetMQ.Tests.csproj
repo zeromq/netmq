@@ -75,6 +75,7 @@
     <Compile Include="InProcActors\ExceptionShimExample\ExceptionShimHandler.cs" />
     <Compile Include="InProcActors\Echo\EchoShimHandler.cs" />
     <Compile Include="InProcActors\Echo\EchoActorTests.cs" />
+    <Compile Include="RouterTests.cs" />
     <Compile Include="XPubSubTests.cs" />
     <Compile Include="Devices\DeviceTestBase.cs" />
     <Compile Include="Devices\ForwarderDeviceTests.cs" />

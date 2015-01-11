@@ -68,6 +68,7 @@
     <Compile Include="ActorTests.cs" />
     <Compile Include="BeaconTests.cs" />
     <Compile Include="ByteArraySegmentTests.cs" />
+    <Compile Include="RouterTests.cs" />
     <Compile Include="XPubSubTests.cs" />
     <Compile Include="ExpectedZmqException.cs" />
     <Compile Include="MessageTests.cs" />
