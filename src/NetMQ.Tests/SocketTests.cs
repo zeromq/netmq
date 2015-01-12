@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -119,7 +120,7 @@ namespace NetMQ.Tests
                     Assert.AreEqual(300, msg2.First.MessageSize);
                     pubSync.Set();
                     subSocket.Dispose();
-                }, TaskCreationOptions.LongRunning);                
+                }, TaskCreationOptions.LongRunning);
 
                 t1.Start();
                 t2.Start();
@@ -375,7 +376,7 @@ namespace NetMQ.Tests
                         connectingDealer.Send("test");
 
                         Assert.AreEqual("test", localDealer.ReceiveString());
-                    }                   
+                    }
                 }
             }
         }
@@ -456,7 +457,7 @@ namespace NetMQ.Tests
 
                         // client is connected so server should have out now, client as well
                         Assert.IsTrue(server.HasOut);
-                        Assert.IsTrue(client.HasOut);                        
+                        Assert.IsTrue(client.HasOut);
                     }
 
                     Thread.Sleep(2000);
@@ -535,7 +536,7 @@ namespace NetMQ.Tests
 
                             // the server receive from both
                             server.ReceiveString();
-                            server.ReceiveString();                            
+                            server.ReceiveString();
                         }
                     }
 
@@ -571,12 +572,57 @@ namespace NetMQ.Tests
                                 var exception = Assert.Throws<EndpointNotFoundException>(() =>
                                 {
                                     client2.Connect(protocol + "://localhost:55503");
-                                });                                
-                            }                                                    
+                                });
+                            }
                         }
                     }
                 }
             }
+        }
+
+        [Test]
+        public void ASubscriberSocketThatGetDisconnectedBlockItsContextFromBeingDisposed()
+        {
+            using (var subscriberCtx = NetMQContext.Create())
+            {
+                using (var publisherCtx = NetMQContext.Create())
+                {
+                    using (var pubSocket = publisherCtx.CreatePublisherSocket())
+                    using (var subSocket = subscriberCtx.CreateSubscriberSocket())
+                    {
+
+                        pubSocket.Options.Linger = TimeSpan.FromSeconds(0);
+                        pubSocket.Options.SendTimeout = TimeSpan.FromSeconds(2);
+
+                        subSocket.Options.Linger = TimeSpan.FromSeconds(0);
+                        subSocket.Connect("tcp://localhost:12345");
+                        subSocket.Subscribe("");
+                        Debug.WriteLine("Subscriber socket connecting...");
+                        Thread.Sleep(2000);
+
+                        Debug.WriteLine("Publisher socket binding...");
+                        pubSocket.Bind("tcp://localhost:12345");
+
+                        Thread.Sleep(2000);
+
+                        for (var i = 0; i < 100; i++)
+                        {
+                            var msg = "msg-" + i;
+                            pubSocket.Send("msg-" + i);
+                            var recvMsg = subSocket.ReceiveString();
+                            Assert.AreEqual(recvMsg, msg);
+                        }
+                        Debug.WriteLine("Sockets exchanged messages.");
+
+                        pubSocket.Close();
+
+                        Thread.Sleep(1000);
+                    }
+                    Debug.WriteLine("Sockets disposed.");
+                }
+                Debug.WriteLine("Publisher ctx disposed.");
+            }
+            Debug.WriteLine("Subscriber ctx disposed.");
         }
     }
 }
