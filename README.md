@@ -14,25 +14,27 @@ protocols and more.
 
 You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
 
-## Using
+## Using / Documentation
 
 Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). 
-NetMQ have a new documentation thanks to Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber), you can take a look at http://netmq.readthedocs.org/en/latest/.
 
-You can also read more about NetMQ at [Somdorons blog](http://somdoron.com/category/netmq/).
+The NetMQ documentation can found here (thanks to [Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber) who agreed to do the documentation) 
 
-[Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber) wrote a series of posts about NetMQ in his blog, take a look:
-
-[Hello World](http://www.codeproject.com/Articles/809849/ZeroMq-sharp-Hello-World)
-
-[The Socket Types](http://www.codeproject.com/Articles/810302/ZeroMq-sharp-The-Socket-Types)
-
-[Socket Options/Identity and SendMore](http://www.codeproject.com/Articles/811851/ZeroMq-sharp-Socket-Options-Identity-And-SendMore)
-
-[Multiple Socket Polling](http://www.codeproject.com/Articles/812352/ZeroMQ-sharp-Multiple-Sockets-Polling)
+http://netmq.readthedocs.org/en/latest/.
 
 
-NetMQ documentation is still work in progress, but you can find a small example [here](https://gist.github.com/somdoron/5175967).
+There are also a few blog posts available, which you can read about here
+
++ [Somdorons blog](http://somdoron.com/category/netmq/).
++ [Hello World](http://sachabarbs.wordpress.com/2014/08/19/zeromq-1-introduction/)
++ [The Socket Types](http://sachabarbs.wordpress.com/2014/08/21/zeromq-2-the-socket-types-2/)
++ [Socket Options/Identity and SendMore](http://sachabarbs.wordpress.com/2014/08/26/zeromq-3-socket-optionsidentity-and-sendmore/)
++ [Multiple Socket Polling](http://sachabarbs.wordpress.com/2014/08/27/zeromq-4-multiple-sockets-polling/)
++ [Divide And Conquer](http://sachabarbs.wordpress.com/2014/09/01/zeromq-6-divide-and-conquer/)
++ [Multiple Socket Polling](http://sachabarbs.wordpress.com/2014/08/27/zeromq-4-multiple-sockets-polling/)
+
+
+Here is a small example
 
 	using (NetMQContext ctx = NetMQContext.Create())
 	{
