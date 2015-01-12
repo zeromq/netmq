@@ -10,21 +10,16 @@ abstraction of asynchronous message queues, multiple messaging patterns,
 message filtering (subscriptions), seamless access to multiple transport
 protocols and more.
 
-## Important note on backward compatibility 
-
-Since version 3.3.07 NetMQ changed the number serialization from Little Endian to Big Endian to be compatible with ZeroMQ.
-Any NetMQ version prior to 3.3.0.7 is not compatible with the new version. To support older versions you can set Endian option on a NetMQ socket to Little Endian,
-however doing so will make it incompatible with ZeroMQ.
-
-We recommend to update to the latest version and use Big Endian which is now the default behavior.
-
 ## Installation
 
 You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
 
 ## Using
 
-Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). You can also read more about NetMQ at [Somdorons blog](http://somdoron.com/category/netmq/).
+Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). 
+NetMQ have a new documentation thanks to Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber), you can take a look at http://netmq.readthedocs.org/en/latest/.
+
+You can also read more about NetMQ at [Somdorons blog](http://somdoron.com/category/netmq/).
 
 [Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber) wrote a series of posts about NetMQ in his blog, take a look:
 
@@ -72,6 +67,14 @@ You can also help us by:
 * Joining our [mailing list](https://groups.google.com/d/forum/netmq-dev?hl=en) and be an active member
 * Writing tutorials in the github wiki
 * Writing about the project in your blog (and add a pull request with a link to your blog at the bottom of this page)
+
+## Important note on backward compatibility 
+
+Since version 3.3.07 NetMQ changed the number serialization from Little Endian to Big Endian to be compatible with ZeroMQ.
+Any NetMQ version prior to 3.3.0.7 is not compatible with the new version. To support older versions you can set Endian option on a NetMQ socket to Little Endian,
+however doing so will make it incompatible with ZeroMQ.
+
+We recommend to update to the latest version and use Big Endian which is now the default behavior.
 
 ## Mailing list
 
