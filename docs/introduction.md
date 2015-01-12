@@ -109,6 +109,31 @@ You can however call receive or send with the DontWait flag to avoid the waiting
     }
 
 
+Bind Versus Connect
+=====
+In the above you may have noticed that the *Server* used *Bind* while the *Client* used *Connect*, why is this, and what is the difference?
+
+ZeroMQ creates queues per underlying connection, e.g. if your socket is connected to 3 peer sockets there are 3 messages queues.
+
+With bind, you allow peers to connect to you, thus you don't know how many peers there will be in the future and you cannot create the queues in advance. Instead, queues are created as individual peers connect to the bound socket.
+
+With connect, ZeroMQ knows that there's going to be at least a single peer and thus it can create a single queue immediately. This applies to all socket types except ROUTER, where queues are only created after the peer we connect to has acknowledge our connection.
+
+Consequently, when sending a message to bound socket with no peers, or a ROUTER with no live connections, there's no queue to store the message to.
+
+When should I use bind and when connect?
+
+As a very general advice: use bind on the most stable points in your architecture and connect from the more volatile endpoints. For request/reply the service provider might be point where you bind and the client uses connect. Like plain old TCP.
+
+If you can't figure out which parts are more stable (i.e. peer-to-peer) think about a stable device in the middle, where boths sides can connect to.
+
+You can read more about this at the ZeroMQ FAQ http://zeromq.org/area:faq under the "Why do I see different behavior when I bind a socket versus connect a socket?" section. 
+
+
+
+
+
+
 Multipart messages
 =====
 
