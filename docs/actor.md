@@ -11,22 +11,24 @@ The actor model in computer science is a mathematical model of concurrent comput
 ….
 
 The Actor model adopts the philosophy that everything is an actor. This is similar to the everything is an object philosophy used by some object-oriented programming languages, but differs in that object-oriented software is typically executed sequentially, while the Actor model is inherently concurrent.
-<br/>
+<br/><br/>
 An actor is a computational entity that, in response to a message it receives, can concurrently:
 + send a finite number of messages to other actors
 + create a finite number of new actors
 + designate the behavior to be used for the next message it receives
-<br/>
+<br/><br/>
 There is no assumed sequence to the above actions and they could be carried out in parallel.
-<br/>
+<br/><br/>
 Decoupling the sender from communications sent was a fundamental advance of the Actor model enabling asynchronous communication and control structures as patterns of passing messages.
 <br/>
+<br/>
 Recipients of messages are identified by address, sometimes called “mailing address”. Thus an actor can only communicate with actors whose addresses it has. It can obtain those from a message it receives, or if the address is for an actor it has itself created.
+<br/>
 <br/>
 The Actor model is characterized by inherent concurrency of computation within and among actors, dynamic creation of actors, inclusion of actor addresses in messages, and interaction only through direct asynchronous message passing with no restriction on message arrival order.
 </i></p>
 <p>
-[http://en.wikipedia.org/wiki/Actor_model] (http://en.wikipedia.org/wiki/Actor_model)
+<a href="http://en.wikipedia.org/wiki/Actor_model] (http://en.wikipedia.org/wiki/Actor_model" target="_blank">http://en.wikipedia.org/wiki/Actor_model] (http://en.wikipedia.org/wiki/Actor_model</a>
 </p>
 
 <p>
@@ -44,7 +46,7 @@ A fairly common thing to do is have multiple threads running to speed things up,
 
 
 <br/>
-![alt text](https://github.com/zeromq/netmq/blob/master/docs/Images/ActorTrad.png "ActorTrad")
+<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/ActorTrad.png"/>
 
 
 
@@ -186,7 +188,8 @@ The basic idea is that each thread would talk to an Actor, and send/receive mess
 If you wanted to get even more isolation, you could use thread local storage where each thread could have its own copy of the actor which it, and it alone talks to.
 
 <br/>
-![alt text](https://github.com/zeromq/netmq/blob/master/docs/Images/ActorPass.png "ActorPass")
+<br/>
+<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/ActorPass.png"/>
 
 
 Anyway enough talking, I am sure some of you want to see the code right?
@@ -455,7 +458,8 @@ When you run this code you should see something like this:
 
 
 <br/>
-![alt text](https://github.com/zeromq/netmq/blob/master/docs/Images/ActorsOut.png "ActorsOut")
+<br/>
+<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/ActorsOut.png"/>
 
 
 
