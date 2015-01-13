@@ -91,7 +91,7 @@ When you run this demo code you should see something like this:
 
 
 
-What Is Request/Response Is Blocking
+Request/Response Is Blocking
 =====
 As stated above RequestSocket/ResponseSocket is blocking, which means any unexpected calls to SendXXXX() / ReceiveXXXX() **WILL** result in Exceptions. Here is an exampe of just such an Exception.
 
