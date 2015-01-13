@@ -175,21 +175,27 @@ To run this, these 3 BAT file you may be useful, though you will need to change 
 
 
 **RunPubSub.bat**
-start RunPublisher.bat
-
-start RunSubscriber "TopicA"
-start RunSubscriber "TopicB"
-start RunSubscriber "All"
+<br/>
+start RunPublisher.bat<br/>
+<br/>
+<br/>
+start RunSubscriber "TopicA"<br/>
+start RunSubscriber "TopicB"<br/>
+start RunSubscriber "All"<br/>
 
 
 **RunPublisher.bat**
-cd Publisher\bin\Debug
-Publisher.exe
+<br/>
+<br/>
+cd Publisher\bin\Debug<br/>
+Publisher.exe<br/>
 
 **RunSubscriber.bat**
-set "topic=%~1"
-cd Subscriber\bin\Debug
-Subscriber.exe %topic%
+<br/>
+<br/>
+set "topic=%~1"<br/>
+cd Subscriber\bin\Debug<br/>
+Subscriber.exe %topic%<br/>
 
 
 
@@ -221,7 +227,11 @@ You would set these 2 options using the xxxxSocket.Options property as follows:
 
 
 **Slow Subscribers**
+<br/>
+<br/>
 This is covered in the [ZeroMQ guide](http://zguide.zeromq.org/php:chapter5)
 
 **Late Joining Subscribers**
+<br/>
+<br/>
 This is covered in the [ZeroMQ guide](http://zguide.zeromq.org/php:chapter5)
