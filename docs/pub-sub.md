@@ -14,10 +14,10 @@ Which as usual can be created by using the NetMQContext methods .CreateXXXSocket
 
 Topics
 =====
-NetMQ allows the use of topics, such that the ** PublisherSocket ** may send frame 1 (see the [messages](https://github.com/zeromq/netmq/blob/master/docs/message.md)) of the message which contains
+NetMQ allows the use of topics, such that the **PublisherSocket** may send frame 1 (see the [messages documentation page](https://github.com/zeromq/netmq/blob/master/docs/message.md)) of the message which contains
 the topic name followed by the actual message, where you may have something like this
 
-<table Border="1" CellSpacing="0" Padding="0">
+<table CellSpacing="0" Padding="0">
 <tr bgcolor="LightGray">
 <th>Frame 1</th>
 <th>Frame 2</th>
@@ -32,7 +32,7 @@ An example of this in code may be something like this (though you could also use
 
     pubSocket.SendMore("TopicA").Send("This is a 'TopicA' message");
 
-The ** SubscriberSocket ** may also choose to subscribe to a certain topic only, which it does by passing the topic name into the Subscriber() method of the SubscriberSocket.
+The **SubscriberSocket** may also choose to subscribe to a certain topic only, which it does by passing the topic name into the Subscriber() method of the SubscriberSocket.
 
 An example of this would be as follows:
 
@@ -55,7 +55,7 @@ Time for an example. This example is very simple, and follows these rules.
 
 Here is the code:
 
-** Publisher **
+**Publisher**
 
     using System;
     using System.Threading;
@@ -102,7 +102,7 @@ Here is the code:
     }
 
 
-** Subscriber **
+**Subscriber**
 
     using System;
     using System.Collections.Generic;
@@ -174,7 +174,7 @@ Here is the code:
 To run this, these 3 BAT file you may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects
 
 
-** RunPubSub.bat **
+**RunPubSub.bat**
 start RunPublisher.bat
 
 start RunSubscriber "TopicA"
@@ -182,11 +182,11 @@ start RunSubscriber "TopicB"
 start RunSubscriber "All"
 
 
-** RunPublisher.bat **
+**RunPublisher.bat**
 cd Publisher\bin\Debug
 Publisher.exe
 
-** RunSubscriber.bat **
+**RunSubscriber.bat**
 set "topic=%~1"
 cd Subscriber\bin\Debug
 Subscriber.exe %topic%
@@ -197,14 +197,15 @@ When you run this you should see something like this, where it can be seen that
 
 
 <br/>
-![PubSubUsingTopics]https://github.com/zeromq/netmq/blob/master/docs/Images/PubSubUsingTopics.png "PubSub Topics")
+<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/PubSubUsingTopics.png"/>
+
 
 
 
 Other Considerations
 =====
 
-** HighWaterMark **
+**HighWaterMark**
 
 
 The SendHighWaterMark/ReceiveHighWaterMark options set the high water mark for the specified socket. The high water mark is a hard limit on the maximum number of outstanding messages NetMQ shall queue in memory for any single peer that the specified socket is communicating with.
@@ -219,8 +220,8 @@ You would set these 2 options using the xxxxSocket.Options property as follows:
 +  pubSocket.Options.ReceiveHighWatermark = 1000;
 
 
-** Slow Subscribers **
+**Slow Subscribers**
 This is covered in the [ZeroMQ guide](http://zguide.zeromq.org/php:chapter5)
 
-** Late Joining Subscribers **
+**Late Joining Subscribers**
 This is covered in the [ZeroMQ guide](http://zguide.zeromq.org/php:chapter5)
