@@ -9,7 +9,9 @@ You would typically use this configuration of sockets to produce some distribute
 
 The idea is that you have something that generates work, and then distributes the work out to n-many workers. The workers each do some work, and push their results to some other process (could be a thread too) where the workers results are accumulated.
 
-In the [ZeroMQ guide](http://zguide.zeromq.org/page:all), it shows an example that has the work generator just tell each worker to sleep for a period of time. We toyed with creating a more elaborate example than this, but in the end felt that the examples simplicity was quite important, so we have stuck with the workload for each worker just being a value that tells the work to sleep for a number of Milliseconds (thus simulating some actual work).  This as I say has been borrowed from the [ZeroMQ guide](http://zguide.zeromq.org/page:all).
+In the [ZeroMQ guide](http://zguide.zeromq.org/page:all), it shows an example that has the work generator just tell each worker to sleep for a period of time. 
+
+We toyed with creating a more elaborate example than this, but in the end felt that the examples simplicity was quite important, so we have stuck with the workload for each worker just being a value that tells the work to sleep for a number of Milliseconds (thus simulating some actual work).  This as I say has been borrowed from the [ZeroMQ guide](http://zguide.zeromq.org/page:all).
 
 In real life the work could obviously be anything, though you would more than likely want the work to be something that could be cut up and distributed without the work generator caring/knowing how many workers there are.
 
