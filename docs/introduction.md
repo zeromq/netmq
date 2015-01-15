@@ -34,7 +34,7 @@ Have one NetMQContext ONLY. This will be used to created ALL sockets within the 
 Sending and receiving
 =====
 
-Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common are of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (https://github.com/zeromq/netmq/blob/master/docs/receiving-sending.md)
+Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (https://github.com/zeromq/netmq/blob/master/docs/receiving-sending.md)
 
 
 
@@ -206,6 +206,6 @@ Here is a listing of the available properties that you may set on a xxxxSocket. 
 + TcpKeepaliveInterval
 + XPubVerbos
 
-We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that you have read something in the [ZeroMQ guide]( http://zguide.zeromq.org/page:all) that mentions some option, that this is most likely the place you will need to set it/read from it
+We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that if you have read something in the [ZeroMQ guide]( http://zguide.zeromq.org/page:all) that mentions some option, that this is most likely the place you will need to set it/read from it
 
 
