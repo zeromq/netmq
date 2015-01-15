@@ -12,7 +12,9 @@ Receiving
 =====
 
 A <code>NetMQSocket</code> (which all the socket types inherit from) has a single <code>public virtual void Receive(ref Msg msg, SendReceiveOptions options)</code> method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for IOutgoingSocket. These extension methods are shown below, one of these should give you what you want, but if it doesn't
+method. What you will end up using is one the extra extension methods that is available for <code>IReceivingSocket</code>.
+
+These extension methods are shown below, one of these should give you what you want, but if it doesn't
 you simply need to write an extra extension method to suit your needs
 
     public static class ReceivingSocketExtensions
@@ -74,7 +76,9 @@ Sending
 =====
 
 A <code>NetMQSocket</code> (which all the socket types inherit from) has a single <code>public virtual void Send(ref Msg msg, SendReceiveOptions options)</code> method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for IOutgoingSocket. These extension methods are shown below, one of these should give you what you want, but if it doesn't
+method. What you will end up using is one the extra extension methods that is available for <code>IOutgoingSocket</code>. 
+
+These extension methods are shown below, one of these should give you what you want, but if it doesn't
 you simply need to write an extra extension method to suit your needs
 
 
