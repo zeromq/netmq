@@ -118,4 +118,4 @@ Here is an example of how one of the above extension methods is implemented, whi
 Further Reading
 =====
 
-If you are looking at some of the method signatures and why you should use them, you should read more about the messaging philosophy that NetMQ uses. You can read more about that at the [Message] (https://github.com/zeromq/netmq/blob/master/docs/Message.md) page.
+If you are looking at some of the method signatures, and wondering why/how you should use them, you should read a bit more on the messaging philosophy that NetMQ uses. The [Message] (https://github.com/zeromq/netmq/blob/master/docs/Message.md) page has some helpful information around this area.
