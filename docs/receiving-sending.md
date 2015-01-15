@@ -1,4 +1,4 @@
-Sending / Receiving
+Receiving / Sending
 =====
 
 If you have read the [Introduction] (https://github.com/zeromq/netmq/blob/master/docs/Introdcution.md) page you would have
