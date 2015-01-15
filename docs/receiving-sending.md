@@ -1,7 +1,7 @@
 Receiving / Sending
 =====
 
-If you have read the [Introduction] (https://github.com/zeromq/netmq/blob/master/docs/Introdcution.md) page you would have
+If you have read the [Introduction] (https://github.com/zeromq/netmq/blob/master/docs/Introduction.md) page you would have
 already seen an example of <code>ReceiveString()</code> and <code>SendString()</code>, but NetMQ allows us to send more than just strings.
 
 In fact there are quite a few options available to you. Lets go through some of these options shall we
@@ -113,3 +113,9 @@ Here is an example of how one of the above extension methods is implemented, whi
 
         msg.Close();
     }
+
+
+Further Reading
+=====
+
+If you are looking at some of the method signatures and why you should use them, you should read more about the messaging philosophy that NetMQ uses. You can read more about that at the [Message] (https://github.com/zeromq/netmq/blob/master/docs/Message.md) page.
