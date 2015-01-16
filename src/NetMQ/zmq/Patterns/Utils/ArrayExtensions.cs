@@ -7,6 +7,14 @@ namespace NetMQ.zmq.Patterns.Utils
 {
     static class ArrayExtensions
     {
+        /// <summary>
+        /// Make resize operation on array.
+        /// </summary>
+        /// <typeparam name="T">Type of containing data.</typeparam>
+        /// <param name="src">Source array.</param>
+        /// <param name="size">New size of array.</param>
+        /// <param name="ended">If grow/shrink operation should be applied to the end of array.</param>
+        /// <returns>Resized array.</returns>
         public static T[] Resize<T>(this T[] src, int size, bool ended)
         {
             T[] dest;
