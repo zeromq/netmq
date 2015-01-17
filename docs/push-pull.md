@@ -1,9 +1,9 @@
 Push / Pull
 =====
 
-NetMQ comes with a PushSocket and a PullSocket. What are these and how should they be used?
+NetMQ comes with a <code>PushSocket</code> and a <code>PullSocket</code>. What are these and how should they be used?
 
-Well a PushSocket is normally used to push to a PullSocket, whilst the PullSocket will pull from a PushSocket. Sounds obvious right!
+Well a <code>PushSocket</code> is normally used to push to a <code>PullSocket</code>, whilst the <code>PullSocket</code> will pull from a <code>PushSocket</code>. Sounds obvious right!
 
 You would typically use this configuration of sockets to produce some distributed work, kind of like a [divide and conquer](http://zguide.zeromq.org/page:all#Divide-and-Conquer) arrangement.
 
@@ -18,7 +18,7 @@ In real life the work could obviously be anything, though you would more than li
 Here is what we are trying to achieve :
 
 <br/>
-<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/Fanout.png"/>
+<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/Fanout.png"/>
 
 
 <br/>
@@ -307,7 +307,7 @@ Total elapsed time 1492 msec
 <br/>
 There are a couple of points to be aware of with this pattern
 
-+ The **Ventilator** uses a NetMQ PushSocket to distribute work to the **Workers**, this is referred to as load balancing
-+ The **Ventilator** and the **Sink** are the static parts of the system, where as **Workers** are dynamic. It is trivial to add more **Workers**, we can just spin up a new instance of a **Worker**, and in theory the work gets done quicker.
-+ We need to synchronize the starting of the batch (when **Workers** are ready), as if we did not do that, the first **Worker** that connected would get more messages that the rest, which is not really load balanced
-+ The **Sink** uses a NetMQ PullSocket to accumulate the results from the **Workers**
++ The <code>Ventilator</code> uses a NetMQ <code>PushSocket</code> to distribute work to the <code>Worker</code>s, this is referred to as load balancing
++ The <code>Ventilator</code> and the <code>Sink</code> are the static parts of the system, where as <code>Worker</code>s are dynamic. It is trivial to add more  <code>Worker</code>s, we can just spin up a new instance of a  <code>Worker</code>s, and in theory the work gets done quicker.
++ We need to synchronize the starting of the batch (when  <code>Worker</code>s are ready), as if we did not do that, the first  <code>Worker</code>s that connected would get more messages that the rest, which is not really load balanced
++ The  <code>Sink</code> uses a NetMQ <code>PullSocket</code> to accumulate the results from the  <code>Worker</code>s
