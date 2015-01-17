@@ -42,11 +42,11 @@ I hope you see what I am trying to explain there, may be a diagram may help.
 Multi threaded application using shared data structure
 ====
 
-A fairly common thing to do is have multiple threads running to speed things up, but then you realise that your threads need to mutate the state of some shared data structure, so then you have to involve threading synchronization primitives (most commonly lock(..) statements, to create your user defined critical sections). This will work, but now you are introducing artificial delays due to having to wait for the lock to be released so you can run Thread X’s code.
+A fairly common thing to do is have multiple threads running to speed things up, but then you realise that your threads need to mutate the state of some shared data structure, so then you have to involve threading synchronization primitives (most commonly <code>lock(..)</code> statements, to create your user defined critical sections). This will work, but now you are introducing artificial delays due to having to wait for the lock to be released so you can run Thread X’s code.
 
 
 <br/>
-<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/ActorTrad.png"/>
+<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/ActorTrad.png"/>
 
 
 
@@ -84,7 +84,7 @@ To take this one step further, lets see some code that may illustrate this furth
     }
 
 
-Nothing fancy there, just some fields. So lets now move onto looking at some threading code, I have chosen to just show two threads acting on a shared Account instance.
+Nothing fancy there, just some fields. So lets now move onto looking at some threading code, I have chosen to just show two threads acting on a shared <code>Account</code> instance.
 
 
     using System;
@@ -96,10 +96,6 @@ Nothing fancy there, just some fields. So lets now move onto looking at some thr
 
     namespace SharedStateNeedForActors
     {
-
-
-
-
         class Program
         {
             private object syncLock = new object();
@@ -183,13 +179,13 @@ Actor model
 
 The actor model, takes a different approach, where by message passing is used, which may involve some form of serialization as the messages are pass down the wire, which kind of guarantees no shared structures to contend with. Now I am not saying all Actor frameworks use message passing down the wire (serialization) but the code presented in this article does.
 
-The basic idea is that each thread would talk to an Actor, and send/receive message with the actor.
+The basic idea is that each thread would talk to an actor, and send/receive message with the actor.
 
 If you wanted to get even more isolation, you could use thread local storage where each thread could have its own copy of the actor which it, and it alone talks to.
 
 <br/>
 <br/>
-<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/ActorPass.png"/>
+<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/ActorPass.png"/>
 
 
 Anyway enough talking, I am sure some of you want to see the code right?
@@ -256,10 +252,10 @@ Firstly lets introduce a few helper classes
     }
 
 
-And here is the entire code for an Actor that deals with Account actions. This example is deliberatley simplistic, where we only debit/credit an Account
-by an amount. You could send any command to the Actor, and the Actor is really a general purpose in process messaging system.
+And here is the entire code for an <code>Actor</code> that deals with <code>Account</code> actions. This example is deliberatley simplistic, where we only debit/credit an <code>Account</code>
+by an amount. You could send any command to the Actor, and the <code>Actor</code> is really a general purpose in process messaging system.
 
-Anyway here is the Actor code:
+Anyway here is the <code>Actor</code> code:
 
     using System;
     using System.Collections.Generic;
@@ -398,7 +394,7 @@ Anyway here is the Actor code:
     }
 
 
-Where you would communicate with this Actor code using something like this (again this could be any commands you want, this example just shows how to debit/credit an Account).
+Where you would communicate with this <code>Actor</code> code using something like this (again this could be any commands you want, this example just shows how to debit/credit an <code>Account</code>).
 
     using System;
     using System.Collections.Generic;
@@ -459,10 +455,11 @@ When you run this code you should see something like this:
 
 <br/>
 <br/>
-<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/ActorsOut.png"/>
+<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/ActorsOut.png"/>
 
 
 
-We hope that gives you a taster of what you could do with an Actor
+
+We hope that gives you a taster of what you could do with an <code>Actor</code>
 
 
