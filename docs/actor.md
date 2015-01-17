@@ -1,5 +1,8 @@
-What is an Actor model?
-====
+NetMQ Actor Model
+===
+
+## What is an Actor model?
+
 
 Here is what Wikipedia has to same in the introduction to what an Actor Model is.
 
@@ -39,8 +42,7 @@ I hope you see what I am trying to explain there, may be a diagram may help.
 </p>
 
 
-Multi threaded application using shared data structure
-====
+## Multi threaded application using shared data structure
 
 A fairly common thing to do is have multiple threads running to speed things up, but then you realise that your threads need to mutate the state of some shared data structure, so then you have to involve threading synchronization primitives (most commonly <code>lock(..)</code> statements, to create your user defined critical sections). This will work, but now you are introducing artificial delays due to having to wait for the lock to be released so you can run Thread X’s code.
 
@@ -173,8 +175,7 @@ Thread Id 10, Account balance before: 6<br/>
 Perhaps there might be a more interesting way though!
 
 
-Actor model
-====
+## Actor model
 
 The actor model, takes a different approach, where by message passing is used, which may involve some form of serialization as the messages are pass down the wire, which kind of guarantees no shared structures to contend with. Now I am not saying all Actor frameworks use message passing down the wire (serialization) but the code presented in this article does.
 
@@ -190,8 +191,8 @@ If you wanted to get even more isolation, you could use thread local storage whe
 Anyway enough talking, I am sure some of you want to see the code right?
 
 
-Actor demo
-====
+## Actor demo
+
 We will stick with the same type of example as we did when we used a more traditional locking/shared data approach.
 
 Firstly lets introduce a few helper classes
