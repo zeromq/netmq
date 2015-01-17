@@ -33,7 +33,7 @@ namespace NetMQ.Tests
             {
                 using (var server = context.CreateRouterSocket())
                 {                    
-                    server.Bind("tcp://127.0.0.1:5556");
+                    server.Bind("tcp://127.0.0.1:5555");
                     server.ReceiveReady += (sender, e) =>
                     {
                         //no data receive but every 1s to display ReceiveReady.
