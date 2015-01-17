@@ -28,7 +28,7 @@ Recipients of messages are identified by address, sometimes called “mailing ad
 The Actor model is characterized by inherent concurrency of computation within and among actors, dynamic creation of actors, inclusion of actor addresses in messages, and interaction only through direct asynchronous message passing with no restriction on message arrival order.
 </i></p>
 <p>
-<a href="http://en.wikipedia.org/wiki/Actor_model] (http://en.wikipedia.org/wiki/Actor_model" target="_blank">http://en.wikipedia.org/wiki/Actor_model] (http://en.wikipedia.org/wiki/Actor_model</a>
+<a href="http://en.wikipedia.org/wiki/Actor_model" target="_blank">http://en.wikipedia.org/wiki/Actor_model</a>
 </p>
 
 <p>
@@ -74,7 +74,6 @@ To take this one step further, lets see some code that may illustrate this furth
         public string Name { get; set; }
         public string SortCode { get; set; }
         public decimal Balance { get; set; }
-
 
         public override string ToString()
         {
@@ -253,7 +252,7 @@ Firstly lets introduce a few helper classes
 
 
 And here is the entire code for an <code>Actor</code> that deals with <code>Account</code> actions. This example is deliberatley simplistic, where we only debit/credit an <code>Account</code>
-by an amount. You could send any command to the Actor, and the <code>Actor</code> is really a general purpose in process messaging system.
+by an amount. You could send any command to the <code>Actor</code>, and the <code>Actor</code> is really a general purpose in process messaging system.
 
 Anyway here is the <code>Actor</code> code:
 
