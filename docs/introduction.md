@@ -1,7 +1,8 @@
 Introduction
 =====
 
-So you are looking for a messaging library, you might got frustrated from WCF or MSMQ (I know I'm) and heard that ZeroMQ is very fast and then you got here, NetMQ, the .net port of ZeroMQ.
+So you are looking for a messaging library, you might have become frustrated with WCF or MSMQ (I know I'm) and heard that ZeroMQ is very fast and then you got here, NetMQ, the .net port of ZeroMQ.
+
 So yes, NetMQ is a messaging library and it is fast, but NetMQ has a bit of learning curve, and hopefully you will get it fast.
 
 Where to start
@@ -19,10 +20,29 @@ Getting the library
 
 You can get NetMQ library from [nuget](https://nuget.org/packages/NetMQ/).
 
-First Example
+
+Context
+=====
+
+The NetMQContext is what is used to create ALL sockets. Therefore any NetMQ code should start by creating a NetMQContext, which can be done by using the NetMQContext.Create() method. NetMQContext is IDisposable so can be used within a using block.
+
+You should create and use exactly one context in your process. Technically, the context is the container for all sockets in a single process, and acts as the transport for inproc sockets, which are the fastest way to connect threads in one process. If at runtime a process has two contexts, these are like separate NetMQ instances. If that's explicitly what you want, OK, but otherwise you should follow these rules:
+
+Have one NetMQContext ONLY. This will be used to created ALL sockets within the process.
+
+
+Sending and receiving
+=====
+
+Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (https://github.com/zeromq/netmq/blob/master/docs/receiving-sending.md)
+
+
+
+First example
 =====
 So let's start with some code, the Hello world example of course.
-Server:
+
+**Server:**
     
     static void Main(string[] args)
     {
@@ -50,7 +70,7 @@ Server:
     
 The server create a socket of type response (you can read more on the reqeust-response chapter), bind it to port 5555 and wait for messages. You can also see that we have zero configuration, we just sending strings. NetMQ can send much more than strings, but NetMQ doesn't come with any serialization feature and you have to do it by hand, but you will learn some cool tricks for that (Multi part messages).
   
-Client:
+**Client:**
     
     static void Main(string[] args)
     {
@@ -88,22 +108,104 @@ You can however call receive or send with the DontWait flag to avoid the waiting
         Console.WriteLine(ex);                        
     }
 
-Context
-=====
 
-Multithreading
+Bind Versus Connect
 =====
+In the above you may have noticed that the *Server* used *Bind* while the *Client* used *Connect*, why is this, and what is the difference?
 
-Patterns
-=====
+ZeroMQ creates queues per underlying connection, e.g. if your socket is connected to 3 peer sockets there are 3 messages queues.
 
-Sending and Receiving
-=====
+With bind, you allow peers to connect to you, thus you don't know how many peers there will be in the future and you cannot create the queues in advance. Instead, queues are created as individual peers connect to the bound socket.
 
-High Watermark
-=====
+With connect, ZeroMQ knows that there's going to be at least a single peer and thus it can create a single queue immediately. This applies to all socket types except ROUTER, where queues are only created after the peer we connect to has acknowledge our connection.
+
+Consequently, when sending a message to bound socket with no peers, or a ROUTER with no live connections, there's no queue to store the message to.
+
+When should I use bind and when connect?
+
+As a very general advice: use bind on the most stable points in your architecture and connect from the more volatile endpoints. For request/reply the service provider might be point where you bind and the client uses connect. Like plain old TCP.
+
+If you can't figure out which parts are more stable (i.e. peer-to-peer) think about a stable device in the middle, where boths sides can connect to.
+
+You can read more about this at the ZeroMQ FAQ http://zeromq.org/area:faq under the "Why do I see different behavior when I bind a socket versus connect a socket?" section. 
+
+
+
+
+
 
 Multipart messages
 =====
+
+ZeroMQ/NetMQ work on the concept of frames, as such most messages are considered to be made up of one or more frames. NetMQ provides some convenience methods to allow you to send string messages. You should however, familiarise yourself with the the idea of multiple frames and how they work.
+
+This is covered in much more detail in the [Message](https://github.com/zeromq/netmq/blob/master/docs/router.md) documentation page
+
+
+
+
+Patterns
+=====
+[ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about patterns, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
+
++ [Chapter 2 - Sockets and Patterns] (http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns)
++ [Chapter 3 - Advanced Request-Reply Patterns] (http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns)
++ [Chapter 4 - Reliable Request-Reply Patterns] (http://zguide.zeromq.org/page:all#Chapter-Reliable-Request-Reply-Patterns)
++ [Chapter 5 - Advanced Pub-Sub Patterns] (http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns)
+
+
+NetMQ also has some examples of a few of these patterns written using the NetMQ APIs. Should you find the pattern you are looking for in the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) it should be fairly easy to translate that into NetMQ usage.
+
+Here are some links to the patterns that are available within the NetMQ codebase:
+
++ [Borkerless Reliability Pattern - Freelance Model one] (https://github.com/zeromq/netmq/tree/master/src/Samples/Brokerless%20Reliability%20(Freelance%20Pattern)/Model%20One)
++ [Load Balancer Pattern] (https://github.com/zeromq/netmq/tree/master/src/Samples/Load%20Balancing%20Pattern)
++ [Lazy Pirate Pattern] (https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Lazy%20Pirate)
++ [Simple Pirate Pattern] (https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Simple%20Pirate)
+
+For other patterns, the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) will be your first port of call
+
+
+
+
+
+Options
+=====
+NetMQ comes with several options that will effect how things work. 
+
+Depending on the type of sockets you are using, or the topology you are attempting to create, you may find that you need to set some NeroMQ options. In NetMQ this is done using the xxxxSocket.Options property.
+
+Here is a listing of the available properties that you may set on a xxxxSocket. It is hard to say exactly which of these values you may need to set, as that obviously depends entirely on what you are trying to achieve. All I can do is list the options, and make you aware of them. So here they are
+
++ Affinity  
++ BackLog  
++ CopyMessages
++ DelayAttachOnConnect
++ Endian
++ GetLastEndpoint
++ IPv4Only
++ Identity
++ Linger
++ MaxMsgSize
++ MulticastHops
++ MulticastRate
++ MulticastRecoveryInterval
++ ReceiveHighWaterMark
++ ReceiveMore
++ ReceiveTimeout
++ ReceiveBuffer
++ ReconnectInterval
++ ReconnectIntervalMax
++ SendHighWaterMark
++ SendTimeout
++ SendBuffer
++ TcpAcceptFilter
++ TcpKeepAlive
++ TcpKeepaliveCnt
++ TcpKeepaliveIdle
++ TcpKeepaliveInterval
++ XPubVerbos
+
+We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that if you have read something in the [ZeroMQ guide]( http://zguide.zeromq.org/page:all) that mentions some option, that this is most likely the place you will need to set it/read from it
 
 

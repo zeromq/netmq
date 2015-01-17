@@ -48,6 +48,11 @@ namespace NetMQ.zmq.Utils
 
                 codeBuffer = (IntPtr)mmap.Invoke(null, new object[] { IntPtr.Zero, 
           size, mmapProtsParam, mmapFlagsParam, -1, 0 });
+
+                if (codeBuffer == IntPtr.Zero || codeBuffer == (IntPtr)(-1))
+                {
+                    throw new InvalidOperationException("Mmap failed");
+                }
             }
             else
             { // Windows

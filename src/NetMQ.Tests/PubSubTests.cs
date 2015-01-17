@@ -179,6 +179,88 @@ namespace NetMQ.Tests
             }
         }
 
+        [Test]
+        public void MultiplePublishers() {
+            using (NetMQContext contex = NetMQContext.Create()) {
+                using (var pub = contex.CreatePublisherSocket())
+                using (var pub2 = contex.CreatePublisherSocket()) {
+                    var address = "tcp://127.0.0.1:5002";
+                    var address2 = "tcp://127.0.0.1:5003";
+                    pub.Bind(address);
+                    pub2.Bind(address2);
+
+                    using (var sub = contex.CreateSubscriberSocket())
+                    using (var sub2 = contex.CreateSubscriberSocket()) {
+
+                        sub.Connect(address);
+                        sub.Connect(address2);
+
+                        sub2.Connect(address);
+                        sub2.Connect(address2);
+
+                        // should subscribe to both
+                        sub.Subscribe("A");
+                        sub2.Subscribe("A");
+
+                        Thread.Sleep(500);
+
+
+                        pub.SendMore("A");
+                        pub.Send("Hello from the first publisher");
+
+                        bool more;
+                        string m = sub.ReceiveString(out more);
+
+                        Assert.AreEqual("A", m);
+                        Assert.IsTrue(more);
+
+                        string m2 = sub.ReceiveString(out more);
+
+                        Assert.AreEqual("Hello from the first publisher", m2);
+                        Assert.False(more);
+
+                        pub2.SendMore("A");
+                        pub2.Send("Hello from the second publisher");
+
+                        string m3 = sub.ReceiveString(out more);
+
+                        Assert.AreEqual("A", m3);
+                        Assert.IsTrue(more);
+
+                        string m4 = sub.ReceiveString(out more);
+
+                        Assert.AreEqual("Hello from the second publisher", m4);
+                        Assert.False(more);
+
+
+                        // same for sub 2
+
+                        m = sub2.ReceiveString(out more);
+
+                        Assert.AreEqual("A", m);
+                        Assert.IsTrue(more);
+
+                        m2 = sub2.ReceiveString(out more);
+
+                        Assert.AreEqual("Hello from the first publisher", m2);
+                        Assert.False(more);
+
+                        m3 = sub2.ReceiveString(out more);
+
+                        Assert.AreEqual("A", m3);
+                        Assert.IsTrue(more);
+
+                        m4 = sub2.ReceiveString(out more);
+
+                        Assert.AreEqual("Hello from the second publisher", m4);
+                        Assert.False(more);
+
+                    }
+                }
+            }
+        }
+
+
         [Test, ExpectedException(typeof(AgainException))]
         public void UnSubscribe()
         {

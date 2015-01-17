@@ -212,7 +212,7 @@ namespace NetMQ.zmq.Patterns.Utils
                         Debug.Assert(m_count > newMin - m_minCharacter);
                         m_count = (short)(m_count - (newMin - m_minCharacter));
 
-                        m_next = m_next.Resize(m_count, true);
+                        m_next = m_next.Resize(m_count, false);
 
                         m_minCharacter = newMin;
                     }
@@ -231,7 +231,7 @@ namespace NetMQ.zmq.Patterns.Utils
                         Debug.Assert(newCount != m_count);
                         m_count = newCount;
 
-                        m_next = m_next.Resize(m_count, false);
+                        m_next = m_next.Resize(m_count, true);
                     }
                 }
             }
