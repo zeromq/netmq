@@ -28,7 +28,7 @@ The idea is that you would use the <code>AddSocket</code> to add the socket you 
 
 ## Poller Example
 
-So now that you know what the "Poller" does, perhaps it is time to see an example. 
+So now that you know what the <code>Poller</code> does, perhaps it is time to see an example. 
 
 The code below is a fully working Console application that demonstrates a single socket being added to the <code>Poller</code>. It can also be seen that the <code>ReceiveReady</code> event is hooked up too. The <code>Poller</code> will call this event handler back when the Socket (the one that is added to the <code>Poller</code>) is "Ready".
 
