@@ -3,18 +3,18 @@ Pub/Pub
 
 NetMQ comes with support for Pub/Sub by way of 2 sockets
 
-+ PublisherSocket
-+ SubscriberSocket
++ <code>PublisherSocket</code>
++ <code>SubscriberSocket</code>
 
-Which as usual can be created by using the NetMQContext methods .CreateXXXSocket() methods. Which in this case would be 
+Which as usual can be created by using the <code>NetMQContext</code> methods <code>.CreateXXXSocket()</code> methods. Which in this case would be 
 
-+ CreatePublisherSocket()
-+ CreateSubscriberSocket()
++ <code>CreatePublisherSocket()</code>
++ <code>CreateSubscriberSocket()</code>
 
 
-Topics
-=====
-NetMQ allows the use of topics, such that the **PublisherSocket** may send frame 1 (see the [messages documentation page](https://github.com/zeromq/netmq/blob/master/docs/message.md)) of the message which contains
+## Topics
+
+NetMQ allows the use of topics, such that the <code>PublisherSocket</code> may send frame 1 (see the [messages documentation page](https://github.com/zeromq/netmq/blob/master/docs/message.md)) of the message which contains
 the topic name followed by the actual message, where you may have something like this
 
 <table CellSpacing="0" Padding="0">
@@ -28,11 +28,11 @@ the topic name followed by the actual message, where you may have something like
 </tr>
 </table>
 
-An example of this in code may be something like this (though you could also use the NetMQMessage approach where you add the frames one by one):
+An example of this in code may be something like this (though you could also use the <code>NetMQMessage</code> approach where you add the frames one by one):
 
     pubSocket.SendMore("TopicA").Send("This is a 'TopicA' message");
 
-The **SubscriberSocket** may also choose to subscribe to a certain topic only, which it does by passing the topic name into the Subscriber() method of the SubscriberSocket.
+The <code>SubscriberSocket</code> may also choose to subscribe to a certain topic only, which it does by passing the topic name into the <code>Subscribe()</code> method of the <code>SubscriberSocket</code>.
 
 An example of this would be as follows:
 
@@ -42,8 +42,8 @@ An example of this would be as follows:
 ## How Do You Subscribe To ALL Topics?
 
 It is also possibe for a subscriber to subscribe to all topics from a publishing socket, which means it will recieve (that is providing no messages are dropped see 'Further Considerations'section below)
-ALL the messages from the PublisherSocket the SubscriberSocket is connected to. This is easily achieved, all you need to do in the subscriber is to pass an empty string ("") in for the topic name when
-calling the subscriberSocket.Subscribe() method. 
+ALL the messages from the <code>PublisherSocket</code> the <code>SubscriberSocket</code> is connected to. This is easily achieved, all you need to do in the subscriber is to pass an empty string ("") in for the topic name when
+calling the <code>subscriberSocket.Subscribe()</code> method. 
 
 
 ## An Example
@@ -203,7 +203,7 @@ When you run this you should see something like this, where it can be seen that
 
 
 <br/>
-<img src="https://github.com/zeromq/netmq/blob/master/docs/Images/PubSubUsingTopics.png"/>
+<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/PubSubUsingTopics.png"/>
 
 
 
@@ -214,16 +214,16 @@ Other Considerations
 **HighWaterMark**
 
 
-The SendHighWaterMark/ReceiveHighWaterMark options set the high water mark for the specified socket. The high water mark is a hard limit on the maximum number of outstanding messages NetMQ shall queue in memory for any single peer that the specified socket is communicating with.
+The <code>SendHighWaterMark/ReceiveHighWaterMark</code> options set the high water mark for the specified socket. The high water mark is a hard limit on the maximum number of outstanding messages NetMQ shall queue in memory for any single peer that the specified socket is communicating with.
 
 If this limit has been reached the socket shall enter an exceptional state and depending on the socket type, NetMQ shall take appropriate action such as blocking or dropping sent messages. 
 
-The default SendHighWaterMark/ReceiveHighWaterMark value of zero means "no limit".
+The default <code>SendHighWaterMark/ReceiveHighWaterMark</code> value of zero means "no limit".
 
-You would set these 2 options using the xxxxSocket.Options property as follows:
+You would set these 2 options using the <code>xxxxSocket.Options</code> property as follows:
 
-+  pubSocket.Options.SendHighWatermark = 1000;
-+  pubSocket.Options.ReceiveHighWatermark = 1000;
++  <code>pubSocket.Options.SendHighWatermark = 1000;</code>
++  <code>pubSocket.Options.ReceiveHighWatermark = 1000;</code>
 
 
 **Slow Subscribers**
