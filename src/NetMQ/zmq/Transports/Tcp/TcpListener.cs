@@ -212,12 +212,15 @@ namespace NetMQ.zmq.Transports.Tcp
                 m_socket.EventCloseFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
             }
 
-            try
+            if (m_acceptedSocket != null)
             {
-                m_acceptedSocket.Dispose();
-            }
-            catch (SocketException)
-            {                                
+                try
+                {
+                    m_acceptedSocket.Dispose();
+                }
+                catch (SocketException)
+                {
+                }
             }
 
             m_acceptedSocket = null;
