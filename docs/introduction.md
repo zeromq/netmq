@@ -1,46 +1,43 @@
 Introduction
 =====
 
-So you are looking for a messaging library, you might have become frustrated with WCF or MSMQ (I know I'm) and heard that ZeroMQ is very fast and then you got here, NetMQ, the .net port of ZeroMQ.
+So you are looking for a messaging library, you might have become frustrated with WCF or MSMQ (we know we have been there too) and heard that ZeroMQ is very fast and then you got here, NetMQ, the .net port of ZeroMQ.
 
 So yes, NetMQ is a messaging library and it is fast, but NetMQ has a bit of learning curve, and hopefully you will get it fast.
 
-Where to start
-=====
+## Where to start
+
 ZeroMQ and NetMQ is not just a library that you download, looks at the some code samples and you are done, there is a philosophy behind it and to make good use of it you have to understand it. So the best place to start is with the [ZeroMQ guide]( http://zguide.zeromq.org/page:all), read it, even twice and then come back here.
 
-The Zero in ZeroMQ
-=====
+## The Zero in ZeroMQ
+
 The philosophy of ZeroMQ start with the zero, the zero is for zero broker (ZeroMQ is brokerless), zero latency, zero cost (it's free), zero administration.
 
 More generally, "zero" refers to the culture of minimalism that permeates the project. We add power by removing complexity rather than by exposing new functionality.
 
-Getting the library
-=====
+## Getting the library
 
 You can get NetMQ library from [nuget](https://nuget.org/packages/NetMQ/).
 
 
-Context
-=====
+## Context
 
-The NetMQContext is what is used to create ALL sockets. Therefore any NetMQ code should start by creating a NetMQContext, which can be done by using the NetMQContext.Create() method. NetMQContext is IDisposable so can be used within a using block.
+The <code>NetMQContext</code> is what is used to create ALL sockets. Therefore any NetMQ code should start by creating a <code>NetMQContext</code>, which can be done by using the <code>NetMQContext.Create()</code> method. <code>NetMQContext</code> is <code>IDisposable</code> so can be used within a <code>using</code> block.
 
 You should create and use exactly one context in your process. Technically, the context is the container for all sockets in a single process, and acts as the transport for inproc sockets, which are the fastest way to connect threads in one process. If at runtime a process has two contexts, these are like separate NetMQ instances. If that's explicitly what you want, OK, but otherwise you should follow these rules:
 
-Have one NetMQContext ONLY. This will be used to created ALL sockets within the process.
+Have one <code>NetMQContext</code> ONLY. This will be used to created ALL sockets within the process.
 
 
-Sending and receiving
-=====
+## Sending and receiving
 
 Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (https://github.com/zeromq/netmq/blob/master/docs/receiving-sending.md)
 
 
 
-First example
-=====
-So let's start with some code, the Hello world example of course.
+## First example
+
+So let's start with some code, the "Hello world" example (of course).
 
 **Server:**
     
@@ -96,7 +93,7 @@ The client create a socket of type response, connect and start sending messages.
 
 Both the sending and receive methods are blocking, for the receive it is simple, if there are no messages the method will block, for sending it is more complicated and depends on the socket type. In request socket type if the high watermark is reached or no peer is connected the method will block.
 
-You can however call receive or send with the DontWait flag to avoid the waiting, make sure to wrap the send or receive with try and catch the AgainException, like so:
+You can however call receive or send with the <code>DontWait</code> flag to avoid the waiting, make sure to wrap the send or receive with try and catch the <code>AgainException</code>, like so:
 
     try
     {
@@ -109,8 +106,8 @@ You can however call receive or send with the DontWait flag to avoid the waiting
     }
 
 
-Bind Versus Connect
-=====
+## Bind Versus Connect
+
 In the above you may have noticed that the *Server* used *Bind* while the *Client* used *Connect*, why is this, and what is the difference?
 
 ZeroMQ creates queues per underlying connection, e.g. if your socket is connected to 3 peer sockets there are 3 messages queues.
@@ -132,10 +129,7 @@ You can read more about this at the ZeroMQ FAQ http://zeromq.org/area:faq under 
 
 
 
-
-
-Multipart messages
-=====
+## Multipart messages
 
 ZeroMQ/NetMQ work on the concept of frames, as such most messages are considered to be made up of one or more frames. NetMQ provides some convenience methods to allow you to send string messages. You should however, familiarise yourself with the the idea of multiple frames and how they work.
 
@@ -144,8 +138,8 @@ This is covered in much more detail in the [Message](https://github.com/zeromq/n
 
 
 
-Patterns
-=====
+## Patterns
+
 [ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about patterns, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
 
 + [Chapter 2 - Sockets and Patterns] (http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns)
@@ -169,8 +163,8 @@ For other patterns, the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) will b
 
 
 
-Options
-=====
+## Options
+
 NetMQ comes with several options that will effect how things work. 
 
 Depending on the type of sockets you are using, or the topology you are attempting to create, you may find that you need to set some NeroMQ options. In NetMQ this is done using the xxxxSocket.Options property.
