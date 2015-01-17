@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>$id$</id>
-    <version>$version$</version>
+    <version>$version$-rc1</version>
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
@@ -13,23 +13,30 @@
     <description>$description$</description>
 	  <releaseNotes>
       Features:
-      * Buffer Pooling - Buffer pooling can be enabled to reduce the memory allocation.
-      * NetMQBeacon - Port of CZMQ beacon to NetMQ.
-      * Actor - Port of CZMQ Actor to NetMQ.
-      * XSub can send messages (other than subscribe or unsubscribe) to XPub (messages should not start with 0 or 1). Ported from libzmq.
-      * Encoding overload to all Send/Receive string methods.
-      * Pushing and popping numbers from NetMQMessage
-      * NetworkOrderBitsConveter to convert numbers to byte array and vice versa
-      * NetMQFrame implements GetHashCode and Equals
+      * DotNet 3.5 support
+      * Using IO Completion Port
+      * Poller support native sockets
+      * Exceptions and error codes are more expressive
+      * XPub Welcome Message
+      * XPub Manual Subscriptions
+      * Refactoring of Poller methods
+      * Refactoring of Actor
+      * Improve router performance by using MurMurHash
 
       Bug Fixes:
-      * Disconnect and Unbind fixed
-      * Mono address in use bug - using ephemeral port for Signaler
-      * Stream Engine fix - ported multiple bug fixes from libzmq
-      * PGM High Frequency Bug
-      * Poller Exception Bug
+      * Exceptions are serializeable
+      * Fix XPub.Verbose Cast exception
+      * Fix optimization exception on OSX
+      * Fix XSub subscriptions bug
+      * Fix memory overflow issue
+      * Fix bug in YPipe
+
     </releaseNotes>
-    <copyright>Copyright 2013</copyright>
+    <copyright>Copyright 2015</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>
   </metadata>
+  <files>
+    <file src="bin\Release\NetMQ.dll" target="lib\net40\" />
+    <file src="bin\3.5\Release\NetMQ.dll" target="lib\net35\" />
+  </files>
 </package>

@@ -185,9 +185,25 @@ namespace NetMQ.zmq.Transports.Tcp
                 m_handleValid = false;
 
                 m_s.NoDelay = true;
-                
-                //Utils.TuneTcpKeepalives(m_s, m_options.TcpKeepalive, m_options.TcpKeepaliveCnt, m_options.TcpKeepaliveIdle, m_options.TcpKeepaliveIntvl);
 
+                if (m_options.TcpKeepalive != -1)
+                {
+                    m_s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
+
+                    if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
+                    {
+                        ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
+
+                        Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
+
+                        bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
+                        bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
+                        bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
+
+                        m_s.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                    }
+                }
+                
                 //  Create the engine object for this connection.
                 StreamEngine engine = new StreamEngine(m_s, m_options, m_endpoint);
 

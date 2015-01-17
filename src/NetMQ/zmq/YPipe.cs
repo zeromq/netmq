@@ -123,7 +123,7 @@ namespace NetMQ.zmq
         {
             //  Was the value prefetched already? If so, return.
             int head = m_queue.FrontPos;
-            if (head != m_readToIndex)
+            if (head != m_readToIndex && m_readToIndex != -1)
                 return true;
 
             //  There's no prefetched value, so let us prefetch more values.

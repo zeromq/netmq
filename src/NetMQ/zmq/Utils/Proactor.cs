@@ -9,6 +9,8 @@ namespace NetMQ.zmq.Utils
 {
     class Proactor : PollerBase
     {
+        private const int CompletionStatusArraySize = 100;
+
         private readonly string m_name;
         private CompletionPort m_completionPort;
         private Thread m_worker;
@@ -94,48 +96,53 @@ namespace NetMQ.zmq.Utils
 
         private void Loop()
         {
-            CompletionStatus completionStatus;
+            CompletionStatus[] completionStatuses = new CompletionStatus[CompletionStatusArraySize];
 
             while (!m_stopping)
             {
                 //  Execute any due timers.
                 int timeout = ExecuteTimers();
 
-                if (m_completionPort.GetQueuedCompletionStatus(timeout != 0 ? timeout : -1, out completionStatus))
-                {
-                    if (completionStatus.OperationType == OperationType.Signal)
-                    {
-                        IOThreadMailbox mailbox = (IOThreadMailbox)completionStatus.State;
-                        mailbox.RaiseEvent();
-                    }
-                    // if the state is null we just ignore the completion status
-                    else if (completionStatus.State != null)
-                    {
-                        Item item = (Item)completionStatus.State;
+                int removed;
 
-                        if (!item.Cancelled)
+                if (m_completionPort.GetMultipleQueuedCompletionStatus(timeout != 0 ? timeout : -1, completionStatuses, out removed))
+                {
+                    for (int i = 0; i < removed; i++)
+                    {
+                        if (completionStatuses[i].OperationType == OperationType.Signal)
                         {
-                            try
+                            IOThreadMailbox mailbox = (IOThreadMailbox)completionStatuses[i].State;
+                            mailbox.RaiseEvent();
+                        }
+                        // if the state is null we just ignore the completion status
+                        else if (completionStatuses[i].State != null)
+                        {
+                            Item item = (Item)completionStatuses[i].State;
+
+                            if (!item.Cancelled)
                             {
-                                switch (completionStatus.OperationType)
+                                try
                                 {
-                                    case OperationType.Accept:
-                                    case OperationType.Receive:
-                                        item.ProcatorEvents.InCompleted(completionStatus.SocketError,
-                                            completionStatus.BytesTransferred);
-                                        break;
-                                    case OperationType.Connect:
-                                    case OperationType.Disconnect:
-                                    case OperationType.Send:
-                                        item.ProcatorEvents.OutCompleted(completionStatus.SocketError,
-                                            completionStatus.BytesTransferred);
-                                        break;
-                                    default:
-                                        throw new ArgumentOutOfRangeException();
+                                    switch (completionStatuses[i].OperationType)
+                                    {
+                                        case OperationType.Accept:
+                                        case OperationType.Receive:
+                                            item.ProcatorEvents.InCompleted(completionStatuses[i].SocketError,
+                                                completionStatuses[i].BytesTransferred);
+                                            break;
+                                        case OperationType.Connect:
+                                        case OperationType.Disconnect:
+                                        case OperationType.Send:
+                                            item.ProcatorEvents.OutCompleted(completionStatuses[i].SocketError,
+                                                completionStatuses[i].BytesTransferred);
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
                                 }
-                            }
-                            catch (TerminatingException)
-                            {
+                                catch (TerminatingException)
+                                {
+                                }
                             }
                         }
                     }
