@@ -30,7 +30,7 @@ So if you have come here after looking at some of the introductory material, you
     }
 
 
-Where you may have noticed (or perhaps not) that the NetMQ socket(s) have a RecieveString() method. This is good, and extremely useful, but you may be fooled into thinking this is what you should be using all the time.
+Where you may have noticed (or perhaps not) that the NetMQ socket(s) have a <code>RecieveString()</code> method. This is good, and extremely useful, but you may be fooled into thinking this is what you should be using all the time.
 
 Truth is ZeroMQ, and therefore NetMQ are really frame based, which implies some form of protocol. Some of you may balk at this prospect, and may curse, and think damm it, I am not a protocol designer I was not expecting to get my hands that dirty.
 
@@ -51,12 +51,11 @@ There is also an inbuilt concept of "more" which you can integrate for. We will 
 
 
 
-How Do I Create Frames
-=====
+## How Do I Create Frames
 
-Creating multi part messages is fairly simple, we just need to use the NetMQMessage class, and then make use of one of the many Append() method overloads (there are overloads for appending Blob/NetMQFrame/Byte[]/int/long/string).
+Creating multi part messages is fairly simple, we just need to use the <code>NetMQMessage</code> class, and then make use of one of the many <code>Append()</code> method overloads (there are overloads for appending Blob/NetMQFrame/Byte[]/int/long/string).
 
-Here is a simple example where we create a new NetMQMessage which expects to contain 2 NetMQFrame(s), and we use the NetMQMessage.Append() method to append 2 string values.
+Here is a simple example where we create a new <code>NetMQMessage</code> which expects to contain 2 <code>NetMQFrame</code>(s), and we use the <code>NetMQMessage.Append()</code> method to append 2 string values.
 
     var message = new NetMQMessage();
     message.Append("IAmFrame0");
@@ -64,9 +63,9 @@ Here is a simple example where we create a new NetMQMessage which expects to con
     server.SendMessage(message);
 
 
-There is also another way of doing this, which is to use the NetMQ IOutgoingSocket.SendMore() (an internal interface) method. This doesn't have as many overloads as SendMessage but it is still ok, it allows you to send Byte[] and string data quite easily. 
+There is also another way of doing this, which is to use the NetMQ <code>IOutgoingSocket.SendMore()</code> (an internal interface) method. This doesn't have as many overloads as <code>SendMessage</code> but it is still ok, it allows you to send Byte[] and string data quite easily. 
 
-Here is an example of usage, where we are sending 2 string values using the IOutgoingSocket.SendMore() method
+Here is an example of usage, where we are sending 2 string values using the <code>IOutgoingSocket.SendMore()</code> method
 
 
     var client = ctx.CreateRequestSocket()
@@ -76,15 +75,13 @@ Here is an example of usage, where we are sending 2 string values using the IOut
     client.SendMore("A");
     client.Send("Hello");
 
-The problem with using IOutgoingSocket.SendMore() rather than IOutgoingSocket.Send(), if you intend to send more than 1 
-frame, is that you MUST ensure you call SendMore, where as if you use the SendMessage() method, you do not have to worry about that, that is all taken care of for you.
+The problem with using <code>IOutgoingSocket.SendMore()</code> rather than <code>IOutgoingSocket.Send()</code>, if you intend to send more than 1 frame, is that you MUST ensure you call <code>SendMore</code>, where as if you use the <code>SendMessage()</code> method, you do not have to worry about that, that is all taken care of for you.
 
 
 
-How Do I Read Frames
-=====
+## How Do I Read Frames
 
-Reading multiple frames can also be done in 2 ways. You may use the NetMQ conveience RecieveString(out more) method mutiple times, where you would need to know if there was more than 1 message part to read, which you would need to track in a bool variable. This is shown below
+Reading multiple frames can also be done in 2 ways. You may use the NetMQ conveience <code>RecieveString(out more)</code> method mutiple times, where you would need to know if there was more than 1 message part to read, which you would need to track in a bool variable. This is shown below
 
     //client send message
     client.SendMore("A");
@@ -108,7 +105,7 @@ Reading multiple frames can also be done in 2 ways. You may use the NetMQ convei
         Console.WriteLine("================================");
     }
     
-An easier way is to use the RecieveMessage() method, and then read the frames as you want to. Here is an example of that
+An easier way is to use the <code>RecieveMessage()</code> method, and then read the frames as you want to. Here is an example of that
 
     var message4 = client.ReceiveMessage();
     Console.WriteLine("message4={0}", message4);
@@ -119,8 +116,7 @@ An easier way is to use the RecieveMessage() method, and then read the frames as
 
 
 
-A Full Example
-=====
+## A Full Example
 
 Just to solidify this information here is a complete example showing everything we have discussed above:
 
