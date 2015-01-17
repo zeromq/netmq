@@ -8,8 +8,7 @@ In fact there are quite a few options available to you. Lets go through some of 
 
 
 
-Receiving
-=====
+## Receiving
 
 A <code>NetMQSocket</code> (which all the socket types inherit from) has a single <code>public virtual void Receive(ref Msg msg, SendReceiveOptions options)</code> method. But you will likely not actually use this
 method. What you will end up using is one the extra extension methods that is available for <code>IReceivingSocket</code>.
@@ -72,8 +71,7 @@ Here is an example of how one of the above extension methods is implemented, whi
 
 
 
-Sending
-=====
+## Sending
 
 A <code>NetMQSocket</code> (which all the socket types inherit from) has a single <code>public virtual void Send(ref Msg msg, SendReceiveOptions options)</code> method. But you will likely not actually use this
 method. What you will end up using is one the extra extension methods that is available for <code>IOutgoingSocket</code>. 
@@ -115,7 +113,6 @@ Here is an example of how one of the above extension methods is implemented, whi
     }
 
 
-Further Reading
-=====
+## Further Reading
 
 If you are looking at some of the method signatures, and wondering why/how you should use them, you should read a bit more on the messaging philosophy that NetMQ uses. The [Message] (https://github.com/zeromq/netmq/blob/master/docs/Message.md) page has some helpful information around this area.
