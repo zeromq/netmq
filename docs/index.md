@@ -7,9 +7,9 @@ NetMQ is lightweight messaging library which extends the standard socket interfa
 
 The best to start learning NetMQ is to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all).
 
-## We need your help
+## Documentation
 
-The NetMQ documentation project is still under construction. If you want to help please pick one of the topic and fill in the missing documentation at [https://github.com/zeromq/netmq/tree/master/docs](https://github.com/zeromq/netmq/tree/master/docs)
+The NetMQ documentation is available at [http://netmq.readthedocs.org/en/latest/](http://netmq.readthedocs.org/en/latest/)
 
 ## Installation
 
