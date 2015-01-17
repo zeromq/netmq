@@ -11,8 +11,7 @@ Each of these is discussed below
 
 
 
-TCP
-=====
+## TCP
 
 TCP is the most common protocol that gets used, as such most of the examples shown will use TCP. Here is another trivial
 example
@@ -74,7 +73,7 @@ Received World<br/>
 </p>
 
 
-Where it can be seen that the format of the tcp information used in the Bind() and Connect() methods are of the form shown below
+Where it can be seen that the format of the tcp information used in the <code>Bind()</code> and <code>Connect()</code> methods are of the form shown below
 
 tcp://*:5555
 
@@ -87,8 +86,8 @@ This is made up of 3 parts :
 
 
 
-InProc
-=====
+## InProc
+
 
 InProc (In process) allows you to connect different parts the current process. This is actually quite useful, and
 you may do this for several reasons:
@@ -98,7 +97,7 @@ you may do this for several reasons:
 + Being able to communicate between very disparate parts of a system
 
 NetMQ comes with several components that use InProc, such as [Actor model] (https://github.com/zeromq/netmq/blob/master/docs/actor.md) and [Devices] (https://github.com/zeromq/netmq/blob/master/docs/devices.md), which are discussed
-in thier relevant documentation pages.
+in their relevant documentation pages.
 
 
 For now to demonstrate a simple InProc arrangement, let's try and send some message (a string to keep it simple, but this could be some serialized object) between 2 threads.
@@ -177,7 +176,7 @@ Hello<br/>
 
 
 
-Where it can be seen that the format of the Inproc information used in the Bind() and Connect() methods are of the form shown below
+Where it can be seen that the format of the Inproc information used in the <code>Bind()</code> and <code>Connect()</code> methods are of the form shown below
 
 **inproc://InprocTest_5555**
 
@@ -192,9 +191,7 @@ This is made up of 2 parts :
 
 
 
-PGM
-====
-
+## PGM
 
 Pragmatic General Multicast (PGM) is a reliable multicast transport protocol for applications that require ordered
 or unordered, duplicate-free, multicast data delivery from multiple sources to multiple receivers.  
@@ -206,18 +203,18 @@ regard for scalability and network efficiency.
 
 To use PGM with NetMQ, we do not have to do too much. We just need to follow these 3 pointers:
 
-1. The socket types are now PublisherSocket and SubscriberSocket
+1. The socket types are now <code>PublisherSocket</code> and <code>SubscriberSocket</code>
    which are talked about in more detail in the [pub-sub] (https://github.com/zeromq/netmq/blob/master/docs/pub-sub.md) documentation.
 2. Make sure you are running the app as "Administrator"
 3. Make sure you have turned on the "Multicasting Support". You can do that as follows:
 
 
 <br/>
-![alt text](https://github.com/zeromq/netmq/blob/master/docs/Images/PgmSettingsInWindows.png "PgmSettingsInWindows")
+<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/PgmSettingsInWindows.png"/>
 
 
 
-Here is a small demo that use PGM, as well as PublisherSocket and SubscriberSocket and a few option values.
+Here is a small demo that use PGM, as well as <code>PublisherSocket</code> and <code>SubscriberSocket</code> and a few option values.
 
     using System;
     using NetMQ;
@@ -288,7 +285,7 @@ sub2 message = 'Hi'<br/>
 
 
 
-Where it can be seen that the format of the Pgm information used in the Bind() and Connect() methods are of the form shown below
+Where it can be seen that the format of the Pgm information used in the <code>Bind()</code> and <code>Connect()</code> methods are of the form shown below
 
 pgm://224.0.0.1:5555
 
