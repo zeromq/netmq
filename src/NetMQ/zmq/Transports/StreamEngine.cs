@@ -688,10 +688,15 @@ namespace NetMQ.zmq.Transports
                 if (processed < m_insize)
                 {
                     m_receivingState = ReceiveState.Stuck;
-                }
 
-                m_inpos.AdvanceOffset(processed);
-                m_insize -= processed;
+                    m_inpos.AdvanceOffset(processed);
+                    m_insize -= processed;
+                }
+                else
+                {
+                    m_inpos = null;
+                    m_insize = 0;
+                }                
             }
 
             //  Flush all messages the decoder may have produced.
