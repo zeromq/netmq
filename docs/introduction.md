@@ -170,15 +170,15 @@ The built-in core ZeroMQ patterns are:
 
 These are the socket combinations that are valid for a connect-bind pair (either side can bind):
 
-+ PublisherSocket and SubscriberSocket
-+ RequestSocket and ResponseSocket
-+ RequestSocket  and RouterSocket
-+ DealerSocket and ResponseSocket
-+ DealerSocket and RouterSocket
-+ DealerSocket and DealerSocket
-+ RouterSocket and RouterSocket
-+ PUSH and PULL
-+ PAIR and PAIR
++ <code>PublisherSocket</code> and <code>SubscriberSocket</code>
++ <code>RequestSocket</code> and <code>ResponseSocket</code>
++ <code>RequestSocket</code>  and <code>RouterSocket</code>
++ <code>DealerSocket</code> and <code>ResponseSocket</code>
++ <code>DealerSocket</code> and <code>RouterSocket</code>
++ <code>DealerSocket</code> and <code>DealerSocket</code>
++ <code>RouterSocket</code> and <code>RouterSocket</code>
++ <code>PushSocket</code> and <code>PullSocket</code>
++ <code>PairSocket</code> and <code>PairSocket</code>
 
 Any other combination will produce undocumented and unreliable results, and future versions of ZeroMQ will probably return errors if you try them. You can and will, of course, bridge other socket types via code, i.e., read from one socket type and write to another.
 
