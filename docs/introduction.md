@@ -159,6 +159,28 @@ Here are some links to the patterns that are available within the NetMQ codebase
 
 For other patterns, the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) will be your first port of call
 
+ZeroMQ patterns are implemented by pairs of sockets with matching types. In other words, to understand ZeroMQ patterns you need to understand socket types and how they work together. Mostly, this just takes study; there is little that is obvious at this level.
+
+The built-in core ZeroMQ patterns are:
+
++ **Request-reply**, which connects a set of clients to a set of services. This is a remote procedure call and task distribution pattern.
++ **Pub-sub**, which connects a set of publishers to a set of subscribers. This is a data distribution pattern.
++ **Pipeline**, which connects nodes in a fan-out/fan-in pattern that can have multiple steps and loops. This is a parallel task distribution and collection pattern.
++ **Exclusive pair**, which connects two sockets exclusively. This is a pattern for connecting two threads in a process, not to be confused with "normal" pairs of sockets.
+
+These are the socket combinations that are valid for a connect-bind pair (either side can bind):
+
++ PublisherSocket and SubscriberSocket
++ RequestSocket and ResponseSocket
++ RequestSocket  and RouterSocket
++ DealerSocket and ResponseSocket
++ DealerSocket and RouterSocket
++ DealerSocket and DealerSocket
++ RouterSocket and RouterSocket
++ PUSH and PULL
++ PAIR and PAIR
+
+Any other combination will produce undocumented and unreliable results, and future versions of ZeroMQ will probably return errors if you try them. You can and will, of course, bridge other socket types via code, i.e., read from one socket type and write to another.
 
 
 
