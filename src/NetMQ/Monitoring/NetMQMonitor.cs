@@ -174,10 +174,16 @@ namespace NetMQ.Monitoring
         }
 
         private void InternalClose()
-        {            
-            MonitoringSocket.Disconnect(Endpoint);            
-            IsRunning = false;
-            m_isStoppedEvent.Set();
+        {
+            try
+            {
+                MonitoringSocket.Disconnect(Endpoint);
+            }
+            finally 
+            {
+                IsRunning = false;
+                m_isStoppedEvent.Set();
+            }
         }
 
         public void AttachToPoller(Poller poller)
