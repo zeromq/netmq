@@ -241,11 +241,13 @@ start Worker.exe<br/>
 
 Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine)
 
-====== SINK ======
-Seen start of batch
-:………:………:………:………:………:………:………:………
-:………:………
-Total elapsed time 5695 msec
+<i>
+====== SINK ======<br/>
+Seen start of batch<br/>
+:………:………:………:………:………:………:………:………<br/>
+:………:………<br/>
+Total elapsed time 5695 msec<br/>
+</i>
 
 
 
@@ -268,12 +270,13 @@ start Worker.exe<br/>
 
 Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine)
 
-====== SINK ======
-Seen start of batch
-:………:………:………:………:………:………:………:………
-:………:………
-Total elapsed time 2959 msec
-
+<i>
+====== SINK ======<br/>
+Seen start of batch<br/>
+:………:………:………:………:………:………:………:………<br/>
+:………:………<br/>
+Total elapsed time 2959 msec<br/>
+</i>
 
 
 <br/>
@@ -296,11 +299,14 @@ start Worker.exe<br/>
 
 Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine)
 
-====== SINK ======
-Seen start of batch
-:………:………:………:………:………:………:………:………
-:………:………
-Total elapsed time 1492 msec
+
+<i>
+====== SINK ======<br/>
+Seen start of batch<br/>
+:………:………:………:………:………:………:………:………<br/>
+:………:………<br/>
+Total elapsed time 1492 msec<br/>
+</i>
 
 
 <br/>
