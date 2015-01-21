@@ -12,7 +12,7 @@ Identities are a difficult concept to understand, but it's essential if you want
 </i>
 <br/>
 <br/>
-The text above is taken from [ZeroMQ guide](http://zguide.zeromq.org/page:all).
+The text above is taken from <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>.
 
 
 So if we looked at a small example, let's say a <code>DealerSocket</code> socket has a 3-byte identity ABC. Internally, this means the <code>RouterSocket</code> socket keeps a hash table where it can search for ABC and find the TCP connection for the <code>DealerSocket</code> socket.
@@ -41,7 +41,9 @@ This is true even if you flip the rules and make the ROUTER connect to the peer 
 </i>
 <br/>
 <br/>
-The text above is taken from [ZeroMQ guide, Identities and Addresses](http://zguide.zeromq.org/page:all#Identities-and-Addresses).
+The text above is taken from <a href="http://zguide.zeromq.org/page:all#Identities-and-Addresses" target="_blank">ZeroMQ guide, Identities and Addresses</a>
+
+
 
 
 
@@ -56,7 +58,7 @@ things in the wrong order, or more than expected.
 The main selling point of a <code>DealerSocket</code> is its asynchronous abilities. Typically a <code>DealerSocket</code> would be used in conjunction with a <code>RouterSocket</code>, which is why we have decided to bundle the description of both these socket types into
 this documentation page.
 
-If you want to know more details about socket combinations involving <code>DealerSocket</code>(s), then as ALWAYS the guide is your friend. In particular the [Request-Reply Combinations](http://zguide.zeromq.org/page:all#toc58) page of the guide my be of interest.
+If you want to know more details about socket combinations involving <code>DealerSocket</code>(s), then as ALWAYS the guide is your friend. In particular the <a href="http://zguide.zeromq.org/page:all#toc58" target="_blank">Request-Reply Combinatio</a> page of the guide my be of interest.
 
 
 
