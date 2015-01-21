@@ -7,7 +7,7 @@ So yes, NetMQ is a messaging library and it is fast, but NetMQ has a bit of lear
 
 ## Where to start
 
-ZeroMQ and NetMQ is not just a library that you download, looks at the some code samples and you are done, there is a philosophy behind it and to make good use of it you have to understand it. So the best place to start is with the [ZeroMQ guide]( http://zguide.zeromq.org/page:all), read it, even twice and then come back here.
+ZeroMQ and NetMQ is not just a library that you download, looks at the some code samples and you are done, there is a philosophy behind it and to make good use of it you have to understand it. So the best place to start is with the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, read it, even twice and then come back here.
 
 ## The Zero in ZeroMQ
 
@@ -17,7 +17,7 @@ More generally, "zero" refers to the culture of minimalism that permeates the pr
 
 ## Getting the library
 
-You can get NetMQ library from [nuget](https://nuget.org/packages/NetMQ/).
+You can get NetMQ library from <a href="https://nuget.org/packages/NetMQ/" target="_blank">nuget</a>
 
 
 ## Context
@@ -140,7 +140,7 @@ This is covered in much more detail in the [Message](http://netmq.readthedocs.or
 
 ## Patterns
 
-[ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about patterns, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
+<a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> (and therefore NetMQ) is all about patterns, and building blocks. The <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
 
 + <a href="http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns" target="_blank">Chapter 2 - Sockets and Patterns</a>
 + <a href="http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns" target="_blank">Chapter 3 - Advanced Request-Reply Patterns</a>
@@ -148,7 +148,7 @@ This is covered in much more detail in the [Message](http://netmq.readthedocs.or
 + <a href="http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns" target="_blank">Chapter 5 - Advanced Pub-Sub Patterns</a>
 
 
-NetMQ also has some examples of a few of these patterns written using the NetMQ APIs. Should you find the pattern you are looking for in the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) it should be fairly easy to translate that into NetMQ usage.
+NetMQ also has some examples of a few of these patterns written using the NetMQ APIs. Should you find the pattern you are looking for in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> it should be fairly easy to translate that into NetMQ usage.
 
 Here are some links to the patterns that are available within the NetMQ codebase:
 
@@ -159,7 +159,7 @@ Here are some links to the patterns that are available within the NetMQ codebase
 
 
 
-For other patterns, the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) will be your first port of call
+For other patterns, the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> will be your first port of call
 
 ZeroMQ patterns are implemented by pairs of sockets with matching types. In other words, to understand ZeroMQ patterns you need to understand socket types and how they work together. Mostly, this just takes study; there is little that is obvious at this level.
 
@@ -224,6 +224,6 @@ Here is a listing of the available properties that you may set on a xxxxSocket. 
 + TcpKeepaliveInterval
 + XPubVerbos
 
-We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that if you have read something in the [ZeroMQ guide]( http://zguide.zeromq.org/page:all) that mentions some option, that this is most likely the place you will need to set it/read from it
+We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that if you have read something in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> that mentions some option, that this is most likely the place you will need to set it/read from it
 
 
