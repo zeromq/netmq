@@ -73,7 +73,7 @@ Time for an example. The best way to think of this example is summarized in the 
 Ok so that is the overview, what does the code look like, lets see:
 
 <pre>
-<code lang="cpp">
+<code lang="cs">
 
     using System;
     using System.Text;
