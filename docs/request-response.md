@@ -83,6 +83,7 @@ Example:
 
 When you run this demo code you should see something like this:
 <br/>
+<br/>
 <img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/RequestResponse.png"/>
 
 
@@ -96,6 +97,7 @@ As stated above <code>RequestSocket/ResponseSocket</code> is blocking, which mea
 In this example we try and call <code>Send()</code> twice from the <code>RequestSocket</code>
 
 <br/>
+<br/>
 <img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/RequestResponse2Sends.png"/>
 
 
@@ -104,6 +106,7 @@ In this example we try and call <code>Send()</code> twice from the <code>Request
 Or how about this example where we try and call <code>RecieveString()</code> twice, but there was only one message sent from the <code>RequestSocket</code>
 
 
+<br/>
 <br/>
 <img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/RequestResponse2Receives.png"/>
 
