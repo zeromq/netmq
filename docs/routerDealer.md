@@ -72,7 +72,6 @@ Time for an example. The best way to think of this example is summarized in the 
 
 Ok so that is the overview, what does the code look like, lets see:
 
-```csharp
 
     using System;
     using System.Text;
@@ -81,7 +80,6 @@ Ok so that is the overview, what does the code look like, lets see:
     using NetMQ;
     using NetMQ.Sockets;
 
-    //TEST
     namespace RouterDealer
     {
         public class Program
@@ -202,7 +200,7 @@ Ok so that is the overview, what does the code look like, lets see:
             }
         }
     }
-```
+
 
 When you run this you should see some output something like this (remember this is asynchronous code here, so things may not come in the order you logically expect)
 
