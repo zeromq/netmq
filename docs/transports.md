@@ -16,6 +16,7 @@ Each of these is discussed below
 TCP is the most common protocol that gets used, as such most of the examples shown will use TCP. Here is another trivial
 example
 
+
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -104,6 +105,7 @@ For now to demonstrate a simple InProc arrangement, let's try and send some mess
 
 Here is some demo code:
 
+
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -131,8 +133,6 @@ Here is some demo code:
                         end1.Send("Hello");
                     
                     });
-
-
                     var end2Task = Task.Run(() =>
                     {
                         Console.WriteLine("ManagedThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
@@ -210,6 +210,8 @@ To use PGM with NetMQ, we do not have to do too much. We just need to follow the
 
 
 Here is a small demo that use PGM, as well as <code>PublisherSocket</code> and <code>SubscriberSocket</code> and a few option values.
+
+
 
     using System;
     using NetMQ;
