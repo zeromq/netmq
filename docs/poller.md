@@ -253,4 +253,4 @@ Timer done<br/>
 
 ## Further Reading
 
-Another good place to look is at the test cases [Poller tests]( https://github.com/zeromq/netmq/blob/master/src/NetMQ.Tests/PollerTests.cs)
+Another good place to look is at the test cases <a href="https://github.com/zeromq/netmq/blob/master/src/NetMQ.Tests/PollerTests.cs" target="_blank">Poller tests</a>
