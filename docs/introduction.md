@@ -142,10 +142,10 @@ This is covered in much more detail in the [Message](http://netmq.readthedocs.or
 
 [ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about patterns, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
 
-+ [Chapter 2 - Sockets and Patterns] (http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns)
-+ [Chapter 3 - Advanced Request-Reply Patterns] (http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns)
-+ [Chapter 4 - Reliable Request-Reply Patterns] (http://zguide.zeromq.org/page:all#Chapter-Reliable-Request-Reply-Patterns)
-+ [Chapter 5 - Advanced Pub-Sub Patterns] (http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns)
++ [Chapter 2 - Sockets and Patterns](http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns)
++ [Chapter 3 - Advanced Request-Reply Patterns](http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns)
++ [Chapter 4 - Reliable Request-Reply Patterns](http://zguide.zeromq.org/page:all#Chapter-Reliable-Request-Reply-Patterns)
++ [Chapter 5 - Advanced Pub-Sub Patterns](http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns)
 
 
 NetMQ also has some examples of a few of these patterns written using the NetMQ APIs. Should you find the pattern you are looking for in the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) it should be fairly easy to translate that into NetMQ usage.
