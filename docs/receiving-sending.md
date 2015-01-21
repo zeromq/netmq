@@ -1,7 +1,7 @@
 Receiving / Sending
 =====
 
-If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/receiving-sending/) page you would have
+If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/introduction/) page you would have
 already seen an example of <code>ReceiveString()</code> and <code>SendString()</code>, but NetMQ allows us to send more than just strings.
 
 In fact there are quite a few options available to you. Lets go through some of these options shall we
