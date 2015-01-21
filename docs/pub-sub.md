@@ -28,17 +28,29 @@ the topic name followed by the actual message, where you may have something like
 </tr>
 </table>
 
+<br/>
+<br/>
 An example of this in code may be something like this (though you could also use the <code>NetMQMessage</code> approach where you add the frames one by one):
+<br/>
+<br/>
+
 
     pubSocket.SendMore("TopicA").Send("This is a 'TopicA' message");
 
+<br/>
+<br/>
 The <code>SubscriberSocket</code> may also choose to subscribe to a certain topic only, which it does by passing the topic name into the <code>Subscribe()</code> method of the <code>SubscriberSocket</code>.
+<br/>
+<br/>
 
 An example of this would be as follows:
+<br/>
+<br/>
 
     subSocket.Subscribe("TopicA");
 
-
+<br/>
+<br/>
 ## How Do You Subscribe To ALL Topics?
 
 It is also possibe for a subscriber to subscribe to all topics from a publishing socket, which means it will recieve (that is providing no messages are dropped see 'Further Considerations'section below)
@@ -203,6 +215,7 @@ When you run this you should see something like this, where it can be seen that
 
 
 <br/>
+<br/>
 <img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/PubSubUsingTopics.png"/>
 
 
@@ -229,9 +242,10 @@ You would set these 2 options using the <code>xxxxSocket.Options</code> property
 **Slow Subscribers**
 <br/>
 <br/>
-This is covered in the [ZeroMQ guide](http://zguide.zeromq.org/php:chapter5)
+This is covered in the <a href="http://zguide.zeromq.org/php:chapter5" target="_blank">ZeroMQ guide</a>
+
 
 **Late Joining Subscribers**
 <br/>
 <br/>
-This is covered in the [ZeroMQ guide](http://zguide.zeromq.org/php:chapter5)
+This is covered in the <a href="http://zguide.zeromq.org/php:chapter5" target="_blank">ZeroMQ guide</a>
