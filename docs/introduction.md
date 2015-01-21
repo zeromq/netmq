@@ -31,7 +31,7 @@ Have one <code>NetMQContext</code> ONLY. This will be used to created ALL socket
 
 ## Sending and receiving
 
-Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (http://netmq.readthedocs.org/en/latest/receiving-sending/)
+Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending](http://netmq.readthedocs.org/en/latest/receiving-sending/)
 
 
 
