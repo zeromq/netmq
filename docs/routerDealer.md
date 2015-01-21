@@ -81,6 +81,7 @@ Ok so that is the overview, what does the code look like, lets see:
     using NetMQ;
     using NetMQ.Sockets;
 
+    //TEST
     namespace RouterDealer
     {
         public class Program
