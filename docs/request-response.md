@@ -6,7 +6,7 @@ is no true at all, there are many occassions where you may want to use a particu
 socket arrangements that happen to make a great deal of sense to use together, where <code>RequestSocket/ResponseSocket</code> are one such pattern.
 <br/>
 <br/>
-The particular socket combinations that work well together are all covered in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>. Whilst it may seem a cop out to simply tell you to read more documentation somewhere else, there really is ** NO BETTER ** documentation on ZeroMQ/NetMQ than you will find in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, as it covers well known
+The particular socket combinations that work well together are all covered in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>. Whilst it may seem a cop out to simply tell you to read more documentation somewhere else, there really is **NO BETTER** documentation on ZeroMQ/NetMQ than you will find in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, as it covers well known
 patterns that have been proved in the field and are known to work well. 
 
 Anyway we digress, this post is about Request/Response, so lets continue to look at that shall we.
