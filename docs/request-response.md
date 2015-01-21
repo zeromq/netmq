@@ -6,8 +6,7 @@ is no true at all, there are many occassions where you may want to use a particu
 socket arrangements that happen to make a great deal of sense to use together, where <code>RequestSocket/ResponseSocket</code> are one such pattern.
 <br/>
 <br/>
-The particular socket combinations that work well together are all covered in the [ZeroMQ guide](http://zguide.zeromq.org/page:all). Whilst it may seem a cop out
-to simply tell you to read more documentation somewhere else, there really is ** NO BETTER ** documentation on ZeroMQ/NetMQ than you will find in the [ZeroMQ guide](http://zguide.zeromq.org/page:all), as it covers well known
+The particular socket combinations that work well together are all covered in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>. Whilst it may seem a cop out to simply tell you to read more documentation somewhere else, there really is ** NO BETTER ** documentation on ZeroMQ/NetMQ than you will find in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, as it covers well known
 patterns that have been proved in the field and are known to work well. 
 
 Anyway we digress, this post is about Request/Response, so lets continue to look at that shall we.
@@ -20,12 +19,12 @@ Anyway we digress, this post is about Request/Response, so lets continue to look
 Request / Response pattern is a configuration of 2 NetMQ sockets working harmoniously together. This combination of sockets are akin to what you might see when you
 make a web request. That is you make a request, and you expect a response.
 
-The <code>RequestSocket / ResponseSocket</code> are ** not asynchronous, and are also blocking, and you will get an eror if you try and read more messages than are currently available**. 
+The <code>RequestSocket / ResponseSocket</code> are **not asynchronous, and are also blocking, and you will get an eror if you try and read more messages than are currently available**. 
 
 The way you should work with <code>RequestSocket/ResponseSocket</code> is as follows:
 
 1. Send a request message from a <code>RequestSocket</code>
-2. A <code>ResponseSocket<code> reads the request message
+2. A <code>ResponseSocket</code> reads the request message
 3. The <code>ResponseSocket</code> sends the response message
 4. The <code>RequestSocket</code> receives the message from the <code>ResponseSocket</code>
 
