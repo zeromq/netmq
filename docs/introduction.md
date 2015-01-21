@@ -31,7 +31,7 @@ Have one <code>NetMQContext</code> ONLY. This will be used to created ALL socket
 
 ## Sending and receiving
 
-Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (receiving-sending.md)
+Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : [Receiving and Sending] (http://netmq.readthedocs.org/en/latest/receiving-sending/)
 
 
 
@@ -133,7 +133,7 @@ You can read more about this at the ZeroMQ FAQ http://zeromq.org/area:faq under 
 
 ZeroMQ/NetMQ work on the concept of frames, as such most messages are considered to be made up of one or more frames. NetMQ provides some convenience methods to allow you to send string messages. You should however, familiarise yourself with the the idea of multiple frames and how they work.
 
-This is covered in much more detail in the [Message](https://github.com/zeromq/netmq/blob/master/docs/message.md) documentation page
+This is covered in much more detail in the [Message](http://netmq.readthedocs.org/en/latest/message/) documentation page
 
 
 
