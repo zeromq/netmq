@@ -19,7 +19,7 @@ Anyway we digress, this post is about Request/Response, so lets continue to look
 Request / Response pattern is a configuration of 2 NetMQ sockets working harmoniously together. This combination of sockets are akin to what you might see when you
 make a web request. That is you make a request, and you expect a response.
 
-The <code>RequestSocket / ResponseSocket</code> are **not asynchronous, and are also blocking, and you will get an eror if you try and read more messages than are currently available**. 
+The <code>RequestSocket / ResponseSocket</code> are **not asynchronous, and are also blocking**, and you will get an exception if you try and read more messages than are currently available. 
 
 The way you should work with <code>RequestSocket/ResponseSocket</code> is as follows:
 
