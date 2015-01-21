@@ -143,19 +143,21 @@ This is covered in much more detail in the [Message](http://netmq.readthedocs.or
 [ZeroMQ](http://zguide.zeromq.org/page:all) (and therefore NetMQ) is all about patterns, and building blocks. The [ZeroMQ Guide](http://zguide.zeromq.org/page:all) covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
 
 + <a href="http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns" target="_blank">Chapter 2 - Sockets and Patterns</a>
-+ <a href="Chapter 3 - Advanced Request-Reply Patterns" target="_blank">http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns</a>
-+ <a href="Chapter 4 - Reliable Request-Reply Patterns" target="_blank">http://zguide.zeromq.org/page:all#Chapter-Reliable-Request-Reply-Patterns</a>
-+ <a href="Chapter 5 - Advanced Pub-Sub Patterns" target="_blank">http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns</a>
++ <a href="http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns" target="_blank">Chapter 3 - Advanced Request-Reply Patterns</a>
++ <a href="http://zguide.zeromq.org/page:all#Chapter-Reliable-Request-Reply-Patterns" target="_blank">Chapter 4 - Reliable Request-Reply Patterns</a>
++ <a href="http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns" target="_blank">Chapter 5 - Advanced Pub-Sub Patterns</a>
 
 
 NetMQ also has some examples of a few of these patterns written using the NetMQ APIs. Should you find the pattern you are looking for in the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) it should be fairly easy to translate that into NetMQ usage.
 
 Here are some links to the patterns that are available within the NetMQ codebase:
 
-+ [Borkerless Reliability Pattern - Freelance Model one] (https://github.com/zeromq/netmq/tree/master/src/Samples/Brokerless%20Reliability%20(Freelance%20Pattern)/Model%20One)
-+ [Load Balancer Pattern] (https://github.com/zeromq/netmq/tree/master/src/Samples/Load%20Balancing%20Pattern)
-+ [Lazy Pirate Pattern] (https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Lazy%20Pirate)
-+ [Simple Pirate Pattern] (https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Simple%20Pirate)
++ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Brokerless%20Reliability%20(Freelance%20Pattern)/Model%20One" target="_blank">Brokerless Reliability Pattern - Freelance Model one</a>
++ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Load%20Balancing%20Pattern" target="_blank">Load Balancer Patterns</a>
++ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Lazy%20Pirat" target="_blank">Lazy Pirate Pattern</a>
++ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Simple%20Pirate" target="_blank">Simple Pirate Pattern</a>
+
+
 
 For other patterns, the [ZeroMQ Guide](http://zguide.zeromq.org/page:all) will be your first port of call
 
