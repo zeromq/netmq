@@ -72,7 +72,9 @@ Time for an example. The best way to think of this example is summarized in the 
 
 Ok so that is the overview, what does the code look like, lets see:
 
-<code lang="cs">
+<pre>
+<code lang="cpp">
+
     using System;
     using System.Text;
     using System.Threading;
@@ -201,6 +203,7 @@ Ok so that is the overview, what does the code look like, lets see:
         }
     }
 </code>
+</pre>
 
 When you run this you should see some output something like this (remember this is asynchronous code here, so things may not come in the order you logically expect)
 
