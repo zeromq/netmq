@@ -1,7 +1,7 @@
 Receiving / Sending
 =====
 
-If you have read the [Introduction] (https://github.com/zeromq/netmq/blob/master/docs/Introduction.md) page you would have
+If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/receiving-sending/) page you would have
 already seen an example of <code>ReceiveString()</code> and <code>SendString()</code>, but NetMQ allows us to send more than just strings.
 
 In fact there are quite a few options available to you. Lets go through some of these options shall we
@@ -15,6 +15,7 @@ method. What you will end up using is one the extra extension methods that is av
 
 These extension methods are shown below, one of these should give you what you want, but if it doesn't
 you simply need to write an extra extension method to suit your needs
+
 
     public static class ReceivingSocketExtensions
     {
@@ -48,24 +49,19 @@ you simply need to write an extra extension method to suit your needs
 
 Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own
 
+
     public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options, out bool hasMore)
     {
         Msg msg = new Msg();
         msg.InitEmpty();
-
         socket.Receive(ref msg, options);
-
         hasMore = msg.HasMore;
-
         string data = string.Empty;
-
         if (msg.Size > 0)
         {
             data = encoding.GetString(msg.Data, 0, msg.Size);
         }
-
         msg.Close();
-
         return data;
     }
 
@@ -100,19 +96,17 @@ you simply need to write an extra extension method to suit your needs
 
 Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own
 
+
     public static void Send(this IOutgoingSocket socket, string message, Encoding encoding, SendReceiveOptions options)
     {
         Msg msg = new Msg();
         msg.InitPool(encoding.GetByteCount(message));
-
         encoding.GetBytes(message, 0, message.Length, msg.Data, 0);
-
         socket.Send(ref msg, options);
-
         msg.Close();
     }
 
 
 ## Further Reading
 
-If you are looking at some of the method signatures, and wondering why/how you should use them, you should read a bit more on the messaging philosophy that NetMQ uses. The [Message] (https://github.com/zeromq/netmq/blob/master/docs/Message.md) page has some helpful information around this area.
+If you are looking at some of the method signatures, and wondering why/how you should use them, you should read a bit more on the messaging philosophy that NetMQ uses. The [Message](http://netmq.readthedocs.org/en/latest/message/) page has some helpful information around this area.
