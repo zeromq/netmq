@@ -120,13 +120,10 @@ Here is some demo code:
             {
                 using (var context = NetMQContext.Create())
                 {
-
                     var end1 = context.CreatePairSocket();
                     var end2 = context.CreatePairSocket();
                     end1.Bind("inproc://InprocTest_5555");
                     end2.Connect("inproc://InprocTest_5555");
-               
-
                     var end1Task = Task.Run(() =>
                     {
                         Console.WriteLine("ManagedThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
@@ -143,9 +140,7 @@ Here is some demo code:
                         Console.WriteLine(message);
                     
                     });
-
                     Task.WaitAll(new[] {end1Task, end2Task}); 
-
                     end1.Dispose();
                     end2.Dispose();
                 }
@@ -227,7 +222,6 @@ Here is a small demo that use PGM, as well as <code>PublisherSocket</code> and <
             {
                 const int MegaBit = 1024;
                 const int MegaByte = 1024;
-
                 using (NetMQContext context = NetMQContext.Create())
                 {
                     using (var pub = context.CreatePublisherSocket())
@@ -236,29 +230,22 @@ Here is a small demo that use PGM, as well as <code>PublisherSocket</code> and <
                         pub.Options.MulticastRate = 40 * MegaBit; // 40 megabit
                         pub.Options.MulticastRecoveryInterval = TimeSpan.FromMinutes(10);
                         pub.Options.SendBuffer = MegaByte * 10; // 10 megabyte
-
                         pub.Connect("pgm://224.0.0.1:5555");
-
                         using (var sub = context.CreateSubscriberSocket())
                         {
                             using (var sub2 = context.CreateSubscriberSocket())
                             {
                                 sub.Options.ReceivevBuffer = MegaByte * 10;
                                 sub2.Options.ReceivevBuffer = MegaByte * 10;
-
                                 sub.Bind("pgm://224.0.0.1:5555");
                                 sub2.Bind("pgm://224.0.0.1:5555");
-
                                 sub.Subscribe("");
                                 sub2.Subscribe("");
-
                                 Console.WriteLine("Server sending 'Hi'");
                                 pub.Send("Hi");
-
                                 bool more;
                                 string message = sub.ReceiveString(out more);
                                 Console.WriteLine("sub message = '{0}'", message);
-
                                 message = sub2.ReceiveString(out more);
                                 Console.WriteLine("sub2 message = '{0}'", message);
 
