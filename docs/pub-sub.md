@@ -19,12 +19,12 @@ the topic name followed by the actual message, where you may have something like
 
 <table CellSpacing="0" Padding="0">
 <tr bgcolor="LightGray">
-<th>Frame 1</th>
-<th>Frame 2</th>
+<th width="100px" style="text-align:center; ">Frame 1</th>
+<th width="400px" style="text-align:center; ">Frame 2</th>
 </tr>
 <tr>
-<td>TopicA</td>
-<td>This is a 'TopicA' message</td>
+<td width="80px" style="text-align:center; ">TopicA</td>
+<td width="400px" style="text-align:center;">This is a 'TopicA' message</td>
 </tr>
 </table>
 
