@@ -58,7 +58,7 @@ things in the wrong order, or more than expected.
 The main selling point of a <code>DealerSocket</code> is its asynchronous abilities. Typically a <code>DealerSocket</code> would be used in conjunction with a <code>RouterSocket</code>, which is why we have decided to bundle the description of both these socket types into
 this documentation page.
 
-If you want to know more details about socket combinations involving <code>DealerSocket</code>(s), then as ALWAYS the guide is your friend. In particular the <a href="http://zguide.zeromq.org/page:all#toc58" target="_blank">Request-Reply Combinations</a> page of the guide my be of interest.
+If you want to know more details about socket combinations involving <code>DealerSocket</code>(s), then as ALWAYS the guide is your friend. In particular the <a href="http://zguide.zeromq.org/page:all#toc58" target="_blank">Request-Reply Combinations</a> page of the guide may be of interest.
 
 
 
