@@ -31,13 +31,13 @@ We need XPUB and XSUB sockets because ZeroMQ does subscription forwarding from s
 </i>
 <br/>
 <br/>
-The text above is taken from [ZeroMQ guide - dynamix discovery problem](http://zguide.zeromq.org/page:all#The-Dynamic-Discovery-Problem), we just could not have said it better ourselves, and this library is really part of ZeroMQ anyway, so please forgive us.
+The text above is taken from <a href="ZeroMQ guide - dynamix discovery problem" target="_blank">http://zguide.zeromq.org/page:all#The-Dynamic-Discovery-Problem</a>, we just could not have said it better ourselves, and this library is really part of ZeroMQ anyway, so please forgive us.
 
 
 ## An Example
 
 So now that we have gone through why you would use XPub/XSub, lets now look at an example. This example sticks
-very closely to the orginal [ZeroMQ guide - dynamix discovery problem](http://zguide.zeromq.org/page:all#The-Dynamic-Discovery-Problem), and is broken
+very closely to the orginal <a href="ZeroMQ guide - dynamix discovery problem" target="_blank">http://zguide.zeromq.org/page:all#The-Dynamic-Discovery-Problem</a>, and is broken
 down into 3 main components, which are:
 
 + Publisher
