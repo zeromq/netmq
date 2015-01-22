@@ -89,7 +89,7 @@ The server create a socket of type response (you can read more on the reqeust-re
         }
     }
 
-The client create a socket of type response, connect and start sending messages.
+The client create a socket of type request, connect and start sending messages.
 
 Both the sending and receive methods are blocking, for the receive it is simple, if there are no messages the method will block, for sending it is more complicated and depends on the socket type. In request socket type if the high watermark is reached or no peer is connected the method will block.
 
