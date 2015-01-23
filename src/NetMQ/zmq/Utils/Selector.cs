@@ -117,7 +117,7 @@ namespace NetMQ.zmq.Utils
 
                 try
                 {
-                    Socket.Select(m_checkRead, m_checkWrite, m_checkError, currentTimeoutMicroSeconds);
+                    SocketUtility.Select(m_checkRead, m_checkWrite, m_checkError, currentTimeoutMicroSeconds);
                 }
                 catch (SocketException)
                 {
