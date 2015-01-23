@@ -159,9 +159,6 @@ namespace NetMQ.Tests
                 // Monitor.Dispose should complete
                 var completed = Task.Factory.StartNew(() => monitor.Dispose()).Wait(1000);
                 Assert.That(completed, Is.True);
-                // Task should be faulted with a EndpointNotFoundException
-                Assert.That(monitorTask.IsFaulted, Is.True);
-                Assert.That(monitorTask.Exception.InnerException, Is.TypeOf<EndpointNotFoundException>());
             }
             //Note: If this test fails, it will hang because the context Dispose will block
         }
