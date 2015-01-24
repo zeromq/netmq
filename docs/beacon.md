@@ -1,22 +1,22 @@
 Beacon
 ======
 
-The NetMQBeacon class implements a peer-to-peer discovery service for local networks. 
+The NetMQBeacon implements a peer-to-peer discovery service for local networks. 
 A beacon can broadcast and/or capture service announcements using UDP messages on the local area network. 
 This implementation uses IPv4 UDP broadcasts. 
 You can define the format of your outgoing beacons, and set a filter that validates incoming beacons. 
 Beacons are sent and received asynchronously in the background.
 
-This class is a port of zbeacon from czmq.
+NetMQActor is a port of zbeacon from czmq.
 
 We can use the NetMQBeacon to discover and connect to other NetMQ/CZMQ services in the network automatically without central configuration.
 Please note that to use NetMQBeacon your infrastructure must support broadcast. Most cloud providers doesn't support broadcast.
 
-Following is a simple message bus implementation. 
-Each node binds a subscriber socket to which all other nodes will connect and connect to other nodes with publisher socket.
-We will use the NetMQ Beacon to announce the node and to discover other nodes. We will also use NetMQActor to implement our Node.
+Following is a simple bus implementation that use the NetMQBeacon. 
+Each bus node binds a subscriber socket and connect to other nodes with a publisher socket.
+Each node will use NetMQBeacon to announce it existence and to discover other nodes. We will also use NetMQActor to implement our Node.
 
-## Node
+## Bus
 
 ```csharp
 class Bus
@@ -210,9 +210,41 @@ class Bus
 }
 ```
 
-So the Bus use the beacon to annouce its existence and to discovery other nodes in the network. 
-The bus create an actor which we can use a regular NetMQ socket. 
-Please note that before sending a message to the actor we first need to send the Publish command.
+Example on how to use the bus:
+
+```csharp
+static void Main(string[] args)
+{
+    using (NetMQContext context = NetMQContext.Create())
+    {
+        var actor = Bus.Create(context, 9999);
+
+        // we wait a little more then one second to let all the other nodes to connect to our new node.
+        // it is a little more then one second because beacon publish a message every one second
+        Thread.Sleep(1100);                     
+
+        // publish hello message, we can use all NetMQSocket send and receive extension methods
+        actor.SendMore(Bus.PublishCommand).Send("Hello");
+
+        while (true)
+        {
+            // we will now welcome each new actor that sends hello
+            string message = actor.ReceiveString();                    
+
+            if (message == "Hello")
+            {
+                Console.WriteLine(message);
+                actor.SendMore(Bus.PublishCommand).Send("Welcome");
+            }
+            else
+            {
+                // it proabably welcome, we will just print it
+                Console.WriteLine(message);
+            }
+        }
+    }            
+}
+```
 
 ## Further reading
 [Solving the Discovery Problem](http://hintjens.com/blog:32)
