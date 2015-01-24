@@ -223,6 +223,32 @@ namespace NetMQ.Tests
                     }
                 }
             }
-        }       
+        }
+
+        [Test]
+        public void BothSpeakerAndListener()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            using (NetMQBeacon beacon1 = new NetMQBeacon(context))
+            using (NetMQBeacon beacon2 = new NetMQBeacon(context))
+            {
+                beacon1.Configure(9999);
+                beacon1.Publish("H1");
+                beacon1.Subscribe("H");
+
+                beacon2.Configure(9999);
+                beacon2.Publish("H2");
+                beacon2.Subscribe("H");
+
+                string peerName;
+                string message = beacon1.ReceiveString(out peerName);
+
+                Assert.AreEqual("H2", message);
+
+                message = beacon2.ReceiveString(out peerName);
+
+                Assert.AreEqual("H1",message);
+            }
+        }
     }
 }

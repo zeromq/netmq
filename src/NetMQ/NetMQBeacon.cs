@@ -178,7 +178,7 @@ namespace NetMQ
                 //  If valid, discard our own broadcasts, which UDP echoes to us
                 if (isValid && m_transmit != null)
                 {
-                    if (frame.MessageSize == m_transmit.MessageSize && Compare(frame, m_filter, m_filter.MessageSize))
+                    if (frame.MessageSize == m_transmit.MessageSize && Compare(frame, m_transmit, m_transmit.MessageSize))
                     {
                         isValid = false;
                     }
