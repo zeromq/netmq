@@ -199,6 +199,7 @@
     <Compile Include="zmq\Transports\V2Protocol.cs" />
     <Compile Include="zmq\Patterns\XPub.cs" />
     <Compile Include="zmq\Patterns\XSub.cs" />
+    <Compile Include="zmq\Utils\SocketUtility.cs" />
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="zmq\ZObject.cs" />

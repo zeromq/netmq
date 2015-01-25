@@ -186,7 +186,7 @@ namespace NetMQ.zmq.Utils
 
                 try
                 {
-                    Socket.Select(readList, writeList, errorList, timeout != 0 ? timeout * 1000 : -1);
+                    SocketUtility.Select(readList, writeList, errorList, timeout != 0 ? timeout * 1000 : -1);
                 }
                 catch (SocketException)
                 {

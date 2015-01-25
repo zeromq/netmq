@@ -167,6 +167,7 @@
     <Compile Include="zmq\Utils\Poller.cs" />
     <Compile Include="zmq\Utils\PollerBase.cs" />
     <Compile Include="zmq\Utils\Proactor.cs" />
+    <Compile Include="zmq\Utils\SocketUtility3.5.cs" />
     <Compile Include="zmq\Utils\Selector.cs" />
     <Compile Include="zmq\Utils\Signaler.cs" />
     <Compile Include="zmq\Utils\YQueue.cs" />
