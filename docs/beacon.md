@@ -7,7 +7,7 @@ This implementation uses IPv4 UDP broadcasts.
 You can define the format of your outgoing beacons, and set a filter that validates incoming beacons. 
 Beacons are sent and received asynchronously in the background.
 
-NetMQActor is a port of zbeacon from czmq.
+NetMQBeacon is a port of zbeacon from czmq.
 
 We can use the NetMQBeacon to discover and connect to other NetMQ/CZMQ services in the network automatically without central configuration.
 Please note that to use NetMQBeacon your infrastructure must support broadcast. Most cloud providers doesn't support broadcast.
