@@ -174,7 +174,7 @@ namespace NetMQ.Tests
                         dealer2.Send("2");
                         Thread.Sleep(300);
 
-                        poller.Stop(true);                        
+                        poller.Stop(true);
 
                         Assert.IsTrue(router1arrived);
                         Assert.IsTrue(router2arrived);
@@ -353,7 +353,7 @@ namespace NetMQ.Tests
                         Thread.Sleep(300);
 
                         poller.Stop(true);
-                        
+
                         router.Receive(true, out more);
 
                         Assert.IsTrue(more);
@@ -682,23 +682,17 @@ namespace NetMQ.Tests
             using (NetMQContext contex = NetMQContext.Create())
             using (Poller poller = new Poller())
             {
-
-                int count = 0;
-
                 NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(52));
 
-                NetMQTimer timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(24));
+                NetMQTimer timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(40));
 
+                int count = 0;
 
                 timer.Elapsed += (a, s) =>
                 {
                     count++;
-
-                    if (count == 3)
-                    {
-                        timer.Enable = false;
-                        timer2.Enable = false;
-                    }
+                    timer.Enable = false;
+                    timer2.Enable = false;
                 };
 
                 poller.AddTimer(timer);
@@ -714,8 +708,8 @@ namespace NetMQ.Tests
 
                 poller.CancelAndJoin();
 
-                Assert.AreEqual(3, count);
-                Assert.AreEqual(6, count2);
+                Assert.AreEqual(1, count);
+                Assert.AreEqual(1, count2);
             }
         }
 
