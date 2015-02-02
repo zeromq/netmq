@@ -48,7 +48,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\GitHub\netmq\src\NetMQ\NetMQ.csproj">
+    <ProjectReference Include="..\..\..\NetMQ\NetMQ.csproj">
       <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
       <Name>NetMQ</Name>
     </ProjectReference>
