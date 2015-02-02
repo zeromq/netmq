@@ -10,6 +10,7 @@ namespace NetMQ.zmq.Utils
 
         private static IntPtr codeBuffer;
         private static ulong size;
+        private static bool isArm;
 
         public static void Open()
         {
@@ -29,6 +30,12 @@ namespace NetMQ.zmq.Utils
 
             if ((p == 4) || (p == 128))
             { // Unix   
+                isArm = IsARMArchitecture();
+                if (isArm)
+                {
+                    Rdtsc = RdtscOnArm;
+                    return;
+                }
                 Assembly assembly =
                     Assembly.Load("Mono.Posix");
 
@@ -67,6 +74,29 @@ namespace NetMQ.zmq.Utils
                 codeBuffer, typeof(RdtscDelegate)) as RdtscDelegate;
         }
 
+        private static bool IsARMArchitecture()
+        {
+            bool result = false;
+            //force to load from mono gac
+            Assembly currentAssembly = Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756");
+            Type syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
+            Type utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
+            MethodInfo uname = syscall.GetMethod("uname");
+            object[] parameters = new object[] { null };
+
+            int invokeResult = (int)uname.Invoke(null, parameters);
+            if (invokeResult == 0)
+            {
+                if (parameters != null)
+                {
+                    object currentValues = parameters[0];
+                    string machineValue = (string)utsname.GetField("machine").GetValue(currentValues);
+                    result = machineValue.ToLower().Contains("arm");
+                }
+            }
+            return result;
+        }
+
         public static void Close()
         {
             Rdtsc = null;
@@ -88,6 +118,11 @@ namespace NetMQ.zmq.Utils
                 NativeMethods.VirtualFree(codeBuffer, UIntPtr.Zero,
                     FreeType.RELEASE);
             }
+        }
+
+        private static ulong RdtscOnArm()
+        {
+            return (ulong)Environment.TickCount;
         }
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
