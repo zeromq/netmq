@@ -7,45 +7,57 @@ namespace InterBrokerRouter
 {
     public class Worker
     {
-        private readonly NetMQContext _ctx;
-        private readonly string _localBackendAddress;
+        private readonly string m_localBackendAddress;
+        private readonly byte m_id;
 
-        public Worker (NetMQContext context, string localBackEndAddress)
+        public Worker (string localBackEndAddress, byte id)
         {
-            _ctx = context;
-            _localBackendAddress = localBackEndAddress;
+            m_localBackendAddress = localBackEndAddress;
+            m_id = id;
         }
 
         public void Run ()
         {
-            var rnd = new Random ();
-            var id = rnd.Next (1000);
+            var rnd = new Random (m_id);
 
-            using (var worker = _ctx.CreateRequestSocket ())
+            using (var ctx = NetMQContext.Create ())
+            using (var worker = ctx.CreateRequestSocket ())
             {
-                worker.Connect (_localBackendAddress);
+                worker.Connect (m_localBackendAddress);
 
-                Console.WriteLine ("[WORKER {0}]: Connected & READY", id);
+                Console.WriteLine ("[WORKER {0}] Connected & READY", m_id);
 
-                // send READY to broker
-                worker.Send (new byte[] { Program.WORKER_READY });
+                // build READY message
+                var msg = new NetMQMessage ();
+                var ready = NetMQFrame.Copy (new byte[] { Program.WORKER_READY });
+
+                msg.Append (ready);
+                msg.Push (NetMQFrame.Empty);
+                msg.Push (new byte[] { m_id });
+
+                // and send to broker
+                worker.SendMessage (msg);
 
                 while (true)
                 {
-                    // wait for a request
-                    var request = worker.Receive ();
+                    // wait for a request - the REQ might be from a local client or a cloud request
+                    var request = worker.ReceiveMessage ();
 
-                    if (request.Length == 0)
+                    if (request.FrameCount < 3)
                     {
-                        Console.WriteLine ("[WORKER {0}]: ERR - received an empty message", id);
+                        Console.WriteLine ("[WORKER {0}] ERR - received an empty message", m_id);
                         break;      // something went wrong -> exit
                     }
 
-                    Console.WriteLine ("[WORKER {0}]: received [{1}][{2}][{3}]", id, request[0], request[1], request[2]);
+                    Console.WriteLine ("[WORKER {0}] received", m_id);
+
+                    foreach (var frame in request)
+                        Console.WriteLine ("\t[{0}", frame.ConvertToString ());
+
                     // simulate working for an arbitrary time < 2s
                     Thread.Sleep (rnd.Next (2000));
                     // simply send back what we received
-                    worker.Send (request);
+                    worker.SendMessage (request);
                 }
             }
         }
