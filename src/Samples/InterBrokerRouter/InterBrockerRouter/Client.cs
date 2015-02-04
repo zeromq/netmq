@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +15,11 @@ namespace InterBrokerRouter
         private readonly byte m_id;
 
         /// <summary>
-        ///     this client will connect to the ROUTER socket of the broker and the PULL socket as monitor
-        ///     it will send a sequence of messages and wait for max. 10s for an answer before it will
-        ///     send a message via monitor
-        ///     if an answer is received it will send that via monitor as well
+        ///     this client will connect its REQ socket to the frontend ROUTER socket of the broker and 
+        ///     its PUSH socket to the the broker's PULL socket as monitor
+        ///     it will send a messages and wait for max. 10s for an answer before it will
+        ///     send an error message via monitor. 
+        ///     if an answer is received it will send a success message via monitor as well
         /// </summary>
         /// <param name="localFrontendAddress">the local frontend address of the broker</param>
         /// <param name="monitorAddress">the monitor address of the broker</param>
@@ -34,11 +36,15 @@ namespace InterBrokerRouter
             Console.WriteLine ("[CLIENT {0}] Starting", m_id);
 
             var rnd = new Random (m_id);
-            var messagedId = new byte[5];
-            var poller = new Poller ();
+            var messageId = new byte[5];
+            // create clientId for messages
+            var clientId = new[] { m_id };
 
-            // if true the message has been answered
-            var messageAnswered = false;
+            // we use a poller because we have a socket and a timer to monitor
+            var clientPoller = new Poller ();
+
+            // if true the message has been answered - 0 message always answered
+            var messageAnswered = true;
 
             using (var ctx = NetMQContext.Create ())
             using (var client = ctx.CreateRequestSocket ())
@@ -53,33 +59,32 @@ namespace InterBrokerRouter
                 // use as flag to indicate exit
                 var exit = false;
 
-                // every 10 s check if message has been send, if not then send message and ext
+                // every 10 s check if message has been received, if not then send error message and ext
+                // and restart timer otherwise
                 timer.Elapsed += (s, e) =>
                                  {
-                                     if (!messageAnswered)
+                                     if (messageAnswered)
+                                         e.Timer.Enable = true;
+                                     else
                                      {
-                                         var msg = string.Format ("[CLIENT {0}] ERR - EXIT - lost task {1}",
-                                                                  m_id,
-                                                                  messagedId);
+                                         var msg = string.Format ("[CLIENT {0}] ERR - EXIT - lost message {1}", m_id, messageId);
                                          // send an error message 
                                          monitor.Send (msg);
+
                                          // if poller is started than stop it
-                                         if (poller.IsStarted)
-                                             poller.Stop ();
+                                         if (clientPoller.IsStarted)
+                                             clientPoller.Stop ();
                                          // mark the required exit
                                          exit = true;
                                      }
-
-                                     else   // a message has arrived in time -> restart the timer
-                                         timer.Enable = true;
                                  };
 
                 client.ReceiveReady += (s, e) =>
                                        {
-                                           // mark the arrival of a message
+                                           // mark the arrival of an answer
                                            messageAnswered = true;
                                            // worker is supposed to answer with our task id
-                                           var reply = client.ReceiveMessage ();
+                                           var reply = e.Socket.ReceiveMessage ();
 
                                            if (reply.FrameCount == 0)
                                            {
@@ -104,37 +109,44 @@ namespace InterBrokerRouter
                                        };
 
                 // add socket & timer to poller 
-                poller.AddSocket (client);
-                poller.AddTimer (timer);
+                clientPoller.AddSocket (client);
+                clientPoller.AddTimer (timer);
 
-                // start poller in separate task
-                Task.Factory.StartNew (poller.Start);
+                // start poller
+                var pollTask = Task.Factory.StartNew (() => clientPoller.Start ());
 
                 while (exit == false)
                 {
                     // simulate sporadic activity by randomly delaying
                     Thread.Sleep ((int) TimeSpan.FromSeconds (rnd.Next (5)).TotalMilliseconds);
 
-                    var burst = rnd.Next (15);
-
-                    while (burst-- >= 0 && exit != true)
+                    // only send next message if the previous one has been replied to
+                    if (messageAnswered)
                     {
                         // generate random 5 byte as identity for for the message
-                        rnd.NextBytes (messagedId);
+                        rnd.NextBytes (messageId);
 
                         messageAnswered = false;
 
-                        // [client adr][empty][message id]
-                        client.Send (messagedId);
+                        // create message [client adr][empty][message id] and send it
+                        var msg = new NetMQMessage ();
+                        msg.Push (messageId);
+                        msg.Push (NetMQFrame.Empty);
+
+                        var cid = new NetMQFrame (clientId);
+
+                        msg.Push (cid);
+
+                        client.SendMessage (msg);
                     }
                 }
             }
 
             // stop poller if needed
-            if (poller.IsStarted)
-                poller.Stop ();
+            if (clientPoller.IsStarted)
+                clientPoller.Stop ();
 
-            poller.Dispose ();
+            clientPoller.Dispose ();
         }
     }
 }

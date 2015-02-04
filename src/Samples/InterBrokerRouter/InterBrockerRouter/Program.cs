@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace InterBrokerRouter
 {
@@ -108,13 +109,14 @@ namespace InterBrokerRouter
             using (var monitor = ctx.CreatePullSocket ())
             {
                 // give every socket an unique identity, e.g. LocalFrontend[Port]
-                localFrontend.Options.Identity = Encoding.UTF8.GetBytes ("LocalFrontend[" + myPort + "]");
-                cloudFrontend.Options.Identity = Encoding.UTF8.GetBytes ("CloudFrontend[" + (myPort + 1) + "]");
-                localBackend.Options.Identity = Encoding.UTF8.GetBytes ("LocalBackend[" + (myPort + 2) + "]");
-                stateBackend.Options.Identity = Encoding.UTF8.GetBytes ("StateBackend[" + (myPort + 3) + "]");
-                monitor.Options.Identity = Encoding.UTF8.GetBytes ("Monitor[" + (myPort + 4) + "]");
-                cloudBackend.Options.Identity = Encoding.UTF8.GetBytes ("CloudBackend");
-                stateFrontend.Options.Identity = Encoding.UTF8.GetBytes ("StateFrontend");
+                SetIdentities (localFrontend,
+                               myPort,
+                               cloudFrontend,
+                               localBackend,
+                               stateBackend,
+                               monitor,
+                               cloudBackend,
+                               stateFrontend);
 
                 // subscribe to any message on the stateFrontend socket!
                 stateFrontend.Subscribe ("");
@@ -171,7 +173,7 @@ namespace InterBrokerRouter
                                         };
 
                 // all local clients are connecting to this socket
-                // they send REQ and get a REPLY
+                // they send a REQ and get a REPLY
                 localFrontend.ReceiveReady += (s, e) =>
                                               {
                                                   // [client adr][empty][message id]
@@ -336,39 +338,66 @@ namespace InterBrokerRouter
                 for (var i = 0; i < _NBR_CLIENTS; i++)
                 {
                     var client = new Client (localFrontendAddress, monitorAddress, (byte) i);
-                    clientTasks[i] = new Thread (() => client.Run ());
+                    clientTasks[i] = new Thread (() => client.Run ()) { Name = string.Format ("Client_{0}", i) };
                     clientTasks[i].Start ();
                 }
 
                 for (var i = 0; i < _NBR_WORKER; i++)
                 {
                     var worker = new Worker (localBackendAddress, (byte) i);
-                    workerTasks[i] = new Thread (() => worker.Run ());
+                    workerTasks[i] = new Thread (() => worker.Run ()) { Name = string.Format ("Worker_{0}", i) };
                     workerTasks[i].Start ();
                 }
 
+                var sockets = new NetMQSocket[]
+                              {
+                                  localFrontend,
+                                  localBackend,
+                                  cloudFrontend,
+                                  cloudBackend,
+                                  stateFrontend,
+                                  stateBackend,
+                                  monitor
+                              };
+
                 // create poller and add sockets & timer
-                var poller = new Poller (localFrontend,
-                                         localBackend,
-                                         cloudFrontend,
-                                         cloudBackend,
-                                         stateFrontend,
-                                         stateBackend,
-                                         monitor);
+                var poller = new Poller (sockets);
 
                 poller.AddTimer (timer);
 
                 // start monitoring the sockets
                 Task.Factory.StartNew (() => poller.Start ());
 
-                // stop working if key is hit
-                Console.WriteLine ("Processing. To exit hit any key!");
-                Console.ReadKey ();
+                while (true)
+                {
+                    // wait for exit
+                }
 
                 poller.Stop ();
                 poller.Dispose ();
 
             }
+        }
+
+        /// <summary>
+        ///     sets unique identities for all sockets
+        /// </summary>
+        private static void SetIdentities (RouterSocket localFrontend,
+                                           int myPort,
+                                           RouterSocket cloudFrontend,
+                                           RouterSocket localBackend,
+                                           PublisherSocket stateBackend,
+                                           PullSocket monitor,
+                                           RouterSocket cloudBackend,
+                                           SubscriberSocket stateFrontend)
+        {
+            localFrontend.Options.Identity = Encoding.UTF8.GetBytes ("LocalFrontend[" + myPort + "]");
+            cloudFrontend.Options.Identity = Encoding.UTF8.GetBytes ("CloudFrontend[" + (myPort + 1) + "]");
+            localBackend.Options.Identity = Encoding.UTF8.GetBytes ("LocalBackend[" + (myPort + 2) + "]");
+            stateBackend.Options.Identity = Encoding.UTF8.GetBytes ("StateBackend[" + (myPort + 3) + "]");
+            monitor.Options.Identity = Encoding.UTF8.GetBytes ("Monitor[" + (myPort + 4) + "]");
+            cloudBackend.Options.Identity = Encoding.UTF8.GetBytes ("CloudBackend");
+            stateFrontend.Options.Identity = Encoding.UTF8.GetBytes ("StateFrontend");
         }
 
         /// <summary>

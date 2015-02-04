@@ -10,6 +10,15 @@ namespace InterBrokerRouter
         private readonly string m_localBackendAddress;
         private readonly byte m_id;
 
+        /// <summary>
+        ///     the worker connects its REQ socket to the broker's backend ROUTER socket
+        ///     upon start up the worker sends a READY message to the broker
+        ///     the worker receives a message from the broker and simply returns it after
+        ///     printing it on screen
+        ///     it simulates the work by sleeping an arbitrary time but less than 2s
+        /// </summary>
+        /// <param name="localBackEndAddress">the broker's backend address to connect to</param>
+        /// <param name="id">the id of the worker</param>
         public Worker (string localBackEndAddress, byte id)
         {
             m_localBackendAddress = localBackEndAddress;
