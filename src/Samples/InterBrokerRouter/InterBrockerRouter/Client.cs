@@ -133,10 +133,7 @@ namespace InterBrokerRouter
                         var msg = new NetMQMessage ();
                         msg.Push (messageId);
                         msg.Push (NetMQFrame.Empty);
-
-                        var cid = new NetMQFrame (clientId);
-
-                        msg.Push (cid);
+                        msg.Push (clientId);
 
                         client.SendMessage (msg);
                     }
