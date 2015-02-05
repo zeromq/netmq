@@ -112,7 +112,8 @@ namespace InterBrokerRouter
                 clientPoller.AddSocket (client);
                 clientPoller.AddTimer (timer);
 
-                // start poller
+                // start poller in extra task in order to allow the continued processing
+                // clientPoller.Start() -> blocking call
                 var pollTask = Task.Factory.StartNew (() => clientPoller.Start ());
 
                 while (exit == false)

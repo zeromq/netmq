@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NetMQ;
 using NetMQ.Sockets;
 
@@ -14,8 +15,11 @@ namespace InterBrokerRouter
     {
         public const byte WORKER_READY = 0xFF;      // worker ready message
 
-        private const int _NBR_CLIENTS = 10;
-        private const int _NBR_WORKER = 5;
+        private const int _nbr_clients = 10;
+        private const int _nbr_worker = 5;
+
+        // volatile to prevent the storage in a CPU register
+        volatile static bool keepRunning = true;
 
         /// <summary>
         ///     the broker setting up the cluster
@@ -74,10 +78,17 @@ namespace InterBrokerRouter
                 Environment.Exit (-1);
             }
 
+            // trapping Ctrl+C as exit signal!
+            Console.CancelKeyPress += (s, e) =>
+                                      {
+                                          e.Cancel = true;
+                                          keepRunning = false;
+                                      };
+
             // get randon generator for later use
             var rnd = new Random ();
             // get list for registering the clients
-            var clients = new List<byte[]> (_NBR_CLIENTS);
+            var clients = new List<byte[]> (_nbr_clients);
             // get a list of peer addresses
             var peers = new List<byte[]> ();
             // get all peer addresses - first is this broker!
@@ -89,7 +100,8 @@ namespace InterBrokerRouter
             // get the port as integer for later use
             var myPort = int.Parse (args[0]);
 
-            Console.WriteLine ("[Broker] setting up sockets ...");
+            Console.WriteLine ("[BROKER] The broker can be stopped by using CTRL+C!");
+            Console.WriteLine ("[BROKER] setting up sockets ...");
 
             // set up all the addresses needed in the due course
             var localFrontendAddress = me;
@@ -169,7 +181,7 @@ namespace InterBrokerRouter
                                         {
                                             var msg = e.Socket.ReceiveString ();
 
-                                            Console.WriteLine ("[Monitor] {0}", msg);
+                                            Console.WriteLine ("[MONITOR] {0}", msg);
                                         };
 
                 // all local clients are connecting to this socket
@@ -332,17 +344,17 @@ namespace InterBrokerRouter
                                  };
 
                 // start all clients and workers as threads
-                var clientTasks = new Thread[_NBR_CLIENTS];
-                var workerTasks = new Thread[_NBR_WORKER];
+                var clientTasks = new Thread[_nbr_clients];
+                var workerTasks = new Thread[_nbr_worker];
 
-                for (var i = 0; i < _NBR_CLIENTS; i++)
+                for (var i = 0; i < _nbr_clients; i++)
                 {
                     var client = new Client (localFrontendAddress, monitorAddress, (byte) i);
                     clientTasks[i] = new Thread (() => client.Run ()) { Name = string.Format ("Client_{0}", i) };
                     clientTasks[i].Start ();
                 }
 
-                for (var i = 0; i < _NBR_WORKER; i++)
+                for (var i = 0; i < _nbr_worker; i++)
                 {
                     var worker = new Worker (localBackendAddress, (byte) i);
                     workerTasks[i] = new Thread (() => worker.Run ()) { Name = string.Format ("Worker_{0}", i) };
@@ -366,12 +378,12 @@ namespace InterBrokerRouter
                 poller.AddTimer (timer);
 
                 // start monitoring the sockets
-                Task.Factory.StartNew (() => poller.Start ());
+                var pollTask = Task.Factory.StartNew (() => poller.Start ());
 
-                while (true)
-                {
-                    // wait for exit
-                }
+                // we wait for a CTRL+C to exit
+                while (keepRunning) { }
+
+                Console.WriteLine ("Ctrl-C encountered! Exiting the program!");
 
                 poller.Stop ();
                 poller.Dispose ();
