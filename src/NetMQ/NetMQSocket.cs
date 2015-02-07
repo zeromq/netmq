@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using NetMQ.zmq;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, IDisposable
+    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket,ISocketPollable, IDisposable
     {
         readonly SocketBase m_socketHandle;
         private bool m_isClosed = false;
@@ -15,14 +17,14 @@ namespace NetMQ
 
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
 
+        private Selector m_selector;
+
         protected NetMQSocket(SocketBase socketHandle)
         {
+            m_selector = new Selector();
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
-            m_socketEventArgs = new NetMQSocketEventArgs(this);
-
-            IgnoreErrors = false;
-            Errors = 0;
+            m_socketEventArgs = new NetMQSocketEventArgs(this);            
         }
 
         /// <summary>
@@ -59,6 +61,7 @@ namespace NetMQ
             }
         }
 
+        [Obsolete]
         public bool IgnoreErrors { get; set; }
 
         internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
@@ -90,13 +93,20 @@ namespace NetMQ
             }
         }
 
+        NetMQSocket ISocketPollable.Socket
+        {
+            get { return this; }
+        }
+
         /// <summary>
         /// Bind the socket to an address
         /// </summary>
         /// <param name="address">The address of the socket</param>
         public void Bind(string address)
         {
-            ZMQ.Bind(m_socketHandle, address);
+            m_socketHandle.CheckDisposed();
+
+            m_socketHandle.Bind(address);            
         }
 
         /// <summary>
@@ -106,7 +116,9 @@ namespace NetMQ
         /// <returns>Chosen port number</returns>
         public int BindRandomPort(string address)
         {
-            return ZMQ.BindRandomPort(m_socketHandle, address);
+            m_socketHandle.CheckDisposed();
+            
+            return m_socketHandle.BindRandomPort(address);
         }
 
         /// <summary>
@@ -115,7 +127,9 @@ namespace NetMQ
         /// <param name="address">Address to connect to</param>
         public void Connect(string address)
         {
-            ZMQ.Connect(m_socketHandle, address);
+            m_socketHandle.CheckDisposed();
+
+            m_socketHandle.Connect(address);            
         }
 
         /// <summary>
@@ -124,7 +138,9 @@ namespace NetMQ
         /// <param name="address">The address to disconnect from</param>
         public void Disconnect(string address)
         {
-            ZMQ.Disconnect(m_socketHandle, address);
+            m_socketHandle.CheckDisposed();
+
+            m_socketHandle.TermEndpoint(address);
         }
 
         /// <summary>
@@ -133,7 +149,9 @@ namespace NetMQ
         /// <param name="address">The address to unbind from</param>
         public void Unbind(string address)
         {
-            ZMQ.Unbind(m_socketHandle, address);
+            m_socketHandle.CheckDisposed();
+
+            m_socketHandle.TermEndpoint(address);
         }
 
         /// <summary>
@@ -144,7 +162,9 @@ namespace NetMQ
             if (!m_isClosed)
             {
                 m_isClosed = true;
-                ZMQ.Close(m_socketHandle);
+
+                m_socketHandle.CheckDisposed();
+                m_socketHandle.Close();                
             }
         }
 
@@ -163,29 +183,19 @@ namespace NetMQ
         {
             PollEvents events = GetPollEvents();
 
-            PollItem item = new PollItem(m_socketHandle, events);
+            var result = Poll(events, timeout);
 
-            PollItem[] items = new PollItem[] { item };
+            InvokeEvents(this, result);
 
-            ZMQ.Poll(items, (int)timeout.TotalMilliseconds);
+            return result != PollEvents.None;
+        }
 
-            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !IgnoreErrors)
-            {
-                Errors++;
+        internal PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
+        {
+            SelectItem[] items = new[] {new SelectItem(SocketHandle, pollEvents),};
 
-                if (Errors > 1)
-                {
-                    throw new ErrorPollingException("Error while polling", this);
-                }
-            }
-            else
-            {
-                Errors = 0;
-            }
-
-            InvokeEvents(this, item.ResultEvent);
-
-            return items[0].ResultEvent != PollEvents.None;
+            m_selector.Select(items, 1, (int) timeout.TotalMilliseconds);
+            return items[0].ResultEvent;
         }
 
         internal PollEvents GetPollEvents()
@@ -231,52 +241,14 @@ namespace NetMQ
             }
         }
 
-        protected internal virtual Msg ReceiveInternal(SendReceiveOptions options, out bool hasMore)
+        public virtual void Receive(ref Msg msg, SendReceiveOptions options)
+        {                        
+            m_socketHandle.Recv(ref msg, options);                        
+        }       
+                    
+        public virtual void Send(ref Msg msg, SendReceiveOptions options)
         {
-            var msg = ZMQ.Recv(m_socketHandle, options);
-
-            hasMore = msg.HasMore;
-
-            return msg;
-        }
-
-        public byte[] Receive(bool dontWait, out bool hasMore)
-        {
-            return ReceiveInternal(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore).Data;
-        }
-
-        public void SendMessage(NetMQMessage message, bool dontWait = false)
-        {
-            for (int i = 0; i < message.FrameCount - 1; i++)
-            {
-                Send(message[i].Buffer, message[i].MessageSize, dontWait, true);
-            }
-
-            Send(message.Last.Buffer, message.Last.MessageSize, dontWait);
-        }
-
-        public virtual void Send(byte[] data, int length, SendReceiveOptions options)
-        {
-            Msg msg = new Msg(data, length, Options.CopyMessages);
-
-            ZMQ.Send(m_socketHandle, msg, options);
-        }
-
-        public void Send(byte[] data, int length, bool dontWait = false, bool sendMore = false)
-        {
-            SendReceiveOptions sendReceiveOptions = SendReceiveOptions.None;
-
-            if (dontWait)
-            {
-                sendReceiveOptions |= SendReceiveOptions.DontWait;
-            }
-
-            if (sendMore)
-            {
-                sendReceiveOptions |= SendReceiveOptions.SendMore;
-            }
-
-            Send(data, length, sendReceiveOptions);
+            m_socketHandle.Send(ref msg, options);
         }
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
@@ -315,42 +287,72 @@ namespace NetMQ
                 throw new ArgumentException("Unable to publish socket events to an empty endpoint.", "endpoint");
             }
 
-            ZMQ.SocketMonitor(SocketHandle, endpoint, events);
+            m_socketHandle.CheckDisposed();
+
+            m_socketHandle.Monitor(endpoint, events);
+        }
+
+        public bool HasIn
+        {
+            get
+            {
+                PollEvents pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
+
+                return pollEvents.HasFlag(PollEvents.PollIn);
+            }
+        }
+
+        public bool HasOut
+        {
+            get
+            {
+                PollEvents pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
+
+                return pollEvents.HasFlag(PollEvents.PollOut);
+            }
         }
 
         internal int GetSocketOption(ZmqSocketOptions socketOptions)
         {
-            return ZMQ.GetSocketOption(m_socketHandle, socketOptions);
-        }
+            m_socketHandle.CheckDisposed();
 
-        internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
-        {
-            return TimeSpan.FromMilliseconds(ZMQ.GetSocketOption(m_socketHandle, socketOptions));
-        }
-
-        internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
-        {
-            return (long)ZMQ.GetSocketOptionX(m_socketHandle, socketOptions);
+            return m_socketHandle.GetSocketOption(socketOptions);
         }
 
         internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
         {
-            return (T)ZMQ.GetSocketOptionX(m_socketHandle, socketOptions);
+            m_socketHandle.CheckDisposed();
+
+            return (T)m_socketHandle.GetSocketOptionX(socketOptions);
         }
 
+        internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
+        {
+            return TimeSpan.FromMilliseconds(GetSocketOption(socketOptions));
+        }
+
+        internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
+        {
+            return GetSocketOptionX<long>(socketOptions);
+        }
+     
         internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
         {
-            ZMQ.SetSocketOption(m_socketHandle, socketOptions, value);
+            m_socketHandle.CheckDisposed();
+
+            m_socketHandle.SetSocketOption(socketOptions, value);
         }
 
         internal void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
         {
-            ZMQ.SetSocketOption(m_socketHandle, socketOptions, (int)value.TotalMilliseconds);
+            SetSocketOption(socketOptions, (int)value.TotalMilliseconds);
         }
 
         internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
         {
-            ZMQ.SetSocketOption(m_socketHandle, socketOptions, value);
+            m_socketHandle.CheckDisposed();
+
+            m_socketHandle.SetSocketOption(socketOptions, value);
         }
 
         public void Dispose()

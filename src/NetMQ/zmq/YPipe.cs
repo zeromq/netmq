@@ -21,10 +21,11 @@
 
 using System.Diagnostics;
 using System.Threading;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public class YPipe<T> where T : class
+    public class YPipe<T>
     {
 
         //  Allocation-efficient queue to store pipe items.
@@ -63,10 +64,10 @@ namespace NetMQ.zmq
         //  set to true the item is assumed to be continued by items
         //  subsequently written to the pipe. Incomplete items are never
         //  flushed down the stream.
-        public void Write(T value, bool incomplete)
+        public void Write(ref T value, bool incomplete)
         {
             //  Place the value to the queue, add new terminator element.
-            m_queue.Push(value);
+            m_queue.Push(ref value);
 
             //  Move the "flush up to here" poiter.
             if (!incomplete)
@@ -77,12 +78,14 @@ namespace NetMQ.zmq
 
         /// <summary>Pop an incomplete item from the pipe.</summary> 
         /// <returns>Returns the element revoked if such item exists, <c>null</c> otherwise.</returns>  
-        public T Unwrite()
+        public bool Unwrite(ref T value)
         {
 
             if (m_flushToIndex == m_queue.BackPos)
-                return null;
-            return m_queue.Unpush();
+                return false;
+            value = m_queue.Unpush();
+
+            return true;
         }
 
         /// <summary> Flush all the completed items into the pipe. </summary>
@@ -120,7 +123,7 @@ namespace NetMQ.zmq
         {
             //  Was the value prefetched already? If so, return.
             int head = m_queue.FrontPos;
-            if (head != m_readToIndex)
+            if (head != m_readToIndex && m_readToIndex != -1)
                 return true;
 
             //  There's no prefetched value, so let us prefetch more values.
@@ -151,17 +154,17 @@ namespace NetMQ.zmq
 
         //  Reads an item from the pipe. Returns false if there is no value.
         //  available.
-        public T Read()
+        public bool Read(ref T value)
         {
             //  Try to prefetch a value.
             if (!CheckRead())
-                return null;
+                return false;
 
             //  There was at least one value prefetched.
             //  Return it to the caller.
-            T value = m_queue.Pop();
+            value = m_queue.Pop();
 
-            return value;
+            return true;
         }
 
         //  Applies the function fn to the first elemenent in the pipe

@@ -1,4 +1,5 @@
 ﻿using System;
+using NetMQ;
 using NetMQ.zmq;
 
 namespace local_lat
@@ -17,22 +18,26 @@ namespace local_lat
             int messageSize = int.Parse(args[1]);
             int roundtripCount = int.Parse(args[2]);
 
-            var context = ZMQ.CtxNew();
-            var repSocket = ZMQ.Socket(context, ZmqSocketType.Rep);
+            var context = NetMQContext.Create();
+            var repSocket = context.CreateResponseSocket();
             repSocket.Bind(bindTo);
+
+            Msg message = new Msg();
+            message.InitEmpty();
 
             for (int i = 0; i != roundtripCount; i++)
             {
-                Msg message = repSocket.Recv(SendReceiveOptions.None);
-                if (ZMQ.MsgSize(message) != messageSize)
+                repSocket.Receive(ref message, SendReceiveOptions.None);
+                if (message.Size != messageSize)
                 {
                     Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
                     return -1;
                 }
 
-                repSocket.Send(message, SendReceiveOptions.None);
+                repSocket.Send(ref message, SendReceiveOptions.None);
             }
 
+            message.Close();
             repSocket.Close();
             context.Terminate();
 

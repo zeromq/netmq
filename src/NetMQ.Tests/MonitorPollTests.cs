@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +31,7 @@ namespace NetMQ.Tests
                         monitor.Accepted += (s, a) =>
                             {
                                 accepted = true;
-                                Console.WriteLine(a.Socket.RemoteEndPoint.ToString());
+                                //Console.WriteLine(a.Socket.LocalEndPoint.ToString());
                             };
                         monitor.Listening += (s, a) =>
                             {
@@ -122,6 +124,43 @@ namespace NetMQ.Tests
                     }
                 }
             }
+        }
+
+        [Test]
+        public void MonitorDisposeProperlyWhenDisposedAfterMonitoredTcpSocket()
+        {
+            // The bug:
+            // Given we monitor a netmq tcp socket
+            // Given we disposed of the monitored socket first
+            // When we dipose of the monitor
+            // Then our monitor is Faulted with a EndpointNotFoundException
+            // And monitor can't be stopped or disposed
+
+            Task monitorTask;
+            using (var theContext = NetMQContext.Create())
+            using (var resSocket = theContext.CreateResponseSocket())
+            {
+                NetMQMonitor monitor = null;
+                using (var reqSocket = theContext.CreateRequestSocket())
+                {
+                    monitor = new NetMQMonitor(theContext, reqSocket, "inproc://#monitor", SocketEvent.All);
+                    monitorTask = Task.Factory.StartNew(() => monitor.Start());
+
+                    //The bug is only occuring when monitor a tcp socket
+                    resSocket.Bind("tcp://127.0.0.1:12345");
+                    reqSocket.Connect("tcp://127.0.0.1:12345");
+
+                    reqSocket.Send("question");
+                    Assert.That(resSocket.ReceiveString(), Is.EqualTo("question"));
+                    resSocket.Send("response");
+                    Assert.That(reqSocket.ReceiveString(), Is.EqualTo("response"));
+                }
+                Thread.Sleep(100);
+                // Monitor.Dispose should complete
+                var completed = Task.Factory.StartNew(() => monitor.Dispose()).Wait(1000);
+                Assert.That(completed, Is.True);
+            }
+            //Note: If this test fails, it will hang because the context Dispose will block
         }
     }
 }

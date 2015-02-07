@@ -25,6 +25,7 @@ namespace NetMQ
             }
         }
 
+        [Obsolete("This property doesn't effect NetMQ anymore")]
         public bool CopyMessages { get; set; }
 
         public byte[] Identity
@@ -190,5 +191,10 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.Endian, value); }
         }
 
+        public bool ManualPublisher
+        {
+            // get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XPublisherManual); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.XPublisherManual, value); }
+        }
     }
 }

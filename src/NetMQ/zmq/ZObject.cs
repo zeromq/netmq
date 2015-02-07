@@ -23,6 +23,8 @@ using System;
 
 //  Base class for all objects that participate in inter-thread
 //  communication.
+using NetMQ.zmq.Transports;
+
 namespace NetMQ.zmq
 {
     public abstract class ZObject
@@ -123,9 +125,14 @@ namespace NetMQ.zmq
 
         }
 
-        protected void RegisterEndpoint(String addr, Ctx.Endpoint endpoint)
+        protected bool RegisterEndpoint(String addr, Ctx.Endpoint endpoint)
         {
-            m_ctx.RegisterEndpoint(addr, endpoint);
+            return m_ctx.RegisterEndpoint(addr, endpoint);
+        }
+
+        protected bool UnregisterEndpoint(string addr, SocketBase socket)
+        {
+            return m_ctx.UnregisterEndpoint(addr, socket);
         }
 
         protected void UnregisterEndpoints(SocketBase socket)
@@ -175,8 +182,7 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
-        protected void SendAttach(SessionBase destination,
-                                    IEngine engine, bool incSeqnum = true)
+        protected void SendAttach(SessionBase destination, IEngine engine, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();
@@ -186,8 +192,7 @@ namespace NetMQ.zmq
         }
 
 
-        protected void SendBind(Own destination, Pipe pipe,
-                                  bool incSeqnum = true)
+        protected void SendBind(Own destination, Pipe pipe, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();

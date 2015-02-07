@@ -1,0 +1,22 @@
+site_name: NetMQ
+
+pages:
+- ['index.md', 'Home']
+- ['introduction.md', 'Introduction']
+- ['transports.md', 'Transports']
+- ['request-response.md', 'Request-Response']
+- ['pub-sub.md', 'Pub-Sub']
+- ['push-pull.md', 'Push-Pull']
+- ['receiving-sending.md', 'Receiving and Sending']
+- ['message.md', 'NetMQ Message']
+- ['routerDealer.md', 'Router-Dealer'] 
+- ['xpub-xsub.md', 'XSub/XPub']
+- ['stream.md', 'Stream']
+- ['poller.md', 'Poller']
+- ['scheduler.md', 'NetMQ Scheduler']
+- ['actor.md', 'Actor']
+- ['beacon.md', 'Beacon']
+- ['devices.md', 'Devices']
+
+
+

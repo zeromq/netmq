@@ -164,7 +164,7 @@ namespace NetMQ.zmq
             m_sink = sink;
         }
 
-        public Blob Identity { get; set; }
+        public byte[] Identity { get; set; }
 
         /// <summary> Checks if there is at least one message to read in the pipe. </summary>
         /// <returns> Returns <c>true</c> if there is at least one message to read in the pipe; <c>false</c> otherwise. </returns>
@@ -184,8 +184,9 @@ namespace NetMQ.zmq
             //  initiate termination process.
             if (IsDelimiter(m_inboundPipe.Probe()))
             {
-                Msg msg = m_inboundPipe.Read();
-                Debug.Assert(msg != null);
+                Msg msg = new Msg();
+                bool ok = m_inboundPipe.Read(ref msg);
+                Debug.Assert(ok);
                 Delimit();
                 return false;
             }
@@ -195,24 +196,22 @@ namespace NetMQ.zmq
 
         /// <summary> Reads a message from the underlying inbound pipe. </summary>
         /// <returns> The message read from the pipe, or <c>null</c> if pipe is terminated or no messages available. </returns>
-        public Msg Read()
+        public bool Read(ref Msg msg)
         {
             if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
-                return null;
-
-            Msg msg = m_inboundPipe.Read();
-
-            if (msg == null)
+                return false;
+            
+            if (!m_inboundPipe.Read(ref msg))
             {
                 m_inActive = false;
-                return null;
+                return false;
             }
 
             //  If delimiter was read, start termination process of the pipe.
             if (msg.IsDelimiter)
             {
                 Delimit();
-                return null;
+                return false;
             }
 
             if (!msg.HasMore)
@@ -221,7 +220,7 @@ namespace NetMQ.zmq
             if (m_lowWatermark > 0 && m_numberOfMessagesRead % m_lowWatermark == 0)
                 SendActivateWrite(m_peer, m_numberOfMessagesRead);
 
-            return msg;
+            return true;
         }
 
         /// <summary>Checks whether messages can be written to the pipe. If writing 
@@ -246,16 +245,13 @@ namespace NetMQ.zmq
         /// <summary> Writes a message to the underlying pipe. </summary>
         /// <param name="msg">The message to write.</param>
         /// <returns>Returns <c>false</c> if the message cannot be written because high watermark was reached.</returns>
-        public bool Write(Msg msg)
+        public bool Write(ref Msg msg)
         {
             if (!CheckWrite())
                 return false;
 
             bool more = msg.HasMore;
-            m_outboundPipe.Write(msg, more);
-            //if (LOG.isDebugEnabled()) {
-            //    LOG.debug(parent.ToString() + " write " + msg_);
-            //}
+            m_outboundPipe.Write(ref msg, more);            
 
             if (!more)
                 m_numberOfMessagesWritten++;
@@ -267,13 +263,13 @@ namespace NetMQ.zmq
         public void Rollback()
         {
             //  Remove incomplete message from the outbound pipe.
-            Msg msg;
+            Msg msg = new Msg();
             if (m_outboundPipe != null)
             {
-                while ((msg = m_outboundPipe.Unwrite()) != null)
+                while (m_outboundPipe.Unwrite(ref msg))
                 {
                     Debug.Assert((msg.Flags & MsgFlags.More) != 0);
-                    //msg.close ();
+                    msg.Close();
                 }
             }
         }
@@ -314,8 +310,10 @@ namespace NetMQ.zmq
             //  migrated to this thread.
             Debug.Assert(m_outboundPipe != null);
             m_outboundPipe.Flush();
-            while (m_outboundPipe.Read() != null)
+            Msg msg = new Msg();
+            while (m_outboundPipe.Read(ref msg))
             {
+                msg.Close();
             }
 
             //  Plug in the new outpipe.
@@ -396,13 +394,13 @@ namespace NetMQ.zmq
             //  First, delete all the unread messages in the pipe. We have to do it by
             //  hand because msg_t doesn't have automatic destructor. Then deallocate
             //  the ypipe itself.
-            while (m_inboundPipe.Read() != null)
+            Msg msg = new Msg();
+            while (m_inboundPipe.Read(ref msg))
             {
+                msg.Close();
             }
 
-            m_inboundPipe = null;
-
-            //  Deallocate the pipe object
+            m_inboundPipe = null;            
         }
 
         /// <summary> Ask pipe to terminate. The termination will happen asynchronously
@@ -473,7 +471,7 @@ namespace NetMQ.zmq
 
                 Msg msg = new Msg();
                 msg.InitDelimiter();
-                m_outboundPipe.Write(msg, false);
+                m_outboundPipe.Write(ref msg, false);
                 Flush();
 
             }

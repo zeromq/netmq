@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading;
+using AsyncIO;
 using NetMQ.zmq;
 
 namespace NetMQ.Monitoring
@@ -13,7 +14,7 @@ namespace NetMQ.Monitoring
         private bool m_isOwner;
         private Poller m_attachedPoller = null;
 
-        readonly CancellationTokenSource m_cancellationTokenSource = new CancellationTokenSource();
+        private int m_cancel = 0;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
 
@@ -22,7 +23,7 @@ namespace NetMQ.Monitoring
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
 
-            ZMQ.SocketMonitor(monitoredSocket.SocketHandle, Endpoint, eventsToMonitor);
+            monitoredSocket.Monitor(endpoint, eventsToMonitor);            
 
             MonitoringSocket = context.CreatePairSocket();
             MonitoringSocket.Options.Linger = TimeSpan.Zero;
@@ -121,7 +122,7 @@ namespace NetMQ.Monitoring
                 switch (monitorEvent.Event)
                 {
                     case SocketEvent.Connected:
-                        InvokeEvent(Connected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (Socket)monitorEvent.Arg));
+                        InvokeEvent(Connected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg));
                         break;
                     case SocketEvent.ConnectDelayed:
                         InvokeEvent(ConnectDelayed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg));
@@ -130,25 +131,25 @@ namespace NetMQ.Monitoring
                         InvokeEvent(ConnectRetried, new NetMQMonitorIntervalEventArgs(this, monitorEvent.Addr, (int)monitorEvent.Arg));
                         break;
                     case SocketEvent.Listening:
-                        InvokeEvent(Listening, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (Socket)monitorEvent.Arg));
+                        InvokeEvent(Listening, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg));
                         break;
                     case SocketEvent.BindFailed:
                         InvokeEvent(BindFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg));
                         break;
                     case SocketEvent.Accepted:
-                        InvokeEvent(Accepted, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (Socket)monitorEvent.Arg));
+                        InvokeEvent(Accepted, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg));
                         break;
                     case SocketEvent.AcceptFailed:
                         InvokeEvent(AcceptFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg));
                         break;
                     case SocketEvent.Closed:
-                        InvokeEvent(Closed, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (Socket)monitorEvent.Arg));
+                        InvokeEvent(Closed, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg));
                         break;
                     case SocketEvent.CloseFailed:
                         InvokeEvent(CloseFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg));
                         break;
                     case SocketEvent.Disconnected:
-                        InvokeEvent(Disconnected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (Socket)monitorEvent.Arg));
+                        InvokeEvent(Disconnected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg));
                         break;
                     default:
                         throw new Exception("unknown event " + monitorEvent.Event.ToString());
@@ -158,9 +159,10 @@ namespace NetMQ.Monitoring
 
         private void InvokeEvent<T>(EventHandler<T> handler, T args) where T : NetMQMonitorEventArgs
         {
-            if (handler != null)
+            var temp = handler;
+            if (temp != null)
             {
-                handler(this, args);
+                temp(this, args);
             }
         }
 
@@ -173,9 +175,18 @@ namespace NetMQ.Monitoring
 
         private void InternalClose()
         {
-            m_isStoppedEvent.Set();
-            IsRunning = false;
-            MonitoringSocket.Disconnect(Endpoint);
+            try
+            {
+                MonitoringSocket.Disconnect(Endpoint);
+            }
+            catch (Exception ex)
+            {
+            }
+            finally 
+            {
+                IsRunning = false;
+                m_isStoppedEvent.Set();
+            }
         }
 
         public void AttachToPoller(Poller poller)
@@ -214,7 +225,7 @@ namespace NetMQ.Monitoring
 
             try
             {
-                while (!m_cancellationTokenSource.IsCancellationRequested)
+                while (m_cancel == 0)
                 {
                     MonitoringSocket.Poll(Timeout);
                 }
@@ -233,7 +244,7 @@ namespace NetMQ.Monitoring
                 throw new InvalidOperationException("Monitor attached to a poller, please detach from poller and don't use the stop method");
             }
 
-            m_cancellationTokenSource.Cancel();
+            Interlocked.Exchange(ref m_cancel, 1);
             m_isStoppedEvent.WaitOne();
         }
 

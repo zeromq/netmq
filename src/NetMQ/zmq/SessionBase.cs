@@ -23,11 +23,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Sockets;
+using NetMQ.zmq.Transports;
+using NetMQ.zmq.Transports.Ipc;
+using NetMQ.zmq.Patterns;
+using NetMQ.zmq.Transports.PGM;
+using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq
 {
     public class SessionBase : Own,
-                                                         Pipe.IPipeEvents, IPollEvents,
+                                                         Pipe.IPipeEvents, IProcatorEvents,
                                                          IMsgSink, IMsgSource
     {
         //  If true, this session (re)connects to the peer. Otherwise, it's
@@ -129,7 +135,7 @@ namespace NetMQ.zmq
                     s = new Stream.StreamSession(ioThread, connect, socket, options, addr);
                     break;
                 default:
-                    throw InvalidException.Create("type=" + options.SocketType);
+                    throw new InvalidException("type=" + options.SocketType);
 
             }
             return s;
@@ -190,33 +196,29 @@ namespace NetMQ.zmq
             m_pipe.SetEventSink(this);
         }
 
-        public virtual Msg PullMsg()
+        public virtual bool PullMsg(ref Msg msg)
         {
-
-            Msg msg;
-
             //  First message to send is identity
             if (!m_identitySent)
             {
-                msg = new Msg(m_options.IdentitySize);
+                msg.InitPool(m_options.IdentitySize);
                 msg.Put(m_options.Identity, 0, m_options.IdentitySize);
                 m_identitySent = true;
                 m_incompleteIn = false;
 
-                return msg;
+                return true;
             }
 
-            if (m_pipe == null || (msg = m_pipe.Read()) == null)
+            if (m_pipe == null || !m_pipe.Read(ref msg))
             {
-                return null;
+                return false;
             }
             m_incompleteIn = msg.HasMore;
 
-            return msg;
-
+            return true;
         }
 
-        public virtual void PushMsg(Msg msg)
+        public virtual bool PushMsg(ref Msg msg)
         {
             //  First message to receive is identity (if required).
             if (!m_identityReceived)
@@ -226,16 +228,19 @@ namespace NetMQ.zmq
 
                 if (!m_options.RecvIdentity)
                 {
-                    return;
+                    msg.Close();
+                    msg.InitEmpty();
+                    return true;
                 }
             }
 
-            if (m_pipe != null && m_pipe.Write(msg))
+            if (m_pipe != null && m_pipe.Write(ref msg))
             {
-                return;
+                msg.InitEmpty();
+                return true;
             }
 
-            throw AgainException.Create();
+            return false;
         }
 
 
@@ -269,8 +274,10 @@ namespace NetMQ.zmq
                 //  Remove any half-read message from the in pipe.
                 while (m_incompleteIn)
                 {
-                    Msg msg = PullMsg();
-                    if (msg == null)
+                    Msg msg = new Msg();
+                    msg.InitEmpty();
+
+                    if (!PullMsg(ref msg))
                     {
                         Debug.Assert(!m_incompleteIn);
                         break;
@@ -546,13 +553,13 @@ namespace NetMQ.zmq
             return base.ToString() + "[" + m_options.SocketId + "]";
         }
 
-        public virtual void InEvent()
+        public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
 
         }
 
-        public virtual void OutEvent()
+        public virtual void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
 

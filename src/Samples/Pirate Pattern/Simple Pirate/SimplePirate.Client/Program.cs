@@ -50,16 +50,22 @@ namespace SimplePirate.Client
                             {
                                 Console.WriteLine("C: No response from server, retrying..");
 
-                                client.Disconnect(SERVER_ENDPOINT);
-                                client.Dispose();
-                                client = null;
+                                TerminateClient(client);
+
                                 client = CreateServerSocket(context);
                                 client.Send(Encoding.Unicode.GetBytes(_strSequenceSent));
                             }
                         }
                     }
                 }
+                TerminateClient(client);
             }
+        }
+
+        private static void TerminateClient(RequestSocket client)
+        {
+            client.Disconnect(SERVER_ENDPOINT);
+            client.Close();
         }
 
         private static RequestSocket CreateServerSocket(NetMQContext context)

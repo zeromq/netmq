@@ -32,8 +32,9 @@ namespace NetMQ.zmq
 {
     public class Ctx
     {
-
-        // private static Logger LOG = LoggerFactory.getLogger(Ctx.class);
+        /*  Default for new contexts                                                  */
+        public const int DefaultIOThreads = 1;
+        public const int DefaultMaxSockets = 1024;
 
         //  Information associated with inproc endpoint. Note that endpoint options
         //  are registered as well so that the peer can access them without a need
@@ -50,8 +51,8 @@ namespace NetMQ.zmq
             public SocketBase Socket { get; private set; }
             public Options Options { get; private set; }
         }
-        //  Used to check whether the object is a context.
-        private uint m_tag;
+
+        private bool m_disposed;
 
         //  Sockets belonging to this context. We need the list so that
         //  we can notify the sockets when zmq_term() is called. The sockets
@@ -83,13 +84,13 @@ namespace NetMQ.zmq
 
         //  Array of pointers to mailboxes for both application and I/O threads.
         private int m_slotCount;
-        private Mailbox[] m_slots;
+        private IMailbox[] m_slots;
 
         //  Mailbox for zmq_term thread.
         private readonly Mailbox m_termMailbox;
 
         //  List of inproc endpoints within this context.
-        private readonly Dictionary<String, Endpoint> m_endpoints;
+        private readonly Dictionary<string, Endpoint> m_endpoints;
 
         //  Synchronisation of access to the list of inproc endpoints.		
         private readonly object m_endpointsSync;
@@ -111,14 +112,14 @@ namespace NetMQ.zmq
 
         public Ctx()
         {
-            m_tag = 0xabadcafe;
+            m_disposed = false;
             m_starting = true;
             m_terminating = false;
             m_reaper = null;
             m_slotCount = 0;
             m_slots = null;
-            m_maxSockets = ZMQ.ZmqMaxSocketsDflt;
-            m_ioThreadCount = ZMQ.ZmqIOThreadsDflt;
+            m_maxSockets = DefaultMaxSockets;
+            m_ioThreadCount = DefaultIOThreads;
 
             m_slotSync = new object();
             m_endpointsSync = new object();
@@ -129,7 +130,7 @@ namespace NetMQ.zmq
             m_emptySlots = new Stack<int>();
             m_ioThreads = new List<IOThread>();
             m_sockets = new List<SocketBase>();
-            m_endpoints = new Dictionary<String, Endpoint>();
+            m_endpoints = new Dictionary<string, Endpoint>();
         }
 
         protected void Destroy()
@@ -148,13 +149,16 @@ namespace NetMQ.zmq
                 m_reaper.Destroy();
             m_termMailbox.Close();
 
-            m_tag = 0xdeadbeef;
+            m_disposed = true;
         }
 
         //  Returns false if object is not a context.
-        public bool CheckTag()
+        public void CheckDisposed()
         {
-            return m_tag == 0xabadcafe;
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
         }
 
         //  This function is called when user invokes zmq_term. If there are
@@ -164,8 +168,7 @@ namespace NetMQ.zmq
 
         public void Terminate()
         {
-
-            m_tag = 0xdeadbeef;
+            m_disposed = true;
 
             Monitor.Enter(m_slotSync);
 
@@ -203,23 +206,7 @@ namespace NetMQ.zmq
                 }
 
                 //  Wait till reaper thread closes all the sockets.
-                Command cmd;
-
-                try
-                {
-                    cmd = m_termMailbox.Recv(-1);
-                }
-                catch (NetMQException ex)
-                {
-                    if (ex.ErrorCode == ErrorCode.EINTR)
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                Command cmd = m_termMailbox.Recv(-1);
 
                 Debug.Assert(cmd.CommandType == CommandType.Done);
                 Monitor.Enter(m_slotSync);
@@ -241,33 +228,29 @@ namespace NetMQ.zmq
                     m_maxSockets = optval;
                 }
             }
+            else if (option == ContextOption.IOThreads && optval >= 0)
+            {
+                lock (m_optSync)
+                {
+                    m_ioThreadCount = optval;
+                }
+            }
             else
-                if (option == ContextOption.IOThreads && optval >= 0)
-                {
-                    lock (m_optSync)
-                    {
-                        m_ioThreadCount = optval;
-                    }
-                }
-                else
-                {
-                    throw InvalidException.Create("option = " + option);
-                }
+            {
+                throw new InvalidException("option = " + option);
+            }
         }
 
         public int Get(ContextOption option)
         {
-            int rc = 0;
             if (option == ContextOption.MaxSockets)
-                rc = m_maxSockets;
+                return m_maxSockets;
+            else if (option == ContextOption.IOThreads)
+                return m_ioThreadCount;
             else
-                if (option == ContextOption.IOThreads)
-                    rc = m_ioThreadCount;
-                else
-                {
-                    throw InvalidException.Create("option = " + option);
-                }
-            return rc;
+            {
+                throw new InvalidException("option = " + option);
+            }
         }
 
         public SocketBase CreateSocket(ZmqSocketType type)
@@ -291,7 +274,7 @@ namespace NetMQ.zmq
                         ios = m_ioThreadCount;
                     }
                     m_slotCount = mazmq + ios + 2;
-                    m_slots = new Mailbox[m_slotCount];
+                    m_slots = new IMailbox[m_slotCount];
                     //alloc_Debug.Assert(slots);
 
                     //  Initialise the infrastructure for zmq_term thread.
@@ -326,23 +309,23 @@ namespace NetMQ.zmq
                 //  Once zmq_term() was called, we can't create new sockets.
                 if (m_terminating)
                 {
-                    throw TerminatingException.Create();
+                    throw new TerminatingException();
                 }
 
                 //  If max_sockets limit was reached, return error.
                 if (m_emptySlots.Count == 0)
                 {
-                    throw NetMQException.Create(ErrorCode.EMFILE);
+                    throw NetMQException.Create(ErrorCode.TooManyOpenSockets);
                 }
 
                 //  Choose a slot for the socket.
                 int slot = m_emptySlots.Pop();
 
                 //  Generate new unique socket ID.
-                int sid = Interlocked.Increment(ref s_maxSocketId);
+                int socketId = Interlocked.Increment(ref s_maxSocketId);
 
                 //  Create the socket and register its mailbox.
-                s = SocketBase.Create(type, this, slot, sid);
+                s = SocketBase.Create(type, this, slot, socketId);
                 if (s == null)
                 {
                     m_emptySlots.Push(slot);
@@ -360,14 +343,13 @@ namespace NetMQ.zmq
 
         public void DestroySocket(SocketBase socket)
         {
-            int tid;
             //  Free the associated thread slot.
             lock (m_slotSync)
             {
-                tid = socket.ThreadId;
-                m_emptySlots.Push(tid);
-                m_slots[tid].Close();
-                m_slots[tid] = null;
+                int threadId = socket.ThreadId;
+                m_emptySlots.Push(threadId);
+                m_slots[threadId].Close();
+                m_slots[threadId] = null;
 
                 //  Remove the socket from the list of sockets.
                 m_sockets.Remove(socket);
@@ -388,9 +370,9 @@ namespace NetMQ.zmq
         }
 
         //  Send command to the destination thread.
-        public void SendCommand(int tid, Command command)
+        public void SendCommand(int threadId, Command command)
         {
-            m_slots[tid].Send(command);
+            m_slots[threadId].Send(command);
         }
 
         //  Returns the I/O thread that is the least busy at the moment.
@@ -421,20 +403,43 @@ namespace NetMQ.zmq
         }
 
         //  Management of inproc endpoints.
-        public void RegisterEndpoint(String addr, Endpoint endpoint)
+        public bool RegisterEndpoint(String addr, Endpoint endpoint)
         {
-            bool exist;
-
             lock (m_endpointsSync)
             {
-                exist = m_endpoints.ContainsKey(addr);
-
-                m_endpoints[addr] = endpoint;
+                if (m_endpoints.ContainsKey(addr))
+                {
+                    return false;
+                }
+                else
+                {
+                    m_endpoints[addr] = endpoint;
+                    return true;
+                }
             }
+        }
 
-            if (exist)
+        public bool UnregisterEndpoint(string addr, SocketBase socket)
+        {
+            lock (m_endpointsSync)
             {
-                throw NetMQException.Create(ErrorCode.EADDRINUSE);
+                Endpoint endpoint;
+
+                if (m_endpoints.TryGetValue(addr, out endpoint))
+                {
+                    if (socket != endpoint.Socket)
+                    {
+                        return false;
+                    }
+
+                    m_endpoints.Remove(addr);
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
@@ -459,13 +464,13 @@ namespace NetMQ.zmq
             {
                 if (addr == null || !m_endpoints.ContainsKey(addr))
                 {
-                    throw NetMQException.Create(ErrorCode.EINVAL);
+                    throw new EndpointNotFoundException();
                 }
 
                 endpoint = m_endpoints[addr];
                 if (endpoint == null)
                 {
-                    throw NetMQException.Create(ErrorCode.ECONNREFUSED);
+                    throw new EndpointNotFoundException();
                 }
 
                 //  Increment the command sequence number of the peer so that it won't

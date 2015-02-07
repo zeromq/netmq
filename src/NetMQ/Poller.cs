@@ -6,16 +6,17 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using NetMQ.zmq;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
     public class Poller : IDisposable
     {
-        class PollerPollItem : PollItem
+        class PollerSelectItem : SelectItem
         {
             private NetMQSocket m_socket;
 
-            public PollerPollItem(NetMQSocket socket, PollEvents events)
+            public PollerSelectItem(NetMQSocket socket, PollEvents events)
                 : base(socket.SocketHandle, events)
             {
                 m_socket = socket;
@@ -28,29 +29,32 @@ namespace NetMQ
         }
 
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
+        private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
 
-        private PollItem[] m_pollset;
+        private SelectItem[] m_pollset;
         private NetMQSocket[] m_pollact;
         private int m_pollSize;
 
         readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
         readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
 
-        readonly CancellationTokenSource m_cancellationTokenSource;
+        private int m_cancel;
         readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
         private bool m_isStarted;
 
         private bool m_isDirty = true;
         private bool m_disposed = false;
 
+        private Selector m_selector = new Selector();
+
         public Poller()
         {
             PollTimeout = 1000;
 
-            m_cancellationTokenSource = new CancellationTokenSource();
+            m_cancel = 0;
         }
 
-        public Poller(params NetMQSocket[] sockets)
+        public Poller(params ISocketPollable[] sockets)
             : this()
         {
             if (sockets == null)
@@ -116,14 +120,14 @@ namespace NetMQ
 
         public bool IsStarted { get { return m_isStarted; } }
 
-        public void AddSocket(NetMQSocket socket)
+        public void AddPollInSocket(Socket socket, Action<Socket> callback)
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("stock");
+                throw new ArgumentNullException("socket");
             }
 
-            if (m_sockets.Contains(socket))
+            if (m_pollinSockets.ContainsKey(socket))
             {
                 throw new ArgumentException("Socket already added to poller");
             }
@@ -133,14 +137,53 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is disposed");
             }
 
-            m_sockets.Add(socket);
-
-            socket.EventsChanged += OnSocketEventsChanged;
+            m_pollinSockets.Add(socket, callback);
 
             m_isDirty = true;
         }
 
-        public void RemoveSocket(NetMQSocket socket)
+        public void RemovePollInSocket(Socket socket)
+        {
+            if (socket == null)
+            {
+                throw new ArgumentNullException("socket");
+            }
+
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            m_pollinSockets.Remove(socket);
+
+            m_isDirty = true;
+        }
+
+        public void AddSocket(ISocketPollable socket)
+        {
+            if (socket == null)
+            {
+                throw new ArgumentNullException("socket");
+            }
+
+            if (m_sockets.Contains(socket.Socket))
+            {
+                throw new ArgumentException("Socket already added to poller");
+            }
+
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            m_sockets.Add(socket.Socket);
+
+            socket.Socket.EventsChanged += OnSocketEventsChanged;
+
+            m_isDirty = true;
+        }
+
+        public void RemoveSocket(ISocketPollable socket)
         {
             if (socket == null)
             {
@@ -152,9 +195,9 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is disposed");
             }
 
-            socket.EventsChanged -= OnSocketEventsChanged;
+            socket.Socket.EventsChanged -= OnSocketEventsChanged;
 
-            m_sockets.Remove(socket);
+            m_sockets.Remove(socket.Socket);
             m_isDirty = true;
         }
 
@@ -200,17 +243,25 @@ namespace NetMQ
             m_pollset = null;
             m_pollact = null;
 
-            m_pollSize = m_sockets.Count;
-            m_pollset = new PollItem[m_pollSize];
-            m_pollact = new NetMQSocket[m_pollSize];
+            m_pollSize = m_sockets.Count + m_pollinSockets.Count;
+            m_pollset = new SelectItem[m_pollSize];
+
+            m_pollact = new NetMQSocket[m_sockets.Count];
 
             uint itemNbr = 0;
             foreach (var socket in m_sockets)
             {
-                m_pollset[itemNbr] = new PollItem(socket.SocketHandle, socket.GetPollEvents());
+                m_pollset[itemNbr] = new PollerSelectItem(socket, socket.GetPollEvents());
                 m_pollact[itemNbr] = socket;
                 itemNbr++;
             }
+
+            foreach (var socket in m_pollinSockets)
+            {
+                m_pollset[itemNbr] = new SelectItem(socket.Key, PollEvents.PollError | PollEvents.PollIn);
+                itemNbr++;
+            }
+
             m_isDirty = false;
         }
 
@@ -243,7 +294,37 @@ namespace NetMQ
             return timeout;
         }
 
+        [Obsolete("Use PollTillCancelled instead")]
         public void Start()
+        {
+            PollTillCancelled();
+        }
+
+        /// <summary>
+        /// Poll till Cancel or CancelAndJoin is called. Blocking method.
+        /// </summary>
+        public void PollTillCancelled()
+        {
+            PollWhile(() => m_cancel == 0);
+        }
+
+        /// <summary>
+        /// The non blocking version of PollTillCancelled, starting the PollTillCancelled on new thread. 
+        /// Will poll till Cancel or CancelAndJoin is called. Method is not blocking.
+        /// </summary>
+        public void PollTillCancelledNonBlocking()
+        {
+            Thread thread = new Thread(PollTillCancelled);
+            thread.Start();
+        }
+
+        public void PollOnce()
+        {
+            int timesToPoll = 1;
+            PollWhile(() => timesToPoll-- > 0);
+        }
+
+        private void PollWhile(Func<bool> condition)
         {
             if (m_disposed)
             {
@@ -255,7 +336,7 @@ namespace NetMQ
                 throw new InvalidOperationException("Poller is started");
             }
 
-            if(Thread.CurrentThread.Name == null)
+            if (Thread.CurrentThread.Name == null)
                 Thread.CurrentThread.Name = "NetMQPollerThread";
 
             m_isStoppedEvent.Reset();
@@ -275,14 +356,23 @@ namespace NetMQ
                     }
                 }
 
-                while (!m_cancellationTokenSource.IsCancellationRequested)
+                while (condition())
                 {
                     if (m_isDirty)
                     {
                         RebuildPollset();
                     }
 
-                    ZMQ.Poll(m_pollset, m_pollSize, TicklessTimer());
+                    var pollStart = Clock.NowMs();
+                    var timeout = TicklessTimer();
+
+                    var isItemsAvailable = m_selector.Select(m_pollset, m_pollSize, timeout);
+
+                    // Get the expected end time in case we time out. This looks redundant but, unfortunately,
+                    // it happens that Poll takes slightly less than the requested time and 'Clock.NowMs() >= timer.When'
+                    // may not true, even if it is supposed to be. In other words, even when Poll times out, it happens
+                    // that 'Clock.NowMs() < pollStart + timeout'
+                    var expectedPollEnd = !isItemsAvailable ? pollStart + timeout : -1;
 
                     // that way we make sure we can continue the loop if new timers are added.
                     // timers cannot be removed
@@ -291,7 +381,7 @@ namespace NetMQ
                     {
                         var timer = m_timers[i];
 
-                        if (Clock.NowMs() >= timer.When && timer.When != -1)
+                        if ((Clock.NowMs() >= timer.When || expectedPollEnd >= timer.When) && timer.When != -1)
                         {
                             timer.InvokeElapsed(this);
 
@@ -304,27 +394,43 @@ namespace NetMQ
 
                     for (int itemNbr = 0; itemNbr < m_pollSize; itemNbr++)
                     {
-                        NetMQSocket socket = m_pollact[itemNbr];
-                        PollItem item = m_pollset[itemNbr];
+                        SelectItem item = m_pollset[itemNbr];
 
-                        if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
+                        if (item.Socket != null)
                         {
-                            socket.Errors++;
+                            NetMQSocket socket = m_pollact[itemNbr];
 
-                            if (socket.Errors > 1)
+                            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
                             {
-                                RemoveSocket(socket);
-                                item.ResultEvent = PollEvents.None;
+                                socket.Errors++;
+
+                                if (socket.Errors > 1)
+                                {
+                                    RemoveSocket(socket);
+                                    item.ResultEvent = PollEvents.None;
+                                }
+                            }
+                            else
+                            {
+                                socket.Errors = 0;
+                            }
+
+                            if (item.ResultEvent != PollEvents.None)
+                            {
+                                socket.InvokeEvents(this, item.ResultEvent);
                             }
                         }
                         else
                         {
-                            socket.Errors = 0;
-                        }
+                            if (item.ResultEvent.HasFlag(PollEvents.PollError) || item.ResultEvent.HasFlag(PollEvents.PollIn))
+                            {
+                                Action<Socket> action;
 
-                        if (item.ResultEvent != PollEvents.None)
-                        {
-                            socket.InvokeEvents(this, item.ResultEvent);
+                                if (m_pollinSockets.TryGetValue(item.FileDescriptor, out action))
+                                {
+                                    action(item.FileDescriptor);
+                                }
+                            }
                         }
                     }
 
@@ -344,6 +450,11 @@ namespace NetMQ
             finally
             {
                 m_isStoppedEvent.Set();
+
+                foreach (var socket in m_sockets.ToList())
+                {
+                    RemoveSocket(socket);
+                }
             }
         }
 
@@ -351,7 +462,35 @@ namespace NetMQ
         /// Stop the poller job, it may take a while until the poller is fully stopped
         /// </summary>
         /// <param name="waitForCloseToComplete">if true the method will block until the poller is fully stopped</param>
+        [Obsolete("Use Cancel or CancelAndJoin")]
         public void Stop(bool waitForCloseToComplete)
+        {
+            Cancel(waitForCloseToComplete);
+        }
+
+        [Obsolete("Use Cancel or CancelAndJoin")]
+        public void Stop()
+        {
+            Cancel(true);
+        }
+
+        /// <summary>
+        /// Cancel poller job when PollTillCancelled is called
+        /// </summary>
+        public void Cancel()
+        {
+            Cancel(false);
+        }
+
+        /// <summary>
+        /// Cancel poller job when PollTillCancelled is called and wait for for the PollTillCancelled to complete
+        /// </summary>
+        public void CancelAndJoin()
+        {
+            Cancel(true);
+        }
+
+        private void Cancel(bool waitForCloseToComplete)
         {
             if (m_disposed)
             {
@@ -360,7 +499,7 @@ namespace NetMQ
 
             if (m_isStarted)
             {
-                m_cancellationTokenSource.Cancel();
+                Interlocked.Exchange(ref m_cancel, 1);
 
                 if (waitForCloseToComplete)
                 {
@@ -374,12 +513,5 @@ namespace NetMQ
                 throw new InvalidOperationException("Poller is unstarted");
             }
         }
-
-        public void Stop()
-        {
-            Stop(true);
-        }
-
-
     }
 }
