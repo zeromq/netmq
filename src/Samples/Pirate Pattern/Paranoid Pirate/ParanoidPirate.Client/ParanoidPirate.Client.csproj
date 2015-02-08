@@ -35,9 +35,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ParanoidPirate.Queue">
-      <HintPath>..\ParanoidPirate.Queue\bin\Debug\ParanoidPirate.Queue.exe</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -57,6 +54,10 @@
     <ProjectReference Include="..\..\..\..\NetMQ\NetMQ.csproj">
       <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
       <Name>NetMQ</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ParanoidPirate.Queue\ParanoidPirate.Queue.csproj">
+      <Project>{528ce4ce-bb2e-432e-86bb-8199a97379a5}</Project>
+      <Name>ParanoidPirate.Queue</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using NetMQ;
@@ -32,15 +33,16 @@ namespace ParanoidPirate.Client
         private static void Main (string[] args)
         {
             var verbose = args.Length > 0 && args[0] == "-v";
+            var clientId = args.Length > 1 ? args[1] : "SoleClient";
 
             using (var context = NetMQContext.Create ())
             {
                 // create the REQ socket and connect to QUEUE frontend 
                 // and hook up ReceiveReady event handler
-                var client = CreateSocket (context);
+                var client = CreateSocket (context, clientId);
 
                 if (verbose)
-                    Console.WriteLine ("[Client] Connected to Queue.Backend.");
+                    Console.WriteLine ("[Client] Connected to Queue.");
 
                 while (_retriesLeft > 0)
                 {
@@ -54,45 +56,50 @@ namespace ParanoidPirate.Client
 
                     while (_expectReply)
                     {
-                        // if a message arrives within the timeout period the ReceiveReady event is fired
-                        var result = client.Poll (TimeSpan.FromMilliseconds (Commons.REQUEST_CLIENT_TIMEOUT));
+                        if (client.Poll (TimeSpan.FromMilliseconds (Commons.REQUEST_CLIENT_TIMEOUT)))
+                            continue;
 
-                        // handle the not arrival of a message -> arrival is handled in event handler
-                        if (!result)
+                        // QUEUE has not answered in time
+                        _retriesLeft--;
+
+                        if (_retriesLeft == 0)
                         {
-                            // QUEUE has not answered in time
-                            _retriesLeft--;
-
-                            if (_retriesLeft == 0)
-                            {
-                                Console.WriteLine ("[Client - ERROR] Server seems to be offline, abandoning!");
-                                break;
-                            }
-
-                            Console.WriteLine ("[Client - ERROR] No response from server, retrying...");
-
-                            client.Disconnect (Commons.QUEUE_FRONTEND);
-                            client.Close ();
-                            client.Dispose ();
-
-                            client = CreateSocket (context);
-                            // resend sequence message
-                            client.Send (Encoding.Unicode.GetBytes (_sequence.ToString ()));
+                            Console.WriteLine ("[Client - ERROR] Server seems to be offline, abandoning!");
+                            break;
                         }
+
+                        Console.WriteLine ("[Client - ERROR] No response from server, retrying...");
+
+                        client.Disconnect (Commons.QUEUE_FRONTEND);
+                        client.Close ();
+                        client.Dispose ();
+
+                        client = CreateSocket (context, clientId);
+                        // resend sequence message
+                        client.Send (Encoding.Unicode.GetBytes (_sequence.ToString ()));
                     }
                 }
+
+                // clean up!
+                client.Disconnect (Commons.QUEUE_FRONTEND);
+                client.Close ();
+                client.Dispose ();
             }
+
+            Console.Write ("I am done! To exits press any key!");
         }
 
         /// <summary>
         ///     just to create the REQ socket
         /// </summary>
         /// <param name="context">current NetMQContext</param>
+        /// <param name="id">the name for the client</param>
         /// <returns>the connected REQ socket</returns>
-        private static RequestSocket CreateSocket (NetMQContext context)
+        private static RequestSocket CreateSocket (NetMQContext context, string id)
         {
             var client = context.CreateRequestSocket ();
 
+            client.Options.Identity = Encoding.UTF8.GetBytes (id);
             client.Options.Linger = TimeSpan.Zero;
             // set the event to be called upon arrival of a message
             client.ReceiveReady += OnClientReceiveReady;
