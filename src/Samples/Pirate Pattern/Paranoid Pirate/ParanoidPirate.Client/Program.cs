@@ -10,11 +10,13 @@ namespace ParanoidPirate.Client
 {
     internal class Program
     {
-        private static int sequence = 0;
-        private static bool expectReply = true;
-        private static int retriesLeft = Commons.REQUEST_CLIENT_RETRIES;
+        private static int _sequence;
+        private static bool _expectReply = true;
+        private static int _retriesLeft = Commons.REQUEST_CLIENT_RETRIES;
 
         /// <summary>
+        ///     ParanoidPirate.Client [-v]
+        /// 
         ///     implements a skeleton client of a Paranoid Pirate Pattern
         /// 
         ///     upon start it creates a REQ socket 
@@ -27,44 +29,55 @@ namespace ParanoidPirate.Client
         ///         resend the message
         ///     repeat that for a specified number of times
         /// </summary>
-        private static void Main ()
+        private static void Main (string[] args)
         {
+            var verbose = args.Length > 0 && args[0] == "-v";
+
             using (var context = NetMQContext.Create ())
             {
+                // create the REQ socket and connect to QUEUE frontend 
+                // and hook up ReceiveReady event handler
                 var client = CreateSocket (context);
 
-                while (retriesLeft > 0)
+                if (verbose)
+                    Console.WriteLine ("[Client] Connected to Queue.Backend.");
+
+                while (_retriesLeft > 0)
                 {
-                    sequence++;
+                    _sequence++;
 
-                    Console.WriteLine ("[Client] Sending ({0})", sequence);
+                    Console.WriteLine ("[Client] Sending ({0})", _sequence);
 
-                    client.Send (Encoding.Unicode.GetBytes (sequence.ToString ()));
+                    client.Send (Encoding.Unicode.GetBytes (_sequence.ToString ()));
 
-                    expectReply = true;
+                    _expectReply = true;
 
-                    while (expectReply)
+                    while (_expectReply)
                     {
+                        // if a message arrives within the timeout period the ReceiveReady event is fired
                         var result = client.Poll (TimeSpan.FromMilliseconds (Commons.REQUEST_CLIENT_TIMEOUT));
 
+                        // handle the not arrival of a message -> arrival is handled in event handler
                         if (!result)
                         {
-                            retriesLeft--;
+                            // QUEUE has not answered in time
+                            _retriesLeft--;
 
-                            if (retriesLeft == 0)
+                            if (_retriesLeft == 0)
                             {
-                                Console.WriteLine ("[Client] Server seems to be offline, abandoning");
+                                Console.WriteLine ("[Client - ERROR] Server seems to be offline, abandoning!");
                                 break;
                             }
 
-                            Console.WriteLine ("[Client] No response from server, retrying...");
+                            Console.WriteLine ("[Client - ERROR] No response from server, retrying...");
 
                             client.Disconnect (Commons.QUEUE_FRONTEND);
                             client.Close ();
                             client.Dispose ();
 
                             client = CreateSocket (context);
-                            client.Send (Encoding.Unicode.GetBytes (sequence.ToString ()));
+                            // resend sequence message
+                            client.Send (Encoding.Unicode.GetBytes (_sequence.ToString ()));
                         }
                     }
                 }
@@ -72,46 +85,42 @@ namespace ParanoidPirate.Client
         }
 
         /// <summary>
-        ///     creates a REQ socket and connects it to the server
-        ///     it also hooks up a ReceiveReady event handler and
-        ///     sets the Linger timespan = 0
+        ///     just to create the REQ socket
         /// </summary>
-        /// <param name="context">the NetMQContext it operates under</param>
-        /// <returns></returns>
+        /// <param name="context">current NetMQContext</param>
+        /// <returns>the connected REQ socket</returns>
         private static RequestSocket CreateSocket (NetMQContext context)
         {
-            Console.WriteLine ("[Client] Connecting to server...");
-
             var client = context.CreateRequestSocket ();
 
-            client.Connect (Commons.QUEUE_FRONTEND);
-
             client.Options.Linger = TimeSpan.Zero;
-
-            client.ReceiveReady += OnReceiveReady;
+            // set the event to be called upon arrival of a message
+            client.ReceiveReady += OnClientReceiveReady;
+            client.Connect (Commons.QUEUE_FRONTEND);
 
             return client;
         }
 
         /// <summary>
-        ///     the ReceiveReady event handler
-        /// 
-        ///     reads the incoming message and validates it against the sequence number
+        ///     handles the ReceiveReady event
+        ///     
+        ///     get the message and validates that the send data is correct
+        ///     prints an appropriate message on screen in either way
         /// </summary>
-        private static void OnReceiveReady (object sender, NetMQSocketEventArgs arg)
+        private static void OnClientReceiveReady (object sender, NetMQSocketEventArgs e)
         {
-            var reply = arg.Socket.Receive ();
+            var reply = e.Socket.Receive ();
             var strReply = Encoding.Unicode.GetString (reply);
 
-            if (Int32.Parse (strReply) == sequence)
+            if (Int32.Parse (strReply) == _sequence)
             {
-                Console.WriteLine ("[Client] Server replied OK ({0})", strReply);
+                Console.WriteLine ("C: Server replied OK ({0})", strReply);
 
-                retriesLeft = Commons.REQUEST_CLIENT_RETRIES;
-                expectReply = false;
+                _retriesLeft = Commons.REQUEST_CLIENT_RETRIES;
+                _expectReply = false;
             }
             else
-                Console.WriteLine ("[Client] Malformed reply from server: {0}", strReply);
+                Console.WriteLine ("C: Malformed reply from server: {0}", strReply);
         }
     }
 }

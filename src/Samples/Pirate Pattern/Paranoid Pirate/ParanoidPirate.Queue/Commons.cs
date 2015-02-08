@@ -16,7 +16,7 @@ namespace ParanoidPirate.Queue
         public const string QUEUE_FRONTEND = "tcp://127.0.0.1:5556";
         public const string QUEUE_BACKEND = "tcp://127.0.0.1:5557";
 
-        public const int REQUEST_CLIENT_TIMEOUT = 2500; // in ms
+        public const int REQUEST_CLIENT_TIMEOUT = 2500; // in ms - should be > 1000!
         public const int REQUEST_CLIENT_RETRIES = 10;
     }
 }
