@@ -378,16 +378,17 @@ namespace InterBrokerRouter
                 poller.AddTimer (timer);
 
                 // start monitoring the sockets
-                var pollTask = Task.Factory.StartNew (() => poller.Start ());
+                var pollTask = Task.Factory.StartNew (() => poller.PollTillCancelled ());
 
                 // we wait for a CTRL+C to exit
                 while (keepRunning) { }
 
                 Console.WriteLine ("Ctrl-C encountered! Exiting the program!");
 
-                poller.Stop ();
-                poller.Dispose ();
+                if (poller.IsStarted)
+                    poller.CancelAndJoin ();
 
+                poller.Dispose ();
             }
         }
 
