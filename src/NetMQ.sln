@@ -2,7 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
-VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ", "NetMQ\NetMQ.csproj", "{82934BAC-07FB-41AC-AE59-46FEE6026A40}"
 EndProject
@@ -82,7 +81,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InterBrokerRouter", "InterB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Paranoid Pirate", "Paranoid Pirate", "{2F50B134-3874-455B-A897-E41DCA849779}"
 	ProjectSection(SolutionItems) = preProject
-		Samples\Pirate Pattern\Paranoid Pirate\ParanoidPirate\StartParanoidPirate.bat = Samples\Pirate Pattern\Paranoid Pirate\ParanoidPirate\StartParanoidPirate.bat
+		Samples\Pirate Pattern\Paranoid Pirate\StartParanoidPirate.bat = Samples\Pirate Pattern\Paranoid Pirate\StartParanoidPirate.bat
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParanoidPirate.Client", "Samples\Pirate Pattern\Paranoid Pirate\ParanoidPirate.Client\ParanoidPirate.Client.csproj", "{953327C9-0782-4EC9-A115-3C435E6440E6}"
@@ -90,6 +89,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParanoidPirate.Worker", "Samples\Pirate Pattern\Paranoid Pirate\ParanoidPirate.Worker\ParanoidPirate.Worker.csproj", "{80428E64-7589-4EDB-8F4D-8FAB437AC4D8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParanoidPirate.Queue", "Samples\Pirate Pattern\Paranoid Pirate\ParanoidPirate.Queue\ParanoidPirate.Queue.csproj", "{528CE4CE-BB2E-432E-86BB-8199A97379A5}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ3.5", "NetMQ\NetMQ3.5.csproj", "{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ3.5.Tests", "NetMQ.Tests\NetMQ3.5.Tests.csproj", "{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}"
