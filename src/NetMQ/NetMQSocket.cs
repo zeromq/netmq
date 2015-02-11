@@ -67,8 +67,7 @@ namespace NetMQ
         internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
 
         internal int Errors { get; set; }
-
-
+        
         private void InvokeEventsChanged()
         {
             var temp = EventsChanged;
@@ -102,6 +101,7 @@ namespace NetMQ
         /// Bind the socket to an address
         /// </summary>
         /// <param name="address">The address of the socket</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
         public void Bind(string address)
         {
             m_socketHandle.CheckDisposed();
@@ -114,6 +114,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">The address of the socket, omit the port</param>
         /// <returns>Chosen port number</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
         public int BindRandomPort(string address)
         {
             m_socketHandle.CheckDisposed();
@@ -125,6 +126,7 @@ namespace NetMQ
         /// Connect the socket to an address
         /// </summary>
         /// <param name="address">Address to connect to</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket is  is disposed</exception>
         public void Connect(string address)
         {
             m_socketHandle.CheckDisposed();
@@ -136,6 +138,7 @@ namespace NetMQ
         /// Disconnect the socket from specific address
         /// </summary>
         /// <param name="address">The address to disconnect from</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
         public void Disconnect(string address)
         {
             m_socketHandle.CheckDisposed();
@@ -147,6 +150,7 @@ namespace NetMQ
         /// Unbind the socket from specific address
         /// </summary>
         /// <param name="address">The address to unbind from</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
         public void Unbind(string address)
         {
             m_socketHandle.CheckDisposed();
@@ -157,6 +161,7 @@ namespace NetMQ
         /// <summary>
         /// Close the socket
         /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
         public void Close()
         {
             if (!m_isClosed)
@@ -175,10 +180,11 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Wait until message is ready to be received from the socket or until timeout is reached
+        /// Wait until message is ready to be received/sent from the socket or until timeout is reached
+        /// if message(s) is(are) available the ReceiveReady/SendReady event is fired
         /// </summary>
         /// <param name="timeout"></param>
-        /// <returns></returns>
+        /// <returns>true if a message was available within the timeout and false otherwise</returns>
         public bool Poll(TimeSpan timeout)
         {
             PollEvents events = GetPollEvents();
@@ -190,7 +196,19 @@ namespace NetMQ
             return result != PollEvents.None;
         }
 
-        internal PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
+        /// <summary>
+        /// polls the socket for an event as specified to happen within a given timeout period
+        /// </summary>
+        /// <param name="pollEvents">the poll event(s) to listen for</param>
+        /// <param name="timeout">the timeout period</param>
+        /// <returns>
+        /// PollEvents.None     -> no message available
+        /// PollEvents.PollIn   -> no message arrived
+        /// PollEvents.PollOut  -> no message to send
+        /// PollEvents.Error    -> an error has occured
+        /// or any combination thereof
+        /// </returns>
+        public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
         {
             SelectItem[] items = new[] {new SelectItem(SocketHandle, pollEvents),};
 
@@ -241,6 +259,11 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// get an available message
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="options"></param>
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {                        
             m_socketHandle.Recv(ref msg, options);                        
@@ -292,6 +315,9 @@ namespace NetMQ
             m_socketHandle.Monitor(endpoint, events);
         }
 
+        /// <summary>
+        /// true if a message is waiting to be picked up, false otherwise
+        /// </summary>
         public bool HasIn
         {
             get
@@ -302,6 +328,9 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// true if a message is waiting to be sent, false otherwise
+        /// </summary>
         public bool HasOut
         {
             get

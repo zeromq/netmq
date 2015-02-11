@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,15 +35,14 @@ namespace InterBrokerRouter
             Console.WriteLine ("[CLIENT {0}] Starting", m_id);
 
             var rnd = new Random (m_id);
+            // each request shall have an unique id in order to recognize an reply for a request
             var messageId = new byte[5];
             // create clientId for messages
             var clientId = new[] { m_id };
-
+            // a flag to signal that an answer has arrived
+            bool messageAnswered = false;
             // we use a poller because we have a socket and a timer to monitor
             var clientPoller = new Poller ();
-
-            // if true the message has been answered - 0 message always answered
-            var messageAnswered = true;
 
             using (var ctx = NetMQContext.Create ())
             using (var client = ctx.CreateRequestSocket ())
@@ -73,17 +71,18 @@ namespace InterBrokerRouter
 
                                          // if poller is started than stop it
                                          if (clientPoller.IsStarted)
-                                             clientPoller.Stop ();
+                                             clientPoller.CancelAndJoin ();
                                          // mark the required exit
                                          exit = true;
                                      }
                                  };
 
+                // process arriving answers
                 client.ReceiveReady += (s, e) =>
                                        {
                                            // mark the arrival of an answer
                                            messageAnswered = true;
-                                           // worker is supposed to answer with our task id
+                                           // worker is supposed to answer with our request id
                                            var reply = e.Socket.ReceiveMessage ();
 
                                            if (reply.FrameCount == 0)
@@ -114,7 +113,11 @@ namespace InterBrokerRouter
 
                 // start poller in extra task in order to allow the continued processing
                 // clientPoller.Start() -> blocking call
-                var pollTask = Task.Factory.StartNew (() => clientPoller.Start ());
+                var pollTask = Task.Factory.StartNew (() => clientPoller.PollTillCancelled ());
+
+                // if true the message has been answered
+                // the 0th message is always answered
+                messageAnswered = true;
 
                 while (exit == false)
                 {
@@ -131,6 +134,7 @@ namespace InterBrokerRouter
 
                         // create message [client adr][empty][message id] and send it
                         var msg = new NetMQMessage ();
+
                         msg.Push (messageId);
                         msg.Push (NetMQFrame.Empty);
                         msg.Push (clientId);
@@ -142,7 +146,7 @@ namespace InterBrokerRouter
 
             // stop poller if needed
             if (clientPoller.IsStarted)
-                clientPoller.Stop ();
+                clientPoller.CancelAndJoin ();
 
             clientPoller.Dispose ();
         }

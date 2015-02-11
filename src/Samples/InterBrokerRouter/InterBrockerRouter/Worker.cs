@@ -38,11 +38,11 @@ namespace InterBrokerRouter
 
                 // build READY message
                 var msg = new NetMQMessage ();
-                var ready = NetMQFrame.Copy (new byte[] { Program.WORKER_READY });
+                var ready = NetMQFrame.Copy (new[] { Program.WORKER_READY });
 
                 msg.Append (ready);
                 msg.Push (NetMQFrame.Empty);
-                msg.Push (new byte[] { m_id });
+                msg.Push (new[] { m_id });
 
                 // and send to broker
                 worker.SendMessage (msg);
