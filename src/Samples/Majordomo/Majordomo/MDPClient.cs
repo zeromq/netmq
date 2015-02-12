@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Net;
 using NetMQ;
 
 using MajordomoProtocol.Contracts;
@@ -16,7 +16,7 @@ namespace MajordomoProtocol
         //      "MDP" for the protocol
         //      "C" for Client
         //      "01" for the version of the client V0.1
-        private const string _mdp_client = "MDPC01";
+        private const string _MDP_CLIENT = "MDPC01";
 
         private readonly NetMQContext m_ctx;
         private NetMQSocket m_client;           // the socket to communicate with the broker
@@ -49,7 +49,7 @@ namespace MajordomoProtocol
         ///     timeout == 2500
         ///     reties  == 3
         /// </summary>
-        public MDPClient ()
+        private MDPClient ()
         {
             m_ctx = NetMQContext.Create ();
             m_client = null;
@@ -65,6 +65,9 @@ namespace MajordomoProtocol
         public MDPClient (string brokerAddress)
             : this ()
         {
+            if (string.IsNullOrWhiteSpace (brokerAddress))
+                throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
+
             m_brokerAddress = brokerAddress;
         }
 
@@ -105,7 +108,7 @@ namespace MajordomoProtocol
             // Frame 2: service name as printable string
             // Frame 3: request
             msg.Push (serviceName);
-            msg.Push (_mdp_client);
+            msg.Push (_MDP_CLIENT);
 
             OnLogInfoReady (new LogInfoEventArgs
                             {
@@ -163,9 +166,6 @@ namespace MajordomoProtocol
             // attach the event handler for incoming messages
             m_client.ReceiveReady += ProcessReceiveReady;
 
-            if (string.IsNullOrWhiteSpace (m_brokerAddress))
-                throw new ApplicationException ("broker address must not be null or empty!");
-
             m_client.Connect (m_brokerAddress);
 
             m_connected = true;
@@ -195,13 +195,14 @@ namespace MajordomoProtocol
 
             var header = reply.Pop ();
 
-            if (header.ConvertToString () != _mdp_client)
-                throw new ApplicationException (string.Format ("[CLIENT INFO] malformed reply header: {0}", header));
+            if (header.ConvertToString () != _MDP_CLIENT)
+                throw new ApplicationException (string.Format ("[CLIENT INFO] MDP Version mismatch: {0}", header));
 
             var service = reply.Pop ();
 
             if (service.ConvertToString () != m_serviceName)
-                throw new ApplicationException (string.Format ("[CLIENT INFO] answered by wrong service: {0}", m_serviceName));
+                throw new ApplicationException (string.Format ("[CLIENT INFO] answered by wrong service: {0}",
+                                                               service.ConvertToString ()));
             // now set the value for the reply of the send method!
             m_reply = reply;
         }
