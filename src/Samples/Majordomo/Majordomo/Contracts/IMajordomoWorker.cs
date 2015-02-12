@@ -1,15 +1,13 @@
 ﻿using System;
+
 using NetMQ;
 
 namespace MajordomoProtocol.Contracts
 {
+    // define the possible message types for the worker MDP
+
     public interface IMajordomoWorker
     {
-        ///// <summary>
-        /////     if true, client will report about its activities
-        ///// </summary>
-        //bool Verbose { get; set; }
-
         /// <summary>
         ///     sen a heartbeat every specified milliseconds
         /// </summary>

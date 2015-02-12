@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Contracts\IMajordomoClient.cs" />
     <Compile Include="Contracts\IMajordomoWorker.cs" />
+    <Compile Include="Contracts\MDPCommand.cs" />
     <Compile Include="LogInfoEventArgs.cs" />
     <Compile Include="MDPClient.cs" />
     <Compile Include="MDPWorker.cs" />
