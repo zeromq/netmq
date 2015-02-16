@@ -15,19 +15,21 @@ namespace MajordomoProtocol
         // "01"     -> Version 0.1
         private const string _MDP_WORKER = "MDPW01";
 
-        private const int _HEARTBEAT_LIVELINESS = 3;    // indicates the remaining "live" for the worker
+        private const int _HEARTBEAT_LIVELINESS = 3;// indicates the remaining "live" for the worker
 
         private readonly NetMQContext m_ctx;
-        private readonly string m_brokerAddress;     // the broker address to connect to
-        private readonly string m_serviceName;       // the name of the service the worker offers
-        private NetMQSocket m_worker;       // the worker socket itself -MDP requires to use DEALER
-        private DateTime m_heartbeatAt;     // when to send HEARTBEAT
-        private int m_liveliness;           // how many attempts are left
-        private int m_expectReply;         // will be 0 at start
-        private NetMQFrame m_returnIdentity;// the return identity if any
-        private bool m_exit;               // a flag for exiting the worker
-        private bool m_connected;          // a flag to signal whether worker is connected to broker or not
-        private NetMQMessage m_request;     // used to collect the request received from the ReceiveReady event handler
+        private readonly string m_brokerAddress;    // the broker address to connect to
+        private readonly string m_serviceName;      // the name of the service the worker offers
+        private NetMQSocket m_worker;               // the worker socket itself -MDP requires to use DEALER
+        private DateTime m_heartbeatAt;             // when to send HEARTBEAT
+        private int m_liveliness;                   // how many attempts are left
+        private int m_expectReply;                  // will be 0 at start
+        private NetMQFrame m_returnIdentity;        // the return identity if any
+        private bool m_exit;                        // a flag for exiting the worker
+        private bool m_connected;                   // a flag to signal whether worker is connected to broker or not
+        private NetMQMessage m_request;             // used to collect the request received from the ReceiveReady event handler
+        private int m_connectionRetries;            // the number of times the worker tries to connect to the broker before it abandons
+        private int m_retriesLeft;
 
         /// <summary>
         ///     sen a heartbeat every specified milliseconds
@@ -40,6 +42,12 @@ namespace MajordomoProtocol
         public TimeSpan ReconnectDelay { get; set; }
 
         /// <summary>
+        ///     the number of times the worker tries to connect to the broker
+        ///     before it abandons
+        /// </summary>
+
+
+        /// <summary>
         ///     broadcast logging information via this event
         /// </summary>
         public event EventHandler<LogInfoEventArgs> LogInfoReady;
@@ -48,6 +56,7 @@ namespace MajordomoProtocol
         ///     create worker with standart parameter
         ///     HeartbeatDelay == 2500 milliseconds
         ///     ReconnectDelay == 2500 milliseconds
+        ///     ConnectionRetries == 3
         ///     Verbose == false
         /// </summary>
         private MDPWorker ()
@@ -66,6 +75,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="brokerAddress">the address the worker can connect to the broker at</param>
         /// <param name="serviceName">the service the worker offers</param>
+        /// <param name="connectionRetries">the number of times the worker tries to connect to the broker - default 3</param>
         /// <exception cref="ArgumentNullException">The address of the broker must not be null, empty or whitespace!</exception>
         /// <exception cref="ArgumentNullException">The name of the service must not be null, empty or whitespace!</exception>
         /// <remarks>
@@ -73,8 +83,12 @@ namespace MajordomoProtocol
         ///     HeartbeatDelay == 2500 milliseconds
         ///     ReconnectDelay == 2500 milliseconds
         ///     Verbose == false
+        ///     
+        ///     the worker will try to connect <c>connectionRetries</c> cycles to establish a
+        ///     connection to the broker, within each cycle he tries it 3 times with <c>ReconnectDelay</c>
+        ///     delay between each cycle
         /// </remarks>
-        public MDPWorker (string brokerAddress, string serviceName)
+        public MDPWorker (string brokerAddress, string serviceName, int connectionRetries = 3)
             : this ()
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
@@ -86,6 +100,7 @@ namespace MajordomoProtocol
 
             m_brokerAddress = brokerAddress;
             m_serviceName = serviceName;
+            m_connectionRetries = connectionRetries;
         }
 
         /// <summary>
@@ -101,6 +116,9 @@ namespace MajordomoProtocol
         /// </remarks>
         public NetMQMessage Receive (NetMQMessage reply)
         {
+            // set the number of left rectries to connect
+            m_retriesLeft = m_connectionRetries;
+
             if (!m_connected)
                 Connect ();
 
@@ -124,15 +142,28 @@ namespace MajordomoProtocol
             {
                 if (m_worker.Poll (HeartbeatDelay))
                 {
+                    // a request has been received, so connection is established - reset the connection retries
+                    m_retriesLeft = m_connectionRetries;
                     // ProcessReceiveReady will set m_request only if a request arrived
                     if (!ReferenceEquals (m_request, null))
                         return m_request;
                 }
                 else
                 {
+                    // if m_liveliness times no message has been received -> try to reconnect
                     if (--m_liveliness == 0)
                     {
+                        // if we tried it _HEARTBEAT_LIVELINESS * m_connectionRetries times without
+                        // success therefor we deem the broker dead or the communication broken 
+                        // and abandon the worker
+                        if (--m_retriesLeft < 0)
+                        {
+                            OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[WORKER] abandoning worker due to errors!" });
+                            break;
+                        }
+
                         OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[WORKER INFO] disconnected from broker - retrying ..." });
+
                         // wait before reconnecting
                         Thread.Sleep (HeartbeatDelay);
                         // reconnect
@@ -149,7 +180,8 @@ namespace MajordomoProtocol
                 }
             }
 
-            OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[WORKER] abandoning worker due to errors!" });
+            if (m_retriesLeft >= 0)
+                OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[WORKER] abandoning worker due to request!" });
 
             m_worker.Dispose ();
             m_ctx.Dispose ();
@@ -247,7 +279,9 @@ namespace MajordomoProtocol
 
             OnLogInfoReady (new LogInfoEventArgs
                             {
-                                LogInfo = string.Format ("[WORKER] connecting to broker at {0}", m_brokerAddress)
+                                LogInfo = string.Format ("[WORKER] connecting to broker at {0} / Command {1}",
+                                                         m_brokerAddress,
+                                                         MDPCommand.Ready)
                             });
 
             // send READY to broker since worker is connected
@@ -277,13 +311,18 @@ namespace MajordomoProtocol
                 msg.Push (data);
             }
             // set MDP command
-            msg.Push (((byte) mdpCommand).ToString ());
+            msg.Push (new[] { (byte) mdpCommand });
             // set MDP ID
             msg.Push (_MDP_WORKER);
             // set MDP empty frame as separator
             msg.Push (NetMQFrame.Empty);
 
-            OnLogInfoReady (new LogInfoEventArgs { LogInfo = string.Format ("[WORKER] sending {0} to broker", msg) });
+            OnLogInfoReady (new LogInfoEventArgs
+                            {
+                                LogInfo = string.Format ("[WORKER] sending {0} to broker / Command {1}",
+                                                         msg,
+                                                         mdpCommand)
+                            });
 
             m_worker.SendMessage (msg);
         }
