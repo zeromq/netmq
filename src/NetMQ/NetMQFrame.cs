@@ -98,9 +98,22 @@ namespace NetMQ
             return copy;
         }
 
+        /// <summary>
+        ///     converts the content of this frame to string using ASCII encoding
+        /// </summary>
+        /// <returns>the ascii string</returns>
         public string ConvertToString ()
         {
             return Encoding.ASCII.GetString (Buffer, 0, this.MessageSize);
+        }
+
+        /// <summary>
+        ///     converts the content of this frame to string using the specified encoding
+        /// </summary>
+        /// <returns>the string in the specified encoding</returns>
+        public string ConvertToString (Encoding enc)
+        {
+            return enc.GetString (Buffer, 0, MessageSize);
         }
 
         /// <summary>

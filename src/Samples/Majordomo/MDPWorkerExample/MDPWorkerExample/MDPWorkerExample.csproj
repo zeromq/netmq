@@ -52,10 +52,6 @@
       <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
       <Name>NetMQ</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Majordomo\MajordomoProtocol.csproj">
-      <Project>{a16ebccb-a575-4ba5-813d-c8ad925d5a59}</Project>
-      <Name>MajordomoProtocol</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

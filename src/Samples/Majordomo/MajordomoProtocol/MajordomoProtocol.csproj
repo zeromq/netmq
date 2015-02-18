@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BA3B66DE-85AB-44F0-890B-E598C777880D}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{A16EBCCB-A575-4BA5-813D-C8AD925D5A59}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MDPClientExample</RootNamespace>
-    <AssemblyName>MDPClientExample</AssemblyName>
+    <RootNamespace>MajordomoProtocol</RootNamespace>
+    <AssemblyName>MajordomoProtocol</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -41,11 +44,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="Contracts\IMDPBroker.cs" />
+    <Compile Include="Contracts\IMDPClient.cs" />
+    <Compile Include="Contracts\IMDPWorker.cs" />
+    <Compile Include="Contracts\MDPCommand.cs" />
+    <Compile Include="LogInfoEventArgs.cs" />
+    <Compile Include="MDPBroker.cs" />
+    <Compile Include="MDPClient.cs" />
+    <Compile Include="MDPWorker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
+    <Compile Include="Service.cs" />
+    <Compile Include="Worker.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\NetMQ\NetMQ.csproj">

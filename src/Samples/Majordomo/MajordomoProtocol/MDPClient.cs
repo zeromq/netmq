@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Net;
+
 using NetMQ;
 
 using MajordomoProtocol.Contracts;
@@ -9,14 +9,9 @@ namespace MajordomoProtocol
     /// <summary>
     ///     implements a client skeleton for Majordomo Protocol V0.1
     /// </summary>
-    public class MDPClient : IMajordomoClient, IDisposable
+    public class MDPClient : IMDPClient, IDisposable
     {
-        // according to MDP the header of a request must have the first frame with
-        // a string stating:
-        //      "MDP" for the protocol
-        //      "C" for Client
-        //      "01" for the version of the client V0.1
-        private const string _MDP_CLIENT = "MDPC01";
+        private readonly string m_mdpClient = MDPBroker.MDPClientHeader;
 
         private readonly NetMQContext m_ctx;
         private NetMQSocket m_client;           // the socket to communicate with the broker
@@ -108,7 +103,7 @@ namespace MajordomoProtocol
             // Frame 2: service name as printable string
             // Frame 3: request
             msg.Push (serviceName);
-            msg.Push (_MDP_CLIENT);
+            msg.Push (m_mdpClient);
 
             OnLogInfoReady (new LogInfoEventArgs
                             {
@@ -179,6 +174,10 @@ namespace MajordomoProtocol
         /// <summary>
         ///     handle the incoming messages
         /// </summary>
+        /// <remarks>
+        ///     socket strips [client adr][e] from message
+        ///     message -> [protocol header][service name][reply]
+        /// </remarks>
         private void ProcessReceiveReady (object sender, NetMQSocketEventArgs e)
         {
             // a message is available within the timeout period
@@ -193,12 +192,12 @@ namespace MajordomoProtocol
             if (reply.FrameCount < 3)
                 throw new ApplicationException ("[CLIENT ERROR] received a malformed reply");
 
-            var header = reply.Pop ();
+            var header = reply.Pop ();          // [service name][reply]
 
-            if (header.ConvertToString () != _MDP_CLIENT)
+            if (header.ConvertToString () != m_mdpClient)
                 throw new ApplicationException (string.Format ("[CLIENT INFO] MDP Version mismatch: {0}", header));
 
-            var service = reply.Pop ();
+            var service = reply.Pop ();         // [reply]
 
             if (service.ConvertToString () != m_serviceName)
                 throw new ApplicationException (string.Format ("[CLIENT INFO] answered by wrong service: {0}",

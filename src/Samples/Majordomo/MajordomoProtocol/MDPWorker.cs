@@ -7,13 +7,9 @@ using MajordomoProtocol.Contracts;
 
 namespace MajordomoProtocol
 {
-    public class MDPWorker : IMajordomoWorker, IDisposable
+    public class MDPWorker : IMDPWorker, IDisposable
     {
-        // according to MDP identification for a worker messageincluding the version 
-        // "MDP"    -> Majordomo Protocol
-        // "W"      -> Worker
-        // "01"     -> Version 0.1
-        private const string _MDP_WORKER = "MDPW01";
+        private readonly string m_mdpWorker = MDPBroker.MDPWorkerHeader;
 
         private const int _HEARTBEAT_LIVELINESS = 3;// indicates the remaining "live" for the worker
 
@@ -227,7 +223,7 @@ namespace MajordomoProtocol
 
             var header = request.Pop ();
 
-            if (header.ConvertToString () != _MDP_WORKER)
+            if (header.ConvertToString () != m_mdpWorker)
                 throw new ApplicationException ("Invalid protocol header received");
 
             var command = request.Pop ();
@@ -313,7 +309,7 @@ namespace MajordomoProtocol
             // set MDP command
             msg.Push (new[] { (byte) mdpCommand });
             // set MDP ID
-            msg.Push (_MDP_WORKER);
+            msg.Push (m_mdpWorker);
             // set MDP empty frame as separator
             msg.Push (NetMQFrame.Empty);
 
@@ -374,6 +370,5 @@ namespace MajordomoProtocol
         }
 
         #endregion IDisposable
-
     }
 }

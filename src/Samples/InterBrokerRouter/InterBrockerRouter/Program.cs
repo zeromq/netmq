@@ -387,7 +387,6 @@ namespace InterBrokerRouter
 
                 poller.Stop ();
                 poller.Dispose ();
-
             }
         }
 

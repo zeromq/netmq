@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A16EBCCB-A575-4BA5-813D-C8AD925D5A59}</ProjectGuid>
+    <ProjectGuid>{B2233737-D928-4C46-9FD0-3B7AD6BD23BB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MajordomoProtocol</RootNamespace>
-    <AssemblyName>MajordomoProtocol</AssemblyName>
+    <RootNamespace>MajordomoTests</RootNamespace>
+    <AssemblyName>MajordomoTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -35,6 +35,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,18 +47,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Contracts\IMajordomoClient.cs" />
-    <Compile Include="Contracts\IMajordomoWorker.cs" />
-    <Compile Include="Contracts\MDPCommand.cs" />
-    <Compile Include="LogInfoEventArgs.cs" />
-    <Compile Include="MDPClient.cs" />
-    <Compile Include="MDPWorker.cs" />
+    <Compile Include="MDPBrokerTests.cs" />
+    <Compile Include="MDPClientTests.cs" />
+    <Compile Include="MDPWorkerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServiceTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\NetMQ\NetMQ.csproj">
       <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
       <Name>NetMQ</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MajordomoProtocol\MajordomoProtocol.csproj">
+      <Project>{a16ebccb-a575-4ba5-813d-c8ad925d5a59}</Project>
+      <Name>MajordomoProtocol</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
