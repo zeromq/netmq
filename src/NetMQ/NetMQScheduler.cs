@@ -111,6 +111,15 @@ namespace NetMQ
 
         public void Dispose()
         {
+            if (!m_ownPoller)
+            {
+              if (!m_poller.IsStarted)
+              {
+                DisposeSynced();
+                return;
+              }
+            }
+
             // disposing on the scheduler thread
             Task task = new Task(DisposeSynced);
             task.Start(this);

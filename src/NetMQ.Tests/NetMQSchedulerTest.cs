@@ -96,6 +96,31 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void CanDisposeSchedulerWhenPoolerExternalAndCancelled()
+        {
+          using (NetMQContext context = NetMQContext.Create())
+          {
+            using (Poller poller = new Poller())
+            {
+              using (NetMQScheduler scheduler = new NetMQScheduler(context, poller))
+              {
+                poller.PollTillCancelledNonBlocking();
+
+                ManualResetEvent startedEvent = new ManualResetEvent(false);
+                Task.Factory.StartNew(() =>
+                {
+                  startedEvent.Set();
+                }, CancellationToken.None, TaskCreationOptions.None, scheduler);
+
+                startedEvent.WaitOne();
+
+                poller.CancelAndJoin();
+              }
+            }
+          }
+        }
+
+        [Test]
         public void TwoThreads()
         {
             int count1 = 0;
