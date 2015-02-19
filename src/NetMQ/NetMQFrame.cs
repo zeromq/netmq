@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -88,7 +89,7 @@ namespace NetMQ
         /// <param name="buffer">The <see cref="byte"/> array to copy.</param>
         /// <returns>A <see cref="NetMQFrame"/> containing a copy of <paramref name="buffer"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
-        public static NetMQFrame Copy(byte[] buffer)
+        public static NetMQFrame Copy([NotNull] byte[] buffer)
         {
             if (buffer == null)
             {
@@ -136,7 +137,7 @@ namespace NetMQ
         /// <param name="frame">The <see cref="NetMQFrame"/> to copy.</param>
         /// <returns>A <see cref="NetMQFrame"/> containing a copy of <paramref name="frame"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
-        public static NetMQFrame Copy(NetMQFrame frame)
+        public static NetMQFrame Copy([NotNull] NetMQFrame frame)
         {
             if (frame == null)
             {

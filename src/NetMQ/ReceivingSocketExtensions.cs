@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -140,7 +141,7 @@ namespace NetMQ
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the string representation of the encoded data of the message</returns>
         /// <exception cref="ArgumentNullException">is thrown if encoding is null</exception>
-        public static string ReceiveString (this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options, out bool hasMore)
+        public static string ReceiveString (this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options, out bool hasMore)
         {
             if (ReferenceEquals (encoding, null))
                 throw new ArgumentNullException ("encoding");

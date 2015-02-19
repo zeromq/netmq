@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
@@ -36,7 +37,7 @@ namespace NetMQ
             m_cancel = 0;
         }
 
-        public Poller(params ISocketPollable[] sockets)
+        public Poller([NotNull] params ISocketPollable[] sockets)
             : this()
         {
             if (sockets == null)
@@ -50,7 +51,7 @@ namespace NetMQ
             }
         }
 
-        public Poller(params NetMQTimer[] timers)
+        public Poller([NotNull] params NetMQTimer[] timers)
             : this()
         {
             if (timers == null)
@@ -102,11 +103,16 @@ namespace NetMQ
 
         public bool IsStarted { get { return m_isStarted; } }
 
-        public void AddPollInSocket(Socket socket, Action<Socket> callback)
+        public void AddPollInSocket([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
             {
                 throw new ArgumentNullException("socket");
+            }
+
+            if (callback == null)
+            {
+                throw new ArgumentNullException("callback");
             }
 
             if (m_pollinSockets.ContainsKey(socket))
@@ -124,7 +130,7 @@ namespace NetMQ
             m_isDirty = true;
         }
 
-        public void RemovePollInSocket(Socket socket)
+        public void RemovePollInSocket([NotNull] Socket socket)
         {
             if (socket == null)
             {
@@ -141,7 +147,7 @@ namespace NetMQ
             m_isDirty = true;
         }
 
-        public void AddSocket(ISocketPollable socket)
+        public void AddSocket([NotNull] ISocketPollable socket)
         {
             if (socket == null)
             {
@@ -165,7 +171,7 @@ namespace NetMQ
             m_isDirty = true;
         }
 
-        public void RemoveSocket(ISocketPollable socket)
+        public void RemoveSocket([NotNull] ISocketPollable socket)
         {
             if (socket == null)
             {
@@ -189,7 +195,7 @@ namespace NetMQ
             m_isDirty = true;
         }
 
-        public void AddTimer(NetMQTimer timer)
+        public void AddTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
             {
@@ -204,7 +210,7 @@ namespace NetMQ
             m_timers.Add(timer);
         }
 
-        public void RemoveTimer(NetMQTimer timer)
+        public void RemoveTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
             {

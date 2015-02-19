@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using JetBrains.Annotations;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NetMQ.zmq;
@@ -237,7 +238,7 @@ namespace NetMQ
             return new StreamSocket(socketHandle);
         }
 
-        public NetMQMonitor CreateMonitorSocket(string endpoint)
+        public NetMQMonitor CreateMonitorSocket([NotNull] string endpoint)
         {
             if (endpoint == null)
             {

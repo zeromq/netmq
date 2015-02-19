@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
@@ -295,7 +296,7 @@ namespace NetMQ
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
         }
 
-        public void Monitor(string endpoint, SocketEvent events = SocketEvent.All)
+        public void Monitor([NotNull] string endpoint, SocketEvent events = SocketEvent.All)
         {
             if (endpoint == null)
             {

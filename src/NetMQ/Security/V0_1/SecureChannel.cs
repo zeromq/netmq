@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using JetBrains.Annotations;
 
 namespace NetMQ.Security.V0_1
 {
@@ -126,7 +127,7 @@ namespace NetMQ.Security.V0_1
             return encryptedMessage;
         }
 
-        public NetMQMessage EncryptApplicationMessage(NetMQMessage plainMessage)
+        public NetMQMessage EncryptApplicationMessage([NotNull] NetMQMessage plainMessage)
         {
             if (!SecureChannelReady)
             {
@@ -141,7 +142,7 @@ namespace NetMQ.Security.V0_1
             return InternalEncryptAndWrapMessage(ContentType.ApplicationData, plainMessage);
         }
 
-        public NetMQMessage DecryptApplicationMessage(NetMQMessage cipherMessage)
+        public NetMQMessage DecryptApplicationMessage([NotNull] NetMQMessage cipherMessage)
         {
             if (!SecureChannelReady)
             {

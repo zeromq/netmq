@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace NetMQ.Devices
 {
@@ -67,7 +68,7 @@ namespace NetMQ.Devices
         /// </param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
         /// <param name="poller">The <see cref="Poller"/> to use.</param>		
-        protected DeviceBase(Poller poller, NetMQSocket frontendSocket, NetMQSocket backendSocket, DeviceMode mode)
+        protected DeviceBase(Poller poller, [NotNull] NetMQSocket frontendSocket, [NotNull] NetMQSocket backendSocket, DeviceMode mode)
         {
             if (frontendSocket == null)
                 throw new ArgumentNullException("frontendSocket");
