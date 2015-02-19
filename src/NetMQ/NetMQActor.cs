@@ -229,7 +229,7 @@ namespace NetMQ
                     m_self.Send(EndShimMessage);
                     m_self.WaitForSignal();
                 }
-                catch (AgainException ex)
+                catch (AgainException)
                 {
 
                 }
