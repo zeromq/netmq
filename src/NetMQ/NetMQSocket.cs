@@ -100,7 +100,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">The address of the socket</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Bind(string address)
+        public void Bind([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -113,7 +113,7 @@ namespace NetMQ
         /// <param name="address">The address of the socket, omit the port</param>
         /// <returns>Chosen port number</returns>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public int BindRandomPort(string address)
+        public int BindRandomPort([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
             
@@ -125,7 +125,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">Address to connect to</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket is  is disposed</exception>
-        public void Connect(string address)
+        public void Connect([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -137,7 +137,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">The address to disconnect from</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Disconnect(string address)
+        public void Disconnect([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -149,7 +149,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">The address to unbind from</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Unbind(string address)
+        public void Unbind([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
