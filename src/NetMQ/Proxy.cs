@@ -24,6 +24,7 @@ namespace NetMQ
         /// <summary>
         /// Start the proxy work, this will block until one of the sockets is closed
         /// </summary>
+        /// <exception cref="InvalidOperationException">The proxy has already been started.</exception>
         public void Start()
         {
             if (m_poller != null)
@@ -38,6 +39,10 @@ namespace NetMQ
             m_poller.PollTillCancelled();
         }
 
+        /// <summary>
+        /// Stops the proxy, blocking until the underlying <see cref="Poller"/> has completed.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The proxy has not been started.</exception>
         public void Stop()
         {
             if (m_poller == null)
@@ -102,8 +107,6 @@ namespace NetMQ
                 }
 
                 m_frontend.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
-
-
 
                 if (!more)
                 {
