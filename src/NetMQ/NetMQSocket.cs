@@ -8,13 +8,13 @@ namespace NetMQ
     {
         readonly SocketBase m_socketHandle;
         private bool m_isClosed = false;
-        private NetMQSocketEventArgs m_socketEventArgs;
+        private readonly NetMQSocketEventArgs m_socketEventArgs;
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
 
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
 
-        private Selector m_selector;
+        private readonly Selector m_selector;
 
         protected NetMQSocket(SocketBase socketHandle)
         {

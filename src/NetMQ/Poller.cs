@@ -12,7 +12,7 @@ namespace NetMQ
     {
         class PollerSelectItem : SelectItem
         {
-            private NetMQSocket m_socket;
+            private readonly NetMQSocket m_socket;
 
             public PollerSelectItem(NetMQSocket socket, PollEvents events)
                 : base(socket.SocketHandle, events)
@@ -43,7 +43,7 @@ namespace NetMQ
         private bool m_isDirty = true;
         private bool m_disposed = false;
 
-        private Selector m_selector = new Selector();
+        private readonly Selector m_selector = new Selector();
 
         public Poller()
         {

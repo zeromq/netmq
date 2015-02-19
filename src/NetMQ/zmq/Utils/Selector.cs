@@ -29,9 +29,9 @@ namespace NetMQ.zmq.Utils
 
     class Selector
     {
-        private List<Socket> m_checkRead;
-        private List<Socket> m_checkWrite;
-        private List<Socket> m_checkError;                       
+        private readonly List<Socket> m_checkRead;
+        private readonly List<Socket> m_checkWrite;
+        private readonly List<Socket> m_checkError;                       
 
         public Selector()
         {

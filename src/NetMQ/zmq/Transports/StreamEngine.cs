@@ -138,7 +138,7 @@ namespace NetMQ.zmq.Transports
 
 
         // queue for actions that happen during the state machine
-        private Queue<StateMachineAction> m_actionsQueue;
+        private readonly Queue<StateMachineAction> m_actionsQueue;
 
 
 

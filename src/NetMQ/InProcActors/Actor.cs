@@ -30,8 +30,8 @@ namespace NetMQ.Actors
         private readonly Random rand = new Random();
         private T m_state;
 
-        private EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
-        private EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
+        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
+        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
 
         private string GetEndPointName()
         {

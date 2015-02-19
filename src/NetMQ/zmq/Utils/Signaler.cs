@@ -29,8 +29,8 @@ namespace NetMQ.zmq.Utils
         //  Underlying write & read file descriptor.
         private Socket m_writeSocket;
         private Socket m_readSocket;
-        private byte[] m_dummy;
-        private byte[] m_receiveDummy;
+        private readonly byte[] m_dummy;
+        private readonly byte[] m_receiveDummy;
 
         public Signaler()
         {

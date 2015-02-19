@@ -22,7 +22,7 @@ namespace NetMQ.Security.V0_1
 
         private ulong m_leftWindow = 0;
         private ulong m_rightWindow = WindowSize - 1;
-        private bool[] m_windowMap = new bool[WindowSize];
+        private readonly bool[] m_windowMap = new bool[WindowSize];
 
         public RecordLayer(byte[] protocolVersion)
         {

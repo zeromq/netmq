@@ -10,7 +10,7 @@ namespace NetMQ.Security.V0_1
         private HandshakeLayer m_handshakeLayer;
         private RecordLayer m_recordLayer;
 
-        private OutgoingMessageBag m_outgoingMessageBag;
+        private readonly OutgoingMessageBag m_outgoingMessageBag;
 
         private readonly byte[] m_protocolVersion = new byte[] { 0, 1 };
 

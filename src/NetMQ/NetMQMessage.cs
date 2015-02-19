@@ -8,7 +8,7 @@ namespace NetMQ
 {
     public class NetMQMessage : IEnumerable<NetMQFrame>
     {
-        private List<NetMQFrame> m_frames;
+        private readonly List<NetMQFrame> m_frames;
 
         public NetMQMessage()
         {

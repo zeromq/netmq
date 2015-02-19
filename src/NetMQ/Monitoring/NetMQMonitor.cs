@@ -10,7 +10,7 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitor : IDisposable
     {
-        private bool m_isOwner;
+        private readonly bool m_isOwner;
         private Poller m_attachedPoller = null;
 
         private int m_cancel = 0;

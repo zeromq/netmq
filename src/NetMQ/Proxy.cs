@@ -7,9 +7,9 @@ namespace NetMQ
     /// </summary>
     public class Proxy
     {
-        NetMQSocket m_frontend;
-        NetMQSocket m_backend;
-        NetMQSocket m_control;
+        private readonly NetMQSocket m_frontend;
+        private readonly NetMQSocket m_backend;
+        private readonly NetMQSocket m_control;
         private Poller m_poller;
 
         public Proxy(NetMQSocket frontend, NetMQSocket backend, NetMQSocket control)

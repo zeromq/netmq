@@ -10,7 +10,7 @@ namespace NetMQ.zmq.Transports.PGM
     {
         private readonly Options m_options;
         private readonly Address m_addr;
-        private V1Encoder m_encoder;
+        private readonly V1Encoder m_encoder;
 
         private AsyncSocket m_socket;
         private PgmSocket m_pgmSocket;

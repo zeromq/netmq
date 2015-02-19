@@ -15,7 +15,7 @@ namespace NetMQ
 
     public class NetMQTimer
     {
-        private NetMQTimerEventArgs m_timerEventArgs;
+        private readonly NetMQTimerEventArgs m_timerEventArgs;
         private int m_interval;
         private bool m_enable;
 

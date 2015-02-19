@@ -21,7 +21,7 @@ namespace NetMQ
 
     public class InterfaceCollection : IEnumerable<InterfaceItem>
     {
-        private List<InterfaceItem> m_interfaceItems;
+        private readonly List<InterfaceItem> m_interfaceItems;
 
         public InterfaceCollection()
         {

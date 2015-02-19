@@ -246,10 +246,10 @@ namespace NetMQ
             }
         }
 
-        private Shim m_shim;
-        private NetMQActor m_actor;
+        private readonly Shim m_shim;
+        private readonly NetMQActor m_actor;
 
-        private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
+        private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
         public NetMQBeacon(NetMQContext context)
         {

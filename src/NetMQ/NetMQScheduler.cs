@@ -21,11 +21,11 @@ namespace NetMQ
         private readonly NetMQSocket m_serverSocket;
         private readonly NetMQSocket m_clientSocket;
 
-        private ThreadLocal<bool> m_schedulerThread;
+        private readonly ThreadLocal<bool> m_schedulerThread;
 
-        private ConcurrentQueue<Task> m_tasksQueue;
+        private readonly ConcurrentQueue<Task> m_tasksQueue;
 
-        private object m_syncObject;
+        private readonly object m_syncObject;
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 

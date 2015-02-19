@@ -30,7 +30,7 @@ namespace NetMQ.zmq
     /// </summary>
     public abstract class Own : ZObject
     {
-        protected Options m_options;
+        protected readonly Options m_options;
 
         //  True if termination was already initiated. If so, we can destroy
         //  the object if there are no more child objects or pending term acks.

@@ -5,7 +5,7 @@ namespace NetMQ
 {
     public class SocketOptions
     {
-        NetMQSocket m_socket;
+        readonly NetMQSocket m_socket;
 
         public SocketOptions(NetMQSocket socket)
         {
