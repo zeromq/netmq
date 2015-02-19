@@ -179,7 +179,7 @@ namespace NetMQ.Tests
 
                         Assert.AreEqual("Hello", message);
 
-                        poller.Stop(true);
+                        poller.CancelAndJoin();
                     }
                 }
             }

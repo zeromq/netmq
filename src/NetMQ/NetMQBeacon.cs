@@ -218,7 +218,7 @@ namespace NetMQ
                         m_filter = null;
                         break;
                     case NetMQActor.EndShimMessage:
-                        m_poller.Stop(false);
+                        m_poller.Cancel();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

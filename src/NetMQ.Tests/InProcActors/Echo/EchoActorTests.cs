@@ -54,7 +54,7 @@ namespace NetMQ.Tests.InProcActors.Echo
         {
             using (var context = NetMQContext.Create())
             {
-                string actorMessage = "whatever";
+                //string actorMessage = "whatever";
                 EchoShimHandler echoShimHandler = new EchoShimHandler();
 
                 try

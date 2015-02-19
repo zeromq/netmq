@@ -174,7 +174,7 @@ namespace NetMQ.Tests
                         dealer2.Send("2");
                         Thread.Sleep(300);
 
-                        poller.Stop(true);
+                        poller.CancelAndJoin();
 
                         Assert.IsTrue(router1arrived);
                         Assert.IsTrue(router2arrived);
@@ -252,7 +252,7 @@ namespace NetMQ.Tests
                         dealer3.Send("3");
                         Thread.Sleep(300);
 
-                        poller.Stop(true);
+                        poller.CancelAndJoin();
 
                         Assert.IsTrue(router1arrived);
                         Assert.IsTrue(router2arrived);
@@ -352,7 +352,7 @@ namespace NetMQ.Tests
                         dealer.Send("1");
                         Thread.Sleep(300);
 
-                        poller.Stop(true);
+                        poller.CancelAndJoin();
 
                         router.Receive(true, out more);
 
@@ -944,7 +944,7 @@ namespace NetMQ.Tests
                         // we remove the native socket so it should fail
                         Assert.IsFalse(socketSignal.WaitOne(200));
 
-                        poller.Stop(true);
+                        poller.CancelAndJoin();
                     }
                 }
             }

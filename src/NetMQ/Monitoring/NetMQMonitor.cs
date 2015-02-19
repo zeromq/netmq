@@ -178,7 +178,7 @@ namespace NetMQ.Monitoring
             {
                 MonitoringSocket.Disconnect(Endpoint);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             finally 
