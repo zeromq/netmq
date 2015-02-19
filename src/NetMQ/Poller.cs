@@ -10,22 +10,6 @@ namespace NetMQ
 {
     public class Poller : IDisposable
     {
-        class PollerSelectItem : SelectItem
-        {
-            private readonly NetMQSocket m_socket;
-
-            public PollerSelectItem(NetMQSocket socket, PollEvents events)
-                : base(socket.SocketHandle, events)
-            {
-                m_socket = socket;
-            }
-
-            public NetMQSocket NetMQSocket
-            {
-                get { return m_socket; }
-            }
-        }
-
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
 
@@ -249,7 +233,7 @@ namespace NetMQ
             uint itemNbr = 0;
             foreach (var socket in m_sockets)
             {
-                m_pollset[itemNbr] = new PollerSelectItem(socket, socket.GetPollEvents());
+                m_pollset[itemNbr] = new SelectItem(socket.SocketHandle, socket.GetPollEvents());
                 m_pollact[itemNbr] = socket;
                 itemNbr++;
             }
