@@ -185,7 +185,7 @@ namespace NetMQ
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("stock");
+                throw new ArgumentNullException("socket");
             }
 
             if (m_disposed)
