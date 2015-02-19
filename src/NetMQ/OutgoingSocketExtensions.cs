@@ -94,13 +94,13 @@ namespace NetMQ
         
         public static IOutgoingSocket SendMore(this IOutgoingSocket socket, string message, bool dontWait = false)
         {
-            socket.Send(message, false, true);
+            socket.Send(message, dontWait, true);
             return socket;
         }
 
         public static IOutgoingSocket SendMore(this IOutgoingSocket socket, string message, Encoding encoding, bool dontWait = false)
         {
-            socket.Send(message,encoding, false, true);
+            socket.Send(message, encoding, dontWait, true);
             return socket;
         }
 
