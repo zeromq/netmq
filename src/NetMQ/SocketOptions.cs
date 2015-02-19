@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
 {
     public class SocketOptions
     {
-        NetMQSocket m_socket;
+        readonly NetMQSocket m_socket;
 
         public SocketOptions(NetMQSocket socket)
         {

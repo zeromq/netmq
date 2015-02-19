@@ -22,16 +22,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using AsyncIO;
 using NetMQ.zmq.Patterns;
+using NetMQ.zmq.Transports.Ipc;
 using NetMQ.zmq.Transports.PGM;
 using NetMQ.zmq.Transports.Tcp;
-using NetMQ.zmq.Transports.Ipc;
 using NetMQ.zmq.Utils;
 using TcpListener = NetMQ.zmq.Transports.Tcp.TcpListener;
 

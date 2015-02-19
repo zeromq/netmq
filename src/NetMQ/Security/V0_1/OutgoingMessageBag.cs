@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace NetMQ.Security.V0_1
 {
     class OutgoingMessageBag
     {
         private readonly SecureChannel m_secureChannel;
-        private IList<NetMQMessage> m_messages;
+        private readonly IList<NetMQMessage> m_messages;
 
         public OutgoingMessageBag(SecureChannel secureChannel)
         {

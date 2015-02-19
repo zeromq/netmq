@@ -3,13 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NetMQ.zmq;
 
 namespace NetMQ
 {
     public class NetMQMessage : IEnumerable<NetMQFrame>
     {
-        private List<NetMQFrame> m_frames;
+        private readonly List<NetMQFrame> m_frames;
 
         public NetMQMessage()
         {

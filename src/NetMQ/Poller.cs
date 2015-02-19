@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Diagnostics;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
@@ -12,22 +10,6 @@ namespace NetMQ
 {
     public class Poller : IDisposable
     {
-        class PollerSelectItem : SelectItem
-        {
-            private NetMQSocket m_socket;
-
-            public PollerSelectItem(NetMQSocket socket, PollEvents events)
-                : base(socket.SocketHandle, events)
-            {
-                m_socket = socket;
-            }
-
-            public NetMQSocket NetMQSocket
-            {
-                get { return m_socket; }
-            }
-        }
-
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
 
@@ -45,7 +27,7 @@ namespace NetMQ
         private bool m_isDirty = true;
         private bool m_disposed = false;
 
-        private Selector m_selector = new Selector();
+        private readonly Selector m_selector = new Selector();
 
         public Poller()
         {
@@ -103,7 +85,7 @@ namespace NetMQ
                 {
                     if (m_isStarted)
                     {
-                        Stop(false);
+                        Cancel(false);
                     }
                 }
 
@@ -187,7 +169,7 @@ namespace NetMQ
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("stock");
+                throw new ArgumentNullException("socket");
             }
 
             if (m_disposed)
@@ -251,7 +233,7 @@ namespace NetMQ
             uint itemNbr = 0;
             foreach (var socket in m_sockets)
             {
-                m_pollset[itemNbr] = new PollerSelectItem(socket, socket.GetPollEvents());
+                m_pollset[itemNbr] = new SelectItem(socket.SocketHandle, socket.GetPollEvents());
                 m_pollact[itemNbr] = socket;
                 itemNbr++;
             }

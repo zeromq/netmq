@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace NetMQ.Security.V0_1
 {
@@ -12,7 +10,7 @@ namespace NetMQ.Security.V0_1
         private HandshakeLayer m_handshakeLayer;
         private RecordLayer m_recordLayer;
 
-        private OutgoingMessageBag m_outgoingMessageBag;
+        private readonly OutgoingMessageBag m_outgoingMessageBag;
 
         private readonly byte[] m_protocolVersion = new byte[] { 0, 1 };
 
@@ -137,7 +135,7 @@ namespace NetMQ.Security.V0_1
 
             if (plainMessage == null)
             {
-                throw new ArgumentNullException("plainMessage is null");
+                throw new ArgumentNullException("plainMessage");
             }
 
             return InternalEncryptAndWrapMessage(ContentType.ApplicationData, plainMessage);
@@ -152,7 +150,7 @@ namespace NetMQ.Security.V0_1
 
             if (cipherMessage == null)
             {
-                throw new ArgumentNullException("cipherMessage is null");
+                throw new ArgumentNullException("cipherMessage");
             }
 
             if (cipherMessage.FrameCount < 2)

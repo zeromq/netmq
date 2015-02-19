@@ -18,13 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-using System.Net.Sockets;
-using System.Threading;
-using System.Security.AccessControl;
 using System.Diagnostics;
 using System.Net;
-using System.Runtime.InteropServices;
+using System.Net.Sockets;
 
 namespace NetMQ.zmq.Utils
 {
@@ -33,8 +29,8 @@ namespace NetMQ.zmq.Utils
         //  Underlying write & read file descriptor.
         private Socket m_writeSocket;
         private Socket m_readSocket;
-        private byte[] m_dummy;
-        private byte[] m_receiveDummy;
+        private readonly byte[] m_dummy;
+        private readonly byte[] m_receiveDummy;
 
         public Signaler()
         {

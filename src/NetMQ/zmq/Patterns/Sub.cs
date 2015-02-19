@@ -26,7 +26,7 @@ namespace NetMQ.zmq.Patterns
 {
     class Sub : XSub
     {
-        public class SubSession : XSub.XSubSession
+        public class SubSession : XSubSession
         {
 
             public SubSession(IOThread ioThread, bool connect,

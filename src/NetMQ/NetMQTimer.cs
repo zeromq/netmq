@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ
@@ -19,7 +15,7 @@ namespace NetMQ
 
     public class NetMQTimer
     {
-        private NetMQTimerEventArgs m_timerEventArgs;
+        private readonly NetMQTimerEventArgs m_timerEventArgs;
         private int m_interval;
         private bool m_enable;
 

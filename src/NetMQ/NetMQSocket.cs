@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
@@ -11,13 +8,13 @@ namespace NetMQ
     {
         readonly SocketBase m_socketHandle;
         private bool m_isClosed = false;
-        private NetMQSocketEventArgs m_socketEventArgs;
+        private readonly NetMQSocketEventArgs m_socketEventArgs;
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
 
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
 
-        private Selector m_selector;
+        private readonly Selector m_selector;
 
         protected NetMQSocket(SocketBase socketHandle)
         {
@@ -210,7 +207,7 @@ namespace NetMQ
         /// </returns>
         public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
         {
-            SelectItem[] items = new[] {new SelectItem(SocketHandle, pollEvents),};
+            SelectItem[] items = {new SelectItem(SocketHandle, pollEvents)};
 
             m_selector.Select(items, 1, (int) timeout.TotalMilliseconds);
             return items[0].ResultEvent;

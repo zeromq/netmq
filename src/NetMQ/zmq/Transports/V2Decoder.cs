@@ -1,5 +1,3 @@
-using System;
-
 namespace NetMQ.zmq.Transports
 {
     class V2Decoder : DecoderBase

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.Sockets;
+﻿using NetMQ.Sockets;
 
 namespace NetMQ.Actors
 {

@@ -11,7 +11,7 @@ namespace NetMQ
 
     public class BufferManagerBufferPool : IBufferPool
     {
-        private BufferManager m_bufferManager;
+        private readonly BufferManager m_bufferManager;
 
         public BufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {

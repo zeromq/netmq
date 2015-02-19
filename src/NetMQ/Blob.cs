@@ -19,8 +19,6 @@
 */
 
 using System;
-using System.Collections;
-using System.Runtime.InteropServices;
 using System.Linq;
 
 namespace NetMQ
@@ -70,15 +68,15 @@ namespace NetMQ
 
         public override bool Equals(Object t)
         {
-            if (t is Blob)
+            var blob = t as Blob;
+            if (blob != null)
             {
-                Blob b = (Blob)t;
-                if (b.m_buffer.Length != m_buffer.Length)
+                if (blob.m_buffer.Length != m_buffer.Length)
                 {
                     return false;
                 }
 
-                return m_buffer.SequenceEqual(b.m_buffer);
+                return m_buffer.SequenceEqual(blob.m_buffer);
             }
             return false;
         }

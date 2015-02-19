@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -23,11 +21,11 @@ namespace NetMQ
         private readonly NetMQSocket m_serverSocket;
         private readonly NetMQSocket m_clientSocket;
 
-        private ThreadLocal<bool> m_schedulerThread;
+        private readonly ThreadLocal<bool> m_schedulerThread;
 
-        private ConcurrentQueue<Task> m_tasksQueue;
+        private readonly ConcurrentQueue<Task> m_tasksQueue;
 
-        private object m_syncObject;
+        private readonly object m_syncObject;
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 
@@ -50,7 +48,7 @@ namespace NetMQ
 
             m_schedulerId = Interlocked.Increment(ref s_schedulerCounter);
 
-            m_address = string.Format("{0}://scheduler-{1}", NetMQ.zmq.Address.InProcProtocol, m_schedulerId);
+            m_address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, m_schedulerId);
 
             m_serverSocket = context.CreatePullSocket();
             m_serverSocket.Options.Linger = TimeSpan.Zero;

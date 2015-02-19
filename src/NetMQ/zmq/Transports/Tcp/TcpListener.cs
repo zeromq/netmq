@@ -20,11 +20,8 @@
 */
 
 using System;
-using System.Net;
-using System.Net.Sockets;
 using System.Diagnostics;
-using System.Security;
-using System.Runtime.InteropServices;
+using System.Net.Sockets;
 using AsyncIO;
 
 namespace NetMQ.zmq.Transports.Tcp

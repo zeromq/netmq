@@ -23,8 +23,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using NetMQ.zmq.Patterns.Utils;
 using NetMQ.zmq.Utils;
 

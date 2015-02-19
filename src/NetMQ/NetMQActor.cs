@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using NetMQ.Sockets;
 using NetMQ.zmq;
@@ -75,11 +72,11 @@ namespace NetMQ
         private readonly PairSocket m_self;
         private readonly PairSocket m_shim;
         
-        private Thread m_shimThread;        
-        private IShimHandler m_shimHandler;
+        private readonly Thread m_shimThread;        
+        private readonly IShimHandler m_shimHandler;
 
-        private EventDelegatorHelper<NetMQActorEventArgs> m_receiveEventDelegatorHelper;
-        private EventDelegatorHelper<NetMQActorEventArgs> m_sendEventDelegatorHelper;
+        private readonly EventDelegatorHelper<NetMQActorEventArgs> m_receiveEventDelegatorHelper;
+        private readonly EventDelegatorHelper<NetMQActorEventArgs> m_sendEventDelegatorHelper;
 
         #region Creating Actor
 

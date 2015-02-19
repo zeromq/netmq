@@ -1,10 +1,9 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 
 namespace NetMQ
 {
@@ -22,7 +21,7 @@ namespace NetMQ
 
     public class InterfaceCollection : IEnumerable<InterfaceItem>
     {
-        private List<InterfaceItem> m_interfaceItems;
+        private readonly List<InterfaceItem> m_interfaceItems;
 
         public InterfaceCollection()
         {
@@ -58,7 +57,7 @@ namespace NetMQ
             return m_interfaceItems.GetEnumerator();
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             return m_interfaceItems.GetEnumerator();
         }

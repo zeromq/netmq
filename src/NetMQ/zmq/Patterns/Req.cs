@@ -20,7 +20,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
 
 namespace NetMQ.zmq.Patterns
@@ -158,7 +157,7 @@ namespace NetMQ.zmq.Patterns
             return base.XHasOut();
         }
 
-        public class ReqSession : Dealer.DealerSession
+        public class ReqSession : DealerSession
         {
             enum State
             {

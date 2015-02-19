@@ -20,10 +20,6 @@
 */
 
 using System;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ

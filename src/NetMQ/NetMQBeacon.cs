@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -251,10 +246,10 @@ namespace NetMQ
             }
         }
 
-        private Shim m_shim;
-        private NetMQActor m_actor;
+        private readonly Shim m_shim;
+        private readonly NetMQActor m_actor;
 
-        private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
+        private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
         public NetMQBeacon(NetMQContext context)
         {

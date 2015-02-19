@@ -10,7 +10,6 @@ namespace NetMQ.Devices
     /// <summary>
     /// Configures the given socket
     /// </summary>
-    /// <typeparam name="TSocket"></typeparam>
     public class DeviceSocketSetup
     {
 

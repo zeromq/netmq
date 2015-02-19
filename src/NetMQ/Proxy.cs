@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.Sockets;
-using NetMQ.zmq;
+﻿using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -12,9 +7,9 @@ namespace NetMQ
     /// </summary>
     public class Proxy
     {
-        NetMQSocket m_frontend;
-        NetMQSocket m_backend;
-        NetMQSocket m_control;
+        private readonly NetMQSocket m_frontend;
+        private readonly NetMQSocket m_backend;
+        private readonly NetMQSocket m_control;
         private Poller m_poller;
 
         public Proxy(NetMQSocket frontend, NetMQSocket backend, NetMQSocket control)

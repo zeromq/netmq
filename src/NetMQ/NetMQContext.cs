@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
+using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NetMQ.zmq;
-using NetMQ.Monitoring;
 
 namespace NetMQ
 {
