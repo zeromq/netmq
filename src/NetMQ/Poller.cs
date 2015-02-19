@@ -37,7 +37,7 @@ namespace NetMQ
             m_cancel = 0;
         }
 
-        public Poller([NotNull] params ISocketPollable[] sockets)
+        public Poller([NotNull] [ItemNotNull] params ISocketPollable[] sockets)
             : this()
         {
             if (sockets == null)
@@ -51,7 +51,7 @@ namespace NetMQ
             }
         }
 
-        public Poller([NotNull] params NetMQTimer[] timers)
+        public Poller([NotNull] [ItemNotNull] params NetMQTimer[] timers)
             : this()
         {
             if (timers == null)
