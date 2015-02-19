@@ -85,7 +85,7 @@ namespace NetMQ
                 {
                     if (m_isStarted)
                     {
-                        Stop(false);
+                        Cancel(false);
                     }
                 }
 
