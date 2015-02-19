@@ -52,12 +52,12 @@ namespace NetMQ.zmq
 
             if (endpoint is DnsEndPoint)
             {
-                DnsEndPoint dnsEndpoint = endpoint as DnsEndPoint;
+                DnsEndPoint dnsEndpoint = (DnsEndPoint)endpoint;
                 AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port;
             }
             else if (endpoint is IPEndPoint)
             {
-                IPEndPoint ipEndpoint = endpoint as IPEndPoint;
+                IPEndPoint ipEndpoint = (IPEndPoint)endpoint;
                 AddressString = ipEndpoint.Address + ":" + ipEndpoint.Port;
             }
             else
