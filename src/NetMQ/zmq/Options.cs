@@ -167,7 +167,7 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.SendHighWatermark:
                     SendHighWatermark = (int)optval;
                     break;
-                case ZmqSocketOptions.ReceivevHighWatermark:
+                case ZmqSocketOptions.ReceiveHighWatermark:
                     ReceiveHighWatermark = (int)optval;
                     break;
 
@@ -203,7 +203,7 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.SendBuffer:
                     SendBuffer = (int)optval;
                     break;
-                case ZmqSocketOptions.ReceivevBuffer:
+                case ZmqSocketOptions.ReceiveBuffer:
                     ReceiveBuffer = (int)optval;
                     break;
                 case ZmqSocketOptions.Linger:
@@ -303,7 +303,7 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.SendHighWatermark:
                     return SendHighWatermark;
 
-                case ZmqSocketOptions.ReceivevHighWatermark:
+                case ZmqSocketOptions.ReceiveHighWatermark:
                     return ReceiveHighWatermark;
 
                 case ZmqSocketOptions.Affinity:
@@ -321,7 +321,7 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.SendBuffer:
                     return SendBuffer;
 
-                case ZmqSocketOptions.ReceivevBuffer:
+                case ZmqSocketOptions.ReceiveBuffer:
                     return ReceiveBuffer;
 
                 case ZmqSocketOptions.Type:

@@ -147,7 +147,7 @@ namespace NetMQ.Tests
 
                     using (var sub = context.CreateSubscriberSocket())
                     {
-                        sub.Options.ReceivevBuffer = MegaByte * 10;
+                        sub.Options.ReceiveBuffer = MegaByte * 10;
                         sub.Bind("pgm://224.0.0.1:5555");
 
                         sub.Subscribe("");
@@ -164,7 +164,7 @@ namespace NetMQ.Tests
                         Assert.AreEqual(40 * MegaBit, pub.Options.MulticastRate);
                         Assert.AreEqual(TimeSpan.FromMinutes(10), pub.Options.MulticastRecoveryInterval);
                         Assert.AreEqual(MegaByte * 10, pub.Options.SendBuffer);
-                        Assert.AreEqual(MegaByte * 10, sub.Options.ReceivevBuffer);
+                        Assert.AreEqual(MegaByte * 10, sub.Options.ReceiveBuffer);
                     }
                 }
             }
