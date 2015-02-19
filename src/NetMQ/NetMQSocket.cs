@@ -207,7 +207,7 @@ namespace NetMQ
         /// </returns>
         public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
         {
-            SelectItem[] items = new[] {new SelectItem(SocketHandle, pollEvents),};
+            SelectItem[] items = {new SelectItem(SocketHandle, pollEvents)};
 
             m_selector.Select(items, 1, (int) timeout.TotalMilliseconds);
             return items[0].ResultEvent;

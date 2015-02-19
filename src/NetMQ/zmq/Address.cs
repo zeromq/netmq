@@ -36,7 +36,7 @@ namespace NetMQ.zmq
             void Resolve(String name, bool ip4Only);
             IPEndPoint Address { get; }
             String Protocol { get; }
-        };
+        }
 
 
         public Address(String protocol, String address)
