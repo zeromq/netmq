@@ -20,12 +20,11 @@
 */
 
 using System;
-using System.Net.Sockets;
 using System.Diagnostics;
-
+using System.Net.Sockets;
+using AsyncIO;
 //  If 'delay' is true connecter first waits for a while, then starts
 //  connection process.
-using AsyncIO;
 
 namespace NetMQ.zmq.Transports.Tcp
 {

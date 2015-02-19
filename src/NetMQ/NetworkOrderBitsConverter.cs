@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.zmq;
-
-namespace NetMQ
+﻿namespace NetMQ
 {
     public static class NetworkOrderBitsConverter
     {

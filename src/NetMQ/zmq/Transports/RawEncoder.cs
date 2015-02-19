@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-
-namespace NetMQ.zmq.Transports
+﻿namespace NetMQ.zmq.Transports
 {
     class RawEncoder : EncoderBase
     {

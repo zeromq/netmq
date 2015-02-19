@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Linq;
 
 namespace NetMQ.zmq.Transports
 {

@@ -20,8 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using NetMQ.zmq;
 
 namespace NetMQ.zmq.Utils
 {

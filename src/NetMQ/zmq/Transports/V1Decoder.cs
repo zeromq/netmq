@@ -30,8 +30,6 @@
 //  This class , the state machine that parses the incoming buffer.
 //  Derived class should implement individual state machine actions.
 
-using System;
-
 namespace NetMQ.zmq.Transports
 {
     class V1Decoder : DecoderBase

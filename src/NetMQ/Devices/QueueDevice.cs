@@ -1,6 +1,4 @@
-﻿using NetMQ.Sockets;
-
-namespace NetMQ.Devices
+﻿namespace NetMQ.Devices
 {
 
     /// <summary>

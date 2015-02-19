@@ -59,7 +59,7 @@ namespace NetMQ.zmq.Transports.Ipc
 
         public String Protocol
         {
-            get { return NetMQ.zmq.Address.IpcProtocol; }
+            get { return zmq.Address.IpcProtocol; }
         }
 
     }

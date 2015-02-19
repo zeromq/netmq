@@ -19,14 +19,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-using System.Diagnostics;
-
 namespace NetMQ.zmq.Patterns
 {
     class Rep : Router
     {
-        public class RepSession : Router.RouterSession
+        public class RepSession : RouterSession
         {
             public RepSession(IOThread ioThread, bool connect,
                               SocketBase socket, Options options,

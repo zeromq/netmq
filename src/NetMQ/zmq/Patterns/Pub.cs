@@ -26,7 +26,7 @@ namespace NetMQ.zmq.Patterns
     class Pub : XPub
     {
 
-        public class PubSession : XPub.XPubSession
+        public class PubSession : XPubSession
         {
 
             public PubSession(IOThread ioThread, bool connect,

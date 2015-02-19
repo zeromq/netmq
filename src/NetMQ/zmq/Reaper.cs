@@ -20,7 +20,6 @@
 
 using System;
 using System.Net.Sockets;
-using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {

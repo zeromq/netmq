@@ -20,10 +20,9 @@
 */
 
 using System;
-
+using NetMQ.zmq.Transports;
 //  Base class for all objects that participate in inter-thread
 //  communication.
-using NetMQ.zmq.Transports;
 
 namespace NetMQ.zmq
 {

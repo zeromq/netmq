@@ -21,11 +21,10 @@
 
 using System;
 using System.Diagnostics;
-
+using System.Net.Sockets;
+using NetMQ.zmq.Utils;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
-using AsyncIO;
-using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
@@ -161,7 +160,7 @@ namespace NetMQ.zmq
             m_name = name;
         }
 
-        public System.Net.Sockets.Socket Handle
+        public Socket Handle
         {
             get { return m_signaler.Handle; }
         }

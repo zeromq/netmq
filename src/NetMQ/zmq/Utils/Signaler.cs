@@ -18,13 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-using System.Net.Sockets;
-using System.Threading;
-using System.Security.AccessControl;
 using System.Diagnostics;
 using System.Net;
-using System.Runtime.InteropServices;
+using System.Net.Sockets;
 
 namespace NetMQ.zmq.Utils
 {

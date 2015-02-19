@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
-using NetMQ.Security.V0_1;
 
 namespace NetMQ.Security
 {

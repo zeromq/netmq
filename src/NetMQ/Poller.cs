@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Diagnostics;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 

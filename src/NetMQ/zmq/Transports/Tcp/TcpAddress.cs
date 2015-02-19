@@ -53,7 +53,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
             IPEndPoint endpoint = Address;
 
-            if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            if (endpoint.AddressFamily == AddressFamily.InterNetworkV6)
             {
                 return Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port;
             }
@@ -143,7 +143,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
         public String Protocol
         {
-            get { return NetMQ.zmq.Address.TcpProtocol; }
+            get { return zmq.Address.TcpProtocol; }
         }
 
     }

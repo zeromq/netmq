@@ -24,9 +24,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
+using NetMQ.zmq.Patterns;
 using NetMQ.zmq.Transports;
 using NetMQ.zmq.Transports.Ipc;
-using NetMQ.zmq.Patterns;
 using NetMQ.zmq.Transports.PGM;
 using NetMQ.zmq.Transports.Tcp;
 
