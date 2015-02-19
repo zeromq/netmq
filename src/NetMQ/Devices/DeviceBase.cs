@@ -104,7 +104,12 @@ namespace NetMQ.Devices
         public void Stop(bool waitForCloseToComplete = true)
         {
             if (m_pollerIsOwned && m_poller.IsStarted)
-                m_poller.Stop(waitForCloseToComplete);
+            {
+                if (waitForCloseToComplete)
+                    m_poller.CancelAndJoin();
+                else
+                    m_poller.Cancel();
+            }
 
             FrontendSocket.Close();
             BackendSocket.Close();
