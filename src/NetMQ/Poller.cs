@@ -312,7 +312,7 @@ namespace NetMQ
             PollWhile(() => timesToPoll-- > 0);
         }
 
-        private void PollWhile(Func<bool> condition)
+        private void PollWhile([InstantHandle] Func<bool> condition)
         {
             if (m_disposed)
             {
