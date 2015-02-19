@@ -21,11 +21,11 @@
 
 using System;
 using NetMQ.zmq.Transports;
-//  Base class for all objects that participate in inter-thread
-//  communication.
-
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Base class for all objects that participate in inter-thread communication.
+    /// </summary>
     public abstract class ZObject
     {
         //  Context provides access to the global state.

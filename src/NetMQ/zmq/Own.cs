@@ -22,10 +22,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 
-//  Base class for objects forming a part of ownership hierarchy.
-//  It handles initialisation and destruction of such objects.
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Base class for objects forming a part of ownership hierarchy.
+    /// It handles initialisation and destruction of such objects.
+    /// </summary>
     public abstract class Own : ZObject
     {
         protected Options m_options;
