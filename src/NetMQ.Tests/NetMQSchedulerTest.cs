@@ -96,7 +96,7 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void CanDisposeSchedulerWhenPoolerExternalAndCancelled()
+        public void CanDisposeSchedulerWhenPollerExternalAndCancelled()
         {
           using (NetMQContext context = NetMQContext.Create())
           {
