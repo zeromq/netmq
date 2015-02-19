@@ -1,4 +1,5 @@
-﻿using NetMQ.zmq;
+﻿using JetBrains.Annotations;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -7,12 +8,12 @@ namespace NetMQ
     /// </summary>
     public class Proxy
     {
-        private readonly NetMQSocket m_frontend;
-        private readonly NetMQSocket m_backend;
-        private readonly NetMQSocket m_control;
+        [NotNull] private readonly NetMQSocket m_frontend;
+        [NotNull] private readonly NetMQSocket m_backend;
+        [CanBeNull] private readonly NetMQSocket m_control;
         private Poller m_poller;
 
-        public Proxy(NetMQSocket frontend, NetMQSocket backend, NetMQSocket control)
+        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control)
         {
             m_frontend = frontend;
             m_backend = backend;

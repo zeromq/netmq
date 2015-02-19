@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ.Devices
@@ -20,7 +21,7 @@ namespace NetMQ.Devices
 
         private bool m_isConfigured;
 
-        internal DeviceSocketSetup(NetMQSocket socket)
+        internal DeviceSocketSetup([NotNull] NetMQSocket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
@@ -36,7 +37,7 @@ namespace NetMQ.Devices
         /// </summary>
         /// <param name="endpoint">A string representing the endpoint to which the socket will bind.</param>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
-        public DeviceSocketSetup Bind(string endpoint)
+        public DeviceSocketSetup Bind([NotNull] string endpoint)
         {
             if (endpoint == null)
                 throw new ArgumentNullException("endpoint");
@@ -50,7 +51,7 @@ namespace NetMQ.Devices
         /// </summary>
         /// <param name="endpoint">A string representing the endpoint to which the socket will connect.</param>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
-        public DeviceSocketSetup Connect(string endpoint)
+        public DeviceSocketSetup Connect([NotNull] string endpoint)
         {
             if (endpoint == null)
                 throw new ArgumentNullException("endpoint");

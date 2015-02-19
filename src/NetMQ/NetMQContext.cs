@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using JetBrains.Annotations;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NetMQ.zmq;
@@ -24,6 +25,7 @@ namespace NetMQ
         /// Create a new context
         /// </summary>
         /// <returns>The new context</returns>
+        [NotNull]
         public static NetMQContext Create()
         {
             return new NetMQContext(new Ctx());
@@ -74,6 +76,7 @@ namespace NetMQ
             return m_ctx.CreateSocket(socketType);
         }
 
+        [NotNull]
         public NetMQSocket CreateSocket(ZmqSocketType socketType)
         {
             var socketHandle = CreateHandle(socketType);
@@ -113,6 +116,7 @@ namespace NetMQ
         /// Create request socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public RequestSocket CreateRequestSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Req);
@@ -124,6 +128,7 @@ namespace NetMQ
         /// Create response socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public ResponseSocket CreateResponseSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Rep);
@@ -135,6 +140,7 @@ namespace NetMQ
         /// Create dealer socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public DealerSocket CreateDealerSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Dealer);
@@ -146,6 +152,7 @@ namespace NetMQ
         /// Create router socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public RouterSocket CreateRouterSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Router);
@@ -157,6 +164,7 @@ namespace NetMQ
         /// Create xpublisher socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public XPublisherSocket CreateXPublisherSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Xpub);
@@ -168,6 +176,7 @@ namespace NetMQ
         /// Create pair socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public PairSocket CreatePairSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Pair);
@@ -179,6 +188,7 @@ namespace NetMQ
         /// Create push socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public PushSocket CreatePushSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Push);
@@ -190,6 +200,7 @@ namespace NetMQ
         /// Create publisher socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public PublisherSocket CreatePublisherSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Pub);
@@ -201,6 +212,7 @@ namespace NetMQ
         /// Create pull socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public PullSocket CreatePullSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Pull);
@@ -212,6 +224,7 @@ namespace NetMQ
         /// Create subscriber socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public SubscriberSocket CreateSubscriberSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Sub);
@@ -223,6 +236,7 @@ namespace NetMQ
         /// Create xsub socket
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public XSubscriberSocket CreateXSubscriberSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Xsub);
@@ -230,6 +244,7 @@ namespace NetMQ
             return new XSubscriberSocket(socketHandle);
         }
 
+        [NotNull]
         public StreamSocket CreateStreamSocket()
         {
             var socketHandle = CreateHandle(ZmqSocketType.Stream);
@@ -237,7 +252,8 @@ namespace NetMQ
             return new StreamSocket(socketHandle);
         }
 
-        public NetMQMonitor CreateMonitorSocket(string endpoint)
+        [NotNull]
+        public NetMQMonitor CreateMonitorSocket([NotNull] string endpoint)
         {
             if (endpoint == null)
             {

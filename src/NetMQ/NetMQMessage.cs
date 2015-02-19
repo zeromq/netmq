@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -15,7 +16,7 @@ namespace NetMQ
             m_frames = new List<NetMQFrame>();
         }
 
-        public NetMQMessage(IEnumerable<NetMQFrame> frames)
+        public NetMQMessage([NotNull] IEnumerable<NetMQFrame> frames)
         {
             if (frames == null)
             {
@@ -25,7 +26,7 @@ namespace NetMQ
             m_frames = new List<NetMQFrame>(frames);
         }
 
-        public NetMQMessage(IEnumerable<byte[]> buffers)
+        public NetMQMessage([NotNull] IEnumerable<byte[]> buffers)
         {
             if (buffers == null)
             {
