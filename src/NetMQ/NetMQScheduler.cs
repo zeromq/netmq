@@ -14,10 +14,6 @@ namespace NetMQ
 
         private static int s_schedulerCounter = 0;
 
-        private readonly int m_schedulerId;
-        private readonly string m_address;
-
-        private readonly NetMQContext m_context;
         private readonly NetMQSocket m_serverSocket;
         private readonly NetMQSocket m_clientSocket;
 
@@ -31,7 +27,6 @@ namespace NetMQ
 
         public NetMQScheduler(NetMQContext context, Poller poller = null)
         {
-            m_context = context;
             if (poller == null)
             {
                 m_ownPoller = true;
@@ -46,13 +41,13 @@ namespace NetMQ
             m_tasksQueue = new ConcurrentQueue<Task>();
             m_syncObject = new object();
 
-            m_schedulerId = Interlocked.Increment(ref s_schedulerCounter);
+            var schedulerId = Interlocked.Increment(ref s_schedulerCounter);
 
-            m_address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, m_schedulerId);
+            var address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, schedulerId);
 
             m_serverSocket = context.CreatePullSocket();
             m_serverSocket.Options.Linger = TimeSpan.Zero;
-            m_serverSocket.Bind(m_address);
+            m_serverSocket.Bind(address);
 
             m_currentMessageHandler = OnMessageFirstTime;
 
@@ -60,8 +55,8 @@ namespace NetMQ
 
             m_poller.AddSocket(m_serverSocket);
 
-            m_clientSocket = m_context.CreatePushSocket();
-            m_clientSocket.Connect(m_address);
+            m_clientSocket = context.CreatePushSocket();
+            m_clientSocket.Connect(address);
 
             m_schedulerThread = new ThreadLocal<bool>(() => false);
 
@@ -109,13 +104,10 @@ namespace NetMQ
 
         public void Dispose()
         {
-            if (!m_ownPoller)
+            if (!m_ownPoller && !m_poller.IsStarted)
             {
-              if (!m_poller.IsStarted)
-              {
                 DisposeSynced();
                 return;
-              }
             }
 
             // disposing on the scheduler thread

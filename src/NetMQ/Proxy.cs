@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -23,8 +24,14 @@ namespace NetMQ
         /// <summary>
         /// Start the proxy work, this will block until one of the sockets is closed
         /// </summary>
+        /// <exception cref="InvalidOperationException">The proxy has already been started.</exception>
         public void Start()
         {
+            if (m_poller != null)
+            {
+                throw new InvalidOperationException("Proxy has already been started");
+            }
+
             m_frontend.ReceiveReady += OnFrontendReady;
             m_backend.ReceiveReady += OnBackendReady;
 
@@ -32,9 +39,19 @@ namespace NetMQ
             m_poller.PollTillCancelled();
         }
 
+        /// <summary>
+        /// Stops the proxy, blocking until the underlying <see cref="Poller"/> has completed.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The proxy has not been started.</exception>
         public void Stop()
         {
+            if (m_poller == null)
+            {
+                throw new InvalidOperationException("Proxy has not been started");
+            }
+
             m_poller.CancelAndJoin();
+            m_poller = null;
         }
 
         private void OnFrontendReady(object sender, NetMQSocketEventArgs e)
@@ -90,8 +107,6 @@ namespace NetMQ
                 }
 
                 m_frontend.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
-
-
 
                 if (!more)
                 {
