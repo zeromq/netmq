@@ -20,7 +20,7 @@ namespace NetMQ
         }
 
         [Obsolete("This property doesn't effect NetMQ anymore")]
-        public bool CopyMessages { get; set; }
+        public bool CopyMessages { get { return false; } set {} }
 
         public byte[] Identity
         {
