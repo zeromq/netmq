@@ -48,32 +48,32 @@ namespace NetMQ
 
     public static class BufferPool
     {
-        private static IBufferPool m_bufferPool;               
+        private static IBufferPool s_bufferPool;
        
         static BufferPool()
         {            
-            m_bufferPool = new GCBufferPool();
+            s_bufferPool = new GCBufferPool();
         }
 
         public static void SetBufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {
-            Interlocked.Exchange(ref m_bufferPool, new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
+            Interlocked.Exchange(ref s_bufferPool, new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
         }
 
         public static void SetCustomBufferPool([NotNull] IBufferPool bufferPool)
         {
-            Interlocked.Exchange(ref m_bufferPool, bufferPool);
+            Interlocked.Exchange(ref s_bufferPool, bufferPool);
         }
 
         [NotNull]
         public static byte[] Take(int size)
         {
-            return m_bufferPool.Take(size);
+            return s_bufferPool.Take(size);
         }
 
         public static void Return([NotNull] byte[] buffer)
         {
-            m_bufferPool.Return(buffer);
+            s_bufferPool.Return(buffer);
         }
     }
 }
