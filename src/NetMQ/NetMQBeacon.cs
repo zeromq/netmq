@@ -268,7 +268,7 @@ namespace NetMQ
 
         NetMQSocket ISocketPollable.Socket
         {
-            get { return (m_actor as ISocketPollable).Socket; }
+            get { return ((ISocketPollable)m_actor).Socket; }
         }
 
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
