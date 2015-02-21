@@ -140,11 +140,6 @@ namespace NetMQ.Actors
                     }
                     catch (TerminatingException)
                     {
-
-                    }          
-                    catch (Exception)
-                    {
-                        throw;
                     }
 
                     //  Do not block, if the other end of the pipe is already deleted
