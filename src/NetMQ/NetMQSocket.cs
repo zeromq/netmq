@@ -158,7 +158,31 @@ namespace NetMQ
         /// Wait until message is ready to be received from the socket or until timeout is reached
         /// </summary>
         /// <param name="timeout"></param>
-        /// <returns></returns>
+        /// <returns>
+        ///     false if    - no message has been received withinthe timeout
+        ///                 - no ReceiveReady/SendReady event handler has been attached
+        ///                   regardless of arriving messages
+        ///     true if     - a message has arrived and event handler has been called
+        /// </returns>
+        /// <remarks>
+        ///     in order to use Poll in the following fashion
+        ///     <c>
+        ///             if (socket.Poll (TimeSpan.FromMilliseconds 500))
+        ///             {
+        ///                 var msg = socket.ReceiveMessage ();
+        ///                 ... process message
+        ///             }
+        ///     </c>
+        /// 
+        ///     one need to assign an empty event handler, i.e.
+        ///     <c>
+        ///         socket.ReceiveReady += (s,e) => { };
+        ///     </c>
+        ///     than the poll will report the availability of a message correct!
+        /// 
+        ///     Depending on whether sending or receiving or both the appropriate event handler
+        ///     must be assigned!
+        /// </remarks>
         public bool Poll(TimeSpan timeout)
         {
             PollEvents events = GetPollEvents();
