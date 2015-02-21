@@ -8,7 +8,7 @@
     <owners>$author$</owners>
     <licenseUrl>https://github.com/zeromq/netmq/blob/master/COPYING.LESSER</licenseUrl>
     <projectUrl>https://github.com/zeromq/netmq</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/zeromq/netmq/master/img/ZeroMQ.ico</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQ.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
 	  <releaseNotes>
