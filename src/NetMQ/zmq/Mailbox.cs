@@ -95,9 +95,9 @@ namespace NetMQ.zmq
         public Command Recv()
         {            
             Command cmd = null;
-            bool ok;
 
-            ok = m_cpipe.Read(ref cmd);
+            // bool ok =
+               m_cpipe.Read(ref cmd);
 
             return cmd;
         }
