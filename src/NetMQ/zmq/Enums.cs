@@ -94,7 +94,7 @@ namespace NetMQ.zmq
         SendMore = 2,
 
         // Deprecated aliases
-        [Obsolete]
+        [Obsolete("Use DontWait instead")]
         NoBlock = DontWait
     }
 
