@@ -93,16 +93,16 @@ namespace NetMQ.Security.V0_1
                     OnClientHello(incomingMessage, outgoingMessages);
                     break;
                 case HandshakeType.ServerHello:
-                    OnServerHello(incomingMessage, outgoingMessages);
+                    OnServerHello(incomingMessage);
                     break;
                 case HandshakeType.Certificate:
-                    OnCertificate(incomingMessage, outgoingMessages);
+                    OnCertificate(incomingMessage);
                     break;
                 case HandshakeType.ServerHelloDone:
                     OnServerHelloDone(incomingMessage, outgoingMessages);
                     break;
                 case HandshakeType.ClientKeyExchange:
-                    OnClientKeyExchange(incomingMessage, outgoingMessages);
+                    OnClientKeyExchange(incomingMessage);
                     break;
                 case HandshakeType.Finished:
                     OnFinished(incomingMessage, outgoingMessages);
@@ -229,7 +229,7 @@ namespace NetMQ.Security.V0_1
             m_lastSentMessage = HandshakeType.ServerHello;
         }
 
-        private void OnServerHello(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
+        private void OnServerHello(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.HelloRequest || m_lastSentMessage != HandshakeType.ClientHello)
             {
@@ -246,7 +246,7 @@ namespace NetMQ.Security.V0_1
             SetCipherSuite(serverHelloMessage.CipherSuite);
         }
 
-        private void OnCertificate(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
+        private void OnCertificate(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.ServerHello || m_lastSentMessage != HandshakeType.ClientHello)
             {
@@ -304,7 +304,7 @@ namespace NetMQ.Security.V0_1
             m_lastSentMessage = HandshakeType.ClientKeyExchange;
         }
 
-        private void OnClientKeyExchange(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
+        private void OnClientKeyExchange(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.ClientHello || m_lastSentMessage != HandshakeType.ServerHelloDone)
             {
