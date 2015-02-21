@@ -24,7 +24,7 @@ using System.Collections.Generic;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
-    class Distribution
+    internal class Distribution
     {
         //  List of outbound pipes.
         private readonly List<Pipe> m_pipes;

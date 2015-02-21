@@ -68,7 +68,7 @@ namespace NetMQ.zmq
         private IPipeEvents m_sink;
 
         /// <summary> Specifies the state of the pipe endpoint. </summary>
-        enum State
+        private enum State
         {
             /// <summary> Active is common state before any termination begins. </summary>
             Active,

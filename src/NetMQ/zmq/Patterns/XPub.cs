@@ -27,7 +27,7 @@ using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class XPub : SocketBase
+    internal class XPub : SocketBase
     {
         public class XPubSession : SessionBase
         {

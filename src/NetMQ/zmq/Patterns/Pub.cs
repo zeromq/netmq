@@ -23,7 +23,7 @@ using System;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Pub : XPub
+    internal class Pub : XPub
     {
         public class PubSession : XPubSession
         {

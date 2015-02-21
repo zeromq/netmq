@@ -24,7 +24,7 @@ using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Dealer : SocketBase
+    internal class Dealer : SocketBase
     {
         public class DealerSession : SessionBase
         {

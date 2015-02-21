@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace NetMQ.zmq.Utils
 {
-    class Poller : PollerBase
+    internal class Poller : PollerBase
     {
         private class PollSet
         {

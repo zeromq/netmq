@@ -28,7 +28,7 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Stream : SocketBase
+    internal class Stream : SocketBase
     {
         public class StreamSession : SessionBase
         {

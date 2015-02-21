@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
-    static class ArrayExtensions
+    internal static class ArrayExtensions
     {
         /// <summary>
         /// Make resize operation on array.

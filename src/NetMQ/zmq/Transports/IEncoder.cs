@@ -1,6 +1,6 @@
 namespace NetMQ.zmq.Transports
 {
-    interface IEncoder
+    internal interface IEncoder
     {
         //  Set message producer.
         void SetMsgSource(IMsgSource msgSource);

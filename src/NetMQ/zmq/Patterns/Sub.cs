@@ -24,7 +24,7 @@ using System.Text;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Sub : XSub
+    internal class Sub : XSub
     {
         public class SubSession : XSubSession
         {

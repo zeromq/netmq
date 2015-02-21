@@ -5,7 +5,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq.Utils
 {
-    class Proactor : PollerBase
+    internal class Proactor : PollerBase
     {
         private const int CompletionStatusArraySize = 100;
 

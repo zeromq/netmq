@@ -23,7 +23,7 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Utils
 {
-    class Clock
+    internal class Clock
     {
         //  TSC timestamp of when last time measurement was made.
         private static long s_lastTsc;

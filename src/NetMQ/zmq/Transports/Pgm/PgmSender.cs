@@ -6,7 +6,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    class PgmSender : IOObject, IEngine, IProcatorEvents
+    internal class PgmSender : IOObject, IEngine, IProcatorEvents
     {
         private readonly Options m_options;
         private readonly Address m_addr;

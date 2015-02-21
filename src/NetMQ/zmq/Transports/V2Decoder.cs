@@ -1,6 +1,6 @@
 namespace NetMQ.zmq.Transports
 {
-    class V2Decoder : DecoderBase
+    internal class V2Decoder : DecoderBase
     {
         private const int OneByteSizeReadyState = 0;
         private const int EightByteSizeReadyState = 1;

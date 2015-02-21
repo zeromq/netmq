@@ -1,6 +1,6 @@
 ﻿namespace NetMQ.zmq.Transports
 {
-    class RawEncoder : EncoderBase
+    internal class RawEncoder : EncoderBase
     {
         IMsgSource m_msgSource;
         Msg m_inProgress;

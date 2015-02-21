@@ -2,7 +2,7 @@
 
 namespace NetMQ.zmq.Transports
 {
-    class RawDecoder : DecoderBase
+    internal class RawDecoder : DecoderBase
     {
         private readonly long m_maxMsgSize;
 

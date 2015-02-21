@@ -24,7 +24,7 @@ using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Push : SocketBase
+    internal class Push : SocketBase
     {
         public class PushSession : SessionBase
         {

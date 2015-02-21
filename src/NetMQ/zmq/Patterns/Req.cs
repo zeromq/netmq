@@ -24,7 +24,7 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Req : Dealer
+    internal class Req : Dealer
     {
         //  If true, request was already sent and reply wasn't received yet or
         //  was raceived partially.

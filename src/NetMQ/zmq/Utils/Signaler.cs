@@ -24,7 +24,7 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq.Utils
 {
-    class Signaler
+    internal class Signaler
     {
         //  Underlying write & read file descriptor.
         private Socket m_writeSocket;

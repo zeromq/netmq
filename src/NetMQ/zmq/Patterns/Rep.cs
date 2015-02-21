@@ -21,7 +21,7 @@
 
 namespace NetMQ.zmq.Patterns
 {
-    class Rep : Router
+    internal class Rep : Router
     {
         public class RepSession : RouterSession
         {
