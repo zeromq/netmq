@@ -47,10 +47,18 @@ namespace NetMQ
             get { return m_socket.GetSocketOption(ZmqSocketOptions.SendBuffer); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.SendBuffer, value); }
         }
+
+        [Obsolete("Use ReceiveBuffer instead")]
         public int ReceivevBuffer
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceivevBuffer); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceivevBuffer, value); }
+            get { return ReceiveBuffer; }
+            set { ReceiveBuffer = value; }
+        }
+
+        public int ReceiveBuffer
+        {
+            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceiveBuffer); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveBuffer, value); }
         }
 
         public bool ReceiveMore
@@ -97,8 +105,8 @@ namespace NetMQ
 
         public int ReceiveHighWatermark
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceivevHighWatermark); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceivevHighWatermark, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceiveHighWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveHighWatermark, value); }
         }
 
         public int MulticastHops

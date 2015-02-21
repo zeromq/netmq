@@ -35,7 +35,9 @@ namespace NetMQ.zmq
         Rate = 8,
         RecoveryIvl = 9,
         SendBuffer = 11,
-        ReceivevBuffer = 12,
+        [Obsolete("Use ReceiveBuffer instead")]
+        ReceivevBuffer = ReceiveBuffer,
+        ReceiveBuffer = 12,
         ReceiveMore = 13,
         
         [Obsolete("Use Handle")]
@@ -52,7 +54,9 @@ namespace NetMQ.zmq
         ReconnectIvlMax = 21,
         Maxmsgsize = 22,
         SendHighWatermark = 23,
-        ReceivevHighWatermark = 24,
+        [Obsolete("Use ReceiveHighWatermark instead")]
+        ReceivevHighWatermark = ReceiveHighWatermark,
+        ReceiveHighWatermark = 24,
         MulticastHops = 25,
         ReceiveTimeout = 27,
         SendTimeout = 28,
