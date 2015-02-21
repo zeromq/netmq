@@ -1,5 +1,4 @@
-NetMQ
-=====
+<img src="https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQLogo.svg" width="350" />
 
 [![NetMQ Team City Build](https://img.shields.io/teamcity/codebetter/bt1046.svg)](http://teamcity.codebetter.com/project.html?projectId=NetMQ) [![NetMQ NuGet version](https://img.shields.io/nuget/v/NetMQ.svg)](https://www.nuget.org/packages/NetMQ/) [![NetMQ download stats](https://img.shields.io/nuget/dt/NetMQ.svg)](https://www.nuget.org/packages/NetMQ/)
 
