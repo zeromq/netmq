@@ -17,7 +17,7 @@ namespace NetMQ
 
         private readonly Selector m_selector;
 
-        protected NetMQSocket(SocketBase socketHandle)
+        internal NetMQSocket(SocketBase socketHandle)
         {
             m_selector = new Selector();
             m_socketHandle = socketHandle;

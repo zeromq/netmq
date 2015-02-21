@@ -23,7 +23,7 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Patterns
 {
-    public class Pair : SocketBase
+    internal class Pair : SocketBase
     {
 
         public class PairSession : SessionBase

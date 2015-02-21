@@ -22,7 +22,7 @@ using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    public class IpcConnecter : TcpConnecter
+    internal class IpcConnecter : TcpConnecter
     {
 
         public IpcConnecter(IOThread ioThread,

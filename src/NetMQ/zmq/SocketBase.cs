@@ -35,7 +35,7 @@ using TcpListener = NetMQ.zmq.Transports.Tcp.TcpListener;
 
 namespace NetMQ.zmq
 {
-    public abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
+    internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
         private readonly Dictionary<String, Own> m_endpoints;
 

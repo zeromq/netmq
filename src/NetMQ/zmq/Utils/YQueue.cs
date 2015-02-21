@@ -24,7 +24,7 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Utils
 {
-    public class YQueue<T>
+    internal class YQueue<T>
     {
         /// <summary> Individual memory chunk to hold N elements. </summary>
         private class Chunk

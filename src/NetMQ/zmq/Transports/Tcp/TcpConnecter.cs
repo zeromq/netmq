@@ -28,7 +28,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpConnecter : Own, IProcatorEvents
+    internal class TcpConnecter : Own, IProcatorEvents
     {
 
         //private static Logger LOG = LoggerFactory.getLogger(TcpConnecter.class);

@@ -7,7 +7,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class RouterSocket : NetMQSocket
     {
-        public RouterSocket(SocketBase socketHandle)
+        internal RouterSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

@@ -8,7 +8,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class PublisherSocket : NetMQSocket
     {
-        public PublisherSocket(SocketBase socketHandle)
+        internal PublisherSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

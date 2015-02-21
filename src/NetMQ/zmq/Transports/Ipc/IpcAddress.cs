@@ -23,7 +23,7 @@ using System.Net;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    public class IpcAddress : Address.IZAddress
+    internal class IpcAddress : Address.IZAddress
     {
 
         private String m_name;

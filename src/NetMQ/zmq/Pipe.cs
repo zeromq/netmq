@@ -31,7 +31,7 @@ using System.Diagnostics;
 //  the generic array of pipes to deallocate (3).
 namespace NetMQ.zmq
 {
-    public class Pipe : ZObject
+    internal class Pipe : ZObject
     {
 
         //private static Logger LOG = LoggerFactory.getLogger(Pipe.class);

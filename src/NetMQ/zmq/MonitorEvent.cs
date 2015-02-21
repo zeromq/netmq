@@ -5,7 +5,7 @@ using NetMQ.zmq.Transports;
 
 namespace NetMQ.zmq
 {
-    public class MonitorEvent
+    internal class MonitorEvent
     {
         private const int ValueInteger = 1;
         private const int ValueChannel = 2;

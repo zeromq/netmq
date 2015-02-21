@@ -22,7 +22,7 @@
 
 namespace NetMQ.zmq
 {
-    public static class Config
+    internal static class Config
     {
 
         //  Number of new messages in message pipe needed to trigger new memory

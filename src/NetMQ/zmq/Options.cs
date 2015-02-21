@@ -27,7 +27,7 @@ using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq
 {
-    public class Options
+    internal class Options
     {
         public Options()
         {

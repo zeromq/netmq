@@ -24,7 +24,7 @@ using System;
 //  This structure defines the commands that can be sent between threads.
 namespace NetMQ.zmq
 {
-    public class Command
+    internal class Command
     {
 
         //  Object to process the command.		

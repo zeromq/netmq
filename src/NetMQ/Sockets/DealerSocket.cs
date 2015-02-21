@@ -7,7 +7,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class DealerSocket : NetMQSocket
     {
-        public DealerSocket(SocketBase socketHandle)
+        internal DealerSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

@@ -23,7 +23,7 @@
 //  Abstract interface to be implemented by various engines.
 namespace NetMQ.zmq.Transports
 {
-    public interface IEngine
+    internal interface IEngine
     {
 
         //  Plug the engine to the session.

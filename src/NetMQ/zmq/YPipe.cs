@@ -25,7 +25,7 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public class YPipe<T>
+    internal class YPipe<T>
     {
 
         //  Allocation-efficient queue to store pipe items.
