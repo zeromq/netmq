@@ -107,6 +107,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDPBrokerProcess", "Samples
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDPWorkerExample", "Samples\Majordomo\MDPWorkerExample\MDPWorkerExample.csproj", "{BEDD69FB-36D7-4E11-9306-FB4BF97F356E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6AB1E02C-7800-4934-AA7A-4161459E1278}"
+	ProjectSection(SolutionItems) = preProject
+		..\COPYING.LESSER = ..\COPYING.LESSER
+		..\mkdocs.yml = ..\mkdocs.yml
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
