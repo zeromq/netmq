@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using NetMQ.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -251,7 +252,7 @@ namespace NetMQ
 
         private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
-        public NetMQBeacon(NetMQContext context)
+        public NetMQBeacon([NotNull] NetMQContext context)
         {
             m_shim = new Shim();
             m_actor = NetMQActor.Create(context, m_shim);

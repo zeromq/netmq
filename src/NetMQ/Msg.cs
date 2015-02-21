@@ -21,6 +21,7 @@
 
 using System;
 using NetMQ.zmq.Utils;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -113,7 +114,7 @@ namespace NetMQ
             m_atomicCounter = new AtomicCounter();
         }
 
-        public void InitGC(byte[] data, int size)
+        public void InitGC([NotNull] byte[] data, int size)
         {
             m_type = MsgType.GC;
             m_flags = MsgFlags.None;
@@ -211,7 +212,7 @@ namespace NetMQ
             m_flags = m_flags & ~f;
         }       
 
-        public void Put(byte[] src, int i, int len)
+        public void Put([NotNull] byte[] src, int i, int len)
         {
             if (len == 0 || src == null)
                 return;
@@ -229,7 +230,7 @@ namespace NetMQ
             m_data[i] = b;
         }        
 
-        public void Copy(ref Msg src)
+        public void Copy([NotNull] ref Msg src)
         {
             //  Check the validity of the source.
             if (!src.Check())
@@ -255,7 +256,7 @@ namespace NetMQ
             this = src;
         }
 
-        public void Move(ref Msg src)
+        public void Move([NotNull] ref Msg src)
         {
             //  Check the validity of the source.
             if (!src.Check())

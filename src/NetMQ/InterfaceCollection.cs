@@ -4,19 +4,20 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
     public class InterfaceItem
     {
-        public InterfaceItem(IPAddress address, IPAddress broadcastAddress)
+        public InterfaceItem([NotNull] IPAddress address, [NotNull] IPAddress broadcastAddress)
         {
             Address = address;
             BroadcastAddress = broadcastAddress;
         }
 
-        public IPAddress Address { get; private set; }
-        public IPAddress BroadcastAddress { get; private set; }
+        [NotNull] public IPAddress Address { get; private set; }
+        [NotNull] public IPAddress BroadcastAddress { get; private set; }
     }
 
     public class InterfaceCollection : IEnumerable<InterfaceItem>

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -15,17 +16,19 @@ namespace NetMQ
 
         public ErrorCode ErrorCode { get; private set; }
 
+        [NotNull]
         public static NetMQException Create(SocketError error)
         {
             return Create(error, null);
         }
 
+        [NotNull]
         public static NetMQException Create(SocketException ex)
         {
             return Create(ex.SocketErrorCode, ex);
         }
 
-        public static NetMQException Create(SocketError error, Exception ex)
+        public static NetMQException Create(SocketError error, [CanBeNull] Exception ex)
         {
             ErrorCode errorCode;
 
@@ -97,22 +100,26 @@ namespace NetMQ
             return Create(errorCode, ex);
         }
 
-        public static NetMQException Create(ErrorCode errorCode, Exception ex)
+        [NotNull]
+        public static NetMQException Create(ErrorCode errorCode, [CanBeNull] Exception ex)
         {
             return Create(errorCode, "", ex);
         }
 
+        [NotNull]
         public static NetMQException Create(ErrorCode errorCode)
         {
             return Create("", errorCode);
         }
 
-        public static NetMQException Create(string message, ErrorCode errorCode)
+        [NotNull]
+        public static NetMQException Create([CanBeNull] string message, ErrorCode errorCode)
         {
             return Create(errorCode, message, null);
         }
 
-        private static NetMQException Create(ErrorCode errorCode, string message, Exception ex)
+        [NotNull]
+        private static NetMQException Create(ErrorCode errorCode, [CanBeNull] string message, [CanBeNull] Exception ex)
         {
             switch (errorCode)
             {

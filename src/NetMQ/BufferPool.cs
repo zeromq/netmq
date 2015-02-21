@@ -1,12 +1,15 @@
 using System.ServiceModel.Channels;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
     public interface IBufferPool
     {
+        [NotNull]
         byte[] Take(int size);
-        void Return(byte[] buffer);
+
+        void Return([NotNull] byte[] buffer);
     }
 
     public class BufferManagerBufferPool : IBufferPool
@@ -18,12 +21,13 @@ namespace NetMQ
             m_bufferManager = BufferManager.CreateBufferManager(maxBufferPoolSize, maxBufferSize);
         }
 
+        [NotNull]
         public byte[] Take(int size)
         {
             return m_bufferManager.TakeBuffer(size);
         }
 
-        public void Return(byte[] buffer)
+        public void Return([NotNull] byte[] buffer)
         {
             m_bufferManager.ReturnBuffer(buffer);
         }
@@ -31,12 +35,13 @@ namespace NetMQ
 
     public class GCBufferPool : IBufferPool
     {
+        [NotNull]
         public byte[] Take(int size)
         {
             return new byte[size];
         }
 
-        public void Return(byte[] buffer)
+        public void Return([NotNull] byte[] buffer)
         {
         }
     }
@@ -55,17 +60,18 @@ namespace NetMQ
             Interlocked.Exchange(ref m_bufferPool, new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
         }
 
-        public static void SetCustomBufferPool(IBufferPool bufferPool)
+        public static void SetCustomBufferPool([NotNull] IBufferPool bufferPool)
         {
             Interlocked.Exchange(ref m_bufferPool, bufferPool);
         }
 
+        [NotNull]
         public static byte[] Take(int size)
         {
             return m_bufferPool.Take(size);
         }
 
-        public static void Return(byte[] buffer)
+        public static void Return([NotNull] byte[] buffer)
         {
             m_bufferPool.Return(buffer);
         }

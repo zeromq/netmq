@@ -1,5 +1,6 @@
 ﻿using System;
 using NetMQ.zmq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -7,7 +8,7 @@ namespace NetMQ
     {
         readonly NetMQSocket m_socket;
 
-        public SocketOptions(NetMQSocket socket)
+        public SocketOptions([NotNull] NetMQSocket socket)
         {
             m_socket = socket;
         }

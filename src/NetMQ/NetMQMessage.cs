@@ -39,6 +39,7 @@ namespace NetMQ
         /// <summary>
         /// Gets the first frame in the current message.
         /// </summary>
+        [NotNull]
         public NetMQFrame First
         {
             get { return m_frames[0]; }
@@ -47,6 +48,7 @@ namespace NetMQ
         /// <summary>
         /// Gets the last frame in the current message.
         /// </summary>
+        [NotNull]
         public NetMQFrame Last
         {
             get { return m_frames[m_frames.Count - 1]; }
@@ -76,27 +78,28 @@ namespace NetMQ
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/>is less than 0 -or- <paramref name="index"/> is equal to or greater than <see cref="FrameCount"/>.
         /// </exception>
+        [NotNull]
         public NetMQFrame this[int index]
         {
             get { return m_frames[index]; }
         }
 
-        public void Append(NetMQFrame frame)
+        public void Append([NotNull] NetMQFrame frame)
         {
             m_frames.Add(frame);
         }
 
-        public void Append(byte[] buffer)
+        public void Append([NotNull] byte[] buffer)
         {
             m_frames.Add(new NetMQFrame(buffer));
         }
 
-        public void Append(string message)
+        public void Append([NotNull] string message)
         {
             m_frames.Add(new NetMQFrame(message));
         }
 
-        public void Append(string message, Encoding encoding)
+        public void Append([NotNull]string message, [NotNull]Encoding encoding)
         {
             m_frames.Add(new NetMQFrame(message, encoding));
         }
@@ -112,7 +115,7 @@ namespace NetMQ
         }
 
         [Obsolete("Use NetMQFrame instead of blobs")]
-        public void Append(Blob blob)
+        public void Append([NotNull]Blob blob)
         {
             Append(blob.Data);
         }
@@ -122,22 +125,22 @@ namespace NetMQ
             m_frames.Add(NetMQFrame.Empty);
         }
 
-        public void Push(NetMQFrame frame)
+        public void Push([NotNull] NetMQFrame frame)
         {
             m_frames.Insert(0, frame);
         }
 
-        public void Push(byte[] buffer)
+        public void Push([NotNull] byte[] buffer)
         {
             m_frames.Insert(0, new NetMQFrame(buffer));
         }
 
-        public void Push(string message)
+        public void Push([NotNull] string message)
         {
             m_frames.Insert(0, new NetMQFrame(message));
         }
 
-        public void Push(string message, Encoding encoding)
+        public void Push([NotNull] string message, [NotNull] Encoding encoding)
         {
             m_frames.Insert(0, new NetMQFrame(message, encoding));
         }
@@ -153,7 +156,7 @@ namespace NetMQ
         }
 
         [Obsolete("Use NetMQFrame instead of blobs")]
-        public void Push(Blob blob)
+        public void Push([NotNull] Blob blob)
         {
             Push(blob.Data);
         }
@@ -162,6 +165,7 @@ namespace NetMQ
         /// Remove the first frame
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public NetMQFrame Pop()
         {
             NetMQFrame frame = m_frames[0];
@@ -170,7 +174,7 @@ namespace NetMQ
             return frame;
         }
 
-        public void RemoveFrame(NetMQFrame frame)
+        public void RemoveFrame([NotNull] NetMQFrame frame)
         {
             m_frames.Remove(frame);
         }
@@ -185,11 +189,13 @@ namespace NetMQ
             m_frames.Clear();
         }
 
+        [NotNull]
         public IEnumerator<NetMQFrame> GetEnumerator()
         {
             return m_frames.GetEnumerator();
         }
 
+        [NotNull]
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
@@ -199,6 +205,7 @@ namespace NetMQ
         /// Returns a string showing the frame contents.
         /// </summary>
         /// <returns></returns>
+        [NotNull]
         public override string ToString()
         {
             if (m_frames.Count == 0)

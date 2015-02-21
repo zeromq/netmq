@@ -20,16 +20,18 @@
 
 using System;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
     [Obsolete("Use NetMQFrame instead of Blob")]
     public class Blob
     {
+        [NotNull]
         private readonly byte[] m_buffer;
         private int m_hash = 0;
 
-        public Blob(byte[] data, int size)
+        public Blob([NotNull] byte[] data, int size)
         {
             m_buffer = new byte[size];
 
@@ -41,6 +43,7 @@ namespace NetMQ
             m_buffer = new byte[size];
         }
 
+        [NotNull]
         public Blob Put(int pos, byte b)
         {
             m_buffer[pos] = b;
@@ -48,7 +51,8 @@ namespace NetMQ
             return this;
         }
 
-        public Blob Put(int pos, byte[] data, int count)
+        [NotNull]
+        public Blob Put(int pos, [NotNull] byte[] data, int count)
         {
             Buffer.BlockCopy(data, 0, m_buffer, pos, count);
 
@@ -61,12 +65,13 @@ namespace NetMQ
             get { return m_buffer.Length; }
         }
 
+        [NotNull]
         public byte[] Data
         {
             get { return m_buffer; }
         }
 
-        public override bool Equals(Object t)
+        public override bool Equals([CanBeNull] Object t)
         {
             var blob = t as Blob;
             if (blob != null)
