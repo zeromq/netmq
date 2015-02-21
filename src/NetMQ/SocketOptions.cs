@@ -48,6 +48,13 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.SendBuffer, value); }
         }
 
+        [Obsolete("Use ReceiveBuffer instead")]
+        public int ReceivevBuffer
+        {
+            get { return ReceiveBuffer; }
+            set { ReceiveBuffer = value; }
+        }
+
         public int ReceiveBuffer
         {
             get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceiveBuffer); }
