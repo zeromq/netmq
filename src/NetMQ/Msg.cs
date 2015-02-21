@@ -144,7 +144,6 @@ namespace NetMQ
                     BufferPool.Return(m_data);
                 }
 
-                m_atomicCounter.Dispose();
                 m_atomicCounter = null;
             }
 
@@ -190,7 +189,6 @@ namespace NetMQ
 
             if (m_atomicCounter.Decrement(amount) == 0)
             {
-                m_atomicCounter.Dispose();
                 m_atomicCounter = null;
 
                 BufferPool.Return(m_data);

@@ -1,20 +1,14 @@
-using System;
 using System.Threading;
 
 namespace NetMQ.zmq.Utils
 {
-    class AtomicCounter : IDisposable
+    class AtomicCounter
     {
         private int m_value;
 
         public AtomicCounter()
         {
             m_value = 0;
-        }
-
-        public void Dispose()
-        {
-            
         }
 
         public void Set(int amount)
