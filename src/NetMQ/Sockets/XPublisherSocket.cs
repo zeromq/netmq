@@ -5,7 +5,7 @@ namespace NetMQ.Sockets
 {
     public class XPublisherSocket : NetMQSocket
     {
-        public XPublisherSocket(SocketBase socketHandle)
+        internal XPublisherSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

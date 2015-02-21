@@ -3,7 +3,7 @@ using System.Text;
 
 namespace NetMQ.zmq.Transports
 {
-    public class ByteArraySegment
+    internal class ByteArraySegment
     {
         private readonly byte[] m_innerBuffer;
 

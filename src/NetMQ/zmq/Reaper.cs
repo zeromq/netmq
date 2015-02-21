@@ -23,7 +23,7 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
-    public class Reaper : ZObject, IPollEvents
+    internal class Reaper : ZObject, IPollEvents
     {
 
         //  Reaper thread accesses incoming commands via this mailbox.

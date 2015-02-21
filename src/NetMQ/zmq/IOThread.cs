@@ -24,7 +24,7 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public class IOThread : ZObject, IMailboxEvent
+    internal class IOThread : ZObject, IMailboxEvent
     {
 
         //  I/O thread accesses incoming commands via this mailbox.

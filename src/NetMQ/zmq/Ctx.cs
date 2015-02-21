@@ -30,7 +30,7 @@ using System.Threading;
 
 namespace NetMQ.zmq
 {
-    public class Ctx
+    internal class Ctx
     {
         /*  Default for new contexts                                                  */
         public const int DefaultIOThreads = 1;

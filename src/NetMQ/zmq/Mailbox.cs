@@ -28,13 +28,13 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public interface IMailbox
+    internal interface IMailbox
     {
         void Send(Command command);
         void Close();
     }
 
-    public interface IMailboxEvent
+    internal interface IMailboxEvent
     {
         void Ready();
     }
@@ -118,7 +118,7 @@ namespace NetMQ.zmq
         }
     }
 
-    public class Mailbox : IMailbox
+    internal class Mailbox : IMailbox
     {
         //private static Logger LOG = LoggerFactory.getLogger(Mailbox.class);
 

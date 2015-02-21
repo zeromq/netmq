@@ -28,7 +28,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq
 {
-    public class IOObject : IProcatorEvents
+    internal class IOObject : IProcatorEvents
     {
         private IOThread m_ioThread;
         private IProcatorEvents m_handler;

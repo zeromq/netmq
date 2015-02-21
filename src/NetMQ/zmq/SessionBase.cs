@@ -32,7 +32,7 @@ using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq
 {
-    public class SessionBase : Own,
+    internal class SessionBase : Own,
                                                          Pipe.IPipeEvents, IProcatorEvents,
                                                          IMsgSink, IMsgSource
     {

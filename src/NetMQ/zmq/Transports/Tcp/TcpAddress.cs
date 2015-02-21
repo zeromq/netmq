@@ -26,7 +26,7 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpAddress : Address.IZAddress
+    internal class TcpAddress : Address.IZAddress
     {
         public class TcpAddressMask : TcpAddress
         {

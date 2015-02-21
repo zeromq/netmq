@@ -23,7 +23,7 @@ using System.Net;
 
 namespace NetMQ.zmq
 {
-    public class Address
+    internal class Address
     {
         public const string InProcProtocol = "inproc";
         public const string TcpProtocol = "tcp";

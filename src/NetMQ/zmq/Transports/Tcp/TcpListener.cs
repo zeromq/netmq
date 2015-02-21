@@ -26,7 +26,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpListener : Own, IProcatorEvents
+    internal class TcpListener : Own, IProcatorEvents
     {
         private const SocketOptionName IPv6Only = (SocketOptionName) 27;
 

@@ -23,7 +23,7 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
-    public interface IProcatorEvents : ITimerEvent
+    internal interface IProcatorEvents : ITimerEvent
     {
         // Called by I/O thread when file descriptor is ready for reading.
         void InCompleted(SocketError socketError, int bytesTransferred);

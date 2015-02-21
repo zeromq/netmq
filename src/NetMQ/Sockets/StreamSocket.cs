@@ -4,7 +4,7 @@ namespace NetMQ.Sockets
 {
     public class StreamSocket : NetMQSocket
     {
-        public StreamSocket(SocketBase socketHandle)
+        internal StreamSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

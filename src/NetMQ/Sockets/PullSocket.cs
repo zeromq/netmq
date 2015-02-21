@@ -8,7 +8,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class PullSocket : NetMQSocket
     {
-        public PullSocket(SocketBase socketHandle)
+        internal PullSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

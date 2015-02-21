@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
-    public static class ErrorHelper
+    internal static class ErrorHelper
     {
         public static ErrorCode SocketErrorToErrorCode(SocketError error)
         {

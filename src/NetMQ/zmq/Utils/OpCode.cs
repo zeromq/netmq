@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace NetMQ.zmq.Utils
 {
 
-    public static class Opcode
+    internal static class Opcode
     {
 
         private static IntPtr codeBuffer;

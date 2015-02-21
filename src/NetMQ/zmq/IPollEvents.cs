@@ -21,7 +21,7 @@
 
 namespace NetMQ.zmq
 {
-    public interface IPollEvents : ITimerEvent
+    internal interface IPollEvents : ITimerEvent
     {
         // Called by I/O thread when file descriptor is ready for reading.
         void InEvent();

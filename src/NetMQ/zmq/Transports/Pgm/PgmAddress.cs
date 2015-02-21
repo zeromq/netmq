@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    public class PgmAddress : Address.IZAddress
+    internal class PgmAddress : Address.IZAddress
     {
         private string m_network;
 

@@ -7,7 +7,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class ResponseSocket : NetMQSocket
     {
-        public ResponseSocket(SocketBase socketHandle)
+        internal ResponseSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }
