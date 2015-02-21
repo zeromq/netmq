@@ -33,7 +33,6 @@ namespace NetMQ.zmq
 {
     internal class Pipe : ZObject
     {
-
         //private static Logger LOG = LoggerFactory.getLogger(Pipe.class);
 
         public interface IPipeEvents
@@ -88,7 +87,8 @@ namespace NetMQ.zmq
             Terminated,
             /// <summary> Double_terminated means that user called 'terminate' and then we've got term command from the peer as well. </summary>
             DoubleTerminated
-        } ;
+        }
+
         private State m_state;
 
         /// <summary> If <c>true</c>, we receive all the pending inbound messages before terminating. 

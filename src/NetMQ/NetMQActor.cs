@@ -87,9 +87,12 @@ namespace NetMQ
             m_self = context.CreatePairSocket();
             m_shim = context.CreatePairSocket();
 
-            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(() => m_self.ReceiveReady += OnReceive,
+            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(
+                () => m_self.ReceiveReady += OnReceive,
                 () => m_self.ReceiveReady += OnReceive);
-            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(() => m_self.SendReady += OnReceive,
+
+            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(
+                () => m_self.SendReady += OnReceive,
                 () => m_self.SendReady += OnSend);
 
             Random random = new Random();

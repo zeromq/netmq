@@ -6,8 +6,6 @@ using NetMQ.Security.V0_1.HandshakeMessages;
 
 namespace NetMQ.Security.V0_1
 {
-
-
     class HandshakeLayer : IDisposable
     {
         private readonly SecureChannel m_secureChannel;
@@ -43,13 +41,13 @@ namespace NetMQ.Security.V0_1
             SecurityParameters.PRFAlgorithm = PRFAlgorithm.SHA256;
             SecurityParameters.CipherType = CipherType.Block;
 
-            AllowedCipherSuites = new CipherSuite[]
-        {
-          CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256, 
-          CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA, 
-          CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256, 
-          CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA, 
-        };
+            AllowedCipherSuites = new []
+            {
+                CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256,
+                CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA,
+                CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256,
+                CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA
+            };
 
             VerifyCertificate = c => c.Verify();
         }
@@ -76,7 +74,7 @@ namespace NetMQ.Security.V0_1
             if (incomingMessage == null)
             {
                 if (m_lastReceivedMessage == m_lastSentMessage &&
-                            m_lastSentMessage == HandshakeType.HelloRequest && SecurityParameters.Entity == ConnectionEnd.Client)
+                    m_lastSentMessage == HandshakeType.HelloRequest && SecurityParameters.Entity == ConnectionEnd.Client)
                 {
                     OnHelloRequest(outgoingMessages);
                     return false;
@@ -521,7 +519,6 @@ namespace NetMQ.Security.V0_1
                 m_prf.Dispose();
                 m_prf = null;
             }
-
         }
     }
 }

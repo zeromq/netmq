@@ -25,7 +25,6 @@ namespace NetMQ.zmq.Transports.Ipc
 {
     internal class IpcAddress : Address.IZAddress
     {
-
         private String m_name;
 
         public override String ToString()
@@ -61,6 +60,5 @@ namespace NetMQ.zmq.Transports.Ipc
         {
             get { return zmq.Address.IpcProtocol; }
         }
-
     }
 }

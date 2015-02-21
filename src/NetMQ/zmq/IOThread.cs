@@ -26,7 +26,6 @@ namespace NetMQ.zmq
 {
     internal class IOThread : ZObject, IMailboxEvent
     {
-
         //  I/O thread accesses incoming commands via this mailbox.
         private readonly IOThreadMailbox m_mailbox;
         
@@ -60,6 +59,7 @@ namespace NetMQ.zmq
             m_proactor.Destroy();
             m_mailbox.Close();
         }
+
         public void Stop()
         {
             SendStop();

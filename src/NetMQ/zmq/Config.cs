@@ -19,12 +19,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 namespace NetMQ.zmq
 {
     internal static class Config
     {
-
         //  Number of new messages in message pipe needed to trigger new memory
         //  allocation. Setting this parameter to 256 decreases the impact of
         //  memory allocation by approximately 99.6%

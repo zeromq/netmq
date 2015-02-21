@@ -15,10 +15,7 @@ namespace NetMQ
         public long Affinity
         {
             get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Affinity); }
-            set
-            {
-                m_socket.SetSocketOption(ZmqSocketOptions.Affinity, value);
-            }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.Affinity, value); }
         }
 
         [Obsolete("This property doesn't effect NetMQ anymore")]
@@ -133,7 +130,10 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.IPv4Only, value); }
         }
 
-        public string GetLastEndpoint { get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); } }
+        public string GetLastEndpoint
+        {
+            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); } 
+        }
 
         public bool RouterMandatory
         {

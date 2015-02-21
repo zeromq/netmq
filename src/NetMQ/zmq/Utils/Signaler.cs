@@ -56,7 +56,6 @@ namespace NetMQ.zmq.Utils
 
             try
             {
-                
                 m_writeSocket.Close();
             }
             catch (SocketException)

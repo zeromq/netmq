@@ -28,14 +28,11 @@ namespace NetMQ.zmq.Patterns
     {
         public class SubSession : XSubSession
         {
-
             public SubSession(IOThread ioThread, bool connect,
                               SocketBase socket, Options options, Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
-
         }
 
         public Sub(Ctx parent, int threadId, int socketId)

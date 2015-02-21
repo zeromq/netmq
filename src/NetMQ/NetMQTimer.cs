@@ -24,7 +24,6 @@ namespace NetMQ
         public NetMQTimer(TimeSpan interval)
             : this((int)interval.TotalMilliseconds)
         {
-
         }
 
         public NetMQTimer(int interval)

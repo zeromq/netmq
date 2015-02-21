@@ -34,7 +34,6 @@ namespace NetMQ.zmq.Transports
 {
     class V1Decoder : DecoderBase
     {
-
         private const int OneByteSizeReadyState = 0;
         private const int EightByteSizeReadyState = 1;
         private const int FlagsReadyState = 2;

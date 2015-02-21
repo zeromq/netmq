@@ -26,7 +26,7 @@ namespace NetMQ.zmq.Patterns.Utils
 {
     class Distribution
     {
-        //  List of outbound pipes.		
+        //  List of outbound pipes.
         private readonly List<Pipe> m_pipes;
 
         //  Number of all the pipes to send the next message to.

@@ -146,7 +146,6 @@ namespace NetMQ
             Signal(socket, 1);
         }
 
-
         #endregion       
     }
 }

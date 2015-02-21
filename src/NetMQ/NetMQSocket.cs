@@ -5,9 +5,9 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket,ISocketPollable, IDisposable
+    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
-        readonly SocketBase m_socketHandle;
+        private readonly SocketBase m_socketHandle;
         private bool m_isClosed = false;
         private readonly NetMQSocketEventArgs m_socketEventArgs;
 
@@ -84,10 +84,7 @@ namespace NetMQ
 
         internal SocketBase SocketHandle
         {
-            get
-            {
-                return m_socketHandle;
-            }
+            get { return m_socketHandle; }
         }
 
         NetMQSocket ISocketPollable.Socket

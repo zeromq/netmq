@@ -23,13 +23,11 @@ namespace NetMQ
         public NetMQFrame(string message)
             : this(Encoding.ASCII.GetBytes(message))
         {
-
         }
 
         public NetMQFrame(string message, Encoding encoding)
             : this(encoding.GetBytes(message))
         {
-
         }
 
         public NetMQFrame(int length)
@@ -42,7 +40,6 @@ namespace NetMQ
             Buffer = new byte[length];
             MessageSize = length;
         }
-
 
         /// <summary>
         /// Gets or sets the size of the message data contained in the frame.
@@ -81,7 +78,6 @@ namespace NetMQ
         {
             get { return new NetMQFrame(0); }
         }
-
 
         /// <summary>
         /// Create a copy of the supplied buffer and store it in a <see cref="NetMQFrame"/>.
@@ -184,7 +180,7 @@ namespace NetMQ
         /// <returns>true if the specified System.Object is equal to the current System.Object; otherwise, false.</returns>
         public bool Equals(NetMQFrame other)
         {
-            if(other== null)
+            if(other == null)
                 return false;
 
             if (ReferenceEquals(this, other))

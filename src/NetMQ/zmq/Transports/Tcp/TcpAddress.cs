@@ -40,6 +40,7 @@ namespace NetMQ.zmq.Transports.Tcp
         {
             Resolve(addr, false);
         }
+
         public TcpAddress()
         {
         }
@@ -145,6 +146,5 @@ namespace NetMQ.zmq.Transports.Tcp
         {
             get { return zmq.Address.TcpProtocol; }
         }
-
     }
 }

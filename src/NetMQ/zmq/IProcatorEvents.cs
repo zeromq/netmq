@@ -30,7 +30,5 @@ namespace NetMQ.zmq
 
         // Called by I/O thread when file descriptor is ready for writing.
         void OutCompleted(SocketError socketError, int bytesTransferred);
-
-                  
     }
 }

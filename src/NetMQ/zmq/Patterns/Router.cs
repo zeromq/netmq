@@ -37,7 +37,6 @@ namespace NetMQ.zmq.Patterns
                                  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
         }
 

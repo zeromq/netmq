@@ -150,7 +150,6 @@ namespace NetMQ
         public AddressAlreadyInUseException(string message)
             : this(null, message)
         {
-
         }
     }
 
@@ -165,7 +164,6 @@ namespace NetMQ
         public EndpointNotFoundException(string message)
             : this(null, message)
         {
-
         }
 
         public EndpointNotFoundException()
@@ -199,7 +197,6 @@ namespace NetMQ
         internal TerminatingException()
             : this(null, "")
         {
-
         }
     }
 

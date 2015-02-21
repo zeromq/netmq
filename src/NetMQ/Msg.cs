@@ -38,7 +38,7 @@ namespace NetMQ
     {
         Invalid = 0,
         Min = 101,
-        Empty=101,
+        Empty = 101,
         GC = 102,
         Pool = 103,
         Delimiter = 104,
@@ -66,10 +66,7 @@ namespace NetMQ
 
         public int Size
         {
-            get
-            {
-                return m_size;
-            }
+            get { return m_size; }
         }
 
         public bool HasMore
@@ -84,10 +81,7 @@ namespace NetMQ
 
         public MsgFlags Flags
         {
-            get
-            {
-                return m_flags;
-            }
+            get { return m_flags; }
         }
 
         public byte[] Data
@@ -207,12 +201,10 @@ namespace NetMQ
             return base.ToString() + "[" + MsgType + "," + Size + "," + m_flags + "]";
         }
 
-
         public void SetFlags(MsgFlags flags)
         {
             m_flags = m_flags | flags;
         }
-
 
         public void ResetFlags(MsgFlags f)
         {

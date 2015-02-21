@@ -75,7 +75,6 @@ namespace NetMQ.Actors
                         bindAction();
                     }
                 }
-
             }
 
             m_shim.Pipe.Connect(endPoint);
@@ -101,8 +100,6 @@ namespace NetMQ.Actors
             //  application start up.
             m_self.WaitForSignal();
         }
-
-      
 
         public event EventHandler<NetMQActorEventArgs<T>> ReceiveReady
         {
@@ -166,7 +163,6 @@ namespace NetMQ.Actors
                 TaskCreationOptions.LongRunning);            
         }
 
-
         ~Actor()
         {
             Dispose(false);
@@ -192,7 +188,6 @@ namespace NetMQ.Actors
                 }
                 catch (AgainException)
                 {
-                                        
                 }                                
 
                 m_self.Dispose();

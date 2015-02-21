@@ -27,7 +27,6 @@ namespace NetMQ.zmq.Utils
 {
     abstract class PollerBase
     {
-
         //  Load of the poller. Currently the number of file descriptors
         //  registered.
         private int m_load;

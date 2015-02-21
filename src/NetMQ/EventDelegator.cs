@@ -9,7 +9,6 @@ namespace NetMQ
         private EventHandler<T> m_event;
         private int m_counter;
 
-
         public EventDelegatorHelper(Action registerToEvent, Action unregisterFromEvent)
         {
             m_registerToEvent = registerToEvent;

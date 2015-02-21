@@ -436,6 +436,5 @@ namespace NetMQ.zmq.Patterns.Utils
         {
             get { return m_pipes == null && m_liveNodes == 0; }
         }
-
     }
 }
