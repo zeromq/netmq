@@ -7,8 +7,9 @@ using MajordomoProtocol.Contracts;
 
 namespace MajordomoProtocol
 {
-    public class MDPWorker : IMDPWorker, IDisposable
+    public class MDPWorker : IMDPWorker
     {
+        // Majordomo protocol header 
         private readonly string m_mdpWorker = MDPBroker.MDPWorkerHeader;
 
         private const int _HEARTBEAT_LIVELINESS = 3;// indicates the remaining "live" for the worker
@@ -24,8 +25,9 @@ namespace MajordomoProtocol
         private bool m_exit;                        // a flag for exiting the worker
         private bool m_connected;                   // a flag to signal whether worker is connected to broker or not
         private NetMQMessage m_request;             // used to collect the request received from the ReceiveReady event handler
-        private int m_connectionRetries;            // the number of times the worker tries to connect to the broker before it abandons
-        private int m_retriesLeft;
+        private readonly int m_connectionRetries;   // the number of times the worker tries to connect to the broker before it abandons
+        private int m_retriesLeft;                  // indicates the number of connection retries that are left
+        private byte[] m_identity;                  // if not null the identity of the worker socket
 
         /// <summary>
         ///     sen a heartbeat every specified milliseconds
@@ -36,12 +38,6 @@ namespace MajordomoProtocol
         ///     delay in milliseconds between reconnets
         /// </summary>
         public TimeSpan ReconnectDelay { get; set; }
-
-        /// <summary>
-        ///     the number of times the worker tries to connect to the broker
-        ///     before it abandons
-        /// </summary>
-
 
         /// <summary>
         ///     broadcast logging information via this event
@@ -71,6 +67,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="brokerAddress">the address the worker can connect to the broker at</param>
         /// <param name="serviceName">the service the worker offers</param>
+        /// <param name="identity">the identity of the worker, if present - set automatic otherwise</param>
         /// <param name="connectionRetries">the number of times the worker tries to connect to the broker - default 3</param>
         /// <exception cref="ArgumentNullException">The address of the broker must not be null, empty or whitespace!</exception>
         /// <exception cref="ArgumentNullException">The name of the service must not be null, empty or whitespace!</exception>
@@ -84,7 +81,7 @@ namespace MajordomoProtocol
         ///     connection to the broker, within each cycle he tries it 3 times with <c>ReconnectDelay</c>
         ///     delay between each cycle
         /// </remarks>
-        public MDPWorker (string brokerAddress, string serviceName, int connectionRetries = 3)
+        public MDPWorker (string brokerAddress, string serviceName, byte[] identity = null, int connectionRetries = 3)
             : this ()
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
@@ -93,7 +90,7 @@ namespace MajordomoProtocol
             if (string.IsNullOrWhiteSpace (serviceName))
                 throw new ArgumentNullException ("serviceName",
                                                  "The name of the service must not be null, empty or whitespace!");
-
+            m_identity = identity;
             m_brokerAddress = brokerAddress;
             m_serviceName = serviceName;
             m_connectionRetries = connectionRetries;
@@ -127,15 +124,16 @@ namespace MajordomoProtocol
                 if (ReferenceEquals (m_returnIdentity, null) || m_returnIdentity.BufferSize == 0)
                     throw new ApplicationException ("A malformed reply has been provided");
 
-                var message = Wrap (reply, m_returnIdentity);
+                var message = Wrap (reply, m_returnIdentity);       // [client id][e][reply]
 
-                m_worker.SendMessage (message);
+                Send (MDPCommand.Reply, null, message);
             }
 
             m_expectReply = 1;
             // now wait for the next request
             while (!m_exit)
             {
+                // see ReceiveReady event handler -> ProcessReceiveReady
                 if (m_worker.Poll (HeartbeatDelay))
                 {
                     // a request has been received, so connection is established - reset the connection retries
@@ -154,11 +152,11 @@ namespace MajordomoProtocol
                         // and abandon the worker
                         if (--m_retriesLeft < 0)
                         {
-                            OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[WORKER] abandoning worker due to errors!" });
+                            Log ("[WORKER] abandoning worker due to errors!");
                             break;
                         }
 
-                        OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[WORKER INFO] disconnected from broker - retrying ..." });
+                        Log ("[WORKER INFO] disconnected from broker - retrying ...");
 
                         // wait before reconnecting
                         Thread.Sleep (HeartbeatDelay);
@@ -176,8 +174,8 @@ namespace MajordomoProtocol
                 }
             }
 
-            if (m_retriesLeft >= 0)
-                OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[WORKER] abandoning worker due to request!" });
+            if (m_exit)
+                Log ("[WORKER] abandoning worker due to request!");
 
             m_worker.Dispose ();
             m_ctx.Dispose ();
@@ -202,19 +200,68 @@ namespace MajordomoProtocol
         ///     upon arrival of a message process it
         ///     and set the request variable accordingly
         /// </summary>
+        /// <remarks>
+        ///     worker expects to receive either of the following
+        ///     REQUEST     -> [e][header][command][client adr][e][request]
+        ///     HEARTBEAT   -> [e][header][command]
+        ///     DISCONNECT  -> [e][header][command]
+        ///     KILL        -> [e][header][command]
+        /// </remarks>
         protected virtual void ProcessReceiveReady (object sender, NetMQSocketEventArgs e)
         {
             // a request has arrived process it
             var request = m_worker.ReceiveMessage ();
 
-            OnLogInfoReady (new LogInfoEventArgs { LogInfo = string.Format ("[WORKER] request received {0}", request) });
-            // make sure that we have not yet a valid request!
+            Log (string.Format ("[WORKER] received {0}", request));
+
+            // make sure that we have no valid request yet!
+            // if something goes wrong we'll return 'null'
             m_request = null;
             // any message from broker is treated as heartbeat(!) since communication exists
             m_liveliness = _HEARTBEAT_LIVELINESS;
+            // check the expected message envelope and get the embedded MPD command
+            var command = GetMDPCommand (request);
+            // MDP command is one byte!
+            switch (command)
+            {
+                case MDPCommand.Request:
+                    // the message is [client adr][e][request]
+                    // save as many addresses as there are until we hit an empty frame 
+                    // - for simplicity assume it is just one
+                    m_returnIdentity = Unwrap (request);
+                    // set the class variable in order to return the request to caller
+                    m_request = request;
+                    break;
+                case MDPCommand.Heartbeat:
+                    // reset the liveliness of the broker
+                    m_liveliness = _HEARTBEAT_LIVELINESS;
+                    break;
+                case MDPCommand.Disconnect:
+                    // reconnect the worker
+                    Connect ();
+                    break;
+                case MDPCommand.Kill:
+                    // stop working you worker you
+                    m_exit = true;
+                    break;
+                default:
+                    Log ("[WORKER ERROR] invalid command received!");
+                    break;
+            }
+        }
+
+        /// <summary>
+        ///     checks the message envelop for errors
+        ///     and gets the MDP Command embedded
+        ///     the message will be altered!
+        /// </summary>
+        /// <param name="request">NetMQMessage received</param>
+        /// <returns>the received MDP Command</returns>
+        private MDPCommand GetMDPCommand (NetMQMessage request)
+        {
             // don't try to handle errors
             if (request.FrameCount < 3)
-                throw new ApplicationException ("Malformed request received");
+                throw new ApplicationException ("Malformed request received!");
 
             var empty = request.Pop ();
 
@@ -224,36 +271,18 @@ namespace MajordomoProtocol
             var header = request.Pop ();
 
             if (header.ConvertToString () != m_mdpWorker)
-                throw new ApplicationException ("Invalid protocol header received");
+                throw new ApplicationException ("Invalid protocol header received!");
 
-            var command = request.Pop ();
+            var cmd = request.Pop ();
 
-            // MDP command is one byte!
-            switch (command.Buffer[0])
-            {
-                case (byte) MDPCommand.Request:
-                    // save as many addresses as there are until we hit an empty frame 
-                    // - for simplicity assume it is just one
-                    m_returnIdentity = Unwrap (request);
-                    // set the call global variable in order to return the request to caller
-                    m_request = request;
-                    break;
-                case (byte) MDPCommand.Heartbeat:
-                    // reset the liveliness of the broker
-                    m_liveliness = _HEARTBEAT_LIVELINESS;
-                    break;
-                case (byte) MDPCommand.Disconnect:
-                    // reconnect the worker
-                    Connect ();
-                    break;
-                case (byte) MDPCommand.Kill:
-                    // stop working you worker you
-                    m_exit = true;
-                    break;
-                default:
-                    OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[WORKER ERROR] invalid command received" });
-                    break;
-            }
+            if (cmd.BufferSize > 1)
+                throw new ApplicationException ("MDP Command must be one byte not multiple!");
+
+            var command = (MDPCommand) cmd.Buffer[0];
+
+            Log (string.Format ("[WORKER] received {0}/{1}", request, command));
+
+            return command;
         }
 
         /// <summary>
@@ -263,23 +292,25 @@ namespace MajordomoProtocol
         {
             // if the socket exists dispose it and re-create one
             if (!ReferenceEquals (m_worker, null))
+            {
+                m_worker.Unbind (m_brokerAddress);
                 m_worker.Dispose ();
+            }
 
             m_worker = m_ctx.CreateDealerSocket ();
+            // set identity if provided
+            if (m_identity != null && m_identity.Length > 0)
+                m_worker.Options.Identity = m_identity;
+
             // hook up the received message processing method before the socket is connected
             m_worker.ReceiveReady += ProcessReceiveReady;
 
             m_worker.Connect (m_brokerAddress);
+
+            Log (string.Format ("[WORKER] connected to broker at {0}", m_brokerAddress));
+
             // signal that worker is connected
             m_connected = true;
-
-            OnLogInfoReady (new LogInfoEventArgs
-                            {
-                                LogInfo = string.Format ("[WORKER] connecting to broker at {0} / Command {1}",
-                                                         m_brokerAddress,
-                                                         MDPCommand.Ready)
-                            });
-
             // send READY to broker since worker is connected
             Send (MDPCommand.Ready, m_serviceName, null);
             // reset liveliness to active broker
@@ -298,7 +329,10 @@ namespace MajordomoProtocol
         /// <param name="message">the message to send</param>
         private void Send (MDPCommand mdpCommand, string data, NetMQMessage message)
         {
-            var msg = ReferenceEquals (message, null) ? new NetMQMessage () : new NetMQMessage (message);
+            // cmd, null, message      -> [REPLY],<null>,[client adr][e][reply]
+            // cmd, string, null       -> [READY],[service name]
+            // cmd, null, null         -> [HEARTBEAT]
+            var msg = ReferenceEquals (message, null) ? new NetMQMessage () : message;
             // protocol envelope according to MDP
             // last frame is the data if available
             if (!ReferenceEquals (data, null))
@@ -306,19 +340,14 @@ namespace MajordomoProtocol
                 // data could be multiple whitespaces or even empty(!)
                 msg.Push (data);
             }
-            // set MDP command
-            msg.Push (new[] { (byte) mdpCommand });
-            // set MDP ID
-            msg.Push (m_mdpWorker);
+            // set MDP command                          ([client adr][e][reply] OR [service]) => [data]
+            msg.Push (new[] { (byte) mdpCommand });     // [command][header][data]
+            // set MDP Header
+            msg.Push (m_mdpWorker);                     // [header][data]
             // set MDP empty frame as separator
-            msg.Push (NetMQFrame.Empty);
+            msg.Push (NetMQFrame.Empty);                // [e][command][header][data]
 
-            OnLogInfoReady (new LogInfoEventArgs
-                            {
-                                LogInfo = string.Format ("[WORKER] sending {0} to broker / Command {1}",
-                                                         msg,
-                                                         mdpCommand)
-                            });
+            Log (string.Format ("[WORKER] sending {0} to broker / Command {1}", msg, mdpCommand));
 
             m_worker.SendMessage (msg);
         }
@@ -331,8 +360,8 @@ namespace MajordomoProtocol
         {
             var result = new NetMQMessage (msg);
 
-            msg.Push (NetMQFrame.Empty);            // according to MDP an empty frame is the separator
-            msg.Push (frame);                       // the return address
+            result.Push (NetMQFrame.Empty);            // according to MDP an empty frame is the separator
+            result.Push (frame);                       // the return address
 
             return result;
         }
@@ -351,6 +380,15 @@ namespace MajordomoProtocol
             return result;
         }
 
+        /// <summary>
+        ///     log the info via registered event handler
+        /// </summary>
+        private void Log (string info)
+        {
+            if (!string.IsNullOrWhiteSpace (info))
+                OnLogInfoReady (new LogInfoEventArgs { Info = info });
+        }
+
         #region IDisposable
 
         public void Dispose ()
@@ -363,7 +401,9 @@ namespace MajordomoProtocol
         {
             if (disposing)
             {
-                m_worker.Dispose ();
+                if (!ReferenceEquals (m_worker, null))
+                    m_worker.Dispose ();
+
                 m_ctx.Dispose ();
             }
             // get rid of unmanaged resources

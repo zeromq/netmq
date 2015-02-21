@@ -3,7 +3,7 @@ using NetMQ;
 
 namespace MajordomoProtocol.Contracts
 {
-    public interface IMDPClient
+    public interface IMDPClient : IDisposable
     {
         /// <summary>
         ///     sets or gets the timeout period for waiting for messages

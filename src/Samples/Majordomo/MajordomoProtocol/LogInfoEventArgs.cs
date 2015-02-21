@@ -4,6 +4,6 @@ namespace MajordomoProtocol
 {
     public class LogInfoEventArgs : EventArgs
     {
-        public string LogInfo { get; set; }
+        public string Info { get; set; }
     }
 }

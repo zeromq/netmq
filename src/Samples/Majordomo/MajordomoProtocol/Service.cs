@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Security.Cryptography.X509Certificates;
 using NetMQ;
+using NetMQ.zmq;
 
 namespace MajordomoProtocol
 {
@@ -44,7 +45,16 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     returns true if wokers exists and false otherwise
+        ///     returns true if wokers are waiting and requests are pending 
+        ///     and false otherwise
+        /// </summary>
+        public bool CanDispatchRequests ()
+        {
+            return m_waitingWorkers.Count > 0 && m_pendingRequests.Count > 0;
+        }
+
+        /// <summary>
+        ///     returns true if wokers exist and false otherwise
         /// </summary>
         public bool DoWorkersExist ()
         {
@@ -53,12 +63,12 @@ namespace MajordomoProtocol
 
         /// <summary>
         ///     get the longest waiting worker for this service
-        /// and remove it from the waiting list
+        ///     and remove it from the waiting list
         /// </summary>
         /// <returns>the worker or if non is available <c>null</c></returns>
         public Worker GetNextWorker ()
         {
-            var worker = m_waitingWorkers.Count == 0 ? null : m_waitingWorkers.First ();
+            var worker = m_waitingWorkers.Count == 0 ? null : m_waitingWorkers[0];
 
             if (worker != null)
                 m_waitingWorkers.Remove (worker);
@@ -77,7 +87,9 @@ namespace MajordomoProtocol
                 m_workers.Add (worker);
 
             if (!IsWaiting (worker))
-                m_waitingWorkers.Add (worker);      // add to the end of the list -> oldest to most recent!
+                // add to the end of the list
+                // oldest is at the beginning of the list
+                m_waitingWorkers.Add (worker);
         }
 
         /// <summary>
@@ -101,12 +113,12 @@ namespace MajordomoProtocol
         /// <param name="message">the message to send</param>
         public void AddRequest (NetMQMessage message)
         {
+            // add to the end, thus the oldest is the first element
             m_pendingRequests.Add (message);
         }
 
         /// <summary>
-        ///     return a pending request or null if non exists
-        ///     from oldest to most recent
+        ///     return the oldest pending request or null if non exists
         /// </summary>
         public NetMQMessage GetNextRequest ()
         {

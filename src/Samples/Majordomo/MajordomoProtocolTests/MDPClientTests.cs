@@ -55,13 +55,15 @@ namespace MajordomoTests
                                        {
                                            var msg = e.Socket.ReceiveMessage ();
                                            // we expect to receive a 4 Frame mesage
-                                           // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
+                                           // [client adrR][e][mdp header][service][request]
                                            if (msg.FrameCount != 5)
                                                Assert.Fail ("Message with wrong count of frames {0}", msg.FrameCount);
                                            // REQUEST socket will strip the his address + empty frame
                                            // ROUTER has to add the address prelude in order to identify the correct socket(!)
-                                           // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]["OK"]
-                                           msg.Append ("OK");
+                                           // [client adr][e][mdp header][service][reply]
+                                           var request = msg.Last.ConvertToString ();       // get the request string
+                                           msg.RemoveFrame (msg.Last);                      // remove the request frame
+                                           msg.Append (new NetMQFrame (request + " OK"));   // append the reply frame
                                            e.Socket.SendMessage (msg);
                                        };
 
@@ -69,15 +71,17 @@ namespace MajordomoTests
                 var t = Task.Factory.StartNew (() => poller.Start ());
 
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.LogInfo);
+                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
                 // well formed message
                 var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
                 // correct call
-                session.Send ("echo", requestMessage);
+                var reply = session.Send ("echo", requestMessage);
 
                 poller.Stop ();
                 poller.RemoveSocket (broker);
 
+                Assert.That (reply.FrameCount, Is.EqualTo (1));
+                Assert.That (reply.First.ConvertToString (), Is.EqualTo ("REQUEST OK"));
                 Assert.That (loggingMessages.Count, Is.EqualTo (3));
                 Assert.That (loggingMessages[0], Is.EqualTo ("[CLIENT] connecting to broker at tcp://localhost:5555"));
                 Assert.That (loggingMessages[1].Contains ("[CLIENT INFO] sending"), Is.True);
@@ -95,7 +99,7 @@ namespace MajordomoTests
             using (var session = new MDPClient (host_address))
             {
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.LogInfo);
+                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
                 // well formed message
                 var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
                 // correct call
@@ -122,7 +126,7 @@ namespace MajordomoTests
             using (var session = new MDPClient (host_address))
             {
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.LogInfo);
+                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
                 // well formed message
                 var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
                 // correct call
@@ -163,7 +167,7 @@ namespace MajordomoTests
                 var t = Task.Factory.StartNew (() => poller.Start ());
 
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.LogInfo);
+                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
                 // well formed message
                 var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
                 // wrong service name
@@ -209,7 +213,7 @@ namespace MajordomoTests
                 var t = Task.Factory.StartNew (() => poller.Start ());
 
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.LogInfo);
+                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
                 // well formed message
                 var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
                 // correct call

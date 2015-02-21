@@ -6,7 +6,7 @@ namespace MajordomoProtocol.Contracts
 {
     // define the possible message types for the worker MDP
 
-    public interface IMDPWorker
+    public interface IMDPWorker : IDisposable
     {
         /// <summary>
         ///     sen a heartbeat every specified milliseconds

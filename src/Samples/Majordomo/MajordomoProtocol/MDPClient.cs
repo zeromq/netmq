@@ -9,7 +9,7 @@ namespace MajordomoProtocol
     /// <summary>
     ///     implements a client skeleton for Majordomo Protocol V0.1
     /// </summary>
-    public class MDPClient : IMDPClient, IDisposable
+    public class MDPClient : IMDPClient
     {
         private readonly string m_mdpClient = MDPBroker.MDPClientHeader;
 
@@ -20,7 +20,7 @@ namespace MajordomoProtocol
         private bool m_connected;               // used as flag true if a connection has been made
         private string m_serviceName;           // need that as storage for the event handler
         private NetMQMessage m_reply;           // container for the received reply from broker
-        // set in the event handler(!)
+        private byte[] m_identity;
 
         /// <summary>
         ///     sets or gets the timeout period for waiting for messages
@@ -57,12 +57,14 @@ namespace MajordomoProtocol
         ///     setup the client, use standard values and parameters
         /// </summary>
         /// <param name="brokerAddress">address the broker can be connected to</param>
-        public MDPClient (string brokerAddress)
+        /// <param name="identity">if present will become the name for the client socket</param>
+        public MDPClient (string brokerAddress, byte[] identity = null)
             : this ()
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
                 throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
 
+            m_identity = identity;
             m_brokerAddress = brokerAddress;
         }
 
@@ -96,19 +98,16 @@ namespace MajordomoProtocol
             if (!m_connected)
                 Connect ();
 
-            var msg = new NetMQMessage (request);
+            var message = new NetMQMessage (request);
 
             // prefix the request according to MDP specs
             // Frame 1: "MDPCxy" (six bytes MDP/Client x.y)
             // Frame 2: service name as printable string
             // Frame 3: request
-            msg.Push (serviceName);
-            msg.Push (m_mdpClient);
+            message.Push (serviceName);
+            message.Push (m_mdpClient);
 
-            OnLogInfoReady (new LogInfoEventArgs
-                            {
-                                LogInfo = string.Format ("[CLIENT INFO] sending {0} to service {1}", msg, serviceName)
-                            });
+            Log (string.Format ("[CLIENT INFO] sending {0} to service {1}", message, serviceName));
 
             var retiesLeft = Retries;
 
@@ -116,10 +115,9 @@ namespace MajordomoProtocol
             {
                 // beaware of an exception if broker has not picked up the message at all
                 // because one can not send multiple times! it is strict REQ -> REP -> REQ ...
-                m_client.SendMessage (msg);
+                m_client.SendMessage (message);
 
-                // Poll -> must have ReceiveReady!!!!!!
-
+                // Poll -> see ReceiveReady for event handling
                 if (m_client.Poll (Timeout))
                 {
                     // set by event handler
@@ -128,13 +126,13 @@ namespace MajordomoProtocol
                 // if it failed assume communication dead and re-connect
                 if (--retiesLeft > 0)
                 {
-                    OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[CLIENT WARNING] no reply, reconnecting ..." });
+                    Log ("[CLIENT WARNING] no reply, reconnecting ...");
 
                     Connect ();
                 }
             }
 
-            OnLogInfoReady (new LogInfoEventArgs { LogInfo = "[CLIENT ERROR] permanent error, abandoning!" });
+            Log ("[CLIENT ERROR] permanent error, abandoning!");
 
             m_client.Dispose ();
             m_ctx.Dispose ();
@@ -158,6 +156,10 @@ namespace MajordomoProtocol
                 throw new ApplicationException ("NetMQContext does not exist!");
 
             m_client = m_ctx.CreateRequestSocket ();
+
+            if (m_identity != null)
+                m_client.Options.Identity = m_identity;
+
             // attach the event handler for incoming messages
             m_client.ReceiveReady += ProcessReceiveReady;
 
@@ -165,10 +167,7 @@ namespace MajordomoProtocol
 
             m_connected = true;
 
-            OnLogInfoReady (new LogInfoEventArgs
-                            {
-                                LogInfo = string.Format ("[CLIENT] connecting to broker at {0}", m_brokerAddress)
-                            });
+            Log (string.Format ("[CLIENT] connecting to broker at {0}", m_brokerAddress));
         }
 
         /// <summary>
@@ -183,10 +182,7 @@ namespace MajordomoProtocol
             // a message is available within the timeout period
             var reply = m_client.ReceiveMessage ();
 
-            OnLogInfoReady (new LogInfoEventArgs
-            {
-                LogInfo = string.Format ("[CLIENT INFO] received the reply {0}", reply)
-            });
+            Log (string.Format ("[CLIENT INFO] received the reply {0}", reply));
 
             // in production code malformed messages should be handled smarter
             if (reply.FrameCount < 3)
@@ -204,6 +200,12 @@ namespace MajordomoProtocol
                                                                service.ConvertToString ()));
             // now set the value for the reply of the send method!
             m_reply = reply;
+        }
+
+        private void Log (string info)
+        {
+            if (!string.IsNullOrWhiteSpace (info))
+                OnLogInfoReady (new LogInfoEventArgs { Info = info });
         }
 
         /// <summary>
@@ -233,6 +235,7 @@ namespace MajordomoProtocol
                 // m_client might not have been created yet!
                 if (!ReferenceEquals (m_client, null))
                     m_client.Dispose ();
+
                 m_ctx.Dispose ();
             }
             // get rid of unmanaged resources
