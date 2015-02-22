@@ -144,7 +144,7 @@ To be honest whether the actual example has real world merit or not, the point r
 
 Now don’t get me wrong the above code does work, as shown in the output below:
 
-```plain
+```text
 Thread Id 6, Account balance before: 0
 Thread Id 6, Adding 10 to balance
 Thread Id 6, Account balance before: 10
