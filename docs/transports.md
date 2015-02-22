@@ -74,7 +74,7 @@ Received World<br/>
 </p>
 
 
-Where it can be seen that the format of the tcp information used in the <code>Bind()</code> and <code>Connect()</code> methods are of the form shown below
+Where it can be seen that the format of the tcp information used in the `Bind()` and `Connect()` methods are of the form shown below
 
 tcp://*:5555
 
@@ -171,7 +171,7 @@ Hello<br/>
 
 
 
-Where it can be seen that the format of the Inproc information used in the <code>Bind()</code> and <code>Connect()</code> methods are of the form shown below
+Where it can be seen that the format of the Inproc information used in the `Bind()` and `Connect()` methods are of the form shown below
 
 **inproc://InprocTest_5555**
 
@@ -198,7 +198,7 @@ regard for scalability and network efficiency.
 
 To use PGM with NetMQ, we do not have to do too much. We just need to follow these 3 pointers:
 
-1. The socket types are now <code>PublisherSocket</code> and <code>SubscriberSocket</code>
+1. The socket types are now `PublisherSocket` and `SubscriberSocket`
    which are talked about in more detail in the [pub-sub] (https://github.com/zeromq/netmq/blob/master/docs/pub-sub.md) documentation.
 2. Make sure you are running the app as "Administrator"
 3. Make sure you have turned on the "Multicasting Support". You can do that as follows:
@@ -209,7 +209,7 @@ To use PGM with NetMQ, we do not have to do too much. We just need to follow the
 
 
 
-Here is a small demo that use PGM, as well as <code>PublisherSocket</code> and <code>SubscriberSocket</code> and a few option values.
+Here is a small demo that use PGM, as well as `PublisherSocket` and `SubscriberSocket` and a few option values.
 
 
 
@@ -274,7 +274,7 @@ sub2 message = 'Hi'<br/>
 
 
 
-Where it can be seen that the format of the Pgm information used in the <code>Bind()</code> and <code>Connect()</code> methods are of the form shown below
+Where it can be seen that the format of the Pgm information used in the `Bind()` and `Connect()` methods are of the form shown below
 
 pgm://224.0.0.1:5555
 

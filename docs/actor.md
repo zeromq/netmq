@@ -44,7 +44,7 @@ I hope you see what I am trying to explain there, may be a diagram may help.
 
 ## Multi threaded application using shared data structure
 
-A fairly common thing to do is have multiple threads running to speed things up, but then you realise that your threads need to mutate the state of some shared data structure, so then you have to involve threading synchronization primitives (most commonly <code>lock(..)</code> statements, to create your user defined critical sections). This will work, but now you are introducing artificial delays due to having to wait for the lock to be released so you can run Thread X’s code.
+A fairly common thing to do is have multiple threads running to speed things up, but then you realise that your threads need to mutate the state of some shared data structure, so then you have to involve threading synchronization primitives (most commonly `lock(..)` statements, to create your user defined critical sections). This will work, but now you are introducing artificial delays due to having to wait for the lock to be released so you can run Thread X’s code.
 
 
 <br/>
@@ -86,7 +86,7 @@ To take this one step further, lets see some code that may illustrate this furth
     }
 
 
-Nothing fancy there, just some fields. So lets now move onto looking at some threading code, I have chosen to just show two threads acting on a shared <code>Account</code> instance.
+Nothing fancy there, just some fields. So lets now move onto looking at some threading code, I have chosen to just show two threads acting on a shared `Account` instance.
 
 
     using System;
@@ -253,10 +253,10 @@ Firstly lets introduce a few helper classes
     }
 
 
-And here is the entire code for an <code>Actor</code> that deals with <code>Account</code> actions. This example is deliberatley simplistic, where we only debit/credit an <code>Account</code>
-by an amount. You could send any command to the <code>Actor</code>, and the <code>Actor</code> is really a general purpose in process messaging system.
+And here is the entire code for an `Actor` that deals with `Account` actions. This example is deliberatley simplistic, where we only debit/credit an `Account`
+by an amount. You could send any command to the `Actor`, and the `Actor` is really a general purpose in process messaging system.
 
-Anyway here is the <code>Actor</code> code:
+Anyway here is the `Actor` code:
 
     using System;
     using System.Collections.Generic;
@@ -395,7 +395,7 @@ Anyway here is the <code>Actor</code> code:
     }
 
 
-Where you would communicate with this <code>Actor</code> code using something like this (again this could be any commands you want, this example just shows how to debit/credit an <code>Account</code>).
+Where you would communicate with this `Actor` code using something like this (again this could be any commands you want, this example just shows how to debit/credit an `Account`).
 
     using System;
     using System.Collections.Generic;
@@ -461,6 +461,6 @@ When you run this code you should see something like this:
 
 
 
-We hope that gives you a taster of what you could do with an <code>Actor</code>
+We hope that gives you a taster of what you could do with an `Actor`
 
 

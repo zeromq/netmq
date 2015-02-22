@@ -8,29 +8,29 @@ So why would you want to handle multiple sockets anyway? Well, there are a varie
 
 There are times you may end up with more than one socket per process. And there may be occasions when you only want to use the socket(s) when they are deemed ready.
 
-ZeroMQ actually has a concept of a <code>Poller</code> that can be used to determine if a socket is deemed ready to use.
+ZeroMQ actually has a concept of a `Poller` that can be used to determine if a socket is deemed ready to use.
 
-NetMQ has an implementation of the <code>Poller</code>, and it can be used to do the following things:
+NetMQ has an implementation of the `Poller`, and it can be used to do the following things:
 
 + Monitor a single socket, for readiness
-+ Monitor an <code>IEnumerable<NetMQSocket></code> for readiness
-+ Allow <code>NetMQSocket</code>(s) to be added dynamically and still report on the readiness of the new sockets
-+ Allow <code>NetMQSocket</code>(s) to be removed dynamically
++ Monitor an `IEnumerable<NetMQSocket>` for readiness
++ Allow `NetMQSocket`(s) to be added dynamically and still report on the readiness of the new sockets
++ Allow `NetMQSocket`(s) to be removed dynamically
 + Raise an event on the socket instance when it is ready
 
 
 ## Poller Methods
 
-There are several methods available on the <code>Poller</code> to help you. Most notably <code>AddSocket(..)/RemoveSocket(..)</code> and <code>Start()/Stop()</code>. 
+There are several methods available on the `Poller` to help you. Most notably `AddSocket(..)/RemoveSocket(..)` and `Start()/Stop()`. 
 
-The idea is that you would use the <code>AddSocket</code> to add the socket you want to monitor for "readiness" to the <code>Poller</code> instance, and then some time later call the <code>Poller.Start()</code> method, at which point the <code>Poller</code> will call back any registered <code>ReceiveReady</code> event handler delegates
+The idea is that you would use the `AddSocket` to add the socket you want to monitor for "readiness" to the `Poller` instance, and then some time later call the `Poller.Start()` method, at which point the `Poller` will call back any registered `ReceiveReady` event handler delegates
 
 
 ## Poller Example
 
-So now that you know what the <code>Poller</code> does, perhaps it is time to see an example. 
+So now that you know what the `Poller` does, perhaps it is time to see an example. 
 
-The code below is a fully working Console application that demonstrates a single socket being added to the <code>Poller</code>. It can also be seen that the <code>ReceiveReady</code> event is hooked up too. The <code>Poller</code> will call this event handler back when the Socket (the one that is added to the <code>Poller</code>) is "Ready".
+The code below is a fully working Console application that demonstrates a single socket being added to the `Poller`. It can also be seen that the `ReceiveReady` event is hooked up too. The `Poller` will call this event handler back when the Socket (the one that is added to the `Poller`) is "Ready".
 
 
     using System;
@@ -102,7 +102,7 @@ messageBack = World<br/>
 
 
 
-Building on this example. What we can now do is to remove the <code>ResponseSocket</code> from the <code>Poller</code> once we see the 1st message, which should mean that we no longer recieve any messages on the removed <code>ResponseSocket</code>. We will stick with the same example code, but this time we have added a <code>Poller.RemoveSocket(..)</code> in the <code>rep.ReceiveReady</code> event handler code.
+Building on this example. What we can now do is to remove the `ResponseSocket` from the `Poller` once we see the 1st message, which should mean that we no longer recieve any messages on the removed `ResponseSocket`. We will stick with the same example code, but this time we have added a `Poller.RemoveSocket(..)` in the `rep.ReceiveReady` event handler code.
 
 Here is the new modified code
 
@@ -192,14 +192,14 @@ Carrying on doing the rest<br/>
 </p>
 
 
-See how we did not get any output for the "Hello Again" message we attempted to send. This is due to the <code>ResponseSocket</code> being removed from the <code>Poller</code> earlier.
+See how we did not get any output for the "Hello Again" message we attempted to send. This is due to the `ResponseSocket` being removed from the `Poller` earlier.
 
 
 ## Timer(s)
 
-Another thing the Poller allows is to add/remove <code>NetMQTimer</code> instances, which you may do using the <code>AddTimer(..) / RemoveTimer(..)</code> methods. 
+Another thing the Poller allows is to add/remove `NetMQTimer` instances, which you may do using the `AddTimer(..) / RemoveTimer(..)` methods. 
 
-Where the added timers get called back the <code>Poller</code>. Here is a simple example that adds a <code>NetMQTimer</code> which expects to wait for 5 Seconds. The <code>NetMQTimer</code> instance is added to the <code>Poller</code>, which internally calls the <code>NetMQTimer.Elapsed</code> event handler callback delegates.
+Where the added timers get called back the `Poller`. Here is a simple example that adds a `NetMQTimer` which expects to wait for 5 Seconds. The `NetMQTimer` instance is added to the `Poller`, which internally calls the `NetMQTimer.Elapsed` event handler callback delegates.
 
     using System;
     using System.Collections.Generic;

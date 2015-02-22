@@ -22,11 +22,11 @@ You can get NetMQ library from <a href="https://nuget.org/packages/NetMQ/" targe
 
 ## Context
 
-The <code>NetMQContext</code> is what is used to create ALL sockets. Therefore any NetMQ code should start by creating a <code>NetMQContext</code>, which can be done by using the <code>NetMQContext.Create()</code> method. <code>NetMQContext</code> is <code>IDisposable</code> so can be used within a <code>using</code> block.
+The `NetMQContext` is what is used to create ALL sockets. Therefore any NetMQ code should start by creating a `NetMQContext`, which can be done by using the `NetMQContext.Create()` method. `NetMQContext` is `IDisposable` so can be used within a `using` block.
 
 You should create and use exactly one context in your process. Technically, the context is the container for all sockets in a single process, and acts as the transport for inproc sockets, which are the fastest way to connect threads in one process. If at runtime a process has two contexts, these are like separate NetMQ instances. If that's explicitly what you want, OK, but otherwise you should follow these rules:
 
-Have one <code>NetMQContext</code> ONLY. This will be used to created ALL sockets within the process.
+Have one `NetMQContext` ONLY. This will be used to created ALL sockets within the process.
 
 
 ## Sending and receiving
@@ -93,7 +93,7 @@ The client create a socket of type request, connect and start sending messages.
 
 Both the sending and receive methods are blocking, for the receive it is simple, if there are no messages the method will block, for sending it is more complicated and depends on the socket type. In request socket type if the high watermark is reached or no peer is connected the method will block.
 
-You can however call receive or send with the <code>DontWait</code> flag to avoid the waiting, make sure to wrap the send or receive with try and catch the <code>AgainException</code>, like so:
+You can however call receive or send with the `DontWait` flag to avoid the waiting, make sure to wrap the send or receive with try and catch the `AgainException`, like so:
 
     try
     {
@@ -172,15 +172,15 @@ The built-in core ZeroMQ patterns are:
 
 These are the socket combinations that are valid for a connect-bind pair (either side can bind):
 
-+ <code>PublisherSocket</code> and <code>SubscriberSocket</code>
-+ <code>RequestSocket</code> and <code>ResponseSocket</code>
-+ <code>RequestSocket</code>  and <code>RouterSocket</code>
-+ <code>DealerSocket</code> and <code>ResponseSocket</code>
-+ <code>DealerSocket</code> and <code>RouterSocket</code>
-+ <code>DealerSocket</code> and <code>DealerSocket</code>
-+ <code>RouterSocket</code> and <code>RouterSocket</code>
-+ <code>PushSocket</code> and <code>PullSocket</code>
-+ <code>PairSocket</code> and <code>PairSocket</code>
++ `PublisherSocket` and `SubscriberSocket`
++ `RequestSocket` and `ResponseSocket`
++ `RequestSocket`  and `RouterSocket`
++ `DealerSocket` and `ResponseSocket`
++ `DealerSocket` and `RouterSocket`
++ `DealerSocket` and `DealerSocket`
++ `RouterSocket` and `RouterSocket`
++ `PushSocket` and `PullSocket`
++ `PairSocket` and `PairSocket`
 
 Any other combination will produce undocumented and unreliable results, and future versions of ZeroMQ will probably return errors if you try them. You can and will, of course, bridge other socket types via code, i.e., read from one socket type and write to another.
 

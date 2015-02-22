@@ -15,9 +15,9 @@ Identities are a difficult concept to understand, but it's essential if you want
 The text above is taken from <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>.
 
 
-So if we looked at a small example, let's say a <code>DealerSocket</code> socket has a 3-byte identity ABC. Internally, this means the <code>RouterSocket</code> socket keeps a hash table where it can search for ABC and find the TCP connection for the <code>DealerSocket</code> socket.
+So if we looked at a small example, let's say a `DealerSocket` socket has a 3-byte identity ABC. Internally, this means the `RouterSocket` socket keeps a hash table where it can search for ABC and find the TCP connection for the `DealerSocket` socket.
 
-When we receive the message off the <code>DealerSocket</code> socket, we get three frames.
+When we receive the message off the `DealerSocket` socket, we get three frames.
 <br/>
 <br/>
 <img src="https://github.com/imatix/zguide/raw/master/images/fig28.png"/>
@@ -49,16 +49,16 @@ The text above is taken from <a href="http://zguide.zeromq.org/page:all#Identiti
 
 ## DealerSocket
 
-The NetMQ <code>DealerSocket</code> doesn't do anything particularly special, but what it does offer is the ability to work in a fully asynchronous manner. 
+The NetMQ `DealerSocket` doesn't do anything particularly special, but what it does offer is the ability to work in a fully asynchronous manner. 
 
-Which if you recall was not something that other socket types could do, where the <code>ReceieveXXX</code> / <code>SendXXX</code> methods are blocking, and would also throw exceptions should you try to call
+Which if you recall was not something that other socket types could do, where the `ReceieveXXX` / `SendXXX` methods are blocking, and would also throw exceptions should you try to call
 things in the wrong order, or more than expected.
 
 
-The main selling point of a <code>DealerSocket</code> is its asynchronous abilities. Typically a <code>DealerSocket</code> would be used in conjunction with a <code>RouterSocket</code>, which is why we have decided to bundle the description of both these socket types into
+The main selling point of a `DealerSocket` is its asynchronous abilities. Typically a `DealerSocket` would be used in conjunction with a `RouterSocket`, which is why we have decided to bundle the description of both these socket types into
 this documentation page.
 
-If you want to know more details about socket combinations involving <code>DealerSocket</code>(s), then as ALWAYS the guide is your friend. In particular the <a href="http://zguide.zeromq.org/page:all#toc58" target="_blank">Request-Reply Combinations</a> page of the guide may be of interest.
+If you want to know more details about socket combinations involving `DealerSocket`(s), then as ALWAYS the guide is your friend. In particular the <a href="http://zguide.zeromq.org/page:all#toc58" target="_blank">Request-Reply Combinations</a> page of the guide may be of interest.
 
 
 
@@ -67,8 +67,8 @@ If you want to know more details about socket combinations involving <code>Deale
 
 Time for an example. The best way to think of this example is summarized in the bullet points below
 
-+ There is one server. Which is a <code>RouterSocket</code>. Where the <code>RouterSocket</code>, will use the incoming clients socket (<code>DealerSocket</code>) identity, to work out how to route back the response message to the correct client socket
-+ There are multiple clients created, each in its own thread. These clients are <code>DealerSocket</code>(s). The client socket will provide a fixed identity, such that the server (<code>RouterSocket</code>) wille be able to use the identity supplied to correctly route back messages for this client
++ There is one server. Which is a `RouterSocket`. Where the `RouterSocket`, will use the incoming clients socket (`DealerSocket`) identity, to work out how to route back the response message to the correct client socket
++ There are multiple clients created, each in its own thread. These clients are `DealerSocket`(s). The client socket will provide a fixed identity, such that the server (`RouterSocket`) wille be able to use the identity supplied to correctly route back messages for this client
 
 Ok so that is the overview, what does the code look like, lets see:
 

@@ -1,9 +1,9 @@
 Push / Pull
 =====
 
-NetMQ comes with a <code>PushSocket</code> and a <code>PullSocket</code>. What are these and how should they be used?
+NetMQ comes with a `PushSocket` and a `PullSocket`. What are these and how should they be used?
 
-Well a <code>PushSocket</code> is normally used to push to a <code>PullSocket</code>, whilst the <code>PullSocket</code> will pull from a <code>PushSocket</code>. Sounds obvious right!
+Well a `PushSocket` is normally used to push to a `PullSocket`, whilst the `PullSocket` will pull from a `PushSocket`. Sounds obvious right!
 
 You would typically use this configuration of sockets to produce some distributed work, kind of like a <a href="http://zguide.zeromq.org/page:all#Divide-and-Conquer" target="_blank">divide and conquer</a> arrangement.
 
@@ -314,7 +314,7 @@ Total elapsed time 1492 msec<br/>
 <br/>
 There are a couple of points to be aware of with this pattern
 
-+ The <code>Ventilator</code> uses a NetMQ <code>PushSocket</code> to distribute work to the <code>Worker</code>s, this is referred to as load balancing
-+ The <code>Ventilator</code> and the <code>Sink</code> are the static parts of the system, where as <code>Worker</code>s are dynamic. It is trivial to add more  <code>Worker</code>s, we can just spin up a new instance of a  <code>Worker</code>s, and in theory the work gets done quicker.
-+ We need to synchronize the starting of the batch (when  <code>Worker</code>s are ready), as if we did not do that, the first  <code>Worker</code>s that connected would get more messages that the rest, which is not really load balanced
-+ The  <code>Sink</code> uses a NetMQ <code>PullSocket</code> to accumulate the results from the  <code>Worker</code>s
++ The `Ventilator` uses a NetMQ `PushSocket` to distribute work to the `Worker`s, this is referred to as load balancing
++ The `Ventilator` and the `Sink` are the static parts of the system, where as `Worker`s are dynamic. It is trivial to add more  `Worker`s, we can just spin up a new instance of a  `Worker`s, and in theory the work gets done quicker.
++ We need to synchronize the starting of the batch (when  `Worker`s are ready), as if we did not do that, the first  `Worker`s that connected would get more messages that the rest, which is not really load balanced
++ The  `Sink` uses a NetMQ `PullSocket` to accumulate the results from the  `Worker`s

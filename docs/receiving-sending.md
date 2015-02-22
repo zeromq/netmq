@@ -2,7 +2,7 @@ Receiving / Sending
 =====
 
 If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/introduction/) page you would have
-already seen an example of <code>ReceiveString()</code> and <code>SendString()</code>, but NetMQ allows us to send more than just strings.
+already seen an example of `ReceiveString()` and `SendString()`, but NetMQ allows us to send more than just strings.
 
 In fact there are quite a few options available to you. Lets go through some of these options shall we
 
@@ -10,8 +10,8 @@ In fact there are quite a few options available to you. Lets go through some of 
 
 ## Receiving
 
-A <code>NetMQSocket</code> (which all the socket types inherit from) has a single <code>public virtual void Receive(ref Msg msg, SendReceiveOptions options)</code> method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for <code>IReceivingSocket</code>.
+A `NetMQSocket` (which all the socket types inherit from) has a single `public virtual void Receive(ref Msg msg, SendReceiveOptions options)` method. But you will likely not actually use this
+method. What you will end up using is one the extra extension methods that is available for `IReceivingSocket`.
 
 These extension methods are shown below, one of these should give you what you want, but if it doesn't
 you simply need to write an extra extension method to suit your needs
@@ -69,8 +69,8 @@ Here is an example of how one of the above extension methods is implemented, whi
 
 ## Sending
 
-A <code>NetMQSocket</code> (which all the socket types inherit from) has a single <code>public virtual void Send(ref Msg msg, SendReceiveOptions options)</code> method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for <code>IOutgoingSocket</code>. 
+A `NetMQSocket` (which all the socket types inherit from) has a single `public virtual void Send(ref Msg msg, SendReceiveOptions options)` method. But you will likely not actually use this
+method. What you will end up using is one the extra extension methods that is available for `IOutgoingSocket`. 
 
 These extension methods are shown below, one of these should give you what you want, but if it doesn't
 you simply need to write an extra extension method to suit your needs

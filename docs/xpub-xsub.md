@@ -48,7 +48,7 @@ Here is the code for these 3 components:
 
 **Publisher**
 
-It can be seen that the <code>PublisherSocket</code> connnects to the <code>XSubscriberSocket</code> address
+It can be seen that the `PublisherSocket` connnects to the `XSubscriberSocket` address
 
     using System;
     using NetMQ;
@@ -102,14 +102,14 @@ It can be seen that the <code>PublisherSocket</code> connnects to the <code>XSub
 
 **Intermediary**
 
-The intermediary (the process that owns the <code>XPublisherSocket</code> / <code>XSubscriberSocket</code>) is responsible for relaying
+The intermediary (the process that owns the `XPublisherSocket` / `XSubscriberSocket`) is responsible for relaying
 the messages as follows:
 
-+ From the <code>XPublisherSocket</code> to the <code>XSubscriberSocket</code>
-+ From the <code>XSubscriberSocket</code> to the <code>XPublisherSocket</code>
++ From the `XPublisherSocket` to the `XSubscriberSocket`
++ From the `XSubscriberSocket` to the `XPublisherSocket`
 
-This would be done with the use of the NetMQ <code>Poller</code>, but there is a better way, which is to use the NetMQ <code>Proxy</code> which allows
-you to specify 2 sockets, which you wish to proxy between. The NetMQ <code>Proxy</code> will take care of sending the front end messages to the back end, and vice versa.
+This would be done with the use of the NetMQ `Poller`, but there is a better way, which is to use the NetMQ `Proxy` which allows
+you to specify 2 sockets, which you wish to proxy between. The NetMQ `Proxy` will take care of sending the front end messages to the back end, and vice versa.
 
 This is the appoach we have shown in this example. Anyway enough pyscho bablble, here is the code:
 
@@ -158,7 +158,7 @@ This is the appoach we have shown in this example. Anyway enough pyscho bablble,
 
 **Subscriber**
 
-It can be seen that the <code>SubscriberSocket</code> connnects to the <code>XPublisherSocket</code> address
+It can be seen that the `SubscriberSocket` connnects to the `XPublisherSocket` address
 
     using System;
     using System.Collections.Generic;
