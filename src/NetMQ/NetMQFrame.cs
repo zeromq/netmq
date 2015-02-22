@@ -9,7 +9,7 @@ namespace NetMQ
         private int m_messageSize;
         private int m_hash = 0;
 
-        public NetMQFrame(byte[] buffer)
+        public NetMQFrame([NotNull] byte[] buffer)
         {
             if (buffer == null)
             {
@@ -20,16 +20,14 @@ namespace NetMQ
             MessageSize = buffer.Length;
         }
 
-        public NetMQFrame(string message)
+        public NetMQFrame([NotNull] string message)
             : this(Encoding.ASCII.GetBytes(message))
         {
-
         }
 
-        public NetMQFrame(string message, Encoding encoding)
+        public NetMQFrame([NotNull] string message, [NotNull] Encoding encoding)
             : this(encoding.GetBytes(message))
         {
-
         }
 
         public NetMQFrame(int length)
@@ -42,7 +40,6 @@ namespace NetMQ
             Buffer = new byte[length];
             MessageSize = length;
         }
-
 
         /// <summary>
         /// Gets or sets the size of the message data contained in the frame.
@@ -64,6 +61,7 @@ namespace NetMQ
         /// <summary>
         /// Gets the underlying frame data buffer.
         /// </summary>       
+        [NotNull]
         public byte[] Buffer { get; private set; }
 
         /// <summary>
@@ -81,7 +79,6 @@ namespace NetMQ
         {
             get { return new NetMQFrame(0); }
         }
-
 
         /// <summary>
         /// Create a copy of the supplied buffer and store it in a <see cref="NetMQFrame"/>.
@@ -103,12 +100,14 @@ namespace NetMQ
             return copy;
         }
 
+        [NotNull]
         public string ConvertToString()
         {
             return Encoding.ASCII.GetString(Buffer, 0, this.MessageSize);
         }
 
-        public string ConvertToString(Encoding encoding)
+        [NotNull]
+        public string ConvertToString([NotNull] Encoding encoding)
         {
             return encoding.GetString(Buffer, 0, this.MessageSize);
         }
@@ -137,6 +136,7 @@ namespace NetMQ
         /// <param name="frame">The <see cref="NetMQFrame"/> to copy.</param>
         /// <returns>A <see cref="NetMQFrame"/> containing a copy of <paramref name="frame"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
+        [NotNull]
         public static NetMQFrame Copy([NotNull] NetMQFrame frame)
         {
             if (frame == null)
@@ -152,12 +152,13 @@ namespace NetMQ
             return copy;
         }
 
+        [NotNull]
         public NetMQFrame Duplicate()
         {
             return Copy(this);
         }
 
-        public bool Equals(byte[] other)
+        public bool Equals([CanBeNull] byte[] other)
         {
             if (other == null)
                 return false;            
@@ -182,9 +183,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="other">The <see cref="NetMQFrame"/> to compare with the current <see cref="NetMQFrame"/>.</param>
         /// <returns>true if the specified System.Object is equal to the current System.Object; otherwise, false.</returns>
-        public bool Equals(NetMQFrame other)
+        public bool Equals([CanBeNull] NetMQFrame other)
         {
-            if(other== null)
+            if(other == null)
                 return false;
 
             if (ReferenceEquals(this, other))
@@ -229,7 +230,7 @@ namespace NetMQ
             return m_hash;
         }
 
-
+        [NotNull]
         public byte[] ToByteArray(bool copy = false)
         {
             if (!copy || MessageSize == BufferSize)

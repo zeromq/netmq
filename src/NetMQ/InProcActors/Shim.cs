@@ -17,6 +17,5 @@ namespace NetMQ.Actors
 
         public IShimHandler<T> Handler { get; private set; }
         public PairSocket Pipe { get; private set; }
-
     }
 }

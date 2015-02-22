@@ -1,5 +1,6 @@
 ﻿using System;
 using NetMQ.zmq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -7,7 +8,7 @@ namespace NetMQ
     {
         readonly NetMQSocket m_socket;
 
-        public SocketOptions(NetMQSocket socket)
+        public SocketOptions([NotNull] NetMQSocket socket)
         {
             m_socket = socket;
         }
@@ -15,14 +16,11 @@ namespace NetMQ
         public long Affinity
         {
             get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Affinity); }
-            set
-            {
-                m_socket.SetSocketOption(ZmqSocketOptions.Affinity, value);
-            }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.Affinity, value); }
         }
 
         [Obsolete("This property doesn't effect NetMQ anymore")]
-        public bool CopyMessages { get; set; }
+        public bool CopyMessages { get { return false; } set {} }
 
         public byte[] Identity
         {
@@ -133,7 +131,10 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.IPv4Only, value); }
         }
 
-        public string GetLastEndpoint { get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); } }
+        public string GetLastEndpoint
+        {
+            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); } 
+        }
 
         public bool RouterMandatory
         {

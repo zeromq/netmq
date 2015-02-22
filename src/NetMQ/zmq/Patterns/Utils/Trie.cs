@@ -25,7 +25,7 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
-    class Trie
+    internal class Trie
     {
         private int m_referenceCount;
 

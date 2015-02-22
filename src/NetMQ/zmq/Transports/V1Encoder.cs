@@ -22,9 +22,8 @@
 
 namespace NetMQ.zmq.Transports
 {
-    class V1Encoder : EncoderBase
+    internal class V1Encoder : EncoderBase
     {
-
         private const int SizeReadyState = 0;
         private const int MessageReadyState = 1;
 

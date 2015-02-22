@@ -30,7 +30,6 @@
         Null = 0,
     }
 
-
     public class SecurityParameters
     {
         public ConnectionEnd Entity { get; set; }

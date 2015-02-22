@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.zmq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -25,7 +26,7 @@ namespace NetMQ
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 
-        public NetMQScheduler(NetMQContext context, Poller poller = null)
+        public NetMQScheduler([NotNull] NetMQContext context, [CanBeNull] Poller poller = null)
         {
             if (poller == null)
             {
@@ -92,7 +93,7 @@ namespace NetMQ
             }
         }
 
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        protected override bool TryExecuteTaskInline([NotNull] Task task, bool taskWasPreviouslyQueued)
         {
             return m_schedulerThread.Value && TryExecuteTask(task);
         }
@@ -140,7 +141,7 @@ namespace NetMQ
             throw new NotSupportedException();
         }
 
-        protected override void QueueTask(Task task)
+        protected override void QueueTask([NotNull] Task task)
         {
             m_tasksQueue.Enqueue(task);
 

@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace NetMQ.Devices
 {
     /// <summary>
@@ -8,7 +10,7 @@ namespace NetMQ.Devices
     {
         protected readonly IDevice Device;
 
-        public DeviceRunner(IDevice device)
+        public DeviceRunner([NotNull] IDevice device)
         {
             Device = device;
         }

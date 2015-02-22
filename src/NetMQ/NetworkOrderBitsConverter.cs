@@ -1,12 +1,15 @@
-﻿namespace NetMQ
+﻿using JetBrains.Annotations;
+
+namespace NetMQ
 {
     public static class NetworkOrderBitsConverter
     {
-        public static int ToInt32(byte[] buffer, int offset = 0)
+        public static int ToInt32([NotNull] byte[] buffer, int offset = 0)
         {
             return ((buffer[offset]) << 24) | ((buffer[offset + 1]) << 16) | ((buffer[offset + 2]) << 8) | (buffer[offset + 3]);
         }
 
+        [NotNull]
         public static byte[] GetBytes(int value)
         {
             byte[] buffer = new byte[4];
@@ -15,7 +18,7 @@
             return buffer;
         }
 
-        public static void PutInt32(int value, byte[] buffer, int offset)
+        public static void PutInt32(int value, [NotNull] byte[] buffer, int offset)
         {
             buffer[offset] = (byte)(((value) >> 24) & 0xff);
             buffer[offset + 1] = (byte)(((value) >> 16) & 0xff);
@@ -23,7 +26,7 @@
             buffer[offset + 3] = (byte)(value & 0xff);
         }
 
-        public static long ToInt64(byte[] buffer, int offset=0)
+        public static long ToInt64([NotNull] byte[] buffer, int offset=0)
         {
             return
                    (((long)buffer[offset]) << 56) |
@@ -36,6 +39,7 @@
                    ((long)buffer[offset + 7]);
         }
 
+        [NotNull]
         public static byte[] GetBytes(long value)
         {
             byte[] buffer = new byte[8];
@@ -44,7 +48,7 @@
             return buffer;
         }
 
-        public static void PutInt64(long value, byte[] buffer, int offset)
+        public static void PutInt64(long value, [NotNull] byte[] buffer, int offset)
         {
             buffer[offset] = (byte)(((value) >> 56) & 0xff);
             buffer[offset + 1] = (byte)(((value) >> 48) & 0xff);

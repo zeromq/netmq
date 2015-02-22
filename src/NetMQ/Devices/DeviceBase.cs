@@ -6,10 +6,9 @@ namespace NetMQ.Devices
     /// <summary>
     /// Forwards messages received by a front-end socket to a back-end socket, from which
     /// they are then sent.
-    /// </summary>	
+    /// </summary>
     public abstract class DeviceBase : IDevice
     {
-
         /// <summary>
         /// The frontend socket that will normally pass messages to <see cref="BackendSocket"/>.
         /// </summary>
@@ -134,6 +133,5 @@ namespace NetMQ.Devices
         /// Invoked when a message has been received by the backend socket.
         /// </summary>
         protected virtual void BackendHandler(object sender, NetMQSocketEventArgs args) { }
-
     }
 }

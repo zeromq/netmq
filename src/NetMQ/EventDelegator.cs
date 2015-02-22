@@ -2,13 +2,12 @@
 
 namespace NetMQ
 {
-    class EventDelegatorHelper<T> where T : EventArgs
+    internal class EventDelegatorHelper<T> where T : EventArgs
     {
         private readonly Action m_registerToEvent;
         private readonly Action m_unregisterFromEvent;
         private EventHandler<T> m_event;
         private int m_counter;
-
 
         public EventDelegatorHelper(Action registerToEvent, Action unregisterFromEvent)
         {

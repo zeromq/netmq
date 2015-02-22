@@ -51,5 +51,4 @@ namespace NetMQ.Monitoring
         /// </summary>
         public int Interval { get; private set; }
     }
-
 }

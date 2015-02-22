@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace NetMQ.zmq.Utils
 {
-    class SelectItem
+    internal class SelectItem
     {
         public SelectItem(SocketBase socket, PollEvents @event)
         {
@@ -27,7 +27,7 @@ namespace NetMQ.zmq.Utils
         public PollEvents ResultEvent { get; set; }
     }
 
-    class Selector
+    internal class Selector
     {
         private readonly List<Socket> m_checkRead;
         private readonly List<Socket> m_checkWrite;

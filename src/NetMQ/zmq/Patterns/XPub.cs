@@ -27,19 +27,15 @@ using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class XPub : SocketBase
+    internal class XPub : SocketBase
     {
-
         public class XPubSession : SessionBase
         {
-
             public XPubSession(IOThread ioThread, bool connect,
-                                                 SocketBase socket, Options options, Address addr) :
-                base(ioThread, connect, socket, options, addr)
+                               SocketBase socket, Options options, Address addr)
+                : base(ioThread, connect, socket, options, addr)
             {
-
             }
-
         }
 
         //  List of all subscriptions mapped to corresponding pipes.

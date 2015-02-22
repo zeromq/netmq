@@ -8,6 +8,5 @@ namespace NetMQ.Sockets
             : base(socketHandle)
         {
         }
-
     }
 }

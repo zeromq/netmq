@@ -28,7 +28,7 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Stream : SocketBase
+    internal class Stream : SocketBase
     {
         public class StreamSession : SessionBase
         {
@@ -37,7 +37,6 @@ namespace NetMQ.zmq.Patterns
                                  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
         }
 
@@ -51,7 +50,7 @@ namespace NetMQ.zmq.Patterns
 
             public Pipe Pipe { get; private set; }
             public bool Active;
-        };
+        }
 
         //  Fair queueing object for inbound pipes.
         private readonly FairQueueing m_fairQueueing;
@@ -156,7 +155,6 @@ namespace NetMQ.zmq.Patterns
 
             Debug.Assert(outpipe != null);
         }
-
 
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {

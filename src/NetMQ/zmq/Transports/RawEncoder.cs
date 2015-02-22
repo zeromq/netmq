@@ -1,13 +1,12 @@
 ﻿namespace NetMQ.zmq.Transports
 {
-    class RawEncoder : EncoderBase
+    internal class RawEncoder : EncoderBase
     {
         IMsgSource m_msgSource;
         Msg m_inProgress;
 
         private const int RawMessageSizeReadyState = 1;
         private const int RawMessageReadyState = 2;
-
 
         public RawEncoder(int bufferSize, IMsgSource msgSource, Endianness endianness) :
             base(bufferSize, endianness)

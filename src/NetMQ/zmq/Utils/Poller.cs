@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace NetMQ.zmq.Utils
 {
-    class Poller : PollerBase
+    internal class Poller : PollerBase
     {
         private class PollSet
         {
@@ -43,6 +43,7 @@ namespace NetMQ.zmq.Utils
                 Cancelled = false;
             }
         }
+
         //  This table stores data for registered descriptors.
         private readonly List<PollSet> m_handles;
 

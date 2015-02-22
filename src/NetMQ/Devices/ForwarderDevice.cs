@@ -1,6 +1,5 @@
 namespace NetMQ.Devices
 {
-
     /// <summary>
     /// Collects messages from a set of publishers and forwards these to a set of subscribers.
     /// </summary>
@@ -17,7 +16,6 @@ namespace NetMQ.Devices
     /// </example>
     public class ForwarderDevice : DeviceBase
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
         /// </summary>
@@ -29,7 +27,6 @@ namespace NetMQ.Devices
             DeviceMode mode = DeviceMode.Threaded)
             : base(context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
@@ -46,7 +43,6 @@ namespace NetMQ.Devices
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
@@ -62,10 +58,7 @@ namespace NetMQ.Devices
                 if (more)
                     BackendSocket.SendMore(data);
                 else
-                {
                     BackendSocket.Send(data);
-                }
-
             } while (more);
         }
     }

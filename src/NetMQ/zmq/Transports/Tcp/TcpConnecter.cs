@@ -30,9 +30,6 @@ namespace NetMQ.zmq.Transports.Tcp
 {
     internal class TcpConnecter : Own, IProcatorEvents
     {
-
-        //private static Logger LOG = LoggerFactory.getLogger(TcpConnecter.class);
-
         //  ID of the timer used to delay the reconnection.
         private const int ReconnectTimerId = 1;
 

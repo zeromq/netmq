@@ -11,7 +11,7 @@
     <iconUrl>https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQ.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-	  <releaseNotes>
+    <releaseNotes>
       Features:
       * DotNet 3.5 support
       * Using IO Completion Port
@@ -30,7 +30,6 @@
       * Fix XSub subscriptions bug
       * Fix memory overflow issue
       * Fix bug in YPipe
-
     </releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>

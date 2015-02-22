@@ -32,7 +32,5 @@
 
             EncryptedPreMasterSecret = preMasterSecretFrame.ToByteArray();
         }
-
-
     }
 }

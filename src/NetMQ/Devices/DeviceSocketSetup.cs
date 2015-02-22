@@ -7,13 +7,11 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Devices
 {
-
     /// <summary>
     /// Configures the given socket
     /// </summary>
     public class DeviceSocketSetup
     {
-
         private readonly NetMQSocket m_socket;
         private readonly List<Action<NetMQSocket>> m_socketInitializers;
         private readonly List<string> m_bindings;

@@ -34,7 +34,7 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Transports
 {
-    abstract class DecoderBase : IDecoder
+    internal abstract class DecoderBase : IDecoder
     {
         //  Where to store the read data.
         private ByteArraySegment m_readPos;

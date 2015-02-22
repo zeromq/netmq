@@ -158,11 +158,9 @@ namespace NetMQ.zmq
                 case ZmqSocketType.Push:
                     socketBase = new Push(parent, threadId, socketId);
                     break;
-
                 case ZmqSocketType.Xpub:
                     socketBase = new XPub(parent, threadId, socketId);
                     break;
-
                 case ZmqSocketType.Xsub:
                     socketBase = new XSub(parent, threadId, socketId);
                     break;

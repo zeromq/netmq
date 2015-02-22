@@ -12,9 +12,8 @@ namespace NetMQ
     /// </summary>
     public class NetMQContext : IDisposable
     {
-        readonly Ctx m_ctx;
+        private readonly Ctx m_ctx;
         private int m_isClosed = 0;
-
 
         private NetMQContext(Ctx ctx)
         {

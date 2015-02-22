@@ -239,7 +239,6 @@ namespace NetMQ.zmq.Transports.Tcp
             throw new NotImplementedException();
         }
 
-
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

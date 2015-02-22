@@ -113,7 +113,7 @@ namespace InterBrokerRouter
 
                 // start poller in extra task in order to allow the continued processing
                 // clientPoller.Start() -> blocking call
-                var pollTask = Task.Factory.StartNew (() => clientPoller.PollTillCancelled ());
+                var pollTask = Task.Factory.StartNew(clientPoller.PollTillCancelled);
 
                 // if true the message has been answered
                 // the 0th message is always answered

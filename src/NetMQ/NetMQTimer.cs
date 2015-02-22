@@ -1,15 +1,17 @@
 ﻿using System;
 using NetMQ.zmq.Utils;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
     public class NetMQTimerEventArgs : EventArgs
     {
-        public NetMQTimerEventArgs(NetMQTimer timer)
+        public NetMQTimerEventArgs([NotNull] NetMQTimer timer)
         {
             Timer = timer;
         }
 
+        [NotNull]
         public NetMQTimer Timer { get; private set; }
     }
 
@@ -24,7 +26,6 @@ namespace NetMQ
         public NetMQTimer(TimeSpan interval)
             : this((int)interval.TotalMilliseconds)
         {
-
         }
 
         public NetMQTimer(int interval)

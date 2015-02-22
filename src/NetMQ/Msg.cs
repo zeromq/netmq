@@ -21,6 +21,7 @@
 
 using System;
 using NetMQ.zmq.Utils;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -38,7 +39,7 @@ namespace NetMQ
     {
         Invalid = 0,
         Min = 101,
-        Empty=101,
+        Empty = 101,
         GC = 102,
         Pool = 103,
         Delimiter = 104,
@@ -66,10 +67,7 @@ namespace NetMQ
 
         public int Size
         {
-            get
-            {
-                return m_size;
-            }
+            get { return m_size; }
         }
 
         public bool HasMore
@@ -84,10 +82,7 @@ namespace NetMQ
 
         public MsgFlags Flags
         {
-            get
-            {
-                return m_flags;
-            }
+            get { return m_flags; }
         }
 
         public byte[] Data
@@ -119,7 +114,7 @@ namespace NetMQ
             m_atomicCounter = new AtomicCounter();
         }
 
-        public void InitGC(byte[] data, int size)
+        public void InitGC([NotNull] byte[] data, int size)
         {
             m_type = MsgType.GC;
             m_flags = MsgFlags.None;
@@ -149,7 +144,6 @@ namespace NetMQ
                     BufferPool.Return(m_data);
                 }
 
-                m_atomicCounter.Dispose();
                 m_atomicCounter = null;
             }
 
@@ -195,7 +189,6 @@ namespace NetMQ
 
             if (m_atomicCounter.Decrement(amount) == 0)
             {
-                m_atomicCounter.Dispose();
                 m_atomicCounter = null;
 
                 BufferPool.Return(m_data);
@@ -207,19 +200,17 @@ namespace NetMQ
             return base.ToString() + "[" + MsgType + "," + Size + "," + m_flags + "]";
         }
 
-
         public void SetFlags(MsgFlags flags)
         {
             m_flags = m_flags | flags;
         }
-
 
         public void ResetFlags(MsgFlags f)
         {
             m_flags = m_flags & ~f;
         }       
 
-        public void Put(byte[] src, int i, int len)
+        public void Put([NotNull] byte[] src, int i, int len)
         {
             if (len == 0 || src == null)
                 return;
@@ -237,7 +228,7 @@ namespace NetMQ
             m_data[i] = b;
         }        
 
-        public void Copy(ref Msg src)
+        public void Copy([NotNull] ref Msg src)
         {
             //  Check the validity of the source.
             if (!src.Check())
@@ -263,7 +254,7 @@ namespace NetMQ
             this = src;
         }
 
-        public void Move(ref Msg src)
+        public void Move([NotNull] ref Msg src)
         {
             //  Check the validity of the source.
             if (!src.Check())

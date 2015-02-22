@@ -28,7 +28,7 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Router : SocketBase
+    internal class Router : SocketBase
     {
         public class RouterSession : SessionBase
         {
@@ -37,7 +37,6 @@ namespace NetMQ.zmq.Patterns
                                  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
         }
 

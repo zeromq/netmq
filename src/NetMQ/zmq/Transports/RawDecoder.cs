@@ -2,12 +2,12 @@
 
 namespace NetMQ.zmq.Transports
 {
-    class RawDecoder : DecoderBase
+    internal class RawDecoder : DecoderBase
     {
-        readonly long m_maxMsgSize;
+        private readonly long m_maxMsgSize;
 
-        IMsgSink m_msgSink;
-        Msg m_inProgress;
+        private IMsgSink m_msgSink;
+        private Msg m_inProgress;
 
         private const int RawMessageReadyState = 1;
 

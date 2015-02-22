@@ -28,7 +28,7 @@ using System.Diagnostics;
 //  service for decent senders.
 namespace NetMQ.zmq.Patterns.Utils
 {
-    class FairQueueing
+    internal class FairQueueing
     {
         //  Inbound pipes.
         private readonly List<Pipe> m_pipes;

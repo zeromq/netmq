@@ -5,9 +5,8 @@ namespace NetMQ.zmq
     public enum ContextOption
     {
         IOThreads = 1,
-        MaxSockets = 2,
+        MaxSockets = 2
     }
-
 
     public enum ZmqSocketType
     {
@@ -23,7 +22,7 @@ namespace NetMQ.zmq
         Push = 8,
         Xpub = 9,
         Xsub = 10,
-        Stream = 11,
+        Stream = 11
     }
 
     public enum ZmqSocketOptions
@@ -43,8 +42,6 @@ namespace NetMQ.zmq
         [Obsolete("Use Handle")]
         FD = 14,
         Handle = 14,
-
-
 
         Events = 15,
         Type = 16,
@@ -80,12 +77,13 @@ namespace NetMQ.zmq
         FailUnroutable = RouterMandatory,
 
         [Obsolete]
-        RouterBehavior = RouterMandatory,
+        RouterBehavior = RouterMandatory
     }
 
     public enum Endianness
     {
-        Big, Little
+        Big,
+        Little
     }
 
     [Flags]
@@ -95,12 +93,12 @@ namespace NetMQ.zmq
         DontWait = 1,
         SendMore = 2,
 
-        /*  Deprecated aliases                                                        */
-        [Obsolete]
-        NoBlock = DontWait,
+        // Deprecated aliases
+        [Obsolete("Use DontWait instead")]
+        NoBlock = DontWait
     }
 
-    /*  Socket transport events (tcp and ipc only)                                */
+    // Socket transport events (tcp and ipc only)
 
     [Flags]
     public enum SocketEvent
@@ -120,10 +118,10 @@ namespace NetMQ.zmq
         Disconnected = 512,
 
         All = Connected | ConnectDelayed |
-                        ConnectRetried | Listening |
-                        BindFailed | Accepted |
-                        AcceptFailed | Closed |
-                        CloseFailed | Disconnected,
+              ConnectRetried | Listening |
+              BindFailed | Accepted |
+              AcceptFailed | Closed |
+              CloseFailed | Disconnected
     }
 
     [Flags]

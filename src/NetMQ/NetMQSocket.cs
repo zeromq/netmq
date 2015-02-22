@@ -5,9 +5,9 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket,ISocketPollable, IDisposable
+    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
-        readonly SocketBase m_socketHandle;
+        private readonly SocketBase m_socketHandle;
         private bool m_isClosed = false;
         private readonly NetMQSocketEventArgs m_socketEventArgs;
 
@@ -17,12 +17,12 @@ namespace NetMQ
 
         private readonly Selector m_selector;
 
-        internal NetMQSocket(SocketBase socketHandle)
+        internal NetMQSocket([NotNull] SocketBase socketHandle)
         {
             m_selector = new Selector();
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
-            m_socketEventArgs = new NetMQSocketEventArgs(this);            
+            m_socketEventArgs = new NetMQSocketEventArgs(this);
         }
 
         /// <summary>
@@ -84,10 +84,7 @@ namespace NetMQ
 
         internal SocketBase SocketHandle
         {
-            get
-            {
-                return m_socketHandle;
-            }
+            get { return m_socketHandle; }
         }
 
         NetMQSocket ISocketPollable.Socket
@@ -129,7 +126,7 @@ namespace NetMQ
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.Connect(address);            
+            m_socketHandle.Connect(address);
         }
 
         /// <summary>
@@ -167,7 +164,7 @@ namespace NetMQ
                 m_isClosed = true;
 
                 m_socketHandle.CheckDisposed();
-                m_socketHandle.Close();                
+                m_socketHandle.Close();
             }
         }
 
@@ -264,7 +261,7 @@ namespace NetMQ
         /// <param name="options"></param>
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {                        
-            m_socketHandle.Recv(ref msg, options);                        
+            m_socketHandle.Recv(ref msg, options);
         }       
                     
         public virtual void Send(ref Msg msg, SendReceiveOptions options)
