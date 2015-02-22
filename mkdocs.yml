@@ -25,3 +25,4 @@ pages:
 - ['xpub-xsub.md',         'Patterns', 'XSub-XPub']
 
 theme: readthedocs
+repo_url: https://github.com/zeromq/netmq/
