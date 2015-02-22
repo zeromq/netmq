@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.zmq;
 
@@ -14,6 +15,13 @@ namespace NetMQ
         [CanBeNull] private readonly NetMQSocket m_control;
         private Poller m_poller;
 
+        private int m_state = StateStopped;
+
+        private const int StateStopped = 0;
+        private const int StateStarting = 1;
+        private const int StateStarted = 2;
+        private const int StateStopping = 3;
+
         public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control)
         {
             m_frontend = frontend;
@@ -27,7 +35,7 @@ namespace NetMQ
         /// <exception cref="InvalidOperationException">The proxy has already been started.</exception>
         public void Start()
         {
-            if (m_poller != null)
+            if (Interlocked.CompareExchange(ref m_state, StateStarting, StateStopped) != StateStopped)
             {
                 throw new InvalidOperationException("Proxy has already been started");
             }
@@ -36,6 +44,7 @@ namespace NetMQ
             m_backend.ReceiveReady += OnBackendReady;
 
             m_poller = new Poller(m_frontend, m_backend);
+            m_state = StateStarted;
             m_poller.PollTillCancelled();
         }
 
@@ -45,13 +54,14 @@ namespace NetMQ
         /// <exception cref="InvalidOperationException">The proxy has not been started.</exception>
         public void Stop()
         {
-            if (m_poller == null)
+            if (Interlocked.CompareExchange(ref m_state, StateStopping, StateStarted) != StateStarted)
             {
                 throw new InvalidOperationException("Proxy has not been started");
             }
 
             m_poller.CancelAndJoin();
             m_poller = null;
+            m_state = StateStopped;
         }
 
         private void OnFrontendReady(object sender, NetMQSocketEventArgs e)
