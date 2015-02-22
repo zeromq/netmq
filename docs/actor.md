@@ -78,7 +78,7 @@ class Program
     {
         try
         {
-            await Task.Run(() =>
+            var task1 = Task.Run(() =>
             {
                 var threadId = Thread.CurrentThread.ManagedThreadId;
 
@@ -95,7 +95,7 @@ class Program
                 }
             });
 
-            await Task.Run(() =>
+            var task2 = Task.Run(() =>
             {
                 var threadId = Thread.CurrentThread.ManagedThreadId;
 
@@ -111,12 +111,13 @@ class Program
                         threadId, clientBankAccount.Balance);
                 }
             });
+
+            return Task.WaitAll(new[] {task1, task2});
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
-
     }
 
     static void Main(string[] args)
