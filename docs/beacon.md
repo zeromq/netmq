@@ -19,8 +19,9 @@ Following is a simple bus implementation that uses `NetMQBeacon`. This will allo
 to discover one another, configured only via a shared port number.
 
 * Each bus node binds a subscriber socket and connects to other nodes with a publisher socket.
-* Each node will use `NetMQBeacon` to announce its existence and to discover other nodes. We
-  will also use `NetMQActor` to implement our node.
+* Each node will use `NetMQBeacon` to announce its existence and to discover other nodes. We will also use `NetMQActor` to implement our node.
+
+### The Bus class
 
     :::csharp
     public class Bus
@@ -218,42 +219,41 @@ to discover one another, configured only via a shared port number.
         }
     }
 
-Example on how to use the bus:
+### Node implementation
+
+A node on the bus might resemble:
 
     :::csharp
-    static void Main(string[] args)
+    using (NetMQContext context = NetMQContext.Create())
     {
-        using (NetMQContext context = NetMQContext.Create())
+        // create a bus using broadcast port 9999
+        var actor = Bus.Create(context, 9999);
+
+        // beacons publish every second, so wait a little longer than that to
+        // let all the other nodes connect to our new node
+        Thread.Sleep(1100);
+
+        // publish a hello message
+        // note we can use NetMQSocket send and receive extension methods
+        actor.SendMore(Bus.PublishCommand).Send("Hello?");
+
+        // receive messages from other nodes on the bus
+        while (true)
         {
-            // create a bus using broadcast port 9999
-            var actor = Bus.Create(context, 9999);
+            string message = actor.ReceiveString();
 
-            // beacons publish every second, so wait a little longer than that to
-            // let all the other nodes connect to our new node
-            Thread.Sleep(1100);
-
-            // publish a hello message
-            // note we can use NetMQSocket send and receive extension methods
-            actor.SendMore(Bus.PublishCommand).Send("Hello?");
-
-            // receive messages from other nodes on the bus
-            while (true)
+            if (message == "Hello?")
             {
-                string message = actor.ReceiveString();
+                // another node is saying hello
+                Console.WriteLine(message);
 
-                if (message == "Hello?")
-                {
-                    // another node is saying hello
-                    Console.WriteLine(message);
-
-                    // send back a welcome message
-                    actor.SendMore(Bus.PublishCommand).Send("Welcome!");
-                }
-                else
-                {
-                    // it's probably a welcome message
-                    Console.WriteLine(message);
-                }
+                // send back a welcome message
+                actor.SendMore(Bus.PublishCommand).Send("Welcome!");
+            }
+            else
+            {
+                // it's probably a welcome message
+                Console.WriteLine(message);
             }
         }
     }
