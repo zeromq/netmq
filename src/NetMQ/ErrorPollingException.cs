@@ -2,6 +2,7 @@
 
 namespace NetMQ
 {
+    [Obsolete]
     public class ErrorPollingException : Exception
     {
         public ErrorPollingException(string message, NetMQSocket socket)
