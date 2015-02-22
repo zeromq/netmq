@@ -94,29 +94,29 @@ namespace SharedStateNeedForActors
             {
                 await Task.Run(() =>
                 {
-                    Console.WriteLine("Tread Id {0}, Account balance before: {1}",
+                    Console.WriteLine("Thread Id {0}, Account balance before: {1}",
                         Thread.CurrentThread.ManagedThreadId, clientBankAccount.Balance);
 
                     lock (syncLock)
                     {
-                        Console.WriteLine("Tread Id {0}, Adding 10 to balance",
+                        Console.WriteLine("Thread Id {0}, Adding 10 to balance",
                            Thread.CurrentThread.ManagedThreadId);
                         clientBankAccount.Balance += 10;
-                        Console.WriteLine("Tread Id {0}, Account balance before: {1}",
+                        Console.WriteLine("Thread Id {0}, Account balance before: {1}",
                             Thread.CurrentThread.ManagedThreadId, clientBankAccount.Balance);
                     }
                 });
 
                 await Task.Run(() =>
                 {
-                    Console.WriteLine("Tread Id {0}, Account balance before: {1}",
+                    Console.WriteLine("Thread Id {0}, Account balance before: {1}",
                         Thread.CurrentThread.ManagedThreadId, clientBankAccount.Balance);
                     lock (syncLock)
                     {
-                        Console.WriteLine("Tread Id {0}, Subtracting 4 to balance",
+                        Console.WriteLine("Thread Id {0}, Subtracting 4 to balance",
                            Thread.CurrentThread.ManagedThreadId);
                         clientBankAccount.Balance -= 4;
-                        Console.WriteLine("Tread Id {0}, Account balance before: {1}",
+                        Console.WriteLine("Thread Id {0}, Account balance before: {1}",
                             Thread.CurrentThread.ManagedThreadId, clientBankAccount.Balance);
                     }
                 });
