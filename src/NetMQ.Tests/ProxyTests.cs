@@ -199,5 +199,44 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Test]
+        public void TestProxySendAndReceiveWithExternalPoller()
+        {
+            using (var ctx = NetMQContext.Create())
+            using (var front = ctx.CreateRouterSocket())
+            using (var back = ctx.CreateDealerSocket())
+            using (var poller = new Poller(front, back))
+            {
+                front.Bind("inproc://frontend");
+                back.Bind("inproc://backend");
+
+                var proxy = new Proxy(front, back, null, poller);
+
+                poller.PollTillCancelledNonBlocking();
+
+                proxy.Start();
+
+                using (var client = ctx.CreateRequestSocket())
+                using (var server = ctx.CreateResponseSocket())
+                {
+                    client.Connect("inproc://frontend");
+                    server.Connect("inproc://backend");
+
+                    client.Send("hello");
+                    Assert.AreEqual("hello", server.ReceiveString());
+                    server.Send("reply");
+                    Assert.AreEqual("reply", client.ReceiveString());
+
+                    // Now stop the external poller
+                    poller.CancelAndJoin();
+
+                    client.Send("anyone there?");
+
+                    // Should no longer receive any messages
+                    Assert.IsNull(server.ReceiveString(TimeSpan.FromMilliseconds(50)));
+                }
+            }
+        }
     }
 }
