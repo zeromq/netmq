@@ -1,22 +1,21 @@
-Receiving / Sending
-=====
+If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/introduction/) page you would have already seen an example of `ReceiveString()` and `SendString()`, but NetMQ allows us to send and receive more than just strings.
 
-If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/introduction/) page you would have
-already seen an example of `ReceiveString()` and `SendString()`, but NetMQ allows us to send more than just strings.
+In fact there are quite a few options available to you. Lets go through some of these options, shall we?
 
-In fact there are quite a few options available to you. Lets go through some of these options shall we
-
-
+---
 
 ## Receiving
 
-A `NetMQSocket` (which all the socket types inherit from) has a single `public virtual void Receive(ref Msg msg, SendReceiveOptions options)` method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for `IReceivingSocket`.
+A `NetMQSocket` (which all the socket types inherit from) has a single receive method:
 
-These extension methods are shown below, one of these should give you what you want, but if it doesn't
-you simply need to write an extra extension method to suit your needs
+    :::csharp
+    public virtual void Receive(ref Msg msg, SendReceiveOptions options)
 
+But you will likely not actually use this method. Often it's more convenient to use one of the many extension methods for `IReceivingSocket`.
 
+These extension methods are shown below, one of these should give you what you want, but if it doesn't you simply need to write an extra extension method to suit your needs.
+
+    :::csharp
     public static class ReceivingSocketExtensions
     {
         public static byte[] Receive(this IReceivingSocket socket);
@@ -46,10 +45,9 @@ you simply need to write an extra extension method to suit your needs
         ....
     }
 
-
 Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own
 
-
+    :::csharp
     public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options, out bool hasMore)
     {
         Msg msg = new Msg();
@@ -65,17 +63,20 @@ Here is an example of how one of the above extension methods is implemented, whi
         return data;
     }
 
-
+---
 
 ## Sending
 
-A `NetMQSocket` (which all the socket types inherit from) has a single `public virtual void Send(ref Msg msg, SendReceiveOptions options)` method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for `IOutgoingSocket`.
+A `NetMQSocket` (which all the socket types inherit from) has a single send method:
 
-These extension methods are shown below, one of these should give you what you want, but if it doesn't
-you simply need to write an extra extension method to suit your needs
+    :::csharp
+    public virtual void Send(ref Msg msg, SendReceiveOptions options)
 
+But you will likely not actually use this method. Often it's more convenient to use one of the many extension methods for `IOutgoingSocket`.
 
+These extension methods are shown below, one of these should give you what you want, but if it doesn't you simply need to write an extra extension method to suit your needs.
+
+    :::csharp
     public static class OutgoingSocketExtensions
     {
         public static void Send(this IOutgoingSocket socket, byte[] data);
@@ -93,11 +94,11 @@ you simply need to write an extra extension method to suit your needs
         ....
     }
 
+Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own:
 
-Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own
-
-
-    public static void Send(this IOutgoingSocket socket, string message, Encoding encoding, SendReceiveOptions options)
+    :::csharp
+    public static void Send(this IOutgoingSocket socket, string message,
+                            Encoding encoding, SendReceiveOptions options)
     {
         Msg msg = new Msg();
         msg.InitPool(encoding.GetByteCount(message));
@@ -106,6 +107,7 @@ Here is an example of how one of the above extension methods is implemented, whi
         msg.Close();
     }
 
+---
 
 ## Further Reading
 
