@@ -17,12 +17,15 @@ pages:
 # - ['stream.md',            'Components', 'Stream']
 # - ['scheduler.md',         'Components', 'Scheduler']
 # - ['devices.md',           'Components', 'Devices']
+# - ['proxy.md',             'Components', 'Proxies']
 
 - ['request-response.md',  'Patterns', 'Request-Response']
 - ['pub-sub.md',           'Patterns', 'Pub-Sub']
 - ['push-pull.md',         'Patterns', 'Push-Pull']
 - ['router-dealer.md',     'Patterns', 'Router-Dealer']
 - ['xpub-xsub.md',         'Patterns', 'XSub-XPub']
+
+# - ['pair.md',              'Patterns', 'Pair']
 
 theme: readthedocs
 repo_url: https://github.com/zeromq/netmq/
