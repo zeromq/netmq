@@ -40,13 +40,7 @@ To take this one step further, lets see some code that may illustrate this furth
 ```csharp
 public class Account
 {
-    public Account()
-    {
-
-    }
-
-    public Account(int id, string name,
-        string sortCode, decimal balance)
+    public Account(int id, string name, string sortCode, decimal balance)
     {
         Id = id;
         Name = name;
@@ -70,70 +64,66 @@ public class Account
 Nothing fancy there, just some fields. So lets now move onto looking at some threading code, I have chosen to just show two threads acting on a shared `Account` instance.
 
 ```csharp
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace SharedStateNeedForActors
+class Program
 {
-    class Program
+    private readonly object syncLock = new object();
+    private readonly Account clientBankAccount;
+
+    public Program()
     {
-        private object syncLock = new object();
-        private Account clientBankAccount;
-        public Program()
-        {
-            clientBankAccount = new Account(1, "sacha barber", "112233", 0);
-        }
+        clientBankAccount = new Account(1, "sacha barber", "112233", 0);
+    }
 
-        public async Task Run()
+    public async Task Run()
+    {
+        try
         {
-            try
+            await Task.Run(() =>
             {
-                await Task.Run(() =>
-                {
-                    Console.WriteLine("Thread Id {0}, Account balance before: {1}",
-                        Thread.CurrentThread.ManagedThreadId, clientBankAccount.Balance);
+                var threadId = Thread.CurrentThread.ManagedThreadId;
 
-                    lock (syncLock)
-                    {
-                        Console.WriteLine("Thread Id {0}, Adding 10 to balance",
-                           Thread.CurrentThread.ManagedThreadId);
-                        clientBankAccount.Balance += 10;
-                        Console.WriteLine("Thread Id {0}, Account balance before: {1}",
-                            Thread.CurrentThread.ManagedThreadId, clientBankAccount.Balance);
-                    }
-                });
+                Console.WriteLine("Thread Id {0}, Account balance before: {1}",
+                    threadId, clientBankAccount.Balance);
 
-                await Task.Run(() =>
+                lock (syncLock)
                 {
-                    Console.WriteLine("Thread Id {0}, Account balance before: {1}",
-                        Thread.CurrentThread.ManagedThreadId, clientBankAccount.Balance);
-                    lock (syncLock)
-                    {
-                        Console.WriteLine("Thread Id {0}, Subtracting 4 to balance",
-                           Thread.CurrentThread.ManagedThreadId);
-                        clientBankAccount.Balance -= 4;
-                        Console.WriteLine("Thread Id {0}, Account balance before: {1}",
-                            Thread.CurrentThread.ManagedThreadId, clientBankAccount.Balance);
-                    }
-                });
-            }
-            catch (Exception e)
+                    Console.WriteLine("Thread Id {0}, Adding 10 to balance",
+                       threadId);
+                    clientBankAccount.Balance += 10;
+                    Console.WriteLine("Thread Id {0}, Account balance after: {1}",
+                        threadId, clientBankAccount.Balance);
+                }
+            });
+
+            await Task.Run(() =>
             {
-                Console.WriteLine(e);
-            }
+                var threadId = Thread.CurrentThread.ManagedThreadId;
 
+                Console.WriteLine("Thread Id {0}, Account balance before: {1}",
+                    threadId, clientBankAccount.Balance);
+
+                lock (syncLock)
+                {
+                    Console.WriteLine("Thread Id {0}, Subtracting 4 from balance",
+                       threadId);
+                    clientBankAccount.Balance -= 4;
+                    Console.WriteLine("Thread Id {0}, Account balance after: {1}",
+                        threadId, clientBankAccount.Balance);
+                }
+            });
         }
-
-        static void Main(string[] args)
+        catch (Exception e)
         {
-            Program p = new Program();
-            p.Run().Wait();
-            Console.ReadLine();
+            Console.WriteLine(e);
         }
+
+    }
+
+    static void Main(string[] args)
+    {
+        Program p = new Program();
+        p.Run().Wait();
+        Console.ReadLine();
     }
 }
 ```
@@ -147,10 +137,10 @@ Now don’t get me wrong the above code does work, as shown in the output below:
 ```text
 Thread Id 6, Account balance before: 0
 Thread Id 6, Adding 10 to balance
-Thread Id 6, Account balance before: 10
+Thread Id 6, Account balance after: 10
 Thread Id 10, Account balance before: 10
 Thread Id 10, Subtracting 4 to balance
-Thread Id 10, Account balance before: 6
+Thread Id 10, Account balance after: 6
 ```
 
 Perhaps there might be a more interesting way though!
@@ -183,10 +173,6 @@ public enum TransactionType { Debit = 1, Credit = 2 }
 
 public class AccountAction
 {
-    public AccountAction()
-    {
-    }
-
     public AccountAction(TransactionType transactionType, decimal amount)
     {
         TransactionType = transactionType;
@@ -203,10 +189,6 @@ public class AccountAction
 ```csharp
 public class Account
 {
-    public Account()
-    {
-    }
-
     public Account(int id, string name, string sortCode, decimal balance)
     {
         Id = id;
@@ -234,128 +216,117 @@ by an amount. You could send any command to the `Actor`, and the `Actor` is real
 Anyway here is the `Actor` code:
 
 ```csharp
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetMQ;
-using NetMQ.Actors;
-using NetMQ.InProcActors;
-using NetMQ.Sockets;
-using Newtonsoft.Json;
-
-namespace Actors
+public class AccountActioner
 {
-    public class AccountActioner
+    public class ShimHandler : IShimHandler<object>
     {
-        public class ShimHandler : IShimHandler<object>
-        {
-            private readonly NetMQContext context;
-            private PairSocket shim;
-            private Poller poller;
-
-            public ShimHandler(NetMQContext context)
-            {
-                this.context = context;
-            }
-
-            public void Initialise(object state)
-            {
-            }
-
-            public void RunPipeline(PairSocket shim)
-            {
-                this.shim = shim;
-                shim.ReceiveReady += OnShimReady;
-                shim.SignalOK();
-
-                poller = new Poller();
-                poller.AddSocket(shim);
-                poller.Start();
-            }
-
-            private void OnShimReady(object sender, NetMQSocketEventArgs e)
-            {
-                string command = e.Socket.ReceiveString();
-
-                switch (command)
-                {
-                    case ActorKnownMessages.END_PIPE:
-                        Console.WriteLine("Actor received END_PIPE message");
-                        poller.Stop(false);
-                        break;
-                    case "AmmendAccount":
-                        Console.WriteLine("Actor received AmmendAccount message");
-                        string accountJson = e.Socket.ReceiveString();
-                        Account account = JsonConvert.DeserializeObject<Account>(accountJson);
-                        string accountActionJson = e.Socket.ReceiveString();
-                        AccountAction accountAction = JsonConvert.DeserializeObject<AccountAction>(accountActionJson);
-                        Console.WriteLine("Incoming Account details are");
-                        Console.WriteLine(account);
-                        AmmendAccount(account, accountAction);
-                        shim.Send(JsonConvert.SerializeObject(account));
-                        break;
-                }
-            }
-
-            private void AmmendAccount(Account account, AccountAction accountAction)
-            {
-                switch (accountAction.TransactionType)
-                {
-                    case TransactionType.Credit:
-                        account.Balance += accountAction.Amount;
-                        break;
-                    case TransactionType.Debit:
-                        account.Balance -= accountAction.Amount;
-                        break;
-                }
-            }
-        }
-
-        private Actor<object> actor;
         private readonly NetMQContext context;
+        private PairSocket shim;
+        private Poller poller;
 
-        public AccountActioner(NetMQContext context)
+        public ShimHandler(NetMQContext context)
         {
             this.context = context;
         }
 
-        public void Start()
+        public void Initialise(object state)
         {
-            if (actor != null)
-                return;
-
-            actor = new Actor<object>(context, new ShimHandler(context), null);
         }
 
-        public void Stop()
+        public void RunPipeline(PairSocket shim)
         {
-            if (actor != null)
+            this.shim = shim;
+            shim.ReceiveReady += OnShimReady;
+            shim.SignalOK();
+
+            poller = new Poller();
+            poller.AddSocket(shim);
+            poller.Start();
+        }
+
+        private void OnShimReady(object sender, NetMQSocketEventArgs e)
+        {
+            string command = e.Socket.ReceiveString();
+
+            switch (command)
             {
-                actor.Dispose();
-                actor = null;
+                case ActorKnownMessages.END_PIPE:
+                    Console.WriteLine("Actor received END_PIPE message");
+                    poller.Stop(false);
+                    break;
+                case "AmmendAccount":
+                    Console.WriteLine("Actor received AmmendAccount message");
+                    string accountJson = e.Socket.ReceiveString();
+                    Account account
+                        = JsonConvert.DeserializeObject<Account>(accountJson);
+                    string accountActionJson = e.Socket.ReceiveString();
+                    AccountAction accountAction
+                        = JsonConvert.DeserializeObject<AccountAction>(
+                            accountActionJson);
+                    Console.WriteLine("Incoming Account details are");
+                    Console.WriteLine(account);
+                    AmmendAccount(account, accountAction);
+                    shim.Send(JsonConvert.SerializeObject(account));
+                    break;
             }
         }
 
-        public void SendPayload(Account account, AccountAction accountAction)
+        private void AmmendAccount(Account account, AccountAction accountAction)
         {
-            if (actor == null)
-                return;
-
-            Console.WriteLine("About to send person to Actor");
-
-            NetMQMessage message = new NetMQMessage();
-            message.Append("AmmendAccount");
-            message.Append(JsonConvert.SerializeObject(account));
-            message.Append(JsonConvert.SerializeObject(accountAction));
-            actor.SendMessage(message);
+            switch (accountAction.TransactionType)
+            {
+                case TransactionType.Credit:
+                    account.Balance += accountAction.Amount;
+                    break;
+                case TransactionType.Debit:
+                    account.Balance -= accountAction.Amount;
+                    break;
+            }
         }
+    }
 
-        public Account GetPayLoad()
+    private Actor<object> actor;
+    private readonly NetMQContext context;
+
+    public AccountActioner(NetMQContext context)
+    {
+        this.context = context;
+    }
+
+    public void Start()
+    {
+        if (actor != null)
+            return;
+
+        actor = new Actor<object>(context, new ShimHandler(context), null);
+    }
+
+    public void Stop()
+    {
+        if (actor != null)
         {
-            return JsonConvert.DeserializeObject<Account>(actor.ReceiveString());
+            actor.Dispose();
+            actor = null;
         }
+    }
+
+    public void SendPayload(Account account, AccountAction accountAction)
+    {
+        if (actor == null)
+            return;
+
+        Console.WriteLine("About to send person to Actor");
+
+        NetMQMessage message = new NetMQMessage();
+        message.Append("AmmendAccount");
+        message.Append(JsonConvert.SerializeObject(account));
+        message.Append(JsonConvert.SerializeObject(accountAction));
+        actor.SendMessage(message);
+    }
+
+    public Account GetPayLoad()
+    {
+        return JsonConvert.DeserializeObject<Account>(actor.ReceiveString());
     }
 }
 ```
@@ -363,51 +334,41 @@ namespace Actors
 Where you would communicate with this `Actor` code using something like this (again this could be any commands you want, this example just shows how to debit/credit an `Account`).
 
 ```csharp
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetMQ;
-
-namespace Actors
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            var context = NetMQContext.Create();
+        var context = NetMQContext.Create();
 
-            //CommandActioner uses an NetMq.Actor internally
-            AccountActioner accountActioner = new AccountActioner(context);
+        //CommandActioner uses an NetMq.Actor internally
+        AccountActioner accountActioner = new AccountActioner(context);
 
-            Account clientBankAccount = new Account(1, "Doron Semech", "112233", 0);
-            PrintAccount(clientBankAccount);
+        Account clientBankAccount = new Account(1, "Doron Semech", "112233", 0);
+        PrintAccount(clientBankAccount);
 
-            accountActioner.Start();
-            Console.WriteLine("Sending account to AccountActioner/Actor");
-            accountActioner.SendPayload(clientBankAccount,
-                new AccountAction(TransactionType.Credit, 15));
+        accountActioner.Start();
+        Console.WriteLine("Sending account to AccountActioner/Actor");
+        accountActioner.SendPayload(clientBankAccount,
+            new AccountAction(TransactionType.Credit, 15));
 
-            clientBankAccount = accountActioner.GetPayLoad();
-            PrintAccount(clientBankAccount);
+        clientBankAccount = accountActioner.GetPayLoad();
+        PrintAccount(clientBankAccount);
 
-            accountActioner.Stop();
-            Console.WriteLine();
-            Console.WriteLine("Sending account to AccountActioner/Actor");
-            accountActioner.SendPayload(clientBankAccount,
-                new AccountAction(TransactionType.Credit, 15));
-            PrintAccount(clientBankAccount);
+        accountActioner.Stop();
+        Console.WriteLine();
+        Console.WriteLine("Sending account to AccountActioner/Actor");
+        accountActioner.SendPayload(clientBankAccount,
+            new AccountAction(TransactionType.Credit, 15));
+        PrintAccount(clientBankAccount);
 
-            Console.ReadLine();
-        }
+        Console.ReadLine();
+    }
 
-        static void PrintAccount(Account account)
-        {
-            Console.WriteLine("Account now");
-            Console.WriteLine(account);
-            Console.WriteLine();
-        }
+    static void PrintAccount(Account account)
+    {
+        Console.WriteLine("Account now");
+        Console.WriteLine(account);
+        Console.WriteLine();
     }
 }
 ```
