@@ -61,6 +61,8 @@ namespace NetMQ
 
             m_poller.CancelAndJoin();
             m_poller = null;
+            m_frontend.ReceiveReady -= OnFrontendReady;
+            m_backend.ReceiveReady -= OnBackendReady;
             m_state = StateStopped;
         }
 
