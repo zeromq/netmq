@@ -114,6 +114,52 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void StartAgainAfterStop()
+        {
+            using (var ctx = NetMQContext.Create())
+            using (var front = ctx.CreateRouterSocket())
+            using (var back = ctx.CreateDealerSocket())
+            {
+                front.Bind("inproc://frontend");
+                back.Bind("inproc://backend");
+
+                var proxy = new Proxy(front, back);
+                Task.Factory.StartNew(proxy.Start);
+
+                // Send a message through to ensure the proxy has started
+                using (var client = ctx.CreateRequestSocket())
+                using (var server = ctx.CreateResponseSocket())
+                {
+                    client.Connect("inproc://frontend");
+                    server.Connect("inproc://backend");
+                    client.Send("hello");
+                    Assert.AreEqual("hello", server.ReceiveString());
+                    server.Send("reply");
+                    Assert.AreEqual("reply", client.ReceiveString());
+                }
+
+                proxy.Stop(); // blocks until stopped
+
+                // Start it again
+                Task.Factory.StartNew(proxy.Start);
+
+                // Send a message through to ensure the proxy has started
+                using (var client = ctx.CreateRequestSocket())
+                using (var server = ctx.CreateResponseSocket())
+                {
+                    client.Connect("inproc://frontend");
+                    server.Connect("inproc://backend");
+                    client.Send("hello");
+                    Assert.AreEqual("hello", server.ReceiveString());
+                    server.Send("reply");
+                    Assert.AreEqual("reply", client.ReceiveString());
+                }
+
+                proxy.Stop(); // blocks until stopped
+            }
+        }
+
+        [Test]
         public void StoppingProxyDisengagesFunctionality()
         {
             using (var ctx = NetMQContext.Create())
