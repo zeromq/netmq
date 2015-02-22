@@ -18,5 +18,4 @@ pages:
 - ['beacon.md', 'Beacon']
 - ['devices.md', 'Devices']
 
-
-
+theme: readthedocs
