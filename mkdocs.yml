@@ -26,3 +26,4 @@ pages:
 
 theme: readthedocs
 repo_url: https://github.com/zeromq/netmq/
+markdown_extensions: [codehilite]
