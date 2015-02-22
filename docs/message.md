@@ -36,9 +36,9 @@ Truth is ZeroMQ, and therefore NetMQ are really frame based, which implies some 
 
 While it is true that if you wish to come up with some complex and elaborate architecture you would be best of coming up with a nice protocol, thankfully you will not need to do this all the time. This is largely down to ZeroMQ/NetMQ clever socket(s) that abstract away a lot of that from you, and the way in which you can treat the socket(s) as building blocks to build complex architecture (think lego).
 
-One precanned example of this is the [RouterSocket](http://netmq.readthedocs.org/en/latest/routerDealer/) which makes very clever use of frames for you out of the box. Where it effectively onion skins the current message with the senders return address, so that when it gets a message back (say from a worker socket), it can use that frame information again to obtain the correct return address and send it back to the correct socket.
+One precanned example of this is the [RouterSocket](router-dealer) which makes very clever use of frames for you out of the box. Where it effectively onion skins the current message with the senders return address, so that when it gets a message back (say from a worker socket), it can use that frame information again to obtain the correct return address and send it back to the correct socket.
 
-So that is one inbuilt use of frames that you should be aware of, but frames are not limited to [RouterSocket](http://netmq.readthedocs.org/en/latest/routerDealer/), you can use them yourself for all sorts of things, here are some examples:
+So that is one inbuilt use of frames that you should be aware of, but frames are not limited to [RouterSocket](router-dealer), you can use them yourself for all sorts of things, here are some examples:
 
 + You may decide to dedicate frame[0] to be a specific message type, that can be examined by sockets to see if they should examine it further (this may be useful in a pub/sub type of arrangement, where frame[0] is the topic. By doing this, the subscribers may save themselves a lot of work of dersializing the rest of the message that they may not care about anyway
 + You may decide to use frame[0] as some sort of command, frame[1] and some sort of parameter and have frame[2] as the message payload (where it may contain some serialized object, say a JSON seriailized object)

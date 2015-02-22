@@ -21,7 +21,7 @@ pages:
 - ['request-response.md',  'Patterns', 'Request-Response']
 - ['pub-sub.md',           'Patterns', 'Pub-Sub']
 - ['push-pull.md',         'Patterns', 'Push-Pull']
-- ['routerDealer.md',      'Patterns', 'Router-Dealer']
+- ['router-dealer.md',     'Patterns', 'Router-Dealer']
 - ['xpub-xsub.md',         'Patterns', 'XSub-XPub']
 
 theme: readthedocs
