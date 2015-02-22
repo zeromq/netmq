@@ -22,7 +22,7 @@ namespace NetMQ
         private const int StateStarted = 2;
         private const int StateStopping = 3;
 
-        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control)
+        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null)
         {
             m_frontend = frontend;
             m_backend = backend;

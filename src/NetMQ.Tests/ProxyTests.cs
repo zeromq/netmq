@@ -17,7 +17,7 @@ namespace NetMQ.Tests
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
 
-                var proxy = new Proxy(front, back, null);
+                var proxy = new Proxy(front, back);
                 Task.Factory.StartNew(proxy.Start);
 
                 using (var client = ctx.CreateRequestSocket())
@@ -44,7 +44,7 @@ namespace NetMQ.Tests
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
 
-                var proxy = new Proxy(front, back, null);
+                var proxy = new Proxy(front, back);
                 Task.Factory.StartNew(proxy.Start);
 
                 // Send a message through to ensure the proxy has started
