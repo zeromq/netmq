@@ -56,37 +56,15 @@ namespace NetMQ
 
         private void OnFrontendReady(object sender, NetMQSocketEventArgs e)
         {
-            Msg msg = new Msg();
-            msg.InitEmpty();
-
-            Msg copy = new Msg();
-            copy.InitEmpty();
-
-            while (true)
-            {
-                m_frontend.Receive(ref msg, SendReceiveOptions.None);
-                bool more = m_frontend.Options.ReceiveMore;
-
-                if (m_control != null)
-                {
-                    copy.Copy(ref msg);
-
-                    m_control.Send(ref copy, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
-                }
-
-                m_backend.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
-
-                if (!more)
-                {
-                    break;
-                }
-            }
-
-            copy.Close();
-            msg.Close();
+            ProxyBetween(m_frontend, m_backend, m_control);
         }
 
         private void OnBackendReady(object sender, NetMQSocketEventArgs e)
+        {
+            ProxyBetween(m_backend, m_frontend, m_control);
+        }
+
+        private static void ProxyBetween(NetMQSocket from, NetMQSocket to, [CanBeNull] NetMQSocket control)
         {
             Msg msg = new Msg();
             msg.InitEmpty();
@@ -96,17 +74,17 @@ namespace NetMQ
 
             while (true)
             {
-                m_backend.Receive(ref msg, SendReceiveOptions.None);
-                bool more = m_backend.Options.ReceiveMore;
+                from.Receive(ref msg, SendReceiveOptions.None);
+                bool more = from.Options.ReceiveMore;
 
-                if (m_control != null)
+                if (control != null)
                 {
                     copy.Copy(ref msg);
 
-                    m_control.Send(ref copy, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
+                    control.Send(ref copy, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
                 }
 
-                m_frontend.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
+                to.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
 
                 if (!more)
                 {
