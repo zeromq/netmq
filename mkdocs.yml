@@ -1,21 +1,27 @@
 site_name: NetMQ
 
 pages:
-- ['index.md', 'Home']
-- ['introduction.md', 'Introduction']
-- ['transports.md', 'Transports']
-- ['request-response.md', 'Request-Response']
-- ['pub-sub.md', 'Pub-Sub']
-- ['push-pull.md', 'Push-Pull']
-- ['receiving-sending.md', 'Receiving and Sending']
-- ['message.md', 'NetMQ Message']
-- ['routerDealer.md', 'Router-Dealer'] 
-- ['xpub-xsub.md', 'XSub/XPub']
-- ['stream.md', 'Stream']
-- ['poller.md', 'Poller']
-- ['scheduler.md', 'NetMQ Scheduler']
-- ['actor.md', 'Actor']
-- ['beacon.md', 'Beacon']
-- ['devices.md', 'Devices']
+
+- ['index.md',                         'Home']
+
+- ['introduction.md',                  'Introduction']
+
+- ['receiving-sending.md', 'Concepts', 'Receiving and Sending']
+- ['message.md',           'Concepts', 'Messages']
+- ['transports.md',        'Concepts', 'Transports']
+
+- ['poller.md',            'Components', 'Poller']
+- ['actor.md',             'Components', 'Actor']
+- ['beacon.md',            'Components', 'Beacon']
+
+# - ['stream.md',            'Components', 'Stream']
+# - ['scheduler.md',         'Components', 'Scheduler']
+# - ['devices.md',           'Components', 'Devices']
+
+- ['request-response.md',  'Patterns', 'Request-Response']
+- ['pub-sub.md',           'Patterns', 'Pub-Sub']
+- ['push-pull.md',         'Patterns', 'Push-Pull']
+- ['routerDealer.md',      'Patterns', 'Router-Dealer']
+- ['xpub-xsub.md',         'Patterns', 'XSub-XPub']
 
 theme: readthedocs
