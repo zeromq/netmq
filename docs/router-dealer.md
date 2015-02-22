@@ -168,7 +168,7 @@ Ok so that is the overview. Let's see the code:
         }
     }
 
-When you run, this program should output something like this:
+When run, this program should output something like this:
 
 
     :::text
