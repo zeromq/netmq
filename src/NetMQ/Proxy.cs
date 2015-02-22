@@ -1,33 +1,52 @@
 ﻿using System;
+using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.zmq;
 
 namespace NetMQ
 {
     /// <summary>
-    /// Forward messages between two sockets, you can also specify control socket which both sockets will send messages to
+    /// Forwards messages bidirectionally between two sockets. You can also specify a control socket tn which proxied messages will be sent.
     /// </summary>
+    /// <remarks>
+    /// This class must be explicitly started by calling <see cref="Start"/>. If an external <see cref="Poller"/> has been specified,
+    /// then that call will block until <see cref="Stop"/> is called.
+    /// <para/>
+    /// If using an external <see cref="Poller"/>, ensure the front and back end sockets have been added to it.
+    /// <para/>
+    /// Users of this class must call <see cref="Stop"/> when messages should no longer be proxied.
+    /// </remarks>
     public class Proxy
     {
         [NotNull] private readonly NetMQSocket m_frontend;
         [NotNull] private readonly NetMQSocket m_backend;
         [CanBeNull] private readonly NetMQSocket m_control;
-        private Poller m_poller;
+        [CanBeNull] private Poller m_poller;
+        private readonly bool m_externalPoller;
 
-        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control)
+        private int m_state = StateStopped;
+
+        private const int StateStopped = 0;
+        private const int StateStarting = 1;
+        private const int StateStarted = 2;
+        private const int StateStopping = 3;
+
+        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, Poller poller = null)
         {
             m_frontend = frontend;
             m_backend = backend;
             m_control = control;
+            m_externalPoller = poller != null;
+            m_poller = poller;
         }
 
         /// <summary>
-        /// Start the proxy work, this will block until one of the sockets is closed
+        /// Start proxying messages between the front and back ends. Blocks, unless using an external <see cref="Poller"/>.
         /// </summary>
         /// <exception cref="InvalidOperationException">The proxy has already been started.</exception>
         public void Start()
         {
-            if (m_poller != null)
+            if (Interlocked.CompareExchange(ref m_state, StateStarting, StateStopped) != StateStopped)
             {
                 throw new InvalidOperationException("Proxy has already been started");
             }
@@ -35,8 +54,16 @@ namespace NetMQ
             m_frontend.ReceiveReady += OnFrontendReady;
             m_backend.ReceiveReady += OnBackendReady;
 
-            m_poller = new Poller(m_frontend, m_backend);
-            m_poller.PollTillCancelled();
+            if (m_externalPoller)
+            {
+                m_state = StateStarted;
+            }
+            else
+            {
+                m_poller = new Poller(m_frontend, m_backend);
+                m_state = StateStarted;
+                m_poller.PollTillCancelled();
+            }
         }
 
         /// <summary>
@@ -45,48 +72,34 @@ namespace NetMQ
         /// <exception cref="InvalidOperationException">The proxy has not been started.</exception>
         public void Stop()
         {
-            if (m_poller == null)
+            if (Interlocked.CompareExchange(ref m_state, StateStopping, StateStarted) != StateStarted)
             {
                 throw new InvalidOperationException("Proxy has not been started");
             }
 
-            m_poller.CancelAndJoin();
-            m_poller = null;
+            if (!m_externalPoller)
+            {
+                m_poller.CancelAndJoin();
+                m_poller = null;
+            }
+
+            m_frontend.ReceiveReady -= OnFrontendReady;
+            m_backend.ReceiveReady -= OnBackendReady;
+
+            m_state = StateStopped;
         }
 
         private void OnFrontendReady(object sender, NetMQSocketEventArgs e)
         {
-            Msg msg = new Msg();
-            msg.InitEmpty();
-
-            Msg copy = new Msg();
-            copy.InitEmpty();
-
-            while (true)
-            {
-                m_frontend.Receive(ref msg, SendReceiveOptions.None);
-                bool more = m_frontend.Options.ReceiveMore;
-
-                if (m_control != null)
-                {
-                    copy.Copy(ref msg);
-
-                    m_control.Send(ref copy, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
-                }
-
-                m_backend.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
-
-                if (!more)
-                {
-                    break;
-                }
-            }
-
-            copy.Close();
-            msg.Close();
+            ProxyBetween(m_frontend, m_backend, m_control);
         }
 
         private void OnBackendReady(object sender, NetMQSocketEventArgs e)
+        {
+            ProxyBetween(m_backend, m_frontend, m_control);
+        }
+
+        private static void ProxyBetween(NetMQSocket from, NetMQSocket to, [CanBeNull] NetMQSocket control)
         {
             Msg msg = new Msg();
             msg.InitEmpty();
@@ -96,17 +109,17 @@ namespace NetMQ
 
             while (true)
             {
-                m_backend.Receive(ref msg, SendReceiveOptions.None);
-                bool more = m_backend.Options.ReceiveMore;
+                from.Receive(ref msg, SendReceiveOptions.None);
+                bool more = from.Options.ReceiveMore;
 
-                if (m_control != null)
+                if (control != null)
                 {
                     copy.Copy(ref msg);
 
-                    m_control.Send(ref copy, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
+                    control.Send(ref copy, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
                 }
 
-                m_frontend.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
+                to.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
 
                 if (!more)
                 {
