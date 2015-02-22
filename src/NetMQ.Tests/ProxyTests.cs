@@ -31,6 +31,8 @@ namespace NetMQ.Tests
                     server.Send("reply");
                     Assert.AreEqual("reply", client.ReceiveString());
                 }
+
+                proxy.Stop();
             }
         }
 
