@@ -28,13 +28,12 @@ The `NetMQContext` is used to create _all_ sockets. Therefore any NetMQ code sho
 
 `NetMQContext` is `IDisposable` so can be used within a `using` block:
 
-```csharp
-using (var context = NetMQContext.Create())
-{
-    // code in here. exit this block to dispose the context,
-    // only when communication is no longer required
-}
-```
+    :::csharp
+    using (var context = NetMQContext.Create())
+    {
+        // code in here. exit this block to dispose the context,
+        // only when communication is no longer required
+    }
 
 You should create and use exactly _one_ context in your process. Technically, the context is the container for all sockets in process, and acts as the transport for inproc sockets (the fastest way to connect the threads in process). If at runtime a process has two contexts, these are like separate NetMQ instances. If that's explicitly what you want, okay, but otherwise you should have _one context only_.
 
@@ -50,31 +49,30 @@ So let's start with some code, the "Hello world" example (of course).
 
 ### Server
 
-```csharp
-static void Main(string[] args)
-{
-    using (var context = NetMQContext.Create())
+    :::csharp
+    static void Main(string[] args)
     {
-        using (var server = context.CreateResponseSocket())
+        using (var context = NetMQContext.Create())
         {
-            server.Bind("tcp://*:5555");
-
-            while (true)
+            using (var server = context.CreateResponseSocket())
             {
-                var message = server.ReceiveString();
+                server.Bind("tcp://*:5555");
 
-                Console.WriteLine("Received {0}", message);
+                while (true)
+                {
+                    var message = server.ReceiveString();
 
-                // processing the request
-                Thread.Sleep(100);
+                    Console.WriteLine("Received {0}", message);
 
-                Console.WriteLine("Sending World");
-                server.Send("World");
+                    // processing the request
+                    Thread.Sleep(100);
+
+                    Console.WriteLine("Sending World");
+                    server.Send("World");
+                }
             }
         }
     }
-}
-```
 
 The server creates a socket of type response (you can read more on the [request-response](request-response) chapter), binds it to port 5555 and then waits for messages.
 
@@ -82,27 +80,26 @@ You can also see that we have zero configuration, we are just sending strings. N
 
 ### Client
 
-```csharp
-static void Main(string[] args)
-{
-    using (var context = NetMQContext.Create())
+    :::csharp
+    static void Main(string[] args)
     {
-        using (var client = context.CreateRequestSocket())
+        using (var context = NetMQContext.Create())
         {
-            client.Connect("tcp://localhost:5555");
-
-            for (int i = 0; i < 10; i++)
+            using (var client = context.CreateRequestSocket())
             {
-                Console.WriteLine("Sending Hello");
-                client.Send("Hello");
+                client.Connect("tcp://localhost:5555");
 
-                var message = client.ReceiveString();
-                Console.WriteLine("Received {0}", message);
+                for (int i = 0; i < 10; i++)
+                {
+                    Console.WriteLine("Sending Hello");
+                    client.Send("Hello");
+
+                    var message = client.ReceiveString();
+                    Console.WriteLine("Received {0}", message);
+                }
             }
         }
     }
-}
-```
 
 The client create a socket of type request, connect and start sending messages.
 
@@ -110,6 +107,7 @@ Both the `Send` and `Receive` methods are blocking (by default). For the receive
 
 You can however call receive or send with the `DontWait` flag to avoid the waiting, make sure to wrap the send or receive with try and catch the `AgainException`, like so:
 
+    :::csharp
     try
     {
         var message = client.ReceiveString(SendReceiveOptions.DontWait);

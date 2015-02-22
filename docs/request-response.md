@@ -27,52 +27,51 @@ Here is a small example where the `RequestSocket` and `ResponseSocket`s are both
 
 Example:
 
-```csharp
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using NetMQ;
+    :::csharp
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using NetMQ;
 
-namespace RequestResponse
-{
-    class Program
+    namespace RequestResponse
     {
-        static void Main(string[] args)
+        class Program
         {
-            using (var context = NetMQContext.Create())
+            static void Main(string[] args)
             {
-                using (var responseSocket = context.CreateResponseSocket())
+                using (var context = NetMQContext.Create())
                 {
-                    responseSocket.Bind("tcp://*:5555");
-
-                    using (var requestSocket = context.CreateRequestSocket())
+                    using (var responseSocket = context.CreateResponseSocket())
                     {
-                        requestSocket.Connect("tcp://localhost:5555");
-                        Console.WriteLine("requestSocket : Sending 'Hello'");
-                        requestSocket.Send("Hello");
+                        responseSocket.Bind("tcp://*:5555");
 
-                        var message = responseSocket.ReceiveString();
+                        using (var requestSocket = context.CreateRequestSocket())
+                        {
+                            requestSocket.Connect("tcp://localhost:5555");
+                            Console.WriteLine("requestSocket : Sending 'Hello'");
+                            requestSocket.Send("Hello");
 
-                        Console.WriteLine("responseSocket : Server Received '{0}'", message);
+                            var message = responseSocket.ReceiveString();
 
-                        Console.WriteLine("responseSocket Sending 'World'");
-                        responseSocket.Send("World");
+                            Console.WriteLine("responseSocket : Server Received '{0}'", message);
 
-                        message = requestSocket.ReceiveString();
-                        Console.WriteLine("requestSocket : Received '{0}'", message);
+                            Console.WriteLine("responseSocket Sending 'World'");
+                            responseSocket.Send("World");
 
-                        Console.ReadLine();
+                            message = requestSocket.ReceiveString();
+                            Console.WriteLine("requestSocket : Received '{0}'", message);
+
+                            Console.ReadLine();
+                        }
+
                     }
-
                 }
             }
         }
     }
-}
-```
 
 When you run this demo code you should see something like this:
 

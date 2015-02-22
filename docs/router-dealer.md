@@ -59,144 +59,142 @@ Time for an example. The best way to think of this example is summarized in the 
 
 Ok so that is the overview. Let's see the code:
 
-```csharp
-public static void Main(string[] args)
-{
-    // NOTES
-    // 1. Use ThreadLocal<DealerSocket> where each thread has
-    //    its own client DealerSocket to talk to server
-    // 2. Each thread can send using it own socket
-    // 3. Each thread socket is added to poller
-
-    const int delay = 3000; // millis
-
-    var clientSocketPerThread = new ThreadLocal<DealerSocket>();
-    var poller = new Poller();
-
-    using (var ctx = NetMQContext.Create())
+    :::csharp
+    public static void Main(string[] args)
     {
-        using (var server = ctx.CreateRouterSocket())
+        // NOTES
+        // 1. Use ThreadLocal<DealerSocket> where each thread has
+        //    its own client DealerSocket to talk to server
+        // 2. Each thread can send using it own socket
+        // 3. Each thread socket is added to poller
+
+        const int delay = 3000; // millis
+
+        var clientSocketPerThread = new ThreadLocal<DealerSocket>();
+        var poller = new Poller();
+
+        using (var ctx = NetMQContext.Create())
         {
-            server.Bind("tcp://127.0.0.1:5556");
-
-            // Start some threads, each with its own DealerSocket
-            // to talk to the server socket. Creates lots of sockets,
-            // but no nasty race conditions no shared state, each
-            // thread has its own socket, happy days.
-            for (int i = 0; i < 3; i++)
+            using (var server = ctx.CreateRouterSocket())
             {
-                Task.Factory.StartNew((state) =>
+                server.Bind("tcp://127.0.0.1:5556");
+
+                // Start some threads, each with its own DealerSocket
+                // to talk to the server socket. Creates lots of sockets,
+                // but no nasty race conditions no shared state, each
+                // thread has its own socket, happy days.
+                for (int i = 0; i < 3; i++)
                 {
-                    DealerSocket client = null;
-
-                    if (!clientSocketPerThread.IsValueCreated)
+                    Task.Factory.StartNew((state) =>
                     {
-                        client = ctx.CreateDealerSocket();
-                        client.Options.Identity =
-                            Encoding.Unicode.GetBytes(state.ToString());
-                        client.Connect("tcp://127.0.0.1:5556");
-                        client.ReceiveReady += Client_ReceiveReady;
-                        clientSocketPerThread.Value = client;
-                        poller.AddSocket(client);
-                    }
-                    else
-                    {
-                        client = clientSocketPerThread.Value;
-                    }
+                        DealerSocket client = null;
 
-                    while (true)
-                    {
-                        var messageToServer = new NetMQMessage();
-                        messageToServer.AppendEmptyFrame();
-                        messageToServer.Append(state.ToString());
-                        Console.WriteLine("======================================");
-                        Console.WriteLine(" OUTGOING MESSAGE TO SERVER ");
-                        Console.WriteLine("======================================");
-                        PrintFrames("Client Sending", messageToServer);
-                        client.SendMessage(messageToServer);
-                        Thread.Sleep(delay);
-                    }
+                        if (!clientSocketPerThread.IsValueCreated)
+                        {
+                            client = ctx.CreateDealerSocket();
+                            client.Options.Identity =
+                                Encoding.Unicode.GetBytes(state.ToString());
+                            client.Connect("tcp://127.0.0.1:5556");
+                            client.ReceiveReady += Client_ReceiveReady;
+                            clientSocketPerThread.Value = client;
+                            poller.AddSocket(client);
+                        }
+                        else
+                        {
+                            client = clientSocketPerThread.Value;
+                        }
 
-                }, string.Format("client {0}", i), TaskCreationOptions.LongRunning);
-            }
+                        while (true)
+                        {
+                            var messageToServer = new NetMQMessage();
+                            messageToServer.AppendEmptyFrame();
+                            messageToServer.Append(state.ToString());
+                            Console.WriteLine("======================================");
+                            Console.WriteLine(" OUTGOING MESSAGE TO SERVER ");
+                            Console.WriteLine("======================================");
+                            PrintFrames("Client Sending", messageToServer);
+                            client.SendMessage(messageToServer);
+                            Thread.Sleep(delay);
+                        }
 
-            // start the poller
-            Task task = Task.Factory.StartNew(poller.Start);
+                    }, string.Format("client {0}", i), TaskCreationOptions.LongRunning);
+                }
 
-            // server loop
-            while (true)
-            {
-                var clientMessage = server.ReceiveMessage();
-                Console.WriteLine("======================================");
-                Console.WriteLine(" INCOMING CLIENT MESSAGE FROM CLIENT ");
-                Console.WriteLine("======================================");
-                PrintFrames("Server receiving", clientMessage);
-                if (clientMessage.FrameCount == 3)
+                // start the poller
+                Task task = Task.Factory.StartNew(poller.Start);
+
+                // server loop
+                while (true)
                 {
-                    var clientAddress = clientMessage[0];
-                    var clientOriginalMessage = clientMessage[2].ConvertToString();
-                    string response = string.Format("{0} back from server {1}",
-                        clientOriginalMessage, DateTime.Now.ToLongTimeString());
-                    var messageToClient = new NetMQMessage();
-                    messageToClient.Append(clientAddress);
-                    messageToClient.AppendEmptyFrame();
-                    messageToClient.Append(response);
-                    server.SendMessage(messageToClient);
+                    var clientMessage = server.ReceiveMessage();
+                    Console.WriteLine("======================================");
+                    Console.WriteLine(" INCOMING CLIENT MESSAGE FROM CLIENT ");
+                    Console.WriteLine("======================================");
+                    PrintFrames("Server receiving", clientMessage);
+                    if (clientMessage.FrameCount == 3)
+                    {
+                        var clientAddress = clientMessage[0];
+                        var clientOriginalMessage = clientMessage[2].ConvertToString();
+                        string response = string.Format("{0} back from server {1}",
+                            clientOriginalMessage, DateTime.Now.ToLongTimeString());
+                        var messageToClient = new NetMQMessage();
+                        messageToClient.Append(clientAddress);
+                        messageToClient.AppendEmptyFrame();
+                        messageToClient.Append(response);
+                        server.SendMessage(messageToClient);
+                    }
                 }
             }
         }
     }
-}
 
-void PrintFrames(string operationType, NetMQMessage message)
-{
-    for (int i = 0; i < message.FrameCount; i++)
+    void PrintFrames(string operationType, NetMQMessage message)
     {
-        Console.WriteLine("{0} Socket : Frame[{1}] = {2}", operationType, i,
-            message[i].ConvertToString());
+        for (int i = 0; i < message.FrameCount; i++)
+        {
+            Console.WriteLine("{0} Socket : Frame[{1}] = {2}", operationType, i,
+                message[i].ConvertToString());
+        }
     }
-}
 
-void Client_ReceiveReady(object sender, NetMQSocketEventArgs e)
-{
-    bool hasmore = false;
-    e.Socket.Receive(out hasmore);
-    if (hasmore)
+    void Client_ReceiveReady(object sender, NetMQSocketEventArgs e)
     {
-        string result = e.Socket.ReceiveString(out hasmore);
-        Console.WriteLine("REPLY {0}", result);
+        bool hasmore = false;
+        e.Socket.Receive(out hasmore);
+        if (hasmore)
+        {
+            string result = e.Socket.ReceiveString(out hasmore);
+            Console.WriteLine("REPLY {0}", result);
+        }
     }
-}
-```
 
 When you run, this program should output something like this:
 
 
-```text
-======================================
- OUTGOING MESSAGE TO SERVER
-======================================
-======================================
- OUTGOING MESSAGE TO SERVER
-======================================
-Client Sending Socket : Frame[0] =
-Client Sending Socket : Frame[1] = client 1
-Client Sending Socket : Frame[0] =
-Client Sending Socket : Frame[1] = client 0
-======================================
- INCOMING CLIENT MESSAGE FROM CLIENT
-======================================
-Server receiving Socket : Frame[0] = c l i e n t   1
-Server receiving Socket : Frame[1] =
-Server receiving Socket : Frame[2] = client 1
-======================================
- INCOMING CLIENT MESSAGE FROM CLIENT
-======================================
-Server receiving Socket : Frame[0] = c l i e n t   0
-Server receiving Socket : Frame[1] =
-Server receiving Socket : Frame[2] = client 0
-REPLY client 1 back from server 08:05:56
-REPLY client 0 back from server 08:05:56
-```
+    :::text
+    ======================================
+     OUTGOING MESSAGE TO SERVER
+    ======================================
+    ======================================
+     OUTGOING MESSAGE TO SERVER
+    ======================================
+    Client Sending Socket : Frame[0] =
+    Client Sending Socket : Frame[1] = client 1
+    Client Sending Socket : Frame[0] =
+    Client Sending Socket : Frame[1] = client 0
+    ======================================
+     INCOMING CLIENT MESSAGE FROM CLIENT
+    ======================================
+    Server receiving Socket : Frame[0] = c l i e n t   1
+    Server receiving Socket : Frame[1] =
+    Server receiving Socket : Frame[2] = client 1
+    ======================================
+     INCOMING CLIENT MESSAGE FROM CLIENT
+    ======================================
+    Server receiving Socket : Frame[0] = c l i e n t   0
+    Server receiving Socket : Frame[1] =
+    Server receiving Socket : Frame[2] = client 0
+    REPLY client 1 back from server 08:05:56
+    REPLY client 0 back from server 08:05:56
 
 Remember this is asynchronous code, so events may not occur in the order you logically expect.
