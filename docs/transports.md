@@ -78,7 +78,7 @@ Where it can be seen that the format of the tcp information used in the `Bind()`
 
 tcp://*:5555
 
-This is made up of 3 parts : 
+This is made up of 3 parts :
 
 + [0] the "tcp" protocol part
 + [1] the "*" part, which is either a IP address, or a wild card to match any
@@ -92,7 +92,7 @@ This is made up of 3 parts :
 
 InProc (In process) allows you to connect different parts the current process. This is actually quite useful, and
 you may do this for several reasons:
- 
+
 + To do away with shared state/locks. When you send data down the wire (socket) there is no shared state to worry about
   each end of the socket will have its own copy.
 + Being able to communicate between very disparate parts of a system
@@ -131,16 +131,16 @@ Here is some demo code:
                         Console.WriteLine("ManagedThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
                         Console.WriteLine("Sending hello down the inproc pipeline");
                         end1.Send("Hello");
-                    
+
                     });
                     var end2Task = Task.Run(() =>
                     {
                         Console.WriteLine("ManagedThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
                         var message = end2.ReceiveString();
                         Console.WriteLine(message);
-                    
+
                     });
-                    Task.WaitAll(new[] {end1Task, end2Task}); 
+                    Task.WaitAll(new[] {end1Task, end2Task});
                     end1.Dispose();
                     end2.Dispose();
                 }
@@ -175,7 +175,7 @@ Where it can be seen that the format of the Inproc information used in the `Bind
 
 **inproc://InprocTest_5555**
 
-This is made up of 2 parts : 
+This is made up of 2 parts :
 
 + [0] the "inproc" protocol part
 + [1] the "InprocTest_5555" part, which is an unique string that suits your needs
@@ -189,11 +189,11 @@ This is made up of 2 parts :
 ## PGM
 
 Pragmatic General Multicast (PGM) is a reliable multicast transport protocol for applications that require ordered
-or unordered, duplicate-free, multicast data delivery from multiple sources to multiple receivers.  
+or unordered, duplicate-free, multicast data delivery from multiple sources to multiple receivers.
 
 Pgm guarantees that a receiver in the group either receives all data packets from transmissions and repairs, or
 is able to detect unrecoverable data packet loss. PGM is specifically intended as a workable solution for multicast
-applications with basic reliability requirements. Its central design goal is simplicity of operation with due 
+applications with basic reliability requirements. Its central design goal is simplicity of operation with due
 regard for scalability and network efficiency.
 
 To use PGM with NetMQ, we do not have to do too much. We just need to follow these 3 pointers:
@@ -278,7 +278,7 @@ Where it can be seen that the format of the Pgm information used in the `Bind()`
 
 pgm://224.0.0.1:5555
 
-This is made up of 3 parts : 
+This is made up of 3 parts :
 
 + [0] the "pgm" protocol part
 + [1] the "224.0.0.1" part, which is either a TCPIP address, or a wild card to match any

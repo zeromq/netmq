@@ -21,14 +21,14 @@ NetMQ has an implementation of the `Poller`, and it can be used to do the follow
 
 ## Poller Methods
 
-There are several methods available on the `Poller` to help you. Most notably `AddSocket(..)/RemoveSocket(..)` and `Start()/Stop()`. 
+There are several methods available on the `Poller` to help you. Most notably `AddSocket(..)/RemoveSocket(..)` and `Start()/Stop()`.
 
 The idea is that you would use the `AddSocket` to add the socket you want to monitor for "readiness" to the `Poller` instance, and then some time later call the `Poller.Start()` method, at which point the `Poller` will call back any registered `ReceiveReady` event handler delegates
 
 
 ## Poller Example
 
-So now that you know what the `Poller` does, perhaps it is time to see an example. 
+So now that you know what the `Poller` does, perhaps it is time to see an example.
 
 The code below is a fully working Console application that demonstrates a single socket being added to the `Poller`. It can also be seen that the `ReceiveReady` event is hooked up too. The `Poller` will call this event handler back when the Socket (the one that is added to the `Poller`) is "Ready".
 
@@ -94,7 +94,7 @@ When you run this you should see something like this appear in the Console outpu
 
 <p>
 <i>
-messageIn = Hello<br/>  
+messageIn = Hello<br/>
 messageBack = World<br/>
 </i>
 </p>
@@ -153,7 +153,7 @@ Here is the new modified code
 
 
                             Task pollerTask = Task.Factory.StartNew(poller.Start);
-                            
+
                             req.Send("Hello");
 
                             bool more2;
@@ -161,12 +161,12 @@ Here is the new modified code
                             Console.WriteLine("messageBack = {0}", messageBack);
 
 
-        
+
                             //This should not do anything, as we removed the ResponseSocket
                             //the 1st time we sent a message to it
                             req.Send("Hello Again");
 
-                           
+
                             Console.WriteLine("Carrying on doing the rest");
 
                             poller.Stop();
@@ -185,7 +185,7 @@ Here is the new modified code
 Which when run gives this output now.
 
 <p><i>
-messageIn = Hello<br/>  
+messageIn = Hello<br/>
 messageBack = World<br/>
 Carrying on doing the rest<br/>
 </i>
@@ -197,7 +197,7 @@ See how we did not get any output for the "Hello Again" message we attempted to 
 
 ## Timer(s)
 
-Another thing the Poller allows is to add/remove `NetMQTimer` instances, which you may do using the `AddTimer(..) / RemoveTimer(..)` methods. 
+Another thing the Poller allows is to add/remove `NetMQTimer` instances, which you may do using the `AddTimer(..) / RemoveTimer(..)` methods.
 
 Where the added timers get called back the `Poller`. Here is a simple example that adds a `NetMQTimer` which expects to wait for 5 Seconds. The `NetMQTimer` instance is added to the `Poller`, which internally calls the `NetMQTimer.Elapsed` event handler callback delegates.
 
@@ -244,7 +244,7 @@ Where the added timers get called back the `Poller`. Here is a simple example th
 Which when run gives this output now.
 
 <p><i>
-Timer done<br/>  
+Timer done<br/>
 </i>
 </p>
 

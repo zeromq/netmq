@@ -70,7 +70,7 @@ Here is an example of how one of the above extension methods is implemented, whi
 ## Sending
 
 A `NetMQSocket` (which all the socket types inherit from) has a single `public virtual void Send(ref Msg msg, SendReceiveOptions options)` method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for `IOutgoingSocket`. 
+method. What you will end up using is one the extra extension methods that is available for `IOutgoingSocket`.
 
 These extension methods are shown below, one of these should give you what you want, but if it doesn't
 you simply need to write an extra extension method to suit your needs

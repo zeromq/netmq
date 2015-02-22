@@ -49,7 +49,7 @@ The text above is taken from <a href="http://zguide.zeromq.org/page:all#Identiti
 
 ## DealerSocket
 
-The NetMQ `DealerSocket` doesn't do anything particularly special, but what it does offer is the ability to work in a fully asynchronous manner. 
+The NetMQ `DealerSocket` doesn't do anything particularly special, but what it does offer is the ability to work in a fully asynchronous manner.
 
 Which if you recall was not something that other socket types could do, where the `ReceieveXXX` / `SendXXX` methods are blocking, and would also throw exceptions should you try to call
 things in the wrong order, or more than expected.
@@ -105,8 +105,8 @@ Ok so that is the overview, what does the code look like, lets see:
                         server.Bind("tcp://127.0.0.1:5556");
 
                         //start some threads, each with its own DealerSocket
-                        //to talk to the server socket. Creates lots of sockets, 
-                        //but no nasty race conditions no shared state, each 
+                        //to talk to the server socket. Creates lots of sockets,
+                        //but no nasty race conditions no shared state, each
                         //thread has its own socket, happy days
                         for (int i = 0; i < 3; i++)
                         {

@@ -1,10 +1,10 @@
 Beacon
 ======
 
-The NetMQBeacon implements a peer-to-peer discovery service for local networks. 
-A beacon can broadcast and/or capture service announcements using UDP messages on the local area network. 
-This implementation uses IPv4 UDP broadcasts. 
-You can define the format of your outgoing beacons, and set a filter that validates incoming beacons. 
+The NetMQBeacon implements a peer-to-peer discovery service for local networks.
+A beacon can broadcast and/or capture service announcements using UDP messages on the local area network.
+This implementation uses IPv4 UDP broadcasts.
+You can define the format of your outgoing beacons, and set a filter that validates incoming beacons.
 Beacons are sent and received asynchronously in the background.
 
 NetMQBeacon is a port of zbeacon from czmq.
@@ -12,7 +12,7 @@ NetMQBeacon is a port of zbeacon from czmq.
 We can use the NetMQBeacon to discover and connect to other NetMQ/CZMQ services in the network automatically without central configuration.
 Please note that to use NetMQBeacon your infrastructure must support broadcast. Most cloud providers doesn't support broadcast.
 
-Following is a simple bus implementation that use the NetMQBeacon. 
+Following is a simple bus implementation that use the NetMQBeacon.
 Each bus node binds a subscriber socket and connect to other nodes with a publisher socket.
 Each node will use NetMQBeacon to announce it existence and to discover other nodes. We will also use NetMQActor to implement our Node.
 
@@ -101,12 +101,12 @@ class Bus
         // create all subscriber, publisher and beacon
         using (m_subscriber = m_context.CreateSubscriberSocket())
         using (m_publisher = m_context.CreatePublisherSocket())
-        using (m_beacon = new NetMQBeacon(m_context))            
+        using (m_beacon = new NetMQBeacon(m_context))
         {
             // listen to actor commands
             m_shim.ReceiveReady += OnShimReady;
 
-            // subscribe to all messages           
+            // subscribe to all messages
             m_subscriber.Subscribe("");
 
             // we bind to a random port, we will later publish this port using the beacon
@@ -126,7 +126,7 @@ class Bus
 
             // listen to incoming beacons
             m_beacon.ReceiveReady += OnBeaconReady;
-                
+
             // Create and configure the poller with all sockets
             m_poller = new Poller(m_shim, m_subscriber, m_beacon);
 
@@ -141,7 +141,7 @@ class Bus
             // polling until cancelled
             m_poller.PollTillCancelled();
         }
-    }      
+    }
 
     private void OnShimReady(object sender, NetMQSocketEventArgs e)
     {
@@ -199,7 +199,7 @@ class Bus
         var deadNodes = m_nodes.
             Where(n => DateTime.Now > n.Value + DeadNodeTimeout).
             Select(n => n.Key).ToArray();
-             
+
         // remove all the dead nodes from the nodes list and disconnect from the publisher
         foreach (var node in deadNodes)
         {
@@ -221,7 +221,7 @@ static void Main(string[] args)
 
         // we wait a little more then one second to let all the other nodes to connect to our new node.
         // it is a little more then one second because beacon publish a message every one second
-        Thread.Sleep(1100);                     
+        Thread.Sleep(1100);
 
         // publish hello message, we can use all NetMQSocket send and receive extension methods
         actor.SendMore(Bus.PublishCommand).Send("Hello");
@@ -229,7 +229,7 @@ static void Main(string[] args)
         while (true)
         {
             // we will now welcome each new actor that sends hello
-            string message = actor.ReceiveString();                    
+            string message = actor.ReceiveString();
 
             if (message == "Hello")
             {
@@ -242,7 +242,7 @@ static void Main(string[] args)
                 Console.WriteLine(message);
             }
         }
-    }            
+    }
 }
 ```
 

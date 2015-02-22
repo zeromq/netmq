@@ -62,7 +62,7 @@ It can be seen that the `PublisherSocket` connnects to the `XSubscriberSocket` a
 
                 Random rand = new Random(50);
 
-                const string xsubAddress = "tcp://127.0.0.1:5678"; 
+                const string xsubAddress = "tcp://127.0.0.1:5678";
 
 
                 using (var context = NetMQContext.Create())
@@ -125,7 +125,7 @@ This is the appoach we have shown in this example. Anyway enough pyscho bablble,
             {
 
                 const string xpubAddress = "tcp://127.0.0.1:1234";
-                const string xsubAddress = "tcp://127.0.0.1:5678"; 
+                const string xsubAddress = "tcp://127.0.0.1:5678";
 
                 using (var context = NetMQContext.Create())
                 {
@@ -153,7 +153,7 @@ This is the appoach we have shown in this example. Anyway enough pyscho bablble,
             }
         }
     }
- 
+
 
 
 **Subscriber**
@@ -201,8 +201,8 @@ It can be seen that the `SubscriberSocket` connnects to the `XPublisherSocket` a
                 string topic = args[0] == "All" ? "" : args[0];
                 Console.WriteLine("Subscriber started for Topic : {0}", topic);
 
-                const string xpubPortAddress = "tcp://127.0.0.1:1234";   
- 
+                const string xpubPortAddress = "tcp://127.0.0.1:1234";
+
                 using (var context = NetMQContext.Create())
                 {
                     using (var subSocket = context.CreateSubscriberSocket())

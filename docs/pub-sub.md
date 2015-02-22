@@ -6,7 +6,7 @@ NetMQ comes with support for Pub/Sub by way of 2 sockets
 + `PublisherSocket`
 + `SubscriberSocket`
 
-Which as usual can be created by using the `NetMQContext` methods `.CreateXXXSocket()` methods. Which in this case would be 
+Which as usual can be created by using the `NetMQContext` methods `.CreateXXXSocket()` methods. Which in this case would be
 
 + `CreatePublisherSocket()`
 + `CreateSubscriberSocket()`
@@ -55,12 +55,12 @@ An example of this would be as follows:
 
 It is also possibe for a subscriber to subscribe to all topics from a publishing socket, which means it will recieve (that is providing no messages are dropped see 'Further Considerations'section below)
 ALL the messages from the `PublisherSocket` the `SubscriberSocket` is connected to. This is easily achieved, all you need to do in the subscriber is to pass an empty string ("") in for the topic name when
-calling the `subscriberSocket.Subscribe()` method. 
+calling the `subscriberSocket.Subscribe()` method.
 
 
 ## An Example
 
-Time for an example. This example is very simple, and follows these rules. 
+Time for an example. This example is very simple, and follows these rules.
 
 + There is 1 Publisher, who is creating messages, that could be for "TopicA" or "TopicB" (depending on the result of the random number produced)
 + There is a generic Subscriber (the topic name is fed in via the command line arguments) that will subscribe to the incoming topic name
@@ -176,7 +176,7 @@ Here is the code:
                             Console.WriteLine(messageReceived);
                         }
                     }
-                }            
+                }
             }
         }
     }
@@ -211,7 +211,7 @@ Subscriber.exe %topic%<br/>
 
 
 
-When you run this you should see something like this, where it can be seen that 
+When you run this you should see something like this, where it can be seen that
 
 
 <br/>
@@ -229,7 +229,7 @@ Other Considerations
 
 The `SendHighWaterMark/ReceiveHighWaterMark` options set the high water mark for the specified socket. The high water mark is a hard limit on the maximum number of outstanding messages NetMQ shall queue in memory for any single peer that the specified socket is communicating with.
 
-If this limit has been reached the socket shall enter an exceptional state and depending on the socket type, NetMQ shall take appropriate action such as blocking or dropping sent messages. 
+If this limit has been reached the socket shall enter an exceptional state and depending on the socket type, NetMQ shall take appropriate action such as blocking or dropping sent messages.
 
 The default `SendHighWaterMark/ReceiveHighWaterMark` value of zero means "no limit".
 

@@ -31,7 +31,7 @@ Have one `NetMQContext` ONLY. This will be used to created ALL sockets within th
 
 ## Sending and receiving
 
-Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : <a href="http://netmq.readthedocs.org/en/latest/receiving-sending/">Receiving and Sending</a> 
+Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page for that which you can find here : <a href="http://netmq.readthedocs.org/en/latest/receiving-sending/">Receiving and Sending</a>
 
 
 
@@ -40,7 +40,7 @@ Since NetMQ is all about the sockets, it is only natural that one would expect t
 So let's start with some code, the "Hello world" example (of course).
 
 **Server:**
-    
+
     static void Main(string[] args)
     {
         using (var context = NetMQContext.Create())
@@ -64,11 +64,11 @@ So let's start with some code, the "Hello world" example (of course).
             }
         }
     }
-    
+
 The server create a socket of type response (you can read more on the request-response chapter), bind it to port 5555 and wait for messages. You can also see that we have zero configuration, we just sending strings. NetMQ can send much more than strings, but NetMQ doesn't come with any serialization feature and you have to do it by hand, but you will learn some cool tricks for that (Multi part messages).
-  
+
 **Client:**
-    
+
     static void Main(string[] args)
     {
         using (var context = NetMQContext.Create())
@@ -81,8 +81,8 @@ The server create a socket of type response (you can read more on the request-re
                 {
                     Console.WriteLine("Sending Hello");
                     client.Send("Hello");
-                        
-                    var message = client.ReceiveString();                        
+
+                    var message = client.ReceiveString();
                     Console.WriteLine("Received {0}", message);
                 }
             }
@@ -102,7 +102,7 @@ You can however call receive or send with the `DontWait` flag to avoid the waiti
     }
     catch (AgainException ex)
     {
-        Console.WriteLine(ex);                        
+        Console.WriteLine(ex);
     }
 
 
@@ -124,7 +124,7 @@ As a very general advice: use bind on the most stable points in your architectur
 
 If you can't figure out which parts are more stable (i.e. peer-to-peer) think about a stable device in the middle, where boths sides can connect to.
 
-You can read more about this at the ZeroMQ FAQ http://zeromq.org/area:faq under the "Why do I see different behavior when I bind a socket versus connect a socket?" section. 
+You can read more about this at the ZeroMQ FAQ http://zeromq.org/area:faq under the "Why do I see different behavior when I bind a socket versus connect a socket?" section.
 
 
 
@@ -189,14 +189,14 @@ Any other combination will produce undocumented and unreliable results, and futu
 
 ## Options
 
-NetMQ comes with several options that will effect how things work. 
+NetMQ comes with several options that will effect how things work.
 
 Depending on the type of sockets you are using, or the topology you are attempting to create, you may find that you need to set some NeroMQ options. In NetMQ this is done using the xxxxSocket.Options property.
 
 Here is a listing of the available properties that you may set on a xxxxSocket. It is hard to say exactly which of these values you may need to set, as that obviously depends entirely on what you are trying to achieve. All I can do is list the options, and make you aware of them. So here they are
 
-+ Affinity  
-+ BackLog  
++ Affinity
++ BackLog
 + CopyMessages
 + DelayAttachOnConnect
 + Endian

@@ -7,7 +7,7 @@ socket arrangements that happen to make a great deal of sense to use together, w
 <br/>
 <br/>
 The particular socket combinations that work well together are all covered in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>. Whilst it may seem a cop out to simply tell you to read more documentation somewhere else, there really is **NO BETTER** documentation on ZeroMQ/NetMQ than you will find in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, as it covers well known
-patterns that have been proved in the field and are known to work well. 
+patterns that have been proved in the field and are known to work well.
 
 Anyway we digress, this post is about Request/Response, so lets continue to look at that shall we.
 
@@ -19,7 +19,7 @@ Anyway we digress, this post is about Request/Response, so lets continue to look
 Request / Response pattern is a configuration of 2 NetMQ sockets working harmoniously together. This combination of sockets are akin to what you might see when you
 make a web request. That is you make a request, and you expect a response.
 
-The `RequestSocket / ResponseSocket` are **not asynchronous, and are also blocking**, and you will get an exception if you try and read more messages than are currently available. 
+The `RequestSocket / ResponseSocket` are **not asynchronous, and are also blocking**, and you will get an exception if you try and read more messages than are currently available.
 
 The way you should work with `RequestSocket/ResponseSocket` is as follows:
 

@@ -9,7 +9,7 @@ You would typically use this configuration of sockets to produce some distribute
 
 The idea is that you have something that generates work, and then distributes the work out to n-many workers. The workers each do some work, and push their results to some other process (could be a thread too) where the workers results are accumulated.
 
-In the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, it shows an example that has the work generator just tell each worker to sleep for a period of time. 
+In the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, it shows an example that has the work generator just tell each worker to sleep for a period of time.
 
 We toyed with creating a more elaborate example than this, but in the end felt that the examples simplicity was quite important, so we have stuck with the workload for each worker just being a value that tells the work to sleep for a number of Milliseconds (thus simulating some actual work).  This as I say has been borrowed from the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>.
 
@@ -143,8 +143,8 @@ Here is the code
 
                                 //send results to sink, sink just needs to know worker
                                 //is done, message content is not important, just the precence of
-                                //a message means worker is done. 
-                                //See Sink.csproj Proram.cs 
+                                //a message means worker is done.
+                                //See Sink.csproj Proram.cs
                                 Console.WriteLine("Sending to Sink");
                                 sender.Send(string.Empty);
                             }
@@ -235,7 +235,7 @@ start Ventilator.exe<br/>
 cd../../..<br/>
 cd Sink/bin/Debug<br/>
 start Sink.exe<br/>
-cd../../..<br/> 
+cd../../..<br/>
 cd Worker/bin/Debug<br/>
 start Worker.exe<br/>
 
@@ -290,7 +290,7 @@ start Ventilator.exe<br/>
 cd../../..<br/>
 cd Sink/bin/Debug<br/>
 start Sink.exe<br/>
-cd../../..<br/> 
+cd../../..<br/>
 cd Worker/bin/Debug<br/>
 start Worker.exe<br/>
 start Worker.exe<br/>
