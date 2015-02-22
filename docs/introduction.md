@@ -76,7 +76,7 @@ So let's start with some code, the "Hello world" example (of course).
 
 The server creates a socket of type response (you can read more on the [request-response](request-response) chapter), binds it to port 5555 and then waits for messages.
 
-You can also see that we have zero configuration, we are just sending strings. NetMQ can send much more than strings, but NetMQ doesn't come with any serialization feature and you have to do it by hand, but you will learn some cool tricks for that below ([Multi part messages](#multipart-messages)).
+You can also see that we have zero configuration, we are just sending strings. NetMQ can send much more than strings, but NetMQ doesn't come with any serialization feature and you have to do it by hand, but you will learn some cool tricks for that below ([Multipart messages](#multipart-messages)).
 
 ### Client
 
