@@ -35,6 +35,48 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void ControlSocketObservedMessages()
+        {
+            using (var ctx = NetMQContext.Create())
+            using (var front = ctx.CreateRouterSocket())
+            using (var back = ctx.CreateDealerSocket())
+            using (var controlPush = ctx.CreatePushSocket())
+            using (var controlPull = ctx.CreatePullSocket())
+            {
+                front.Bind("inproc://frontend");
+                back.Bind("inproc://backend");
+
+                controlPush.Bind("inproc://control");
+                controlPull.Connect("inproc://control");
+
+                var proxy = new Proxy(front, back, controlPush);
+                Task.Factory.StartNew(proxy.Start);
+
+                using (var client = ctx.CreateRequestSocket())
+                using (var server = ctx.CreateResponseSocket())
+                {
+                    client.Connect("inproc://frontend");
+                    server.Connect("inproc://backend");
+
+                    client.Send("hello");
+                    Assert.AreEqual("hello", server.ReceiveString());
+                    server.Send("reply");
+                    Assert.AreEqual("reply", client.ReceiveString());
+                }
+
+                Assert.IsNotNull(controlPull.Receive());     // receive identity
+                Assert.IsEmpty(controlPull.ReceiveString()); // pull terminator
+                Assert.AreEqual("hello", controlPull.ReceiveString());
+
+                Assert.IsNotNull(controlPull.Receive());     // receive identity
+                Assert.IsEmpty(controlPull.ReceiveString()); // pull terminator
+                Assert.AreEqual("reply", controlPull.ReceiveString());
+
+                proxy.Stop();
+            }
+        }
+
+        [Test]
         public void StartAndStopStateValidation()
         {
             using (var ctx = NetMQContext.Create())
