@@ -215,7 +215,6 @@ Here is a listing of the available properties that you may set on a `NetMQSocket
 + `SendBuffer`
 + `TcpAcceptFilter`
 + `TcpKeepAlive`
-+ `TcpKeepaliveCnt`
 + `TcpKeepaliveIdle`
 + `TcpKeepaliveInterval`
 + `XPubVerbose`
