@@ -24,7 +24,9 @@ namespace NetMQ
 
         public byte[] Identity
         {
+            [CanBeNull]
             get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOptions.Identity); }
+            [NotNull]
             set { m_socket.SetSocketOption(ZmqSocketOptions.Identity, value); }
         }
 
@@ -166,6 +168,7 @@ namespace NetMQ
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.TcpKeepaliveIntvl, value); }
         }
 
+        [CanBeNull]
         public string TcpAcceptFilter
         {
             get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.TcpAcceptFilter); }
