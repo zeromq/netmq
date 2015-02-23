@@ -182,14 +182,9 @@ namespace NetMQ.zmq
                     else if (optval is byte[])
                         val = (byte[])optval;
                     else
-                    {
-                        throw new InvalidException();
-                    }
-
+                        throw new InvalidException("Invalid option value type for ZmqSocketOptions.Identity");
                     if (val.Length == 0 || val.Length > 255)
-                    {
-                        throw new InvalidException();
-                    }
+                        throw new InvalidException("Invalid length for ZmqSocketOptions.Identity");
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
                     IdentitySize = (byte)Identity.Length;
@@ -211,21 +206,13 @@ namespace NetMQ.zmq
                     break;
                 case ZmqSocketOptions.ReconnectIvl:
                     ReconnectIvl = (int)optval;
-
                     if (ReconnectIvl < -1)
-                    {
-                        throw new InvalidException();
-                    }
-
+                        throw new InvalidException("Value must be -1 or greater for ZmqSocketOptions.ReconnectIvl");
                     break;
                 case ZmqSocketOptions.ReconnectIvlMax:
                     ReconnectIvlMax = (int)optval;
-
                     if (ReconnectIvlMax < 0)
-                    {
-                        throw new InvalidException();
-                    }
-
+                        throw new InvalidException("Value must be 0 or greater for ZmqSocketOptions.ReconnectIvlMax");
                     break;
                 case ZmqSocketOptions.Backlog:
                     Backlog = (int)optval;
@@ -249,12 +236,9 @@ namespace NetMQ.zmq
 
                     break;
                 case ZmqSocketOptions.TcpKeepalive:
-
                     TcpKeepalive = (int)optval;
                     if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
-                    {
-                        throw new InvalidException();
-                    }
+                        throw new InvalidException("Value must be -1, 0 or 1 for ZmqSocketOptions.TcpKeepalive");
                     break;
                 case ZmqSocketOptions.DelayAttachOnConnect:
 
@@ -278,7 +262,7 @@ namespace NetMQ.zmq
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw new InvalidException();
+                        throw new InvalidException("Invalid length for ZmqSocketOptions.TcpAcceptFilter");
                     }
                     else
                     {
@@ -291,7 +275,7 @@ namespace NetMQ.zmq
                     Endian = (Endianness)optval;
                     break;
                 default:
-                    throw new InvalidException();
+                    throw new InvalidException("Unsupported ZmqSocketOptions enum value: " + option);
             }
         }
 
@@ -373,7 +357,7 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.Endian:
                     return Endian;
                 default:
-                    throw new InvalidException();
+                    throw new InvalidException("Unsupported ZmqSocketOptions enum value: " + option);
             }
         }
     }

@@ -71,7 +71,7 @@ namespace NetMQ.zmq.Transports.Tcp
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
-                throw new InvalidException();
+                throw new InvalidException("TCP address must include a port number");
             }
 
             //  Separate the address/port.
@@ -94,7 +94,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 port = Convert.ToInt32(portStr);
                 if (port == 0)
                 {
-                    throw new InvalidException();
+                    throw new InvalidException("Unable to parse port number as an integer");
                 }
             }         
 
