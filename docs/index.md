@@ -1,4 +1,4 @@
-![](NetMQLogo.svg)
+![](Images/NetMQLogo.svg)
 
 NetMQ is a 100% native C# port of ZeroMQ, a lightweight messaging library.
 
