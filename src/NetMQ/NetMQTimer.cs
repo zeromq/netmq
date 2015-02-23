@@ -77,7 +77,7 @@ namespace NetMQ
             }
         }
 
-        internal Int64 When { get; set; }
+        internal long When { get; set; }
 
         internal void InvokeElapsed(object sender)
         {

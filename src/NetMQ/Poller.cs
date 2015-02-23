@@ -256,7 +256,7 @@ namespace NetMQ
         private int TicklessTimer()
         {
             //  Calculate tickless timer
-            Int64 tickless = Clock.NowMs() + PollTimeout;
+            long tickless = Clock.NowMs() + PollTimeout;
 
             foreach (NetMQTimer timer in m_timers)
             {
