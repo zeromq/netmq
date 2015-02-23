@@ -50,27 +50,22 @@ So let's start with some code, the "Hello world" example (of course).
 ### Server
 
     :::csharp
-    static void Main(string[] args)
+    using (var context = NetMQContext.Create())
+    using (var server = context.CreateResponseSocket())
     {
-        using (var context = NetMQContext.Create())
+        server.Bind("tcp://*:5555");
+
+        while (true)
         {
-            using (var server = context.CreateResponseSocket())
-            {
-                server.Bind("tcp://*:5555");
+            var message = server.ReceiveString();
 
-                while (true)
-                {
-                    var message = server.ReceiveString();
+            Console.WriteLine("Received {0}", message);
 
-                    Console.WriteLine("Received {0}", message);
+            // processing the request
+            Thread.Sleep(100);
 
-                    // processing the request
-                    Thread.Sleep(100);
-
-                    Console.WriteLine("Sending World");
-                    server.Send("World");
-                }
-            }
+            Console.WriteLine("Sending World");
+            server.Send("World");
         }
     }
 
@@ -81,23 +76,18 @@ You can also see that we have zero configuration, we are just sending strings. N
 ### Client
 
     :::csharp
-    static void Main(string[] args)
+    using (var context = NetMQContext.Create())
+    using (var client = context.CreateRequestSocket())
     {
-        using (var context = NetMQContext.Create())
+        client.Connect("tcp://localhost:5555");
+
+        for (int i = 0; i < 10; i++)
         {
-            using (var client = context.CreateRequestSocket())
-            {
-                client.Connect("tcp://localhost:5555");
+            Console.WriteLine("Sending Hello");
+            client.Send("Hello");
 
-                for (int i = 0; i < 10; i++)
-                {
-                    Console.WriteLine("Sending Hello");
-                    client.Send("Hello");
-
-                    var message = client.ReceiveString();
-                    Console.WriteLine("Received {0}", message);
-                }
-            }
+            var message = client.ReceiveString();
+            Console.WriteLine("Received {0}", message);
         }
     }
 

@@ -5,29 +5,25 @@ So if you have come here after looking at some of the introductory material, you
 
     :::csharp
     using (NetMQContext ctx = NetMQContext.Create())
+    using (var server = ctx.CreateResponseSocket())
+    using (var client = ctx.CreateRequestSocket())
     {
-        using (var server = ctx.CreateResponseSocket())
-        {
-            server.Bind("tcp://127.0.0.1:5556");
-            using (var client = ctx.CreateRequestSocket())
-            {
-                client.Connect("tcp://127.0.0.1:5556");
+        server.Bind("tcp://127.0.0.1:5556");
+        client.Connect("tcp://127.0.0.1:5556");
 
-                client.Send("Hello");
+        client.Send("Hello");
 
-                string fromClientMessage = server.ReceiveString();
+        string fromClientMessage = server.ReceiveString();
 
-                Console.WriteLine("From Client: {0}", fromClientMessage);
+        Console.WriteLine("From Client: {0}", fromClientMessage);
 
-                server.Send("Hi Back");
+        server.Send("Hi Back");
 
-                string fromServerMessage = client.ReceiveString();
+        string fromServerMessage = client.ReceiveString();
 
-                Console.WriteLine("From Server: {0}", fromServerMessage);
+        Console.WriteLine("From Server: {0}", fromServerMessage);
 
-                Console.ReadLine();
-            }
-        }
+        Console.ReadLine();
     }
 
 Where you may have noticed (or perhaps not) that the NetMQ socket(s) have a `RecieveString()` method. This is good, and extremely useful, but you may be fooled into thinking this is what you should be using all the time.
@@ -142,45 +138,43 @@ Just to solidify this information here is a complete example showing everything 
 
     :::csharp
     using (NetMQContext ctx = NetMQContext.Create())
+    using (var server = ctx.CreateResponseSocket())
+    using (var client = ctx.CreateRequestSocket())
     {
-        using (var server = ctx.CreateResponseSocket())
-        using (var client = ctx.CreateRequestSocket())
+        // connect the sockets
+        server.Bind("tcp://127.0.0.1:5556");
+        client.Connect("tcp://127.0.0.1:5556");
+
+        // client sends message consisting of two frames
+        Console.WriteLine("Client sending")
+        client.SendMore("A").Send("Hello");
+
+        // server receives frames
+        bool more = true;
+        while (more)
         {
-            // connect the sockets
-            server.Bind("tcp://127.0.0.1:5556");
-            client.Connect("tcp://127.0.0.1:5556");
-
-            // client sends message consisting of two frames
-            Console.WriteLine("Client sending")
-            client.SendMore("A").Send("Hello");
-
-            // server receives frames
-            bool more = true;
-            while (more)
-            {
-                string frame = server.ReceiveString(out more);
-                Console.WriteLine("Server received frame={0} more={1}",
-                    frame, more);
-            }
-
-            Console.WriteLine("================================");
-
-            // server sends message, this time using NetMqMessage
-            var msg = new NetMQMessage();
-            msg.Append("From");
-            msg.Append("Server");
-
-            Console.WriteLine("Server sending");
-            server.SendMessage(msg);
-
-            // client receives the message
-            msg = client.ReceiveMessage();
-            Console.WriteLine("Client received {0} frames", msg.FrameCount)
-            foreach (var frame in msg)
-                Console.WriteLine("Frame={0}", frame.ConvertToString());
-
-            Console.ReadLine();
+            string frame = server.ReceiveString(out more);
+            Console.WriteLine("Server received frame={0} more={1}",
+                frame, more);
         }
+
+        Console.WriteLine("================================");
+
+        // server sends message, this time using NetMqMessage
+        var msg = new NetMQMessage();
+        msg.Append("From");
+        msg.Append("Server");
+
+        Console.WriteLine("Server sending");
+        server.SendMessage(msg);
+
+        // client receives the message
+        msg = client.ReceiveMessage();
+        Console.WriteLine("Client received {0} frames", msg.FrameCount)
+        foreach (var frame in msg)
+            Console.WriteLine("Frame={0}", frame.ConvertToString());
+
+        Console.ReadLine();
     }
 
 Which when run will give you some output like this:

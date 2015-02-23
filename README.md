@@ -38,25 +38,29 @@ There are also a few blog posts available, which you can read about here
 Here is a small example
 
 ```csharp
-using (NetMQContext ctx = NetMQContext.Create())
+using (var context = NetMQContext.Create())
+using (var server = context.CreateResponseSocket())
+using (var client = context.CreateRequestSocket())
 {
-    using (var server = ctx.CreateResponseSocket())
-    {
-        server.Bind("tcp://127.0.0.1:5556");
-        using (var client = ctx.CreateRequestSocket())
-        {
-            client.Connect("tcp://127.0.0.1:5556");
-            client.Send("Hello");
+    // Bind the server to a local TCP address
+    server.Bind("tcp://localhost:5556");
 
-            string m1 = server.ReceiveString();
-            Console.WriteLine("From Client: {0}", m1);
-            server.Send("Hi Back");
+    // Connect the client to the server
+    client.Connect("tcp://localhost:5556");
 
-            string m2 = client.ReceiveString();
-            Console.WriteLine("From Server: {0}", m2);
-            Console.ReadLine();
-        }
-    }
+    // Send a message from the client socket
+    client.Send("Hello");
+
+    // Receive the message from the server socket
+    string m1 = server.ReceiveString();
+    Console.WriteLine("From Client: {0}", m1);
+
+    // Send a response back from the server
+    server.Send("Hi Back");
+
+    // Receive the response from the client socket
+    string m2 = client.ReceiveString();
+    Console.WriteLine("From Server: {0}", m2);
 }
 ```
 
