@@ -330,7 +330,7 @@ namespace NetMQ
             m_isStarted = true;
             try
             {
-                // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barried
+                // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barrier
                 // at the begining of the loop
                 Thread.MemoryBarrier();
 
