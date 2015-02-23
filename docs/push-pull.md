@@ -1,38 +1,29 @@
 Push / Pull
 =====
 
-NetMQ comes with a <code>PushSocket</code> and a <code>PullSocket</code>. What are these and how should they be used?
+NetMQ comes with a `PushSocket` and a `PullSocket`. What are these and how should they be used?
 
-Well a <code>PushSocket</code> is normally used to push to a <code>PullSocket</code>, whilst the <code>PullSocket</code> will pull from a <code>PushSocket</code>. Sounds obvious right!
+Well a `PushSocket` is normally used to push to a `PullSocket`, whilst the `PullSocket` will pull from a `PushSocket`. Sounds obvious right!
 
 You would typically use this configuration of sockets to produce some distributed work, kind of like a <a href="http://zguide.zeromq.org/page:all#Divide-and-Conquer" target="_blank">divide and conquer</a> arrangement.
 
 The idea is that you have something that generates work, and then distributes the work out to n-many workers. The workers each do some work, and push their results to some other process (could be a thread too) where the workers results are accumulated.
 
-In the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, it shows an example that has the work generator just tell each worker to sleep for a period of time. 
+In the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, it shows an example that has the work generator just tell each worker to sleep for a period of time.
 
-We toyed with creating a more elaborate example than this, but in the end felt that the examples simplicity was quite important, so we have stuck with the workload for each worker just being a value that tells the work to sleep for a number of Milliseconds (thus simulating some actual work).  This as I say has been borrowed from the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>.
+We toyed with creating a more elaborate example than this, but in the end felt that the example's simplicity was quite important, so we have stuck with the workload for each worker just being a value that tells the work to sleep for a number of milliseconds (thus simulating some actual work). This example, as I say, has been borrowed from the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>.
 
 In real life the work could obviously be anything, though you would more than likely want the work to be something that could be cut up and distributed without the work generator caring/knowing how many workers there are.
 
 Here is what we are trying to achieve :
 
-<br/>
-<br/>
-<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/Fanout.png"/>
+![](Images/Fanout.png)
 
+## Ventilator
 
-<br/>
-<br/>
-
-Here is the code
-
-**Ventilator**
-
-
+    :::csharp
     using System;
     using NetMQ;
-
 
     namespace Ventilator
     {
@@ -64,8 +55,6 @@ Here is the code
                             Console.WriteLine("Sending start of batch to Sink");
                             sink.Send("0");
 
-
-
                             Console.WriteLine("Sending tasks to workers");
 
                             //initialise random number generator
@@ -94,14 +83,12 @@ Here is the code
         }
     }
 
+## Worker
 
-**Worker**
-
-
+    :::csharp
     using System;
     using System.Threading;
     using NetMQ;
-
 
     namespace Worker
     {
@@ -115,7 +102,6 @@ Here is the code
                 // Connects PUSH socket to tcp://localhost:5558
                 // Sends results to Sink via that socket
                 Console.WriteLine("====== WORKER ======");
-
 
                 using (NetMQContext ctx = NetMQContext.Create())
                 {
@@ -143,30 +129,26 @@ Here is the code
 
                                 //send results to sink, sink just needs to know worker
                                 //is done, message content is not important, just the precence of
-                                //a message means worker is done. 
-                                //See Sink.csproj Proram.cs 
+                                //a message means worker is done.
+                                //See Sink.csproj Proram.cs
                                 Console.WriteLine("Sending to Sink");
                                 sender.Send(string.Empty);
                             }
                         }
-
                     }
                 }
-
             }
         }
     }
 
+## Sink
 
-**Sink**
-
-
+    ::csharp
     using System;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using NetMQ;
-
 
     namespace Sink
     {
@@ -174,7 +156,6 @@ Here is the code
         {
             public static void Main(string[] args)
             {
-
                 // Task Sink
                 // Bindd PULL socket to tcp://localhost:5558
                 // Collects results from workers via that socket
@@ -218,103 +199,84 @@ Here is the code
         }
     }
 
+## Running the sample
+
+To run this, these three BAT files may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects.
+
+### Run1Worker.bat
+
+    :::text
+    cd Ventilator/bin/Debug
+    start Ventilator.exe
+    cd../../..
+    cd Sink/bin/Debug
+    start Sink.exe
+    cd../../..
+    cd Worker/bin/Debug
+    start Worker.exe
 
 
+Which when run should give you some output like this in the Sink process console output (obviously your PC may run faster/slower than mine):
+
+    :::text
+    ====== SINK ======
+    Seen start of batch
+    :.........:.........:.........:.........:.........:.........:.........:.........
+    :.........:.........
+    Total elapsed time 5695 msec
 
 
-To run this, these 3 BAT files may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects
+### Run2Workers.bat
+
+    :::text
+    cd Ventilator/bin/Debug
+    start Ventilator.exe
+    cd../../..
+    cd Sink/bin/Debug
+    start Sink.exe
+    cd../../..
+    cd Worker/bin/Debug
+    start Worker.exe
+    start Worker.exe
+
+Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine):
+
+    :::text
+    ====== SINK ======
+    Seen start of batch
+    :.........:.........:.........:.........:.........:.........:.........:.........
+    :.........:.........
+    Total elapsed time 2959 msec
 
 
-<br/>
-<br/>
-**Run1Worker.bat**
-<br/>
-<br/>
-cd Ventilator/bin/Debug<br/>
-start Ventilator.exe<br/>
-cd../../..<br/>
-cd Sink/bin/Debug<br/>
-start Sink.exe<br/>
-cd../../..<br/> 
-cd Worker/bin/Debug<br/>
-start Worker.exe<br/>
+### Run4Workers.bat
+
+    :::text
+    cd Ventilator/bin/Debug
+    start Ventilator.exe
+    cd../../..
+    cd Sink/bin/Debug
+    start Sink.exe
+    cd../../..
+    cd Worker/bin/Debug
+    start Worker.exe
+    start Worker.exe
+    start Worker.exe
+    start Worker.exe
 
 
-Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine)
+Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine):
 
-<i>
-====== SINK ======<br/>
-Seen start of batch<br/>
-:………:………:………:………:………:………:………:………<br/>
-:………:………<br/>
-Total elapsed time 5695 msec<br/>
-</i>
+    :::text
+    ====== SINK ======
+    Seen start of batch
+    :.........:.........:.........:.........:.........:.........:.........:.........
+    :.........:.........
+    Total elapsed time 1492 msec
 
-
-
-
-<br/>
-<br/>
-**Run2Workers.bat**
-<br/>
-<br/>
-cd Ventilator/bin/Debug<br/>
-start Ventilator.exe<br/>
-cd../../..<br/>
-cd Sink/bin/Debug<br/>
-start Sink.exe<br/>
-cd../../..<br/>
-cd Worker/bin/Debug<br/>
-start Worker.exe<br/>
-start Worker.exe<br/>
-
-
-Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine)
-
-<i>
-====== SINK ======<br/>
-Seen start of batch<br/>
-:………:………:………:………:………:………:………:………<br/>
-:………:………<br/>
-Total elapsed time 2959 msec<br/>
-</i>
-
-
-<br/>
-<br/>
-**Run4Workers.bat**
-<br/>
-<br/>
-cd Ventilator/bin/Debug<br/>
-start Ventilator.exe<br/>
-cd../../..<br/>
-cd Sink/bin/Debug<br/>
-start Sink.exe<br/>
-cd../../..<br/> 
-cd Worker/bin/Debug<br/>
-start Worker.exe<br/>
-start Worker.exe<br/>
-start Worker.exe<br/>
-start Worker.exe<br/>
-
-
-Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine)
-
-
-<i>
-====== SINK ======<br/>
-Seen start of batch<br/>
-:………:………:………:………:………:………:………:………<br/>
-:………:………<br/>
-Total elapsed time 1492 msec<br/>
-</i>
-
-
-<br/>
-<br/>
 There are a couple of points to be aware of with this pattern
 
-+ The <code>Ventilator</code> uses a NetMQ <code>PushSocket</code> to distribute work to the <code>Worker</code>s, this is referred to as load balancing
-+ The <code>Ventilator</code> and the <code>Sink</code> are the static parts of the system, where as <code>Worker</code>s are dynamic. It is trivial to add more  <code>Worker</code>s, we can just spin up a new instance of a  <code>Worker</code>s, and in theory the work gets done quicker.
-+ We need to synchronize the starting of the batch (when  <code>Worker</code>s are ready), as if we did not do that, the first  <code>Worker</code>s that connected would get more messages that the rest, which is not really load balanced
-+ The  <code>Sink</code> uses a NetMQ <code>PullSocket</code> to accumulate the results from the  <code>Worker</code>s
++ The `Ventilator` uses a NetMQ `PushSocket` to distribute work to the `Worker`s, this is referred to as load balancing.
++ The `Ventilator` and the `Sink` are the static parts of the system, where as `Worker`s are dynamic. It is trivial to add more `Worker`s, we can just spin up a new instance of a `Worker`s, and in theory the work gets done quicker.
++ We need to synchronize the starting of the batch (when  `Worker`s are ready), as if we did not do that, the first `Worker`s that connected would get more messages that the rest, which is not really load balanced.
++ The `Sink` uses a NetMQ `PullSocket` to accumulate the results from the `Worker`s.
