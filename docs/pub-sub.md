@@ -11,7 +11,6 @@ Which as usual can be created by using the `NetMQContext` methods `.CreateXXXSoc
 + `CreatePublisherSocket()`
 + `CreateSubscriberSocket()`
 
-
 ## Topics
 
 NetMQ allows the use of topics, such that the `PublisherSocket` may send frame 1 (see the [messages documentation page](https://github.com/zeromq/netmq/blob/master/docs/message.md)) of the message which contains
@@ -28,29 +27,19 @@ the topic name followed by the actual message, where you may have something like
 </tr>
 </table>
 
-<br/>
-<br/>
 An example of this in code may be something like this (though you could also use the `NetMQMessage` approach where you add the frames one by one):
-<br/>
-<br/>
 
-
+    :::csharp
     pubSocket.SendMore("TopicA").Send("This is a 'TopicA' message");
 
-<br/>
-<br/>
 The `SubscriberSocket` may also choose to subscribe to a certain topic only, which it does by passing the topic name into the `Subscribe()` method of the `SubscriberSocket`.
-<br/>
-<br/>
 
 An example of this would be as follows:
-<br/>
-<br/>
 
+    :::csharp
     subSocket.Subscribe("TopicA");
 
-<br/>
-<br/>
+
 ## How Do You Subscribe To ALL Topics?
 
 It is also possibe for a subscriber to subscribe to all topics from a publishing socket, which means it will recieve (that is providing no messages are dropped see 'Further Considerations'section below)
@@ -67,8 +56,9 @@ Time for an example. This example is very simple, and follows these rules.
 
 Here is the code:
 
-**Publisher**
+### Publisher
 
+    :::csharp
     using System;
     using System.Threading;
     using NetMQ;
@@ -114,8 +104,9 @@ Here is the code:
     }
 
 
-**Subscriber**
+### Subscriber
 
+    :::csharp
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -186,52 +177,43 @@ Here is the code:
 To run this, these 3 BAT file you may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects
 
 
-**RunPubSub.bat**
-<br/>
-start RunPublisher.bat<br/>
-<br/>
-<br/>
-start RunSubscriber "TopicA"<br/>
-start RunSubscriber "TopicB"<br/>
-start RunSubscriber "All"<br/>
+### RunPubSub.bat
+
+    :::text
+    start RunPublisher.bat
+    start RunSubscriber "TopicA"
+    start RunSubscriber "TopicB"
+    start RunSubscriber "All"
+
+### RunPublisher.bat
+
+    :::text
+    cd Publisher\bin\Debug
+    Publisher.exe
+
+### RunSubscriber.bat
+
+    ::text
+    set "topic=%~1"
+    cd Subscriber\bin\Debug
+    Subscriber.exe %topic%
 
 
-**RunPublisher.bat**
-<br/>
-<br/>
-cd Publisher\bin\Debug<br/>
-Publisher.exe<br/>
+When run, you should see something like this:
 
-**RunSubscriber.bat**
-<br/>
-<br/>
-set "topic=%~1"<br/>
-cd Subscriber\bin\Debug<br/>
-Subscriber.exe %topic%<br/>
-
-
-
-When you run this you should see something like this, where it can be seen that
-
-
-<br/>
-<br/>
-<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/PubSubUsingTopics.png"/>
-
-
+![](Images/PubSubUsingTopics.png)
 
 
 Other Considerations
 =====
 
-**HighWaterMark**
+### High water mark
 
-
-The `SendHighWaterMark/ReceiveHighWaterMark` options set the high water mark for the specified socket. The high water mark is a hard limit on the maximum number of outstanding messages NetMQ shall queue in memory for any single peer that the specified socket is communicating with.
+The `SendHighWaterMark`/`ReceiveHighWaterMark` options set the high water mark for the specified socket. The high water mark is a hard limit on the maximum number of outstanding messages NetMQ shall queue in memory for any single peer that the specified socket is communicating with.
 
 If this limit has been reached the socket shall enter an exceptional state and depending on the socket type, NetMQ shall take appropriate action such as blocking or dropping sent messages.
 
-The default `SendHighWaterMark/ReceiveHighWaterMark` value of zero means "no limit".
+The default `SendHighWaterMark`/`ReceiveHighWaterMark` value of zero means "no limit".
 
 You would set these 2 options using the `xxxxSocket.Options` property as follows:
 
@@ -239,13 +221,11 @@ You would set these 2 options using the `xxxxSocket.Options` property as follows
 +  `pubSocket.Options.ReceiveHighWatermark = 1000;`
 
 
-**Slow Subscribers**
-<br/>
-<br/>
+### Slow subscribers
+
 This is covered in the <a href="http://zguide.zeromq.org/php:chapter5" target="_blank">ZeroMQ guide</a>
 
 
-**Late Joining Subscribers**
-<br/>
-<br/>
+### Late joining subscribers
+
 This is covered in the <a href="http://zguide.zeromq.org/php:chapter5" target="_blank">ZeroMQ guide</a>
