@@ -40,6 +40,18 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
+        private class Outpipe
+        {
+            public Outpipe(Pipe pipe, bool active)
+            {
+                Pipe = pipe;
+                Active = active;
+            }
+
+            public Pipe Pipe { get; private set; }
+            public bool Active;
+        };
+
         //  Fair queueing object for inbound pipes.
         private readonly FairQueueing m_fairQueueing;
 
@@ -58,18 +70,6 @@ namespace NetMQ.zmq.Patterns
 
         //  If true, more incoming message parts are expected.
         private bool m_moreIn;
-
-        class Outpipe
-        {
-            public Outpipe(Pipe pipe, bool active)
-            {
-                Pipe = pipe;
-                Active = active;
-            }
-
-            public Pipe Pipe { get; private set; }
-            public bool Active;
-        };
 
         //  We keep a set of pipes that have not been identified yet.
         private readonly HashSet<Pipe> m_anonymousPipes;
