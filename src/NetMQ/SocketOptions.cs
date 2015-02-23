@@ -169,7 +169,7 @@ namespace NetMQ
         public string TcpAcceptFilter
         {
             get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.TcpAcceptFilter); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepaliveIntvl, value); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpAcceptFilter, value); }
         }
 
         public bool DelayAttachOnConnect
