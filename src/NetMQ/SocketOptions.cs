@@ -91,9 +91,9 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.Backlog, value); }
         }
 
-        public int MaxMsgSize
+        public long MaxMsgSize
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.Maxmsgsize); }
+            get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Maxmsgsize); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.Maxmsgsize, value); }
         }
 
