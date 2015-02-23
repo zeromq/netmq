@@ -1,5 +1,4 @@
-NetMQ
-===================
+![](NetMQLogo.svg)
 
 NetMQ is a 100% native C# port of ZeroMQ, a lightweight messaging library.
 
@@ -13,4 +12,4 @@ Using NetMQ requires an understanding of ZeroMQ, for which there is no better do
 
 ## Installation
 
-You can install NetMQ from [nuget](https://nuget.org/packages/NetMQ/).
+You can install NetMQ from [NuGet](https://nuget.org/packages/NetMQ/).
