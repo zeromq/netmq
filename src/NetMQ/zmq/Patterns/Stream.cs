@@ -40,7 +40,7 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
-        class Outpipe
+        private class Outpipe
         {
             public Outpipe(Pipe pipe, bool active)
             {

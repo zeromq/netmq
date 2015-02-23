@@ -22,7 +22,7 @@ namespace NetMQ
         readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
 
         private int m_cancel;
-        readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
+        private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
         private bool m_isStarted;
 
         private bool m_isDirty = true;
@@ -253,8 +253,7 @@ namespace NetMQ
             m_isDirty = false;
         }
 
-
-        int TicklessTimer()
+        private int TicklessTimer()
         {
             //  Calculate tickless timer
             Int64 tickless = Clock.NowMs() + PollTimeout;
