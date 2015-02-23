@@ -150,6 +150,7 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepalive, value ? 1 : 0); }
         }
 
+        [Obsolete("This option is not supported and has no effect")]
         public int TcpKeepaliveCnt
         {
             get { return m_socket.GetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt); }

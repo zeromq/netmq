@@ -61,6 +61,7 @@ namespace NetMQ.zmq
         LastEndpoint = 32,
         RouterMandatory = 33,
         TcpKeepalive = 34,
+        [Obsolete("Not supported and has no effect")]
         TcpKeepaliveCnt = 35,
         TcpKeepaliveIdle = 36,
         TcpKeepaliveIntvl = 37,
