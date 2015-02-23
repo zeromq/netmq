@@ -163,7 +163,7 @@ namespace NetMQ.zmq.Utils
             m_stopping = true;
         }
 
-        public void Loop()
+        private void Loop()
         {
             List<Socket> readList = new List<Socket>();
             List<Socket> writeList = new List<Socket>();
