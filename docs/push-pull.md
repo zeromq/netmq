@@ -17,9 +17,7 @@ In real life the work could obviously be anything, though you would more than li
 
 Here is what we are trying to achieve :
 
-<br/>
-<br/>
-<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/Fanout.png"/>
+![](Images/Fanout.png)
 
 
 <br/>

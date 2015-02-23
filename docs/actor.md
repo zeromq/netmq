@@ -31,7 +31,7 @@ I hope you see what I am trying to explain there, maybe a diagram may help.
 
 A fairly common thing to do is have multiple threads running to speed things up, but then you realise that your threads need to mutate the state of some shared data structure, so then you have to involve threading synchronization primitives (most commonly `lock(..)` statements, to create your user defined critical sections). This will work, but now you are introducing artificial delays due to having to wait for the lock to be released so you can run Thread X’s code.
 
-![](https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/ActorTrad.png)
+![](Images/ActorTrad.png)
 
 To take this one step further, let''s see some code that may illustrate this further. Imagine we had this sort of data structure representing a very slim bank account:
 
@@ -132,7 +132,7 @@ The basic idea is that each thread would talk to an actor, and send/receive mess
 
 If you wanted to get even more isolation, you could use thread local storage where each thread could have its own copy of the actor which it, and it alone talks to.
 
-![](https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/ActorPass.png)
+![](Images/ActorPass.png)
 
 Anyway enough talking, I am sure some of you want to see the code right?
 
@@ -354,6 +354,6 @@ You would communicate with this `Actor` code using something like the following.
 
 When you run this code you should see something like this:
 
-![](https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/ActorsOut.png)
+![](Images/ActorsOut.png)
 
 We hope that gives you a taster of what you could do with an `Actor`

@@ -230,13 +230,8 @@ It can be seen that the `SubscriberSocket` connnects to the `XPublisherSocket` a
 
 When you run this, it should look something like this (depending on how many subscribers you have, and what topics they are subsribed too, of course now that we
 have a nice topology you could indeed have more publishers too)
-<br/>
-<br/>
-<img src="https://raw.githubusercontent.com/zeromq/netmq/master/docs/Images/XPubXSubDemo.png"/>
-<br/>
-<br/>
 
-
+![](Images/XPubXSubDemo.png)
 
 
 To run this, these 4 BAT file you may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects
