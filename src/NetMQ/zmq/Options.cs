@@ -170,13 +170,11 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.ReceiveHighWatermark:
                     ReceiveHighWatermark = (int)optval;
                     break;
-
                 case ZmqSocketOptions.Affinity:
                     Affinity = (long)optval;
                     break;
                 case ZmqSocketOptions.Identity:
                     byte[] val;
-
                     if (optval is String)
                         val = Encoding.ASCII.GetBytes((String)optval);
                     else if (optval is byte[])
@@ -217,7 +215,6 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.Backlog:
                     Backlog = (int)optval;
                     break;
-
                 case ZmqSocketOptions.Maxmsgsize:
                     Maxmsgsize = (long)optval;
                     break;
@@ -231,9 +228,7 @@ namespace NetMQ.zmq
                     SendTimeout = (int)optval;
                     break;
                 case ZmqSocketOptions.IPv4Only:
-
                     IPv4Only = (bool)optval;
-
                     break;
                 case ZmqSocketOptions.TcpKeepalive:
                     TcpKeepalive = (int)optval;
@@ -241,13 +236,10 @@ namespace NetMQ.zmq
                         throw new InvalidException("Value must be -1, 0 or 1 for ZmqSocketOptions.TcpKeepalive");
                     break;
                 case ZmqSocketOptions.DelayAttachOnConnect:
-
                     DelayAttachOnConnect = (bool)optval;
-
                     break;
-                case ZmqSocketOptions.TcpKeepaliveCnt:
-                    // not supported
-                    break;
+//                case ZmqSocketOptions.TcpKeepaliveCnt:
+//                    break; // not supported
                 case ZmqSocketOptions.TcpKeepaliveIdle:
                     TcpKeepaliveIdle = (int)optval;
                     break;
@@ -279,79 +271,56 @@ namespace NetMQ.zmq
             }
         }
 
-
         public Object GetSocketOption(ZmqSocketOptions option)
         {
             switch (option)
             {
                 case ZmqSocketOptions.SendHighWatermark:
                     return SendHighWatermark;
-
                 case ZmqSocketOptions.ReceiveHighWatermark:
                     return ReceiveHighWatermark;
-
                 case ZmqSocketOptions.Affinity:
                     return Affinity;
-
                 case ZmqSocketOptions.Identity:
                     return Identity;
-
                 case ZmqSocketOptions.Rate:
                     return Rate;
-
                 case ZmqSocketOptions.RecoveryIvl:
                     return RecoveryIvl;
-
                 case ZmqSocketOptions.SendBuffer:
                     return SendBuffer;
-
                 case ZmqSocketOptions.ReceiveBuffer:
                     return ReceiveBuffer;
-
                 case ZmqSocketOptions.Type:
                     return SocketType;
-
                 case ZmqSocketOptions.Linger:
                     return Linger;
-
                 case ZmqSocketOptions.ReconnectIvl:
                     return ReconnectIvl;
-
                 case ZmqSocketOptions.ReconnectIvlMax:
                     return ReconnectIvlMax;
-
                 case ZmqSocketOptions.Backlog:
                     return Backlog;
-
                 case ZmqSocketOptions.Maxmsgsize:
                     return Maxmsgsize;
-
                 case ZmqSocketOptions.MulticastHops:
                     return MulticastHops;
-
                 case ZmqSocketOptions.ReceiveTimeout:
                     return ReceiveTimeout;
-
                 case ZmqSocketOptions.SendTimeout:
                     return SendTimeout;
-
                 case ZmqSocketOptions.IPv4Only:
                     return IPv4Only;
-
                 case ZmqSocketOptions.TcpKeepalive:
                     return TcpKeepalive;
-
                 case ZmqSocketOptions.DelayAttachOnConnect:
                     return DelayAttachOnConnect;
-
-                case ZmqSocketOptions.TcpKeepaliveCnt:
-                    // not supported
-                    return 0;
+//                case ZmqSocketOptions.TcpKeepaliveCnt:
+//                    return 0; // not supported
                 case ZmqSocketOptions.TcpKeepaliveIdle:
                     return TcpKeepaliveIdle;
                 case ZmqSocketOptions.TcpKeepaliveIntvl:
                     return TcpKeepaliveIntvl;
-
                 case ZmqSocketOptions.LastEndpoint:
                     return LastEndpoint;
                 case ZmqSocketOptions.Endian:
