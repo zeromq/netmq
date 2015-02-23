@@ -171,10 +171,7 @@ namespace NetMQ.zmq.Utils
 
             while (!m_stopping)
             {
-                foreach (var pollSet in m_addList)
-                {
-                    m_handles.Add(pollSet);
-                }
+                m_handles.AddRange(m_addList);
                 m_addList.Clear();
 
                 //  Execute any due timers.
