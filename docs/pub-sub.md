@@ -1,60 +1,61 @@
 Pub/Pub
 =====
 
-NetMQ comes with support for Pub/Sub by way of 2 sockets
+From [Wikipedia](http://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern):
+
+> Publish–subscribe is a messaging pattern where senders of messages, called publishers, do not program the messages to be sent directly to specific receivers, called subscribers. Instead, published messages are characterized into classes, without knowledge of what, if any, subscribers there may be. Similarly, subscribers express interest in one or more classes, and only receive messages that are of interest, without knowledge of what, if any, publishers there are.
+
+The _classes_ mentioned in this description can also be referred to as _topics_ or _filters_.
+
+NetMQ comes with support for Pub/Sub by way of two socket types:
 
 + `PublisherSocket`
 + `SubscriberSocket`
 
-Which as usual can be created by using the `NetMQContext` methods `.CreateXXXSocket()` methods. Which in this case would be
-
-+ `CreatePublisherSocket()`
-+ `CreateSubscriberSocket()`
-
 ## Topics
 
-NetMQ allows the use of topics, such that the `PublisherSocket` may send frame 1 (see the [messages documentation page](https://github.com/zeromq/netmq/blob/master/docs/message.md)) of the message which contains
-the topic name followed by the actual message, where you may have something like this
+ZeroMQ/NetMQ uses multipart [messages](message) to convey topic information. Topics are expressed as an array of bytes, though you may use a string and suitable `System.Text.Encoding`.
 
-<table CellSpacing="0" Padding="0">
-<tr bgcolor="LightGray">
-<th width="100px" style="text-align:center; ">Frame 1</th>
-<th width="400px" style="text-align:center; ">Frame 2</th>
-</tr>
-<tr>
-<td width="80px" style="text-align:center; ">TopicA</td>
-<td width="400px" style="text-align:center;">This is a 'TopicA' message</td>
-</tr>
-</table>
-
-An example of this in code may be something like this (though you could also use the `NetMQMessage` approach where you add the frames one by one):
+A publisher must include the topic in the message's' first frame, prior to the message payload. For example, to publish a status message to subscribers of the `status` topic:
 
     :::csharp
-    pubSocket.SendMore("TopicA").Send("This is a 'TopicA' message");
+    // send a message on the 'status' topic
+    pub.SendMore("status").Send("All is well");
 
-The `SubscriberSocket` may also choose to subscribe to a certain topic only, which it does by passing the topic name into the `Subscribe()` method of the `SubscriberSocket`.
-
-An example of this would be as follows:
+Subscribers specify which topics they are interested in via the `Subscribe` method of `SubscriberSocket`:
 
     :::csharp
-    subSocket.Subscribe("TopicA");
+    // subscribe to the 'status' topic
+    sub.Subscribe("status");
 
 
-## How Do You Subscribe To ALL Topics?
+## Topic heirarchies
 
-It is also possibe for a subscriber to subscribe to all topics from a publishing socket, which means it will recieve (that is providing no messages are dropped see 'Further Considerations'section below)
-ALL the messages from the `PublisherSocket` the `SubscriberSocket` is connected to. This is easily achieved, all you need to do in the subscriber is to pass an empty string ("") in for the topic name when
-calling the `subscriberSocket.Subscribe()` method.
+A message's topic is compared against subscribers' subscription topics using a prefix check.
+
+That is, a subscriber who subscribed to `topic` would receive messages with topics:
+
+* `topic`
+* `topic/subtopic`
+* `topical`
+
+However it would not receive messages with topics:
+
+* `topi`
+* `TOPIC` (remember, it's a byte-wise comparison)
+
+A consequence of this prefix matching behavious is that you can receive all published messages by subscribing with an empty topic string:
+
+    :::csharp
+    sub.Subscribe(""); // subscribe to all topics
 
 
 ## An Example
 
 Time for an example. This example is very simple, and follows these rules.
 
-+ There is 1 Publisher, who is creating messages, that could be for "TopicA" or "TopicB" (depending on the result of the random number produced)
-+ There is a generic Subscriber (the topic name is fed in via the command line arguments) that will subscribe to the incoming topic name
-
-Here is the code:
++ There is one publisher process, who randomly publishes a message to either `TopicA` or `TopicB` every 500ms.
++ There may be many subscribers. The topic name is passed as a command line argument.
 
 ### Publisher
 
@@ -119,63 +120,40 @@ Here is the code:
     {
         class Program
         {
-
-            public static List<string> allowableCommandLineArgs = new List<string>();
-
-            static Program()
-            {
-                allowableCommandLineArgs.Add("TopicA");
-                allowableCommandLineArgs.Add("TopicB");
-                allowableCommandLineArgs.Add("All");
-            }
-
-            static void PrintUsageAndExit()
-            {
-                Console.WriteLine("Subscriber is expected to be started with either 'TopicA', 'TopicB' or 'All'");
-                Console.ReadLine();
-                Environment.Exit(-1);
-            }
+            public static IList<string> allowableCommandLineArgs
+                = new [] { "TopicA", "TopicB", "All" };
 
             static void Main(string[] args)
             {
-
-                if (args.Length != 1)
+                if (args.Length != 1 || !allowableCommandLineArgs.Contains(args[0]))
                 {
-                    PrintUsageAndExit();
-                }
-
-                if (!allowableCommandLineArgs.Contains(args[0]))
-                {
-                    PrintUsageAndExit();
+                    Console.WriteLine("Expected one argument, either " +
+                                      "'TopicA', 'TopicB' or 'All'");
+                    Environment.Exit(-1);
                 }
 
                 string topic = args[0] == "All" ? "" : args[0];
                 Console.WriteLine("Subscriber started for Topic : {0}", topic);
 
                 using (var context = NetMQContext.Create())
+                using (var subSocket = context.CreateSubscriberSocket())
                 {
-                    using (var subSocket = context.CreateSubscriberSocket())
+                    subSocket.Options.ReceiveHighWatermark = 1000;
+                    subSocket.Connect("tcp://localhost:12345");
+                    subSocket.Subscribe(topic);
+                    Console.WriteLine("Subscriber socket connecting...");
+                    while (true)
                     {
-                        subSocket.Options.ReceiveHighWatermark = 1000;
-                        subSocket.Connect("tcp://localhost:12345");
-                        subSocket.Subscribe(topic);
-                        Console.WriteLine("Subscriber socket connecting...");
-                        while (true)
-                        {
-                            string messageTopicReceived = subSocket.ReceiveString();
-                            string messageReceived = subSocket.ReceiveString();
-                            Console.WriteLine(messageReceived);
-                        }
+                        string messageTopicReceived = subSocket.ReceiveString();
+                        string messageReceived = subSocket.ReceiveString();
+                        Console.WriteLine(messageReceived);
                     }
                 }
             }
         }
     }
 
-
-
-To run this, these 3 BAT file you may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects
-
+To run this, these three BAT files may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects.
 
 ### RunPubSub.bat
 
