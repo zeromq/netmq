@@ -47,6 +47,7 @@ namespace NetMQ.zmq.Utils
         //  This table stores data for registered descriptors.
         private readonly List<PollSet> m_handles;
 
+        //  List of handles to add at the start of the next loop
         private readonly List<PollSet> m_addList;
 
         //  If true, there's at least one retired event source.
@@ -67,7 +68,6 @@ namespace NetMQ.zmq.Utils
         public Poller()
             : this("poller")
         {
-
         }
 
         public Poller(String name)
@@ -206,7 +206,6 @@ namespace NetMQ.zmq.Utils
                         catch (TerminatingException)
                         {
                         }
-
                     }
 
                     if (pollSet.Cancelled)
