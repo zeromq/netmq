@@ -133,7 +133,12 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.IPv4Only, value); }
         }
 
-        public string GetLastEndpoint
+        [Obsolete("Use LastEndpoint instead")]
+        [CanBeNull]
+        public string GetLastEndpoint { get { return LastEndpoint; } }
+
+        [CanBeNull]
+        public string LastEndpoint
         {
             get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); } 
         }
