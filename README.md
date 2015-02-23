@@ -2,31 +2,29 @@
 
 [![NetMQ Team City Build](https://img.shields.io/teamcity/codebetter/bt1046.svg)](http://teamcity.codebetter.com/project.html?projectId=NetMQ) [![NetMQ NuGet version](https://img.shields.io/nuget/v/NetMQ.svg)](https://www.nuget.org/packages/NetMQ/) [![NetMQ download stats](https://img.shields.io/nuget/dt/NetMQ.svg)](https://www.nuget.org/packages/NetMQ/)
 
-NetMQ is 100% native C# port of ZeroMQ.
+NetMQ is a 100% native C# port of the lightweight messaging library ZeroMQ.
 
-NetMQ is lightweight messaging library which extends the
+NetMQ extends the
 standard socket interfaces with features traditionally provided by
 specialised messaging middleware products. NetMQ sockets provide an
 abstraction of asynchronous message queues, multiple messaging patterns,
 message filtering (subscriptions), seamless access to multiple transport
-protocols and more.
+protocols, and more.
 
 ## Installation
 
-You can find NetMQ in [nuget](https://nuget.org/packages/NetMQ/).
+You can download NetMQ via [NuGet](https://nuget.org/packages/NetMQ/).
 
 ## Using / Documentation
 
-Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all). 
+Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all).
 
-The NetMQ documentation can found here (thanks to [Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber) who agreed to do the documentation) 
-
-http://netmq.readthedocs.org/en/latest/.
+The NetMQ documentation can be found at [netmq.readthedocs.org](http://netmq.readthedocs.org/en/latest/). Thanks to [Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber) who agreed to do the documentation.
 
 
-There are also a few blog posts available, which you can read about here
+There are also a few blog posts available, which you can read about here:
 
-+ [Somdorons blog](http://somdoron.com/category/netmq/).
++ [Somdorons blog](http://somdoron.com/category/netmq/)
 + [Hello World](http://sachabarbs.wordpress.com/2014/08/19/zeromq-1-introduction/)
 + [The Socket Types](http://sachabarbs.wordpress.com/2014/08/21/zeromq-2-the-socket-types-2/)
 + [Socket Options/Identity and SendMore](http://sachabarbs.wordpress.com/2014/08/26/zeromq-3-socket-optionsidentity-and-sendmore/)
@@ -35,7 +33,7 @@ There are also a few blog posts available, which you can read about here
 + [Divide And Conquer](http://sachabarbs.wordpress.com/2014/09/01/zeromq-6-divide-and-conquer/)
 
 
-Here is a small example
+Here is a simple example:
 
 ```csharp
 using (var context = NetMQContext.Create())
@@ -69,7 +67,7 @@ using (var client = context.CreateRequestSocket())
 We need help, so if you have good knowledge of C# and ZeroMQ just grab one of the issues and add a pull request.
 We are using [C4 process](http://rfc.zeromq.org/spec:16), so make sure you read this before.
 
-Regarding coding standards, we are using C# coding styles, to be a little more specific: we are using camelCase for variables and fields (with m_ prefix for instance members and s_ for static fields) and PascalCase for methods, classes and constants. Make sure you are using 'Insert Spaces' and 4 for tab and indent size.
+Regarding coding standards, we are using C# coding styles, to be a little more specific: we are using `camelCase` for variables and fields (with `m_` prefix for instance members and `s_` for static fields) and `PascalCase` for methods, classes and constants. Make sure you are using 'Insert Spaces' and 4 for tab and indent size.
 
 You can also help us by:
 
@@ -105,4 +103,3 @@ There are open issues in the issues tab that still need to be taken care of, fee
 [YouTrack by JetBrains - keyboard-centric bug tracker](http://www.jetbrains.com/youtrack)
 
 [TeamCity by JetBrains - continuous integration server](http://www.jetbrains.com/teamcity)
-
