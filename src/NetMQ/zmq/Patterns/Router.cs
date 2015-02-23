@@ -30,6 +30,8 @@ namespace NetMQ.zmq.Patterns
 {
     internal class Router : SocketBase
     {
+        private static readonly Random s_random = new Random();
+
         public class RouterSession : SessionBase
         {
             public RouterSession(IOThread ioThread, bool connect,
@@ -100,7 +102,7 @@ namespace NetMQ.zmq.Patterns
             m_moreIn = false;
             m_currentOut = null;
             m_moreOut = false;
-            m_nextPeerId = new Random().Next();
+            m_nextPeerId = s_random.Next();
             m_mandatory = false;
             m_rawSocket = false;
 
