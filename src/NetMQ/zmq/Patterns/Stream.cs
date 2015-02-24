@@ -30,6 +30,8 @@ namespace NetMQ.zmq.Patterns
 {
     internal class Stream : SocketBase
     {
+        private static readonly Random s_random = new Random();
+
         public class StreamSession : SessionBase
         {
             public StreamSession(IOThread ioThread, bool connect,
@@ -40,7 +42,7 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
-        class Outpipe
+        private class Outpipe
         {
             public Outpipe(Pipe pipe, bool active)
             {
@@ -88,7 +90,7 @@ namespace NetMQ.zmq.Patterns
             m_identitySent = false;
             m_currentOut = null;
             m_moreOut = false;
-            m_nextPeerId = new Random().Next();
+            m_nextPeerId = s_random.Next();
 
             m_options.SocketType = ZmqSocketType.Stream;
 

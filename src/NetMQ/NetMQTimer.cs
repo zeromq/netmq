@@ -45,14 +45,7 @@ namespace NetMQ
             {
                 m_interval = value;
 
-                if (Enable)
-                {
-                    When = Clock.NowMs() + Interval;
-                }
-                else
-                {
-                    When = -1;
-                }
+                When = Enable ? Clock.NowMs() + Interval : -1;
             }
         }
 
@@ -65,19 +58,12 @@ namespace NetMQ
                 {
                     m_enable = value;
 
-                    if (m_enable)
-                    {
-                        When = Clock.NowMs() + Interval;
-                    }
-                    else
-                    {
-                        When = -1;
-                    }
+                    When = m_enable ? Clock.NowMs() + Interval : -1;
                 }
             }
         }
 
-        internal Int64 When { get; set; }
+        internal long When { get; set; }
 
         internal void InvokeElapsed(object sender)
         {

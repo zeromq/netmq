@@ -1,7 +1,7 @@
-
-#ignore thumbnails created by windows
+# Ignore Windows thumbnails
 Thumbs.db
-#Ignore files build by Visual Studio
+
+# Ignore Visual Studio files
 *.obj
 *.exe
 *.pdb
@@ -29,3 +29,9 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
+
+# Ignore MonoDevelop files
+*.userprefs
+
+# Ignore NUnit project files
+*.nunit

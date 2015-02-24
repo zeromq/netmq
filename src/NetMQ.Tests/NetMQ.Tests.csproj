@@ -100,6 +100,7 @@
     <Compile Include="SocketTests.cs" />
     <Compile Include="StreamTests.cs" />
     <Compile Include="zmq\YQueueTests.cs" />
+    <Compile Include="SocketOptionsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NetMQ\NetMQ.csproj">

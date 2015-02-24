@@ -170,26 +170,19 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.ReceiveHighWatermark:
                     ReceiveHighWatermark = (int)optval;
                     break;
-
                 case ZmqSocketOptions.Affinity:
                     Affinity = (long)optval;
                     break;
                 case ZmqSocketOptions.Identity:
                     byte[] val;
-
                     if (optval is String)
                         val = Encoding.ASCII.GetBytes((String)optval);
                     else if (optval is byte[])
                         val = (byte[])optval;
                     else
-                    {
-                        throw new InvalidException();
-                    }
-
+                        throw new InvalidException("Invalid option value type for ZmqSocketOptions.Identity");
                     if (val.Length == 0 || val.Length > 255)
-                    {
-                        throw new InvalidException();
-                    }
+                        throw new InvalidException("Invalid length for ZmqSocketOptions.Identity");
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
                     IdentitySize = (byte)Identity.Length;
@@ -211,26 +204,17 @@ namespace NetMQ.zmq
                     break;
                 case ZmqSocketOptions.ReconnectIvl:
                     ReconnectIvl = (int)optval;
-
                     if (ReconnectIvl < -1)
-                    {
-                        throw new InvalidException();
-                    }
-
+                        throw new InvalidException("Value must be -1 or greater for ZmqSocketOptions.ReconnectIvl");
                     break;
                 case ZmqSocketOptions.ReconnectIvlMax:
                     ReconnectIvlMax = (int)optval;
-
                     if (ReconnectIvlMax < 0)
-                    {
-                        throw new InvalidException();
-                    }
-
+                        throw new InvalidException("Value must be 0 or greater for ZmqSocketOptions.ReconnectIvlMax");
                     break;
                 case ZmqSocketOptions.Backlog:
                     Backlog = (int)optval;
                     break;
-
                 case ZmqSocketOptions.Maxmsgsize:
                     Maxmsgsize = (long)optval;
                     break;
@@ -244,26 +228,18 @@ namespace NetMQ.zmq
                     SendTimeout = (int)optval;
                     break;
                 case ZmqSocketOptions.IPv4Only:
-
                     IPv4Only = (bool)optval;
-
                     break;
                 case ZmqSocketOptions.TcpKeepalive:
-
                     TcpKeepalive = (int)optval;
                     if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
-                    {
-                        throw new InvalidException();
-                    }
+                        throw new InvalidException("Value must be -1, 0 or 1 for ZmqSocketOptions.TcpKeepalive");
                     break;
                 case ZmqSocketOptions.DelayAttachOnConnect:
-
                     DelayAttachOnConnect = (bool)optval;
-
                     break;
-                case ZmqSocketOptions.TcpKeepaliveCnt:
-                    // not supported
-                    break;
+//                case ZmqSocketOptions.TcpKeepaliveCnt:
+//                    break; // not supported
                 case ZmqSocketOptions.TcpKeepaliveIdle:
                     TcpKeepaliveIdle = (int)optval;
                     break;
@@ -278,7 +254,7 @@ namespace NetMQ.zmq
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw new InvalidException();
+                        throw new InvalidException("Invalid length for ZmqSocketOptions.TcpAcceptFilter");
                     }
                     else
                     {
@@ -291,10 +267,9 @@ namespace NetMQ.zmq
                     Endian = (Endianness)optval;
                     break;
                 default:
-                    throw new InvalidException();
+                    throw new InvalidException("Unsupported ZmqSocketOptions enum value: " + option);
             }
         }
-
 
         public Object GetSocketOption(ZmqSocketOptions option)
         {
@@ -302,78 +277,56 @@ namespace NetMQ.zmq
             {
                 case ZmqSocketOptions.SendHighWatermark:
                     return SendHighWatermark;
-
                 case ZmqSocketOptions.ReceiveHighWatermark:
                     return ReceiveHighWatermark;
-
                 case ZmqSocketOptions.Affinity:
                     return Affinity;
-
                 case ZmqSocketOptions.Identity:
                     return Identity;
-
                 case ZmqSocketOptions.Rate:
                     return Rate;
-
                 case ZmqSocketOptions.RecoveryIvl:
                     return RecoveryIvl;
-
                 case ZmqSocketOptions.SendBuffer:
                     return SendBuffer;
-
                 case ZmqSocketOptions.ReceiveBuffer:
                     return ReceiveBuffer;
-
                 case ZmqSocketOptions.Type:
                     return SocketType;
-
                 case ZmqSocketOptions.Linger:
                     return Linger;
-
                 case ZmqSocketOptions.ReconnectIvl:
                     return ReconnectIvl;
-
                 case ZmqSocketOptions.ReconnectIvlMax:
                     return ReconnectIvlMax;
-
                 case ZmqSocketOptions.Backlog:
                     return Backlog;
-
                 case ZmqSocketOptions.Maxmsgsize:
                     return Maxmsgsize;
-
                 case ZmqSocketOptions.MulticastHops:
                     return MulticastHops;
-
                 case ZmqSocketOptions.ReceiveTimeout:
                     return ReceiveTimeout;
-
                 case ZmqSocketOptions.SendTimeout:
                     return SendTimeout;
-
                 case ZmqSocketOptions.IPv4Only:
                     return IPv4Only;
-
                 case ZmqSocketOptions.TcpKeepalive:
                     return TcpKeepalive;
-
                 case ZmqSocketOptions.DelayAttachOnConnect:
                     return DelayAttachOnConnect;
-
-                case ZmqSocketOptions.TcpKeepaliveCnt:
-                    // not supported
-                    return 0;
+//                case ZmqSocketOptions.TcpKeepaliveCnt:
+//                    return 0; // not supported
                 case ZmqSocketOptions.TcpKeepaliveIdle:
                     return TcpKeepaliveIdle;
                 case ZmqSocketOptions.TcpKeepaliveIntvl:
                     return TcpKeepaliveIntvl;
-
                 case ZmqSocketOptions.LastEndpoint:
                     return LastEndpoint;
                 case ZmqSocketOptions.Endian:
                     return Endian;
                 default:
-                    throw new InvalidException();
+                    throw new InvalidException("Unsupported ZmqSocketOptions enum value: " + option);
             }
         }
     }

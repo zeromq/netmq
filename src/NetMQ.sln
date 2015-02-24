@@ -112,6 +112,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\COPYING.LESSER = ..\COPYING.LESSER
 		..\mkdocs.yml = ..\mkdocs.yml
 		..\README.md = ..\README.md
+		..\.gitattributes = ..\.gitattributes
+		..\.gitignore = ..\.gitignore
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D7A0-489E-9530-0F972DAE1167}"

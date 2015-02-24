@@ -30,6 +30,8 @@ namespace NetMQ.zmq.Patterns
 {
     internal class Router : SocketBase
     {
+        private static readonly Random s_random = new Random();
+
         public class RouterSession : SessionBase
         {
             public RouterSession(IOThread ioThread, bool connect,
@@ -39,6 +41,18 @@ namespace NetMQ.zmq.Patterns
             {
             }
         }
+
+        private class Outpipe
+        {
+            public Outpipe(Pipe pipe, bool active)
+            {
+                Pipe = pipe;
+                Active = active;
+            }
+
+            public Pipe Pipe { get; private set; }
+            public bool Active;
+        };
 
         //  Fair queueing object for inbound pipes.
         private readonly FairQueueing m_fairQueueing;
@@ -58,18 +72,6 @@ namespace NetMQ.zmq.Patterns
 
         //  If true, more incoming message parts are expected.
         private bool m_moreIn;
-
-        class Outpipe
-        {
-            public Outpipe(Pipe pipe, bool active)
-            {
-                Pipe = pipe;
-                Active = active;
-            }
-
-            public Pipe Pipe { get; private set; }
-            public bool Active;
-        };
 
         //  We keep a set of pipes that have not been identified yet.
         private readonly HashSet<Pipe> m_anonymousPipes;
@@ -100,7 +102,7 @@ namespace NetMQ.zmq.Patterns
             m_moreIn = false;
             m_currentOut = null;
             m_moreOut = false;
-            m_nextPeerId = new Random().Next();
+            m_nextPeerId = s_random.Next();
             m_mandatory = false;
             m_rawSocket = false;
 
