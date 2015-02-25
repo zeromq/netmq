@@ -25,19 +25,29 @@ namespace NetMQ.zmq
 {
     internal class Reaper : ZObject, IPollEvents
     {
-        //  Reaper thread accesses incoming commands via this mailbox.
+        /// <summary>
+        /// Reaper thread accesses incoming commands via this mailbox.
+        /// </summary>
         private readonly Mailbox mailbox;
 
-        //  Handle associated with mailbox' file descriptor.
+        /// <summary>
+        /// Is is a Socket, used as the handle associated with the mailbox's file descriptor.
+        /// </summary>
         private readonly Socket m_mailboxHandle;
 
-        //  I/O multiplexing is performed using a poller object.
+        /// <summary>
+        /// I/O multiplexing is performed using a poller object.
+        /// </summary>
         private readonly Utils.Poller m_poller;
 
-        //  Number of sockets being reaped at the moment.
+        /// <summary>
+        /// Number of sockets being reaped at the moment.
+        /// </summary>
         private int m_sockets;
 
-        //  If true, we were already asked to terminate.
+        /// <summary>
+        /// If true, we were already asked to terminate.
+        /// </summary>
         private volatile bool m_terminating;
 
         private readonly String m_name;
@@ -45,7 +55,6 @@ namespace NetMQ.zmq
         public Reaper(Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
-
             m_sockets = 0;
             m_terminating = false;
             m_name = "reaper-" + threadId;
@@ -84,7 +93,6 @@ namespace NetMQ.zmq
         {
             while (true)
             {
-
                 //  Get the next command. If there is none, exit.
                 Command cmd = mailbox.Recv(0);
                 if (cmd == null)
@@ -137,7 +145,6 @@ namespace NetMQ.zmq
                 SendDone();
                 m_poller.RemoveHandle(m_mailboxHandle);
                 m_poller.Stop();
-
             }
         }
     }

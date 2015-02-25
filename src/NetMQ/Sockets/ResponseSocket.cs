@@ -3,7 +3,8 @@
 namespace NetMQ.Sockets
 {
     /// <summary>
-    /// Response socket
+    /// A ResponseSocket is a NetMQSockete intended to be used as the Response part of the Request-Response pattern.
+    /// This is generally paired with a RequestSocket.
     /// </summary>
     public class ResponseSocket : NetMQSocket
     {

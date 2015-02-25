@@ -9,13 +9,24 @@ namespace NetMQ
 {
     public class NetMQMessage : IEnumerable<NetMQFrame>
     {
+        /// <summary>
+        /// This is the frame-stack that comprises the message-content of this message.
+        /// </summary>
         private readonly List<NetMQFrame> m_frames;
 
+        /// <summary>
+        /// The default-constructor for NetMQMessage: create a new instance of NetMQMessage
+        /// with an empty frame-stack.
+        /// </summary>
         public NetMQMessage()
         {
             m_frames = new List<NetMQFrame>();
         }
 
+        /// <summary>
+        /// Create a new instance of a NetMQMessage that contains the given collection of NetMQFrames as its frame-stack.
+        /// </summary>
+        /// <param name="frames">a collection of NetMQFrames, to form the frame-stack</param>
         public NetMQMessage([NotNull] IEnumerable<NetMQFrame> frames)
         {
             if (frames == null)
@@ -26,6 +37,10 @@ namespace NetMQ
             m_frames = new List<NetMQFrame>(frames);
         }
 
+        /// <summary>
+        /// Create a new instance of a NetMQMessage that contains the given collection of byte-arrays as its frame-stack.
+        /// </summary>
+        /// <param name="buffers">a collection of byte-array buffers, to form the frame-stack</param>
         public NetMQMessage([NotNull] IEnumerable<byte[]> buffers)
         {
             if (buffers == null)
@@ -84,16 +99,29 @@ namespace NetMQ
             get { return m_frames[index]; }
         }
 
+        /// <summary>
+        /// Add the given NetMQFrame to this NetMQMessage, at the highest-indexed position of the frame-stack.
+        /// </summary>
+        /// <param name="frame">a NetMQFrame object comprising the frame to be appended onto the frame-stack</param>
         public void Append([NotNull] NetMQFrame frame)
         {
             m_frames.Add(frame);
         }
 
+        /// <summary>
+        /// Add the given message (in this case a byte-array) to this NetMQMessage, at the highest-indexed position of the frame-stack.
+        /// </summary>
+        /// <param name="buffer">a byte-array containing the message to append onto the frame-stack of this NetMQMessage</param>
         public void Append([NotNull] byte[] buffer)
         {
             m_frames.Add(new NetMQFrame(buffer));
         }
 
+        /// <summary>
+        /// Add the given message - which gets converted into a NetMQFrame - onto
+        /// the highest-indexed position of the frame-stack of this NetMQMessage.
+        /// </summary>
+        /// <param name="message">a string containing the message to append onto the frame-stack of this NetMQMessage</param>
         public void Append([NotNull] string message)
         {
             m_frames.Add(new NetMQFrame(message));
@@ -125,16 +153,35 @@ namespace NetMQ
             m_frames.Add(NetMQFrame.Empty);
         }
 
+        /// <summary>
+        /// Insert the given NetMQFrame into the lowest-indexed position of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// The concept is the same as pushing an element onto a stack.
+        /// </summary>
+        /// <param name="frame">a NetMQFrame object comprising the frame to be pushed onto the frame-stack</param>
         public void Push([NotNull] NetMQFrame frame)
         {
             m_frames.Insert(0, frame);
         }
 
+        /// <summary>
+        /// Insert the given message (in this case a byte-array) into the lowest-indexed position of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// The concept is the same as pushing an element onto a stack.
+        /// </summary>
+        /// <param name="buffer">a byte-array containing the message to push onto the NetMQMessage</param>
         public void Push([NotNull] byte[] buffer)
         {
             m_frames.Insert(0, new NetMQFrame(buffer));
         }
 
+        /// <summary>
+        /// Insert the given message - which gets converted into a NetMQFrame - into
+        /// the lowest-indexed position of the frame-stack of this NetMQMessage,
+        /// pushing all of the other content upward in index-position.
+        /// The concept is the same as pushing an element onto a stack.
+        /// </summary>
+        /// <param name="message">a string containing the message to push onto the frame-stack of this NetMQMessage</param>
         public void Push([NotNull] string message)
         {
             m_frames.Insert(0, new NetMQFrame(message));
@@ -164,7 +211,7 @@ namespace NetMQ
         /// <summary>
         /// Remove the first frame
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the first frame, which was popped - which is the frame from the lowest-indexed position</returns>
         [NotNull]
         public NetMQFrame Pop()
         {
@@ -174,16 +221,26 @@ namespace NetMQ
             return frame;
         }
 
+        /// <summary>
+        /// Delete the given frame from the frame-stack.
+        /// </summary>
+        /// <param name="frame">the frame to remove</param>
         public void RemoveFrame([NotNull] NetMQFrame frame)
         {
             m_frames.Remove(frame);
         }
 
+        /// <summary>
+        /// Push an empty frame (a NetMQFrame.Empty) onto the frame-stack.
+        /// </summary>
         public void PushEmptyFrame()
         {
             m_frames.Insert(0, NetMQFrame.Empty);
         }
 
+        /// <summary>
+        /// Clear (empty) the frame-stack, so that it no longer contains any frames.
+        /// </summary>
         public void Clear()
         {
             m_frames.Clear();

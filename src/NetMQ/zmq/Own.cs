@@ -32,36 +32,48 @@ namespace NetMQ.zmq
     {
         protected readonly Options m_options;
 
-        //  True if termination was already initiated. If so, we can destroy
-        //  the object if there are no more child objects or pending term acks.
+        /// <summary>
+        /// True if termination was already initiated. If so, we can destroy
+        /// the object if there are no more child objects or pending term acks.
+        /// </summary>
         private bool m_terminating;
 
-        //  Sequence number of the last command sent to this object.
+        /// <summary>
+        /// Sequence number of the last command sent to this object.
+        /// </summary>
         private long m_sentSeqnum;
 
-        //  Sequence number of the last command processed by this object.
+        /// <summary>
+        /// Sequence number of the last command processed by this object.
+        /// </summary>
         private long m_processedSeqnum;
 
-        //  Socket owning this object. It's responsible for shutting down
-        //  this object.
+        /// <summary>
+        /// Socket owning this object. It's responsible for shutting down
+        /// this object.
+        /// </summary>
         private Own m_owner;
 
-        //  List of all objects owned by this socket. We are responsible
-        //  for deallocating them before we quit.
-        //typedef std::set <own_t*> owned_t;
+        /// <summary>
+        /// List of all objects owned by this socket. We are responsible
+        /// for deallocating them before we quit.
+        /// </summary>
         private readonly HashSet<Own> m_owned = new HashSet<Own>();
 
-        //  Number of events we have to get before we can destroy the object.
+        /// <summary>
+        /// Number of events we have to get before we can destroy the object.
+        /// </summary>
         private int m_termAcks;
 
-
-
-
-        /// <summary> Initializes a new instance of the <see cref="Own" /> class that is running on a thread outside of 0MQ infrastructure. </summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Own" /> class that is running on a thread outside of 0MQ infrastructure.
+        /// </summary>
         /// <param name="parent">The parent context.</param>
         /// <param name="threadId">The thread id.</param>
-        /// <remarks> Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
-        /// when the object is plugged in. </remarks>
+        /// <remarks>
+        /// Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
+        /// when the object is plugged in.
+        /// </remarks>
         protected Own(Ctx parent, int threadId)
             : base(parent, threadId)
         {
@@ -73,11 +85,15 @@ namespace NetMQ.zmq
             m_options = new Options();
         }
 
-        /// <summary> Initializes a new instance of the <see cref="Own" /> class that is running within I/O thread. </summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Own" /> class that is running within I/O thread.
+        /// </summary>
         /// <param name="ioThread">The I/O thread.</param>
         /// <param name="options">The options.</param>
-        /// <remarks> Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
-        /// when the object is plugged in. </remarks>
+        /// <remarks>
+        /// Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
+        /// when the object is plugged in.
+        /// </remarks>
         protected Own(IOThread ioThread, Options options)
             : base(ioThread)
         {
@@ -90,7 +106,9 @@ namespace NetMQ.zmq
 
         abstract public void Destroy();
 
-        /// <summary> A place to hook in when physical destruction of the object is to be delayed. </summary>
+        /// <summary>
+        /// A place to hook in when physical destruction of the object is to be delayed.
+        /// </summary>
         protected virtual void ProcessDestroy()
         {
             Destroy();
@@ -102,9 +120,13 @@ namespace NetMQ.zmq
             m_owner = owner;
         }
 
-        /// <summary> When another owned object wants to send command to this object it calls this function
-        /// to let it know it should not shut down before the command is delivered. </summary>
-        /// <remarks> This function may be called from a different thread! </remarks>
+        /// <summary>
+        /// When another owned object wants to send command to this object it calls this function
+        /// to let it know it should not shut down before the command is delivered.
+        /// </summary>
+        /// <remarks>
+        /// This function may be called from a different thread!
+        /// </remarks>
         public void IncSeqnum()
         {
             Interlocked.Increment(ref m_sentSeqnum);
@@ -120,7 +142,9 @@ namespace NetMQ.zmq
         }
 
 
-        /// <summary> Launch the supplied object and become its owner. </summary>
+        /// <summary>
+        /// Launch the supplied object and become its owner.
+        /// </summary>
         /// <param name="object_">The object to be launched.</param>
         protected void LaunchChild(Own object_)
         {
@@ -134,7 +158,9 @@ namespace NetMQ.zmq
             SendOwn(this, object_);
         }
 
-        /// <summary> Terminate owned object. </summary>
+        /// <summary>
+        /// Terminate owned object.
+        /// </summary>
         /// <param name="object_"></param>
         protected void TermChild(Own object_)
         {
@@ -179,8 +205,12 @@ namespace NetMQ.zmq
             m_owned.Add(object_);
         }
 
-        /// <summary> Ask owner object to terminate this object. It may take a while while actual termination is started. </summary>
-        /// <remarks> This function should not be called more than once. </remarks>
+        /// <summary>
+        /// Ask owner object to terminate this object. It may take a while while actual termination is started.
+        /// </summary>
+        /// <remarks>
+        /// This function should not be called more than once.
+        /// </remarks>
         protected void Terminate()
         {
             //  If termination is already underway, there's no point
@@ -200,13 +230,19 @@ namespace NetMQ.zmq
             SendTermReq(m_owner, this);
         }
 
-        /// <summary> Returns true if the object is in process of termination. </summary>
+        /// <summary>
+        /// Returns true if the object is in process of termination.
+        /// </summary>
         protected bool IsTerminating { get { return m_terminating; } }
 
-        /// <summary> Runs the termination process. </summary>
-        /// <param name="linger">The linger.</param>
-        /// <remarks> Termination handler is protected rather than private so that it can be intercepted by the derived class.
-        /// This is useful to add custom steps to the beginning of the termination process. </remarks>
+        /// <summary>
+        /// Runs the termination process.
+        /// </summary>
+        /// <param name="linger">the linger time, in milliseconds</param>
+        /// <remarks>
+        /// Termination handler is protected rather than private so that it can be intercepted by the derived class.
+        /// This is useful to add custom steps to the beginning of the termination process.
+        /// </remarks>
         protected override void ProcessTerm(int linger)
         {
             //  Double termination should never happen.
@@ -227,11 +263,13 @@ namespace NetMQ.zmq
             CheckTermAcks();
         }
 
-        //  Use following two functions to wait for arbitrary events before
-        //  terminating. Just add number of events to wait for using
-        //  register_tem_acks functions. When event occurs, call
-        //  remove_term_ack. When number of pending acks reaches zero
-        //  object will be deallocated.
+        /// <summary>
+        /// Use following two functions to wait for arbitrary events before
+        /// terminating. Just add number of events to wait for using
+        /// register_tem_acks functions. When event occurs, call
+        /// remove_term_ack. When number of pending acks reaches zero
+        /// object will be deallocated.
+        /// </summary>
         public void RegisterTermAcks(int count)
         {
             m_termAcks += count;

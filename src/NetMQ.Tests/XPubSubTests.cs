@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using NUnit.Framework;
-using NetMQ.Sockets;
 using NetMQ.zmq;
+using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -299,7 +296,7 @@ namespace NetMQ.Tests
                         // this returns the result of the latest 
                         // connect - address2, not the source of the message
                         // This is documented here: http://api.zeromq.org/3-2:zmq-getsockopt
-                        var ep = sub2.Options.GetLastEndpoint;
+                        var ep = sub2.Options.LastEndpoint;
                         //Assert.AreEqual(address, ep);
 
                         // same for sub2
@@ -324,7 +321,7 @@ namespace NetMQ.Tests
 
                         Assert.AreEqual("Hello from the second publisher", m4);
                         Assert.False(more);
-                        ep = sub2.Options.GetLastEndpoint;
+                        ep = sub2.Options.LastEndpoint;
                         Assert.AreEqual(address2, ep);
 
 

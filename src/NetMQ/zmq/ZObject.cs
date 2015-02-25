@@ -25,14 +25,18 @@ using NetMQ.zmq.Transports;
 namespace NetMQ.zmq
 {
     /// <summary>
-    /// Base class for all objects that participate in inter-thread communication.
+    /// This is the base-class for all objects that participate in inter-thread communication.
     /// </summary>
     internal abstract class ZObject
     {
-        //  Context provides access to the global state.
+        /// <summary>
+        /// This Context provides access to the global state.
+        /// </summary>
         private readonly Ctx m_ctx;
 
-        //  Thread ID of the thread the object belongs to.
+        /// <summary>
+        /// This is the thread-ID of the thread that this object belongs to.
+        /// </summary>
         private readonly int m_threadId;
 
         protected ZObject(Ctx ctx, int threadId)
@@ -46,8 +50,14 @@ namespace NetMQ.zmq
         {
         }
 
+        /// <summary>
+        /// Get the id of the thread that this object belongs to.
+        /// </summary>
         public int ThreadId { get { return m_threadId; } }
 
+        /// <summary>
+        /// Get the context that provides access to the global state.
+        /// </summary>
         protected Ctx Ctx { get { return m_ctx; } }
 
         public void ProcessCommand(Command cmd)
@@ -148,12 +158,19 @@ namespace NetMQ.zmq
             m_ctx.DestroySocket(socket);
         }
 
-        //  Chooses least loaded I/O thread.
+        /// <summary>
+        /// Select and return the least loaded I/O thread.
+        /// </summary>
+        /// <param name="affinity"></param>
+        /// <returns>the IOThread</returns>
         protected IOThread ChooseIOThread(long affinity)
         {
             return m_ctx.ChooseIOThread(affinity);
         }
 
+        /// <summary>
+        /// Send the Stop command.
+        /// </summary>
         protected void SendStop()
         {
             //  'stop' command goes always from administrative thread to
@@ -162,6 +179,11 @@ namespace NetMQ.zmq
             m_ctx.SendCommand(m_threadId, cmd);
         }
 
+       /// <summary>
+        /// Send the Plug command, incrementing the destinations sequence-number if incSeqnum is true.
+        /// </summary>
+        /// <param name="destination">the Own to send the command to</param>
+        /// <param name="incSeqnum">a flag that dictates whether to increment the sequence-number on the destination (optional - defaults to false)</param>
         protected void SendPlug(Own destination, bool incSeqnum = true)
         {
             if (incSeqnum)
@@ -171,6 +193,11 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
+        /// <summary>
+        /// Send the Own command, and increment the sequence-number of the destination
+        /// </summary>
+        /// <param name="destination">the Own to send the command to</param>
+        /// <param name="obj">the object to Own</param>
         protected void SendOwn(Own destination, Own obj)
         {
             destination.IncSeqnum();
@@ -178,6 +205,12 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
+        /// <summary>
+        /// Send the Attach command
+        /// </summary>
+        /// <param name="destination">the Own to send the command to</param>
+        /// <param name="engine"></param>
+        /// <param name="incSeqnum"></param>
         protected void SendAttach(SessionBase destination, IEngine engine, bool incSeqnum = true)
         {
             if (incSeqnum)
@@ -187,6 +220,12 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
+       /// <summary>
+        /// Send the Bind command
+        /// </summary>
+        /// <param name="destination"></param>
+        /// <param name="pipe"></param>
+        /// <param name="incSeqnum"></param>
         protected void SendBind(Own destination, Pipe pipe, bool incSeqnum = true)
         {
             if (incSeqnum)
@@ -337,14 +376,20 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-        //  Special handler called after a command that requires a seqnum
-        //  was processed. The implementation should catch up with its counter
-        //  of processed commands here.
+        /// <summary>
+        /// Special handler called after a command that requires a seqnum
+        /// was processed. The implementation should catch up with its counter
+        /// of processed commands here.
+        /// </summary>
         protected virtual void ProcessSeqnum()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Send the given Command, on that commands Destination thread.
+        /// </summary>
+        /// <param name="cmd">the Command to send</param>
         private void SendCommand(Command cmd)
         {
             m_ctx.SendCommand(cmd.Destination.ThreadId, cmd);

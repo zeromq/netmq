@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using NetMQ.Monitoring;
-using NetMQ.Sockets;
 using NetMQ.zmq;
+using NUnit.Framework;
 
 namespace NetMQ.Tests
 {

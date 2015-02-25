@@ -9,7 +9,12 @@ namespace NetMQ
     {
         #region Byte Array
 
-        public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
+         /// <summary>
+        /// Transmit a byte-array of data over this socket.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="data">the byte-array of data to send</param>
+       public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
         {
             Msg msg = new Msg();
             msg.InitPool(length);
@@ -95,6 +100,14 @@ namespace NetMQ
             Send(socket, message, Encoding.ASCII, dontWait, sendMore);
         }
         
+        /// <summary>
+        /// Transmit a string-message of data over this socket, while indicating that more is to come
+        /// (sendMore is set to true).
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="message">a string containing the message to send</param>
+        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete</param>
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
         public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false)
         {

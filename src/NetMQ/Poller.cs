@@ -12,24 +12,40 @@ namespace NetMQ
     public class Poller : IDisposable
     {
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
+
+        /// <summary>
+        /// A Dictionary of entries each of which associates a sockeet with an action.
+        /// </summary>
         private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
 
         private SelectItem[] m_pollset;
+
+        /// <summary>
+        /// An array of sockets.
+        /// </summary>
         private NetMQSocket[] m_pollact;
+
         private int m_pollSize;
 
-        readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
-        readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
+        private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
+        private readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
 
         private int m_cancel;
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
+
+        /// <summary>
+        /// This flag indicates whether this Poller has started.
+        /// </summary>
         private bool m_isStarted;
 
         private bool m_isDirty = true;
-        private bool m_disposed = false;
+        private bool m_disposed;
 
         private readonly Selector m_selector = new Selector();
 
+        /// <summary>
+        /// Create a new Poller object, with a default PollTimeout of 1 second.
+        /// </summary>
         public Poller()
         {
             PollTimeout = 1000;
@@ -37,6 +53,10 @@ namespace NetMQ
             m_cancel = 0;
         }
 
+        /// <summary>
+        /// Create a new Poller object with an array of sockets.
+        /// </summary>
+        /// <param name="sockets">an array of ISocketPollables to poll</param>
         public Poller([NotNull] [ItemNotNull] params ISocketPollable[] sockets)
             : this()
         {
@@ -51,6 +71,11 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Create a new Poller object with an array of timers.
+        /// TODO: Needs more explanation.
+        /// </summary>
+        /// <param name="timers">an array of NetMQTimers (must not be null) to be incorporated into this Poller</param>
         public Poller([NotNull] [ItemNotNull] params NetMQTimer[] timers)
             : this()
         {
@@ -97,12 +122,21 @@ namespace NetMQ
         #endregion
 
         /// <summary>
-        /// Poll timeout in milliseconds
+        /// Get or set the poll timeout in milliseconds.
         /// </summary>
         public int PollTimeout { get; set; }
 
+        /// <summary>
+        /// Get whether the polling has started.
+        /// This is set true at the beginning of the Start method, and cleared in the Stop method.
+        /// </summary>
         public bool IsStarted { get { return m_isStarted; } }
 
+        /// <summary>
+        /// Add the given socket and action this Poller's dictionary of socket/actions.
+        /// </summary>
+        /// <param name="socket">the Socket to add</param>
+        /// <param name="callback">the Action to add</param>
         public void AddPollInSocket([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
@@ -130,6 +164,10 @@ namespace NetMQ
             m_isDirty = true;
         }
 
+        /// <summary>
+        /// Delete the given socket from this Poller's dictionary of socket/actions.
+        /// </summary>
+        /// <param name="socket">the Socket to remove</param>
         public void RemovePollInSocket([NotNull] Socket socket)
         {
             if (socket == null)
@@ -147,6 +185,10 @@ namespace NetMQ
             m_isDirty = true;
         }
 
+        /// <summary>
+        /// Add the given socket to this Poller's list.
+        /// </summary>
+        /// <param name="socket">the ISocketPollable to add to the list</param>
         public void AddSocket([NotNull] ISocketPollable socket)
         {
             if (socket == null)
@@ -171,6 +213,10 @@ namespace NetMQ
             m_isDirty = true;
         }
 
+        /// <summary>
+        /// Delete the given socket from this Poller's list.
+        /// </summary>
+        /// <param name="socket">the ISocketPollable to remove from the list</param>
         public void RemoveSocket([NotNull] ISocketPollable socket)
         {
             if (socket == null)
@@ -189,12 +235,22 @@ namespace NetMQ
             m_isDirty = true;
         }
 
+        /// <summary>
+        /// Handle the EventsChanged event of any of the sockets contained within this Poller,
+        /// by marking this poller as "dirty" in order to reset the poll events.
+        /// </summary>
+        /// <param name="sender">the object that was the source of the event</param>
+        /// <param name="e">the NetMQSocketEventArgs associated with the event</param>
         private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
         {
             // when the sockets SendReady or ReceiveReady changed we marked the poller as dirty in order to reset the poll events
             m_isDirty = true;
         }
 
+        /// <summary>
+        /// Add the given timer to this Poller's list.
+        /// </summary>
+        /// <param name="timer">the NetMQTimer to add to the list</param>
         public void AddTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -210,6 +266,10 @@ namespace NetMQ
             m_timers.Add(timer);
         }
 
+        /// <summary>
+        /// Delete the given timer from this Poller's list.
+        /// </summary>
+        /// <param name="timer">the NetMQTimer to rremove from the list</param>
         public void RemoveTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -288,7 +348,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Poll till Cancel or CancelAndJoin is called. Blocking method.
+        /// Poll till Cancel or CancelAndJoin is called. This is a blocking method.
         /// </summary>
         public void PollTillCancelled()
         {
@@ -297,7 +357,7 @@ namespace NetMQ
 
         /// <summary>
         /// The non blocking version of PollTillCancelled, starting the PollTillCancelled on new thread. 
-        /// Will poll till Cancel or CancelAndJoin is called. Method is not blocking.
+        /// Will poll till Cancel or CancelAndJoin is called. This method is not blocking.
         /// </summary>
         public void PollTillCancelledNonBlocking()
         {
@@ -305,12 +365,19 @@ namespace NetMQ
             thread.Start();
         }
 
+        /// <summary>
+        /// Poll one time.
+        /// </summary>
         public void PollOnce()
         {
             int timesToPoll = 1;
             PollWhile(() => timesToPoll-- > 0);
         }
 
+        /// <summary>
+        /// Poll as long as the given Func evaluates to true.
+        /// </summary>
+        /// <param name="condition">a Func that returns a boolean value, to evaluate on each iteration</param>
         private void PollWhile([InstantHandle] Func<bool> condition)
         {
             if (m_disposed)
@@ -446,15 +513,20 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Stop the poller job, it may take a while until the poller is fully stopped
+        /// Stop the poller job. It may take a while until the poller is fully stopped.
+        /// If it doesn't stop within 20 seconds, it times-out anyway and returns.
         /// </summary>
-        /// <param name="waitForCloseToComplete">if true the method will block until the poller is fully stopped</param>
+        /// <param name="waitForCloseToComplete">if true, this method will block until the poller is fully stopped</param>
         [Obsolete("Use Cancel or CancelAndJoin")]
         public void Stop(bool waitForCloseToComplete)
         {
             Cancel(waitForCloseToComplete);
         }
 
+        /// <summary>
+        /// Stop the poller job. This returns after waiting for that thread to stop.
+        /// This is equivalent to calling CancelAndJoin.
+        /// </summary>
         [Obsolete("Use Cancel or CancelAndJoin")]
         public void Stop()
         {
@@ -462,7 +534,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Cancel poller job when PollTillCancelled is called
+        /// Cancel the poller job when PollTillCancelled is called
         /// </summary>
         public void Cancel()
         {
@@ -481,7 +553,7 @@ namespace NetMQ
         {
             if (m_disposed)
             {
-                throw new ObjectDisposedException("Poller is disposed");
+                throw new ObjectDisposedException("Poller is already disposed");
             }
 
             if (m_isStarted)

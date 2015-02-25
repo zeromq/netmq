@@ -1,9 +1,9 @@
 ﻿using NetMQ.Sockets;
 
-namespace NetMQ.Actors
+namespace NetMQ.InProcActors
 {
     /// <summary>
-    /// Shim represents one end of the in process pipe, where the Shim expects
+    /// Shim represents one end of the in-process pipe, where the Shim expects
     /// to be supplied with a <c>IShimHandlerOfT that it would use for running the pipe
     /// protocol with the original Actor PairSocket at the other end of the pipe 
     /// </summary>
@@ -16,6 +16,7 @@ namespace NetMQ.Actors
         }
 
         public IShimHandler<T> Handler { get; private set; }
+
         public PairSocket Pipe { get; private set; }
     }
 }

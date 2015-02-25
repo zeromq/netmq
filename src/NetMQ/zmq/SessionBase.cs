@@ -36,45 +36,73 @@ namespace NetMQ.zmq
                                  Pipe.IPipeEvents, IProcatorEvents,
                                  IMsgSink, IMsgSource
     {
-        //  If true, this session (re)connects to the peer. Otherwise, it's
-        //  a transient session created by the listener.
+        /// <summary>
+        /// If true, this session (re)connects to the peer. Otherwise, it's
+        /// a transient session created by the listener.
+        /// </summary>
         private readonly bool m_connect;
 
-        //  Pipe connecting the session to its socket.
+        /// <summary>
+        /// Pipe connecting the session to its socket.
+        /// </summary>
         private Pipe m_pipe;
 
-        //  This set is added to with pipes we are disconnecting, but haven't yet completed
+        /// <summary>
+        /// This set is added to with pipes we are disconnecting, but haven't yet completed
+        /// </summary>
         private readonly HashSet<Pipe> m_terminatingPipes;
 
-        //  This flag is true if the remainder of the message being processed
-        //  is still in the in pipe.
+        /// <summary>
+        /// This flag is true if the remainder of the message being processed
+        /// is still in the pipe.
+        /// </summary>
         private bool m_incompleteIn;
 
-        //  True if termination have been suspended to push the pending
-        //  messages to the network.
+        /// <summary>
+        /// True if termination have been suspended to push the pending
+        /// messages to the network.
+        /// </summary>
         private bool m_pending;
 
-        //  The protocol I/O engine connected to the session.
+        /// <summary>
+        /// The protocol I/O engine connected to the session.
+        /// </summary>
         private IEngine m_engine;
 
-        //  The socket the session belongs to.
+        /// <summary>
+        /// The socket the session belongs to.
+        /// </summary>
         private readonly SocketBase m_socket;
 
-        //  I/O thread the session is living in. It will be used to plug in
-        //  the engines into the same thread.
+        /// <summary>
+        /// I/O thread the session is living in. It will be used to plug in
+        /// the engines into the same thread.
+        /// </summary>
         private readonly IOThread m_ioThread;
 
-        //  ID of the linger timer
+        /// <summary>
+        /// ID of the linger timer (0x20)
+        /// </summary>
         private const int LingerTimerId = 0x20;
 
-        //  True is linger timer is running.
+        /// <summary>
+        /// True is linger timer is running.
+        /// </summary>
         private bool m_hasLingerTimer;
 
-        //  If true, identity has been sent/received from the network.
+        /// <summary>
+        /// If true, identity has been sent to the network.
+        /// </summary>
         private bool m_identitySent;
+
+        /// <summary>
+        /// If true, identity has been received from the network.
+        /// </summary>
         private bool m_identityReceived;
 
-        //  Protocol and address to use when connecting.
+        /// <summary>
+        /// Protocol and address to use when connecting.
+        /// </summary>
         private readonly Address m_addr;
 
         private readonly IOObject m_ioObject;
@@ -122,7 +150,7 @@ namespace NetMQ.zmq
                     s = new Stream.StreamSession(ioThread, connect, socket, options, addr);
                     break;
                 default:
-                    throw new InvalidException("type=" + options.SocketType);
+                    throw new InvalidException("SessionBase.Create called with invalid SocketType of " + options.SocketType);
             }
             return s;
         }

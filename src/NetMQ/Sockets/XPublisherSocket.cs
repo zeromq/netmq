@@ -3,6 +3,11 @@ using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
+    /// <summary>
+    /// An XPublisherSocket is a NetMQSocket intended to be used as the XPub in the XPub/XSub pattern.
+    /// The intended usage is for serving, together with a matching XSubscriberSocket,
+    /// as a stable intermediary between a PublisherSocket and it's SubscriberSockets.
+    /// </summary>
     public class XPublisherSocket : NetMQSocket
     {
         internal XPublisherSocket(SocketBase socketHandle)

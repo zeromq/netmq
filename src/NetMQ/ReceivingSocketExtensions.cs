@@ -379,8 +379,8 @@ namespace NetMQ
         /// <summary>
         /// non-blocking receive of a (multi-part)message and stores it in the NetMQMessage object
         /// </summary>
-        /// <param name="socket">the socket to use</param>
-        /// <param name="message">the object filled with the received message</param>
+        /// <param name="socket">the IReceivingSocket to receive bytes from</param>
+        /// <param name="message">the NetMQMessage to receive the bytes into</param>
         /// <param name="dontWait">non-blocking if <c>true</c> and blocking otherwise</param>
         public static void ReceiveMessage (this IReceivingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
         {

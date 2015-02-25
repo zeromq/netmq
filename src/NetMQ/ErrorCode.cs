@@ -2,6 +2,9 @@ using System;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// This enum-type represents the various numeric socket-related error codes.
+    /// </summary>
     public enum ErrorCode
     {
         EndpointNotFound = 2,

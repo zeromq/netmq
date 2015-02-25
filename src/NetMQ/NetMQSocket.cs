@@ -5,10 +5,14 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// NetMQSocket provides the base-class for the various message-queuing sockets used in this system,
+    /// and holds a SocketBase as well as a SocketOptions.
+    /// </summary>
     public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
         private readonly SocketBase m_socketHandle;
-        private bool m_isClosed = false;
+        private bool m_isClosed;
         private readonly NetMQSocketEventArgs m_socketEventArgs;
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
@@ -17,6 +21,10 @@ namespace NetMQ
 
         private readonly Selector m_selector;
 
+        /// <summary>
+        /// Create a new NetMQSocket with the given SocketBase
+        /// </summary>
+        /// <param name="socketHandle">a SocketBase object to assign to the new socket</param>
         internal NetMQSocket([NotNull] SocketBase socketHandle)
         {
             m_selector = new Selector();
@@ -26,7 +34,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Occurs when at least one message may be received from the socket without blocking.
+        /// This event occurs when at least one message may be received from the socket without blocking.
         /// </summary>
         public event EventHandler<NetMQSocketEventArgs> ReceiveReady
         {
@@ -43,7 +51,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Occurs when at least one message may be sent via the socket without blocking.
+        /// This event occurs when at least one message may be sent via the socket without blocking.
         /// </summary>
         public event EventHandler<NetMQSocketEventArgs> SendReady
         {
@@ -62,10 +70,19 @@ namespace NetMQ
         [Obsolete]
         public bool IgnoreErrors { get; set; }
 
+        /// <summary>
+        /// This event gets raised when either the SendReady or ReceiveReady event is set.
+        /// </summary>
         internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
 
+        /// <summary>
+        /// Get or set an integer that represents the number of errors that have accumulated.
+        /// </summary>
         internal int Errors { get; set; }
         
+        /// <summary>
+        /// Raise the EventsChanged event.
+        /// </summary>
         private void InvokeEventsChanged()
         {
             var temp = EventsChanged;
@@ -78,10 +95,13 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Set the options of the socket
+        /// Get the SocketOptions of this socket.
         /// </summary>
         public SocketOptions Options { get; private set; }
 
+        /// <summary>
+        /// Get the SocketBase that this NetMQSocket contains.
+        /// </summary>
         internal SocketBase SocketHandle
         {
             get { return m_socketHandle; }
@@ -95,8 +115,8 @@ namespace NetMQ
         /// <summary>
         /// Bind the socket to an address
         /// </summary>
-        /// <param name="address">The address of the socket</param>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
+        /// <param name="address">a string representing the address to bind this socket to</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         public void Bind([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
@@ -107,9 +127,9 @@ namespace NetMQ
         /// <summary>
         /// Bind the socket to a random free port
         /// </summary>
-        /// <param name="address">The address of the socket, omit the port</param>
-        /// <returns>Chosen port number</returns>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
+        /// <param name="address">a string denoting the address of the socket, omitting the port</param>
+        /// <returns>the chosen port-number</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         public int BindRandomPort([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
@@ -118,10 +138,10 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Connect the socket to an address
+        /// Connect the socket to an address.
         /// </summary>
-        /// <param name="address">Address to connect to</param>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is  is disposed</exception>
+        /// <param name="address">a string denoting the address to connect this socket to</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         public void Connect([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
@@ -130,10 +150,10 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Disconnect the socket from specific address
+        /// Disconnect this socket from a specific address.
         /// </summary>
-        /// <param name="address">The address to disconnect from</param>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
+        /// <param name="address">a string denoting the address to disconnect from</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         public void Disconnect([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
@@ -142,10 +162,10 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Unbind the socket from specific address
+        /// Unbind this socket from a specific address
         /// </summary>
-        /// <param name="address">The address to unbind from</param>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
+        /// <param name="address">a string denoting the address to unbind from</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         public void Unbind([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
@@ -154,7 +174,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Close the socket
+        /// Close this socket. Do not call this if this socket has already been disposed.
         /// </summary>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
         public void Close()
@@ -168,18 +188,20 @@ namespace NetMQ
             }
         }
 
-        /// <summary> Wait until message is ready to be received from the socket. </summary>
+        /// <summary>
+        /// Wait until a message is ready to be received from the socket.
+        /// </summary>
         public void Poll()
         {
             Poll(TimeSpan.FromMilliseconds(-1));
         }
 
         /// <summary>
-        /// Wait until message is ready to be received/sent from the socket or until timeout is reached
-        /// if message(s) is(are) available the ReceiveReady/SendReady event is fired
+        /// Wait until a message is ready to be received/sent from this socket or until timeout is reached.
+        /// If a message is available, the ReceiveReady/SendReady event is fired.
         /// </summary>
-        /// <param name="timeout"></param>
-        /// <returns>true if a message was available within the timeout and false otherwise</returns>
+        /// <param name="timeout">a TimeSpan that represents the timeout-period</param>
+        /// <returns>true if a message was available within the timeout, false otherwise</returns>
         public bool Poll(TimeSpan timeout)
         {
             PollEvents events = GetPollEvents();
@@ -192,7 +214,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// polls the socket for an event as specified to happen within a given timeout period
+        /// Poll this socket, which means wait for an event to happen within the given timeout period.
         /// </summary>
         /// <param name="pollEvents">the poll event(s) to listen for</param>
         /// <param name="timeout">the timeout period</param>
@@ -211,6 +233,13 @@ namespace NetMQ
             return items[0].ResultEvent;
         }
 
+        /// <summary>
+        /// Return a PollEvents value that indicates which bit-flags have a corresponding listener,
+        /// with PollError always set,
+        /// and PollOut set based upon m_sendReady
+        /// and PollIn set based upon m_receiveReady.
+        /// </summary>
+        /// <returns>a PollEvents value that denotes which events have a listener</returns>
         internal PollEvents GetPollEvents()
         {
             PollEvents events = PollEvents.PollError;
@@ -228,6 +257,13 @@ namespace NetMQ
             return events;
         }
 
+        /// <summary>
+        /// Unless this socket is closed,
+        /// based upon the given PollEvents - raise the m_receiveReady event if PollIn is set,
+        /// and m_sendReady if PollOut is set.
+        /// </summary>
+        /// <param name="sender">what to use as the source of the events</param>
+        /// <param name="events">the given PollEvents that dictates when of the two events to raise</param>
         internal void InvokeEvents(object sender, PollEvents events)
         {
             if (!m_isClosed)
@@ -255,10 +291,10 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// get an available message
+        /// Get an available message over this socket.
         /// </summary>
         /// <param name="msg"></param>
-        /// <param name="options"></param>
+        /// <param name="options">this controls whether to wait for the message versus returning immedately</param>
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {                        
             m_socketHandle.Recv(ref msg, options);
@@ -293,6 +329,11 @@ namespace NetMQ
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
         }
 
+        /// <summary>
+        /// Listen to the given endpoint for all SocketEvent events.
+        /// This is the same as calling the method Monitor with a value of SocketEvent.All for the events argument.
+        /// </summary>
+        /// <param name="events">the specific SocketEvent events to report on. Default is SocketEvent.All if you omit this.</param>
         public void Monitor([NotNull] string endpoint, SocketEvent events = SocketEvent.All)
         {
             if (endpoint == null)
@@ -379,6 +420,9 @@ namespace NetMQ
             m_socketHandle.SetSocketOption(socketOptions, value);
         }
 
+        /// <summary>
+        /// Release this socket's resources (by simply closing it).
+        /// </summary>
         public void Dispose()
         {
             Close();

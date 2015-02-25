@@ -25,11 +25,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-//Context object encapsulates all the global state associated with
-//  the library.
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Objects of class Ctx are intended to encapsulate all of the global state
+    /// associated with the NetMQ library.
+    /// </summary>
     internal class Ctx
     {
         // Default for new contexts
@@ -54,57 +56,90 @@ namespace NetMQ.zmq
 
         private bool m_disposed;
 
-        //  Sockets belonging to this context. We need the list so that
-        //  we can notify the sockets when zmq_term() is called. The sockets
-        //  will return ETERM then.
+        /// <summary>
+        /// Sockets belonging to this context. We need the list so that
+        /// we can notify the sockets when zmq_term() is called. The sockets
+        /// will return ETERM then.
+        /// </summary>
         private readonly List<SocketBase> m_sockets;
 
-        //  List of unused thread slots.
+        /// <summary>
+        /// List of unused thread slots.
+        /// </summary>
         private readonly Stack<int> m_emptySlots;
 
-        //  If true, zmq_init has been called but no socket has been created
-        //  yet. Launching of I/O threads is delayed.
+        /// <summary>
+        /// If true, zmq_init has been called but no socket has been created
+        /// yet. Launching of I/O threads is delayed.
+        /// </summary>
         private volatile bool m_starting;
 
-        //  If true, zmq_term was already called.
+        /// <summary>
+        /// If true, zmq_term was already called.
+        /// </summary>
         private bool m_terminating;
 
-        //  Synchronisation of accesses to global slot-related data:
-        //  sockets, empty_slots, terminating. It also synchronises
-        //  access to zombie sockets as such (as opposed to slots) and provides
-        //  a memory barrier to ensure that all CPU cores see the same data.
-
+        /// <summary>
+        /// This object is for synchronisation of accesses to global slot-related data:
+        /// sockets, empty_slots, terminating. It also synchronises
+        /// access to zombie sockets as such (as opposed to slots) and provides
+        /// a memory barrier to ensure that all CPU cores see the same data.
+        /// </summary>
         private readonly object m_slotSync;
 
-        //  The reaper thread.
+        /// <summary>
+        /// The reaper thread.
+        /// </summary>
         private Reaper m_reaper;
 
-        //  I/O threads.
+        /// <summary>
+        /// List of I/O threads.
+        /// </summary>
         private readonly List<IOThread> m_ioThreads;
 
-        //  Array of pointers to mailboxes for both application and I/O threads.
+        /// <summary>
+        /// Length of the mailbox-array.
+        /// </summary>
         private int m_slotCount;
+
+        /// <summary>
+        /// Array of pointers to mailboxes for both application and I/O threads.
+        /// </summary>
         private IMailbox[] m_slots;
 
-        //  Mailbox for zmq_term thread.
+        /// <summary>
+        /// Mailbox for zmq_term thread.
+        /// </summary>
         private readonly Mailbox m_termMailbox;
 
-        //  List of inproc endpoints within this context.
+        /// <summary>
+        /// Dictionary containing the inproc endpoints within this context.
+        /// </summary>
         private readonly Dictionary<string, Endpoint> m_endpoints;
 
-        //  Synchronisation of access to the list of inproc endpoints.
+        /// <summary>
+        /// This object provides synchronisation of access to the list of inproc endpoints.
+        /// </summary>
         private readonly object m_endpointsSync;
 
-        //  Maximum socket ID.
+        /// <summary>
+        /// The maximum socket ID.  CBL
+        /// </summary>
         private static int s_maxSocketId;
 
-        //  Maximum number of sockets that can be opened at the same time.
+        /// <summary>
+        /// The maximum number of sockets that can be opened at the same time.
+        /// </summary>
         private int m_maxSockets;
 
-        //  Number of I/O threads to launch.
+        /// <summary>
+        /// The number of I/O threads to launch.
+        /// </summary>
         private int m_ioThreadCount;
 
-        //  Synchronisation of access to context options.
+        /// <summary>
+        /// This object is used to synchronize access to context options.
+        /// </summary>
         private readonly object m_optSync;
 
         public const int TermTid = 0;
@@ -152,7 +187,9 @@ namespace NetMQ.zmq
             m_disposed = true;
         }
 
-        //  Returns false if object is not a context.
+        /// <summary>
+        /// Throw an ObjectDisposedException if this is already disposed.
+        /// </summary>
         public void CheckDisposed()
         {
             if (m_disposed)
@@ -161,11 +198,12 @@ namespace NetMQ.zmq
             }
         }
 
-        //  This function is called when user invokes zmq_term. If there are
-        //  no more sockets open it'll cause all the infrastructure to be shut
-        //  down. If there are open sockets still, the deallocation happens
-        //  after the last one is closed.
-
+        /// <summary>
+        /// This function is called when user invokes zmq_term. If there are
+        /// no more sockets open it'll cause all the infrastructure to be shut
+        /// down. If there are open sockets still, the deallocation happens
+        /// after the last one is closed.
+        /// </summary>
         public void Terminate()
         {
             m_disposed = true;
@@ -219,6 +257,11 @@ namespace NetMQ.zmq
 
         }
 
+        /// <summary>
+        /// Set either the max-sockets or the I/O-thread-count, depending upon which ContextOption is indicated.
+        /// </summary>
+        /// <param name="option">this determines which of the two properties to set</param>
+        /// <param name="optval">the value to assign to that property</param>
         public void Set(ContextOption option, int optval)
         {
             if (option == ContextOption.MaxSockets && optval >= 1)
@@ -237,10 +280,14 @@ namespace NetMQ.zmq
             }
             else
             {
-                throw new InvalidException("option = " + option);
+                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets or IOThreads, and optval >= 1 or 0.", option, optval));
             }
         }
 
+        /// <summary>
+        /// Return either the max-sockets or the I/O-thread-count, depending upon which ContextOption is indicated.
+        /// </summary>
+        /// <param name="option">this determines which of the two properties to get</param>
         public int Get(ContextOption option)
         {
             if (option == ContextOption.MaxSockets)
@@ -249,7 +296,7 @@ namespace NetMQ.zmq
                 return m_ioThreadCount;
             else
             {
-                throw new InvalidException("option = " + option);
+                throw new InvalidException(String.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
             }
         }
 
@@ -309,7 +356,8 @@ namespace NetMQ.zmq
                 //  Once zmq_term() was called, we can't create new sockets.
                 if (m_terminating)
                 {
-                    throw new TerminatingException();
+                    string msg = String.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
+                    throw new TerminatingException(innerException: null, message: msg);
                 }
 
                 //  If max_sockets limit was reached, return error.
@@ -363,21 +411,27 @@ namespace NetMQ.zmq
             //LOG.debug("Released Slot [" + socket_ + "] ");
         }
 
-        //  Returns reaper thread object.
+        /// <summary>
+        /// Returns reaper thread object.
+        /// </summary>
         public ZObject GetReaper()
         {
             return m_reaper;
         }
 
-        //  Send command to the destination thread.
+        /// <summary>
+        /// Send a command to the given destination thread.
+        /// </summary>
         public void SendCommand(int threadId, Command command)
         {
             m_slots[threadId].Send(command);
         }
 
-        //  Returns the I/O thread that is the least busy at the moment.
-        //  Affinity specifies which I/O threads are eligible (0 = all).
-        //  Returns NULL if no I/O thread is available.
+        /// <summary>
+        /// Returns the I/O thread that is the least busy at the moment.
+        /// Affinity specifies which I/O threads are eligible (0 = all).
+        /// Returns NULL if no I/O thread is available.
+        /// </summary>
         public IOThread ChooseIOThread(long affinity)
         {
             if (m_ioThreads.Count == 0)
@@ -402,7 +456,13 @@ namespace NetMQ.zmq
             return selectedIOThread;
         }
 
-        //  Management of inproc endpoints.
+        /// <summary>
+        /// Save the given addr and Endpoint within our internal list.
+        /// This is used for management of inproc endpoints.
+        /// </summary>
+        /// <param name="addr">the textual name to give this endpoint</param>
+        /// <param name="endpoint">the Endpoint to remember</param>
+        /// <returns>true if the given addr was NOT already registered</returns>
         public bool RegisterEndpoint(String addr, Endpoint endpoint)
         {
             lock (m_endpointsSync)

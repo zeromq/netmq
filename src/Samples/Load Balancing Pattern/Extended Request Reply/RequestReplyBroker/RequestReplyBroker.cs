@@ -36,7 +36,7 @@ namespace ExtendedRequestReply
                         poller.AddSocket(frontend);
                     
                         //Listen out for events on both sockets and raise events when messages come in
-                        poller.Start();
+                        poller.PollTillCancelled();
                     }
                 }
             }

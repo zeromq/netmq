@@ -41,6 +41,11 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Raise, or "Fire", the Event.
+        /// </summary>
+        /// <param name="sender">the sender that the event-handler that gets notified of this event will recieve</param>
+        /// <param name="args">the subclass of EventArgs that the event-handler will receive</param>
         public void Fire(object sender, T args)
         {
             var temp = m_event;

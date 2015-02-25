@@ -23,15 +23,26 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Utils
 {
+    /// <summary>
+    /// The Clock class provides properties for getting timer-counts in either milliseconds or microseconds,
+    /// and the CPU's timestamp-counter if available.
+    /// </summary>
     internal class Clock
     {
-        //  TSC timestamp of when last time measurement was made.
+        /// <summary>
+        /// TSC timestamp of when last time measurement was made.
+        /// </summary>
         private static long s_lastTsc;
 
-        //  Physical time corresponding to the TSC above (in milliseconds).
+        /// <summary>
+        /// Physical time corresponding to the TSC above (in milliseconds).
+        /// </summary>
         private static long s_lastTime;
 
-        private static readonly bool s_rdtscSupported = false;
+        /// <summary>
+        /// This flag indicates whether the rdtsc instruction is supported on this platform.
+        /// </summary>
+        private static readonly bool s_rdtscSupported;
 
         static Clock()
         {
@@ -54,19 +65,22 @@ namespace NetMQ.zmq.Utils
             }
         }
 
-
-        //  High precision timestamp.
+        /// <summary>
+        /// Return the High-Precision timestamp, as a 64-bit integer that denotes microseconds.
+        /// </summary>
         public static long NowUs()
         {
             long ticksPerSecond = Stopwatch.Frequency;
-            long tick = Stopwatch.GetTimestamp();
+            long tickCount = Stopwatch.GetTimestamp();
 
-            double ticks_div = ticksPerSecond / 1000000.0;
-            return (long)(tick / ticks_div);
+            double ticksPerMicrosecond = ticksPerSecond / 1000000.0;
+            return (long)(tickCount / ticksPerMicrosecond);
         }
 
-        //  Low precision timestamp. In tight loops generating it can be
-        //  10 to 100 times faster than the high precision timestamp.
+        /// <summary>
+        /// Return the Low-Precision timestamp, as a 64-bit integer denoting milliseconds.
+        /// In tight loops generating it can be 10 to 100 times faster than the High-Precision timestamp.
+        /// </summary>
         public static long NowMs()
         {
             long tsc = Rdtsc();
@@ -86,7 +100,9 @@ namespace NetMQ.zmq.Utils
             return s_lastTime;
         }
 
-        //  CPU's timestamp counter. Returns 0 if it's not available.
+        /// <summary>
+        /// Return the CPU's timestamp counter, or 0 if it's not available.
+        /// </summary>
         public static long Rdtsc()
         {
             if (s_rdtscSupported)

@@ -42,13 +42,24 @@ namespace NetMQ.zmq.Transports
         private readonly ByteArraySegment m_tmpbuf;
 
         private Msg m_inProgress;
-        private readonly long m_maxmsgsize;
+
+        /// <summary>
+        /// The maximum message-size. If this is -1 then there is no maximum.
+        /// </summary>
+        private readonly long m_maxMessageSize;
+
         private IMsgSink m_msgSink;
 
-        public V1Decoder(int bufsize, long maxmsgsize, Endianness endian)
+        /// <summary>
+        /// Create a enw V1Decoder with the given buffer-size, maximum-message-size and Endianness.
+        /// </summary>
+        /// <param name="bufsize"></param>
+        /// <param name="maxMessageSize">the maximum message size. -1 indicates no limit.</param>
+        /// <param name="endian"></param>
+        public V1Decoder(int bufsize, long maxMessageSize, Endianness endian)
             : base(bufsize, endian)
         {
-            m_maxmsgsize = maxmsgsize;
+            m_maxMessageSize = maxMessageSize;
             m_tmpbuf = new ByteArraySegment(new byte[8]);
 
             //  At the beginning, read one byte and go to one_byte_size_ready state.
@@ -106,7 +117,7 @@ namespace NetMQ.zmq.Transports
                 //  in_progress is initialised at this point so in theory we should
                 //  close it before calling zmq_msg_init_size, however, it's a 0-byte
                 //  message and thus we can treat it as uninitialised...
-                if (m_maxmsgsize >= 0 && (long)(first - 1) > m_maxmsgsize)
+                if (m_maxMessageSize >= 0 && (long)(first - 1) > m_maxMessageSize)
                 {
                     DecodingError();
                     return false;
@@ -138,7 +149,7 @@ namespace NetMQ.zmq.Transports
             }
 
             //  Message size must not exceed the maximum allowed size.
-            if (m_maxmsgsize >= 0 && payloadLength - 1 > m_maxmsgsize)
+            if (m_maxMessageSize >= 0 && payloadLength - 1 > m_maxMessageSize)
             {
                 DecodingError();
                 return false;

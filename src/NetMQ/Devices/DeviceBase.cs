@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 namespace NetMQ.Devices
 {
     /// <summary>
-    /// Forwards messages received by a front-end socket to a back-end socket, from which
+    /// A DeviceBase forwards messages received by a front-end socket to a back-end socket, from which
     /// they are then sent.
     /// </summary>
     public abstract class DeviceBase : IDevice
@@ -19,29 +19,39 @@ namespace NetMQ.Devices
         /// </summary>
         protected readonly NetMQSocket BackendSocket;
 
-        // Poller which will handle socket coordination.
+        /// <summary>
+        /// This is the Poller which will handle socket coordination.
+        /// </summary>
         private readonly Poller m_poller;
 
-        // Threading model to use
+        /// <summary>
+        /// This holds the IDevice and provides a platform-neutral way to call it's Run method,
+        /// depending upon which threading-model is being used.
+        /// </summary>
         private readonly DeviceRunner m_runner;
 
-        // Does the device own the m_poller.
+        /// <summary>
+        /// This flag indicates whether this device owns the m_poller.
+        /// </summary>
         private readonly bool m_pollerIsOwned;
 
-        public bool IsRunning { get; private set; }
-
         /// <summary>
-        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
+        /// Get whether this device is currently running.
         /// </summary>
-        public DeviceSocketSetup FrontendSetup { get; private set; }
+        public bool IsRunning { get; private set; }
 
         /// <summary>
         /// Gets a <see cref="DeviceSocketSetup"/> for configuring the frontend socket.
         /// </summary>
+        public DeviceSocketSetup FrontendSetup { get; private set; }
+
+        /// <summary>
+        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
+        /// </summary>
         public DeviceSocketSetup BackendSetup { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeviceBase"/> class.
+        /// Create a new instance of the <see cref="DeviceBase"/> class.
         /// </summary>		
         /// <param name="frontendSocket">
         /// A <see cref="NetMQSocket"/> that will pass incoming messages to <paramref name="backendSocket"/>.
@@ -49,7 +59,7 @@ namespace NetMQ.Devices
         /// <param name="backendSocket">
         /// A <see cref="NetMQSocket"/> that will receive messages from (and optionally send replies to) <paramref name="frontendSocket"/>.
         /// </param>
-        /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
+        /// <param name="mode">the <see cref="DeviceMode"/> (either Blocking or Threaded) for this device</param>
         protected DeviceBase(NetMQSocket frontendSocket, NetMQSocket backendSocket, DeviceMode mode)
             : this(new Poller(), frontendSocket, backendSocket, mode)
         {
@@ -57,16 +67,16 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeviceBase"/> class.
+        /// Create a new instance of the <see cref="DeviceBase"/> class.
         /// </summary>
+        /// <param name="poller">the <see cref="Poller"/> to use</param>		
         /// <param name="frontendSocket">
         /// A <see cref="NetMQSocket"/> that will pass incoming messages to <paramref name="backendSocket"/>.
         /// </param>
         /// <param name="backendSocket">
         /// A <see cref="NetMQSocket"/> that will receive messages from (and optionally send replies to) <paramref name="frontendSocket"/>.
         /// </param>
-        /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
-        /// <param name="poller">The <see cref="Poller"/> to use.</param>		
+        /// <param name="mode">the <see cref="DeviceMode"/> (either Blocking or Threaded) for this device</param>
         protected DeviceBase(Poller poller, [NotNull] NetMQSocket frontendSocket, [NotNull] NetMQSocket backendSocket, DeviceMode mode)
         {
             if (frontendSocket == null)
@@ -94,6 +104,9 @@ namespace NetMQ.Devices
                 : new ThreadedDeviceRunner(this);
         }
 
+        /// <summary>
+        /// Configure the frontend and backend sockets and then Start this device.
+        /// </summary>
         public void Start()
         {
             FrontendSetup.Configure();
@@ -101,6 +114,11 @@ namespace NetMQ.Devices
             m_runner.Start();
         }
 
+        /// <summary>
+        /// Stop the device and safely close the underlying sockets.
+        /// </summary>
+        /// <param name="waitForCloseToComplete">If true, this method will block until the 
+        /// underlying poller is fully stopped. Defaults to true.</param>		
         public void Stop(bool waitForCloseToComplete = true)
         {
             if (m_pollerIsOwned && m_poller.IsStarted)

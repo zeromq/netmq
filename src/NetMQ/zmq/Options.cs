@@ -29,232 +29,378 @@ namespace NetMQ.zmq
 {
     internal class Options
     {
+        /// <summary>
+        /// Create a new Options object with all default values.
+        /// </summary>
         public Options()
         {
-            SendHighWatermark = 1000;
-            ReceiveHighWatermark = 1000;
-            Affinity = 0;
-            IdentitySize = 0;
-            Rate = 100;
-            RecoveryIvl = 10000;
-            MulticastHops = 1;
-            SendBuffer = 0;
-            ReceiveBuffer = 0;
-            SocketType = ZmqSocketType.None;
-            Linger = -1;
-            ReconnectIvl = 100;
-            ReconnectIvlMax = 0;
             Backlog = 100;
-            Maxmsgsize = -1;
-            ReceiveTimeout = -1;
-            SendTimeout = -1;
-            IPv4Only = true;
-            DelayAttachOnConnect = false;
             DelayOnClose = true;
             DelayOnDisconnect = true;
-            Filter = false;
-            RecvIdentity = false;
-            RawSocket = false;
+            Endian = Endianness.Big;
+            IPv4Only = true;
+            Linger = -1;
+            MaxMessageSize = -1;
+            MulticastHops = 1;
+            Rate = 100;
+            ReceiveHighWatermark = 1000;
+            ReceiveTimeout = -1;
+            ReconnectIvl = 100;
+            RecoveryIvl = 10000;
+            SendHighWatermark = 1000;
+            SendTimeout = -1;
+            SocketType = ZmqSocketType.None;
+            TcpAcceptFilters = new List<TcpAddress.TcpAddressMask>();
             TcpKeepalive = -1;
             TcpKeepaliveCnt = -1;
             TcpKeepaliveIdle = -1;
             TcpKeepaliveIntvl = -1;
-            SocketId = 0;
-
-            Identity = null;
-
-            Endian = Endianness.Big;
-
-            TcpAcceptFilters = new List<TcpAddress.TcpAddressMask>();
         }
 
-        //  High-water marks for message pipes.
-        public int SendHighWatermark { get; set; }
-        public int ReceiveHighWatermark { get; set; }
-
-        //  I/O thread affinity.
+        /// <summary>
+        /// Get or set the I/O-thread affinity.
+        /// The default value is 0.
+        /// </summary>
         public long Affinity { get; set; }
 
-        //  Socket identity
-        public byte IdentitySize { get; set; }
-        public byte[] Identity { get; set; } // [256];
-
-        // Last socket endpoint resolved URI
-        public String LastEndpoint { get; set; }
-
-        //  Maximum tranfer rate [kb/s]. Default 100kb/s.
-        public int Rate { get; set; }
-
-        //  Reliability time interval [ms]. Default 10 seconds.
-        public int RecoveryIvl { get; set; }
-
-        // Sets the time-to-live field in every multicast packet sent.
-        public int MulticastHops { get; set; }
-
-        // SO_SNDBUF and SO_RCVBUF to be passed to underlying transport sockets.
-        public int SendBuffer { get; set; }
-        public int ReceiveBuffer { get; set; }
-
-        //  Socket type.
-        public ZmqSocketType SocketType { get; set; }
-
-        //  Linger time, in milliseconds.
-        public int Linger { get; set; }
-
-        //  Minimum interval between attempts to reconnect, in milliseconds.
-        //  Default 100ms
-        public int ReconnectIvl { get; set; }
-        //  Maximum interval between attempts to reconnect, in milliseconds.
-        //  Default 0 (unused)
-        public int ReconnectIvlMax { get; set; }
-
-        //  Maximum backlog for pending connections.
+        /// <summary>
+        /// Maximum backlog for pending connections.
+        /// The default value is 100.
+        /// </summary>
         public int Backlog { get; set; }
 
-        //  Maximal size of message to handle.
-        public long Maxmsgsize { get; set; }
-
-        // The timeout for send/recv operations for this socket.
-        public int ReceiveTimeout { get; set; }
-        public int SendTimeout { get; set; }
-
-        //  If 1, indicates the use of IPv4 sockets only, it will not be
-        //  possible to communicate with IPv6-only hosts. If 0, the socket can
-        //  connect to and accept connections from both IPv4 and IPv6 hosts.
-        public bool IPv4Only { get; set; }
-
-        //  If 1, connecting pipes are not attached immediately, meaning a send()
-        //  on a socket with only connecting pipes would block
+        /// <summary>
+        /// Get or set whether connecting pipes are not attached immediately, meaning a send()
+        /// on a socket with only connecting pipes would block.
+        /// The default value is false.
+        /// </summary>
         public bool DelayAttachOnConnect { get; set; }
 
-        //  If true, session reads all the pending messages from the pipe and
-        //  sends them to the network when socket is closed.
+        /// <summary>
+        /// If true, session reads all the pending messages from the pipe and
+        /// sends them to the network when socket is closed.
+        /// The default value is true.
+        /// </summary>
         public bool DelayOnClose { get; set; }
 
-        //  If true, socket reads all the messages from the pipe and delivers
-        //  them to the user when the peer terminates.
+        /// <summary>
+        /// If true, socket reads all the messages from the pipe and delivers
+        /// them to the user when the peer terminates.
+        /// The default value is true.
+        /// </summary>
         public bool DelayOnDisconnect { get; set; }
 
-        //  If 1, (X)SUB socket should filter the messages. If 0, it should not.
-        public bool Filter { get; set; }
-
-        //  If true, the identity message is forwarded to the socket.
-        public bool RecvIdentity { get; set; }
-
-        // if true, router socket accepts non-zmq tcp connections
-        public bool RawSocket { get; set; }
-
-        //  TCP keep-alive settings.
-        //  Defaults to -1 = do not change socket options
-        public int TcpKeepalive { get; set; }
-        public int TcpKeepaliveCnt { get; set; }
-        public int TcpKeepaliveIdle { get; set; }
-        public int TcpKeepaliveIntvl { get; set; }
-
-        // TCP accept() filters
-        //typedef std::vector <tcp_address_mask_t> tcp_accept_filters_t;
-        public List<TcpAddress.TcpAddressMask> TcpAcceptFilters { get; private set; }
-
-        //  ID of the socket.
-        public int SocketId { get; set; }
-
+        /// <summary>
+        /// Get or set the Endian-ness, which indicates whether the most-significant bits are placed higher or lower in memory.
+        /// The default value is Endianness.Big.
+        /// </summary>
         public Endianness Endian { get; set; }
 
-        public void SetSocketOption(ZmqSocketOptions option, Object optval)
+        /// <summary>
+        /// If true, (X)SUB socket should filter the messages. If false (which is the default), it should not.
+        /// </summary>
+        public bool Filter { get; set; }
+
+        /// <summary>
+        /// Get or set the byte-array that represents the Identity.
+        /// The initial value is null.
+        /// </summary>
+        public byte[] Identity { get; set; }
+
+        /// <summary>
+        /// Get or set the size of the socket-identity byte-array.
+        /// The initial value is 0, until the Identity property is set.
+        /// </summary>
+        public byte IdentitySize { get; set; }
+
+        /// <summary>
+        /// Get or set whether this allows the use of IPv4 sockets only.
+        /// If true (the default), it will not be possible to communicate with IPv6-only hosts.
+        /// If false, the socket can connect to and accept connections from both IPv4 and IPv6 hosts.
+        /// </summary>
+        public bool IPv4Only { get; set; }
+
+        /// <summary>
+        /// Get or set the last socket endpoint resolved URI
+        /// The initial value is null.
+        /// </summary>
+        public String LastEndpoint { get; set; }
+
+        /// <summary>
+        /// Get or set the Linger time, in milliseconds.
+        /// The default value is -1; The XSub ctor sets this to 0.
+        /// </summary>
+        public int Linger { get; set; }
+
+        /// <summary>
+        /// Get or set the maximum size of message to handle.
+        /// The default value is -1, which indicates no limit.
+        /// </summary>
+        public long MaxMessageSize { get; set; }
+
+        /// <summary>
+        /// Get or set the maximum size of message to handle.
+        /// </summary>
+        [Obsolete("Use MaxMessageSize")]
+        public long Maxmsgsize
+        {
+            get { return this.MaxMessageSize; }
+            set { this.MaxMessageSize = value; }
+        }
+
+        /// <summary>
+        /// Sets the time-to-live field in every multicast packet sent.
+        /// The default value is 1.
+        /// </summary>
+        public int MulticastHops { get; set; }
+
+        /// <summary>
+        /// Get or set the maximum tranfer rate [Kb/s]. The default is 100 Kb/s.
+        /// </summary>
+        public int Rate { get; set; }
+
+        /// <summary>
+        /// If true, router socket accepts non-zmq tcp connections
+        /// The default value is false, except the Stream ctor initializes this to true.
+        /// </summary>
+        public bool RawSocket { get; set; }
+
+        /// <summary>
+        /// If true, the identity message is forwarded to the socket.
+        /// The default value is false.
+        /// </summary>
+        public bool RecvIdentity { get; set; }
+
+        /// <summary>
+        /// Get or set the minimum interval between attempts to reconnect, in milliseconds.
+        /// The default is 100 ms
+        /// </summary>
+        public int ReconnectIvl { get; set; }
+
+        /// <summary>
+        /// Get or set the maximum interval between attempts to reconnect, in milliseconds.
+        /// The default is 0 (unused).
+        /// </summary>
+        public int ReconnectIvlMax { get; set; }
+
+        /// <summary>
+        /// Get or set the recovery time interval [ms]. The default is 10 seconds.
+        /// </summary>
+        public int RecoveryIvl { get; set; }
+
+        /// <summary>
+        /// SO_SNDBUF and SO_RCVBUF to be passed to underlying transport sockets.
+        /// The initial value is 0.
+        /// </summary>
+        public int SendBuffer { get; set; }
+
+        /// <summary>
+        /// Get or set the size of the receive-buffer.
+        /// The initial value is 0.
+        /// </summary>
+        public int ReceiveBuffer { get; set; }
+
+        /// <summary>
+        /// Get or set the high-water marks for message pipes.
+        /// The default value is 1000.
+        /// </summary>
+        public int SendHighWatermark { get; set; }
+
+        /// <summary>
+        /// Get or set the high-water mark for message-reception.
+        /// The default value is 1000.
+        /// </summary>
+        public int ReceiveHighWatermark { get; set; }
+
+        /// <summary>
+        /// Get or set the timeout for send operations for this socket.
+        /// The default value is -1, which means no timeout.
+        /// </summary>
+        public int SendTimeout { get; set; }
+
+        /// <summary>
+        /// Get or set the timeout for receive operations for this socket.
+        /// The default value is -1, which means no timeout.
+        /// </summary>
+        public int ReceiveTimeout { get; set; }
+
+        /// <summary>
+        /// Get or set the ID of the socket.
+        /// The default value is 0.
+        /// </summary>
+        public int SocketId { get; set; }
+
+        /// <summary>
+        /// Get or set the type of socket (ZmqSocketType).
+        /// The default value is ZmqSocketType.None.
+        /// </summary>
+        public ZmqSocketType SocketType { get; set; }
+
+        /// <summary>
+        /// Get the TCP accept() filters,
+        /// this being a list of TcpAddressMasks.
+        /// </summary>
+        public List<TcpAddress.TcpAddressMask> TcpAcceptFilters { get; private set; }
+
+        /// <summary>
+        /// TCP keep-alive settings.
+        /// Defaults to -1 = do not change socket options
+        /// </summary>
+        public int TcpKeepalive { get; set; }
+
+        /// <summary>
+        /// Get or set the TCP Keep-Alive Count.
+        /// The default value is -1.
+        /// </summary>
+        public int TcpKeepaliveCnt { get; set; }
+
+        /// <summary>
+        /// Get or set the TCP Keep-Alive interval to use when at idle.
+        /// The default value is -1.
+        /// </summary>
+        public int TcpKeepaliveIdle { get; set; }
+
+        /// <summary>
+        /// Get or set the TCP Keep-Alive Interval
+        /// The default value is -1.
+        /// </summary>
+        public int TcpKeepaliveIntvl { get; set; }
+
+        /// <summary>
+        /// Assign the given optionValue to the specified option.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOptions that specifies what to set</param>
+        /// <param name="optionValue">an Object that is the value to set that option to</param>
+        public void SetSocketOption(ZmqSocketOptions option, Object optionValue)
         {
             switch (option)
             {
                 case ZmqSocketOptions.SendHighWatermark:
-                    SendHighWatermark = (int)optval;
+                    SendHighWatermark = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.ReceiveHighWatermark:
-                    ReceiveHighWatermark = (int)optval;
+                    ReceiveHighWatermark = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.Affinity:
-                    Affinity = (long)optval;
+                    Affinity = (long)optionValue;
                     break;
+
                 case ZmqSocketOptions.Identity:
                     byte[] val;
-                    if (optval is String)
-                        val = Encoding.ASCII.GetBytes((String)optval);
-                    else if (optval is byte[])
-                        val = (byte[])optval;
+
+                    if (optionValue is String)
+                        val = Encoding.ASCII.GetBytes((String)optionValue);
+                    else if (optionValue is byte[])
+                        val = (byte[])optionValue;
                     else
-                        throw new InvalidException("Invalid option value type for ZmqSocketOptions.Identity");
+                    {
+                        String s = String.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a String or byte-array.", optionValue == null ? "null" : optionValue.ToString());
+                        throw new InvalidException(s);
+                    }
+
                     if (val.Length == 0 || val.Length > 255)
-                        throw new InvalidException("Invalid length for ZmqSocketOptions.Identity");
+                    {
+                        String s = String.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length);
+                        throw new InvalidException(s);
+                    }
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
                     IdentitySize = (byte)Identity.Length;
                     break;
+
                 case ZmqSocketOptions.Rate:
-                    Rate = (int)optval;
+                    Rate = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.RecoveryIvl:
-                    RecoveryIvl = (int)optval;
+                    RecoveryIvl = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.SendBuffer:
-                    SendBuffer = (int)optval;
+                    SendBuffer = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.ReceiveBuffer:
-                    ReceiveBuffer = (int)optval;
+                    ReceiveBuffer = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.Linger:
-                    Linger = (int)optval;
+                    Linger = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.ReconnectIvl:
-                    ReconnectIvl = (int)optval;
+                    ReconnectIvl = (int)optionValue;
                     if (ReconnectIvl < -1)
-                        throw new InvalidException("Value must be -1 or greater for ZmqSocketOptions.ReconnectIvl");
+                    {
+                        String s = String.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", ReconnectIvl);
+                        throw new InvalidException(s);
+                    }
                     break;
+
                 case ZmqSocketOptions.ReconnectIvlMax:
-                    ReconnectIvlMax = (int)optval;
+                    ReconnectIvlMax = (int)optionValue;
                     if (ReconnectIvlMax < 0)
-                        throw new InvalidException("Value must be 0 or greater for ZmqSocketOptions.ReconnectIvlMax");
+                    {
+                        String s = String.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", ReconnectIvlMax);
+                        throw new InvalidException(s);
+                    }
                     break;
+
                 case ZmqSocketOptions.Backlog:
-                    Backlog = (int)optval;
+                    Backlog = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.Maxmsgsize:
-                    Maxmsgsize = (long)optval;
+                    MaxMessageSize = (long)optionValue;
                     break;
+
                 case ZmqSocketOptions.MulticastHops:
-                    MulticastHops = (int)optval;
+                    MulticastHops = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.ReceiveTimeout:
-                    ReceiveTimeout = (int)optval;
+                    ReceiveTimeout = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.SendTimeout:
-                    SendTimeout = (int)optval;
+                    SendTimeout = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.IPv4Only:
-                    IPv4Only = (bool)optval;
+                    IPv4Only = (bool)optionValue;
                     break;
+
                 case ZmqSocketOptions.TcpKeepalive:
-                    TcpKeepalive = (int)optval;
+                    TcpKeepalive = (int)optionValue;
                     if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
-                        throw new InvalidException("Value must be -1, 0 or 1 for ZmqSocketOptions.TcpKeepalive");
+                    {
+                        throw new InvalidException(String.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", TcpKeepalive));
+                    }
                     break;
+
                 case ZmqSocketOptions.DelayAttachOnConnect:
-                    DelayAttachOnConnect = (bool)optval;
+                    DelayAttachOnConnect = (bool)optionValue;
                     break;
-//                case ZmqSocketOptions.TcpKeepaliveCnt:
-//                    break; // not supported
+
                 case ZmqSocketOptions.TcpKeepaliveIdle:
-                    TcpKeepaliveIdle = (int)optval;
+                    TcpKeepaliveIdle = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.TcpKeepaliveIntvl:
-                    TcpKeepaliveIntvl = (int)optval;
+                    TcpKeepaliveIntvl = (int)optionValue;
                     break;
+
                 case ZmqSocketOptions.TcpAcceptFilter:
-                    String filterStr = (String)optval;
+                    String filterStr = (String)optionValue;
                     if (filterStr == null)
                     {
                         TcpAcceptFilters.Clear();
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw new InvalidException("Invalid length for ZmqSocketOptions.TcpAcceptFilter");
+                        throw new InvalidException(String.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1) but must be 1..255", filterStr, filterStr.Length));
                     }
                     else
                     {
@@ -263,70 +409,99 @@ namespace NetMQ.zmq
                         TcpAcceptFilters.Add(filter);
                     }
                     break;
+
                 case ZmqSocketOptions.Endian:
-                    Endian = (Endianness)optval;
+                    Endian = (Endianness)optionValue;
                     break;
+
                 default:
-                    throw new InvalidException("Unsupported ZmqSocketOptions enum value: " + option);
+                    throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOptions of " + option);
             }
         }
 
+        /// <summary>
+        /// Get the value of the specified option.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOptions that specifies what to get</param>
+        /// <returns>an Object that is the value of that option</returns>
         public Object GetSocketOption(ZmqSocketOptions option)
         {
             switch (option)
             {
                 case ZmqSocketOptions.SendHighWatermark:
                     return SendHighWatermark;
+
                 case ZmqSocketOptions.ReceiveHighWatermark:
                     return ReceiveHighWatermark;
+
                 case ZmqSocketOptions.Affinity:
                     return Affinity;
+
                 case ZmqSocketOptions.Identity:
                     return Identity;
+
                 case ZmqSocketOptions.Rate:
                     return Rate;
+
                 case ZmqSocketOptions.RecoveryIvl:
                     return RecoveryIvl;
+
                 case ZmqSocketOptions.SendBuffer:
                     return SendBuffer;
+
                 case ZmqSocketOptions.ReceiveBuffer:
                     return ReceiveBuffer;
+
                 case ZmqSocketOptions.Type:
                     return SocketType;
+
                 case ZmqSocketOptions.Linger:
                     return Linger;
+
                 case ZmqSocketOptions.ReconnectIvl:
                     return ReconnectIvl;
+
                 case ZmqSocketOptions.ReconnectIvlMax:
                     return ReconnectIvlMax;
+
                 case ZmqSocketOptions.Backlog:
                     return Backlog;
+
                 case ZmqSocketOptions.Maxmsgsize:
-                    return Maxmsgsize;
+                    return MaxMessageSize;
+
                 case ZmqSocketOptions.MulticastHops:
                     return MulticastHops;
+
                 case ZmqSocketOptions.ReceiveTimeout:
                     return ReceiveTimeout;
+
                 case ZmqSocketOptions.SendTimeout:
                     return SendTimeout;
+
                 case ZmqSocketOptions.IPv4Only:
                     return IPv4Only;
+
                 case ZmqSocketOptions.TcpKeepalive:
                     return TcpKeepalive;
+
                 case ZmqSocketOptions.DelayAttachOnConnect:
                     return DelayAttachOnConnect;
-//                case ZmqSocketOptions.TcpKeepaliveCnt:
-//                    return 0; // not supported
+
                 case ZmqSocketOptions.TcpKeepaliveIdle:
                     return TcpKeepaliveIdle;
+
                 case ZmqSocketOptions.TcpKeepaliveIntvl:
                     return TcpKeepaliveIntvl;
+
                 case ZmqSocketOptions.LastEndpoint:
                     return LastEndpoint;
+
                 case ZmqSocketOptions.Endian:
                     return Endian;
+
                 default:
-                    throw new InvalidException("Unsupported ZmqSocketOptions enum value: " + option);
+                    throw new InvalidException("GetSocketOption called with invalid ZmqSocketOptions of " + option);
             }
         }
     }

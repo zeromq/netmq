@@ -48,7 +48,7 @@ namespace NetMQ.zmq.Patterns
             //  we can't send another request.
             if (m_receivingReply)
             {
-                throw new FiniteStateMachineException("Cannot send another request");                
+                throw new FiniteStateMachineException("Req.XSend - cannot send another request");                
             }
 
             bool isMessageSent;
@@ -94,7 +94,7 @@ namespace NetMQ.zmq.Patterns
             //  If request wasn't send, we can't wait for reply.
             if (!m_receivingReply)
             {
-                throw new FiniteStateMachineException("Cannot receive another reply"); 
+                throw new FiniteStateMachineException("Req.XRecv - cannot receive another reply"); 
             }
 
             //  First part of the reply should be the original request ID.
@@ -207,7 +207,7 @@ namespace NetMQ.zmq.Patterns
                         break;                    
                 }
 
-                throw new FaultException();
+                throw new FaultException("Req.PushMsg default failure.");
             }
 
             protected override void Reset()

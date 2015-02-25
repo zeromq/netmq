@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using NetMQ.Devices;
-using NetMQ.Sockets;
-using NetMQ.zmq;
+using NUnit.Framework;
 
 namespace NetMQ.Tests.Devices
 {

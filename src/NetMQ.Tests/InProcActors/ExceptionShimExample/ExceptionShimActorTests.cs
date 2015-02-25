@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.Actors;
-using NetMQ.Tests.InProcActors.Echo;
+﻿using NetMQ.Actors;
 using NUnit.Framework;
 
-namespace NetMQ.Tests.InProcActors.ShimExceptionExample
+namespace NetMQ.Tests.InProcActors.ExceptionShimExample
 {
     [TestFixture]
     public class ExceptionShimActorTests

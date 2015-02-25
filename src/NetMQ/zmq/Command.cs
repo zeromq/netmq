@@ -24,9 +24,14 @@ using System;
 //  This structure defines the commands that can be sent between threads.
 namespace NetMQ.zmq
 {
+    /// <summary>
+    ///  This class defines the commands that can be sent between threads.
+    /// </summary>
     internal class Command
     {
-        //  Object to process the command.
+        /// <summary>
+        /// Default constructor - create the Command object for processing commands.
+        /// </summary>
         public Command()
         {
         }
@@ -45,6 +50,10 @@ namespace NetMQ.zmq
 
         public ZObject Destination { get; private set; }
         public CommandType CommandType { get; private set; }
+
+        /// <summary>
+        /// Get the argument to this command.
+        /// </summary>
         public Object Arg { get; private set; }
 
         public override String ToString()

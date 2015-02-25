@@ -1,7 +1,16 @@
 ﻿namespace NetMQ.Security.V0_1.HandshakeMessages
 {
+    /// <summary>
+    /// The ServerHelloMessage is a HandshakeMessage with a HandshakeType of ServerHello.
+    /// It holds a RandomNumber and a CipherSuite, both of which are gleaned from
+    /// a NetMQMessage in the override of SetFromNetMQMessage.
+    /// </summary>
     class ServerHelloMessage : HandshakeMessage
     {
+        /// <summary>
+        /// Get the part of the handshake-protocol that this HandshakeMessage represents
+        /// - in this case, ServerHello.
+        /// </summary>
         public override HandshakeType HandshakeType
         {
             get { return HandshakeType.ServerHello; }
@@ -9,8 +18,18 @@
 
         public byte[] RandomNumber { get; set; }
 
+        /// <summary>
+        /// Get or set the byte that specifies the cipher-suite to be used.
+        /// </summary>
         public CipherSuite CipherSuite { get; set; }
 
+        /// <summary>
+        /// Remove the three frames from the given NetMQMessage, interpreting them thusly:
+        /// 1. a byte with the HandshakeType,
+        /// 2. RandomNumber (a byte-array),
+        /// 3. a 2-byte array with the CipherSuite in the 2nd byte.
+        /// </summary>
+        /// <param name="message">a NetMQMessage - which must have 3 frames</param>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);
@@ -20,15 +39,22 @@
                 throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
             }
 
-            // get the randon number
+            // Get the random number
             NetMQFrame randomNumberFrame = message.Pop();
             RandomNumber = randomNumberFrame.ToByteArray();
 
-            // set the cipher suite
+            // Get the cipher suite
             NetMQFrame cipherSuiteFrame = message.Pop();
             CipherSuite = (CipherSuite)cipherSuiteFrame.Buffer[1];
         }
 
+        /// <summary>
+        /// Return a new NetMQMessage that holds three frames:
+        /// 1. contains a byte with the HandshakeType,
+        /// 2. contains the RandomNumber (a byte-array),
+        /// 3. contains a 2-byte array containing zero, and a byte representing the CipherSuite.
+        /// </summary>
+        /// <returns>the resulting new NetMQMessage</returns>
         public override NetMQMessage ToNetMQMessage()
         {
             NetMQMessage message = base.ToNetMQMessage();

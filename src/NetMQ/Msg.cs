@@ -25,6 +25,10 @@ using JetBrains.Annotations;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// This flags enum-type is used to indicate characteristics of a Msg
+    /// - including More, Identity, and Shared (the default is None).
+    /// </summary>
     [Flags]
     public enum MsgFlags
     {
@@ -38,11 +42,20 @@ namespace NetMQ
     public enum MsgType : byte
     {
         Invalid = 0,
+
+        /// <summary>
+        /// This is the minimum value that any MsgType may have (101).
+        /// </summary>
         Min = 101,
+
         Empty = 101,
         GC = 102,
         Pool = 103,
         Delimiter = 104,
+
+        /// <summary>
+        /// This is the maximum value that any MsgType may have (104).
+        /// </summary>
         Max = 104
     }
 
@@ -85,11 +98,18 @@ namespace NetMQ
             get { return m_flags; }
         }
 
+        /// <summary>
+        /// Get the byte-array that represents the data payload of this Msg.
+        /// </summary>
         public byte[] Data
         {
             get { return m_data; }
         }
 
+        /// <summary>
+        /// Return true if the MsgType property is within the allowable range.
+        /// </summary>
+        /// <returns>true if the value of MsgType is 101..104</returns>
         public bool Check()
         {
             return MsgType >= MsgType.Min && MsgType <= MsgType.Max;
@@ -133,7 +153,7 @@ namespace NetMQ
         {
             if (!Check())
             {
-                throw new FaultException();
+                throw new FaultException("In Msg.Close, Check failed.");
             }
 
             if (m_type == MsgType.Pool)
@@ -233,7 +253,7 @@ namespace NetMQ
             //  Check the validity of the source.
             if (!src.Check())
             {
-                throw new FaultException();
+                throw new FaultException("In Msg.Copy, Check failed.");
             }
 
             Close();
@@ -259,7 +279,7 @@ namespace NetMQ
             //  Check the validity of the source.
             if (!src.Check())
             {
-                throw new FaultException();
+                throw new FaultException("In Msg.Move, Check failed.");
             }
 
             Close();

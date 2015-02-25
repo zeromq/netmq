@@ -6,13 +6,23 @@ using JetBrains.Annotations;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// A NetMQBeaconEventArgs is an EventArgs that provides a property that holds a NetMQBeacon.
+    /// </summary>
     public class NetMQBeaconEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create a new NetMQBeaconEventArgs object containging the given NetMQBeacon.
+        /// </summary>
+        /// <param name="beacon">the NetMQBeacon object to hold a reference to</param>
         public NetMQBeaconEventArgs(NetMQBeacon beacon)
         {
             Beacon = beacon;
         }
 
+        /// <summary>
+        /// Get the NetMQBeacon object that this holds.
+        /// </summary>
         public NetMQBeacon Beacon { get; private set; }
     }
 

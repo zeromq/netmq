@@ -4,7 +4,8 @@ using NetMQ.zmq;
 namespace NetMQ.Sockets
 {
     /// <summary>
-    /// Part of the push pull pattern, will pull messages from push socket
+    /// A PullSocket is a NetMQSocket intended to be used as the "Pull" part of the Push-Pull pattern.
+    /// This will "pull" messages that have been pushed from the "push" socket.
     /// </summary>
     public class PullSocket : NetMQSocket
     {
@@ -13,6 +14,11 @@ namespace NetMQ.Sockets
         {
         }
 
+        /// <summary>
+        /// Don't invoke this on a PullSocket - you'll just get a NotSupportedException.
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="options"></param>
         public override void Send(ref Msg msg, SendReceiveOptions options)
         {        
             throw new NotSupportedException("Pull socket doesn't support sending");

@@ -21,12 +21,19 @@
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Classes that implement IPollEvents provide two methods (InEvent and OutEvent) that are invoked when ready for reading or writing.
+    /// </summary>
     internal interface IPollEvents : ITimerEvent
     {
-        // Called by I/O thread when file descriptor is ready for reading.
+        /// <summary>
+        /// Called by the I/O thread when the file descriptor is ready for reading.
+        /// </summary>
         void InEvent();
 
-        // Called by I/O thread when file descriptor is ready for writing.
+        /// <summary>
+        /// Called by the I/O thread when the file descriptor is ready for writing.
+        /// </summary>
         void OutEvent();       
     }
 }

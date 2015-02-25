@@ -54,34 +54,52 @@ namespace NetMQ.zmq.Patterns
             public bool Active;
         }
 
-        //  Fair queueing object for inbound pipes.
+        /// <summary>
+        /// Fair queueing object for inbound pipes.
+        /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        //  True iff there is a message held in the pre-fetch buffer.
+        /// <summary>
+        /// True iff there is a message held in the pre-fetch buffer.
+        /// </summary>
         private bool m_prefetched;
 
-        //  If true, the receiver got the message part with
-        //  the peer's identity.
+        /// <summary>
+        /// If true, the receiver got the message part with
+        /// the peer's identity.
+        /// </summary>
         private bool m_identitySent;
 
-        //  Holds the prefetched identity.
+        /// <summary>
+        /// Holds the prefetched identity.
+        /// </summary>
         private Msg m_prefetchedId;
 
-        //  Holds the prefetched message.
-        private Msg m_prefetchedMsg;                
+        /// <summary>
+        /// Holds the prefetched message.
+        /// </summary>
+        private Msg m_prefetchedMsg;
 
-        //  Outbound pipes indexed by the peer IDs.
+        /// <summary>
+        /// Outbound pipes indexed by the peer IDs.
+        /// </summary>
         private readonly Dictionary<byte[], Outpipe> m_outpipes;
 
-        //  The pipe we are currently writing to.
+        /// <summary>
+        /// The pipe we are currently writing to.
+        /// </summary>
         private Pipe m_currentOut;
 
-        //  If true, more outgoing message parts are expected.
+        /// <summary>
+        /// If true, more outgoing message parts are expected.
+        /// </summary>
         private bool m_moreOut;
 
-        //  Peer ID are generated. It's a simple increment and wrap-over
-        //  algorithm. This value is the next ID to use (if not used already).
-        private int m_nextPeerId;        
+        /// <summary>
+        /// Peer ID are generated. It's a simple increment and wrap-over
+        /// algorithm. This value is the next ID to use (if not used already).
+        /// </summary>
+        private int m_nextPeerId;
 
         public Stream(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
@@ -195,7 +213,7 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        throw new HostUnreachableException();
+                        throw new HostUnreachableException("In Stream.XSend");
                     }
                 }
 
@@ -266,7 +284,7 @@ namespace NetMQ.zmq.Patterns
             if (!isMessageAvailable)
             {
                 return false;
-            }            
+            }
 
             Debug.Assert(pipe[0] != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
@@ -274,7 +292,7 @@ namespace NetMQ.zmq.Patterns
             //  We have received a frame with TCP data.
             //  Rather than sendig this frame, we keep it in prefetched
             //  buffer and send a frame with peer's ID.
-            byte[] identity = pipe[0].Identity;            
+            byte[] identity = pipe[0].Identity;
             msg.InitPool(identity.Length);
             msg.Put(identity, 0, identity.Length);
             msg.SetFlags(MsgFlags.More);
@@ -300,7 +318,7 @@ namespace NetMQ.zmq.Patterns
             if (!isMessageAvailable)
             {
                 return false;
-            }            
+            }
 
             Debug.Assert(pipe[0] != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
@@ -336,7 +354,7 @@ namespace NetMQ.zmq.Patterns
             byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
             Buffer.BlockCopy(result, 0, identity, 1, 4);
-            
+
             m_options.Identity = identity;
             m_options.IdentitySize = (byte)identity.Length;
 

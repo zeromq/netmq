@@ -1,7 +1,7 @@
 ﻿using System;
 using NetMQ.Sockets;
 
-namespace NetMQ.Actors
+namespace NetMQ.InProcActors
 {
     /// <summary>
     /// Simple interface that all shims should implement. 

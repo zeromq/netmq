@@ -214,7 +214,7 @@ namespace MajordomoProtocol
 
                 // start the poller and wait for the return, which will happen once token is 
                 // signalling Cancel(!)
-                await Task.Factory.StartNew (poller.Start, token);
+                await Task.Factory.StartNew (poller.PollTillCancelled, token);
 
                 Log ("[BROKER] ... Stopped!");
 
@@ -258,7 +258,7 @@ namespace MajordomoProtocol
 
                 // start the poller and wait for the return, which will happen once token is 
                 // signalling Cancel(!)
-                Task.Factory.StartNew (poller.Start, token).Wait ();
+                Task.Factory.StartNew (poller.PollTillCancelled, token).Wait ();
 
                 Log ("[BROKER] ... Stopped!");
 

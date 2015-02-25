@@ -107,7 +107,7 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// Throw exception if socket is disposed
-       /// </summary>  
+        /// </summary>  
         public void CheckDisposed()
         {
             if (m_disposed)
@@ -116,17 +116,19 @@ namespace NetMQ.zmq
             }
         }
 
-
+        /// <summary>
+        /// Throw a TerminatingException if the message-queuing system has started terminating.
+        /// </summary>
         public void CheckContextTerminated()
         {
             if (m_ctxTerminated)
             {
-                throw new TerminatingException();
+                throw new TerminatingException(innerException: null, message: "CheckContextTerminated - yes, is terminated.");
             }
         }
 
         //  Create a socket of a specified type.
-        public static SocketBase Create(ZmqSocketType type, Ctx parent,int threadId, int socketId)
+        public static SocketBase Create(ZmqSocketType type, Ctx parent, int threadId, int socketId)
         {
             SocketBase socketBase;
             switch (type)
@@ -168,7 +170,7 @@ namespace NetMQ.zmq
                     socketBase = new Stream(parent, threadId, socketId);
                     break;
                 default:
-                    throw new InvalidException("type=" + type);
+                    throw new InvalidException("SocketBase.Create called with invalid type of " + type);
             }
             return socketBase;
         }
@@ -207,7 +209,8 @@ namespace NetMQ.zmq
                 !protocol.Equals(Address.IpcProtocol) && !protocol.Equals(Address.TcpProtocol) &&
                 !protocol.Equals(Address.PgmProtocol) && !protocol.Equals(Address.EpgmProtocol))
             {
-                throw new ProtocolNotSupportedException();
+                String s = String.Format("SocketBase.CheckProtocol({0}), protocol is invalid.", protocol);
+                throw new ProtocolNotSupportedException(s);
             }
 
             //  Check whether socket type and transport protocol match.
@@ -217,7 +220,8 @@ namespace NetMQ.zmq
                             m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
                             m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
             {
-                throw new ProtocolNotSupportedException(protocol + ",type=" + m_options.SocketType);                
+                String s = String.Format("SocketBase.CheckProtocol({0}), socket type {1} and protocol do not match.", protocol, m_options.SocketType);
+                throw new ProtocolNotSupportedException(s);
             }
 
             //  Protocol is available.
@@ -278,7 +282,7 @@ namespace NetMQ.zmq
                 }
                 catch (TerminatingException)
                 {
-                    return -1;                    
+                    return -1;
                 }
 
                 PollEvents val = 0;
@@ -314,7 +318,7 @@ namespace NetMQ.zmq
                 }
                 catch (TerminatingException)
                 {
-                    return -1;                    
+                    return -1;
                 }
 
                 PollEvents val = 0;
@@ -352,7 +356,8 @@ namespace NetMQ.zmq
 
                 if (!addressRegistered)
                 {
-                    throw new AddressAlreadyInUseException("Cannot bind address, address already in use");
+                    string s = String.Format("Cannot bind address ( {0} ), address already in use", addr);
+                    throw new AddressAlreadyInUseException(s);
                 }
 
                 // Save last endpoint URI
@@ -452,7 +457,7 @@ namespace NetMQ.zmq
             }
 
             Debug.Assert(false);
-            throw new FaultException();
+            throw new FaultException(String.Format("SocketBase.Bind({0}) failure.", addr));
         }
 
         public int BindRandomPort(String addr)
@@ -467,7 +472,7 @@ namespace NetMQ.zmq
             }
             else
             {
-                throw new ProtocolNotSupportedException();
+                throw new ProtocolNotSupportedException(String.Format("In SocketBase.BindRandomPort({0}), protocol should be tcp.", addr));
             }
         }
 
@@ -643,7 +648,7 @@ namespace NetMQ.zmq
             //  Check whether endpoint address passed to the function is valid.
             if (addr == null)
             {
-                throw new InvalidException();
+                throw new InvalidException("TermEndpoint must not be called with a null addr.");
             }
 
             //  Process pending commands, if any, since there could be pending unprocessed process_own()'s
@@ -693,6 +698,13 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// Transmit the given Msg across the message-queuing system.
+        /// If the msg fails to immediately send, then - if DontWait is specified and no SendTimeout was set
+        /// then throw an AgainException.
+        /// </summary>
+        /// <param name="msg">the Msg to transmit</param>
+        /// <param name="flags">a SendReceiveOptions: either don't specify DontWait, or set a timeout</param>
         public void Send(ref Msg msg, SendReceiveOptions flags)
         {
             CheckContextTerminated();
@@ -700,7 +712,7 @@ namespace NetMQ.zmq
             //  Check whether message passed to the function is valid.
             if (!msg.Check())
             {
-                throw new FaultException();
+                throw new FaultException("In SocketBase.Send, Msg.Check failed.");
             }
 
             //  Process pending commands, if any.
@@ -723,11 +735,23 @@ namespace NetMQ.zmq
 
             //  In case of non-blocking send we'll simply propagate
             //  the error - including EAGAIN - up the stack.
-            if ((flags & SendReceiveOptions.DontWait) > 0 || m_options.SendTimeout == 0)
-                throw new AgainException();
+            bool isDontWaitSet = (flags & SendReceiveOptions.DontWait) > 0;
+            if (isDontWaitSet || m_options.SendTimeout == 0)
+            {
+                string s;
+                if (isDontWaitSet)
+                {
+                    s = "SocketBase.Send failed and DontWait is specified.";
+                }
+                else
+                {
+                    s = "SocketBase.Send failed and no SendTimeout is specified.";
+                }
+                throw new AgainException(innerException: null, message: s);
+            }
 
             //  Compute the time when the timeout should occur.
-            //  If the timeout is infite, don't care. 
+            //  If the timeout is infinite, don't care. 
             int timeout = m_options.SendTimeout;
             long end = timeout < 0 ? 0 : (Clock.NowMs() + timeout);
 
@@ -747,7 +771,7 @@ namespace NetMQ.zmq
                     timeout = (int)(end - Clock.NowMs());
                     if (timeout <= 0)
                     {
-                        throw new AgainException();
+                        throw new AgainException(innerException: null, message: "SocketBase.Send failed and timeout <= 0");
                     }
                 }
             }
@@ -760,7 +784,7 @@ namespace NetMQ.zmq
             //  Check whether message passed to the function is valid.
             if (!msg.Check())
             {
-                throw new FaultException();
+                throw new FaultException("In SocketBase.Recv, Check failed.");
             }
 
             //  Get the message.
@@ -791,7 +815,8 @@ namespace NetMQ.zmq
             //  For non-blocking recv, commands are processed in case there's an
             //  activate_reader command already waiting int a command pipe.
             //  If it's not, return EAGAIN.
-            if ((flags & SendReceiveOptions.DontWait) > 0 || m_options.ReceiveTimeout == 0)
+            bool isDontWaitSet = (flags & SendReceiveOptions.DontWait) > 0;
+            if (isDontWaitSet || m_options.ReceiveTimeout == 0)
             {
                 ProcessCommands(0, false);
                 m_ticks = 0;
@@ -799,7 +824,16 @@ namespace NetMQ.zmq
                 isMessageAvailable = XRecv(flags, ref msg);
                 if (!isMessageAvailable)
                 {
-                    throw new AgainException();
+                    string s;
+                    if (isDontWaitSet)
+                    {
+                        s = "SocketBase.Recv failed and DontWait is set.";
+                    }
+                    else
+                    {
+                        s = "SocketBase.Recv failed and there is no ReceiveTimeout specified.";
+                    }
+                    throw new AgainException(innerException: null, message: s);
                 }
 
                 ExtractFlags(ref msg);
@@ -831,7 +865,7 @@ namespace NetMQ.zmq
                     timeout = (int)(end - Clock.NowMs());
                     if (timeout <= 0)
                     {
-                        throw new AgainException();
+                        throw new AgainException(innerException: null, message: "SocketBase.Recv failed and timeout <= 0");
                     }
                 }
             }
@@ -1140,7 +1174,7 @@ namespace NetMQ.zmq
             // Event notification only supported over inproc://
             if (!protocol.Equals(Address.InProcProtocol))
             {
-                throw new ProtocolNotSupportedException();
+                throw new ProtocolNotSupportedException(String.Format("In SocketBase.Monitor({0},), protocol must be inproc", addr));
             }
 
             // Register events to monitor
@@ -1148,7 +1182,7 @@ namespace NetMQ.zmq
 
             m_monitorSocket = Ctx.CreateSocket(ZmqSocketType.Pair);
             if (m_monitorSocket == null)
-                throw new FaultException();
+                throw new FaultException("In SocketBase.Monitor, Ctx.CreateSocket(ZmqSocketType.Pair) failed.");
 
             // Never block context termination on pending event messages
             int linger = 0;

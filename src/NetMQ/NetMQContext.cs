@@ -8,12 +8,12 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     /// <summary>
-    /// Context class of the NetMQ, you should have only one context in your application
+    /// Context class of the NetMQ message-queuing subsystem. You should have only one context in your application process.
     /// </summary>
     public class NetMQContext : IDisposable
     {
         private readonly Ctx m_ctx;
-        private int m_isClosed = 0;
+        private int m_isClosed;
 
         private NetMQContext(Ctx ctx)
         {
@@ -21,9 +21,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create a new context
+        /// Create and return a new context.
         /// </summary>
-        /// <returns>The new context</returns>
+        /// <returns>the new NetMQContext</returns>
         [NotNull]
         public static NetMQContext Create()
         {
@@ -31,7 +31,8 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Number of IO Threads in the context, default is 1, 1 is good for most cases
+        /// Get or set the number of IO Threads in the context, default is 1.
+        /// 1 is good for most cases.
         /// </summary>
         public int ThreadPoolSize
         {
@@ -50,7 +51,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Maximum number of sockets
+        /// Get or set the maximum number of sockets.
         /// </summary>
         public int MaxSockets
         {
@@ -75,6 +76,11 @@ namespace NetMQ
             return m_ctx.CreateSocket(socketType);
         }
 
+        /// <summary>
+        /// Create and return a new socket of the given socketType.
+        /// </summary>
+        /// <param name="socketType">a ZmqSocketType indicating the type of socket to create</param>
+        /// <returns>a new socket - a subclass of NetMQSocket</returns>
         [NotNull]
         public NetMQSocket CreateSocket(ZmqSocketType socketType)
         {
@@ -112,9 +118,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create request socket
+        /// Create and return a new request-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new RequestSocket</returns>
         [NotNull]
         public RequestSocket CreateRequestSocket()
         {
@@ -124,9 +130,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create response socket
+        /// Create and return a new response-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new ResponseSocket</returns>
         [NotNull]
         public ResponseSocket CreateResponseSocket()
         {
@@ -136,9 +142,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create dealer socket
+        /// Create and return a new dealer-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new DealerSocket</returns>
         [NotNull]
         public DealerSocket CreateDealerSocket()
         {
@@ -148,9 +154,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create router socket
+        /// Create and return a new router-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new RouterSocket</returns>
         [NotNull]
         public RouterSocket CreateRouterSocket()
         {
@@ -160,9 +166,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create xpublisher socket
+        /// Create and return a new xpublisher-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new XPublisherSocket</returns>
         [NotNull]
         public XPublisherSocket CreateXPublisherSocket()
         {
@@ -172,9 +178,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create pair socket
+        /// Create and return a new pair-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new PairSocket</returns>
         [NotNull]
         public PairSocket CreatePairSocket()
         {
@@ -184,9 +190,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create push socket
+        /// Create and return a new push-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new PushSocket</returns>
         [NotNull]
         public PushSocket CreatePushSocket()
         {
@@ -196,9 +202,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create publisher socket
+        /// Create and return a new publisher-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new PublisherSocket</returns>
         [NotNull]
         public PublisherSocket CreatePublisherSocket()
         {
@@ -208,9 +214,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create pull socket
+        /// Create and return a new pull-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new PullSocket</returns>
         [NotNull]
         public PullSocket CreatePullSocket()
         {
@@ -220,9 +226,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create subscriber socket
+        /// Create and return a new subscriber-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new SubscriberSocket</returns>
         [NotNull]
         public SubscriberSocket CreateSubscriberSocket()
         {
@@ -232,9 +238,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create xsub socket
+        /// Create and return a new xsub-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new XSubscriberSocket</returns>
         [NotNull]
         public XSubscriberSocket CreateXSubscriberSocket()
         {
@@ -243,6 +249,10 @@ namespace NetMQ
             return new XSubscriberSocket(socketHandle);
         }
 
+        /// <summary>
+        /// Create and return a new stream-socket.
+        /// </summary>
+        /// <returns>the new StreamSocket</returns>
         [NotNull]
         public StreamSocket CreateStreamSocket()
         {
@@ -251,6 +261,11 @@ namespace NetMQ
             return new StreamSocket(socketHandle);
         }
 
+        /// <summary>
+        /// Create and return a new monitor-socket that monitors the given endpoint.
+        /// </summary>
+        /// <param name="endpoint">a string denoting the endpoint to be monitored</param>
+        /// <returns>the new NetMQMonitor</returns>
         [NotNull]
         public NetMQMonitor CreateMonitorSocket([NotNull] string endpoint)
         {
@@ -268,7 +283,8 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Close the context
+        /// Close (terminate) this context.
+        /// This must not be called on a context that is already closed otherwise an ObjectDisposedException is thrown.
         /// </summary>
         public void Terminate()
         {
@@ -280,6 +296,9 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Close (or terminate) this context.
+        /// </summary>
         public void Dispose()
         {
             Terminate();

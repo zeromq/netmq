@@ -12,25 +12,67 @@ namespace NetMQ.Security.V0_1
         public const int RandomNumberLength = 32;
         public const int MasterSecretLength = 48;
 
+        /// <summary>
+        /// This is simply a string literal containing "master secret".
+        /// </summary>
         public string MasterSecretLabel = "master secret";
 
+        /// <summary>
+        /// This is simply a string literal containing "client finished".
+        /// </summary>
         public string ClientFinshedLabel = "client finished";
+
+        /// <summary>
+        /// This is simply a string literal containing "server finished".
+        /// </summary>
         public string ServerFinishedLabel = "server finished";
 
+        /// <summary>
+        /// This serves to remember which HandshakeType was last received.
+        /// </summary>
         private HandshakeType m_lastReceivedMessage = HandshakeType.HelloRequest;
+
+        /// <summary>
+        /// This serves to remember which HandshakeType was last sent.
+        /// </summary>
         private HandshakeType m_lastSentMessage = HandshakeType.HelloRequest;
 
+       /// <summary>
+        /// This is the local hash-calculator, as opposed to the hash-calculator for the remote-peer.
+        /// It uses the SHA-256 algorithm (SHA stands for Standard Hashing Algorithm).
+        /// </summary>
         private SHA256 m_localHash;
+
+       /// <summary>
+        /// This is the hash-calculator for the remote peer.
+        /// It uses the SHA-256 algorithm (SHA stands for Standard Hashing Algorithm).
+        /// </summary>
         private SHA256 m_remoteHash;
 
+        /// <summary>
+        /// This is the random-number-generator that is used to create cryptographically-strong random byte-array data.
+        /// </summary>
         private RandomNumberGenerator m_rng = new RNGCryptoServiceProvider();
 
-        private bool m_done = false;
+        /// <summary>
+        /// This flag indicates when the handshake has finished. It is set true in method OnFinished.
+        /// </summary>
+        private bool m_done;
 
+        /// <summary>
+        /// This is the Pseudo-Random number generating-Function (PRF) that is being used.
+        /// It is initialized to a SHA256PRF.
+        /// </summary>
         private IPRF m_prf = new SHA256PRF();
 
-        public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
+         /// <summary>
+        /// Create a new HandshakeLayer object given a SecureChannel and which end of the connection it is to be.
+        /// </summary>
+        /// <param name="secureChannel">the SecureChannel that comprises the secure functionality of this layer</param>
+        /// <param name="connectionEnd">this specifies which end of the connection - Server or Client</param>
+       public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
         {
+            // SHA256 is a class that computes the SHA-256 (SHA stands for Standard Hasing Algorithm) of it's input.
             m_localHash = SHA256.Create();
             m_remoteHash = SHA256.Create();
 
@@ -60,16 +102,31 @@ namespace NetMQ.Security.V0_1
 
         public X509Certificate2 RemoteCertificate { get; set; }
 
+        /// <summary>
+        /// Get the Pseudo-Random number generating-Function (PRF) that is being used.
+        /// </summary>
         public IPRF PRF
         {
             get { return m_prf; }
         }
 
-        public event EventHandler CipherSuiteChange;
+        /// <summary>
+        /// This event signals a change to the cipher-suite.
+        /// </summary>
+       public event EventHandler CipherSuiteChange;
 
+         /// <summary>
+        /// Get or set the delegate to use to call the method for verifying the certificate.
+        /// </summary>
         public VerifyCertificateDelegate VerifyCertificate { get; set; }
 
-        public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
+         /// <summary>
+        /// Given an incoming handshake-protocol message, route it to the corresponding handler.
+        /// </summary>
+        /// <param name="incomingMessage">the NetMQMessage that has come in</param>
+        /// <param name="outgoingMessages">a collection of NetMQMessages that are to be sent</param>
+        /// <returns>true if finished - ie, an incoming message of type Finished was received</returns>
+       public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
         {
             if (incomingMessage == null)
             {
@@ -116,28 +173,51 @@ namespace NetMQ.Security.V0_1
             return m_done;
         }
 
-        private void HashLocalAndRemote(NetMQMessage message)
+         /// <summary>
+        /// Compute the hash of the given message twice, first using the local hashing algorithm
+        /// and then again using the remote-peer hashing algorithm.
+        /// </summary>
+        /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
+       private void HashLocalAndRemote(NetMQMessage message)
         {
             HashLocal(message);
             HashRemote(message);
         }
 
+        /// <summary>
+        /// Use the local (as opposed to that of the remote-peer) hashing algorithm to compute a hash
+        /// of the frames within the given NetMQMessage.
+        /// </summary>
+        /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
         private void HashLocal(NetMQMessage message)
         {
             Hash(m_localHash, message);
         }
 
+        /// <summary>
+        /// Use the remote-peer hashing algorithm to compute a hash
+        /// of the frames within the given NetMQMessage.
+        /// </summary>
+        /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
         private void HashRemote(NetMQMessage message)
         {
             Hash(m_remoteHash, message);
         }
 
+        /// <summary>
+        /// Compute a hash of the bytes of the buffer within the frames of the given NetMQMessage.
+        /// </summary>
+        /// <param name="hash">the hashing-algorithm to employ</param>
+        /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
         private void Hash(HashAlgorithm hash, NetMQMessage message)
         {
             foreach (NetMQFrame frame in message)
             {
+                // Access the byte-array that is the frame's buffer.
                 byte[] bytes = frame.ToByteArray(true);
 
+                // Compute the hash value for the region of the input byte-array (bytes), starting at index 0,
+                // and copy the resulting hash value back into the same byte-array.
                 hash.TransformBlock(bytes, 0, bytes.Length, bytes, 0);
             }
         }
@@ -472,6 +552,9 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// Raise the CipherSuiteChange event.
+        /// </summary>
         private void InvokeChangeCipherSuite()
         {
             EventHandler temp = CipherSuiteChange;

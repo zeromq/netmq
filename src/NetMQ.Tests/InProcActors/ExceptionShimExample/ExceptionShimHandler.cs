@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using NetMQ.InProcActors;
 using NetMQ.Sockets;
-using NetMQ.zmq;
-using NetMQ.Actors;
 
-namespace NetMQ.Tests.InProcActors.ShimExceptionExample
+namespace NetMQ.Tests.InProcActors.ExceptionShimExample
 {
     /// <summary>
     /// This hander class is specific implementation that you would need
@@ -35,7 +28,7 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
 
         public void Initialise(object state)
         {
- 
+
         }
 
 
@@ -51,12 +44,11 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
 
                     string command = msg[0].ConvertToString();
 
-                    if (command == ActorKnownMessages.END_PIPE)
+                    if (command == NetMQActor.EndShimMessage)
                         break;
 
                     //Simulate a failure that should be sent back to Actor                    
                     throw new InvalidOperationException("Actors Shim threw an Exception");
-
                 }
                 //You WILL need to decide what Exceptions should be caught here, this is for 
                 //demonstration purposes only, any unhandled falut will bubble up to callers code
@@ -65,10 +57,6 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
                     shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
                 }
             }
-
-  
         }
-         
-
     }
 }

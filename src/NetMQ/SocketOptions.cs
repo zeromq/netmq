@@ -212,7 +212,7 @@ namespace NetMQ
 
         public bool ManualPublisher
         {
-//            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XPublisherManual); }
+            // get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XPublisherManual); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.XPublisherManual, value); }
         }
     }
