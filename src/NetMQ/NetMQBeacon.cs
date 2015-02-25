@@ -103,8 +103,11 @@ namespace NetMQ
 
                     try
                     {
+                      if (!IPAddress.Any.Equals(bindTo) && !IPAddress.IPv6Any.Equals(bindTo))
+                      {
                         var host = Dns.GetHostEntry(bindTo);
-                        hostname = host != null ? host.HostName : "";
+                        hostname = host != null ? host.HostName : ""; 
+                      }
                     }
                     catch (Exception)
                     {
