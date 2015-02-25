@@ -498,6 +498,8 @@ namespace NetMQ
                 {
                     m_isStoppedEvent.WaitOne();
                 }
+
+                m_isStarted = false;
             }
             else
             {
