@@ -26,7 +26,7 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpAddress : Address.IZAddress
+    internal class TcpAddress : Address.IZAddress
     {
         public class TcpAddressMask : TcpAddress
         {
@@ -40,6 +40,7 @@ namespace NetMQ.zmq.Transports.Tcp
         {
             Resolve(addr, false);
         }
+
         public TcpAddress()
         {
         }
@@ -53,7 +54,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
             IPEndPoint endpoint = Address;
 
-            if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            if (endpoint.AddressFamily == AddressFamily.InterNetworkV6)
             {
                 return Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port;
             }
@@ -70,7 +71,7 @@ namespace NetMQ.zmq.Transports.Tcp
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
-                throw new InvalidException();
+                throw new InvalidException("TCP address must include a port number");
             }
 
             //  Separate the address/port.
@@ -93,7 +94,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 port = Convert.ToInt32(portStr);
                 if (port == 0)
                 {
-                    throw new InvalidException();
+                    throw new InvalidException("Unable to parse port number as an integer");
                 }
             }         
 
@@ -143,8 +144,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
         public String Protocol
         {
-            get { return NetMQ.zmq.Address.TcpProtocol; }
+            get { return zmq.Address.TcpProtocol; }
         }
-
     }
 }

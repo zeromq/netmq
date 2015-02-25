@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using NetMQ.Security.V0_1.HandshakeMessages;
 
 namespace NetMQ.Security.V0_1
 {
-
-
     class HandshakeLayer : IDisposable
     {
         private readonly SecureChannel m_secureChannel;
@@ -45,13 +41,13 @@ namespace NetMQ.Security.V0_1
             SecurityParameters.PRFAlgorithm = PRFAlgorithm.SHA256;
             SecurityParameters.CipherType = CipherType.Block;
 
-            AllowedCipherSuites = new CipherSuite[]
-        {
-          CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256, 
-          CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA, 
-          CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256, 
-          CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA, 
-        };
+            AllowedCipherSuites = new []
+            {
+                CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256,
+                CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA,
+                CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256,
+                CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA
+            };
 
             VerifyCertificate = c => c.Verify();
         }
@@ -78,7 +74,7 @@ namespace NetMQ.Security.V0_1
             if (incomingMessage == null)
             {
                 if (m_lastReceivedMessage == m_lastSentMessage &&
-                            m_lastSentMessage == HandshakeType.HelloRequest && SecurityParameters.Entity == ConnectionEnd.Client)
+                    m_lastSentMessage == HandshakeType.HelloRequest && SecurityParameters.Entity == ConnectionEnd.Client)
                 {
                     OnHelloRequest(outgoingMessages);
                     return false;
@@ -97,16 +93,16 @@ namespace NetMQ.Security.V0_1
                     OnClientHello(incomingMessage, outgoingMessages);
                     break;
                 case HandshakeType.ServerHello:
-                    OnServerHello(incomingMessage, outgoingMessages);
+                    OnServerHello(incomingMessage);
                     break;
                 case HandshakeType.Certificate:
-                    OnCertificate(incomingMessage, outgoingMessages);
+                    OnCertificate(incomingMessage);
                     break;
                 case HandshakeType.ServerHelloDone:
                     OnServerHelloDone(incomingMessage, outgoingMessages);
                     break;
                 case HandshakeType.ClientKeyExchange:
-                    OnClientKeyExchange(incomingMessage, outgoingMessages);
+                    OnClientKeyExchange(incomingMessage);
                     break;
                 case HandshakeType.Finished:
                     OnFinished(incomingMessage, outgoingMessages);
@@ -233,7 +229,7 @@ namespace NetMQ.Security.V0_1
             m_lastSentMessage = HandshakeType.ServerHello;
         }
 
-        private void OnServerHello(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
+        private void OnServerHello(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.HelloRequest || m_lastSentMessage != HandshakeType.ClientHello)
             {
@@ -250,7 +246,7 @@ namespace NetMQ.Security.V0_1
             SetCipherSuite(serverHelloMessage.CipherSuite);
         }
 
-        private void OnCertificate(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
+        private void OnCertificate(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.ServerHello || m_lastSentMessage != HandshakeType.ClientHello)
             {
@@ -308,7 +304,7 @@ namespace NetMQ.Security.V0_1
             m_lastSentMessage = HandshakeType.ClientKeyExchange;
         }
 
-        private void OnClientKeyExchange(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
+        private void OnClientKeyExchange(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.ClientHello || m_lastSentMessage != HandshakeType.ServerHelloDone)
             {
@@ -523,7 +519,6 @@ namespace NetMQ.Security.V0_1
                 m_prf.Dispose();
                 m_prf = null;
             }
-
         }
     }
 }

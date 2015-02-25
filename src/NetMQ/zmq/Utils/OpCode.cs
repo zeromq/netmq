@@ -4,10 +4,8 @@ using System.Runtime.InteropServices;
 
 namespace NetMQ.zmq.Utils
 {
-
-    public static class Opcode
+    internal static class Opcode
     {
-
         private static IntPtr codeBuffer;
         private static ulong size;
         private static bool isArm;
@@ -16,28 +14,20 @@ namespace NetMQ.zmq.Utils
         {
             int p = (int)Environment.OSVersion.Platform;
 
-            byte[] rdtscCode;
-            if (IntPtr.Size == 4)
-            {
-                rdtscCode = RDTSC_32;
-            }
-            else
-            {
-                rdtscCode = RDTSC_64;
-            }
+            byte[] rdtscCode = IntPtr.Size == 4 ? RDTSC_32 : RDTSC_64;
 
             size = (ulong)(rdtscCode.Length);
 
             if ((p == 4) || (p == 128))
-            { // Unix   
+            {
+                // Unix
                 isArm = IsARMArchitecture();
                 if (isArm)
                 {
                     Rdtsc = RdtscOnArm;
                     return;
                 }
-                Assembly assembly =
-                    Assembly.Load("Mono.Posix");
+                Assembly assembly = Assembly.Load("Mono.Posix");
 
                 Type syscall = assembly.GetType("Mono.Unix.Native.Syscall");
                 MethodInfo mmap = syscall.GetMethod("mmap");
@@ -54,7 +44,7 @@ namespace NetMQ.zmq.Utils
                     (int)mmapFlags.GetField("MAP_PRIVATE").GetValue(null));
 
                 codeBuffer = (IntPtr)mmap.Invoke(null, new object[] { IntPtr.Zero, 
-          size, mmapProtsParam, mmapFlagsParam, -1, 0 });
+                    size, mmapProtsParam, mmapFlagsParam, -1, 0 });
 
                 if (codeBuffer == IntPtr.Zero || codeBuffer == (IntPtr)(-1))
                 {
@@ -62,7 +52,8 @@ namespace NetMQ.zmq.Utils
                 }
             }
             else
-            { // Windows
+            {
+                // Windows
                 codeBuffer = NativeMethods.VirtualAlloc(IntPtr.Zero,
                     (UIntPtr)size, AllocationType.COMMIT | AllocationType.RESERVE,
                     MemoryProtection.EXECUTE_READWRITE);
@@ -82,7 +73,7 @@ namespace NetMQ.zmq.Utils
             Type syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
             Type utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
             MethodInfo uname = syscall.GetMethod("uname");
-            object[] parameters = new object[] { null };
+            object[] parameters = { null };
 
             int invokeResult = (int)uname.Invoke(null, parameters);
             if (invokeResult == 0)
@@ -103,7 +94,8 @@ namespace NetMQ.zmq.Utils
 
             int p = (int)Environment.OSVersion.Platform;
             if ((p == 4) || (p == 128))
-            { // Unix
+            { 
+                // Unix
                 Assembly assembly =
                     Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, " +
                     "PublicKeyToken=0738eb9f132ed756");
@@ -114,7 +106,8 @@ namespace NetMQ.zmq.Utils
 
             }
             else
-            { // Windows
+            { 
+                // Windows
                 NativeMethods.VirtualFree(codeBuffer, UIntPtr.Zero,
                     FreeType.RELEASE);
             }
@@ -134,19 +127,19 @@ namespace NetMQ.zmq.Utils
         //   return __rdtsc();
         // }
 
-        private static readonly byte[] RDTSC_32 = new byte[] {
-      0x0F, 0x31,                     // rdtsc   
-      0xC3                            // ret  
-    };
+        private static readonly byte[] RDTSC_32 = {
+            0x0F, 0x31,                     // rdtsc
+            0xC3                            // ret
+        };
 
-        private static readonly byte[] RDTSC_64 = new byte[] {
-      0x0F, 0x31,                     // rdtsc  
-      0x48, 0xC1, 0xE2, 0x20,         // shl rdx, 20h  
-      0x48, 0x0B, 0xC2,               // or rax, rdx  
-      0xC3                            // ret  
-    };
+        private static readonly byte[] RDTSC_64 = {
+            0x0F, 0x31,                     // rdtsc
+            0x48, 0xC1, 0xE2, 0x20,         // shl rdx, 20h
+            0x48, 0x0B, 0xC2,               // or rax, rdx
+            0xC3                            // ret
+        };
 
-        [Flags()]
+        [Flags]
         public enum AllocationType : uint
         {
             COMMIT = 0x1000,
@@ -158,7 +151,7 @@ namespace NetMQ.zmq.Utils
             WRITE_WATCH = 0x200000
         }
 
-        [Flags()]
+        [Flags]
         public enum MemoryProtection : uint
         {
             EXECUTE = 0x10,
@@ -195,4 +188,3 @@ namespace NetMQ.zmq.Utils
         }
     }
 }
-

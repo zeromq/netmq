@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
+using System.Net.Sockets;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    public class PgmAddress : Address.IZAddress
+    internal class PgmAddress : Address.IZAddress
     {
         private string m_network;
 
@@ -98,7 +96,7 @@ namespace NetMQ.zmq.Transports.PGM
 
             IPEndPoint endpoint = Address;
 
-            if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            if (endpoint.AddressFamily == AddressFamily.InterNetworkV6)
             {
                 return Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port;
             }
@@ -110,7 +108,7 @@ namespace NetMQ.zmq.Transports.PGM
 
         public String Protocol
         {
-            get { return NetMQ.zmq.Address.PgmProtocol; }
+            get { return zmq.Address.PgmProtocol; }
         }
     }
 }

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Sockets;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
 using System.Threading;
 
 namespace NetMQ.zmq.Utils
 {
-    class SelectItem
+    internal class SelectItem
     {
         public SelectItem(SocketBase socket, PollEvents @event)
         {
@@ -31,11 +27,11 @@ namespace NetMQ.zmq.Utils
         public PollEvents ResultEvent { get; set; }
     }
 
-    class Selector
+    internal class Selector
     {
-        private List<Socket> m_checkRead;
-        private List<Socket> m_checkWrite;
-        private List<Socket> m_checkError;                       
+        private readonly List<Socket> m_checkRead;
+        private readonly List<Socket> m_checkWrite;
+        private readonly List<Socket> m_checkError;                       
 
         public Selector()
         {

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net.Sockets;
-using System.Text;
 using AsyncIO;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    class PgmSession : IEngine, IProcatorEvents
+    internal class PgmSession : IEngine, IProcatorEvents
     {
         private AsyncSocket m_handle;
         private readonly PgmSocket m_pgmSocket;

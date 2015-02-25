@@ -24,17 +24,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
+using NetMQ.zmq.Patterns;
 using NetMQ.zmq.Transports;
 using NetMQ.zmq.Transports.Ipc;
-using NetMQ.zmq.Patterns;
 using NetMQ.zmq.Transports.PGM;
 using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq
 {
-    public class SessionBase : Own,
-                                                         Pipe.IPipeEvents, IProcatorEvents,
-                                                         IMsgSink, IMsgSource
+    internal class SessionBase : Own,
+                                 Pipe.IPipeEvents, IProcatorEvents,
+                                 IMsgSink, IMsgSource
     {
         //  If true, this session (re)connects to the peer. Otherwise, it's
         //  a transient session created by the listener.
@@ -80,69 +80,55 @@ namespace NetMQ.zmq
         private readonly IOObject m_ioObject;
 
         public static SessionBase Create(IOThread ioThread, bool connect,
-                                                                         SocketBase socket, Options options, Address addr)
+                                         SocketBase socket, Options options, Address addr)
         {
-
             SessionBase s;
             switch (options.SocketType)
             {
                 case ZmqSocketType.Req:
-                    s = new Req.ReqSession(ioThread, connect,
-                                                                     socket, options, addr);
+                    s = new Req.ReqSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Dealer:
-                    s = new Dealer.DealerSession(ioThread, connect,
-                                                                                socket, options, addr);
+                    s = new Dealer.DealerSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Rep:
-                    s = new Rep.RepSession(ioThread, connect,
-                                                                    socket, options, addr);
+                    s = new Rep.RepSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Router:
-                    s = new Router.RouterSession(ioThread, connect,
-                                                                                socket, options, addr);
+                    s = new Router.RouterSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Pub:
-                    s = new Pub.PubSession(ioThread, connect,
-                                                                    socket, options, addr);
+                    s = new Pub.PubSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Xpub:
-                    s = new XPub.XPubSession(ioThread, connect,
-                                                                     socket, options, addr);
+                    s = new XPub.XPubSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Sub:
-                    s = new Sub.SubSession(ioThread, connect,
-                                                                     socket, options, addr);
+                    s = new Sub.SubSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Xsub:
-                    s = new XSub.XSubSession(ioThread, connect,
-                                                                        socket, options, addr);
+                    s = new XSub.XSubSession(ioThread, connect, socket, options, addr);
                     break;
-
                 case ZmqSocketType.Push:
-                    s = new Push.PushSession(ioThread, connect,
-                                                                        socket, options, addr);
+                    s = new Push.PushSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Pull:
-                    s = new Pull.PullSession(ioThread, connect,
-                                                                        socket, options, addr);
+                    s = new Pull.PullSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Pair:
-                    s = new Pair.PairSession(ioThread, connect,
-                                                                        socket, options, addr);
+                    s = new Pair.PairSession(ioThread, connect, socket, options, addr);
                     break;
                 case ZmqSocketType.Stream:
                     s = new Stream.StreamSession(ioThread, connect, socket, options, addr);
                     break;
                 default:
                     throw new InvalidException("type=" + options.SocketType);
-
             }
             return s;
         }
 
         public SessionBase(IOThread ioThread, bool connect,
-                                             SocketBase socket, Options options, Address addr)
+                           SocketBase socket, Options options, Address addr)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -182,9 +168,7 @@ namespace NetMQ.zmq
             //  Close the engine.
             if (m_engine != null)
                 m_engine.Terminate();
-
         }
-
 
         //  To be used once only, when creating the session.
         public void AttachPipe(Pipe pipe)
@@ -243,7 +227,6 @@ namespace NetMQ.zmq
             return false;
         }
 
-
         protected virtual void Reset()
         {
             //  Restore identity flags.
@@ -251,13 +234,11 @@ namespace NetMQ.zmq
             m_identityReceived = false;
         }
 
-
         public void Flush()
         {
             if (m_pipe != null)
                 m_pipe.Flush();
         }
-
 
         //  Remove any half processed messages. Flush unflushed messages.
         //  Call this function when engine disconnect to get rid of leftovers.
@@ -265,7 +246,6 @@ namespace NetMQ.zmq
         {
             if (m_pipe != null)
             {
-
                 //  Get rid of half-processed messages in the out pipe. Flush any
                 //  unflushed messages upstream.
                 m_pipe.Rollback();
@@ -340,7 +320,6 @@ namespace NetMQ.zmq
                 return;
             }
 
-
             if (m_engine != null)
                 m_engine.ActivateIn();
         }
@@ -350,7 +329,6 @@ namespace NetMQ.zmq
             //  Hiccups are always sent from session to socket, not the other
             //  way round.
             throw new NotSupportedException("Must Override");
-
         }
 
         public SocketBase Socket
@@ -364,7 +342,6 @@ namespace NetMQ.zmq
             if (m_connect)
                 StartConnecting(false);
         }
-
 
         protected override void ProcessAttach(IEngine engine)
         {
@@ -446,7 +423,6 @@ namespace NetMQ.zmq
             m_pipe.CheckRead();
         }
 
-
         //  Call this function to move on with the delayed process_term.
         private void ProceedWithTerm()
         {
@@ -457,10 +433,8 @@ namespace NetMQ.zmq
             base.ProcessTerm(0);
         }
 
-
         public void TimerEvent(int id)
         {
-
             //  Linger period expired. We can proceed with termination even though
             //  there are still pending messages to be sent.
             Debug.Assert(id == LingerTimerId);
@@ -470,7 +444,6 @@ namespace NetMQ.zmq
             Debug.Assert(m_pipe != null);
             m_pipe.Terminate(false);
         }
-
 
         private void Detached()
         {
@@ -502,9 +475,7 @@ namespace NetMQ.zmq
             //  the socket object to resend all the subscriptions.
             if (m_pipe != null && (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub))
                 m_pipe.Hiccup();
-
         }
-
 
         private void StartConnecting(bool wait)
         {
@@ -556,18 +527,11 @@ namespace NetMQ.zmq
         public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
-
         }
 
         public virtual void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
-
         }
-
-
-
-
-
     }
 }

@@ -23,9 +23,8 @@ using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    public class IpcListener : TcpListener
+    internal class IpcListener : TcpListener
     {
-
         private readonly IpcAddress m_address;
 
         public IpcListener(IOThread ioThread, SocketBase socket, Options options)
@@ -43,7 +42,6 @@ namespace NetMQ.zmq.Transports.Ipc
             }
         }
 
-
         //  Set address to listen on.
         public override void SetAddress(String addr)
         {
@@ -52,8 +50,5 @@ namespace NetMQ.zmq.Transports.Ipc
             String fake = m_address.Address.Address + ":" + m_address.Address.Port;
             base.SetAddress(fake);
         }
-
-
-
     }
 }

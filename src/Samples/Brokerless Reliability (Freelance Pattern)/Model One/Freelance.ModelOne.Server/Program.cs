@@ -17,39 +17,32 @@ namespace Freelance.ModelOne.Server
                 {
                     string address = GetComputerLanIP();
 
-                    if (PORT_NUMBER > 0)
+                    if (!string.IsNullOrEmpty(address))
                     {
-                        if (!string.IsNullOrEmpty(address))
+                        Console.WriteLine("Binding tcp://{0}:{1}", address, PORT_NUMBER);
+                        response.Bind(string.Format("tcp://{0}:{1}", address, PORT_NUMBER));
+
+                        while (true)
                         {
-                            Console.WriteLine("Binding tcp://{0}:{1}", address, PORT_NUMBER);
-                            response.Bind(string.Format("tcp://{0}:{1}", address, PORT_NUMBER));
-
-                            while (true)
+                            bool hasMore = true;
+                            string msg = response.ReceiveString(out hasMore);
+                            if (string.IsNullOrEmpty(msg))
                             {
-                                bool hasMore = true;
-                                string msg = response.ReceiveString(out hasMore);
-                                if (string.IsNullOrEmpty(msg))
-                                {
-                                    Console.WriteLine("No msg received.");
-                                    break;
-                                }
-
-                                Console.WriteLine("Msg received! {0}", msg);
-                                response.Send(msg, false, hasMore);
-
-                                Thread.Sleep(1000);
+                                Console.WriteLine("No msg received.");
+                                break;
                             }
 
-                            response.Options.Linger = TimeSpan.Zero;
+                            Console.WriteLine("Msg received! {0}", msg);
+                            response.Send(msg, false, hasMore);
+
+                            Thread.Sleep(1000);
                         }
-                        else
-                        {
-                            Console.WriteLine("Wrong IP address");
-                        }
+
+                        response.Options.Linger = TimeSpan.Zero;
                     }
                     else
                     {
-                        Console.WriteLine("The port number should be greater than 0");
+                        Console.WriteLine("Wrong IP address");
                     }
 
                     Console.WriteLine("Press ENTER to exit...");

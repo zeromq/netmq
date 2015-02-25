@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NetMQ.Security.V0_1.HandshakeMessages
+﻿namespace NetMQ.Security.V0_1.HandshakeMessages
 {
     public enum HandshakeType : byte
     {

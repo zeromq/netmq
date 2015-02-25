@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.zmq;
+﻿using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
     public class StreamSocket : NetMQSocket
     {
-        public StreamSocket(SocketBase socketHandle)
+        internal StreamSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }
-
     }
 }

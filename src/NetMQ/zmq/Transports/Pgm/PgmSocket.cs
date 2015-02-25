@@ -1,28 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using AsyncIO;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    public enum PgmSocketType
+    internal enum PgmSocketType
     {
         Publisher,
         Receiver,
         Listener
     }
 
-    public struct RM_SEND_WINDOW
+    internal struct RM_SEND_WINDOW
     {
         public uint RateKbitsPerSec; // Send rate
         public uint WindowSizeInMSecs;
         public uint WindowSizeInBytes;
     }
 
-    public class PgmSocket
+    internal class PgmSocket
     {
         public static readonly int PROTOCOL_TYPE_NUMBER = 113;
         public static readonly ProtocolType PGM_PROTOCOL_TYPE = (ProtocolType)113;

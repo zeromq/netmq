@@ -20,13 +20,11 @@
 
 using System;
 using System.Net.Sockets;
-using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public class Reaper : ZObject, IPollEvents
+    internal class Reaper : ZObject, IPollEvents
     {
-
         //  Reaper thread accesses incoming commands via this mailbox.
         private readonly Mailbox mailbox;
 
@@ -74,7 +72,6 @@ namespace NetMQ.zmq
         public void Start()
         {
             m_poller.Start();
-
         }
 
         public void Stop()
@@ -85,7 +82,6 @@ namespace NetMQ.zmq
 
         public void InEvent()
         {
-
             while (true)
             {
 
@@ -97,7 +93,6 @@ namespace NetMQ.zmq
                 //  Process the command.
                 cmd.Destination.ProcessCommand(cmd);
             }
-
         }
 
         public void OutEvent()
@@ -110,8 +105,7 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-        override
-            protected void ProcessStop()
+        protected override void ProcessStop()
         {
             m_terminating = true;
 
@@ -124,8 +118,7 @@ namespace NetMQ.zmq
             }
         }
 
-        override
-            protected void ProcessReap(SocketBase socket)
+        protected override void ProcessReap(SocketBase socket)
         {
             //  Add the socket to the poller.
             socket.StartReaping(m_poller);
@@ -133,10 +126,7 @@ namespace NetMQ.zmq
             ++m_sockets;
         }
 
-
-
-        override
-            protected void ProcessReaped()
+        protected override void ProcessReaped()
         {
             --m_sockets;
 
@@ -150,7 +140,5 @@ namespace NetMQ.zmq
 
             }
         }
-
-
     }
 }

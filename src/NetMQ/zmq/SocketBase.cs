@@ -22,22 +22,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using AsyncIO;
 using NetMQ.zmq.Patterns;
+using NetMQ.zmq.Transports.Ipc;
 using NetMQ.zmq.Transports.PGM;
 using NetMQ.zmq.Transports.Tcp;
-using NetMQ.zmq.Transports.Ipc;
 using NetMQ.zmq.Utils;
 using TcpListener = NetMQ.zmq.Transports.Tcp.TcpListener;
 
 namespace NetMQ.zmq
 {
-    public abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
+    internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
         private readonly Dictionary<String, Own> m_endpoints;
 
@@ -160,11 +158,9 @@ namespace NetMQ.zmq
                 case ZmqSocketType.Push:
                     socketBase = new Push(parent, threadId, socketId);
                     break;
-
                 case ZmqSocketType.Xpub:
                     socketBase = new XPub(parent, threadId, socketId);
                     break;
-
                 case ZmqSocketType.Xsub:
                     socketBase = new XSub(parent, threadId, socketId);
                     break;

@@ -20,20 +20,16 @@
 */
 
 using System;
-using System.Net.Sockets;
 using System.Diagnostics;
-
+using System.Net.Sockets;
+using AsyncIO;
 //  If 'delay' is true connecter first waits for a while, then starts
 //  connection process.
-using AsyncIO;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpConnecter : Own, IProcatorEvents
+    internal class TcpConnecter : Own, IProcatorEvents
     {
-
-        //private static Logger LOG = LoggerFactory.getLogger(TcpConnecter.class);
-
         //  ID of the timer used to delay the reconnection.
         private const int ReconnectTimerId = 1;
 

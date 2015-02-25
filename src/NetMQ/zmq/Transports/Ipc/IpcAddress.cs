@@ -23,9 +23,8 @@ using System.Net;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    public class IpcAddress : Address.IZAddress
+    internal class IpcAddress : Address.IZAddress
     {
-
         private String m_name;
 
         public override String ToString()
@@ -59,8 +58,7 @@ namespace NetMQ.zmq.Transports.Ipc
 
         public String Protocol
         {
-            get { return NetMQ.zmq.Address.IpcProtocol; }
+            get { return zmq.Address.IpcProtocol; }
         }
-
     }
 }

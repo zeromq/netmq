@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace NetMQ.Security.V0_1
+﻿namespace NetMQ.Security.V0_1
 {
     public enum ConnectionEnd
     {
@@ -34,7 +29,6 @@ namespace NetMQ.Security.V0_1
     {
         Null = 0,
     }
-
 
     public class SecurityParameters
     {

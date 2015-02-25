@@ -23,7 +23,7 @@ using System.Net;
 
 namespace NetMQ.zmq
 {
-    public class Address
+    internal class Address
     {
         public const string InProcProtocol = "inproc";
         public const string TcpProtocol = "tcp";
@@ -36,7 +36,7 @@ namespace NetMQ.zmq
             void Resolve(String name, bool ip4Only);
             IPEndPoint Address { get; }
             String Protocol { get; }
-        };
+        }
 
 
         public Address(String protocol, String address)
@@ -52,12 +52,12 @@ namespace NetMQ.zmq
 
             if (endpoint is DnsEndPoint)
             {
-                DnsEndPoint dnsEndpoint = endpoint as DnsEndPoint;
+                DnsEndPoint dnsEndpoint = (DnsEndPoint)endpoint;
                 AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port;
             }
             else if (endpoint is IPEndPoint)
             {
-                IPEndPoint ipEndpoint = endpoint as IPEndPoint;
+                IPEndPoint ipEndpoint = (IPEndPoint)endpoint;
                 AddressString = ipEndpoint.Address + ":" + ipEndpoint.Port;
             }
             else

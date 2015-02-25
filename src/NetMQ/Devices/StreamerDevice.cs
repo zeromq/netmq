@@ -1,6 +1,3 @@
-using System;
-using NetMQ.Sockets;
-
 namespace NetMQ.Devices
 {
     /// <summary>
@@ -13,7 +10,6 @@ namespace NetMQ.Devices
     /// </remarks>
     public class StreamerDevice : DeviceBase
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
         /// </summary>
@@ -25,7 +21,6 @@ namespace NetMQ.Devices
                               DeviceMode mode = DeviceMode.Threaded)
             : base(context.CreatePullSocket(), context.CreatePushSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
@@ -42,7 +37,6 @@ namespace NetMQ.Devices
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreatePullSocket(), context.CreatePushSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
@@ -58,9 +52,7 @@ namespace NetMQ.Devices
                 if (more)
                     BackendSocket.SendMore(data);
                 else
-                {
                     BackendSocket.Send(data);
-                }
             } while (more);
         }
     }

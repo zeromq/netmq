@@ -21,26 +21,23 @@
 
 using System;
 using System.Diagnostics;
-
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-using AsyncIO;
+using System.Net.Sockets;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public interface IMailbox
+    internal interface IMailbox
     {
         void Send(Command command);
         void Close();
     }
 
-    public interface IMailboxEvent
+    internal interface IMailboxEvent
     {
         void Ready();
     }
 
-    class IOThreadMailbox : IMailbox
+    internal class IOThreadMailbox : IMailbox
     {
         private readonly Proactor m_procator;
 
@@ -98,9 +95,9 @@ namespace NetMQ.zmq
         public Command Recv()
         {            
             Command cmd = null;
-            bool ok;
 
-            ok = m_cpipe.Read(ref cmd);
+            // bool ok =
+               m_cpipe.Read(ref cmd);
 
             return cmd;
         }
@@ -119,10 +116,8 @@ namespace NetMQ.zmq
         }
     }
 
-    public class Mailbox : IMailbox
+    internal class Mailbox : IMailbox
     {
-        //private static Logger LOG = LoggerFactory.getLogger(Mailbox.class);
-
         //  The pipe to store actual commands.
         private readonly YPipe<Command> m_cpipe;
 
@@ -161,7 +156,7 @@ namespace NetMQ.zmq
             m_name = name;
         }
 
-        public System.Net.Sockets.Socket Handle
+        public Socket Handle
         {
             get { return m_signaler.Handle; }
         }

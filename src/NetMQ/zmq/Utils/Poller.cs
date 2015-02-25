@@ -21,14 +21,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-using System.Collections;
-using System.Linq;
 
 namespace NetMQ.zmq.Utils
 {
-    class Poller : PollerBase
+    internal class Poller : PollerBase
     {
         private class PollSet
         {
@@ -44,9 +43,11 @@ namespace NetMQ.zmq.Utils
                 Cancelled = false;
             }
         }
+
         //  This table stores data for registered descriptors.
         private readonly List<PollSet> m_handles;
 
+        //  List of handles to add at the start of the next loop
         private readonly List<PollSet> m_addList;
 
         //  If true, there's at least one retired event source.
@@ -67,7 +68,6 @@ namespace NetMQ.zmq.Utils
         public Poller()
             : this("poller")
         {
-
         }
 
         public Poller(String name)
@@ -163,7 +163,7 @@ namespace NetMQ.zmq.Utils
             m_stopping = true;
         }
 
-        public void Loop()
+        private void Loop()
         {
             List<Socket> readList = new List<Socket>();
             List<Socket> writeList = new List<Socket>();
@@ -171,10 +171,7 @@ namespace NetMQ.zmq.Utils
 
             while (!m_stopping)
             {
-                foreach (var pollSet in m_addList)
-                {
-                    m_handles.Add(pollSet);
-                }
+                m_handles.AddRange(m_addList);
                 m_addList.Clear();
 
                 //  Execute any due timers.
@@ -209,7 +206,6 @@ namespace NetMQ.zmq.Utils
                         catch (TerminatingException)
                         {
                         }
-
                     }
 
                     if (pollSet.Cancelled)

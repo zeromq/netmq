@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NetMQ.zmq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -16,24 +15,19 @@ namespace NetMQ
 
         private static int s_schedulerCounter = 0;
 
-        private readonly int m_schedulerId;
-        private readonly string m_address;
-
-        private readonly NetMQContext m_context;
         private readonly NetMQSocket m_serverSocket;
         private readonly NetMQSocket m_clientSocket;
 
-        private ThreadLocal<bool> m_schedulerThread;
+        private readonly ThreadLocal<bool> m_schedulerThread;
 
-        private ConcurrentQueue<Task> m_tasksQueue;
+        private readonly ConcurrentQueue<Task> m_tasksQueue;
 
-        private object m_syncObject;
+        private readonly object m_syncObject;
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 
-        public NetMQScheduler(NetMQContext context, Poller poller = null)
+        public NetMQScheduler([NotNull] NetMQContext context, [CanBeNull] Poller poller = null)
         {
-            m_context = context;
             if (poller == null)
             {
                 m_ownPoller = true;
@@ -48,13 +42,13 @@ namespace NetMQ
             m_tasksQueue = new ConcurrentQueue<Task>();
             m_syncObject = new object();
 
-            m_schedulerId = Interlocked.Increment(ref s_schedulerCounter);
+            var schedulerId = Interlocked.Increment(ref s_schedulerCounter);
 
-            m_address = string.Format("{0}://scheduler-{1}", NetMQ.zmq.Address.InProcProtocol, m_schedulerId);
+            var address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, schedulerId);
 
             m_serverSocket = context.CreatePullSocket();
             m_serverSocket.Options.Linger = TimeSpan.Zero;
-            m_serverSocket.Bind(m_address);
+            m_serverSocket.Bind(address);
 
             m_currentMessageHandler = OnMessageFirstTime;
 
@@ -62,8 +56,8 @@ namespace NetMQ
 
             m_poller.AddSocket(m_serverSocket);
 
-            m_clientSocket = m_context.CreatePushSocket();
-            m_clientSocket.Connect(m_address);
+            m_clientSocket = context.CreatePushSocket();
+            m_clientSocket.Connect(address);
 
             m_schedulerThread = new ThreadLocal<bool>(() => false);
 
@@ -99,7 +93,7 @@ namespace NetMQ
             }
         }
 
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        protected override bool TryExecuteTaskInline([NotNull] Task task, bool taskWasPreviouslyQueued)
         {
             return m_schedulerThread.Value && TryExecuteTask(task);
         }
@@ -111,13 +105,10 @@ namespace NetMQ
 
         public void Dispose()
         {
-            if (!m_ownPoller)
+            if (!m_ownPoller && !m_poller.IsStarted)
             {
-              if (!m_poller.IsStarted)
-              {
                 DisposeSynced();
                 return;
-              }
             }
 
             // disposing on the scheduler thread
@@ -150,7 +141,7 @@ namespace NetMQ
             throw new NotSupportedException();
         }
 
-        protected override void QueueTask(Task task)
+        protected override void QueueTask([NotNull] Task task)
         {
             m_tasksQueue.Enqueue(task);
 

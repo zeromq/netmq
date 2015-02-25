@@ -1,8 +1,5 @@
-﻿using NetMQ.Sockets;
-
-namespace NetMQ.Devices
+﻿namespace NetMQ.Devices
 {
-
     /// <summary>
     /// A shared queue that collects requests from a set of clients and distributes
     /// these fairly among a set of services.
@@ -26,7 +23,6 @@ namespace NetMQ.Devices
             DeviceMode mode = DeviceMode.Threaded)
             : base(context.CreateRouterSocket(), context.CreateDealerSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
@@ -43,7 +39,6 @@ namespace NetMQ.Devices
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreateRouterSocket(), context.CreateDealerSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
@@ -59,9 +54,7 @@ namespace NetMQ.Devices
                 if (more)
                     BackendSocket.SendMore(data);
                 else
-                {
                     BackendSocket.Send(data);
-                }
             } while (more);
         }
 
@@ -76,9 +69,7 @@ namespace NetMQ.Devices
                 if (more)
                     FrontendSocket.SendMore(data);
                 else
-                {
                     FrontendSocket.Send(data);
-                }
             } while (more);
         }
     }

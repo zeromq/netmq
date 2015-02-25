@@ -5,9 +5,8 @@ namespace NetMQ.zmq
     public enum ContextOption
     {
         IOThreads = 1,
-        MaxSockets = 2,
+        MaxSockets = 2
     }
-
 
     public enum ZmqSocketType
     {
@@ -23,7 +22,7 @@ namespace NetMQ.zmq
         Push = 8,
         Xpub = 9,
         Xsub = 10,
-        Stream = 11,
+        Stream = 11
     }
 
     public enum ZmqSocketOptions
@@ -35,14 +34,14 @@ namespace NetMQ.zmq
         Rate = 8,
         RecoveryIvl = 9,
         SendBuffer = 11,
-        ReceivevBuffer = 12,
+        [Obsolete("Use ReceiveBuffer instead")]
+        ReceivevBuffer = ReceiveBuffer,
+        ReceiveBuffer = 12,
         ReceiveMore = 13,
         
         [Obsolete("Use Handle")]
         FD = 14,
         Handle = 14,
-
-
 
         Events = 15,
         Type = 16,
@@ -52,7 +51,9 @@ namespace NetMQ.zmq
         ReconnectIvlMax = 21,
         Maxmsgsize = 22,
         SendHighWatermark = 23,
-        ReceivevHighWatermark = 24,
+        [Obsolete("Use ReceiveHighWatermark instead")]
+        ReceivevHighWatermark = ReceiveHighWatermark,
+        ReceiveHighWatermark = 24,
         MulticastHops = 25,
         ReceiveTimeout = 27,
         SendTimeout = 28,
@@ -60,6 +61,7 @@ namespace NetMQ.zmq
         LastEndpoint = 32,
         RouterMandatory = 33,
         TcpKeepalive = 34,
+        [Obsolete("Not supported and has no effect")]
         TcpKeepaliveCnt = 35,
         TcpKeepaliveIdle = 36,
         TcpKeepaliveIntvl = 37,
@@ -76,12 +78,13 @@ namespace NetMQ.zmq
         FailUnroutable = RouterMandatory,
 
         [Obsolete]
-        RouterBehavior = RouterMandatory,
+        RouterBehavior = RouterMandatory
     }
 
     public enum Endianness
     {
-        Big, Little
+        Big,
+        Little
     }
 
     [Flags]
@@ -91,12 +94,12 @@ namespace NetMQ.zmq
         DontWait = 1,
         SendMore = 2,
 
-        /*  Deprecated aliases                                                        */
-        [Obsolete]
-        NoBlock = DontWait,
+        // Deprecated aliases
+        [Obsolete("Use DontWait instead")]
+        NoBlock = DontWait
     }
 
-    /*  Socket transport events (tcp and ipc only)                                */
+    // Socket transport events (tcp and ipc only)
 
     [Flags]
     public enum SocketEvent
@@ -116,10 +119,10 @@ namespace NetMQ.zmq
         Disconnected = 512,
 
         All = Connected | ConnectDelayed |
-                        ConnectRetried | Listening |
-                        BindFailed | Accepted |
-                        AcceptFailed | Closed |
-                        CloseFailed | Disconnected,
+              ConnectRetried | Listening |
+              BindFailed | Accepted |
+              AcceptFailed | Closed |
+              CloseFailed | Disconnected
     }
 
     [Flags]

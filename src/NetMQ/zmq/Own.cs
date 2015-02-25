@@ -18,18 +18,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 
-//  Base class for objects forming a part of ownership hierarchy.
-//  It handles initialisation and destruction of such objects.
 namespace NetMQ.zmq
 {
-    public abstract class Own : ZObject
+    /// <summary>
+    /// Base class for objects forming a part of ownership hierarchy.
+    /// It handles initialisation and destruction of such objects.
+    /// </summary>
+    internal abstract class Own : ZObject
     {
-        protected Options m_options;
+        protected readonly Options m_options;
 
         //  True if termination was already initiated. If so, we can destroy
         //  the object if there are no more child objects or pending term acks.

@@ -24,18 +24,15 @@ using System.Text;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Sub : XSub
+    internal class Sub : XSub
     {
-        public class SubSession : XSub.XSubSession
+        public class SubSession : XSubSession
         {
-
             public SubSession(IOThread ioThread, bool connect,
                               SocketBase socket, Options options, Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
-
         }
 
         public Sub(Ctx parent, int threadId, int socketId)

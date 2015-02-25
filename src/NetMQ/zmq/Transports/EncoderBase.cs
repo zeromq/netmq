@@ -24,7 +24,7 @@ using System;
 
 namespace NetMQ.zmq.Transports
 {
-    abstract class EncoderBase : IEncoder
+    internal abstract class EncoderBase : IEncoder
     {
         //  Where to get the data to write from.    
         private ByteArraySegment m_writePos;

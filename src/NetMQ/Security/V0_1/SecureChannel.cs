@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
+using JetBrains.Annotations;
 
 namespace NetMQ.Security.V0_1
 {
@@ -12,7 +11,7 @@ namespace NetMQ.Security.V0_1
         private HandshakeLayer m_handshakeLayer;
         private RecordLayer m_recordLayer;
 
-        private OutgoingMessageBag m_outgoingMessageBag;
+        private readonly OutgoingMessageBag m_outgoingMessageBag;
 
         private readonly byte[] m_protocolVersion = new byte[] { 0, 1 };
 
@@ -128,7 +127,7 @@ namespace NetMQ.Security.V0_1
             return encryptedMessage;
         }
 
-        public NetMQMessage EncryptApplicationMessage(NetMQMessage plainMessage)
+        public NetMQMessage EncryptApplicationMessage([NotNull] NetMQMessage plainMessage)
         {
             if (!SecureChannelReady)
             {
@@ -137,13 +136,13 @@ namespace NetMQ.Security.V0_1
 
             if (plainMessage == null)
             {
-                throw new ArgumentNullException("plainMessage is null");
+                throw new ArgumentNullException("plainMessage");
             }
 
             return InternalEncryptAndWrapMessage(ContentType.ApplicationData, plainMessage);
         }
 
-        public NetMQMessage DecryptApplicationMessage(NetMQMessage cipherMessage)
+        public NetMQMessage DecryptApplicationMessage([NotNull] NetMQMessage cipherMessage)
         {
             if (!SecureChannelReady)
             {
@@ -152,7 +151,7 @@ namespace NetMQ.Security.V0_1
 
             if (cipherMessage == null)
             {
-                throw new ArgumentNullException("cipherMessage is null");
+                throw new ArgumentNullException("cipherMessage");
             }
 
             if (cipherMessage.FrameCount < 2)

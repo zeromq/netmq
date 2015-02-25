@@ -20,16 +20,13 @@
 */
 
 using System;
-using System.Net;
-using System.Net.Sockets;
 using System.Diagnostics;
-using System.Security;
-using System.Runtime.InteropServices;
+using System.Net.Sockets;
 using AsyncIO;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpListener : Own, IProcatorEvents
+    internal class TcpListener : Own, IProcatorEvents
     {
         private const SocketOptionName IPv6Only = (SocketOptionName) 27;
 
@@ -241,7 +238,6 @@ namespace NetMQ.zmq.Transports.Tcp
         {
             throw new NotImplementedException();
         }
-
 
         public void TimerEvent(int id)
         {

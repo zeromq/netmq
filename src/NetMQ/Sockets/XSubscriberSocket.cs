@@ -5,7 +5,7 @@ namespace NetMQ.Sockets
 {
     public class XSubscriberSocket : NetMQSocket
     {
-        public XSubscriberSocket(SocketBase socketHandle)
+        internal XSubscriberSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

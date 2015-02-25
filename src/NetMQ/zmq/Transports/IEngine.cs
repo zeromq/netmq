@@ -23,16 +23,14 @@
 //  Abstract interface to be implemented by various engines.
 namespace NetMQ.zmq.Transports
 {
-    public interface IEngine
+    internal interface IEngine
     {
-
         //  Plug the engine to the session.
         void Plug(IOThread ioThread, SessionBase session);
 
         //  Terminate and deallocate the engine. Note that 'detached'
         //  events are not fired on termination.
         void Terminate();
-
 
         //  This method is called by the session to signalise that more
         //  messages can be written to the pipe.
@@ -41,7 +39,5 @@ namespace NetMQ.zmq.Transports
         //  This method is called by the session to signalise that there
         //  are messages to send available.
         void ActivateOut();
-
-
     }
 }

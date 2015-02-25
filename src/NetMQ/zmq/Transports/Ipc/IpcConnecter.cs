@@ -22,15 +22,13 @@ using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    public class IpcConnecter : TcpConnecter
+    internal class IpcConnecter : TcpConnecter
     {
-
         public IpcConnecter(IOThread ioThread,
-                             SessionBase session, Options options,
-                             Address addr, bool wait)
+                            SessionBase session, Options options,
+                            Address addr, bool wait)
             : base(ioThread, session, options, addr, wait)
         {
-
         }
     }
 }

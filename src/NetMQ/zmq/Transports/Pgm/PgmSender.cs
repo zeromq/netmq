@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Net;
+using System.Net.Sockets;
 using AsyncIO;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    class PgmSender : IOObject, IEngine, IProcatorEvents
+    internal class PgmSender : IOObject, IEngine, IProcatorEvents
     {
         private readonly Options m_options;
         private readonly Address m_addr;
-        private V1Encoder m_encoder;
+        private readonly V1Encoder m_encoder;
 
         private AsyncSocket m_socket;
         private PgmSocket m_pgmSocket;

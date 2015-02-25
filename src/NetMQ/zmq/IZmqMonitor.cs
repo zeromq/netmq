@@ -23,10 +23,8 @@ using System;
 
 namespace NetMQ.zmq
 {
-    public interface IZmqMonitor
+    internal interface IZmqMonitor
     {
-
         void Monitor(SocketBase socket, int monitorEvent, Object[] args);
-
     }
 }

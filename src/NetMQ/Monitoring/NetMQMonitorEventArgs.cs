@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using AsyncIO;
-using NetMQ.zmq;
 
 namespace NetMQ.Monitoring
 {
@@ -56,5 +51,4 @@ namespace NetMQ.Monitoring
         /// </summary>
         public int Interval { get; private set; }
     }
-
 }

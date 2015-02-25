@@ -19,23 +19,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Dealer : SocketBase
+    internal class Dealer : SocketBase
     {
-
         public class DealerSession : SessionBase
         {
             public DealerSession(IOThread ioThread, bool connect,
-                                                     SocketBase socket, Options options,
-                                                     Address addr)
+                                 SocketBase socket, Options options,
+                                 Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
         }
 
@@ -75,7 +72,6 @@ namespace NetMQ.zmq.Patterns
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-
             Debug.Assert(pipe != null);
             m_fairQueueing.Attach(pipe);
             m_loadBalancer.Attach(pipe);

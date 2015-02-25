@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Deployment.Internal;
-using System.Linq;
-using System.Text;
-using NetMQ.zmq;
+﻿using JetBrains.Annotations;
 
 namespace NetMQ
 {
     public interface ISocketPollable
     {
+        [NotNull]
         NetMQSocket Socket { get; }        
     }
 }

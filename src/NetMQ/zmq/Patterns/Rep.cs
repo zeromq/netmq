@@ -19,14 +19,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-using System.Diagnostics;
-
 namespace NetMQ.zmq.Patterns
 {
-    class Rep : Router
+    internal class Rep : Router
     {
-        public class RepSession : Router.RouterSession
+        public class RepSession : RouterSession
         {
             public RepSession(IOThread ioThread, bool connect,
                               SocketBase socket, Options options,
@@ -35,6 +32,7 @@ namespace NetMQ.zmq.Patterns
             {
             }
         }
+
         //  If true, we are in process of sending the reply. If false we are
         //  in process of receiving a request.
         private bool m_sendingReply;
@@ -42,7 +40,6 @@ namespace NetMQ.zmq.Patterns
         //  If true, we are starting to receive a request. The beginning
         //  of the request is the backtrace stack.
         private bool m_requestBegins;
-
 
         public Rep(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)

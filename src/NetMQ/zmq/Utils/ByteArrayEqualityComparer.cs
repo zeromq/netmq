@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace NetMQ.zmq.Utils
 {
-    public class ByteArrayEqualityComparer : IEqualityComparer<byte[]>
+    internal class ByteArrayEqualityComparer : IEqualityComparer<byte[]>
     {
         protected const uint C1 = 0xcc9e2d51;
         protected const uint C2 = 0x1b873593;

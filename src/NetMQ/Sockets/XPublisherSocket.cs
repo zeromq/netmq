@@ -1,12 +1,11 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
     public class XPublisherSocket : NetMQSocket
     {
-        public XPublisherSocket(SocketBase socketHandle)
+        internal XPublisherSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

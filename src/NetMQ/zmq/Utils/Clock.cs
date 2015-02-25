@@ -20,12 +20,10 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using NetMQ.zmq;
 
 namespace NetMQ.zmq.Utils
 {
-    class Clock
+    internal class Clock
     {
         //  TSC timestamp of when last time measurement was made.
         private static long s_lastTsc;
@@ -33,7 +31,7 @@ namespace NetMQ.zmq.Utils
         //  Physical time corresponding to the TSC above (in milliseconds).
         private static long s_lastTime;
 
-        private static bool s_rdtscSupported = false;
+        private static readonly bool s_rdtscSupported = false;
 
         static Clock()
         {

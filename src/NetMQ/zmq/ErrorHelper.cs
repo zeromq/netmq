@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net.Sockets;
-using System.Text;
 
 namespace NetMQ.zmq
 {
-    public static class ErrorHelper
+    internal static class ErrorHelper
     {
         public static ErrorCode SocketErrorToErrorCode(SocketError error)
         {

@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using NetMQ.Sockets;
-using NetMQ.zmq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -226,7 +222,7 @@ namespace NetMQ
                         m_filter = null;
                         break;
                     case NetMQActor.EndShimMessage:
-                        m_poller.Stop(false);
+                        m_poller.Cancel();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -254,12 +250,12 @@ namespace NetMQ
             }
         }
 
-        private Shim m_shim;
-        private NetMQActor m_actor;
+        private readonly Shim m_shim;
+        private readonly NetMQActor m_actor;
 
-        private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
+        private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
-        public NetMQBeacon(NetMQContext context)
+        public NetMQBeacon([NotNull] NetMQContext context)
         {
             m_shim = new Shim();
             m_actor = NetMQActor.Create(context, m_shim);
@@ -275,7 +271,7 @@ namespace NetMQ
 
         NetMQSocket ISocketPollable.Socket
         {
-            get { return (m_actor as ISocketPollable).Socket; }
+            get { return ((ISocketPollable)m_actor).Socket; }
         }
 
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady

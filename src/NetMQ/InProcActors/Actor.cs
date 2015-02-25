@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using NetMQ.InProcActors;
 using NetMQ.Sockets;
-using System.Threading.Tasks;
 using NetMQ.zmq;
 
 namespace NetMQ.Actors
@@ -34,9 +30,10 @@ namespace NetMQ.Actors
         private readonly Random rand = new Random();
         private T m_state;
 
-        private EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
-        private EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper;
-      private Task m_shimTask;
+
+        private Task m_shimTask;
+        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
+        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
 
       private string GetEndPointName()
         {
@@ -80,7 +77,6 @@ namespace NetMQ.Actors
                         bindAction();
                     }
                 }
-
             }
 
             m_shim.Pipe.Connect(endPoint);
@@ -106,8 +102,6 @@ namespace NetMQ.Actors
             //  application start up.
             m_self.WaitForSignal();
         }
-
-      
 
         public event EventHandler<NetMQActorEventArgs<T>> ReceiveReady
         {
@@ -150,10 +144,6 @@ namespace NetMQ.Actors
                                                {
 
                                                }          
-                                               catch (Exception)
-                                               {
-                                                 throw;
-                                               }
 
                                                //  Do not block, if the other end of the pipe is already deleted
                                                m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
@@ -195,12 +185,12 @@ namespace NetMQ.Actors
                     m_self.Send(ActorKnownMessages.END_PIPE);
                     m_self.WaitForSignal();
                 }
-                catch (AgainException ex)
+                catch (AgainException)
                 {
                                         
                 }
                 
-                m_shimTask.Wait();
+                m_shimTask.Wait();                               
                 m_self.Dispose();
             }
         }

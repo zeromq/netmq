@@ -23,9 +23,8 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Patterns
 {
-    public class Pair : SocketBase
+    internal class Pair : SocketBase
     {
-
         public class PairSession : SessionBase
         {
             public PairSession(IOThread ioThread, bool connect,
@@ -33,7 +32,6 @@ namespace NetMQ.zmq.Patterns
                                Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
         }
 
@@ -45,8 +43,7 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Pair;
         }
 
-        override
-            protected void XAttachPipe(Pipe pipe, bool icanhasall)
+        protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
 
@@ -58,30 +55,26 @@ namespace NetMQ.zmq.Patterns
                 pipe.Terminate(false);
         }
 
-        override
-            protected void XTerminated(Pipe pipe)
+        protected override void XTerminated(Pipe pipe)
         {
             if (pipe == m_pipe)
                 m_pipe = null;
         }
 
-        override
-            protected void XReadActivated(Pipe pipe)
+        protected override void XReadActivated(Pipe pipe)
         {
             //  There's just one pipe. No lists of active and inactive pipes.
             //  There's nothing to do here.
         }
 
 
-        override
-            protected void XWriteActivated(Pipe pipe)
+        protected override void XWriteActivated(Pipe pipe)
         {
             //  There's just one pipe. No lists of active and inactive pipes.
             //  There's nothing to do here.
         }
 
-        override
-            protected bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             if (m_pipe == null || !m_pipe.Write(ref msg))
             {
@@ -97,7 +90,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             //  Deallocate old content of the message.
 
@@ -110,9 +103,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-
-        override
-            protected bool XHasIn()
+        protected override bool XHasIn()
         {
             if (m_pipe == null)
                 return false;
@@ -120,14 +111,12 @@ namespace NetMQ.zmq.Patterns
             return m_pipe.CheckRead();
         }
 
-        override
-            protected bool XHasOut()
+        protected override bool XHasOut()
         {
             if (m_pipe == null)
                 return false;
 
             return m_pipe.CheckWrite();
         }
-
     }
 }

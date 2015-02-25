@@ -1,5 +1,4 @@
-﻿using System;
-using NetMQ.zmq;
+﻿using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
@@ -8,7 +7,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class RequestSocket : NetMQSocket
     {
-        public RequestSocket(SocketBase socketHandle)
+        internal RequestSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

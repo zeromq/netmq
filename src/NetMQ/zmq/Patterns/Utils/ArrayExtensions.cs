@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
-    static class ArrayExtensions
+    internal static class ArrayExtensions
     {
         /// <summary>
         /// Make resize operation on array.

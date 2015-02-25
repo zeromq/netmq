@@ -20,14 +20,14 @@
 */
 
 using System;
-
-//  Base class for all objects that participate in inter-thread
-//  communication.
 using NetMQ.zmq.Transports;
 
 namespace NetMQ.zmq
 {
-    public abstract class ZObject
+    /// <summary>
+    /// Base class for all objects that participate in inter-thread communication.
+    /// </summary>
+    internal abstract class ZObject
     {
         //  Context provides access to the global state.
         private readonly Ctx m_ctx;
@@ -54,7 +54,6 @@ namespace NetMQ.zmq
         {
             switch (cmd.CommandType)
             {
-
                 case CommandType.ActivateRead:
                     ProcessActivateRead();
                     break;
@@ -122,7 +121,6 @@ namespace NetMQ.zmq
                 default:
                     throw new ArgumentException();
             }
-
         }
 
         protected bool RegisterEndpoint(String addr, Ctx.Endpoint endpoint)
@@ -164,7 +162,6 @@ namespace NetMQ.zmq
             m_ctx.SendCommand(m_threadId, cmd);
         }
 
-
         protected void SendPlug(Own destination, bool incSeqnum = true)
         {
             if (incSeqnum)
@@ -173,7 +170,6 @@ namespace NetMQ.zmq
             Command cmd = new Command(destination, CommandType.Plug);
             SendCommand(cmd);
         }
-
 
         protected void SendOwn(Own destination, Own obj)
         {
@@ -191,7 +187,6 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
-
         protected void SendBind(Own destination, Pipe pipe, bool incSeqnum = true)
         {
             if (incSeqnum)
@@ -201,15 +196,13 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
-
         protected void SendActivateRead(Pipe destination)
         {
             Command cmd = new Command(destination, CommandType.ActivateRead);
             SendCommand(cmd);
         }
 
-        protected void SendActivateWrite(Pipe destination,
-                                            long msgsRead)
+        protected void SendActivateWrite(Pipe destination, long msgsRead)
         {
             Command cmd = new Command(destination, CommandType.ActivateWrite, msgsRead);
             SendCommand(cmd);
@@ -221,13 +214,11 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
-
         protected void SendPipeTerm(Pipe destination)
         {
             Command cmd = new Command(destination, CommandType.PipeTerm);
             SendCommand(cmd);
         }
-
 
         protected void SendPipeTermAck(Pipe destination)
         {
@@ -235,22 +226,17 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
-
-        protected void SendTermReq(Own destination,
-                                      Own object_)
+        protected void SendTermReq(Own destination, Own object_)
         {
             Command cmd = new Command(destination, CommandType.TermReq, object_);
             SendCommand(cmd);
         }
 
-
         protected void SendTerm(Own destination, int linger)
         {
             Command cmd = new Command(destination, CommandType.Term, linger);
             SendCommand(cmd);
-
         }
-
 
         protected void SendTermAck(Own destination)
         {
@@ -264,21 +250,17 @@ namespace NetMQ.zmq
             SendCommand(cmd);
         }
 
-
         protected void SendReaped()
         {
             Command cmd = new Command(m_ctx.GetReaper(), CommandType.Reaped);
             SendCommand(cmd);
         }
 
-
-
         protected void SendDone()
         {
             Command cmd = new Command(null, CommandType.Done);
             m_ctx.SendCommand(Ctx.TermTid, cmd);
         }
-
 
         protected virtual void ProcessStop()
         {
@@ -289,7 +271,6 @@ namespace NetMQ.zmq
         {
             throw new NotSupportedException();
         }
-
 
         protected virtual void ProcessOwn(Own obj)
         {
@@ -341,7 +322,6 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-
         protected virtual void ProcessTermAck()
         {
             throw new NotSupportedException();
@@ -364,7 +344,6 @@ namespace NetMQ.zmq
         {
             throw new NotSupportedException();
         }
-
 
         private void SendCommand(Command cmd)
         {

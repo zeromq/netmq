@@ -23,19 +23,13 @@
 using System;
 using System.Diagnostics;
 
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-
 //  Note that pipe can be stored in three different arrays.
 //  The array of inbound pipes (1), the array of outbound pipes (2) and
 //  the generic array of pipes to deallocate (3).
 namespace NetMQ.zmq
 {
-    public class Pipe : ZObject
+    internal class Pipe : ZObject
     {
-
-        //private static Logger LOG = LoggerFactory.getLogger(Pipe.class);
-
         public interface IPipeEvents
         {
 
@@ -74,7 +68,7 @@ namespace NetMQ.zmq
         private IPipeEvents m_sink;
 
         /// <summary> Specifies the state of the pipe endpoint. </summary>
-        enum State
+        private enum State
         {
             /// <summary> Active is common state before any termination begins. </summary>
             Active,
@@ -88,7 +82,8 @@ namespace NetMQ.zmq
             Terminated,
             /// <summary> Double_terminated means that user called 'terminate' and then we've got term command from the peer as well. </summary>
             DoubleTerminated
-        } ;
+        }
+
         private State m_state;
 
         /// <summary> If <c>true</c>, we receive all the pending inbound messages before terminating. 

@@ -25,9 +25,8 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public class YPipe<T>
+    internal class YPipe<T>
     {
-
         //  Allocation-efficient queue to store pipe items.
         //  Front of the queue points to the first prefetched item, back of
         //  the pipe points to last un-flushed item. Front is used only by

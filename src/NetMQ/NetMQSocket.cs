@@ -1,30 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket,ISocketPollable, IDisposable
+    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
-        readonly SocketBase m_socketHandle;
+        private readonly SocketBase m_socketHandle;
         private bool m_isClosed = false;
-        private NetMQSocketEventArgs m_socketEventArgs;
+        private readonly NetMQSocketEventArgs m_socketEventArgs;
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
 
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
 
-        private Selector m_selector;
+        private readonly Selector m_selector;
 
-        protected NetMQSocket(SocketBase socketHandle)
+        internal NetMQSocket([NotNull] SocketBase socketHandle)
         {
             m_selector = new Selector();
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
-            m_socketEventArgs = new NetMQSocketEventArgs(this);            
+            m_socketEventArgs = new NetMQSocketEventArgs(this);
         }
 
         /// <summary>
@@ -86,10 +84,7 @@ namespace NetMQ
 
         internal SocketBase SocketHandle
         {
-            get
-            {
-                return m_socketHandle;
-            }
+            get { return m_socketHandle; }
         }
 
         NetMQSocket ISocketPollable.Socket
@@ -102,7 +97,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">The address of the socket</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Bind(string address)
+        public void Bind([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -115,7 +110,7 @@ namespace NetMQ
         /// <param name="address">The address of the socket, omit the port</param>
         /// <returns>Chosen port number</returns>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public int BindRandomPort(string address)
+        public int BindRandomPort([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
             
@@ -127,11 +122,11 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">Address to connect to</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket is  is disposed</exception>
-        public void Connect(string address)
+        public void Connect([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.Connect(address);            
+            m_socketHandle.Connect(address);
         }
 
         /// <summary>
@@ -139,7 +134,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">The address to disconnect from</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Disconnect(string address)
+        public void Disconnect([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -151,7 +146,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">The address to unbind from</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Unbind(string address)
+        public void Unbind([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -169,7 +164,7 @@ namespace NetMQ
                 m_isClosed = true;
 
                 m_socketHandle.CheckDisposed();
-                m_socketHandle.Close();                
+                m_socketHandle.Close();
             }
         }
 
@@ -210,7 +205,7 @@ namespace NetMQ
         /// </returns>
         public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
         {
-            SelectItem[] items = new[] {new SelectItem(SocketHandle, pollEvents),};
+            SelectItem[] items = {new SelectItem(SocketHandle, pollEvents)};
 
             m_selector.Select(items, 1, (int) timeout.TotalMilliseconds);
             return items[0].ResultEvent;
@@ -266,7 +261,7 @@ namespace NetMQ
         /// <param name="options"></param>
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {                        
-            m_socketHandle.Recv(ref msg, options);                        
+            m_socketHandle.Recv(ref msg, options);
         }       
                     
         public virtual void Send(ref Msg msg, SendReceiveOptions options)
@@ -298,7 +293,7 @@ namespace NetMQ
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
         }
 
-        public void Monitor(string endpoint, SocketEvent events = SocketEvent.All)
+        public void Monitor([NotNull] string endpoint, SocketEvent events = SocketEvent.All)
         {
             if (endpoint == null)
             {

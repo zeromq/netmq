@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using NetMQ;
 using NetMQ.zmq;
 
 namespace NetMQ.Sockets
@@ -10,7 +9,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class SubscriberSocket : NetMQSocket
     {
-        public SubscriberSocket(SocketBase socketHandle)
+        internal SubscriberSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

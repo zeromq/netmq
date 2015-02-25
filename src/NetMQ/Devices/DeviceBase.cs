@@ -1,15 +1,14 @@
 ﻿using System;
-using NetMQ.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ.Devices
 {
     /// <summary>
     /// Forwards messages received by a front-end socket to a back-end socket, from which
     /// they are then sent.
-    /// </summary>	
+    /// </summary>
     public abstract class DeviceBase : IDevice
     {
-
         /// <summary>
         /// The frontend socket that will normally pass messages to <see cref="BackendSocket"/>.
         /// </summary>
@@ -68,7 +67,7 @@ namespace NetMQ.Devices
         /// </param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
         /// <param name="poller">The <see cref="Poller"/> to use.</param>		
-        protected DeviceBase(Poller poller, NetMQSocket frontendSocket, NetMQSocket backendSocket, DeviceMode mode)
+        protected DeviceBase(Poller poller, [NotNull] NetMQSocket frontendSocket, [NotNull] NetMQSocket backendSocket, DeviceMode mode)
         {
             if (frontendSocket == null)
                 throw new ArgumentNullException("frontendSocket");
@@ -105,7 +104,12 @@ namespace NetMQ.Devices
         public void Stop(bool waitForCloseToComplete = true)
         {
             if (m_pollerIsOwned && m_poller.IsStarted)
-                m_poller.Stop(waitForCloseToComplete);
+            {
+                if (waitForCloseToComplete)
+                    m_poller.CancelAndJoin();
+                else
+                    m_poller.Cancel();
+            }
 
             FrontendSocket.Close();
             BackendSocket.Close();
@@ -129,6 +133,5 @@ namespace NetMQ.Devices
         /// Invoked when a message has been received by the backend socket.
         /// </summary>
         protected virtual void BackendHandler(object sender, NetMQSocketEventArgs args) { }
-
     }
 }

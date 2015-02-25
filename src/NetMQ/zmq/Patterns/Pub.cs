@@ -23,25 +23,20 @@ using System;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Pub : XPub
+    internal class Pub : XPub
     {
-
-        public class PubSession : XPub.XPubSession
+        public class PubSession : XPubSession
         {
-
             public PubSession(IOThread ioThread, bool connect,
                               SocketBase socket, Options options, Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
-
         }
 
         public Pub(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-
             m_options.SocketType = ZmqSocketType.Pub;
         }
 
@@ -55,6 +50,5 @@ namespace NetMQ.zmq.Patterns
         {
             return false;
         }
-
     }
 }

@@ -26,7 +26,7 @@ using System.Diagnostics;
 //Multi-trie. Each node in the trie is a set of pointers to pipes.
 namespace NetMQ.zmq.Patterns.Utils
 {
-    class MultiTrie
+    internal class MultiTrie
     {
         private HashSet<Pipe> m_pipes;
 
@@ -436,6 +436,5 @@ namespace NetMQ.zmq.Patterns.Utils
         {
             get { return m_pipes == null && m_liveNodes == 0; }
         }
-
     }
 }

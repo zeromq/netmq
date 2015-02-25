@@ -5,7 +5,6 @@ namespace NetMQ.Devices
     /// </summary>
     public interface IDevice
     {
-
         /// <summary>
         /// Gets whether the device is currently running.
         /// </summary>

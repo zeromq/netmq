@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using AsyncIO;
 
 namespace NetMQ.zmq.Utils
 {
-    class Proactor : PollerBase
+    internal class Proactor : PollerBase
     {
         private const int CompletionStatusArraySize = 100;
 
         private readonly string m_name;
-        private CompletionPort m_completionPort;
+        private readonly CompletionPort m_completionPort;
         private Thread m_worker;
         private bool m_stopping;
         private bool m_stopped;
 
-        private Dictionary<AsyncSocket, Item> m_sockets;
+        private readonly Dictionary<AsyncSocket, Item> m_sockets;
 
         class Item
         {

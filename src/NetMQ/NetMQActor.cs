@@ -1,25 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using NetMQ.Sockets;
 using NetMQ.zmq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
     public interface IShimHandler
     {
-        void Run(PairSocket shim);
+        void Run([NotNull] PairSocket shim);
     }
 
     public class NetMQActorEventArgs : EventArgs
     {
-        public NetMQActorEventArgs(NetMQActor actor)
+        public NetMQActorEventArgs([NotNull] NetMQActor actor)
         {
             Actor = actor;
         }
 
+        [NotNull]
         public NetMQActor Actor { get; private set; }
     }
 
@@ -49,7 +48,7 @@ namespace NetMQ
                 m_state = state;
             }
 
-            public void Run(PairSocket shim)
+            public void Run([NotNull] PairSocket shim)
             {
                 m_action(shim, m_state);
             }
@@ -64,7 +63,7 @@ namespace NetMQ
                 m_action = action;
             }
 
-            public void Run(PairSocket shim)
+            public void Run([NotNull] PairSocket shim)
             {
                 m_action(shim);
             }
@@ -75,24 +74,27 @@ namespace NetMQ
         private readonly PairSocket m_self;
         private readonly PairSocket m_shim;
         
-        private Thread m_shimThread;        
-        private IShimHandler m_shimHandler;
+        private readonly Thread m_shimThread;        
+        private readonly IShimHandler m_shimHandler;
 
-        private EventDelegatorHelper<NetMQActorEventArgs> m_receiveEventDelegatorHelper;
-        private EventDelegatorHelper<NetMQActorEventArgs> m_sendEventDelegatorHelper;
+        private readonly EventDelegatorHelper<NetMQActorEventArgs> m_receiveEventDelegatorHelper;
+        private readonly EventDelegatorHelper<NetMQActorEventArgs> m_sendEventDelegatorHelper;
 
         #region Creating Actor
 
-        private NetMQActor(NetMQContext context, IShimHandler shimHandler)
+        private NetMQActor([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
         {
             m_shimHandler = shimHandler;
 
             m_self = context.CreatePairSocket();
             m_shim = context.CreatePairSocket();
 
-            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(() => m_self.ReceiveReady += OnReceive,
+            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(
+                () => m_self.ReceiveReady += OnReceive,
                 () => m_self.ReceiveReady += OnReceive);
-            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(() => m_self.SendReady += OnReceive,
+
+            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(
+                () => m_self.SendReady += OnReceive,
                 () => m_self.SendReady += OnSend);
 
             Random random = new Random();
@@ -124,17 +126,17 @@ namespace NetMQ
             m_self.WaitForSignal();
         }
 
-        public static NetMQActor Create(NetMQContext context, IShimHandler shimHandler)
+        public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
         {
             return new NetMQActor(context, shimHandler);
         }
 
-        public static NetMQActor Create<T>(NetMQContext context, ShimAction<T> action, T state)
+        public static NetMQActor Create<T>([NotNull] NetMQContext context, [NotNull] ShimAction<T> action, T state)
         {
             return new NetMQActor(context, new ActionShimHandler<T>(action, state));
         }
 
-        public static NetMQActor Create(NetMQContext context, ShimAction action)
+        public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] ShimAction action)
         {
             return new NetMQActor(context, new ActionShimHandler(action));
         }
@@ -190,6 +192,7 @@ namespace NetMQ
             remove { m_sendEventDelegatorHelper.Event -= value; }
         }
 
+        [NotNull]
         NetMQSocket ISocketPollable.Socket
         {
             get { return m_self; }
@@ -232,7 +235,7 @@ namespace NetMQ
                     m_self.Send(EndShimMessage);
                     m_self.WaitForSignal();
                 }
-                catch (AgainException ex)
+                catch (AgainException)
                 {
 
                 }

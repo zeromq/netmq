@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.Sockets;
 using NetMQ.zmq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
     public class SocketOptions
     {
-        NetMQSocket m_socket;
+        readonly NetMQSocket m_socket;
 
-        public SocketOptions(NetMQSocket socket)
+        public SocketOptions([NotNull] NetMQSocket socket)
         {
             m_socket = socket;
         }
@@ -19,18 +16,17 @@ namespace NetMQ
         public long Affinity
         {
             get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Affinity); }
-            set
-            {
-                m_socket.SetSocketOption(ZmqSocketOptions.Affinity, value);
-            }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.Affinity, value); }
         }
 
         [Obsolete("This property doesn't effect NetMQ anymore")]
-        public bool CopyMessages { get; set; }
+        public bool CopyMessages { get { return false; } set {} }
 
         public byte[] Identity
         {
+            [CanBeNull]
             get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOptions.Identity); }
+            [NotNull]
             set { m_socket.SetSocketOption(ZmqSocketOptions.Identity, value); }
         }
 
@@ -51,16 +47,28 @@ namespace NetMQ
             get { return m_socket.GetSocketOption(ZmqSocketOptions.SendBuffer); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.SendBuffer, value); }
         }
+
+        [Obsolete("Use ReceiveBuffer instead")]
         public int ReceivevBuffer
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceivevBuffer); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceivevBuffer, value); }
+            get { return ReceiveBuffer; }
+            set { ReceiveBuffer = value; }
         }
 
+        public int ReceiveBuffer
+        {
+            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceiveBuffer); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveBuffer, value); }
+        }
+
+        /// <summary>
+        /// Gets whether the last frame received on the socket had the <em>more</em> flag set or not.
+        /// </summary>
+        /// <value><c>true</c> if receive more; otherwise, <c>false</c>.</value>
         public bool ReceiveMore
         {
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.ReceiveMore); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveMore, value); }
+//            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveMore, value); }
         }
 
         public TimeSpan Linger
@@ -87,9 +95,9 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.Backlog, value); }
         }
 
-        public int MaxMsgSize
+        public long MaxMsgSize
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.Maxmsgsize); }
+            get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Maxmsgsize); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.Maxmsgsize, value); }
         }
 
@@ -101,8 +109,8 @@ namespace NetMQ
 
         public int ReceiveHighWatermark
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceivevHighWatermark); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceivevHighWatermark, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceiveHighWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveHighWatermark, value); }
         }
 
         public int MulticastHops
@@ -129,11 +137,19 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.IPv4Only, value); }
         }
 
-        public string GetLastEndpoint { get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); } }
+        [Obsolete("Use LastEndpoint instead")]
+        [CanBeNull]
+        public string GetLastEndpoint { get { return LastEndpoint; } }
+
+        [CanBeNull]
+        public string LastEndpoint
+        {
+            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); } 
+        }
 
         public bool RouterMandatory
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.RouterMandatory); }
+//            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.RouterMandatory); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.RouterMandatory, value); }
         }
 
@@ -143,10 +159,11 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepalive, value ? 1 : 0); }
         }
 
+        [Obsolete("This option is not supported and has no effect")]
         public int TcpKeepaliveCnt
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt, value); }
+//            get { return m_socket.GetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt); }
+            set { /* m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt, value); */ }
         }
 
         public TimeSpan TcpKeepaliveIdle
@@ -161,10 +178,12 @@ namespace NetMQ
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.TcpKeepaliveIntvl, value); }
         }
 
+        [CanBeNull]
         public string TcpAcceptFilter
         {
-            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.TcpAcceptFilter); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepaliveIntvl, value); }
+            // TODO the logic here doesn't really suit a setter -- set values are appended to a list, and null clear that list
+            // get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.TcpAcceptFilter); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpAcceptFilter, value); }
         }
 
         public bool DelayAttachOnConnect
@@ -175,13 +194,13 @@ namespace NetMQ
 
         public bool XPubVerbose
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XpubVerbose); }
+//            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XpubVerbose); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.XpubVerbose, value); }
         }
 
         public bool RouterRawSocket
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.RouterRawSocket); }
+//            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.RouterRawSocket); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.RouterRawSocket, value); }
         }
 
@@ -193,7 +212,7 @@ namespace NetMQ
 
         public bool ManualPublisher
         {
-            // get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XPublisherManual); }
+//            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XPublisherManual); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.XPublisherManual, value); }
         }
     }

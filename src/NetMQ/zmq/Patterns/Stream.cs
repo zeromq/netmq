@@ -23,15 +23,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using NetMQ.zmq.Patterns.Utils;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Stream : SocketBase
+    internal class Stream : SocketBase
     {
+        private static readonly Random s_random = new Random();
+
         public class StreamSession : SessionBase
         {
             public StreamSession(IOThread ioThread, bool connect,
@@ -39,11 +39,10 @@ namespace NetMQ.zmq.Patterns
                                  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-
             }
         }
 
-        class Outpipe
+        private class Outpipe
         {
             public Outpipe(Pipe pipe, bool active)
             {
@@ -53,7 +52,7 @@ namespace NetMQ.zmq.Patterns
 
             public Pipe Pipe { get; private set; }
             public bool Active;
-        };
+        }
 
         //  Fair queueing object for inbound pipes.
         private readonly FairQueueing m_fairQueueing;
@@ -91,7 +90,7 @@ namespace NetMQ.zmq.Patterns
             m_identitySent = false;
             m_currentOut = null;
             m_moreOut = false;
-            m_nextPeerId = new Random().Next();
+            m_nextPeerId = s_random.Next();
 
             m_options.SocketType = ZmqSocketType.Stream;
 
@@ -158,7 +157,6 @@ namespace NetMQ.zmq.Patterns
 
             Debug.Assert(outpipe != null);
         }
-
 
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {

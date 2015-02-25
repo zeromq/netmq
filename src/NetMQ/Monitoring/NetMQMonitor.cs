@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.Sockets;
 using System.Threading;
 using AsyncIO;
 using NetMQ.zmq;
@@ -11,7 +10,7 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitor : IDisposable
     {
-        private bool m_isOwner;
+        private readonly bool m_isOwner;
         private Poller m_attachedPoller = null;
 
         private int m_cancel = 0;
@@ -179,7 +178,7 @@ namespace NetMQ.Monitoring
             {
                 MonitoringSocket.Disconnect(Endpoint);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             finally 

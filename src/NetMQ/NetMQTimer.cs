@@ -1,25 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.zmq;
 using NetMQ.zmq.Utils;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
     public class NetMQTimerEventArgs : EventArgs
     {
-        public NetMQTimerEventArgs(NetMQTimer timer)
+        public NetMQTimerEventArgs([NotNull] NetMQTimer timer)
         {
             Timer = timer;
         }
 
+        [NotNull]
         public NetMQTimer Timer { get; private set; }
     }
 
     public class NetMQTimer
     {
-        private NetMQTimerEventArgs m_timerEventArgs;
+        private readonly NetMQTimerEventArgs m_timerEventArgs;
         private int m_interval;
         private bool m_enable;
 
@@ -28,7 +26,6 @@ namespace NetMQ
         public NetMQTimer(TimeSpan interval)
             : this((int)interval.TotalMilliseconds)
         {
-
         }
 
         public NetMQTimer(int interval)
@@ -48,14 +45,7 @@ namespace NetMQ
             {
                 m_interval = value;
 
-                if (Enable)
-                {
-                    When = Clock.NowMs() + Interval;
-                }
-                else
-                {
-                    When = -1;
-                }
+                When = Enable ? Clock.NowMs() + Interval : -1;
             }
         }
 
@@ -68,19 +58,12 @@ namespace NetMQ
                 {
                     m_enable = value;
 
-                    if (m_enable)
-                    {
-                        When = Clock.NowMs() + Interval;
-                    }
-                    else
-                    {
-                        When = -1;
-                    }
+                    When = m_enable ? Clock.NowMs() + Interval : -1;
                 }
             }
         }
 
-        internal Int64 When { get; set; }
+        internal long When { get; set; }
 
         internal void InvokeElapsed(object sender)
         {

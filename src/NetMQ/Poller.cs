@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
@@ -12,22 +11,6 @@ namespace NetMQ
 {
     public class Poller : IDisposable
     {
-        class PollerSelectItem : SelectItem
-        {
-            private NetMQSocket m_socket;
-
-            public PollerSelectItem(NetMQSocket socket, PollEvents events)
-                : base(socket.SocketHandle, events)
-            {
-                m_socket = socket;
-            }
-
-            public NetMQSocket NetMQSocket
-            {
-                get { return m_socket; }
-            }
-        }
-
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
 
@@ -39,13 +22,13 @@ namespace NetMQ
         readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
 
         private int m_cancel;
-        readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
+        private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
         private bool m_isStarted;
 
         private bool m_isDirty = true;
         private bool m_disposed = false;
 
-        private Selector m_selector = new Selector();
+        private readonly Selector m_selector = new Selector();
 
         public Poller()
         {
@@ -54,7 +37,7 @@ namespace NetMQ
             m_cancel = 0;
         }
 
-        public Poller(params ISocketPollable[] sockets)
+        public Poller([NotNull] [ItemNotNull] params ISocketPollable[] sockets)
             : this()
         {
             if (sockets == null)
@@ -68,7 +51,7 @@ namespace NetMQ
             }
         }
 
-        public Poller(params NetMQTimer[] timers)
+        public Poller([NotNull] [ItemNotNull] params NetMQTimer[] timers)
             : this()
         {
             if (timers == null)
@@ -103,7 +86,7 @@ namespace NetMQ
                 {
                     if (m_isStarted)
                     {
-                        Stop(false);
+                        Cancel(false);
                     }
                 }
 
@@ -120,11 +103,16 @@ namespace NetMQ
 
         public bool IsStarted { get { return m_isStarted; } }
 
-        public void AddPollInSocket(Socket socket, Action<Socket> callback)
+        public void AddPollInSocket([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
             {
                 throw new ArgumentNullException("socket");
+            }
+
+            if (callback == null)
+            {
+                throw new ArgumentNullException("callback");
             }
 
             if (m_pollinSockets.ContainsKey(socket))
@@ -142,7 +130,7 @@ namespace NetMQ
             m_isDirty = true;
         }
 
-        public void RemovePollInSocket(Socket socket)
+        public void RemovePollInSocket([NotNull] Socket socket)
         {
             if (socket == null)
             {
@@ -159,7 +147,7 @@ namespace NetMQ
             m_isDirty = true;
         }
 
-        public void AddSocket(ISocketPollable socket)
+        public void AddSocket([NotNull] ISocketPollable socket)
         {
             if (socket == null)
             {
@@ -183,11 +171,11 @@ namespace NetMQ
             m_isDirty = true;
         }
 
-        public void RemoveSocket(ISocketPollable socket)
+        public void RemoveSocket([NotNull] ISocketPollable socket)
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("stock");
+                throw new ArgumentNullException("socket");
             }
 
             if (m_disposed)
@@ -207,7 +195,7 @@ namespace NetMQ
             m_isDirty = true;
         }
 
-        public void AddTimer(NetMQTimer timer)
+        public void AddTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
             {
@@ -222,7 +210,7 @@ namespace NetMQ
             m_timers.Add(timer);
         }
 
-        public void RemoveTimer(NetMQTimer timer)
+        public void RemoveTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
             {
@@ -251,7 +239,7 @@ namespace NetMQ
             uint itemNbr = 0;
             foreach (var socket in m_sockets)
             {
-                m_pollset[itemNbr] = new PollerSelectItem(socket, socket.GetPollEvents());
+                m_pollset[itemNbr] = new SelectItem(socket.SocketHandle, socket.GetPollEvents());
                 m_pollact[itemNbr] = socket;
                 itemNbr++;
             }
@@ -265,11 +253,10 @@ namespace NetMQ
             m_isDirty = false;
         }
 
-
-        int TicklessTimer()
+        private int TicklessTimer()
         {
             //  Calculate tickless timer
-            Int64 tickless = Clock.NowMs() + PollTimeout;
+            long tickless = Clock.NowMs() + PollTimeout;
 
             foreach (NetMQTimer timer in m_timers)
             {
@@ -324,7 +311,7 @@ namespace NetMQ
             PollWhile(() => timesToPoll-- > 0);
         }
 
-        private void PollWhile(Func<bool> condition)
+        private void PollWhile([InstantHandle] Func<bool> condition)
         {
             if (m_disposed)
             {
@@ -343,7 +330,7 @@ namespace NetMQ
             m_isStarted = true;
             try
             {
-                // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barried
+                // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barrier
                 // at the begining of the loop
                 Thread.MemoryBarrier();
 

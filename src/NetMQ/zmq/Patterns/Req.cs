@@ -20,12 +20,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Req : Dealer
+    internal class Req : Dealer
     {
         //  If true, request was already sent and reply wasn't received yet or
         //  was raceived partially.
@@ -158,7 +157,7 @@ namespace NetMQ.zmq.Patterns
             return base.XHasOut();
         }
 
-        public class ReqSession : Dealer.DealerSession
+        public class ReqSession : DealerSession
         {
             enum State
             {
@@ -170,8 +169,8 @@ namespace NetMQ.zmq.Patterns
             State m_state;
 
             public ReqSession(IOThread ioThread, bool connect,
-                                                SocketBase socket, Options options,
-                                                Address addr)
+                              SocketBase socket, Options options,
+                              Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
                 m_state = State.Identity;

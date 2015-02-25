@@ -21,18 +21,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Diagnostics;
 
 //Context object encapsulates all the global state associated with
 //  the library.
 
 namespace NetMQ.zmq
 {
-    public class Ctx
+    internal class Ctx
     {
-        /*  Default for new contexts                                                  */
+        // Default for new contexts
         public const int DefaultIOThreads = 1;
         public const int DefaultMaxSockets = 1024;
 
@@ -92,7 +92,7 @@ namespace NetMQ.zmq
         //  List of inproc endpoints within this context.
         private readonly Dictionary<string, Endpoint> m_endpoints;
 
-        //  Synchronisation of access to the list of inproc endpoints.		
+        //  Synchronisation of access to the list of inproc endpoints.
         private readonly object m_endpointsSync;
 
         //  Maximum socket ID.
@@ -104,7 +104,7 @@ namespace NetMQ.zmq
         //  Number of I/O threads to launch.
         private int m_ioThreadCount;
 
-        //  Synchronisation of access to context options.		
+        //  Synchronisation of access to context options.
         private readonly object m_optSync;
 
         public const int TermTid = 0;

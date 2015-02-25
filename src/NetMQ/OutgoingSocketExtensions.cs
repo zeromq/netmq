@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -9,7 +9,7 @@ namespace NetMQ
     {
         #region Byte Array
 
-        public static void Send(this IOutgoingSocket socket, byte[] data, int length, SendReceiveOptions options)
+        public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
         {
             Msg msg = new Msg();
             msg.InitPool(length);
@@ -21,7 +21,7 @@ namespace NetMQ
             msg.Close();
         }        
 
-        public static void Send(this IOutgoingSocket socket, byte[] data, int length, bool dontWait = false, bool sendMore = false)
+        public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false, bool sendMore = false)
         {            
             SendReceiveOptions options = SendReceiveOptions.None;
 
@@ -38,18 +38,20 @@ namespace NetMQ
             socket.Send(data, length, options);         
         }        
 
-        public static void Send(this IOutgoingSocket socket, byte[] data)
+        public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data)
         {
             socket.Send(data, data.Length);
         }
 
-        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, byte[] data, bool dontWait = false)
+        [NotNull]
+        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] byte[] data, bool dontWait = false)
         {
             socket.Send(data, data.Length, dontWait, true);
             return socket;
         }
 
-        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, byte[] data, int length, bool dontWait = false)
+        [NotNull]
+        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false)
         {
             socket.Send(data, length, dontWait, true);
             return socket;
@@ -59,7 +61,7 @@ namespace NetMQ
 
         #region Strings
 
-        public static void Send(this IOutgoingSocket socket, string message, Encoding encoding, SendReceiveOptions options)
+        public static void Send(this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, SendReceiveOptions options)
         {
             Msg msg = new Msg();
             msg.InitPool(encoding.GetByteCount(message));
@@ -71,7 +73,7 @@ namespace NetMQ
             msg.Close();
         }
 
-        public static void Send(this IOutgoingSocket socket, string message, Encoding encoding, bool dontWait = false, bool sendMore = false)
+        public static void Send(this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false, bool sendMore = false)
         {            
             SendReceiveOptions options = SendReceiveOptions.None;
 
@@ -88,20 +90,22 @@ namespace NetMQ
             socket.Send(message, encoding, options);   
         }
 
-        public static void Send(this IOutgoingSocket socket, string message, bool dontWait = false, bool sendMore = false)
+        public static void Send(this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false, bool sendMore = false)
         {
             Send(socket, message, Encoding.ASCII, dontWait, sendMore);
         }
         
-        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, string message, bool dontWait = false)
+        [NotNull]
+        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false)
         {
-            socket.Send(message, false, true);
+            socket.Send(message, dontWait, true);
             return socket;
         }
 
-        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, string message, Encoding encoding, bool dontWait = false)
+        [NotNull]
+        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false)
         {
-            socket.Send(message,encoding, false, true);
+            socket.Send(message, encoding, dontWait, true);
             return socket;
         }
 
@@ -109,7 +113,7 @@ namespace NetMQ
 
         #region NetMQMessage
 
-        public static void SendMessage(this IOutgoingSocket socket, NetMQMessage message, bool dontWait = false)
+        public static void SendMessage(this IOutgoingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
         {
             for (int i = 0; i < message.FrameCount - 1; i++)
             {
@@ -141,7 +145,6 @@ namespace NetMQ
         {
             Signal(socket, 1);
         }
-
 
         #endregion       
     }

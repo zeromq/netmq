@@ -25,7 +25,7 @@ using System.Diagnostics;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
-    class LoadBalancer
+    internal class LoadBalancer
     {
         //  List of outbound pipes.
         private readonly List<Pipe> m_pipes;

@@ -20,15 +20,12 @@
 */
 
 using System;
-using System.Diagnostics;
-using System.Net.Sockets;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public class IOThread : ZObject, IMailboxEvent
+    internal class IOThread : ZObject, IMailboxEvent
     {
-
         //  I/O thread accesses incoming commands via this mailbox.
         private readonly IOThreadMailbox m_mailbox;
         
@@ -62,6 +59,7 @@ namespace NetMQ.zmq
             m_proactor.Destroy();
             m_mailbox.Close();
         }
+
         public void Stop()
         {
             SendStop();

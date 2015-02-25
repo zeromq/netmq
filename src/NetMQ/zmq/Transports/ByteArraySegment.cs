@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Text;
-using System.Linq;
 
 namespace NetMQ.zmq.Transports
 {
-    public class ByteArraySegment
+    internal class ByteArraySegment
     {
         private readonly byte[] m_innerBuffer;
 
@@ -220,22 +219,15 @@ namespace NetMQ.zmq.Transports
 
         public override bool Equals(object obj)
         {
-            if ((obj is ByteArraySegment))
-            {
-                ByteArraySegment other = (ByteArraySegment)obj;
+            var byteArraySegment = obj as ByteArraySegment;
+            if (byteArraySegment != null)
+                return m_innerBuffer == byteArraySegment.m_innerBuffer && Offset == byteArraySegment.Offset;
 
-                return m_innerBuffer == other.m_innerBuffer && Offset == other.Offset;
-            }
-            else if (obj is byte[])
-            {
-                byte[] byteArray = (byte[])obj;
+            var bytes = obj as byte[];
+            if (bytes != null)
+                return bytes == m_innerBuffer && Offset == 0;
 
-                return byteArray == m_innerBuffer && Offset == 0;
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public override int GetHashCode()
