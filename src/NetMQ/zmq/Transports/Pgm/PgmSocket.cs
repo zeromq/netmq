@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text;
 using AsyncIO;
 
 namespace NetMQ.zmq.Transports.PGM
 {
+    /// <summary>
+    /// This enum-type denotes the type of Pragmatic General Multicast (PGM) socket.
+    /// Publisher, Receiver, or Listener.
+    /// </summary>
     internal enum PgmSocketType
     {
         Publisher,
@@ -18,6 +24,11 @@ namespace NetMQ.zmq.Transports.PGM
         public uint WindowSizeInBytes;
     }
 
+    /// <summary>
+    /// A PgmSocket utilizes the Pragmatic General Multicast (PGM) multicast protocol, which is also referred to as "reliable multicast".
+    /// This is only supported on Windows when Microsoft Message Queuing (MSMQ) is installed.
+    /// See RFC 3208.
+    /// </summary>
     internal class PgmSocket
     {
         public static readonly int PROTOCOL_TYPE_NUMBER = 113;
@@ -56,7 +67,40 @@ namespace NetMQ.zmq.Transports.PGM
 
         internal void Init()
         {
-            Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE);
+#if DEBUG
+            // Don't want to bloat the code with excessive debugging information, unless this is a DEBUG build.  jh
+            try
+            {
+#endif
+                Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE);
+#if DEBUG
+            }
+            catch (SocketException x)
+            {
+                string s = String.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this.ToString());
+                Debug.WriteLine(s);
+                // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
+                PlatformID p = Environment.OSVersion.Platform;
+                bool isWindows = true;
+                switch (p)
+                {
+                    case PlatformID.Win32NT:
+                        break;
+                    case PlatformID.Win32S:
+                        break;
+                    case PlatformID.Win32Windows:
+                        break;
+                    default:
+                        isWindows = false;
+                        break;
+                }
+                if (isWindows)
+                {
+                    Debug.WriteLine("For Microsoft Windows, you may want to check to see whether you have installed MSMQ on this host, to get PGM socket support.");
+                }
+                throw new FaultException(innerException: x, message: s);
+            }
+#endif
             Handle.ExclusiveAddressUse = false;
             Handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
         }        
@@ -127,5 +171,20 @@ namespace NetMQ.zmq.Transports.PGM
         }
 
         public AsyncSocket Handle { get; private set; }
+
+        /// <summary>
+        /// Override the ToString method to produce a more descriptive, useful description.
+        /// </summary>
+        /// <returns>a useful description of this object's state</returns>
+        public override string ToString()
+        {
+            var sb = new StringBuilder("PgmSocket(pgmSocketType=");
+            sb.Append(m_pgmSocketType);
+            sb.Append(", pgmAddress=");
+            sb.Append(m_pgmAddress);
+            sb.Append(", m_options=");
+            sb.Append(m_options).Append(")");
+            return sb.ToString();
+        }
     }
 }
