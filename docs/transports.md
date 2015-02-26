@@ -141,7 +141,7 @@ To use PGM with NetMQ, we do not have to do too much. We just need to follow the
 
 Here is a small demo that use PGM, as well as `PublisherSocket` and `SubscriberSocket` and a few option values.
 
-    ::csharp
+    :::csharp
     const int MegaBit = 1024;
     const int MegaByte = 1024;
     using (NetMQContext context = NetMQContext.Create())
