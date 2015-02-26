@@ -277,7 +277,7 @@ namespace NetMQ.zmq.Transports
                             if (m_options.RawSocket)
                             {
                                 m_encoder = new RawEncoder(Config.OutBatchSize, m_session, m_options.Endian);
-                                m_decoder = new RawDecoder(Config.InBatchSize, m_options.Maxmsgsize, m_session, m_options.Endian);
+                                m_decoder = new RawDecoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
 
                                 Activate();
                             }
@@ -473,7 +473,7 @@ namespace NetMQ.zmq.Transports
                                     m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
                                     m_encoder.SetMsgSource(m_session);
 
-                                    m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
+                                    m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
                                     m_decoder.SetMsgSink(m_session);
 
                                     //  We have already sent the message header.
@@ -595,14 +595,14 @@ namespace NetMQ.zmq.Transports
                                         m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
                                         m_encoder.SetMsgSource(m_session);
 
-                                        m_decoder = new V1Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_options.Endian);
+                                        m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
                                         m_decoder.SetMsgSink(m_session);
                                     }
                                     else
                                     {
                                         //  v1 framing protocol.
                                         m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
-                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.Maxmsgsize, m_session, m_options.Endian);
+                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
                                     }
 
                                     // handshake is done

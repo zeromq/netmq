@@ -95,7 +95,8 @@ namespace NetMQ.zmq.Patterns
 
         private bool m_rawSocket;
 
-        public Router(Ctx parent, int threadId, int socketId) : base(parent, threadId, socketId)
+        public Router(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
             m_prefetched = false;
             m_identitySent = false;
@@ -115,7 +116,7 @@ namespace NetMQ.zmq.Patterns
             m_prefetchedMsg.InitEmpty();
 
             m_anonymousPipes = new HashSet<Pipe>();
-            m_outpipes = new Dictionary<byte[], Outpipe>(new ByteArrayEqualityComparer());       
+            m_outpipes = new Dictionary<byte[], Outpipe>(new ByteArrayEqualityComparer());
             m_options.RecvIdentity = true;
         }
 
@@ -139,7 +140,7 @@ namespace NetMQ.zmq.Patterns
 
 
         protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
-        {            
+        {
             if (option == ZmqSocketOptions.RouterRawSocket)
             {
                 m_rawSocket = (bool)optval;
@@ -151,7 +152,7 @@ namespace NetMQ.zmq.Patterns
 
                 return true;
             }
-            else if ( option == ZmqSocketOptions.RouterMandatory)
+            else if (option == ZmqSocketOptions.RouterMandatory)
             {
                 m_mandatory = (bool)optval;
                 return true;
@@ -236,7 +237,7 @@ namespace NetMQ.zmq.Patterns
                         identity = new byte[msg.Size];
                         Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
                     }
-                    
+
                     Outpipe op;
 
                     if (m_outpipes.TryGetValue(identity, out op))
@@ -256,7 +257,7 @@ namespace NetMQ.zmq.Patterns
                     else if (m_mandatory)
                     {
                         m_moreOut = false;
-                        throw new HostUnreachableException();
+                        throw new HostUnreachableException("In Router.XSend");
                     }
                 }
 
@@ -311,17 +312,17 @@ namespace NetMQ.zmq.Patterns
         }
 
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
-        {            
+        {
             if (m_prefetched)
             {
                 if (!m_identitySent)
                 {
-                    msg.Move(ref m_prefetchedId);                    
+                    msg.Move(ref m_prefetchedId);
                     m_identitySent = true;
                 }
                 else
                 {
-                    msg.Move(ref m_prefetchedMsg);                    
+                    msg.Move(ref m_prefetchedMsg);
                     m_prefetched = false;
                 }
                 m_moreIn = msg.HasMore;
@@ -341,7 +342,7 @@ namespace NetMQ.zmq.Patterns
             if (!isMessageAvailable)
             {
                 return false;
-            }            
+            }
 
             Debug.Assert(pipe[0] != null);
 
@@ -358,8 +359,8 @@ namespace NetMQ.zmq.Patterns
                 m_prefetched = true;
 
                 byte[] identity = pipe[0].Identity;
-                msg.InitPool(identity.Length);               
-                msg.Put(identity,0, identity.Length);
+                msg.InitPool(identity.Length);
+                msg.Put(identity, 0, identity.Length);
                 msg.SetFlags(MsgFlags.More);
 
                 m_identitySent = true;
@@ -396,14 +397,14 @@ namespace NetMQ.zmq.Patterns
             Pipe[] pipe = new Pipe[1];
 
             bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
-           
+
             //  It's possible that we receive peer's identity. That happens
             //  after reconnection. The current implementation assumes that
             //  the peer always uses the same identity.
             //  TODO: handle the situation when the peer changes its identity.
             while (isMessageAvailable && m_prefetchedMsg.IsIdentity)
             {
-                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);              
+                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
             }
 
             if (!isMessageAvailable)
@@ -416,7 +417,7 @@ namespace NetMQ.zmq.Patterns
             byte[] identity = pipe[0].Identity;
             m_prefetchedId = new Msg();
             m_prefetchedId.InitPool(identity.Length);
-            m_prefetchedId.Put(identity, 0, identity.Length);            
+            m_prefetchedId.Put(identity, 0, identity.Length);
             m_prefetchedId.SetFlags(MsgFlags.More);
 
             m_prefetched = true;
@@ -435,20 +436,20 @@ namespace NetMQ.zmq.Patterns
 
         private bool IdentifyPeer(Pipe pipe)
         {
-            byte[] identity;            
+            byte[] identity;
 
             if (m_options.RawSocket)
             {
                 // Always assign identity for raw-socket
                 identity = new byte[5];
-                identity[0] = 0;                
+                identity[0] = 0;
                 byte[] result = BitConverter.GetBytes(m_nextPeerId++);
-                Buffer.BlockCopy(result, 0, identity, 1, 4);                
+                Buffer.BlockCopy(result, 0, identity, 1, 4);
             }
             else
             {
                 //  Pick up handshake cases and also case where next identity is set
-                
+
                 Msg msg = new Msg();
                 msg.InitEmpty();
 
@@ -461,11 +462,11 @@ namespace NetMQ.zmq.Patterns
                 {
                     //  Fall back on the auto-generation
                     identity = new byte[5];
-                    identity[0] = 0;        
+                    identity[0] = 0;
 
                     byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
-                    Buffer.BlockCopy(result, 0, identity, 1, 4);                    
+                    Buffer.BlockCopy(result, 0, identity, 1, 4);
 
                     msg.Close();
                 }
@@ -478,7 +479,7 @@ namespace NetMQ.zmq.Patterns
                     if (m_outpipes.ContainsKey(identity))
                     {
                         msg.Close();
-                        return false;                        
+                        return false;
                     }
 
                     msg.Close();

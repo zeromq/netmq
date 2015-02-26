@@ -56,7 +56,7 @@ namespace NetMQ.zmq.Patterns
             //  If we are in the middle of receiving a request, we cannot send reply.
             if (!m_sendingReply)
             {
-                throw new FiniteStateMachineException("Cannot send another reply");        
+                throw new FiniteStateMachineException("Rep.XSend - cannot send another reply");
             }
 
             bool more = msg.HasMore;
@@ -82,7 +82,7 @@ namespace NetMQ.zmq.Patterns
             //  If we are in middle of sending a reply, we cannot receive next request.
             if (m_sendingReply)
             {
-                throw new FiniteStateMachineException("Cannot receive another request");                 
+                throw new FiniteStateMachineException("Rep.XRecv - cannot receive another request");                 
             }
 
             //  First thing to do when receiving a request is to copy all the labels

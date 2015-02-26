@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
-using NUnit.Framework;
 using NetMQ.Devices;
 using NetMQ.Sockets;
+using NUnit.Framework;
 
 namespace NetMQ.Tests.Devices
 {

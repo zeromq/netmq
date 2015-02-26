@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
+using JetBrains.Annotations;
 using NetMQ.Sockets;
 using NetMQ.zmq;
-using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -11,6 +11,9 @@ namespace NetMQ
         void Run([NotNull] PairSocket shim);
     }
 
+    /// <summary>
+    /// This is an EventArgs that provides an Actor property.
+    /// </summary>
     public class NetMQActorEventArgs : EventArgs
     {
         public NetMQActorEventArgs([NotNull] NetMQActor actor)
@@ -27,7 +30,7 @@ namespace NetMQ
     public delegate void ShimAction<T>(PairSocket shim, T state);
 
     /// <summary>
-    /// The Actor represents one end of a two way pipe between 2 PairSocket(s). Where
+    /// The Actor represents one end of a two-way pipe between 2 PairSocket(s). Where
     /// the actor may be passed messages, that are sent to the other end of the pipe
     /// which called the "shim"
     /// </summary>
@@ -73,8 +76,8 @@ namespace NetMQ
 
         private readonly PairSocket m_self;
         private readonly PairSocket m_shim;
-        
-        private readonly Thread m_shimThread;        
+
+        private readonly Thread m_shimThread;
         private readonly IShimHandler m_shimHandler;
 
         private readonly EventDelegatorHelper<NetMQActorEventArgs> m_receiveEventDelegatorHelper;
@@ -142,7 +145,7 @@ namespace NetMQ
         }
 
         #endregion
-  
+
         void RunShim()
         {
             try
@@ -152,7 +155,7 @@ namespace NetMQ
             catch (TerminatingException)
             {
 
-            }        
+            }
 
             //  Do not block, if the other end of the pipe is already deleted
             m_shim.Options.SendTimeout = TimeSpan.Zero;

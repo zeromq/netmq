@@ -23,12 +23,24 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// This is an ITimerEvent, with InCompleted and OutCompleted callback-methods,
+    /// used for implementing a Proactor pattern (I assume "Procator" is a mispelling? jh).
+    /// </summary>
     internal interface IProcatorEvents : ITimerEvent
     {
-        // Called by I/O thread when file descriptor is ready for reading.
+        /// <summary>
+        /// This is the "Input-Completed" method - called by the I/O-thread when the file descriptor is ready for reading.
+        /// </summary>
+        /// <param name="socketError">this is set to any socket-error that has occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that are now ready to be read</param>
         void InCompleted(SocketError socketError, int bytesTransferred);
 
-        // Called by I/O thread when file descriptor is ready for writing.
+        /// <summary>
+        /// This is the "Output-Completed" method - called by the I/O thread when the file descriptor is ready for writing.
+        /// </summary>
+        /// <param name="socketError">this is set to any socket-error that has occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that are now ready to be written</param>
         void OutCompleted(SocketError socketError, int bytesTransferred);
     }
 }

@@ -623,7 +623,6 @@ namespace MajordomoTests
             worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
 
             NetMQMessage reply = null;
-            var i = 0;
 
             while (true)
             {

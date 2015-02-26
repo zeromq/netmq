@@ -71,7 +71,7 @@ namespace NetMQ.zmq.Transports.Tcp
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
-                throw new InvalidException("TCP address must include a port number");
+                throw new InvalidException(String.Format("TcpAddress.Resolve, delimiter ({0}) must be non-negative.", delimiter));
             }
 
             //  Separate the address/port.
@@ -94,7 +94,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 port = Convert.ToInt32(portStr);
                 if (port == 0)
                 {
-                    throw new InvalidException("Unable to parse port number as an integer");
+                    throw new InvalidException(String.Format("TcpAddress.Resolve, port ({0}) must be a valid nonzero integer.", portStr));
                 }
             }         
 
@@ -129,7 +129,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 
                 if (ipAddress == null)
                 {
-                    throw new InvalidException(string.Format("Unable to find an IP address for {0}", name));
+                    throw new InvalidException(String.Format("TcpAddress.Resolve, unable to find an IP address for {0}", name));
                 }
             }
 

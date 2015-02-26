@@ -1,15 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
+    // Note: For these tests,
+    //       you need to install PGM socket support - which comes with MSMQ:
+    //       https://msdn.microsoft.com/en-us/library/aa967729%28v=vs.110%29.aspx
+    //
+    // Note: The 224.0.0.1 is the IPv4 All Hosts multicast group which addresses all hosts on the same network segment.
+
+
     [TestFixture(Category = "PGM")]
     public class PgmTests
     {
@@ -256,53 +261,53 @@ namespace NetMQ.Tests
             ManualResetEvent subReady = new ManualResetEvent(false);
 
             Task subTask = Task.Factory.StartNew(() =>
-                                                                                         {
-                                                                                             using (NetMQContext context = NetMQContext.Create())
-                                                                                             {
-                                                                                                 using (var sub = context.CreateSubscriberSocket())
-                                                                                                 {
-                                                                                                     sub.Bind("pgm://224.0.0.1:5555");
-                                                                                                     sub.Subscribe("");
+                            {
+                                using (NetMQContext context = NetMQContext.Create())
+                                {
+                                    using (var sub = context.CreateSubscriberSocket())
+                                    {
+                                        sub.Bind("pgm://224.0.0.1:5555");
+                                        sub.Subscribe("");
 
-                                                                                                     subReady.Set();
+                                        subReady.Set();
 
-                                                                                                     while (count < 1000)
-                                                                                                     {
-                                                                                                         bool more;
-                                                                                                         byte[] data = sub.Receive(out more);
+                                        while (count < 1000)
+                                        {
+                                            bool more;
+                                            byte[] data = sub.Receive(out more);
 
-                                                                                                         Assert.IsFalse(more);
-                                                                                                         int num = BitConverter.ToInt32(data, 0);
+                                            Assert.IsFalse(more);
+                                            int num = BitConverter.ToInt32(data, 0);
 
-                                                                                                         Assert.AreEqual(num, count);
+                                            Assert.AreEqual(num, count);
 
-                                                                                                         count++;
-                                                                                                     }
-                                                                                                 }
-                                                                                             }
-                                                                                         });
+                                            count++;
+                                        }
+                                    }
+                                }
+                            });
 
             subReady.WaitOne();
 
             Task pubTask = Task.Factory.StartNew(() =>
-                                                                                         {
-                                                                                             using (NetMQContext context = NetMQContext.Create())
-                                                                                             {
-                                                                                                 using (var pub = context.CreatePublisherSocket())
-                                                                                                 {
-                                                                                                     pub.Connect("pgm://224.0.0.1:5555");
+                            {
+                                using (NetMQContext context = NetMQContext.Create())
+                                {
+                                    using (var pub = context.CreatePublisherSocket())
+                                    {
+                                        pub.Connect("pgm://224.0.0.1:5555");
 
-                                                                                                     for (int i = 0; i < 1000; i++)
-                                                                                                     {
-                                                                                                         pub.Send(BitConverter.GetBytes(i));
-                                                                                                     }
+                                        for (int i = 0; i < 1000; i++)
+                                        {
+                                            pub.Send(BitConverter.GetBytes(i));
+                                        }
 
-                                                                                                     // if we close the socket before the subscriber receives all messages subscriber
-                                                                                                     // might miss messages, lets wait another second
-                                                                                                     Thread.Sleep(1000);
-                                                                                                 }
-                                                                                             }
-                                                                                         });
+                                        // if we close the socket before the subscriber receives all messages subscriber
+                                        // might miss messages, lets wait another second
+                                        Thread.Sleep(1000);
+                                    }
+                                }
+                            });
 
             pubTask.Wait();
             subTask.Wait();

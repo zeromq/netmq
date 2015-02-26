@@ -22,12 +22,14 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
-//  Simple base class for objects that live in I/O threads.
-//  It makes communication with the poller object easier and
-//  makes defining unneeded event handlers unnecessary.
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Simple base class for objects that live in I/O threads.
+    /// It makes communication with the poller object easier and
+    /// makes defining unneeded event handlers unnecessary.
+    /// </summary>
     internal class IOObject : IProcatorEvents
     {
         private IOThread m_ioThread;

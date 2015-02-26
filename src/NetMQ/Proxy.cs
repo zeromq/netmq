@@ -31,6 +31,13 @@ namespace NetMQ
         private const int StateStarted = 2;
         private const int StateStopping = 3;
 
+        /// <summary>
+        /// Create a new instance of a Proxy (NetMQ.Proxy)
+        /// with the given sockets to serve as a front-end, a back-end, and a control socket.
+        /// </summary>
+        /// <param name="frontend">the socket that messages will be forwarded from</param>
+        /// <param name="backend">the socket that messages will be forwarded to</param>
+        /// <param name="control">this socket will have messages also sent to it - you can set this to null if not needed</param>
         public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, Poller poller = null)
         {
             m_frontend = frontend;

@@ -2,6 +2,9 @@
 
 namespace NetMQ.Security
 {
+    /// <summary>
+    /// This enum-type is used to denote the errors that may arise within the security-related code.
+    /// </summary>
     public enum NetMQSecurityErrorCode
     {
         /// <summary>

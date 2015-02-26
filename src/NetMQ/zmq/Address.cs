@@ -23,7 +23,10 @@ using System.Net;
 
 namespace NetMQ.zmq
 {
-    internal class Address
+    /// <summary>
+    /// Class Address contains a specification of a protocol and an MqEndPoint.
+    /// </summary>
+   internal class Address
     {
         public const string InProcProtocol = "inproc";
         public const string TcpProtocol = "tcp";
@@ -31,6 +34,9 @@ namespace NetMQ.zmq
         public const string PgmProtocol = "pgm";
         public const string EpgmProtocol = "epgm";
 
+        /// <summary>
+        /// interface IZAddress specifies that Resolve and property Address must be implemented.
+        /// </summary>
         public interface IZAddress
         {
             void Resolve(String name, bool ip4Only);
@@ -39,6 +45,11 @@ namespace NetMQ.zmq
         }
 
 
+        /// <summary>
+        /// Create a new Address instance with the given protocol and text expression of an address.
+        /// </summary>
+        /// <param name="protocol">the protocol of this Address - as in tcp, ipc, pgm</param>
+        /// <param name="address">a text representation of the address</param>
         public Address(String protocol, String address)
         {
             Protocol = protocol;
@@ -46,6 +57,10 @@ namespace NetMQ.zmq
             Resolved = null;
         }
 
+        /// <summary>
+        /// Create a new Address instance based upon the given endpoint, assuming a protocol of tcp.
+        /// </summary>
+        /// <param name="endpoint">the EndPoint to base this Address upon</param>
         public Address(EndPoint endpoint)
         {
             Protocol = TcpProtocol;

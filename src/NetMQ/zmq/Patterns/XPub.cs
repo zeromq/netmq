@@ -240,7 +240,7 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        throw new InvalidException();
+                        throw new InvalidException(String.Format("In XPub.XSetSocketOption({0},{1}), optval must be a byte-array.", option, optval));
                     }                    
                 }
                 else

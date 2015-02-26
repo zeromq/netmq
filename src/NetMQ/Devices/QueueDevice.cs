@@ -43,6 +43,12 @@
             BackendSetup.Bind(backendBindAddress);
         }
 
+        /// <summary>
+        /// This override of FrontendHandler receives data from the socket contained within args,
+        /// and Sends it to BackendSocket.
+        /// </summary>
+        /// <param name="sender">unused</param>
+        /// <param name="args">a NetMQSocketEventArgs that contains a NetMqSocket for receiving data from</param>
         protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
         {
             bool more;
@@ -58,6 +64,12 @@
             } while (more);
         }
 
+        /// <summary>
+        /// This override of BackendHandler receives data from the socket contained within args,
+        /// and Sends it to FrontendSocket.
+        /// </summary>
+        /// <param name="sender">unused</param>
+        /// <param name="args">a NetMQSocketEventArgs that contains a Socket for receiving data from</param>
         protected override void BackendHandler(object sender, NetMQSocketEventArgs args)
         {
             bool more;

@@ -2,29 +2,65 @@
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// This enum-type is either IOThreads (1) or MaxSockets (2).
+    /// </summary>
     public enum ContextOption
     {
         IOThreads = 1,
         MaxSockets = 2
     }
 
+    /// <summary>
+    /// This enum-type is used to specify the basic type of message-queue socket
+    /// based upon the intended pattern, such as Pub,Sub, Req,Rep, Dealer,Router, Pull,Push, Xpub,Xsub.
+    /// </summary>
     public enum ZmqSocketType
     {
         None = -1,
         Pair = 0,
+
+        /// <summary>
+        /// This denotes a Publisher socket (usually paired with a Subscriber socket).
+        /// </summary>
         Pub = 1,
+
+        /// <summary>
+        /// This denotes a Subscriber socket (usually paired with a Publisher socket).
+        /// </summary>
         Sub = 2,
+
+        /// <summary>
+        /// This denotes a Request socket (usually paired with a Response socket).
+        /// </summary>
         Req = 3,
+
+        /// <summary>
+        /// This denotes a Reponse socket (usually paired with a Request socket).
+        /// </summary>
         Rep = 4,
+
         Dealer = 5,
         Router = 6,
+
+        /// <summary>
+        /// This denotes a Pull socket (usually paired with a PUsh socket).
+        /// </summary>
         Pull = 7,
+
+        /// <summary>
+        /// This denotes a Push socket (usually paired with a Pull socket).
+        /// </summary>
         Push = 8,
+
         Xpub = 9,
         Xsub = 10,
         Stream = 11
     }
 
+    /// <summary>
+    /// This enum-type serves to identity a particular socket-option.
+    /// </summary>
     public enum ZmqSocketOptions
     {
         Affinity = 4,
@@ -81,17 +117,36 @@ namespace NetMQ.zmq
         RouterBehavior = RouterMandatory
     }
 
+    /// <summary>
+    /// This enum-type specifies either big-endian (Big) or little-endian (Little),
+    /// which indicate whether the most-significant bits are placed first or last in memory.
+    /// </summary>
     public enum Endianness
     {
         Big,
         Little
     }
 
+    /// <summary>
+    /// This enum-type provides a way to specify basic Receive behavior
+    /// - None, whether to wait for a message or not (DontWait), and whether to set the SendMore bit.
+    /// </summary>
     [Flags]
     public enum SendReceiveOptions
     {
+        /// <summary>
+        /// Clear all flags (set neither DontWait nor SendMore).
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// Set this flag to specify NOT to block waiting for a message to arrive.
+        /// </summary>
         DontWait = 1,
+
+        /// <summary>
+        /// Set this flag if you want to set the SendMore bit.
+        /// </summary>
         SendMore = 2,
 
         // Deprecated aliases
@@ -101,6 +156,9 @@ namespace NetMQ.zmq
 
     // Socket transport events (tcp and ipc only)
 
+    /// <summary>
+    /// This enum-type specifies socket transport events (TCP and IPC only).
+    /// </summary>
     [Flags]
     public enum SocketEvent
     {
@@ -125,6 +183,10 @@ namespace NetMQ.zmq
               CloseFailed | Disconnected
     }
 
+    /// <summary>
+    /// This flags enum-type is simply an indication of the direction of the poll-event,
+    /// and can be None, PollIn, PollOut, or PollError.
+    /// </summary>
     [Flags]
     public enum PollEvents
     {

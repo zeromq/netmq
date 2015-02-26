@@ -26,7 +26,9 @@ namespace NetMQ.zmq
 {
     internal class IOThread : ZObject, IMailboxEvent
     {
-        //  I/O thread accesses incoming commands via this mailbox.
+        /// <summary>
+        /// I/O thread accesses incoming commands via this mailbox.
+        /// </summary>
         private readonly IOThreadMailbox m_mailbox;
         
         //  I/O multiplexing is performed using a poller object.

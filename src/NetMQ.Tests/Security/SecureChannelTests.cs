@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using NUnit.Framework;
 using NetMQ.Security;
 using NetMQ.Security.V0_1;
+using NUnit.Framework;
 
 namespace NetMQ.Tests.Security
 {

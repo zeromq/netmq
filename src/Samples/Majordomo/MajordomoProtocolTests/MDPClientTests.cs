@@ -68,7 +68,7 @@ namespace MajordomoTests
                                        };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
@@ -77,7 +77,7 @@ namespace MajordomoTests
                 // correct call
                 var reply = session.Send ("echo", requestMessage);
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
 
                 Assert.That (reply.FrameCount, Is.EqualTo (1));
@@ -164,7 +164,7 @@ namespace MajordomoTests
                                        };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
@@ -173,7 +173,7 @@ namespace MajordomoTests
                 // wrong service name
                 session.Send ("xyz", requestMessage);
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
 
                 Assert.That (loggingMessages.Count, Is.EqualTo (7));
@@ -210,7 +210,7 @@ namespace MajordomoTests
                                        };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
@@ -219,7 +219,7 @@ namespace MajordomoTests
                 // correct call
                 session.Send ("echo", requestMessage);
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
 
                 Assert.That (loggingMessages.Count, Is.EqualTo (3));
@@ -264,7 +264,7 @@ namespace MajordomoTests
                                        };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
 
                 // well formed message
                 var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
@@ -278,7 +278,7 @@ namespace MajordomoTests
                     Assert.That (ex.Message, Is.StringContaining ("MDP Version mismatch"));
                 }
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
             }
         }
@@ -320,7 +320,7 @@ namespace MajordomoTests
                 };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
 
                 // well formed message
                 var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
@@ -334,7 +334,7 @@ namespace MajordomoTests
                     Assert.That (ex.Message, Is.EqualTo ("[CLIENT INFO] answered by wrong service: NoService"));
                 }
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
             }
         }

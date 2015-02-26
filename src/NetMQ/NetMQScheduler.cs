@@ -13,7 +13,7 @@ namespace NetMQ
         private readonly bool m_ownPoller;
         private readonly Poller m_poller;
 
-        private static int s_schedulerCounter = 0;
+        private static int s_schedulerCounter;
 
         private readonly NetMQSocket m_serverSocket;
         private readonly NetMQSocket m_clientSocket;

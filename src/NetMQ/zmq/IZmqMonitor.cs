@@ -23,6 +23,9 @@ using System;
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// An IZmqMonitor provides a Monitor method.
+    /// </summary>
     internal interface IZmqMonitor
     {
         void Monitor(SocketBase socket, int monitorEvent, Object[] args);

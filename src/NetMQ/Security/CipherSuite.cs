@@ -3,7 +3,8 @@
 namespace NetMQ.Security
 {
     /// <summary>
-    /// Different cipher suites available with SecureChannel
+    /// This (byte flag) enum-type represents
+    /// different cipher suites that are available with SecureChannel.
     /// </summary>
     [Flags]
     public enum CipherSuite : byte

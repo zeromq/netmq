@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using NetMQ.Sockets;
 using NetMQ.zmq;
+using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -220,11 +218,11 @@ namespace NetMQ.Tests
 
             using (NetMQContext context = NetMQContext.Create())
             {
-                using (NetMQSocket pubSocket = context.CreatePublisherSocket())
+                using (PublisherSocket pubSocket = context.CreatePublisherSocket())
                 {
                     pubSocket.Bind("tcp://127.0.0.1:5555");
 
-                    using (NetMQSocket subSocket = context.CreateSubscriberSocket())
+                    using (SubscriberSocket subSocket = context.CreateSubscriberSocket())
                     {
                         subSocket.Connect("tcp://127.0.0.1:5555");
                         subSocket.Subscribe("");

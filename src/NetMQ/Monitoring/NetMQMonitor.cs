@@ -6,14 +6,14 @@ using NetMQ.zmq;
 namespace NetMQ.Monitoring
 {
     /// <summary>
-    /// Use the  class when you want to monitor socket
+    /// Use this class when you want to monitor a socket.
     /// </summary>
     public class NetMQMonitor : IDisposable
     {
         private readonly bool m_isOwner;
-        private Poller m_attachedPoller = null;
+        private Poller m_attachedPoller;
 
-        private int m_cancel = 0;
+        private int m_cancel;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
 
@@ -33,7 +33,7 @@ namespace NetMQ.Monitoring
         }
 
         /// <summary>
-        /// This constuctor received already created monitored socket. other constructor is preferred, this one is here to support clrzmq singature
+        /// This constuctor receives an already-created monitored socket. The other constructor is preferred; this one is here to support clrzmq signature
         /// </summary>
         /// <param name="socket"></param>
         /// <param name="endpoint"></param>
@@ -235,7 +235,9 @@ namespace NetMQ.Monitoring
             }
         }
 
-        // Stop the socket monitoring
+       /// <summary>
+        /// Stop the socket monitoring
+        /// </summary>
         public void Stop()
         {
             if (m_attachedPoller != null)

@@ -149,21 +149,21 @@ namespace ParanoidPirate.Queue
         }
 
         /// <summary>
-        ///     strips the first frame of a message and the following if it is empty
+        /// Strip the first frame of a message and the following if it is empty
         /// </summary>
         /// <returns>the first frame and changes the message</returns>
         private static NetMQFrame Unwrap (NetMQMessage msg)
         {
             var id = msg.Pop ();
             // forget the empty frame
-            if (msg.First.Equals (NetMQFrame.Empty))
+            if (msg.First.IsEmpty)
                 msg.Pop ();
 
             return id;
         }
 
         /// <summary>
-        ///  wraps a message with the identity and an empty frame
+        /// Wrap a message with the identity and an empty frame
         /// </summary>
         /// <returns>new created message</returns>
         private static NetMQMessage Wrap (NetMQFrame identity, NetMQMessage msg)

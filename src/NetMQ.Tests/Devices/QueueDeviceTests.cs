@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading;
-using NUnit.Framework;
 using NetMQ.Devices;
 using NetMQ.Sockets;
+using NUnit.Framework;
 
 namespace NetMQ.Tests.Devices
 {

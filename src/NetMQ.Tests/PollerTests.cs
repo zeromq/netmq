@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using NetMQ.Monitoring;
-using NetMQ.Sockets;
 using NetMQ.zmq;
+using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
+    // Note: you can have failures here if you excute these on a machine that has only one processor-core.
+
+
     [TestFixture]
     public class PollerTests
     {

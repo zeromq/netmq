@@ -3,8 +3,16 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Class ErrorHelper provides one static method - SocketErrorToErrorCode, for converting a SocketError to the equivalent ErrorCode.
+    /// </summary>
     internal static class ErrorHelper
     {
+        /// <summary>
+        /// Return the ErrorCode that is the closest equivalent to the given SocketError.
+        /// </summary>
+        /// <param name="error">the SocketError to convert from</param>
+        /// <returns>an ErrorCode that corresponds to the given SocketError</returns>
         public static ErrorCode SocketErrorToErrorCode(SocketError error)
         {
             switch (error)

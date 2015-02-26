@@ -4,6 +4,11 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace NetMQ.Security
 {
+    /// <summary>
+    /// This delegate defines a method signature that takes a PkixCertificate and returns a bool.
+    /// </summary>
+    /// <param name="certificate">the PkixCertificate that is to do the verification</param>
+    /// <returns>the result of the verification - which is true if it verifies ok, false if it fails verification</returns>
     public delegate bool VerifyCertificateDelegate(X509Certificate2 certificate2);
 
     /// <summary>
@@ -34,13 +39,13 @@ namespace NetMQ.Security
         void SetVerifyCertificate(VerifyCertificateDelegate verifyCertificate);
 
         /// <summary>
-        /// Process handshake and change cipher suite messages, this method should be called for every incoming message until the method return true.
+        /// Process handshake and change cipher suite messages. This method should be called for every incoming message until the method returns true.
         /// You cannot encrypt or decrypt messages until the method return true.
-        /// Each call to the method may include outgoing messages that need to be sent to the other peer
+        /// Each call to the method may include outgoing messages that need to be sent to the other peer.
         /// </summary>
-        /// <param name="incomingMessage">The coming message from the other peer</param>
+        /// <param name="incomingMessage">The incoming message from the other peer</param>
         /// <param name="outgoingMesssages">Outgoing messages that need to be sent to the other peer</param>
-        /// <returns>Return true when the method complete the handshake stage and the SecureChannel is ready to encrypt and decrypt messages</returns>
+        /// <returns>Return true when the method completes the handshake stage and the SecureChannel is ready to encrypt and decrypt messages</returns>
         bool ProcessMessage(NetMQMessage incomingMessage, IList<NetMQMessage> outgoingMesssages);
 
         /// <summary>
