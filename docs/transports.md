@@ -5,7 +5,7 @@ NetMQ comes with support for three main protocols
 
 + TCP (`tcp://`)
 + InProc (`inproc://`)
-+ PGM (`pgm://`) &mdash; requires MSMQ
++ PGM (`pgm://`) &mdash; requires MSMQ and running as administrator
 
 Each of these is discussed below.
 
