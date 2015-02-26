@@ -30,10 +30,12 @@ namespace NetMQ.Actors
         private readonly Random rand = new Random();
         private T m_state;
 
+
+        private Task m_shimTask;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
 
-        private string GetEndPointName()
+      private string GetEndPointName()
         {
             return string.Format("inproc://zactor-{0}-{1}",
                 rand.Next(0, 10000), rand.Next(0, 10000));
@@ -130,35 +132,37 @@ namespace NetMQ.Actors
 
         private void CreateShimThread(T state)
         {
-            //start Shim thread
-            Task shimTask = Task.Factory.StartNew(
-                x =>
-                {
-                    try
-                    {
-                        this.m_shim.Handler.RunPipeline(this.m_shim.Pipe);
-                    }
-                    catch (TerminatingException)
-                    {
-                    }
+          //start Shim thread
+          m_shimTask = Task.Factory.StartNew(
+                                             x =>
+                                             {
+                                               try
+                                               {
+                                                 this.m_shim.Handler.RunPipeline(this.m_shim.Pipe);
+                                               }
+                                               catch (TerminatingException)
+                                               {
 
-                    //  Do not block, if the other end of the pipe is already deleted
-                    m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
+                                               }          
 
-                    try
-                    {
-                        m_shim.Pipe.SignalOK();
-                    }
-                    catch (AgainException)
-                    {                                                
-                    }
+                                               //  Do not block, if the other end of the pipe is already deleted
+                                               m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
 
-                    m_shim.Pipe.Dispose();
-                },
-                TaskCreationOptions.LongRunning);            
+                                               try
+                                               {
+                                                 m_shim.Pipe.SignalOK();
+                                               }
+                                               catch (AgainException)
+                                               {                                                
+                                               }
+
+                                               m_shim.Pipe.Dispose();
+                                             },
+            TaskCreationOptions.LongRunning);
         }
 
-        ~Actor()
+
+      ~Actor()
         {
             Dispose(false);
         }
@@ -183,8 +187,10 @@ namespace NetMQ.Actors
                 }
                 catch (AgainException)
                 {
-                }                                
-
+                                        
+                }
+                
+                m_shimTask.Wait();                               
                 m_self.Dispose();
             }
         }
