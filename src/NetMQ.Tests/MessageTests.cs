@@ -85,11 +85,11 @@ namespace NetMQ.Tests
             {
                 using (var server = context.CreateRouterSocket())
                 {
-                    server.Bind("tcp://127.0.0.1:5555");
+                    int port = server.BindRandomPort("tcp://127.0.0.1");
 
                     using (var client = context.CreateDealerSocket())
                     {
-                        client.Connect("tcp://127.0.0.1:5555");
+                        client.Connect("tcp://127.0.0.1:" + port);
 
                         NetMQMessage clientOutgoingMessage = new NetMQMessage();
                         clientOutgoingMessage.Append("Hello");

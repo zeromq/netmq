@@ -12,11 +12,11 @@ namespace NetMQ.Tests
             {
                 using (var pullSocket = context.CreatePullSocket())
                 {
-                    pullSocket.Bind("tcp://127.0.0.1:5004");
+                    var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
 
                     using (var pushSocket = context.CreatePushSocket())
                     {
-                        pushSocket.Connect("tcp://127.0.0.1:5004");
+                        pushSocket.Connect("tcp://127.0.0.1:" + port);
 
                         pushSocket.Send("hello");
 
@@ -36,11 +36,11 @@ namespace NetMQ.Tests
             {
                 using (var pullSocket = context.CreatePullSocket())
                 {
-                    pullSocket.Bind("tcp://127.0.0.1:5004");
+                    var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
 
                     using (var pushSocket = context.CreatePushSocket())
                     {
-                        pushSocket.Connect("tcp://127.0.0.1:5004");
+                        pushSocket.Connect("tcp://127.0.0.1:" + port);
 
                         pushSocket.Send(new byte[300]);
 

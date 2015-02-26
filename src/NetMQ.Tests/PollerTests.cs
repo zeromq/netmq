@@ -22,12 +22,12 @@ namespace NetMQ.Tests
             {
                 using (var rep = contex.CreateResponseSocket())
                 {
-                    rep.Bind("tcp://127.0.0.1:5002");
+                    int port = rep.BindRandomPort("tcp://127.0.0.1");
 
                     using (var req = contex.CreateRequestSocket())
                     using (Poller poller = new Poller())
                     {
-                        req.Connect("tcp://127.0.0.1:5002");
+                        req.Connect("tcp://127.0.0.1:" + port);
 
 
                         rep.ReceiveReady += (s, a) =>
@@ -82,7 +82,7 @@ namespace NetMQ.Tests
 
                         monitor.AttachToPoller(poller);
 
-                        rep.Bind("tcp://127.0.0.1:5002");
+                        int port = rep.BindRandomPort("tcp://127.0.0.1");
 
                         using (var req = contex.CreateRequestSocket())
                         {
@@ -95,7 +95,7 @@ namespace NetMQ.Tests
                                 {
                                     poller.PollTillCancelledNonBlocking();
 
-                                    req.Connect("tcp://127.0.0.1:5002");
+                                    req.Connect("tcp://127.0.0.1:" + port);
                                     req.Send("a");
 
                                     bool more;
@@ -130,15 +130,15 @@ namespace NetMQ.Tests
                 using (var router = contex.CreateRouterSocket())
                 using (var router2 = contex.CreateRouterSocket())
                 {
-                    router.Bind("tcp://127.0.0.1:5002");
-                    router2.Bind("tcp://127.0.0.1:5003");
+                    int port = router.BindRandomPort("tcp://127.0.0.1");
+                    int port2 = router2.BindRandomPort("tcp://127.0.0.1");
 
                     using (var dealer = contex.CreateDealerSocket())
                     using (var dealer2 = contex.CreateDealerSocket())
                     using (Poller poller = new Poller())
                     {
-                        dealer.Connect("tcp://127.0.0.1:5002");
-                        dealer2.Connect("tcp://127.0.0.1:5003");
+                        dealer.Connect("tcp://127.0.0.1:" + port);
+                        dealer2.Connect("tcp://127.0.0.1:" + port2);
 
                         bool router1arrived = false;
                         bool router2arrived = false;
@@ -191,18 +191,18 @@ namespace NetMQ.Tests
                 using (var router2 = contex.CreateRouterSocket())
                 using (var router3 = contex.CreateRouterSocket())
                 {
-                    router.Bind("tcp://127.0.0.1:5002");
-                    router2.Bind("tcp://127.0.0.1:5003");
-                    router3.Bind("tcp://127.0.0.1:5004");
+                    int port = router.BindRandomPort("tcp://127.0.0.1");
+                    int port2 = router2.BindRandomPort("tcp://127.0.0.1");
+                    int port3 = router3.BindRandomPort("tcp://127.0.0.1");
 
                     using (var dealer = contex.CreateDealerSocket())
                     using (var dealer2 = contex.CreateDealerSocket())
                     using (var dealer3 = contex.CreateDealerSocket())
                     using (Poller poller = new Poller())
                     {
-                        dealer.Connect("tcp://127.0.0.1:5002");
-                        dealer2.Connect("tcp://127.0.0.1:5003");
-                        dealer3.Connect("tcp://127.0.0.1:5004");
+                        dealer.Connect("tcp://127.0.0.1:" + port);
+                        dealer2.Connect("tcp://127.0.0.1:" + port2);
+                        dealer3.Connect("tcp://127.0.0.1:" + port3);
 
                         bool router1arrived = false;
                         bool router2arrived = false;
@@ -271,10 +271,10 @@ namespace NetMQ.Tests
                 using (var router3 = contex.CreateRouterSocket())
                 using (var router4 = contex.CreateRouterSocket())
                 {
-                    router.Bind("tcp://127.0.0.1:5002");
-                    router2.Bind("tcp://127.0.0.1:5003");
-                    router3.Bind("tcp://127.0.0.1:5004");
-                    router4.Bind("tcp://127.0.0.1:5005");
+                    int port = router.BindRandomPort("tcp://127.0.0.1");
+                    int port2 = router2.BindRandomPort("tcp://127.0.0.1");
+                    int port3 = router3.BindRandomPort("tcp://127.0.0.1");
+                    int port4 = router4.BindRandomPort("tcp://127.0.0.1");
 
                     using (var dealer = contex.CreateDealerSocket())
                     using (var dealer2 = contex.CreateDealerSocket())
@@ -282,11 +282,10 @@ namespace NetMQ.Tests
                     using (var dealer4 = contex.CreateDealerSocket())
                     using (Poller poller = new Poller())
                     {
-                        dealer.Connect("tcp://127.0.0.1:5002");
-                        dealer2.Connect("tcp://127.0.0.1:5003");
-                        dealer3.Connect("tcp://127.0.0.1:5004");
-                        dealer4.Connect("tcp://127.0.0.1:5005");
-
+                        dealer.Connect("tcp://127.0.0.1:" + port);
+                        dealer2.Connect("tcp://127.0.0.1:" + port2);
+                        dealer3.Connect("tcp://127.0.0.1:" + port3);
+                        dealer4.Connect("tcp://127.0.0.1:" + port4);
 
                         int router1arrived = 0;
                         int router2arrived = 0;
@@ -380,18 +379,18 @@ namespace NetMQ.Tests
                 using (var router2 = contex.CreateRouterSocket())
                 using (var router3 = contex.CreateRouterSocket())
                 {
-                    router.Bind("tcp://127.0.0.1:5002");
-                    router2.Bind("tcp://127.0.0.1:5003");
-                    router3.Bind("tcp://127.0.0.1:5004");
+                    int port = router.BindRandomPort("tcp://127.0.0.1");
+                    int port2 = router2.BindRandomPort("tcp://127.0.0.1");
+                    int port3 = router3.BindRandomPort("tcp://127.0.0.1");
 
                     using (var dealer = contex.CreateDealerSocket())
                     using (var dealer2 = contex.CreateDealerSocket())
                     using (var dealer3 = contex.CreateDealerSocket())
                     using (Poller poller = new Poller())
                     {
-                        dealer.Connect("tcp://127.0.0.1:5002");
-                        dealer2.Connect("tcp://127.0.0.1:5003");
-                        dealer3.Connect("tcp://127.0.0.1:5004");
+                        dealer.Connect("tcp://127.0.0.1:" + port);
+                        dealer2.Connect("tcp://127.0.0.1:" + port2);
+                        dealer3.Connect("tcp://127.0.0.1:" + port3);
 
                         bool first = true;
 
@@ -496,12 +495,12 @@ namespace NetMQ.Tests
                 // we are using three responses to make sure we actually move the correct socket and other sockets still work
                 using (var router = contex.CreateRouterSocket())
                 {
-                    router.Bind("tcp://127.0.0.1:5002");
+                    int port = router.BindRandomPort("tcp://127.0.0.1");
 
                     using (var dealer = contex.CreateDealerSocket())
                     using (Poller poller = new Poller())
                     {
-                        dealer.Connect("tcp://127.0.0.1:5002");
+                        dealer.Connect("tcp://127.0.0.1:" + port);
 
 
                         bool messageArrived = false;
@@ -559,13 +558,12 @@ namespace NetMQ.Tests
                 // we are using three responses to make sure we actually move the correct socket and other sockets still work
                 using (var router = contex.CreateRouterSocket())
                 {
-                    router.Bind("tcp://127.0.0.1:5002");
+                    int port = router.BindRandomPort("tcp://127.0.0.1");
 
                     using (var dealer = contex.CreateDealerSocket())
                     using (Poller poller = new Poller())
                     {
-                        dealer.Connect("tcp://127.0.0.1:5002");
-
+                        dealer.Connect("tcp://127.0.0.1:" + port);
 
                         bool timerTriggered = false;
 
@@ -615,7 +613,6 @@ namespace NetMQ.Tests
             using (NetMQContext contex = NetMQContext.Create())
             using (Poller poller = new Poller())
             {
-
                 int count = 0;
 
                 NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
@@ -897,11 +894,11 @@ namespace NetMQ.Tests
             {
                 using (var streamServer = context.CreateStreamSocket())
                 {
-                    streamServer.Bind("tcp://*:5557");
+                    int port = streamServer.BindRandomPort("tcp://*");
 
                     using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                     {
-                        socket.Connect("127.0.0.1", 5557);
+                        socket.Connect("127.0.0.1", port);
 
                         byte[] buffer = new byte[] { 1 };
                         socket.Send(buffer);
