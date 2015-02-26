@@ -622,5 +622,37 @@ namespace NetMQ.Tests
             }
             Debug.WriteLine("Subscriber ctx disposed.");
         }        
+
+        [Test]
+        public void BindRandomThenUnbind()
+        {
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            {
+                var port = pub.BindRandomPort("tcp://localhost");
+
+                pub.Unbind("tcp://localhost:" + port);
+            }
+            
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            {
+                var port = pub.BindRandomPort("tcp://*");
+
+                pub.Unbind("tcp://*:" + port);
+            }
+            
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            {
+                var port1 = pub.BindRandomPort("tcp://*");
+                var port2 = pub.BindRandomPort("tcp://*");
+                var port3 = pub.BindRandomPort("tcp://*");
+
+                pub.Unbind("tcp://*:" + port1);
+                pub.Unbind("tcp://*:" + port2);
+                pub.Unbind("tcp://*:" + port3);
+            }
+        }
     }
 }
