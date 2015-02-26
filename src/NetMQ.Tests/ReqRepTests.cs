@@ -6,20 +6,20 @@ namespace NetMQ.Tests
     public class ReqRepTests
     {
         [Test]
-        [TestCase("tcp://localhost:5001")]
-        [TestCase("tcp://127.0.0.1:5001")]
-        [TestCase("tcp://unknownhostname:5001", ExpectedException = typeof(System.Net.Sockets.SocketException))]
+        [TestCase("tcp://localhost")]
+        [TestCase("tcp://127.0.0.1")]
+        [TestCase("tcp://unknownhostname", ExpectedException = typeof(System.Net.Sockets.SocketException))]
         public void SimpleReqRep(string address)
         {
             using (NetMQContext ctx = NetMQContext.Create())
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
-                    rep.Bind(address);
+                    var port = rep.BindRandomPort(address);
 
                     using (var req = ctx.CreateRequestSocket())
                     {
-                        req.Connect(address);
+                        req.Connect(address + ":" + port);
 
                         req.Send("Hi");
 
@@ -48,11 +48,11 @@ namespace NetMQ.Tests
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
-                    rep.Bind("tcp://localhost:5002");
+                    var port = rep.BindRandomPort("tcp://localhost");
 
                     using (var req = ctx.CreateRequestSocket())
                     {
-                        req.Connect("tcp://localhost:5002");
+                        req.Connect("tcp://localhost:" + port);
 
                         req.Send("Hi");
 
@@ -72,12 +72,12 @@ namespace NetMQ.Tests
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
-                    rep.Bind("tcp://localhost:5001");
+                    var port = rep.BindRandomPort("tcp://localhost");
 
 
                     using (var req = ctx.CreateRequestSocket())
                     {
-                        req.Connect("tcp://localhost:5001");
+                        req.Connect("tcp://localhost:" + port);
 
                         bool more;
 
@@ -94,11 +94,11 @@ namespace NetMQ.Tests
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
-                    rep.Bind("tcp://localhost:5001");
+                    var port = rep.BindRandomPort("tcp://localhost");
 
                     using (var req = ctx.CreateRequestSocket())
                     {
-                        req.Connect("tcp://localhost:5001");
+                        req.Connect("tcp://localhost:" + port);
 
                         var ex = Assert.Throws<FiniteStateMachineException>(() => rep.Send("1"));                        
                     }
@@ -113,11 +113,11 @@ namespace NetMQ.Tests
             {
                 using (var rep = ctx.CreateResponseSocket())
                 {
-                    rep.Bind("tcp://localhost:5001");
+                    var port = rep.BindRandomPort("tcp://localhost");
 
                     using (var req = ctx.CreateRequestSocket())
                     {
-                        req.Connect("tcp://localhost:5001");
+                        req.Connect("tcp://localhost:" + port);
 
                         req.SendMore("Hello").Send("World");
 

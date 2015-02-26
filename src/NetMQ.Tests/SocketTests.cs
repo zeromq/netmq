@@ -21,7 +21,7 @@ namespace NetMQ.Tests
             {
                 using (var routerSocket = context.CreateRouterSocket())
                 {
-                    routerSocket.Bind("tcp://127.0.0.1:5555");
+                    routerSocket.BindRandomPort("tcp://127.0.0.1");
 
                     routerSocket.Receive(SendReceiveOptions.DontWait);
                 }
@@ -35,14 +35,14 @@ namespace NetMQ.Tests
             {
                 using (var routerSocket = context.CreateRouterSocket())
                 {
-                    routerSocket.Bind("tcp://127.0.0.1:5555");
+                    var port = routerSocket.BindRandomPort("tcp://127.0.0.1");
                     routerSocket.Options.Linger = TimeSpan.Zero;
 
                     using (var dealerSocket = context.CreateDealerSocket())
                     {
                         dealerSocket.Options.SendHighWatermark = 1;
                         dealerSocket.Options.Linger = TimeSpan.Zero;
-                        dealerSocket.Connect("tcp://127.0.0.1:5555");
+                        dealerSocket.Connect("tcp://127.0.0.1:" + port);
 
                         dealerSocket.Send("1", true, false);
                         dealerSocket.Send("2", true, false);
@@ -58,11 +58,11 @@ namespace NetMQ.Tests
             {
                 using (var pubSocket = context.CreatePublisherSocket())
                 {
-                    pubSocket.Bind("tcp://127.0.0.1:5555");
+                    var port = pubSocket.BindRandomPort("tcp://127.0.0.1");
 
                     using (var subSocket = context.CreateSubscriberSocket())
                     {
-                        subSocket.Connect("tcp://127.0.0.1:5555");
+                        subSocket.Connect("tcp://127.0.0.1:" + port);
                         subSocket.Subscribe("");
 
                         Thread.Sleep(100);
@@ -91,7 +91,7 @@ namespace NetMQ.Tests
                 var t1 = new Task(() =>
                 {
                     var pubSocket = context.CreatePublisherSocket();
-                    pubSocket.Bind("tcp://127.0.0.1:5555");
+                    pubSocket.Bind("tcp://127.0.0.1:12345");
                     pubSync.WaitOne();
                     Thread.Sleep(waitTime);
                     pubSocket.Send(msg);
@@ -103,7 +103,7 @@ namespace NetMQ.Tests
                 var t2 = new Task(() =>
                 {
                     var subSocket = context.CreateSubscriberSocket();
-                    subSocket.Connect("tcp://127.0.0.1:5555");
+                    subSocket.Connect("tcp://127.0.0.1:12345");
                     subSocket.Subscribe("");
                     Thread.Sleep(100);
                     pubSync.Set();
@@ -135,12 +135,12 @@ namespace NetMQ.Tests
                 using (var pubSocket = context.CreatePublisherSocket())
                 {
                     pubSocket.Options.Endian = Endianness.Little;
-                    pubSocket.Bind("tcp://127.0.0.1:5555");
+                    var port = pubSocket.BindRandomPort("tcp://127.0.0.1");
 
                     using (var subSocket = context.CreateSubscriberSocket())
                     {
                         subSocket.Options.Endian = Endianness.Little;
-                        subSocket.Connect("tcp://127.0.0.1:5555");
+                        subSocket.Connect("tcp://127.0.0.1:" + port);
                         subSocket.Subscribe("");
 
                         Thread.Sleep(100);
@@ -169,7 +169,7 @@ namespace NetMQ.Tests
                     responseSocket.Options.TcpKeepaliveIdle = TimeSpan.FromSeconds(5);
                     responseSocket.Options.TcpKeepaliveInterval = TimeSpan.FromSeconds(1);
 
-                    responseSocket.Bind("tcp://127.0.0.1:5555");
+                    var port = responseSocket.BindRandomPort("tcp://127.0.0.1");
 
                     using (var requestSocket = context.CreateRequestSocket())
                     {
@@ -177,7 +177,7 @@ namespace NetMQ.Tests
                         requestSocket.Options.TcpKeepaliveIdle = TimeSpan.FromSeconds(5);
                         requestSocket.Options.TcpKeepaliveInterval = TimeSpan.FromSeconds(1);
 
-                        requestSocket.Connect("tcp://127.0.0.1:5555");
+                        requestSocket.Connect("tcp://127.0.0.1:" + port);
 
                         requestSocket.Send("1");
 
@@ -220,11 +220,11 @@ namespace NetMQ.Tests
             {
                 using (PublisherSocket pubSocket = context.CreatePublisherSocket())
                 {
-                    pubSocket.Bind("tcp://127.0.0.1:5555");
+                    var port = pubSocket.BindRandomPort("tcp://127.0.0.1");
 
                     using (SubscriberSocket subSocket = context.CreateSubscriberSocket())
                     {
-                        subSocket.Connect("tcp://127.0.0.1:5555");
+                        subSocket.Connect("tcp://127.0.0.1:" + port);
                         subSocket.Subscribe("");
 
                         Thread.Sleep(1000);
@@ -259,11 +259,11 @@ namespace NetMQ.Tests
                 using (var routerSocket = context.CreateRouterSocket())
                 {
                     routerSocket.Options.RouterRawSocket = true;
-                    routerSocket.Bind("tcp://127.0.0.1:5555");
+                    var port = routerSocket.BindRandomPort("tcp://127.0.0.1");
 
                     using (var clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                     {
-                        clientSocket.Connect("127.0.0.1", 5555);
+                        clientSocket.Connect("127.0.0.1", port);
                         clientSocket.NoDelay = true;
 
                         byte[] clientMessage = Encoding.ASCII.GetBytes("HelloRaw");
@@ -319,11 +319,11 @@ namespace NetMQ.Tests
                 {
                     using (NetMQSocket localDealer = context.CreateDealerSocket())
                     {
-                        localDealer.Bind("tcp://*:5002");
+                        var port = localDealer.BindRandomPort("tcp://*");
 
                         using (NetMQSocket connectingDealer = context.CreateDealerSocket())
                         {
-                            connectingDealer.Connect("tcp://" + alias + ":5002");
+                            connectingDealer.Connect(string.Format("tcp://{0}:{1}", alias, port));
 
                             localDealer.Send("test");
 
@@ -343,10 +343,10 @@ namespace NetMQ.Tests
                 using (NetMQSocket localDealer = context.CreateDealerSocket())
                 {
                     localDealer.Options.IPv4Only = false;
-                    localDealer.Bind(string.Format("tcp://*:5002"));
+                    var port = localDealer.BindRandomPort(string.Format("tcp://*"));
                     using (NetMQSocket connectingDealer = context.CreateDealerSocket())
                     {
-                        connectingDealer.Connect("tcp://" + IPAddress.Loopback.ToString() + ":5002");
+                        connectingDealer.Connect(string.Format("tcp://{0}:{1}", IPAddress.Loopback, port));
 
                         connectingDealer.Send("test");
 
@@ -364,12 +364,12 @@ namespace NetMQ.Tests
                 using (NetMQSocket localDealer = context.CreateDealerSocket())
                 {
                     localDealer.Options.IPv4Only = false;
-                    localDealer.Bind(string.Format("tcp://*:5002"));
+                    var port = localDealer.BindRandomPort(string.Format("tcp://*"));
 
                     using (NetMQSocket connectingDealer = context.CreateDealerSocket())
                     {
                         connectingDealer.Options.IPv4Only = false;
-                        connectingDealer.Connect("tcp://" + IPAddress.IPv6Loopback.ToString() + ":5002");
+                        connectingDealer.Connect(string.Format("tcp://{0}:{1}", IPAddress.IPv6Loopback, port));
 
                         connectingDealer.Send("test");
 
@@ -386,14 +386,14 @@ namespace NetMQ.Tests
             {
                 using (NetMQSocket server = context.CreateRouterSocket())
                 {
-                    server.Bind("tcp://*:5557");
+                    var port = server.BindRandomPort("tcp://*");
 
                     // no one sent a message so it should be fasle
                     Assert.IsFalse(server.HasIn);
 
                     using (NetMQSocket client = context.CreateDealerSocket())
                     {
-                        client.Connect("tcp://localhost:5557");
+                        client.Connect("tcp://localhost:" + port);
 
                         // wait for the client to connect
                         Thread.Sleep(100);
@@ -428,7 +428,7 @@ namespace NetMQ.Tests
             {
                 using (NetMQSocket server = context.CreateDealerSocket())
                 {
-                    server.Bind("tcp://*:5557");
+                    server.BindRandomPort("tcp://*");
                 }
             }
         }
@@ -440,7 +440,7 @@ namespace NetMQ.Tests
             {
                 using (NetMQSocket server = context.CreateDealerSocket())
                 {
-                    server.Bind("tcp://*:5557");
+                    var port = server.BindRandomPort("tcp://*");
 
                     // no client is connected so we don't have out
                     Assert.IsFalse(server.HasOut);
@@ -449,7 +449,7 @@ namespace NetMQ.Tests
                     {
                         Assert.IsFalse(client.HasOut);
 
-                        client.Connect("tcp://localhost:5557");
+                        client.Connect("tcp://localhost:" + port);
 
                         Thread.Sleep(200);
 
@@ -477,11 +477,28 @@ namespace NetMQ.Tests
                     {
                         using (var client = context.CreateDealerSocket())
                         {
-                            server1.Bind(protocol + "://localhost:55502");
-                            server2.Bind(protocol + "://localhost:55503");
+                            string address2;
 
-                            client.Connect(protocol + "://localhost:55502");
-                            client.Connect(protocol + "://localhost:55503");
+                            if (protocol == "tcp")
+                            {
+                                var port1 = server1.BindRandomPort("tcp://localhost");
+                                var port2 = server2.BindRandomPort("tcp://localhost");
+
+                                client.Connect("tcp://localhost:" + port1);
+                                client.Connect("tcp://localhost:" + port2);
+
+                                address2 = "tcp://localhost:" + port2;
+                            }
+                            else
+                            {
+                                server1.Bind("inproc://localhost1");
+                                server2.Bind("inproc://localhost2");
+
+                                client.Connect("inproc://localhost1");
+                                client.Connect("inproc://localhost2");
+
+                                address2 = "inproc://localhost2";
+                            }
 
                             Thread.Sleep(100);
 
@@ -494,7 +511,7 @@ namespace NetMQ.Tests
                             server2.ReceiveString();
 
                             // disconnect from server2, server 1 should receive all messages
-                            client.Disconnect(protocol + "://localhost:55503");
+                            client.Disconnect(address2);
                             Thread.Sleep(100);
 
                             client.Send("1");
@@ -515,16 +532,37 @@ namespace NetMQ.Tests
             {
                 using (var server = context.CreateDealerSocket())
                 {
-                    server.Bind(protocol + "://localhost:55502");
-                    server.Bind(protocol + "://localhost:55503");
+                    string address1, address2;
 
                     // just making sure can bind on both adddresses
                     using (var client1 = context.CreateDealerSocket())
                     {
                         using (var client2 = context.CreateDealerSocket())
                         {
-                            client1.Connect(protocol + "://localhost:55502");
-                            client2.Connect(protocol + "://localhost:55503");
+                            if (protocol == "tcp")
+                            {
+                                var port1 = server.BindRandomPort("tcp://localhost");
+                                var port2 = server.BindRandomPort("tcp://localhost");
+
+                                address1 = "tcp://localhost:" + port1;
+                                address2 = "tcp://localhost:" + port2;
+
+                                client1.Connect(address1);
+                                client2.Connect(address2);
+                            }
+                            else
+                            {
+                                Debug.Assert(protocol == "inproc");
+
+                                address1 = "inproc://localhost1";
+                                address2 = "inproc://localhost2";
+
+                                server.Bind(address1);
+                                server.Bind(address2);
+
+                                client1.Connect(address1);
+                                client2.Connect(address2);
+                            }
 
                             Thread.Sleep(100);
 
@@ -539,7 +577,7 @@ namespace NetMQ.Tests
                     }
 
                     // unbind second address
-                    server.Unbind(protocol + "://localhost:55503");
+                    server.Unbind(address2);
                     Thread.Sleep(100);
 
                     using (var client1 = context.CreateDealerSocket())
@@ -547,14 +585,14 @@ namespace NetMQ.Tests
                         using (var client2 = context.CreateDealerSocket())
                         {
                             client1.Options.DelayAttachOnConnect = true;
-                            client1.Connect(protocol + "://localhost:55502");
+                            client1.Connect(address1);
 
                             client2.Options.SendTimeout = TimeSpan.FromSeconds(2);
                             client2.Options.DelayAttachOnConnect = true;
 
                             if (protocol == "tcp")
                             {
-                                client2.Connect(protocol + "://localhost:55503");
+                                client2.Connect(address2);
 
                                 client1.Send("1");
                                 server.ReceiveString();
@@ -569,7 +607,7 @@ namespace NetMQ.Tests
                             {
                                 var exception = Assert.Throws<EndpointNotFoundException>(() =>
                                 {
-                                    client2.Connect(protocol + "://localhost:55503");
+                                    client2.Connect(address2);
                                 });
                             }
                         }
@@ -622,5 +660,37 @@ namespace NetMQ.Tests
             }
             Debug.WriteLine("Subscriber ctx disposed.");
         }        
+
+        [Test]
+        public void BindRandomThenUnbind()
+        {
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            {
+                var port = pub.BindRandomPort("tcp://localhost");
+
+                pub.Unbind("tcp://localhost:" + port);
+            }
+            
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            {
+                var port = pub.BindRandomPort("tcp://*");
+
+                pub.Unbind("tcp://*:" + port);
+            }
+            
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            {
+                var port1 = pub.BindRandomPort("tcp://*");
+                var port2 = pub.BindRandomPort("tcp://*");
+                var port3 = pub.BindRandomPort("tcp://*");
+
+                pub.Unbind("tcp://*:" + port1);
+                pub.Unbind("tcp://*:" + port2);
+                pub.Unbind("tcp://*:" + port3);
+            }
+        }
     }
 }

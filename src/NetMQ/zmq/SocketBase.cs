@@ -391,6 +391,10 @@ namespace NetMQ.zmq
                 {
                     listener.SetAddress(address);
                     m_port = listener.Port;
+
+                    // Recreate the address string (localhost:1234) in case the port was system-assigned
+                    var host = address.Substring(0, address.IndexOf(':'));
+                    addr = "tcp://" + host + ":" + m_port;
                 }
                 catch (NetMQException ex)
                 {

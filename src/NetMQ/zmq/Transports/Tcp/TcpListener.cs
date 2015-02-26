@@ -86,8 +86,6 @@ namespace NetMQ.zmq.Transports.Tcp
         public virtual void SetAddress(String addr)
         {
             m_address.Resolve(addr, m_options.IPv4Only);
-
-            m_endpoint = m_address.ToString();
             try
             {
                 m_handle = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -107,6 +105,10 @@ namespace NetMQ.zmq.Transports.Tcp
                 m_handle.ExclusiveAddressUse = false;
                 m_handle.Bind(m_address.Address);
                 m_handle.Listen(m_options.Backlog);
+
+                // Copy the port number after binding in case we requested a system-allocated port number (TCP port zero)
+                m_address.Address.Port = m_handle.LocalEndPoint.Port;
+                m_endpoint = m_address.ToString();
 
                 m_socket.EventListening(m_endpoint, m_handle);
 

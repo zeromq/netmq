@@ -14,7 +14,7 @@ namespace NetMQ.Tests
                 using (var router = context.CreateRouterSocket())
                 {
                     router.Options.RouterMandatory = true;
-                    router.Bind("tcp://*:5555");
+                    router.BindRandomPort("tcp://*");
 
                     Assert.Throws<HostUnreachableException>(() => router.SendMore("UNKOWN").Send("Hello"));
                 }
@@ -28,7 +28,7 @@ namespace NetMQ.Tests
             {
                 using (var server = context.CreateRouterSocket())
                 {                    
-                    server.Bind("tcp://127.0.0.1:5555");
+                    server.BindRandomPort("tcp://127.0.0.1");
                     server.ReceiveReady += (sender, e) =>
                     {
                         //no data receive but every 1s to display ReceiveReady.
