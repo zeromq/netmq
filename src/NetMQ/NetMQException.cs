@@ -159,7 +159,7 @@ namespace NetMQ
         /// <param name="errorCode">an ErrorCode that this exception will contain and expose via it's ErrorCode property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         /// <param name="innerException">an Exception that this exception will expose via it's InnerException property</param>
-        /// <returns>a new NetMQException, or sublcass of NetMQException that corresponds to the given ErrorCode</returns>
+        /// <returns>a new NetMQException, or subclass of NetMQException that corresponds to the given ErrorCode</returns>
         [NotNull]
         private static NetMQException Create(ErrorCode errorCode, [CanBeNull] string message, [CanBeNull] Exception innerException)
         {

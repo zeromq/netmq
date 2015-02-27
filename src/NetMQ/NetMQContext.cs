@@ -8,7 +8,7 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     /// <summary>
-    /// Context class of the NetMQ message-queuing subsystem. You should have only one context in your application process.
+    /// Context class of the NetMQ message-queuing subsystem. You should (ordinarily) have only one context in your application process.
     /// </summary>
     public class NetMQContext : IDisposable
     {
@@ -241,8 +241,11 @@ namespace NetMQ
 
         /// <summary>
         /// Close (terminate) this context.
-        /// This must not be called on a context that is already closed otherwise an ObjectDisposedException is thrown.
         /// </summary>
+        /// <remarks>
+        /// May be safely called even if already terminated.
+        /// This must not be called on a context that is already closed otherwise an ObjectDisposedException is thrown.
+        /// </remarks>
         public void Terminate()
         {
             if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) != 0)

@@ -201,7 +201,7 @@ namespace NetMQ
         /// <summary>
         /// Create a deep-copy of this NetMQFrame and return it.
         /// </summary>
-        /// <returns>a new NetMQFrrame containing a copy of this one's buffer data</returns>
+        /// <returns>a new NetMQFrame containing a copy of this one's buffer data</returns>
         [NotNull]
         public NetMQFrame Duplicate()
         {
