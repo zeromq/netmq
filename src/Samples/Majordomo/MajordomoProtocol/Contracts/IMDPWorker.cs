@@ -1,5 +1,4 @@
 ﻿using System;
-
 using NetMQ;
 
 namespace MajordomoProtocol.Contracts
@@ -33,6 +32,6 @@ namespace MajordomoProtocol.Contracts
         ///      pass a <c>null</c> reply in order to initiate the REQ-REP
         ///      ping-pong
         /// </remarks>
-        NetMQMessage Receive (NetMQMessage reply);
+        NetMQMessage Receive(NetMQMessage reply);
     }
 }

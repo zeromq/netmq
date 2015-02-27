@@ -1,5 +1,4 @@
 ﻿using System;
-
 using NetMQ;
 
 namespace ParanoidPirate.Queue
@@ -12,30 +11,19 @@ namespace ParanoidPirate.Queue
 
         public string Name
         {
-            get { return Identity.ConvertToString (); }
-            set { Identity = new NetMQFrame (value); }
+            get { return Identity.ConvertToString(); }
+            set { Identity = new NetMQFrame(value); }
         }
 
-        public Worker (NetMQFrame id)
+        public Worker(NetMQFrame id)
         {
             Identity = id;
-            Expiry = DateTime.UtcNow + TimeSpan.FromMilliseconds (Commons.HEARTBEAT_INTERVAL * Commons.HEARTBEAT_LIVELINESS);
+            Expiry = DateTime.UtcNow + TimeSpan.FromMilliseconds(Commons.HeartbeatInterval*Commons.HeartbeatLiveliness);
         }
 
-        #region IDisposable
-
-        public void Dispose ()
+        public void Dispose()
         {
-            GC.SuppressFinalize (this);
-            Dispose (true);
+            Identity = null;
         }
-
-        protected void Dispose (bool disposing)
-        {
-            if (disposing)
-                Identity = null;
-        }
-
-        #endregion IDisposable
     }
 }

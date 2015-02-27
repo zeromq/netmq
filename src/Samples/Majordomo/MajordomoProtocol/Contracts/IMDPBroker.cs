@@ -35,7 +35,7 @@ namespace MajordomoProtocol.Contracts
         /// <remarks>
         ///     broker uses the same endpoint to communicate with clients and workers(!)
         /// </remarks>
-        void Bind ();
+        void Bind();
 
         /// <summary>
         ///     broker binds to the specified endpoint, if already bound will unbind and
@@ -44,7 +44,7 @@ namespace MajordomoProtocol.Contracts
         /// </summary>
         /// <param name="endpoint">new endpoint to bind to</param>
         /// <exception cref="InvalidOperationException">Can not change binding while operating!</exception>
-        void Bind (string endpoint);
+        void Bind(string endpoint);
 
         /// <summary>
         ///     starts a broker on a previously or automatically bound socket/port and
@@ -52,6 +52,6 @@ namespace MajordomoProtocol.Contracts
         /// </summary>
         /// <param name="token">used to signal the broker to abandon</param>
         /// <exception cref="InvalidOperationException">Can not change binding while operating!</exception>
-        Task Run (CancellationToken token);
+        Task Run(CancellationToken token);
     }
 }

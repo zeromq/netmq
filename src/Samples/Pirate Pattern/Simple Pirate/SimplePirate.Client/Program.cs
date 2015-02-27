@@ -5,19 +5,19 @@ using NetMQ.Sockets;
 
 namespace SimplePirate.Client
 {
-    class Program
+    internal static class Program
     {
-        private static int REQUEST_TIMEOUT = 2500;
-        private static int REQUEST_RETRIES = 10;
-        private static string SERVER_ENDPOINT = "tcp://localhost:5555";
+        private const int RequestTimeout = 2500;
+        private const int RequestRetries = 10;
+        private const string ServerEndpoint = "tcp://localhost:5555";
 
         private static string _strSequenceSent = "";
         private static bool _expectReply = true;
         private static int _retriesLeft = 0;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            _retriesLeft = REQUEST_RETRIES;
+            _retriesLeft = RequestRetries;
 
             using (NetMQContext context = NetMQContext.Create())
             {
@@ -35,7 +35,7 @@ namespace SimplePirate.Client
 
                     while (_expectReply)
                     {
-                        bool result = client.Poll(TimeSpan.FromMilliseconds(REQUEST_TIMEOUT));
+                        bool result = client.Poll(TimeSpan.FromMilliseconds(RequestTimeout));
 
                         if (!result)
                         {
@@ -64,7 +64,7 @@ namespace SimplePirate.Client
 
         private static void TerminateClient(RequestSocket client)
         {
-            client.Disconnect(SERVER_ENDPOINT);
+            client.Disconnect(ServerEndpoint);
             client.Close();
         }
 
@@ -76,7 +76,7 @@ namespace SimplePirate.Client
             client.Options.Linger = TimeSpan.Zero;
             Guid guid = Guid.NewGuid();
             client.Options.Identity = Encoding.Unicode.GetBytes(guid.ToString());
-            client.Connect(SERVER_ENDPOINT);
+            client.Connect(ServerEndpoint);
             client.ReceiveReady += ClientOnReceiveReady;
 
             return client;
@@ -89,7 +89,7 @@ namespace SimplePirate.Client
             if (Encoding.Unicode.GetString(reply) == (_strSequenceSent + " WORLD!"))
             {
                 Console.WriteLine("C: Server replied OK ({0})", Encoding.Unicode.GetString(reply));
-                _retriesLeft = REQUEST_RETRIES;
+                _retriesLeft = RequestRetries;
                 _expectReply = false;
             }
             else

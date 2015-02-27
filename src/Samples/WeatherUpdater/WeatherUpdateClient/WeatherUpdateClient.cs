@@ -4,15 +4,15 @@ using NetMQ;
 
 namespace WeatherUpdateClient
 {
-    class WeatherUpdateClient
+    internal static class WeatherUpdateClient
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             const int zipToSubscribeTo = 10001;
             const int iterations = 100;
 
             int totalTemp = 0;
-            int totalHumdity = 0;
+            int totalHumidity = 0;
 
             Console.WriteLine("Collecting updates for weather service for zipcode {0}...", zipToSubscribeTo);
 
@@ -37,13 +37,13 @@ namespace WeatherUpdateClient
                     }
 
                     totalTemp += int.Parse(split[1]);
-                    totalHumdity += int.Parse(split[2]);
+                    totalHumidity += int.Parse(split[2]);
                 }
             }
 
             Console.WriteLine();
-            Console.WriteLine("Average temperature was: {0}", totalTemp / iterations);
-            Console.WriteLine("Average relative humidity was: {0}", totalHumdity / iterations);
+            Console.WriteLine("Average temperature was: {0}", totalTemp/iterations);
+            Console.WriteLine("Average relative humidity was: {0}", totalHumidity/iterations);
         }
     }
 }
