@@ -21,6 +21,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
@@ -72,23 +73,24 @@ namespace NetMQ.zmq.Utils
         //  to pass the signals.
         private void MakeSocketsPair()
         {
-            using (var listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
+            using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
             {
-                listner.NoDelay = true;
-                listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                listener.NoDelay = true;
+                listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
                 // using ephemeral port            
-                listner.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-                listner.Listen(1);
+                listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+                listener.Listen(1);
 
                 m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
                 m_writeSocket.NoDelay = true;
 
-                m_writeSocket.Connect(listner.LocalEndPoint);
-                m_readSocket = listner.Accept();
+                m_writeSocket.Connect(listener.LocalEndPoint);
+                m_readSocket = listener.Accept();
             }
         }
 
+        [NotNull]
         public Socket Handle
         {
             get { return m_readSocket; }

@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 
 
 namespace NetMQ.zmq
@@ -426,7 +427,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Send a command to the given destination thread.
         /// </summary>
-        public void SendCommand(int threadId, Command command)
+        public void SendCommand(int threadId, [NotNull] Command command)
         {
             m_slots[threadId].Send(command);
         }
@@ -436,6 +437,7 @@ namespace NetMQ.zmq
         /// Affinity specifies which I/O threads are eligible (0 = all).
         /// Returns NULL if no I/O thread is available.
         /// </summary>
+        [CanBeNull]
         public IOThread ChooseIOThread(long affinity)
         {
             if (m_ioThreads.Count == 0)

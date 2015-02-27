@@ -191,6 +191,7 @@ namespace NetMQ.zmq
         public Command Recv(int timeout)
         {
             Command cmd = null;
+            
             //  Try to get the command straight away.
             if (m_active)
             {

@@ -45,7 +45,7 @@ namespace NetMQ.zmq
         //  When migrating an object from one I/O thread to another, first
         //  unplug it, then migrate it, then plug it to the new thread.
 
-        public void Plug(IOThread ioThread = null)
+        public void Plug([NotNull] IOThread ioThread)
         {
             Debug.Assert(ioThread != null);
 
@@ -62,12 +62,12 @@ namespace NetMQ.zmq
             m_handler = null;
         }
 
-        public void AddSocket(AsyncSocket socket)
+        public void AddSocket([NotNull] AsyncSocket socket)
         {
             m_ioThread.Proactor.AddSocket(socket, this);
         }
 
-        public void RemoveSocket(AsyncSocket socket)
+        public void RemoveSocket([NotNull] AsyncSocket socket)
         {
             m_ioThread.Proactor.RemoveSocket(socket);
         }
@@ -93,7 +93,7 @@ namespace NetMQ.zmq
             m_ioThread.Proactor.AddTimer(timeout, this, id);
         }
 
-        public void SetHandler(IProactorEvents handler)
+        public void SetHandler([NotNull] IProactorEvents handler)
         {
             m_handler = handler;
         }

@@ -304,17 +304,17 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-        protected virtual void ProcessOwn(Own obj)
+        protected virtual void ProcessOwn([NotNull] Own obj)
         {
             throw new NotSupportedException();
         }
 
-        protected virtual void ProcessAttach(IEngine engine)
+        protected virtual void ProcessAttach([NotNull] IEngine engine)
         {
             throw new NotSupportedException();
         }
 
-        protected virtual void ProcessBind(Pipe pipe)
+        protected virtual void ProcessBind([NotNull] Pipe pipe)
         {
             throw new NotSupportedException();
         }
@@ -329,7 +329,7 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-        protected virtual void ProcessHiccup(Object pipe)
+        protected virtual void ProcessHiccup([NotNull] Object pipe)
         {
             throw new NotSupportedException();
         }
@@ -344,7 +344,7 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-        protected virtual void ProcessTermReq(Own obj)
+        protected virtual void ProcessTermReq([NotNull] Own obj)
         {
             throw new NotSupportedException();
         }
@@ -359,7 +359,7 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-        protected virtual void ProcessReap(SocketBase socket)
+        protected virtual void ProcessReap([NotNull] SocketBase socket)
         {
             throw new NotSupportedException();
         }
@@ -383,7 +383,7 @@ namespace NetMQ.zmq
         /// Send the given Command, on that commands Destination thread.
         /// </summary>
         /// <param name="cmd">the Command to send</param>
-        private void SendCommand(Command cmd)
+        private void SendCommand([NotNull] Command cmd)
         {
             m_ctx.SendCommand(cmd.Destination.ThreadId, cmd);
         }
