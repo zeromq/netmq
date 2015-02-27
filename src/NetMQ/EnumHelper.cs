@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#if NET35
+using System;
 
 namespace NetMQ
 {
-    public static class EnumHelper
+    internal static class EnumHelper
     {
         public static bool HasFlag(this Enum value, Enum flag)
         {
@@ -27,3 +25,4 @@ namespace NetMQ
         }
     }
 }
+#endif

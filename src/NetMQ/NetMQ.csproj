@@ -48,6 +48,8 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DnsEndPoint.cs" />
+    <Compile Include="EnumHelper.cs" />
     <Compile Include="NetMQActor.cs" />
     <Compile Include="EventDelegator.cs" />
     <Compile Include="InProcActors\Actor.cs" />
