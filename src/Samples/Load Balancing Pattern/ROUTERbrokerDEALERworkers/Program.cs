@@ -3,50 +3,46 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NetMQ;
-using NetMQ.Sockets;
 
 namespace ROUTERbrokerDEALERworkers
 {
-    class Program
+    internal static class Program
     {
-        private const int PORT_NUMBER = 5555;
+        private const int PortNumber = 5555;
 
-        //  We have two workers, here we copy the code, normally these would
-        //  run on different boxes…
-        public static void Main(string[] args)
+        // We have two workers, here we copy the code, normally these would run on different boxes…
+        public static void Main()
         {
-            var randomizer = new Random(DateTime.Now.Millisecond);
+            var random = new Random(DateTime.Now.Millisecond);
             var workers = new List<Thread>(new[] { new Thread(WorkerTaskA), new Thread(WorkerTaskB) });
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var client = context.CreateRouterSocket())
             {
-                using (RouterSocket client = context.CreateRouterSocket())
+                client.Bind(string.Format("tcp://localhost:{0}", PortNumber));
+
+                foreach (var thread in workers)
                 {
-                    client.Bind(string.Format("tcp://localhost:{0}", PORT_NUMBER));
-                    foreach (Thread thread in workers)
-                    {
-                        thread.Start(PORT_NUMBER);
-                    }
-
-                    //  Wait for threads to connect, since otherwise the messages we send won't be routable.
-                    Thread.Sleep(1000);
-
-                    for (int taskNumber = 0; taskNumber < 1000; taskNumber++)
-                    {
-                        //  Send two message parts, first the address…
-
-                        client.SendMore(randomizer.Next(3) > 0 ? Encoding.Unicode.GetBytes("A") : Encoding.Unicode.GetBytes("B"));
-
-                        //  And then the workload
-                        client.Send("This is the workload");
-                    }
-
-                    client.SendMore(Encoding.Unicode.GetBytes("A"));
-                    client.Send("END");
-
-                    client.SendMore(Encoding.Unicode.GetBytes("B"));
-                    client.Send("END");
+                    thread.Start(PortNumber);
                 }
+
+                // Wait for threads to connect, since otherwise the messages we send won't be routable.
+                Thread.Sleep(1000);
+
+                for (int taskNumber = 0; taskNumber < 1000; taskNumber++)
+                {
+                    // Send two message parts, first the address…
+                    client.SendMore(random.Next(3) > 0 ? Encoding.Unicode.GetBytes("A") : Encoding.Unicode.GetBytes("B"));
+
+                    // And then the workload
+                    client.Send("This is the workload");
+                }
+
+                client.SendMore(Encoding.Unicode.GetBytes("A"));
+                client.Send("END");
+
+                client.SendMore(Encoding.Unicode.GetBytes("B"));
+                client.Send("END");
             }
 
             Console.ReadKey();
@@ -54,65 +50,61 @@ namespace ROUTERbrokerDEALERworkers
 
         private static void WorkerTaskA(object portNumber)
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var worker = context.CreateDealerSocket())
             {
-                using (DealerSocket worker = context.CreateDealerSocket())
+                worker.Options.Identity = Encoding.Unicode.GetBytes("A");
+                worker.Connect(string.Format("tcp://localhost:{0}", portNumber));
+
+                int total = 0;
+
+                bool end = false;
+
+                while (!end)
                 {
-                    worker.Options.Identity = Encoding.Unicode.GetBytes("A");
-                    worker.Connect(string.Format("tcp://localhost:{0}", portNumber));
+                    string request = worker.ReceiveString();
 
-                    int total = 0;
-
-                    bool end = false;
-
-                    while (!end)
+                    if (request.Equals("END"))
                     {
-                        string request = worker.ReceiveString();
-
-                        if (request.Equals("END"))
-                        {
-                            end = true;
-                        }
-                        else
-                        {
-                            total++;
-                        }
+                        end = true;
                     }
-
-                    Console.WriteLine("A Received: {0}", total);
+                    else
+                    {
+                        total++;
+                    }
                 }
+
+                Console.WriteLine("A Received: {0}", total);
             }
         }
 
         private static void WorkerTaskB(object portNumber)
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var worker = context.CreateDealerSocket())
             {
-                using (DealerSocket worker = context.CreateDealerSocket())
+                worker.Options.Identity = Encoding.Unicode.GetBytes("B");
+                worker.Connect(string.Format("tcp://localhost:{0}", portNumber));
+
+                int total = 0;
+
+                bool end = false;
+
+                while (!end)
                 {
-                    worker.Options.Identity = Encoding.Unicode.GetBytes("B");
-                    worker.Connect(string.Format("tcp://localhost:{0}", portNumber));
+                    string request = worker.ReceiveString();
 
-                    int total = 0;
-
-                    bool end = false;
-
-                    while (!end)
+                    if (request.Equals("END"))
                     {
-                        string request = worker.ReceiveString();
-
-                        if (request.Equals("END"))
-                        {
-                            end = true;
-                        }
-                        else
-                        {
-                            total++;
-                        }
+                        end = true;
                     }
-
-                    Console.WriteLine("B Received: {0}", total);
+                    else
+                    {
+                        total++;
+                    }
                 }
+
+                Console.WriteLine("B Received: {0}", total);
             }
         }
     }

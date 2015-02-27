@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using NetMQ.InProcActors;
 using NetMQ.Sockets;
 using NetMQ.zmq;
@@ -9,11 +10,12 @@ namespace NetMQ.Actors
     [Obsolete("Use non generic NetMQActor")]
     public class NetMQActorEventArgs<T> : EventArgs
     {
-        public NetMQActorEventArgs(Actor<T> actor)
+        public NetMQActorEventArgs([NotNull] Actor<T> actor)
         {
             Actor = actor;
         }
 
+        [NotNull]
         public Actor<T> Actor { get; private set; }
     }
 
@@ -33,7 +35,7 @@ namespace NetMQ.Actors
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
 
-      private string GetEndPointName()
+        private string GetEndPointName()
         {
             return string.Format("inproc://zactor-{0}-{1}",
                 rand.Next(0, 10000), rand.Next(0, 10000));

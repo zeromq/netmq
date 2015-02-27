@@ -1,14 +1,14 @@
-﻿namespace NetMQ.SimpleTests
-{
-    using System;
-    using System.Diagnostics;
-    using System.Threading;
+﻿using System;
+using System.Diagnostics;
+using System.Threading;
 
+namespace NetMQ.SimpleTests
+{
     internal class ThroughputBenchmark : ITest
     {
         private static readonly int[] MessageSizes = { 8, 64, 256, 1024, 4096 };
 
-        private const int MSGCOUNT = 1000000;
+        private const int MsgCount = 1000000;
 
         public string TestName
         {
@@ -34,29 +34,27 @@
             {
                 socket.Bind("tcp://*:9091");
 
-                foreach (int messageSize in MessageSizes)
+                foreach (var messageSize in MessageSizes)
                 {
-                    var message = new byte[messageSize];
-
-                    message = socket.Receive();
+                    byte[] message = socket.Receive();
                     //Debug.Assert(receivedBytes == messageSize, "Message length was different from expected size.");
-                    Debug.Assert(message[messageSize / 2] == 0x42, "Message did not contain verification data.");
+                    Debug.Assert(message[messageSize/2] == 0x42, "Message did not contain verification data.");
 
                     var watch = new Stopwatch();
                     watch.Start();
 
-                    for (int i = 1; i < MSGCOUNT; i++)
+                    for (int i = 1; i < MsgCount; i++)
                     {
                         message = socket.Receive();
                         //Debug.Assert(receivedBytes == messageSize, "Message length was different from expected size.");
-                        Debug.Assert(message[messageSize / 2] == 0x42, "Message did not contain verification data.");
+                        Debug.Assert(message[messageSize/2] == 0x42, "Message did not contain verification data.");
                     }
 
                     watch.Stop();
 
                     long elapsedTime = watch.ElapsedTicks;
-                    long messageThroughput = MSGCOUNT * Stopwatch.Frequency / elapsedTime;
-                    long megabitThroughput = messageThroughput * messageSize * 8 / 1000000;
+                    long messageThroughput = MsgCount*Stopwatch.Frequency/elapsedTime;
+                    long megabitThroughput = messageThroughput*messageSize*8/1000000;
 
                     Console.WriteLine("Message size: {0} [B]", messageSize);
                     Console.WriteLine("Average throughput: {0} [msg/s]", messageThroughput);
@@ -72,12 +70,12 @@
             {
                 socket.Connect("tcp://127.0.0.1:9091");
 
-                foreach (int messageSize in MessageSizes)
+                foreach (var messageSize in MessageSizes)
                 {
                     var msg = new byte[messageSize];
-                    msg[messageSize / 2] = 0x42;
+                    msg[messageSize/2] = 0x42;
 
-                    for (int i = 0; i < MSGCOUNT; i++)
+                    for (int i = 0; i < MsgCount; i++)
                     {
                         socket.Send(msg);
                     }

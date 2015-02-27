@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using MajordomoProtocol;
 using NetMQ;
-using NetMQ.zmq;
 using NUnit.Framework;
-using Poller = NetMQ.Poller;
 
 namespace MajordomoTests
 {
@@ -14,328 +11,328 @@ namespace MajordomoTests
     public class MDPClientTests
     {
         [Test]
-        public void ctor_NewUp_ShouldReturnMDPClient ()
+        public void ctor_NewUp_ShouldReturnMDPClient()
         {
-            var session = new MDPClient ("tcp://localhost:5555");
+            var session = new MDPClient("tcp://localhost:5555");
 
-            Assert.That (session, Is.Not.Null);
-            Assert.That (session.Retries, Is.EqualTo (3));
-            Assert.That (session.Timeout, Is.EqualTo (TimeSpan.FromMilliseconds (2500)));
+            Assert.That(session, Is.Not.Null);
+            Assert.That(session.Retries, Is.EqualTo(3));
+            Assert.That(session.Timeout, Is.EqualTo(TimeSpan.FromMilliseconds(2500)));
 
-            session.Dispose ();
+            session.Dispose();
         }
 
         [Test]
-        public void ctor_NoBrokerAddress_ShouldReturnMDPClient ()
+        public void ctor_NoBrokerAddress_ShouldReturnMDPClient()
         {
-            Assert.Throws<ArgumentNullException> (() => new MDPClient (string.Empty));
+            Assert.Throws<ArgumentNullException>(() => new MDPClient(string.Empty));
         }
 
         [Test]
-        public void ctor_WhitespaceBrokerAddress_ShouldReturnMDPClient ()
+        public void ctor_WhitespaceBrokerAddress_ShouldReturnMDPClient()
         {
-            Assert.Throws<ArgumentNullException> (() => new MDPClient ("   "));
+            Assert.Throws<ArgumentNullException>(() => new MDPClient("   "));
         }
 
         [Test]
-        public void Send_CorrectInputWithLogging_ShouldReturnCorrectReply ()
+        public void Send_CorrectInputWithLogging_ShouldReturnCorrectReply()
         {
-            const string host_address = "tcp://localhost:5555";
-            var loggingMessages = new List<string> ();
+            const string hostAddress = "tcp://localhost:5555";
+            var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create ())
-            using (var broker = ctx.CreateRouterSocket ())
-            using (var poller = new Poller ())
-            using (var session = new MDPClient (host_address))
+            using (var ctx = NetMQContext.Create())
+            using (var broker = ctx.CreateRouterSocket())
+            using (var poller = new Poller())
+            using (var session = new MDPClient(hostAddress))
             {
-                broker.Bind (host_address);
+                broker.Bind(hostAddress);
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
-                                       {
-                                           var msg = e.Socket.ReceiveMessage ();
-                                           // we expect to receive a 4 Frame mesage
-                                           // [client adrR][e][mdp header][service][request]
-                                           if (msg.FrameCount != 5)
-                                               Assert.Fail ("Message with wrong count of frames {0}", msg.FrameCount);
-                                           // REQUEST socket will strip the his address + empty frame
-                                           // ROUTER has to add the address prelude in order to identify the correct socket(!)
-                                           // [client adr][e][mdp header][service][reply]
-                                           var request = msg.Last.ConvertToString ();       // get the request string
-                                           msg.RemoveFrame (msg.Last);                      // remove the request frame
-                                           msg.Append (new NetMQFrame (request + " OK"));   // append the reply frame
-                                           e.Socket.SendMessage (msg);
-                                       };
+                {
+                    var msg = e.Socket.ReceiveMessage();
+                    // we expect to receive a 4 Frame mesage
+                    // [client adrR][e][mdp header][service][request]
+                    if (msg.FrameCount != 5)
+                        Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
+                    // REQUEST socket will strip the his address + empty frame
+                    // ROUTER has to add the address prelude in order to identify the correct socket(!)
+                    // [client adr][e][mdp header][service][reply]
+                    var request = msg.Last.ConvertToString(); // get the request string
+                    msg.RemoveFrame(msg.Last); // remove the request frame
+                    msg.Append(new NetMQFrame(request + " OK")); // append the reply frame
+                    e.Socket.SendMessage(msg);
+                };
 
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
+                poller.AddSocket(broker);
+                Task.Factory.StartNew(poller.PollTillCancelled);
 
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
+                session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
                 // well formed message
-                var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
+                var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
                 // correct call
-                var reply = session.Send ("echo", requestMessage);
+                var reply = session.Send("echo", requestMessage);
 
                 poller.CancelAndJoin();
-                poller.RemoveSocket (broker);
+                poller.RemoveSocket(broker);
 
-                Assert.That (reply.FrameCount, Is.EqualTo (1));
-                Assert.That (reply.First.ConvertToString (), Is.EqualTo ("REQUEST OK"));
-                Assert.That (loggingMessages.Count, Is.EqualTo (3));
-                Assert.That (loggingMessages[0], Is.EqualTo ("[CLIENT] connecting to broker at tcp://localhost:5555"));
-                Assert.That (loggingMessages[1].Contains ("[CLIENT INFO] sending"), Is.True);
-                Assert.That (loggingMessages[2].Contains ("[CLIENT INFO] received"), Is.True);
+                Assert.That(reply.FrameCount, Is.EqualTo(1));
+                Assert.That(reply.First.ConvertToString(), Is.EqualTo("REQUEST OK"));
+                Assert.That(loggingMessages.Count, Is.EqualTo(3));
+                Assert.That(loggingMessages[0], Is.EqualTo("[CLIENT] connecting to broker at tcp://localhost:5555"));
+                Assert.That(loggingMessages[1].Contains("[CLIENT INFO] sending"), Is.True);
+                Assert.That(loggingMessages[2].Contains("[CLIENT INFO] received"), Is.True);
             }
         }
 
         [Test]
-        public void Send_NoServiceNameWithLogging_ShouldThrowApplicationException ()
+        public void Send_NoServiceNameWithLogging_ShouldThrowApplicationException()
         {
-            const string host_address = "tcp://localhost:5555";
-            var loggingMessages = new List<string> ();
+            const string hostAddress = "tcp://localhost:5555";
+            var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var session = new MDPClient (host_address))
+            using (var session = new MDPClient(hostAddress))
             {
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
+                session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
                 // well formed message
-                var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
+                var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
                 // correct call
                 try
                 {
-                    session.Send (string.Empty, requestMessage);
+                    session.Send(string.Empty, requestMessage);
                 }
                 catch (ApplicationException ex)
                 {
-                    Assert.That (ex.Message, Is.EqualTo ("serviceName must not be empty or null."));
+                    Assert.That(ex.Message, Is.EqualTo("serviceName must not be empty or null."));
                 }
 
-                Assert.That (loggingMessages.Count, Is.EqualTo (0));
+                Assert.That(loggingMessages.Count, Is.EqualTo(0));
             }
         }
 
         [Test]
-        public void Send_WithspaceServiceNameWithLogging_ShouldThrowApplicationException ()
+        public void Send_WithspaceServiceNameWithLogging_ShouldThrowApplicationException()
         {
-            const string host_address = "tcp://localhost:5555";
-            var loggingMessages = new List<string> ();
+            const string hostAddress = "tcp://localhost:5555";
+            var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var session = new MDPClient (host_address))
+            using (var session = new MDPClient(hostAddress))
             {
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
+                session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
                 // well formed message
-                var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
+                var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
                 // correct call
                 try
                 {
-                    session.Send ("  ", requestMessage);
+                    session.Send("  ", requestMessage);
                 }
                 catch (ApplicationException ex)
                 {
-                    Assert.That (ex.Message, Is.EqualTo ("serviceName must not be empty or null."));
+                    Assert.That(ex.Message, Is.EqualTo("serviceName must not be empty or null."));
                 }
 
-                Assert.That (loggingMessages.Count, Is.EqualTo (0));
+                Assert.That(loggingMessages.Count, Is.EqualTo(0));
             }
         }
 
         [Test]
-        public void Send_WrongServiceNameWithLogging_ShouldLogPermanentError ()
+        public void Send_WrongServiceNameWithLogging_ShouldLogPermanentError()
         {
-            const string host_address = "tcp://localhost:5555";
-            var loggingMessages = new List<string> ();
+            const string hostAddress = "tcp://localhost:5555";
+            var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create ())
-            using (var broker = ctx.CreateRouterSocket ())
-            using (var poller = new Poller ())
-            using (var session = new MDPClient (host_address))
+            using (var ctx = NetMQContext.Create())
+            using (var broker = ctx.CreateRouterSocket())
+            using (var poller = new Poller())
+            using (var session = new MDPClient(hostAddress))
             {
-                broker.Bind (host_address);
+                broker.Bind(hostAddress);
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
-                                       {
-                                           // just swallow message -> wrong service name
-                                           var msg = e.Socket.ReceiveMessage ();
-                                       };
+                {
+                    // just swallow message -> wrong service name
+                    e.Socket.ReceiveMessage();
+                };
 
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
+                poller.AddSocket(broker);
+                Task.Factory.StartNew(poller.PollTillCancelled);
 
                 // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
+                session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
                 // well formed message
-                var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
+                var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
                 // wrong service name
-                session.Send ("xyz", requestMessage);
+                session.Send("xyz", requestMessage);
 
                 poller.CancelAndJoin();
-                poller.RemoveSocket (broker);
+                poller.RemoveSocket(broker);
 
-                Assert.That (loggingMessages.Count, Is.EqualTo (7));
-                Assert.That (loggingMessages[6], Is.EqualTo ("[CLIENT ERROR] permanent error, abandoning!"));
+                Assert.That(loggingMessages.Count, Is.EqualTo(7));
+                Assert.That(loggingMessages[6], Is.EqualTo("[CLIENT ERROR] permanent error, abandoning!"));
             }
         }
 
         [Test]
-        public void Send_EmptyReplyFromBrokerWithLogging_ShouldThrowApplicationException ()
+        public void Send_EmptyReplyFromBrokerWithLogging_ShouldThrowApplicationException()
         {
-            const string host_address = "tcp://localhost:5555";
-            var loggingMessages = new List<string> ();
+            const string hostAddress = "tcp://localhost:5555";
+            var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create ())
-            using (var broker = ctx.CreateRouterSocket ())
-            using (var poller = new Poller ())
-            using (var session = new MDPClient (host_address))
+            using (var ctx = NetMQContext.Create())
+            using (var broker = ctx.CreateRouterSocket())
+            using (var poller = new Poller())
+            using (var session = new MDPClient(hostAddress))
             {
-                broker.Bind (host_address);
-                // we need to pick up any message in order to avoid errors
-                broker.ReceiveReady += (s, e) =>
-                                       {
-                                           // return empty reply
-                                           var msg = e.Socket.ReceiveMessage ();
-                                           // we expect to receive a 4 Frame mesage
-                                           // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
-                                           if (msg.FrameCount != 5)
-                                               Assert.Fail ("Message with wrong count of frames {0}", msg.FrameCount);
-                                           // REQUEST socket will strip the his address + empty frame
-                                           // ROUTER has to add the address prelude in order to identify the correct socket(!)
-                                           // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
-                                           e.Socket.SendMessage (msg);
-                                       };
-
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
-
-                // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
-                // well formed message
-                var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
-                // correct call
-                session.Send ("echo", requestMessage);
-
-                poller.CancelAndJoin();
-                poller.RemoveSocket (broker);
-
-                Assert.That (loggingMessages.Count, Is.EqualTo (3));
-                Assert.That (loggingMessages[0], Is.EqualTo ("[CLIENT] connecting to broker at tcp://localhost:5555"));
-                Assert.That (loggingMessages[1].Contains ("[CLIENT INFO] sending"), Is.True);
-                Assert.That (loggingMessages[2].Contains ("[CLIENT INFO] received"), Is.True);
-            }
-        }
-
-        [Test]
-        public void Send_WrongMDPVersionFromBrokerNoLogging_ShouldThrowApplicationException ()
-        {
-            const string host_address = "tcp://localhost:5555";
-
-            // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create ())
-            using (var broker = ctx.CreateRouterSocket ())
-            using (var poller = new Poller ())
-            using (var session = new MDPClient (host_address))
-            {
-                broker.Bind (host_address);
-                // we need to pick up any message in order to avoid errors
-                broker.ReceiveReady += (s, e) =>
-                                       {
-                                           // return empty reply
-                                           var msg = e.Socket.ReceiveMessage ();
-                                           // we expect to receive a 4 Frame mesage
-                                           // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
-                                           if (msg.FrameCount != 5)
-                                               Assert.Fail ("Message with wrong count of frames {0}", msg.FrameCount);
-                                           // REQUEST socket will strip the his address + empty frame
-                                           // ROUTER has to add the address prelude in order to identify the correct socket(!)
-                                           // [REQ ADR][EMPTY]["MDPC00"]["echo"]["REQUEST"]
-                                           var clientAddress = msg.Pop ();
-                                           msg.Pop (); // forget empty frame
-                                           msg.Pop (); // drop the MDP Versoin Frame
-                                           msg.Push ("MDPC00"); // insert wrong MDP version
-                                           msg.Push (NetMQFrame.Empty);
-                                           msg.Push (clientAddress); // reinsert the client's address
-
-                                           e.Socket.SendMessage (msg);
-                                       };
-
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
-
-                // well formed message
-                var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
-
-                try
-                {
-                    session.Send ("echo", requestMessage);
-                }
-                catch (ApplicationException ex)
-                {
-                    Assert.That (ex.Message, Is.StringContaining ("MDP Version mismatch"));
-                }
-
-                poller.CancelAndJoin();
-                poller.RemoveSocket (broker);
-            }
-        }
-
-        [Test]
-        public void Send_WrongHeaderFromBrokerNoLogging_ShouldThrowApplicationException ()
-        {
-            const string host_address = "tcp://localhost:5555";
-
-            // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create ())
-            using (var broker = ctx.CreateRouterSocket ())
-            using (var poller = new Poller ())
-            using (var session = new MDPClient (host_address))
-            {
-                broker.Bind (host_address);
+                broker.Bind(hostAddress);
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
                 {
                     // return empty reply
-                    var msg = e.Socket.ReceiveMessage ();
+                    var msg = e.Socket.ReceiveMessage();
                     // we expect to receive a 4 Frame mesage
                     // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
                     if (msg.FrameCount != 5)
-                        Assert.Fail ("Message with wrong count of frames {0}", msg.FrameCount);
+                        Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
+                    // REQUEST socket will strip the his address + empty frame
+                    // ROUTER has to add the address prelude in order to identify the correct socket(!)
+                    // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
+                    e.Socket.SendMessage(msg);
+                };
+
+                poller.AddSocket(broker);
+                Task.Factory.StartNew(poller.PollTillCancelled);
+
+                // set the event handler to receive the logging messages
+                session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
+                // well formed message
+                var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
+                // correct call
+                session.Send("echo", requestMessage);
+
+                poller.CancelAndJoin();
+                poller.RemoveSocket(broker);
+
+                Assert.That(loggingMessages.Count, Is.EqualTo(3));
+                Assert.That(loggingMessages[0], Is.EqualTo("[CLIENT] connecting to broker at tcp://localhost:5555"));
+                Assert.That(loggingMessages[1].Contains("[CLIENT INFO] sending"), Is.True);
+                Assert.That(loggingMessages[2].Contains("[CLIENT INFO] received"), Is.True);
+            }
+        }
+
+        [Test]
+        public void Send_WrongMDPVersionFromBrokerNoLogging_ShouldThrowApplicationException()
+        {
+            const string hostAddress = "tcp://localhost:5555";
+
+            // setup the counter socket for communication
+            using (var ctx = NetMQContext.Create())
+            using (var broker = ctx.CreateRouterSocket())
+            using (var poller = new Poller())
+            using (var session = new MDPClient(hostAddress))
+            {
+                broker.Bind(hostAddress);
+                // we need to pick up any message in order to avoid errors
+                broker.ReceiveReady += (s, e) =>
+                {
+                    // return empty reply
+                    var msg = e.Socket.ReceiveMessage();
+                    // we expect to receive a 4 Frame mesage
+                    // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
+                    if (msg.FrameCount != 5)
+                        Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
                     // REQUEST socket will strip the his address + empty frame
                     // ROUTER has to add the address prelude in order to identify the correct socket(!)
                     // [REQ ADR][EMPTY]["MDPC00"]["echo"]["REQUEST"]
-                    var clientAddress = msg.Pop ();
-                    msg.Pop ();     // forget empty frame
-                    var mdpVersion = msg.Pop ();
-                    msg.Pop ();     // drop service name version
-                    msg.Push ("NoService");
-                    msg.Push (mdpVersion);
-                    msg.Push (NetMQFrame.Empty);
-                    msg.Push (clientAddress); // reinsert the client's address
+                    var clientAddress = msg.Pop();
+                    msg.Pop(); // forget empty frame
+                    msg.Pop(); // drop the MDP Versoin Frame
+                    msg.Push("MDPC00"); // insert wrong MDP version
+                    msg.Push(NetMQFrame.Empty);
+                    msg.Push(clientAddress); // reinsert the client's address
 
-                    e.Socket.SendMessage (msg);
+                    e.Socket.SendMessage(msg);
                 };
 
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew(() => poller.PollTillCancelled());
+                poller.AddSocket(broker);
+                Task.Factory.StartNew(poller.PollTillCancelled);
 
                 // well formed message
-                var requestMessage = new NetMQMessage (new[] { new NetMQFrame ("REQUEST") });
+                var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
 
                 try
                 {
-                    session.Send ("echo", requestMessage);
+                    session.Send("echo", requestMessage);
                 }
                 catch (ApplicationException ex)
                 {
-                    Assert.That (ex.Message, Is.EqualTo ("[CLIENT INFO] answered by wrong service: NoService"));
+                    Assert.That(ex.Message, Is.StringContaining("MDP Version mismatch"));
                 }
 
                 poller.CancelAndJoin();
-                poller.RemoveSocket (broker);
+                poller.RemoveSocket(broker);
+            }
+        }
+
+        [Test]
+        public void Send_WrongHeaderFromBrokerNoLogging_ShouldThrowApplicationException()
+        {
+            const string hostAddress = "tcp://localhost:5555";
+
+            // setup the counter socket for communication
+            using (var ctx = NetMQContext.Create())
+            using (var broker = ctx.CreateRouterSocket())
+            using (var poller = new Poller())
+            using (var session = new MDPClient(hostAddress))
+            {
+                broker.Bind(hostAddress);
+                // we need to pick up any message in order to avoid errors
+                broker.ReceiveReady += (s, e) =>
+                {
+                    // return empty reply
+                    var msg = e.Socket.ReceiveMessage();
+                    // we expect to receive a 4 Frame mesage
+                    // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
+                    if (msg.FrameCount != 5)
+                        Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
+                    // REQUEST socket will strip the his address + empty frame
+                    // ROUTER has to add the address prelude in order to identify the correct socket(!)
+                    // [REQ ADR][EMPTY]["MDPC00"]["echo"]["REQUEST"]
+                    var clientAddress = msg.Pop();
+                    msg.Pop(); // forget empty frame
+                    var mdpVersion = msg.Pop();
+                    msg.Pop(); // drop service name version
+                    msg.Push("NoService");
+                    msg.Push(mdpVersion);
+                    msg.Push(NetMQFrame.Empty);
+                    msg.Push(clientAddress); // reinsert the client's address
+
+                    e.Socket.SendMessage(msg);
+                };
+
+                poller.AddSocket(broker);
+                Task.Factory.StartNew(poller.PollTillCancelled);
+
+                // well formed message
+                var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
+
+                try
+                {
+                    session.Send("echo", requestMessage);
+                }
+                catch (ApplicationException ex)
+                {
+                    Assert.That(ex.Message, Is.EqualTo("[CLIENT INFO] answered by wrong service: NoService"));
+                }
+
+                poller.CancelAndJoin();
+                poller.RemoveSocket(broker);
             }
         }
     }

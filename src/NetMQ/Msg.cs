@@ -20,8 +20,8 @@
 */
 
 using System;
-using NetMQ.zmq.Utils;
 using JetBrains.Annotations;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
@@ -69,36 +69,16 @@ namespace NetMQ
     public struct Msg
     {
         /// <summary>
-        /// This indicates whether the More, Identity, and Shared bits are set.
-        /// </summary>
-        private MsgFlags m_flags;
-
-        /// <summary>
-        /// The number of bytes within the Data byte-array.
-        /// </summary>
-        private int m_size;
-
-        /// <summary>
-        /// This is the internal byte-array of data that backs the Data property.
-        /// </summary>
-        private byte[] m_data;
-
-        /// <summary>
         /// This serves as a reference-counter for shared byte-array data.
         /// </summary>
         private AtomicCounter m_atomicCounter;
-
-        /// <summary>
-        /// This is the byte flags enum MsgType value that backs the MsgType property.
-        /// </summary>
-        private MsgType m_type;
 
         /// <summary>
         /// Get whether the Identity bit is set on the Flags property.
         /// </summary>
         public bool IsIdentity
         {
-            get { return (m_flags & MsgFlags.Identity) == MsgFlags.Identity; }
+            get { return (Flags & MsgFlags.Identity) == MsgFlags.Identity; }
         }
 
         /// <summary>
@@ -112,42 +92,30 @@ namespace NetMQ
         /// <summary>
         /// Get the number of bytes within the Data property.
         /// </summary>
-        public int Size
-        {
-            get { return m_size; }
-        }
+        public int Size { get; private set; }
 
         /// <summary>
         /// Get the "Has-More" flag, which when set on a message-queue frame indicates that there are more frames to follow.
         /// </summary>
         public bool HasMore
         {
-            get { return (m_flags & MsgFlags.More) == MsgFlags.More; }
+            get { return (Flags & MsgFlags.More) == MsgFlags.More; }
         }
 
         /// <summary>
         /// Get the MsgType flags-enum value, which indicates which of the Invalid, Empty, GC, Pool, or Delimiter bits are set.
         /// </summary>
-        public MsgType MsgType
-        {
-            get { return m_type; }
-        }
+        public MsgType MsgType { get; private set; }
 
         /// <summary>
         /// Get the flags-enum MsgFlags value, which indicates which of the More, Identity, or Shared bits are set.
         /// </summary>
-        public MsgFlags Flags
-        {
-            get { return m_flags; }
-        }
+        public MsgFlags Flags { get; private set; }
 
         /// <summary>
         /// Get the byte-array that represents the data payload of this Msg.
         /// </summary>
-        public byte[] Data
-        {
-            get { return m_data; }
-        }
+        public byte[] Data { get; private set; }
 
         /// <summary>
         /// Return true if the MsgType property is within the allowable range.
@@ -163,10 +131,10 @@ namespace NetMQ
         /// </summary>
         public void InitEmpty()
         {
-            m_type = MsgType.Empty;
-            m_flags = MsgFlags.None;
-            m_size = 0;
-            m_data = null;
+            MsgType = MsgType.Empty;
+            Flags = MsgFlags.None;
+            Size = 0;
+            Data = null;
             m_atomicCounter = null;
         }
 
@@ -176,10 +144,10 @@ namespace NetMQ
         /// <param name="size">the number of bytes to allocate in the data-buffer</param>
         public void InitPool(int size)
         {
-            m_type = MsgType.Pool;
-            m_flags = MsgFlags.None;
-            m_data = BufferPool.Take(size);
-            m_size = size;
+            MsgType = MsgType.Pool;
+            Flags = MsgFlags.None;
+            Data = BufferPool.Take(size);
+            Size = size;
 
             m_atomicCounter = new AtomicCounter();
         }
@@ -191,10 +159,10 @@ namespace NetMQ
         /// <param name="size">the number of bytes that are in the data byte-array</param>
         public void InitGC([NotNull] byte[] data, int size)
         {
-            m_type = MsgType.GC;
-            m_flags = MsgFlags.None;
-            m_data = data;
-            m_size = size;
+            MsgType = MsgType.GC;
+            Flags = MsgFlags.None;
+            Data = data;
+            Size = size;
             m_atomicCounter = null;
         }
 
@@ -203,8 +171,8 @@ namespace NetMQ
         /// </summary>
         public void InitDelimiter()
         {
-            m_type = MsgType.Delimiter;
-            m_flags = MsgFlags.None;
+            MsgType = MsgType.Delimiter;
+            Flags = MsgFlags.None;
         }
 
         /// <summary>
@@ -219,21 +187,21 @@ namespace NetMQ
                 throw new FaultException("In Msg.Close, Check failed.");
             }
 
-            if (m_type == MsgType.Pool)
+            if (MsgType == MsgType.Pool)
             {
                 // if not shared or reference counter drop to zero
-                if ((m_flags & MsgFlags.Shared) == 0 || m_atomicCounter.Decrement() == 0)
+                if ((Flags & MsgFlags.Shared) == 0 || m_atomicCounter.Decrement() == 0)
                 {
-                    BufferPool.Return(m_data);
+                    BufferPool.Return(Data);
                 }
 
                 m_atomicCounter = null;
             }
 
-            m_data = null;
+            Data = null;
 
             //  Make the message invalid.
-            m_type = MsgType.Invalid;
+            MsgType = MsgType.Invalid;
         }
 
         /// <summary>
@@ -249,16 +217,16 @@ namespace NetMQ
                 return;
             }
 
-            if (m_type == MsgType.Pool)
+            if (MsgType == MsgType.Pool)
             {
-                if (m_flags == MsgFlags.Shared)
+                if (Flags == MsgFlags.Shared)
                 {
                     m_atomicCounter.Increase(amount);
                 }
                 else
                 {
                     m_atomicCounter.Set(amount);
-                    m_flags |= MsgFlags.Shared;
+                    Flags |= MsgFlags.Shared;
                 }
             }
         }
@@ -276,7 +244,7 @@ namespace NetMQ
                 return;
             }
 
-            if (m_type != MsgType.Pool || (m_flags & MsgFlags.Shared) == 0)
+            if (MsgType != MsgType.Pool || (Flags & MsgFlags.Shared) == 0)
             {
                 Close();
                 return;
@@ -286,7 +254,7 @@ namespace NetMQ
             {
                 m_atomicCounter = null;
 
-                BufferPool.Return(m_data);
+                BufferPool.Return(Data);
             }
         }
 
@@ -296,7 +264,7 @@ namespace NetMQ
         /// <returns>a string that provides some detail about this Msg's state</returns>
         public override String ToString()
         {
-            return base.ToString() + "[" + MsgType + "," + Size + "," + m_flags + "]";
+            return base.ToString() + "[" + MsgType + "," + Size + "," + Flags + "]";
         }
 
         /// <summary>
@@ -305,7 +273,7 @@ namespace NetMQ
         /// <param name="flags">which Flags bits to set (More, Identity, or Shared)</param>
         public void SetFlags(MsgFlags flags)
         {
-            m_flags = m_flags | flags;
+            Flags = Flags | flags;
         }
 
         /// <summary>
@@ -314,7 +282,7 @@ namespace NetMQ
         /// <param name="flags">which Flags bits to clear (More, Identity, or Shared)</param>
         public void ResetFlags(MsgFlags flags)
         {
-            m_flags = m_flags & ~flags;
+            Flags = Flags & ~flags;
         }       
 
         /// <summary>
@@ -328,7 +296,7 @@ namespace NetMQ
             if (len == 0 || src == null)
                 return;
 
-            Buffer.BlockCopy(src, 0, m_data, i, len);
+            Buffer.BlockCopy(src, 0, Data, i, len);
         }
 
         /// <summary>
@@ -337,7 +305,7 @@ namespace NetMQ
         /// <param name="b">the source byte to copy from</param>
         public void Put(byte b)
         {
-            m_data[0] = b;
+            Data[0] = b;
         }
 
         /// <summary>
@@ -347,8 +315,8 @@ namespace NetMQ
         /// <param name="i">index within the internal Data array to copy that byte to</param>
         public void Put(byte b, int i)
         {
-            m_data[i] = b;
-        }        
+            Data[i] = b;
+        }
 
         /// <summary>
         /// Close this Msg, and effectively make this Msg a copy of the given source Msg
@@ -356,7 +324,7 @@ namespace NetMQ
         /// If this is a Pool Msg, then this also increases the reference-counter and sets the Shared bit.
         /// </summary>
         /// <param name="src">the source Msg to copy from</param>
-        public void Copy([NotNull] ref Msg src)
+        public void Copy(ref Msg src)
         {
             //  Check the validity of the source.
             if (!src.Check())
@@ -366,15 +334,15 @@ namespace NetMQ
 
             Close();
 
-            if (m_type == MsgType.Pool)
+            if (MsgType == MsgType.Pool)
             {
                 //  One reference is added to shared messages. Non-shared messages
                 //  are turned into shared messages and reference count is set to 2.
-                if (src.m_flags.HasFlag(MsgFlags.Shared))
+                if (src.Flags.HasFlag(MsgFlags.Shared))
                     src.m_atomicCounter.Increase(1);
                 else
                 {
-                    src.m_flags |= MsgFlags.Shared;
+                    src.Flags |= MsgFlags.Shared;
                     src.m_atomicCounter.Set(2);
                 }
             }
@@ -386,7 +354,7 @@ namespace NetMQ
         /// Close this Msg and make it reference the given source Msg, and then clear the Msg to empty.
         /// </summary>
         /// <param name="src">the source-Msg to become</param>
-        public void Move([NotNull] ref Msg src)
+        public void Move(ref Msg src)
         {
             //  Check the validity of the source.
             if (!src.Check())

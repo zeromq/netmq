@@ -5,6 +5,6 @@ namespace NetMQ
     public interface ISocketPollable
     {
         [NotNull]
-        NetMQSocket Socket { get; }        
+        NetMQSocket Socket { get; }
     }
 }

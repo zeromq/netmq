@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ.InProcActors
@@ -9,10 +10,10 @@ namespace NetMQ.InProcActors
     /// This interface specifies the methods Initialize and RunPipeline.
     /// </summary>
     [Obsolete("Use non generic NetMQActor and IShimHandler")]
-    public interface IShimHandler<T>
+    public interface IShimHandler<in T>
     {
         void Initialise(T state);
 
-        void RunPipeline(PairSocket shim);
+        void RunPipeline([NotNull] PairSocket shim);
     }
 }

@@ -15,7 +15,7 @@ namespace NetMQ
         /// Create a new NetMQBeaconEventArgs object containging the given NetMQBeacon.
         /// </summary>
         /// <param name="beacon">the NetMQBeacon object to hold a reference to</param>
-        public NetMQBeaconEventArgs(NetMQBeacon beacon)
+        public NetMQBeaconEventArgs([NotNull] NetMQBeacon beacon)
         {
             Beacon = beacon;
         }
@@ -23,6 +23,7 @@ namespace NetMQ
         /// <summary>
         /// Get the NetMQBeacon object that this holds.
         /// </summary>
+        [NotNull]
         public NetMQBeacon Beacon { get; private set; }
     }
 
@@ -49,29 +50,25 @@ namespace NetMQ
             private NetMQTimer m_pingTimer;
             private Poller m_poller;
 
-            public Shim()
+            private void Configure([NotNull] string interfaceName, int port)
             {
-            }
-
-            private void Configure(string interfaceName, int port)
-            {
-                // incase the beacon was configured twice
+                // In case the beacon was configured twice
                 if (m_udpSocket != null)
                 {
                     m_poller.RemovePollInSocket(m_udpSocket);
-                    m_udpSocket.Close();                                    
+                    m_udpSocket.Close();
                 }
 
                 m_udpPort = port;
                 m_udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-                m_poller.AddPollInSocket(m_udpSocket, OnUdpReady);                
+                m_poller.AddPollInSocket(m_udpSocket, OnUdpReady);
 
-                //  Ask operating system for broadcast permissions on socket
+                // Ask operating system for broadcast permissions on socket
                 m_udpSocket.EnableBroadcast = true;
 
-                //  Allow multiple owners to bind to socket; incoming
-                //  messages will replicate to each owner
+                // Allow multiple owners to bind to socket; incoming
+                // messages will replicate to each owner
                 m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
                 IPAddress bindTo = null;
@@ -84,14 +81,11 @@ namespace NetMQ
                 }
                 else
                 {
-                    InterfaceCollection interfaceCollection = new InterfaceCollection();
+                    var interfaceCollection = new InterfaceCollection();
 
-                    IPAddress interfaceAddress = null;
-
-                    if (!string.IsNullOrEmpty(interfaceName))
-                    {
-                        interfaceAddress = IPAddress.Parse(interfaceName);
-                    }
+                    var interfaceAddress = !string.IsNullOrEmpty(interfaceName) 
+                        ? IPAddress.Parse(interfaceName)
+                        : null;
 
                     foreach (var @interface in interfaceCollection)
                     {
@@ -113,21 +107,20 @@ namespace NetMQ
 
                     try
                     {
-                      if (!IPAddress.Any.Equals(bindTo) && !IPAddress.IPv6Any.Equals(bindTo))
-                      {
-                        var host = Dns.GetHostEntry(bindTo);
-                        hostname = host != null ? host.HostName : ""; 
-                      }
+                        if (!IPAddress.Any.Equals(bindTo) && !IPAddress.IPv6Any.Equals(bindTo))
+                        {
+                            var host = Dns.GetHostEntry(bindTo);
+                            hostname = host != null ? host.HostName : "";
+                        }
                     }
                     catch (Exception)
-                    {
-                    }
+                    {}
 
                     m_pipe.Send(hostname);
                 }
             }
 
-            private bool Compare(NetMQFrame a, NetMQFrame b, int size)
+            private static bool Compare([NotNull] NetMQFrame a, [NotNull] NetMQFrame b, int size)
             {
                 for (int i = 0; i < size; i++)
                 {
@@ -137,7 +130,6 @@ namespace NetMQ
 
                 return true;
             }
-
 
             public void Run(PairSocket shim)
             {             
@@ -246,7 +238,7 @@ namespace NetMQ
 
             private NetMQFrame ReceiveUdpFrame(out string peerName)
             {
-                byte[] buffer = new byte[UdpFrameMax];
+                var buffer = new byte[UdpFrameMax];
                 EndPoint peer = new IPEndPoint(IPAddress.Any, 0);
 
                 int bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
@@ -260,17 +252,16 @@ namespace NetMQ
             }
         }
 
-        private readonly Shim m_shim;
         private readonly NetMQActor m_actor;
 
         private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
         public NetMQBeacon([NotNull] NetMQContext context)
         {
-            m_shim = new Shim();
-            m_actor = NetMQActor.Create(context, m_shim);
+            m_actor = NetMQActor.Create(context, new Shim());
 
-            m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(() => m_actor.ReceiveReady += OnReceiveReady,
+            m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(
+                () => m_actor.ReceiveReady += OnReceiveReady,
                 () => m_actor.ReceiveReady -= OnReceiveReady);
         }
 
@@ -286,14 +277,8 @@ namespace NetMQ
 
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
         {
-            add
-            {
-                m_receiveEventHelper.Event += value;
-            }
-            remove
-            {
-                m_receiveEventHelper.Event -= value;
-            }
+            add { m_receiveEventHelper.Event += value; }
+            remove { m_receiveEventHelper.Event -= value; }
         }
 
         private void OnReceiveReady(object sender, NetMQActorEventArgs args)
@@ -324,9 +309,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="interfaceName">One of the ip address of the interface</param>
         /// <param name="port">Port to bind to</param>
-        public void Configure(string interfaceName, int port)
+        public void Configure([NotNull] string interfaceName, int port)
         {
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(ConfigureCommand);
             message.Append(interfaceName);
             message.Append(port);
@@ -341,9 +326,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish(string transmit, TimeSpan interval)
+        public void Publish([NotNull] string transmit, TimeSpan interval)
         {
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(PublishCommand);
             message.Append(transmit);
             message.Append((int)interval.TotalMilliseconds);
@@ -356,9 +341,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish(byte[] transmit, TimeSpan interval)
+        public void Publish([NotNull] byte[] transmit, TimeSpan interval)
         {
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(PublishCommand);
             message.Append(transmit);
             message.Append((int)interval.TotalMilliseconds);
@@ -370,7 +355,7 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>        
-        public void Publish(string transmit)
+        public void Publish([NotNull] string transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
         }
@@ -379,7 +364,7 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>        
-        public void Publish(byte[] transmit)
+        public void Publish([NotNull] byte[] transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
         }
@@ -396,7 +381,7 @@ namespace NetMQ
         /// Subscribe to beacon messages, will replace last subscribe call
         /// </summary>
         /// <param name="filter">Beacon will be filtered by this</param>
-        public void Subscribe(string filter)
+        public void Subscribe([NotNull] string filter)
         {
             m_actor.SendMore(SubscribeCommand).Send(filter);
         }
@@ -409,6 +394,7 @@ namespace NetMQ
             m_actor.Send(UnsubscribeCommand);
         }
 
+        [NotNull]
         public string ReceiveString(out string peerName)
         {
             peerName = m_actor.ReceiveString();
@@ -416,6 +402,7 @@ namespace NetMQ
             return m_actor.ReceiveString();
         }
 
+        [NotNull]
         public byte[] Receive(out string peerName)
         {
             peerName = m_actor.ReceiveString();

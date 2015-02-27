@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 using MajordomoProtocol;
 using MajordomoProtocol.Contracts;
-
 using NetMQ;
-using NetMQ.zmq;
 using NUnit.Framework;
 
 namespace MajordomoTests
@@ -18,705 +15,705 @@ namespace MajordomoTests
     public class MDPBrokerTests
     {
         [Test]
-        public void ctor_Simple_ShouldReturnNewObject ()
+        public void ctor_Simple_ShouldReturnNewObject()
         {
-            var sut = new MDPBroker ("tcp://localhost:5555");
+            var sut = new MDPBroker("tcp://localhost:5555");
 
-            Assert.That (sut, Is.Not.Null);
-            Assert.That (sut.Socket, Is.Not.Null);
-            Assert.That (sut.HeartbeatInterval, Is.EqualTo (TimeSpan.FromMilliseconds (2500)));
-            Assert.That (sut.HeartbeatLiveliness, Is.EqualTo (3));
+            Assert.That(sut, Is.Not.Null);
+            Assert.That(sut.Socket, Is.Not.Null);
+            Assert.That(sut.HeartbeatInterval, Is.EqualTo(TimeSpan.FromMilliseconds(2500)));
+            Assert.That(sut.HeartbeatLiveliness, Is.EqualTo(3));
         }
 
         [Test]
-        public void Bind_Call_ShouldLogSuccess ()
+        public void Bind_Call_ShouldLogSuccess()
         {
             var info = string.Empty;
-            using (var sut = new MDPBroker ("tcp://localhost:5555"))
+            using (var sut = new MDPBroker("tcp://localhost:5555"))
             {
                 sut.LogInfoReady += (s, e) => { info = e.Info; };
 
-                sut.Bind ();
+                sut.Bind();
 
-                Assert.That (info, Is.EqualTo ("[BROKER] MDP Broker/0.3 is active at tcp://localhost:5555"));
+                Assert.That(info, Is.EqualTo("[BROKER] MDP Broker/0.3 is active at tcp://localhost:5555"));
             }
         }
 
         [Test]
-        public void Bind_NoEndpointSet_ShouldThrowException ()
+        public void Bind_NoEndpointSet_ShouldThrowException()
         {
-            using (var sut = new MDPBroker ("No_Valid_Endpoint"))
+            using (var sut = new MDPBroker("No_Valid_Endpoint"))
             {
-                Assert.Throws<ApplicationException> (sut.Bind);
+                Assert.Throws<ApplicationException>(sut.Bind);
             }
         }
 
         [Test]
-        public void Bind_ReBind_ShouldLogSuccess ()
+        public void Bind_ReBind_ShouldLogSuccess()
         {
-            using (var sut = new MDPBroker ("No_Valid_Endpoint"))
+            using (var sut = new MDPBroker("No_Valid_Endpoint"))
             {
                 var info = string.Empty;
 
                 sut.LogInfoReady += (s, e) => { info = e.Info; };
 
-                sut.Bind ("tcp://localhost:5555");
+                sut.Bind("tcp://localhost:5555");
 
-                Assert.That (info, Is.EqualTo ("[BROKER] MDP Broker/0.3 is active at tcp://localhost:5555"));
+                Assert.That(info, Is.EqualTo("[BROKER] MDP Broker/0.3 is active at tcp://localhost:5555"));
             }
         }
 
         [Test]
-        public void Bind_ReBindWhileBrokerIsRunning_ShouldThrowInvalidOperationException ()
+        public void Bind_ReBindWhileBrokerIsRunning_ShouldThrowInvalidOperationException()
         {
-            using (var sut = new MDPBroker ("tcp://localhost:5556"))
+            using (var sut = new MDPBroker("tcp://localhost:5556"))
             {
-                var cts = new CancellationTokenSource ();
+                var cts = new CancellationTokenSource();
 
-                sut.Run (cts.Token);
+                sut.Run(cts.Token);
 
-                Assert.Throws<InvalidOperationException> (() => sut.Bind ("tcp://localhost:5555"));
+                Assert.Throws<InvalidOperationException>(() => sut.Bind("tcp://localhost:5555"));
 
-                cts.Cancel ();
+                cts.Cancel();
             }
         }
 
         [Test]
-        public async void Run_ReceiveREADYMessageFromWorker_LogSuccessfulRegistration ()
+        public async void Run_ReceiveREADYMessageFromWorker_LogSuccessfulRegistration()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            using (var cts = new CancellationTokenSource ())
-            using (var workerSession = new MDPWorker (_END_POINT, "echo"))
-            using (var broker = new MDPBroker (_END_POINT))
+            using (var cts = new CancellationTokenSource())
+            using (var workerSession = new MDPWorker(endPoint, "echo"))
+            using (var broker = new MDPBroker(endPoint))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // start echo task
-                Task.Run (() => EchoWorker (workerSession), cts.Token);
+                Task.Run(() => EchoWorker(workerSession), cts.Token);
                 // wait for everything to happen
-                await Task.Delay (500);
+                await Task.Delay(500);
                 // cancel the tasks
-                cts.Cancel ();
+                cts.Cancel();
                 // check on the logging
-                Assert.That (log.Count, Is.EqualTo (3));
-                Assert.That (log[2], Is.StringContaining ("added to service echo"));
+                Assert.That(log.Count, Is.EqualTo(3));
+                Assert.That(log[2], Is.StringContaining("added to service echo"));
             }
         }
 
         [Test]
-        public void RunSynchronous_ReceiveREADYMessageFromWorker_LogSuccessfulRegistration ()
+        public void RunSynchronous_ReceiveREADYMessageFromWorker_LogSuccessfulRegistration()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            using (var cts = new CancellationTokenSource ())
-            using (var workerSession = new MDPWorker (_END_POINT, "echo"))
-            using (var broker = new MDPBroker (_END_POINT))
+            using (var cts = new CancellationTokenSource())
+            using (var workerSession = new MDPWorker(endPoint, "echo"))
+            using (var broker = new MDPBroker(endPoint))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // start broker session
-                Task.Run (() => broker.RunSynchronous (cts.Token));
+                Task.Run(() => broker.RunSynchronous(cts.Token));
                 // start echo task
-                Task.Run (() => EchoWorker (workerSession), cts.Token);
+                Task.Run(() => EchoWorker(workerSession), cts.Token);
                 // wait for everything to happen
-                Thread.Sleep (500);
+                Thread.Sleep(500);
                 // cancel the tasks
-                cts.Cancel ();
+                cts.Cancel();
                 // check on the logging
-                Assert.That (log.Count, Is.EqualTo (3));
-                Assert.That (log[2], Is.StringContaining ("added to service echo"));
+                Assert.That(log.Count, Is.EqualTo(3));
+                Assert.That(log[2], Is.StringContaining("added to service echo"));
             }
         }
 
         [Test]
-        public async void Run_ReceiveREADYMessageFromThreeWorkersSameServices_LogSuccessfulRegistration ()
+        public async void Run_ReceiveREADYMessageFromThreeWorkersSameServices_LogSuccessfulRegistration()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
-            var id01 = Encoding.ASCII.GetBytes ("W01");
-            var id02 = Encoding.ASCII.GetBytes ("W02");
-            var id03 = Encoding.ASCII.GetBytes ("W03");
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
+            var id01 = Encoding.ASCII.GetBytes("W01");
+            var id02 = Encoding.ASCII.GetBytes("W02");
+            var id03 = Encoding.ASCII.GetBytes("W03");
 
-            using (var cts = new CancellationTokenSource ())
-            using (var worker1 = new MDPWorker (_END_POINT, "echo", id01))
-            using (var worker2 = new MDPWorker (_END_POINT, "echo", id02))
-            using (var worker3 = new MDPWorker (_END_POINT, "echo", id03))
-            using (var broker = new MDPBroker (_END_POINT))
+            using (var cts = new CancellationTokenSource())
+            using (var worker1 = new MDPWorker(endPoint, "echo", id01))
+            using (var worker2 = new MDPWorker(endPoint, "echo", id02))
+            using (var worker3 = new MDPWorker(endPoint, "echo", id03))
+            using (var broker = new MDPBroker(endPoint))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // start echo task
-                Task.Run (() => EchoWorker (worker1), cts.Token);
-                Task.Run (() => EchoWorker (worker2), cts.Token);
-                Task.Run (() => EchoWorker (worker3), cts.Token);
+                Task.Run(() => EchoWorker(worker1), cts.Token);
+                Task.Run(() => EchoWorker(worker2), cts.Token);
+                Task.Run(() => EchoWorker(worker3), cts.Token);
                 // wait for everything to happen
-                await Task.Delay (1000);
+                await Task.Delay(1000);
                 // cancel the tasks
-                cts.Cancel ();
+                cts.Cancel();
                 // check on the logging
-                Assert.That (log.Count, Is.EqualTo (7));
-                Assert.That (log.Count (s => s.Contains ("Received Net")), Is.EqualTo (3));
-                Assert.That (log.Count (s => s.Contains ("READY processed")), Is.EqualTo (3));
+                Assert.That(log.Count, Is.EqualTo(7));
+                Assert.That(log.Count(s => s.Contains("Received Net")), Is.EqualTo(3));
+                Assert.That(log.Count(s => s.Contains("READY processed")), Is.EqualTo(3));
             }
         }
 
         [Test]
-        public async void Run_ReceiveREADYMessageFromThreeWorkersDifferentServices_LogSuccessfulRegistration ()
+        public async void Run_ReceiveREADYMessageFromThreeWorkersDifferentServices_LogSuccessfulRegistration()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
-            var id01 = Encoding.ASCII.GetBytes ("Worker01");
-            var id02 = Encoding.ASCII.GetBytes ("Worker02");
-            var id03 = Encoding.ASCII.GetBytes ("Worker03");
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
+            var id01 = Encoding.ASCII.GetBytes("Worker01");
+            var id02 = Encoding.ASCII.GetBytes("Worker02");
+            var id03 = Encoding.ASCII.GetBytes("Worker03");
 
-            using (var cts = new CancellationTokenSource ())
-            using (var worker1 = new MDPWorker (_END_POINT, "echo", id01))
-            using (var worker2 = new MDPWorker (_END_POINT, "double echo", id02))
-            using (var worker3 = new MDPWorker (_END_POINT, "add hello", id03))
-            using (var broker = new MDPBroker (_END_POINT))
+            using (var cts = new CancellationTokenSource())
+            using (var worker1 = new MDPWorker(endPoint, "echo", id01))
+            using (var worker2 = new MDPWorker(endPoint, "double echo", id02))
+            using (var worker3 = new MDPWorker(endPoint, "add hello", id03))
+            using (var broker = new MDPBroker(endPoint))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // start echo task
-                Task.Run (() => EchoWorker (worker1), cts.Token);
-                Task.Run (() => DoubleEchoWorker (worker2), cts.Token);
-                Task.Run (() => AddHelloWorker (worker3), cts.Token);
+                Task.Run(() => EchoWorker(worker1), cts.Token);
+                Task.Run(() => DoubleEchoWorker(worker2), cts.Token);
+                Task.Run(() => AddHelloWorker(worker3), cts.Token);
                 // wait for everything to happen
-                await Task.Delay (1000);
+                await Task.Delay(1000);
                 // cancel the tasks
-                cts.Cancel ();
+                cts.Cancel();
                 // check on the logging
-                Assert.That (log.Count, Is.EqualTo (7));
-                Assert.That (log.Count (s => s.Contains ("service echo")), Is.EqualTo (1));
-                Assert.That (log.Count (s => s.Contains ("service double echo")), Is.EqualTo (1));
-                Assert.That (log.Count (s => s.Contains ("service add hello")), Is.EqualTo (1));
-                Assert.That (log.Count (s => s.Contains ("READY processed")), Is.EqualTo (3));
+                Assert.That(log.Count, Is.EqualTo(7));
+                Assert.That(log.Count(s => s.Contains("service echo")), Is.EqualTo(1));
+                Assert.That(log.Count(s => s.Contains("service double echo")), Is.EqualTo(1));
+                Assert.That(log.Count(s => s.Contains("service add hello")), Is.EqualTo(1));
+                Assert.That(log.Count(s => s.Contains("READY processed")), Is.EqualTo(3));
             }
         }
 
         [Test]
-        public async void Run_ReceiveREPLYMessageFromWorker_ShouldLogCorrectReply ()
+        public async void Run_ReceiveREPLYMessageFromWorker_ShouldLogCorrectReply()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
-            var idC01 = new[] { (byte) 'C', (byte) '1' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
+            var idC01 = new[] { (byte)'C', (byte)'1' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var echoClient = new MDPClient (_END_POINT, idC01))
-            using (var echoWorker = new MDPWorker (_END_POINT, "echo", idW01))
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var echoClient = new MDPClient(endPoint, idC01))
+            using (var echoWorker = new MDPWorker(endPoint, "echo", idW01))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => EchoWorker (echoWorker, _LONG_HEARTBEAT_INTERVAL), cts.Token);
+                Task.Run(() => EchoWorker(echoWorker, longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the client
-                var echoClientTask = new Task (() => EchoClient (echoClient, "echo"));
+                var echoClientTask = new Task(() => EchoClient(echoClient, "echo"));
                 // start and wait for completion of client
-                echoClientTask.Start ();
+                echoClientTask.Start();
                 // the task completes when the message exchange is done
                 await echoClientTask;
                 // cancel the broker
-                cts.Cancel ();
+                cts.Cancel();
 
-                Assert.That (log.Count, Is.EqualTo (7));
-                Assert.That (log.Count (s => s.Contains ("READY processed. Worker W1 added to service echo")), Is.EqualTo (1));
-                Assert.That (log.Count (s => s.Contains ("Received")), Is.EqualTo (3));
-                Assert.That (log[4], Is.EqualTo ("[BROKER] Dispatching request -> NetMQMessage[C1,,Helo World!]"));
-                Assert.That (log[6],
-                             Is.EqualTo ("[BROKER] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Helo World!]"));
+                Assert.That(log.Count, Is.EqualTo(7));
+                Assert.That(log.Count(s => s.Contains("READY processed. Worker W1 added to service echo")), Is.EqualTo(1));
+                Assert.That(log.Count(s => s.Contains("Received")), Is.EqualTo(3));
+                Assert.That(log[4], Is.EqualTo("[BROKER] Dispatching request -> NetMQMessage[C1,,Helo World!]"));
+                Assert.That(log[6],
+                    Is.EqualTo("[BROKER] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Helo World!]"));
             }
         }
 
         [Test]
-        public async void Run_ReceiveREPLYMessageFromThreeDifferentWorker_ShouldLogAndReturnCorrectReplies ()
+        public async void Run_ReceiveREPLYMessageFromThreeDifferentWorker_ShouldLogAndReturnCorrectReplies()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
-            var idW02 = new[] { (byte) 'W', (byte) '2' };
-            var idW03 = new[] { (byte) 'W', (byte) '3' };
-            var idC01 = new[] { (byte) 'C', (byte) '1' };
-            var idC02 = new[] { (byte) 'C', (byte) '2' };
-            var idC03 = new[] { (byte) 'C', (byte) '3' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
+            var idW02 = new[] { (byte)'W', (byte)'2' };
+            var idW03 = new[] { (byte)'W', (byte)'3' };
+            var idC01 = new[] { (byte)'C', (byte)'1' };
+            var idC02 = new[] { (byte)'C', (byte)'2' };
+            var idC03 = new[] { (byte)'C', (byte)'3' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var client01 = new MDPClient (_END_POINT, idC01))
-            using (var client02 = new MDPClient (_END_POINT, idC02))
-            using (var client03 = new MDPClient (_END_POINT, idC03))
-            using (var worker01 = new MDPWorker (_END_POINT, "echo", idW01))
-            using (var worker02 = new MDPWorker (_END_POINT, "double echo", idW02))
-            using (var worker03 = new MDPWorker (_END_POINT, "add hello", idW03))
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var client01 = new MDPClient(endPoint, idC01))
+            using (var client02 = new MDPClient(endPoint, idC02))
+            using (var client03 = new MDPClient(endPoint, idC03))
+            using (var worker01 = new MDPWorker(endPoint, "echo", idW01))
+            using (var worker02 = new MDPWorker(endPoint, "double echo", idW02))
+            using (var worker03 = new MDPWorker(endPoint, "add hello", idW03))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => EchoWorker (worker01, _LONG_HEARTBEAT_INTERVAL), cts.Token);
-                Task.Run (() => DoubleEchoWorker (worker02, _LONG_HEARTBEAT_INTERVAL), cts.Token);
-                Task.Run (() => AddHelloWorker (worker03, _LONG_HEARTBEAT_INTERVAL), cts.Token);
+                Task.Run(() => EchoWorker(worker01, longHeartbeatInterval), cts.Token);
+                Task.Run(() => DoubleEchoWorker(worker02, longHeartbeatInterval), cts.Token);
+                Task.Run(() => AddHelloWorker(worker03, longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the client
-                var client01Task = new Task (() => EchoClient (client01, "echo"));
-                var client02Task = new Task (() => DoubleEchoClient (client02, "double echo"));
-                var client03Task = new Task (() => AddHelloClient (client03, "add hello"));
+                var client01Task = new Task(() => EchoClient(client01, "echo"));
+                var client02Task = new Task(() => DoubleEchoClient(client02, "double echo"));
+                var client03Task = new Task(() => AddHelloClient(client03, "add hello"));
                 // start and wait for completion of client
-                client01Task.Start ();
-                client02Task.Start ();
-                client03Task.Start ();
+                client01Task.Start();
+                client02Task.Start();
+                client03Task.Start();
                 // the task completes when the message exchange is done
-                Task.WaitAll (client01Task, client02Task, client03Task);
+                Task.WaitAll(client01Task, client02Task, client03Task);
                 // cancel the broker
-                cts.Cancel ();
+                cts.Cancel();
 
-                Assert.That (log.Count, Is.EqualTo (19));
-                Assert.That (log.Count (s => s.Contains ("READY")), Is.EqualTo (3));
-                Assert.That (log.Count (s => s.Contains ("REPLY")), Is.EqualTo (3));
-                Assert.That (log.Count (s => s.Contains ("Dispatching")), Is.EqualTo (3));
+                Assert.That(log.Count, Is.EqualTo(19));
+                Assert.That(log.Count(s => s.Contains("READY")), Is.EqualTo(3));
+                Assert.That(log.Count(s => s.Contains("REPLY")), Is.EqualTo(3));
+                Assert.That(log.Count(s => s.Contains("Dispatching")), Is.EqualTo(3));
             }
         }
 
         [Test]
-        public async void Run_ProcessMultipleRequestsWithSingleWorker_ShouldCorrectlyRouteReplies ()
+        public async void Run_ProcessMultipleRequestsWithSingleWorker_ShouldCorrectlyRouteReplies()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
-            var idC01 = new[] { (byte) 'C', (byte) '1' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
+            var idC01 = new[] { (byte)'C', (byte)'1' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var client = new MDPClient (_END_POINT, idC01))
-            using (var worker = new MDPWorker (_END_POINT, "echo", idW01))
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var client = new MDPClient(endPoint, idC01))
+            using (var worker = new MDPWorker(endPoint, "echo", idW01))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => MultipleRequestWorker (worker, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker, heartbeatinterval: longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // Create and run
-                await Task.Run (() => MultipleRequestClient ("echo", _END_POINT, client));
+                await Task.Run(() => MultipleRequestClient("echo", endPoint, client));
                 // cancel the broker
-                cts.Cancel ();
+                cts.Cancel();
             }
         }
 
         [Test]
-        public async void Run_ProcessMultipleRequestsWithMultipleWorker_ShouldCorrectlyRouteReplies ()
+        public async void Run_ProcessMultipleRequestsWithMultipleWorker_ShouldCorrectlyRouteReplies()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
-            var idW02 = new[] { (byte) 'W', (byte) '2' };
-            var idC01 = new[] { (byte) 'C', (byte) '1' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
+            var idW02 = new[] { (byte)'W', (byte)'2' };
+            var idC01 = new[] { (byte)'C', (byte)'1' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var client = new MDPClient (_END_POINT, idC01))
-            using (var worker1 = new MDPWorker (_END_POINT, "echo", idW01))
-            using (var worker2 = new MDPWorker (_END_POINT, "echo", idW02))
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var client = new MDPClient(endPoint, idC01))
+            using (var worker1 = new MDPWorker(endPoint, "echo", idW01))
+            using (var worker2 = new MDPWorker(endPoint, "echo", idW02))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => MultipleRequestWorker (worker1, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
-                Task.Run (() => MultipleRequestWorker (worker2, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker1, heartbeatinterval: longHeartbeatInterval), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker2, heartbeatinterval: longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // Create and run
-                await Task.Run (() => MultipleRequestClient ("echo", _END_POINT, client));
+                await Task.Run(() => MultipleRequestClient("echo", endPoint, client));
                 // cancel the broker
-                cts.Cancel ();
+                cts.Cancel();
             }
         }
 
         [Test]
-        public async void Run_ProcessMultipleRequestsWithMultipleClients_ShouldCorrectlyRouteReplies ()
+        public async void Run_ProcessMultipleRequestsWithMultipleClients_ShouldCorrectlyRouteReplies()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
-            var idC01 = new[] { (byte) 'C', (byte) '1' };
-            var idC02 = new[] { (byte) 'C', (byte) '2' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
+            var idC01 = new[] { (byte)'C', (byte)'1' };
+            var idC02 = new[] { (byte)'C', (byte)'2' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var client1 = new MDPClient (_END_POINT, idC01))
-            using (var client2 = new MDPClient (_END_POINT, idC02))
-            using (var worker = new MDPWorker (_END_POINT, "echo", idW01))
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var client1 = new MDPClient(endPoint, idC01))
+            using (var client2 = new MDPClient(endPoint, idC02))
+            using (var worker = new MDPWorker(endPoint, "echo", idW01))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => MultipleRequestWorker (worker, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker, heartbeatinterval: longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // Create and run
-                var c1 = Task.Run (() => MultipleRequestClient ("echo", _END_POINT, client1));
-                var c2 = Task.Run (() => MultipleRequestClient ("echo", _END_POINT, client2));
+                var c1 = Task.Run(() => MultipleRequestClient("echo", endPoint, client1));
+                var c2 = Task.Run(() => MultipleRequestClient("echo", endPoint, client2));
 
-                Task.WaitAll (c1, c2);
+                Task.WaitAll(c1, c2);
                 // cancel the broker
-                cts.Cancel ();
+                cts.Cancel();
             }
         }
 
         [Test]
-        public async void Run_ProcessMultipleRequestsWithMultipleClientsAndMultipleWorker_ShouldCorrectlyRouteReplies ()
+        public async void Run_ProcessMultipleRequestsWithMultipleClientsAndMultipleWorker_ShouldCorrectlyRouteReplies()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
-            var idW02 = new[] { (byte) 'W', (byte) '2' };
-            var idC01 = new[] { (byte) 'C', (byte) '1' };
-            var idC02 = new[] { (byte) 'C', (byte) '2' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
+            var idW02 = new[] { (byte)'W', (byte)'2' };
+            var idC01 = new[] { (byte)'C', (byte)'1' };
+            var idC02 = new[] { (byte)'C', (byte)'2' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var client1 = new MDPClient (_END_POINT, idC01))
-            using (var client2 = new MDPClient (_END_POINT, idC02))
-            using (var worker1 = new MDPWorker (_END_POINT, "echo", idW01))
-            using (var worker2 = new MDPWorker (_END_POINT, "echo", idW02))
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var client1 = new MDPClient(endPoint, idC01))
+            using (var client2 = new MDPClient(endPoint, idC02))
+            using (var worker1 = new MDPWorker(endPoint, "echo", idW01))
+            using (var worker2 = new MDPWorker(endPoint, "echo", idW02))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => MultipleRequestWorker (worker1, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
-                Task.Run (() => MultipleRequestWorker (worker2, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker1, heartbeatinterval: longHeartbeatInterval), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker2, heartbeatinterval: longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // Create and run
-                var c1 = Task.Run (() => MultipleRequestClient ("echo", _END_POINT, client1));
-                var c2 = Task.Run (() => MultipleRequestClient ("echo", _END_POINT, client2));
+                var c1 = Task.Run(() => MultipleRequestClient("echo", endPoint, client1));
+                var c2 = Task.Run(() => MultipleRequestClient("echo", endPoint, client2));
 
-                Task.WaitAll (c1, c2);
+                Task.WaitAll(c1, c2);
                 // cancel the broker
-                cts.Cancel ();
+                cts.Cancel();
             }
         }
 
         [Test]
-        public async void Run_ProcessMultipleRequestsClientStopsAndReconnectsWithSingleWorker_ShouldCorrectlyRouteReplies ()
+        public async void Run_ProcessMultipleRequestsClientStopsAndReconnectsWithSingleWorker_ShouldCorrectlyRouteReplies()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var worker = new MDPWorker (_END_POINT, "echo", idW01))
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var worker = new MDPWorker(endPoint, "echo", idW01))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => MultipleRequestWorker (worker, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker, heartbeatinterval: longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // create and run
-                await Task.Run (() => MultipleRequestClient ("echo", _END_POINT));
+                await Task.Run(() => MultipleRequestClient("echo", endPoint));
                 // recreate and run
-                await Task.Run (() => MultipleRequestClient ("echo", _END_POINT));
+                await Task.Run(() => MultipleRequestClient("echo", endPoint));
                 // cancel the broker & worker
-                cts.Cancel ();
+                cts.Cancel();
             }
         }
 
         [Test]
-        public async void Run_ProcessMultipleRequestsClientStopsAndReconnectsWithMultipleWorker_ShouldCorrectlyRouteReplies ()
+        public async void Run_ProcessMultipleRequestsClientStopsAndReconnectsWithMultipleWorker_ShouldCorrectlyRouteReplies()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
-            var idW02 = new[] { (byte) 'W', (byte) '2' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
+            var idW02 = new[] { (byte)'W', (byte)'2' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var worker1 = new MDPWorker (_END_POINT, "echo", idW01))
-            using (var worker2 = new MDPWorker (_END_POINT, "echo", idW02))
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var worker1 = new MDPWorker(endPoint, "echo", idW01))
+            using (var worker2 = new MDPWorker(endPoint, "echo", idW02))
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => MultipleRequestWorker (worker1, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
-                Task.Run (() => MultipleRequestWorker (worker2, heartbeatinterval: _LONG_HEARTBEAT_INTERVAL), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker1, heartbeatinterval: longHeartbeatInterval), cts.Token);
+                Task.Run(() => MultipleRequestWorker(worker2, heartbeatinterval: longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // create and run
-                await Task.Run (() => MultipleRequestClient ("echo", _END_POINT));
+                await Task.Run(() => MultipleRequestClient("echo", endPoint));
                 // recreate and run
-                await Task.Run (() => MultipleRequestClient ("echo", _END_POINT));
+                await Task.Run(() => MultipleRequestClient("echo", endPoint));
                 // cancel the broker & worker
-                cts.Cancel ();
+                cts.Cancel();
             }
         }
 
         [Test]
-        public async void Run_ProcessMultipleRequestsWorkerStops_ShouldCorrectlyRouteReplies ()
+        public async void Run_ProcessMultipleRequestsWorkerStops_ShouldCorrectlyRouteReplies()
         {
-            const string _END_POINT = "tcp://localhost:5555";
-            var log = new List<string> ();
+            const string endPoint = "tcp://localhost:5555";
+            var log = new List<string>();
 
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
 
-            const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
+            const int longHeartbeatInterval = 10000; // 10s heartbeat -> stay out of my testing for now
 
-            using (var broker = new MDPBroker (_END_POINT, _LONG_HEARTBEAT_INTERVAL))
-            using (var cts = new CancellationTokenSource ())
-            using (var ctsWorker = new CancellationTokenSource ())
+            using (var broker = new MDPBroker(endPoint, longHeartbeatInterval))
+            using (var cts = new CancellationTokenSource())
+            using (var ctsWorker = new CancellationTokenSource())
             {
-                broker.Bind ();
+                broker.Bind();
                 // collect all logging information from broker
-                broker.LogInfoReady += (s, e) => log.Add (e.Info);
+                broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
                 //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
-                broker.Run (cts.Token);
+                broker.Run(cts.Token);
                 // wait a little for broker to get started
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => MultipleRequestWorker (null, _END_POINT, _LONG_HEARTBEAT_INTERVAL), ctsWorker.Token);
+                Task.Run(() => MultipleRequestWorker(null, endPoint, longHeartbeatInterval), ctsWorker.Token);
                 // wait a little for worker to get started & registered
-                await Task.Delay (250);
+                await Task.Delay(250);
                 // get the task for simulating the client
-                var clientTask = new Task (() => MultipleRequestClient ("echo", _END_POINT));
+                var clientTask = new Task(() => MultipleRequestClient("echo", endPoint));
                 // start and wait for completion of client
-                clientTask.Start ();
+                clientTask.Start();
                 // Cancel worker
-                ctsWorker.Cancel ();
+                ctsWorker.Cancel();
                 // the task completes when the message exchange is done
                 await clientTask;
                 // cancel the broker
-                cts.Cancel ();
+                cts.Cancel();
             }
         }
 
         // ======================= HELPER =========================
 
-        private void EchoWorker (IMDPWorker worker, int heartbeatinterval = 2500)
+        private void EchoWorker(IMDPWorker worker, int heartbeatinterval = 2500)
         {
-            worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
+            worker.HeartbeatDelay = TimeSpan.FromMilliseconds(heartbeatinterval);
             // send the reply and wait for a request
-            var request = worker.Receive (null);
+            var request = worker.Receive(null);
             // was the worker interrupted
-            Assert.That (request, Is.Not.Null);
+            Assert.That(request, Is.Not.Null);
             // echo the request and wait for next request which will not come
             // here the task will be canceled
-            var newrequest = worker.Receive (request);
+            var newrequest = worker.Receive(request);
         }
 
-        private void EchoClient (IMDPClient client, string serviceName)
+        private void EchoClient(IMDPClient client, string serviceName)
         {
-            var request = new NetMQMessage ();
+            var request = new NetMQMessage();
             // set the request data
-            request.Push ("Helo World!");
+            request.Push("Helo World!");
             // send the request to the service
-            var reply = client.Send (serviceName, request);
+            var reply = client.Send(serviceName, request);
 
-            Assert.That (reply, Is.Not.Null, "[ECHO CLIENT] REPLY was <null>");
-            Assert.That (reply.FrameCount, Is.EqualTo (1));
-            Assert.That (reply.First.ConvertToString (), Is.EqualTo ("Helo World!"));
+            Assert.That(reply, Is.Not.Null, "[ECHO CLIENT] REPLY was <null>");
+            Assert.That(reply.FrameCount, Is.EqualTo(1));
+            Assert.That(reply.First.ConvertToString(), Is.EqualTo("Helo World!"));
         }
 
-        private void MultipleRequestWorker (IMDPWorker worker = null, string endpoint = null, int heartbeatinterval = 2500)
+        private void MultipleRequestWorker(IMDPWorker worker = null, string endpoint = null, int heartbeatinterval = 2500)
         {
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
+            var idW01 = new[] { (byte)'W', (byte)'1' };
 
-            worker = worker ?? new MDPWorker (endpoint, "echo", idW01);
-            worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
+            worker = worker ?? new MDPWorker(endpoint, "echo", idW01);
+            worker.HeartbeatDelay = TimeSpan.FromMilliseconds(heartbeatinterval);
 
             NetMQMessage reply = null;
 
             while (true)
             {
                 // send the reply and wait for a request
-                var request = worker.Receive (reply);
+                var request = worker.Receive(reply);
                 // was the worker interrupted
-                Assert.That (request, Is.Not.Null);
+                Assert.That(request, Is.Not.Null);
                 // echo the request and wait for next request which will not come
                 // here the task will be canceled
-                reply = worker.Receive (request);
+                reply = worker.Receive(request);
             }
         }
 
-        private void MultipleRequestClient (string serviceName, string endpoint, IMDPClient client = null)
+        private void MultipleRequestClient(string serviceName, string endpoint, IMDPClient client = null)
         {
             const int _NO_OF_RUNS = 100;
 
             var reply = new NetMQMessage[_NO_OF_RUNS];
-            var idC01 = new[] { (byte) 'C', (byte) '1' };
+            var idC01 = new[] { (byte)'C', (byte)'1' };
 
-            client = client ?? new MDPClient (endpoint, idC01);
+            client = client ?? new MDPClient(endpoint, idC01);
 
-            var request = new NetMQMessage ();
+            var request = new NetMQMessage();
             // set the request data
-            request.Push ("Helo World!");
+            request.Push("Helo World!");
             // send the request to the service
             for (int i = 0; i < _NO_OF_RUNS; i++)
-                reply[i] = client.Send (serviceName, request);
+                reply[i] = client.Send(serviceName, request);
 
-            client.Dispose ();
+            client.Dispose();
 
-            Assert.That (reply, Has.None.Null);
-            Assert.That (reply.All (r => r.First.ConvertToString () == "Helo World!"));
+            Assert.That(reply, Has.None.Null);
+            Assert.That(reply.All(r => r.First.ConvertToString() == "Helo World!"));
         }
 
-        private void DoubleEchoWorker (IMDPWorker worker, int heartbeatinterval = 2500)
+        private void DoubleEchoWorker(IMDPWorker worker, int heartbeatinterval = 2500)
         {
-            worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
-            var request = worker.Receive (null);
+            worker.HeartbeatDelay = TimeSpan.FromMilliseconds(heartbeatinterval);
+            var request = worker.Receive(null);
             // was the worker interrupted
-            Assert.That (request, Is.Not.Null);
+            Assert.That(request, Is.Not.Null);
             // double the content of the request
-            var payload = request.Last.ConvertToString ();
+            var payload = request.Last.ConvertToString();
             payload += " - " + payload;
-            request.RemoveFrame (request.Last);
-            request.Append (payload);
+            request.RemoveFrame(request.Last);
+            request.Append(payload);
             // echo the request and wait for next request which will not come
             // here the task will be canceled
-            var newrequest = worker.Receive (request);
+            var newrequest = worker.Receive(request);
         }
 
-        private void DoubleEchoClient (IMDPClient client, string serviceName)
+        private void DoubleEchoClient(IMDPClient client, string serviceName)
         {
             const string _PAYLOAD = "Hello World";
-            var request = new NetMQMessage ();
+            var request = new NetMQMessage();
             // set the request data
-            request.Push (_PAYLOAD);
+            request.Push(_PAYLOAD);
             // send the request to the service
-            var reply = client.Send (serviceName, request);
+            var reply = client.Send(serviceName, request);
 
-            Assert.That (reply, Is.Not.Null, "[DOUBLE ECHO CLIENT] REPLY was <null>");
-            Assert.That (reply.FrameCount, Is.EqualTo (1));
-            Assert.That (reply.First.ConvertToString (), Is.EqualTo (_PAYLOAD + " - " + _PAYLOAD));
+            Assert.That(reply, Is.Not.Null, "[DOUBLE ECHO CLIENT] REPLY was <null>");
+            Assert.That(reply.FrameCount, Is.EqualTo(1));
+            Assert.That(reply.First.ConvertToString(), Is.EqualTo(_PAYLOAD + " - " + _PAYLOAD));
         }
 
-        private void AddHelloWorker (IMDPWorker worker, int heartbeatinterval = 2500)
+        private void AddHelloWorker(IMDPWorker worker, int heartbeatinterval = 2500)
         {
-            worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
+            worker.HeartbeatDelay = TimeSpan.FromMilliseconds(heartbeatinterval);
             // send the reply and wait for a request
-            var request = worker.Receive (null);
+            var request = worker.Receive(null);
             // was the worker interrupted
-            Assert.That (request, Is.Not.Null);
+            Assert.That(request, Is.Not.Null);
             // add the extra the content to request
-            var payload = request.Last.ConvertToString ();
+            var payload = request.Last.ConvertToString();
             payload += " - HELLO";
-            request.RemoveFrame (request.Last);
-            request.Append (payload);
+            request.RemoveFrame(request.Last);
+            request.Append(payload);
             // echo the request and wait for next request which will not come
             // here the task will be canceled
-            var newrequest = worker.Receive (request);
+            var newrequest = worker.Receive(request);
         }
 
-        private void AddHelloClient (IMDPClient client, string serviceName)
+        private void AddHelloClient(IMDPClient client, string serviceName)
         {
             const string _PAYLOAD = "Hello World";
-            var request = new NetMQMessage ();
+            var request = new NetMQMessage();
             // set the request data
-            request.Push (_PAYLOAD);
+            request.Push(_PAYLOAD);
             // send the request to the service
-            var reply = client.Send (serviceName, request);
+            var reply = client.Send(serviceName, request);
 
-            Assert.That (reply, Is.Not.Null, "[ADD HELLO CLIENT] REPLY was <null>");
-            Assert.That (reply.FrameCount, Is.EqualTo (1));
-            Assert.That (reply.First.ConvertToString (), Is.EqualTo (_PAYLOAD + " - HELLO"));
+            Assert.That(reply, Is.Not.Null, "[ADD HELLO CLIENT] REPLY was <null>");
+            Assert.That(reply.FrameCount, Is.EqualTo(1));
+            Assert.That(reply.First.ConvertToString(), Is.EqualTo(_PAYLOAD + " - HELLO"));
         }
     }
 }

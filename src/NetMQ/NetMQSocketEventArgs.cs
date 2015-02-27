@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -12,7 +13,7 @@ namespace NetMQ
         /// Create a new NetMQSocketEventArgs referencing the given socket.
         /// </summary>
         /// <param name="socket">the NetMQSocket that this is about</param>
-        public NetMQSocketEventArgs(NetMQSocket socket)
+        public NetMQSocketEventArgs([NotNull] NetMQSocket socket)
         {
             Socket = socket;
         }
@@ -23,10 +24,11 @@ namespace NetMQ
         /// <param name="events">a PollEvents value that indicates whether the socket is ready to send or receive without blocking</param>
         internal void Init(PollEvents events)
         {
-            this.ReceiveReady = events.HasFlag(PollEvents.PollIn);
-            this.SendReady = events.HasFlag(PollEvents.PollOut);
+            ReceiveReady = events.HasFlag(PollEvents.PollIn);
+            SendReady = events.HasFlag(PollEvents.PollOut);
         }
 
+        [NotNull]
         public NetMQSocket Socket { get; private set; }
 
         /// <summary>

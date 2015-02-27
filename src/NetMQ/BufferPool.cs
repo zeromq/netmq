@@ -21,13 +21,12 @@ namespace NetMQ
             m_bufferManager = BufferManager.CreateBufferManager(maxBufferPoolSize, maxBufferSize);
         }
 
-        [NotNull]
         public byte[] Take(int size)
         {
             return m_bufferManager.TakeBuffer(size);
         }
 
-        public void Return([NotNull] byte[] buffer)
+        public void Return(byte[] buffer)
         {
             m_bufferManager.ReturnBuffer(buffer);
         }
@@ -35,13 +34,12 @@ namespace NetMQ
 
     public class GCBufferPool : IBufferPool
     {
-        [NotNull]
         public byte[] Take(int size)
         {
             return new byte[size];
         }
 
-        public void Return([NotNull] byte[] buffer)
+        public void Return(byte[] buffer)
         {
         }
     }

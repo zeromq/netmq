@@ -24,7 +24,7 @@ namespace NetMQ
         /// Create a new NetMQFrame containing the given byte-array data.
         /// </summary>
         /// <param name="buffer">a byte-array to hold as the frame's data</param>
-        public NetMQFrame([NotNull] byte[] buffer)
+        public NetMQFrame([CanBeNull] byte[] buffer)
         {
             if (buffer == null)
             {
@@ -42,8 +42,7 @@ namespace NetMQ
         /// <param name="message">a string containing the message-data of the frame</param>
         public NetMQFrame([NotNull] string message)
             : this(Encoding.ASCII.GetBytes(message))
-        {
-        }
+        {}
 
         /// <summary>
         /// Create a new NetMQFrame containing the given string-message,
@@ -53,8 +52,7 @@ namespace NetMQ
         /// <param name="encoding">the Encoding to use to convert the given string-message into the internal byte-array</param>
         public NetMQFrame([NotNull] string message, [NotNull] Encoding encoding)
             : this(encoding.GetBytes(message))
-        {
-        }
+        {}
 
         /// <summary>
         /// Create a new NetMQFrame with a data-buffer pre-sized to the given length.
@@ -115,7 +113,7 @@ namespace NetMQ
         /// </summary>
         public bool IsEmpty
         {
-            get { return this.MessageSize == 0; }
+            get { return MessageSize == 0; }
         }
 
         /// <summary>
@@ -124,6 +122,7 @@ namespace NetMQ
         /// <param name="buffer">the byte-array to copy into the new NetMQFrame</param>
         /// <returns>a new <see cref="NetMQFrame"/> containing a copy of the supplied byte-array</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        [NotNull]
         public static NetMQFrame Copy([NotNull] byte[] buffer)
         {
             if (buffer == null)
@@ -145,7 +144,7 @@ namespace NetMQ
         [NotNull]
         public string ConvertToString()
         {
-            return Encoding.ASCII.GetString(Buffer, 0, this.MessageSize);
+            return Encoding.ASCII.GetString(Buffer, 0, MessageSize);
         }
 
         /// <summary>
@@ -156,7 +155,7 @@ namespace NetMQ
         [NotNull]
         public string ConvertToString([NotNull] Encoding encoding)
         {
-            return encoding.GetString(Buffer, 0, this.MessageSize);
+            return encoding.GetString(Buffer, 0, MessageSize);
         }
 
         /// <summary>
@@ -202,7 +201,7 @@ namespace NetMQ
         /// <summary>
         /// Create a deep-copy of this NetMQFrame and return it.
         /// </summary>
-        /// <returns>a new NetMQFrrame containing a copy of this one's buffer data</returns>
+        /// <returns>a new NetMQFrame containing a copy of this one's buffer data</returns>
         [NotNull]
         public NetMQFrame Duplicate()
         {
@@ -287,9 +286,9 @@ namespace NetMQ
         {
             if (m_hash == 0)
             {
-                foreach (byte b in Buffer)
+                foreach (var b in Buffer)
                 {
-                    m_hash = 31 * m_hash + b;
+                    m_hash = 31*m_hash + b;
                 }
             }
 
@@ -308,14 +307,12 @@ namespace NetMQ
             {
                 return Buffer;
             }
-            else
-            {
-                byte[] byteArray = new byte[MessageSize];
 
-                System.Buffer.BlockCopy(Buffer, 0, byteArray, 0, MessageSize);
+            var byteArray = new byte[MessageSize];
 
-                return byteArray;
-            }
+            System.Buffer.BlockCopy(Buffer, 0, byteArray, 0, MessageSize);
+
+            return byteArray;
         }
     }
 }

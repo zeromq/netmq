@@ -1,6 +1,6 @@
 ﻿using System;
-using NetMQ.zmq.Utils;
 using JetBrains.Annotations;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
@@ -47,8 +47,7 @@ namespace NetMQ
         /// <param name="interval">a TimeSpan that denotes the timer-interval</param>
         public NetMQTimer(TimeSpan interval)
             : this((int)interval.TotalMilliseconds)
-        {
-        }
+        {}
 
         /// <summary>
         /// Create a new NetMQTimer with the given timer-interval in milliseconds.

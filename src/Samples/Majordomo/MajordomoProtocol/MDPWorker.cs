@@ -27,7 +27,7 @@ namespace MajordomoProtocol
         private NetMQMessage m_request;             // used to collect the request received from the ReceiveReady event handler
         private readonly int m_connectionRetries;   // the number of times the worker tries to connect to the broker before it abandons
         private int m_retriesLeft;                  // indicates the number of connection retries that are left
-        private byte[] m_identity;                  // if not null the identity of the worker socket
+        private readonly byte[] m_identity;         // if not null the identity of the worker socket
 
         /// <summary>
         ///     sen a heartbeat every specified milliseconds
@@ -389,26 +389,12 @@ namespace MajordomoProtocol
                 OnLogInfoReady(new LogInfoEventArgs { Info = info });
         }
 
-        #region IDisposable
-
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (!ReferenceEquals(m_worker, null))
+                m_worker.Dispose();
+
+            m_ctx.Dispose();
         }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (!ReferenceEquals(m_worker, null))
-                    m_worker.Dispose();
-
-                m_ctx.Dispose();
-            }
-            // get rid of unmanaged resources
-        }
-
-        #endregion IDisposable
     }
 }

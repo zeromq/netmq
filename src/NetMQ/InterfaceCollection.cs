@@ -60,7 +60,7 @@ namespace NetMQ
                 broadcastBytes[2] |= (byte)~mask[2];
                 broadcastBytes[3] |= (byte)~mask[3];
 
-                IPAddress broadcastAddress = new IPAddress(broadcastBytes);
+                var broadcastAddress = new IPAddress(broadcastBytes);
 
                 m_interfaceItems.Add(new InterfaceItem(address.Address, broadcastAddress));
             }

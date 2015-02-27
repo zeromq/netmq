@@ -143,7 +143,10 @@ namespace NetMQ
         /// Get whether the polling has started.
         /// This is set true at the beginning of the Start method, and cleared in the Stop method.
         /// </summary>
-        public bool IsStarted { get { return m_isStarted; } }
+        public bool IsStarted
+        {
+            get { return m_isStarted; }
+        }
 
         /// <summary>
         /// Add the given socket and action this Poller's dictionary of socket/actions.
@@ -331,7 +334,7 @@ namespace NetMQ
             //  Calculate tickless timer
             long tickless = Clock.NowMs() + PollTimeout;
 
-            foreach (NetMQTimer timer in m_timers)
+            foreach (var timer in m_timers)
             {
                 //  Find earliest timer
                 if (timer.When == -1 && timer.Enable)
@@ -345,7 +348,7 @@ namespace NetMQ
                 }
             }
 
-            int timeout = (int)(tickless - Clock.NowMs());
+            var timeout = (int)(tickless - Clock.NowMs());
             if (timeout < 0)
             {
                 timeout = 0;
@@ -374,7 +377,7 @@ namespace NetMQ
         /// </summary>
         public void PollTillCancelledNonBlocking()
         {
-            Thread thread = new Thread(PollTillCancelled);
+            var thread = new Thread(PollTillCancelled);
             thread.Start();
         }
 
@@ -411,15 +414,15 @@ namespace NetMQ
             try
             {
                 // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barrier
-                // at the begining of the loop
+                // at the beginning of the loop
                 Thread.MemoryBarrier();
 
                 //  Recalculate all timers now
-                foreach (NetMQTimer netMQTimer in m_timers)
+                foreach (var timer in m_timers)
                 {
-                    if (netMQTimer.Enable)
+                    if (timer.Enable)
                     {
-                        netMQTimer.When = Clock.NowMs() + netMQTimer.Interval;
+                        timer.When = Clock.NowMs() + timer.Interval;
                     }
                 }
 
@@ -505,7 +508,7 @@ namespace NetMQ
                     {
                         //  Now handle any timer zombies
                         //  This is going to be slow if we have many zombies
-                        foreach (NetMQTimer netMQTimer in m_zombies)
+                        foreach (var netMQTimer in m_zombies)
                         {
                             m_timers.Remove(netMQTimer);
                         }
@@ -516,18 +519,18 @@ namespace NetMQ
             }
             finally
             {
-              try
-              {
-                foreach (var socket in m_sockets.ToList())
+                try
                 {
-                  RemoveSocket(socket);
+                    foreach (var socket in m_sockets.ToList())
+                    {
+                        RemoveSocket(socket);
+                    }
                 }
-              }
-              finally 
-              {
-                m_isStarted = false;
-                m_isStoppedEvent.Set();                
-              }
+                finally
+                {
+                    m_isStarted = false;
+                    m_isStoppedEvent.Set();
+                }
             }
         }
 

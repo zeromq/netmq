@@ -38,6 +38,7 @@ namespace NetMQ
         /// <param name="frontend">the socket that messages will be forwarded from</param>
         /// <param name="backend">the socket that messages will be forwarded to</param>
         /// <param name="control">this socket will have messages also sent to it - you can set this to null if not needed</param>
+        /// <param name="poller">an optional external poller to use within this proxy</param>
         public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, Poller poller = null)
         {
             m_frontend = frontend;
@@ -108,10 +109,10 @@ namespace NetMQ
 
         private static void ProxyBetween(NetMQSocket from, NetMQSocket to, [CanBeNull] NetMQSocket control)
         {
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitEmpty();
 
-            Msg copy = new Msg();
+            var copy = new Msg();
             copy.InitEmpty();
 
             while (true)

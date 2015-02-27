@@ -46,6 +46,12 @@ namespace NetMQ.zmq.Utils
         /// </remarks>
         public static void Select(IList checkRead, IList checkWrite, IList checkError, int microSeconds)
         {
+#if NET35
+            // Dot3.5 has a bug that -1 is not blocking the select call, therefore we are using the maximum int value
+            if (microSeconds == -1)
+                microSeconds = int.MaxValue;
+#endif
+            
             Socket.Select(checkRead, checkWrite, checkError, microSeconds);
         }
     }

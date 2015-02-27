@@ -4,9 +4,9 @@ using NetMQ.zmq;
 
 namespace remote_thr
 {
-    class Program
+    internal static class Program
     {
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             if (args.Length != 3)
             {
@@ -18,20 +18,19 @@ namespace remote_thr
             int messageSize = int.Parse(args[1]);
             int messageCount = int.Parse(args[2]);
 
-            var context = NetMQContext.Create();
-            var pushSocket = context.CreatePushSocket();
-            pushSocket.Connect(connectTo);
-            
-            for (int i = 0; i != messageCount; i++)
+            using (var context = NetMQContext.Create())
+            using (var push = context.CreatePushSocket())
             {
-                var message = new Msg();
-                message.InitPool(messageSize);                
-                pushSocket.Send(ref message, SendReceiveOptions.None);
-                message.Close();
-            }
+                push.Connect(connectTo);
 
-            pushSocket.Close();
-            context.Terminate();
+                for (int i = 0; i != messageCount; i++)
+                {
+                    var message = new Msg();
+                    message.InitPool(messageSize);
+                    push.Send(ref message, SendReceiveOptions.None);
+                    message.Close();
+                }
+            }
 
             return 0;
         }

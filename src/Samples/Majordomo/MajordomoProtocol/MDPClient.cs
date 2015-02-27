@@ -17,10 +17,10 @@ namespace MajordomoProtocol
         private NetMQSocket m_client;           // the socket to communicate with the broker
 
         private readonly string m_brokerAddress;
+        private readonly byte[] m_identity;
         private bool m_connected;               // used as flag true if a connection has been made
         private string m_serviceName;           // need that as storage for the event handler
         private NetMQMessage m_reply;           // container for the received reply from broker
-        private byte[] m_identity;
 
         /// <summary>
         ///     sets or gets the timeout period for waiting for messages
@@ -44,11 +44,11 @@ namespace MajordomoProtocol
         ///     timeout == 2500
         ///     reties  == 3
         /// </summary>
-        private MDPClient ()
+        private MDPClient()
         {
-            m_ctx = NetMQContext.Create ();
+            m_ctx = NetMQContext.Create();
             m_client = null;
-            Timeout = TimeSpan.FromMilliseconds (2500);
+            Timeout = TimeSpan.FromMilliseconds(2500);
             Retries = 3;
             m_connected = false;
         }
@@ -58,11 +58,11 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="brokerAddress">address the broker can be connected to</param>
         /// <param name="identity">if present will become the name for the client socket</param>
-        public MDPClient (string brokerAddress, byte[] identity = null)
-            : this ()
+        public MDPClient(string brokerAddress, byte[] identity = null)
+            : this()
         {
-            if (string.IsNullOrWhiteSpace (brokerAddress))
-                throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
+            if (string.IsNullOrWhiteSpace(brokerAddress))
+                throw new ArgumentNullException("brokerAddress", "The broker address must not be null, empty or whitespace!");
 
             m_identity = identity;
             m_brokerAddress = brokerAddress;
@@ -84,30 +84,30 @@ namespace MajordomoProtocol
         /// <exception cref="ApplicationException">malformed message received</exception>
         /// <exception cref="ApplicationException">malformed header received</exception>
         /// <exception cref="ApplicationException">reply received from wrong service</exception>
-        public NetMQMessage Send (string serviceName, NetMQMessage request)
+        public NetMQMessage Send(string serviceName, NetMQMessage request)
         {
-            if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ApplicationException ("serviceName must not be empty or null.");
+            if (string.IsNullOrWhiteSpace(serviceName))
+                throw new ApplicationException("serviceName must not be empty or null.");
 
-            if (ReferenceEquals (request, null))
-                throw new ApplicationException ("the request must not be null");
+            if (ReferenceEquals(request, null))
+                throw new ApplicationException("the request must not be null");
             // memorize it for the event handler
             m_serviceName = serviceName;
 
             // if for any reason the socket is NOT connected -> connect it!
             if (!m_connected)
-                Connect ();
+                Connect();
 
-            var message = new NetMQMessage (request);
+            var message = new NetMQMessage(request);
 
             // prefix the request according to MDP specs
             // Frame 1: "MDPCxy" (six bytes MDP/Client x.y)
             // Frame 2: service name as printable string
             // Frame 3: request
-            message.Push (serviceName);
-            message.Push (m_mdpClient);
+            message.Push(serviceName);
+            message.Push(m_mdpClient);
 
-            Log (string.Format ("[CLIENT INFO] sending {0} to service {1}", message, serviceName));
+            Log(string.Format("[CLIENT INFO] sending {0} to service {1}", message, serviceName));
 
             var retiesLeft = Retries;
 
@@ -115,10 +115,10 @@ namespace MajordomoProtocol
             {
                 // beaware of an exception if broker has not picked up the message at all
                 // because one can not send multiple times! it is strict REQ -> REP -> REQ ...
-                m_client.SendMessage (message);
+                m_client.SendMessage(message);
 
                 // Poll -> see ReceiveReady for event handling
-                if (m_client.Poll (Timeout))
+                if (m_client.Poll(Timeout))
                 {
                     // set by event handler
                     return m_reply;
@@ -126,16 +126,16 @@ namespace MajordomoProtocol
                 // if it failed assume communication dead and re-connect
                 if (--retiesLeft > 0)
                 {
-                    Log ("[CLIENT WARNING] no reply, reconnecting ...");
+                    Log("[CLIENT WARNING] no reply, reconnecting ...");
 
-                    Connect ();
+                    Connect();
                 }
             }
 
-            Log ("[CLIENT ERROR] permanent error, abandoning!");
+            Log("[CLIENT ERROR] permanent error, abandoning!");
 
-            m_client.Dispose ();
-            m_ctx.Dispose ();
+            m_client.Dispose();
+            m_ctx.Dispose();
 
             return null;
         }
@@ -147,15 +147,15 @@ namespace MajordomoProtocol
         /// </summary>
         /// <exception cref="ApplicationException">NetMQContext must not be <c>null</c></exception>
         /// <exception cref="ApplicationException">if broker address is empty or <c>null</c></exception>
-        private void Connect ()
+        private void Connect()
         {
-            if (!ReferenceEquals (m_client, null))
-                m_client.Dispose ();
+            if (!ReferenceEquals(m_client, null))
+                m_client.Dispose();
 
-            if (ReferenceEquals (m_ctx, null))
-                throw new ApplicationException ("NetMQContext does not exist!");
+            if (ReferenceEquals(m_ctx, null))
+                throw new ApplicationException("NetMQContext does not exist!");
 
-            m_client = m_ctx.CreateRequestSocket ();
+            m_client = m_ctx.CreateRequestSocket();
 
             if (m_identity != null)
                 m_client.Options.Identity = m_identity;
@@ -163,11 +163,11 @@ namespace MajordomoProtocol
             // attach the event handler for incoming messages
             m_client.ReceiveReady += ProcessReceiveReady;
 
-            m_client.Connect (m_brokerAddress);
+            m_client.Connect(m_brokerAddress);
 
             m_connected = true;
 
-            Log (string.Format ("[CLIENT] connecting to broker at {0}", m_brokerAddress));
+            Log(string.Format("[CLIENT] connecting to broker at {0}", m_brokerAddress));
         }
 
         /// <summary>
@@ -177,70 +177,56 @@ namespace MajordomoProtocol
         ///     socket strips [client adr][e] from message
         ///     message -> [protocol header][service name][reply]
         /// </remarks>
-        private void ProcessReceiveReady (object sender, NetMQSocketEventArgs e)
+        private void ProcessReceiveReady(object sender, NetMQSocketEventArgs e)
         {
             // a message is available within the timeout period
-            var reply = m_client.ReceiveMessage ();
+            var reply = m_client.ReceiveMessage();
 
-            Log (string.Format ("[CLIENT INFO] received the reply {0}", reply));
+            Log(string.Format("[CLIENT INFO] received the reply {0}", reply));
 
             // in production code malformed messages should be handled smarter
             if (reply.FrameCount < 3)
-                throw new ApplicationException ("[CLIENT ERROR] received a malformed reply");
+                throw new ApplicationException("[CLIENT ERROR] received a malformed reply");
 
-            var header = reply.Pop ();          // [service name][reply]
+            var header = reply.Pop(); // [service name][reply]
 
-            if (header.ConvertToString () != m_mdpClient)
-                throw new ApplicationException (string.Format ("[CLIENT INFO] MDP Version mismatch: {0}", header));
+            if (header.ConvertToString() != m_mdpClient)
+                throw new ApplicationException(string.Format("[CLIENT INFO] MDP Version mismatch: {0}", header));
 
-            var service = reply.Pop ();         // [reply]
+            var service = reply.Pop(); // [reply]
 
-            if (service.ConvertToString () != m_serviceName)
-                throw new ApplicationException (string.Format ("[CLIENT INFO] answered by wrong service: {0}",
-                                                               service.ConvertToString ()));
+            if (service.ConvertToString() != m_serviceName)
+                throw new ApplicationException(string.Format("[CLIENT INFO] answered by wrong service: {0}",
+                    service.ConvertToString()));
             // now set the value for the reply of the send method!
             m_reply = reply;
         }
 
-        private void Log (string info)
+        private void Log(string info)
         {
-            if (!string.IsNullOrWhiteSpace (info))
-                OnLogInfoReady (new LogInfoEventArgs { Info = info });
+            if (!string.IsNullOrWhiteSpace(info))
+                OnLogInfoReady(new LogInfoEventArgs { Info = info });
         }
 
         /// <summary>
         ///     broadcast the logging information if someone is listening
         /// </summary>
         /// <param name="e"></param>
-        protected virtual void OnLogInfoReady (LogInfoEventArgs e)
+        protected virtual void OnLogInfoReady(LogInfoEventArgs e)
         {
             var handler = LogInfoReady;
 
             if (handler != null)
-                handler (this, e);
+                handler(this, e);
         }
 
-        #region IDisposable
-
-        public void Dispose ()
+        public void Dispose()
         {
-            Dispose (true);
-            GC.SuppressFinalize (this);
+            // m_client might not have been created yet!
+            if (!ReferenceEquals(m_client, null))
+                m_client.Dispose();
+
+            m_ctx.Dispose();
         }
-
-        protected virtual void Dispose (bool disposing)
-        {
-            if (disposing)
-            {
-                // m_client might not have been created yet!
-                if (!ReferenceEquals (m_client, null))
-                    m_client.Dispose ();
-
-                m_ctx.Dispose ();
-            }
-            // get rid of unmanaged resources
-        }
-
-        #endregion IDisposable
     }
 }

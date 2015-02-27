@@ -5,61 +5,60 @@ using NetMQ.Sockets;
 
 namespace LazyPirate.Client
 {
-    class Program
+    internal static class Program
     {
-        private const int REQUEST_TIMEOUT = 2500;
-        private const int REQUEST_RETRIES = 10;
-        private const string SERVER_ENDPOINT = "tcp://127.0.0.1:5555";
+        private const int RequestTimeout = 2500;
+        private const int RequestRetries = 10;
+        private const string ServerEndpoint = "tcp://127.0.0.1:5555";
 
-        private static int _sequence = 0;
-        private static bool _expectReply = true;
-        private static int _retriesLeft = REQUEST_RETRIES;
+        private static int s_sequence;
+        private static bool s_expectReply = true;
+        private static int s_retriesLeft = RequestRetries;
 
-        static void Main(string[] args)
+        private static void Main()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
             {
                 RequestSocket client = CreateServerSocket(context);
 
-                while (_retriesLeft > 0)
+                while (s_retriesLeft > 0)
                 {
-                    _sequence++;
-                    Console.WriteLine("C: Sending ({0})", _sequence);
-                    client.Send(Encoding.Unicode.GetBytes(_sequence.ToString()));
-                    _expectReply = true;
+                    s_sequence++;
+                    Console.WriteLine("C: Sending ({0})", s_sequence);
+                    client.Send(Encoding.Unicode.GetBytes(s_sequence.ToString()));
+                    s_expectReply = true;
 
-                    while (_expectReply)
+                    while (s_expectReply)
                     {
-                        bool result = client.Poll(TimeSpan.FromMilliseconds(REQUEST_TIMEOUT));
+                        bool result = client.Poll(TimeSpan.FromMilliseconds(RequestTimeout));
 
-                        if (!result)
+                        if (result)
+                            continue;
+
+                        s_retriesLeft--;
+
+                        if (s_retriesLeft == 0)
                         {
-                            _retriesLeft--;
-
-                            if (_retriesLeft == 0)
-                            {
-                                Console.WriteLine("C: Server seems to be offline, abandoning");
-                                break;
-                            }
-                            else
-                            {
-                                Console.WriteLine("C: No response from server, retrying...");
-
-                                TerminateClient(client);
-
-                                client = CreateServerSocket(context);
-                                client.Send(Encoding.Unicode.GetBytes(_sequence.ToString()));
-                            }
+                            Console.WriteLine("C: Server seems to be offline, abandoning");
+                            break;
                         }
+                            
+                        Console.WriteLine("C: No response from server, retrying...");
+
+                        TerminateClient(client);
+
+                        client = CreateServerSocket(context);
+                        client.Send(Encoding.Unicode.GetBytes(s_sequence.ToString()));
                     }
                 }
+
                 TerminateClient(client);
             }
         }
 
-        private static void TerminateClient(RequestSocket client)
+        private static void TerminateClient(NetMQSocket client)
         {
-            client.Disconnect(SERVER_ENDPOINT);
+            client.Disconnect(ServerEndpoint);
             client.Close();
         }
 
@@ -68,7 +67,7 @@ namespace LazyPirate.Client
             Console.WriteLine("C: Connecting to server...");
 
             var client = context.CreateRequestSocket();
-            client.Connect(SERVER_ENDPOINT);
+            client.Connect(ServerEndpoint);
             client.Options.Linger = TimeSpan.Zero;
             client.ReceiveReady += ClientOnReceiveReady;
 
@@ -80,11 +79,11 @@ namespace LazyPirate.Client
             var reply = netMqSocketEventArgs.Socket.Receive();
             string strReply = Encoding.Unicode.GetString(reply);
 
-            if (Int32.Parse(strReply) == _sequence)
+            if (Int32.Parse(strReply) == s_sequence)
             {
                 Console.WriteLine("C: Server replied OK ({0})", strReply);
-                _retriesLeft = REQUEST_RETRIES;
-                _expectReply = false;
+                s_retriesLeft = RequestRetries;
+                s_expectReply = false;
             }
             else
             {
