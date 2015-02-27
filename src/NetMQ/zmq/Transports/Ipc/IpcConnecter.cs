@@ -23,7 +23,7 @@ using NetMQ.zmq.Transports.Tcp;
 namespace NetMQ.zmq.Transports.Ipc
 {
     /// <summary>
-    /// IpcConnecter is a subclass of TcpConnector, which provides absolutely nothing that in addition to what TcpConnector does.
+    /// IpcConnecter is a subclass of TcpConnector, which provides absolutely nothing beyond what TcpConnector does.
     /// </summary>
     internal class IpcConnecter : TcpConnecter
     {

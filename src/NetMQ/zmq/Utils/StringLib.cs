@@ -4,15 +4,24 @@ using System.Text;
 
 namespace NetMQ.zmq.Utils
 {
+    /// <summary>
+    /// StringLib is a static class whose purpose is to provide miscellaneous String-related utility methods
+    /// and extension properties.
+    /// </summary>
     public static class StringLib
     {
         #region AsString (List<string>)
         /// <summary>
-        /// Render the given List of things, as a single human-readable string
+        /// Return a string that gives detailed information of the staste of the given List of Sockets,
+        /// for debugging purposes.
         /// </summary>
-        /// <param name="list"></param>
-        /// <returns>the list contents in concise textual form</returns>
-        public static string AsString(List<Socket> list)
+        /// <param name="list">the List of Sockets to describe</param>
+        /// <returns>a string detailing the list contents, including the state of each Socket</returns>
+        /// <remarks>
+        /// This is intended just for debugging purposes, as when adding detailed information to the Message of an
+        /// exception when an error occurs. In DEBUG mode more detail is provided.
+        /// </remarks>
+        public static string AsString(List<System.Net.Sockets.Socket> list)
         {
             var sb = new StringBuilder();
             if (list == null)
@@ -54,12 +63,16 @@ namespace NetMQ.zmq.Utils
         }
         #endregion
 
-        #region AsString(Socket)
+        #region AsString (Socket)
         /// <summary>
-        /// Return a detailed textual description of the state of this Socket.
+        /// Return a detailed textual description of the state of this Socket (if DEBUG is defined).
         /// </summary>
         /// <param name="socket">the System.Net.Sockets.Socket to describe</param>
-        /// <returns>a string containing a plain, detailed answer</returns>
+        /// <returns>a string containing a detailed listing of the properties of the Socket</returns>
+        /// <remarks>
+        /// This is intended just for debugging purposes, as when adding detailed information to the Message of an
+        /// exception when an error occurs. In DEBUG mode more detail is provided.
+        /// </remarks>
         public static string AsString(this System.Net.Sockets.Socket socket)
         {
             var sb = new StringBuilder();
