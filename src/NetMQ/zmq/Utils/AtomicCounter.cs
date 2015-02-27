@@ -19,7 +19,7 @@ namespace NetMQ.zmq.Utils
         }
 
         /// <summary>
-        /// Set the counter-value to the given amount.
+        /// Assign the given amount to the counter-value.
         /// </summary>
         /// <param name="amount">the integer value to set the counter to</param>
         public void Set(int amount)

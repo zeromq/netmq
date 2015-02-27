@@ -155,9 +155,9 @@ namespace NetMQ.zmq.Transports.PGM
         private void Error()
         {
             Debug.Assert(m_session != null);
-
+                        
             m_session.Detach();
-
+            
             m_ioObject.RemoveSocket(m_handle);
 
             //  Disconnect from I/O threads poller object.

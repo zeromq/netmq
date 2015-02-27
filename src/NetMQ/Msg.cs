@@ -126,7 +126,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get the MsgType flags-enum value, which indicates whether Invalid, Empty, GC, Pool, or Delimiter.
+        /// Get the MsgType flags-enum value, which indicates which of the Invalid, Empty, GC, Pool, or Delimiter bits are set.
         /// </summary>
         public MsgType MsgType
         {
@@ -282,7 +282,7 @@ namespace NetMQ
                 return;
             }
 
-            if (m_atomicCounter.Decrement(amount) <= 0)
+            if (m_atomicCounter.Decrement(amount) == 0)
             {
                 m_atomicCounter = null;
 

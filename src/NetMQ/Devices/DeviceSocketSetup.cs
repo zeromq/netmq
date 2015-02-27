@@ -20,7 +20,7 @@ namespace NetMQ.Devices
         private readonly NetMQSocket m_socket;
 
         /// <summary>
-        /// The list of Actions to perform initialization of the socket when Configure is called.
+        /// The list of initialization Actions to perform upon the socket when Configure is called.
         /// </summary>
         private readonly List<Action<NetMQSocket>> m_socketInitializers;
 
@@ -118,7 +118,7 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
-        /// Add the given byte-array prefix to the list that the socket is to subscribe to when Configure is called.
+        /// Add the given prefix to the list that the socket is to subscribe to when Configure is called.
         /// Note: This method should ONLY be called on a <see cref="SubscriberSocket"/>.
         /// </summary>
         /// <param name="prefix">a byte-array containing the prefix to which the socket will subscribe</param>
