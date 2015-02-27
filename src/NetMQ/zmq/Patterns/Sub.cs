@@ -77,8 +77,8 @@ namespace NetMQ.zmq.Patterns
 
                 if (!isMessageSent)
                 {
-                    string s = String.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optval);
-                    throw new AgainException(innerException: null, message: s);
+                    string xMsg = String.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optval);
+                    throw new AgainException(innerException: null, message: xMsg);
                 }
             }
             finally
@@ -92,7 +92,7 @@ namespace NetMQ.zmq.Patterns
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             //  Overload the XSUB's send.
-            throw new NotSupportedException("Send not supported on sub socket");
+            throw new NotSupportedException("XSend not supported on Sub socket");
         }
 
         protected override bool XHasOut()

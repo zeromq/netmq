@@ -6,6 +6,9 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// An IShimHandler provides a Run(PairSocket) method.
+    /// </summary>
     public interface IShimHandler
     {
         void Run([NotNull] PairSocket shim);

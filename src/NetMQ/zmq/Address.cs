@@ -26,12 +26,31 @@ namespace NetMQ.zmq
     /// <summary>
     /// Class Address contains a specification of a protocol and an MqEndPoint.
     /// </summary>
-   internal class Address
+    internal class Address
     {
+        /// <summary>
+        /// This is the string-literal "inproc".
+        /// </summary>
         public const string InProcProtocol = "inproc";
+
+        /// <summary>
+        /// This is the string-literal "tcp".
+        /// </summary>
         public const string TcpProtocol = "tcp";
+
+        /// <summary>
+        /// This is the string-literal "ipc".
+        /// </summary>
         public const string IpcProtocol = "ipc";
+
+        /// <summary>
+        /// This is the string-literal "pgm".
+        /// </summary>
         public const string PgmProtocol = "pgm";
+
+        /// <summary>
+        /// This is the string-literal "epgm".
+        /// </summary>
         public const string EpgmProtocol = "epgm";
 
         /// <summary>
@@ -43,7 +62,6 @@ namespace NetMQ.zmq
             IPEndPoint Address { get; }
             String Protocol { get; }
         }
-
 
         /// <summary>
         /// Create a new Address instance with the given protocol and text expression of an address.
@@ -60,7 +78,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Create a new Address instance based upon the given endpoint, assuming a protocol of tcp.
         /// </summary>
-        /// <param name="endpoint">the EndPoint to base this Address upon</param>
+        /// <param name="endpoint">the subclass of EndPoint to base this Address upon</param>
         public Address(EndPoint endpoint)
         {
             Protocol = TcpProtocol;

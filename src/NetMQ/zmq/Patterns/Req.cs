@@ -26,12 +26,16 @@ namespace NetMQ.zmq.Patterns
 {
     internal class Req : Dealer
     {
-        //  If true, request was already sent and reply wasn't received yet or
-        //  was raceived partially.
+        /// <summary>
+        /// If true, request was already sent and reply wasn't received yet or
+        /// was raceived partially.
+        /// </summary>
         private bool m_receivingReply;
 
-        //  If true, we are starting to send/recv a message. The first part
-        //  of the message must be empty message part (backtrace stack bottom).
+        /// <summary>
+        /// If true, we are starting to send/recv a message. The first part
+        /// of the message must be empty message part (backtrace stack bottom).
+        /// </summary>
         private bool m_messageBegins;
 
         public Req(Ctx parent, int threadId, int socketId)
@@ -48,7 +52,7 @@ namespace NetMQ.zmq.Patterns
             //  we can't send another request.
             if (m_receivingReply)
             {
-                throw new FiniteStateMachineException("Req.XSend - cannot send another request");                
+                throw new FiniteStateMachineException("Req.XSend - cannot send another request");
             }
 
             bool isMessageSent;
@@ -90,11 +94,11 @@ namespace NetMQ.zmq.Patterns
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             bool isMessageAvailable;
-            
+
             //  If request wasn't send, we can't wait for reply.
             if (!m_receivingReply)
             {
-                throw new FiniteStateMachineException("Req.XRecv - cannot receive another reply"); 
+                throw new FiniteStateMachineException("Req.XRecv - cannot receive another reply");
             }
 
             //  First part of the reply should be the original request ID.
@@ -105,8 +109,8 @@ namespace NetMQ.zmq.Patterns
                 if (!isMessageAvailable)
                 {
                     return false;
-                }               
-                
+                }
+
                 if (!msg.HasMore || msg.Size != 0)
                 {
                     while (true)
@@ -129,7 +133,7 @@ namespace NetMQ.zmq.Patterns
             if (!isMessageAvailable)
             {
                 return false;
-            }            
+            }
 
             //  If the reply is fully received, flip the FSM into request-sending state.
             if (!msg.HasMore)
@@ -142,7 +146,7 @@ namespace NetMQ.zmq.Patterns
         }
 
         protected override bool XHasIn()
-        {            
+        {
             if (!m_receivingReply)
                 return false;
 
@@ -204,7 +208,7 @@ namespace NetMQ.zmq.Patterns
                             m_state = State.Bottom;
                             return base.PushMsg(ref msg);
                         }
-                        break;                    
+                        break;
                 }
 
                 throw new FaultException("Req.PushMsg default failure.");

@@ -18,8 +18,8 @@ namespace NetMQ.Sockets
         /// <summary>
         /// Don't invoke this on a SubscriberSocket - you'll just get a NotSupportedException.
         /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="options"></param>
+        /// <param name="msg">the Msg to transmit</param>
+        /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
         public override void Send(ref Msg msg, SendReceiveOptions options)
         {
             throw new NotSupportedException("Subscriber socket doesn't support sending");
@@ -42,7 +42,7 @@ namespace NetMQ.Sockets
         /// You can set topic to an empty string to subscribe to everything.
         /// </summary>
         /// <param name="topic">this specifies what text-prefix to subscribe to, or may be an empty-string to specify ALL</param>
-        /// <param name="encoding">the Encoding to use when converting the topic string internally into a byte-array</param>
+        /// <param name="encoding">the character-Encoding to use when converting the topic string internally into a byte-array</param>
         public virtual void Subscribe(string topic, Encoding encoding)
         {
             Subscribe(encoding.GetBytes(topic));

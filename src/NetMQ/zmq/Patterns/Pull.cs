@@ -30,15 +30,19 @@ namespace NetMQ.zmq.Patterns
         {
             public PullSession(IOThread ioThread, bool connect,
                                SocketBase socket, Options options,
-                               Address addr) : base(ioThread, connect, socket, options, addr)
+                               Address addr)
+                : base(ioThread, connect, socket, options, addr)
             {
             }
         }
 
-        //  Fair queueing object for inbound pipes.
+        /// <summary>
+        /// Fair queueing object for inbound pipes.
+        /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        public Pull(Ctx parent, int threadId, int socketId) : base(parent, threadId, socketId)
+        public Pull(Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pull;
 

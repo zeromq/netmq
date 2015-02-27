@@ -307,7 +307,6 @@ namespace NetMQ.zmq
             {
                 if (m_starting)
                 {
-
                     m_starting = false;
                     //  Initialise the array of mailboxes. Additional three slots are for
                     //  zmq_term thread and reaper thread.
@@ -356,14 +355,19 @@ namespace NetMQ.zmq
                 //  Once zmq_term() was called, we can't create new sockets.
                 if (m_terminating)
                 {
-                    string msg = String.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
-                    throw new TerminatingException(innerException: null, message: msg);
+                    string xMsg = String.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
+                    throw new TerminatingException(innerException: null, message: xMsg);
                 }
 
                 //  If max_sockets limit was reached, return error.
                 if (m_emptySlots.Count == 0)
                 {
+#if DEBUG
+                    string xMsg = String.Format("Ctx.CreateSocket({0}), max number of sockets {1} reached.", type, m_maxSockets);
+                    throw NetMQException.Create(xMsg, ErrorCode.TooManyOpenSockets);
+#else
                     throw NetMQException.Create(ErrorCode.TooManyOpenSockets);
+#endif
                 }
 
                 //  Choose a slot for the socket.

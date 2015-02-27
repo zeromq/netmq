@@ -28,6 +28,9 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
+    /// <summary>
+    /// A Router is a subclass of SocketBase
+    /// </summary>
     internal class Router : SocketBase
     {
         private static readonly Random s_random = new Random();
@@ -42,6 +45,9 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
+        /// <summary>
+        /// An instance of class Outpipe contains a Pipe and a boolean property Active.
+        /// </summary>
         private class Outpipe
         {
             public Outpipe(Pipe pipe, bool active)
@@ -54,67 +60,87 @@ namespace NetMQ.zmq.Patterns
             public bool Active;
         };
 
-        //  Fair queueing object for inbound pipes.
+        /// <summary>
+        /// Fair queueing object for inbound pipes.
+        /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        //  True iff there is a message held in the pre-fetch buffer.
+        /// <summary>
+        /// True iff there is a message held in the pre-fetch buffer.
+        /// </summary>
         private bool m_prefetched;
 
-        //  If true, the receiver got the message part with
-        //  the peer's identity.
+        /// <summary>
+        /// If true, the receiver got the message part with
+        /// the peer's identity.
+        /// </summary>
         private bool m_identitySent;
 
-        //  Holds the prefetched identity.
+        /// <summary>
+        /// Holds the prefetched identity.
+        /// </summary>
         private Msg m_prefetchedId;
 
-        //  Holds the prefetched message.
+        /// <summary>
+        /// Holds the prefetched message.
+        /// </summary>
         private Msg m_prefetchedMsg;
 
-        //  If true, more incoming message parts are expected.
+        /// <summary>
+        /// If true, more incoming message parts are expected.
+        /// </summary>
         private bool m_moreIn;
 
-        //  We keep a set of pipes that have not been identified yet.
+        /// <summary>
+        /// We keep a set of pipes that have not been identified yet.
+        /// </summary>
         private readonly HashSet<Pipe> m_anonymousPipes;
 
-        //  Outbound pipes indexed by the peer IDs.
+        /// <summary>
+        /// Outbound pipes indexed by the peer IDs.
+        /// </summary>
         private readonly Dictionary<byte[], Outpipe> m_outpipes;
 
-        //  The pipe we are currently writing to.
+        /// <summary>
+        /// The pipe we are currently writing to.
+        /// </summary>
         private Pipe m_currentOut;
 
-        //  If true, more outgoing message parts are expected.
+        /// <summary>
+        /// If true, more outgoing message parts are expected.
+        /// </summary>
         private bool m_moreOut;
 
-        //  Peer ID are generated. It's a simple increment and wrap-over
-        //  algorithm. This value is the next ID to use (if not used already).
+        /// <summary>
+        /// Peer ID are generated. It's a simple increment and wrap-over
+        /// algorithm. This value is the next ID to use (if not used already).
+        /// </summary>
         private int m_nextPeerId;
 
-        // If true, report EHOSTUNREACH to the caller instead of silently dropping 
-        // the message targeting an unknown peer.
+        /// <summary>
+        /// If true, report EHOSTUNREACH to the caller instead of silently dropping 
+        /// the message targeting an unknown peer.
+        /// </summary>
         private bool m_mandatory;
 
         private bool m_rawSocket;
 
+        /// <summary>
+        /// Create a new Router instance with the given parent-Ctx, thread-id, and socket-id.
+        /// </summary>
+        /// <param name="parent">the Ctx that will contain this Router</param>
+        /// <param name="threadId">the integer thread-id value</param>
+        /// <param name="socketId">the integer socket-id value</param>
         public Router(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-            m_prefetched = false;
-            m_identitySent = false;
-            m_moreIn = false;
-            m_currentOut = null;
-            m_moreOut = false;
             m_nextPeerId = s_random.Next();
-            m_mandatory = false;
-            m_rawSocket = false;
-
             m_options.SocketType = ZmqSocketType.Router;
-
             m_fairQueueing = new FairQueueing();
             m_prefetchedId = new Msg();
             m_prefetchedId.InitEmpty();
             m_prefetchedMsg = new Msg();
             m_prefetchedMsg.InitEmpty();
-
             m_anonymousPipes = new HashSet<Pipe>();
             m_outpipes = new Dictionary<byte[], Outpipe>(new ByteArrayEqualityComparer());
             m_options.RecvIdentity = true;

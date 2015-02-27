@@ -128,8 +128,9 @@ namespace NetMQ.zmq
     }
 
     /// <summary>
-    /// This enum-type provides a way to specify basic Receive behavior
-    /// - None, whether to wait for a message or not (DontWait), and whether to set the SendMore bit.
+    /// This flags enum-type provides a way to specify basic Receive behavior.
+    /// It may be None, or have the DontWait bit set (indicating to wait for a message,
+    /// or the SendMore bit.
     /// </summary>
     [Flags]
     public enum SendReceiveOptions

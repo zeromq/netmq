@@ -23,33 +23,39 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-//  Class manages a set of inbound pipes. On receive it performs fair
-//  queueing so that senders gone berserk won't cause denial of
-//  service for decent senders.
 namespace NetMQ.zmq.Patterns.Utils
 {
+    /// <summary>
+    /// This class manages a set of inbound pipes. On receive it performs fair
+    /// queueing so that senders gone berserk won't cause denial of
+    /// service for decent senders.
+    /// </summary>
     internal class FairQueueing
     {
-        //  Inbound pipes.
+        /// <summary>
+        /// Inbound pipes.
+        /// </summary>
         private readonly List<Pipe> m_pipes;
 
-        //  Number of active pipes. All the active pipes are located at the
-        //  beginning of the pipes array.
+        /// <summary>
+        /// Number of active pipes. All the active pipes are located at the
+        /// beginning of the pipes array.
+        /// </summary>
         private int m_active;
 
-        //  Index of the next bound pipe to read a message from.
+        /// <summary>
+        /// Index of the next bound pipe to read a message from.
+        /// </summary>
         private int m_current;
 
-        //  If true, part of a multipart message was already received, but
-        //  there are following parts still waiting in the current pipe.
+        /// <summary>
+        /// If true, part of a multipart message was already received, but
+        /// there are following parts still waiting in the current pipe.
+        /// </summary>
         private bool m_more;
 
         public FairQueueing()
         {
-            m_active = 0;
-            m_current = 0;
-            m_more = false;
-
             m_pipes = new List<Pipe>();
         }
 

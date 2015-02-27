@@ -33,12 +33,16 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
-        //  If true, we are in process of sending the reply. If false we are
-        //  in process of receiving a request.
+        /// <summary>
+        /// If true, we are in process of sending the reply. If false we are
+        /// in process of receiving a request.
+        /// </summary>
         private bool m_sendingReply;
 
-        //  If true, we are starting to receive a request. The beginning
-        //  of the request is the backtrace stack.
+        /// <summary>
+        /// If true, we are starting to receive a request. The beginning
+        /// of the request is the backtrace stack.
+        /// </summary>
         private bool m_requestBegins;
 
         public Rep(Ctx parent, int threadId, int socketId)
@@ -82,7 +86,7 @@ namespace NetMQ.zmq.Patterns
             //  If we are in middle of sending a reply, we cannot receive next request.
             if (m_sendingReply)
             {
-                throw new FiniteStateMachineException("Rep.XRecv - cannot receive another request");                 
+                throw new FiniteStateMachineException("Rep.XRecv - cannot receive another request");
             }
 
             //  First thing to do when receiving a request is to copy all the labels
@@ -96,7 +100,7 @@ namespace NetMQ.zmq.Patterns
                     if (!isMessageAvailable)
                     {
                         return false;
-                    }                  
+                    }
 
                     if (msg.HasMore)
                     {
@@ -129,7 +133,7 @@ namespace NetMQ.zmq.Patterns
             if (!isMessageAvailable)
             {
                 return false;
-            }          
+            }
 
             //  If whole request is read, flip the FSM to reply-sending state.
             if (!msg.HasMore)

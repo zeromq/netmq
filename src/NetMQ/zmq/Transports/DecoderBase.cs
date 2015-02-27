@@ -21,28 +21,39 @@
 
 using System;
 using System.Diagnostics;
-//  Helper base class for decoders that know the amount of data to read
-//  in advance at any moment. Knowing the amount in advance is a property
-//  of the protocol used. 0MQ framing protocol is based size-prefixed
-//  paradigm, which qualifies it to be parsed by this class.
-//  On the other hand, XML-based transports (like XMPP or SOAP) don't allow
-//  for knowing the size of data to read in advance and should use different
-//  decoding algorithms.
-//
-//  This class , the state machine that parses the incoming buffer.
-//  Derived class should implement individual state machine actions.
 
 namespace NetMQ.zmq.Transports
 {
+    /// <summary>
+    /// Helper base class for decoders that know the amount of data to read
+    /// in advance at any moment.
+    /// This class is the state machine that parses the incoming buffer.
+    /// Derived classes should implement individual state machine actions.
+    /// </summary>
+    /// <remarks>
+    /// Knowing the amount in advance is a property
+    /// of the protocol used. 0MQ framing protocol is based size-prefixed
+    /// paradigm, which qualifies it to be parsed by this class.
+    /// 
+    /// On the other hand, XML-based transports (like XMPP or SOAP) don't allow
+    /// for knowing the size of data to read in advance and should use different
+    /// decoding algorithms.
+    /// </remarks>
     internal abstract class DecoderBase : IDecoder
     {
-        //  Where to store the read data.
+        /// <summary>
+        /// Where to store the read data.
+        /// </summary>
         private ByteArraySegment m_readPos;
 
-        //  How much data to read before taking next step.
+        /// <summary>
+        /// How much data to read before taking next step.
+        /// </summary>
         protected int m_toRead;
 
-        //  The buffer for data to decode.
+        /// <summary>
+        /// The buffer for data to decode.
+        /// </summary>
         private readonly int m_bufsize;
         private readonly byte[] m_buf;
 
@@ -62,9 +73,11 @@ namespace NetMQ.zmq.Transports
         public abstract void SetMsgSink(IMsgSink msgSink);
 
 
-        //  Returns true if the decoder has been fed all required data
-        //  but cannot proceed with the next decoding step.
-        //  False is returned if the decoder has encountered an error.
+        /// <summary>
+        /// Returns true if the decoder has been fed all required data
+        /// but cannot proceed with the next decoding step.
+        /// False is returned if the decoder has encountered an error.
+        /// </summary>
         public virtual bool Stalled()
         {
             //  Check whether there was decoding error.
@@ -83,7 +96,9 @@ namespace NetMQ.zmq.Transports
             return false;
         }
 
-        //  Returns a buffer to be filled with binary data.
+        /// <summary>
+        /// Returns a buffer to be filled with binary data.
+        /// </summary>
         public void GetBuffer(ref ByteArraySegment data, ref int size)
         {
             //  If we are expected to read large message, we'll opt for zero-
@@ -107,10 +122,12 @@ namespace NetMQ.zmq.Transports
         }
 
 
-        //  Processes the data in the buffer previously allocated using
-        //  get_buffer function. size_ argument specifies nemuber of bytes
-        //  actually filled into the buffer. Function returns number of
-        //  bytes actually processed.
+        /// <summary>
+        /// Processes the data in the buffer previously allocated using
+        /// get_buffer function. size_ argument specifies nemuber of bytes
+        /// actually filled into the buffer. Function returns number of
+        /// bytes actually processed.
+        /// </summary>
         public int ProcessBuffer(ByteArraySegment data, int size)
         {
             //  Check if we had an error in previous attempt.
@@ -198,6 +215,5 @@ namespace NetMQ.zmq.Transports
         }
 
         abstract protected bool Next();
-
     }
 }

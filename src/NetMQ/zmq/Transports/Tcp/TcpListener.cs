@@ -28,26 +28,38 @@ namespace NetMQ.zmq.Transports.Tcp
 {
     internal class TcpListener : Own, IProcatorEvents
     {
-        private const SocketOptionName IPv6Only = (SocketOptionName) 27;
+        private const SocketOptionName IPv6Only = (SocketOptionName)27;
 
-        //  Address to listen on.
+        /// <summary>
+        /// Address to listen on.
+        /// </summary>
         private readonly TcpAddress m_address;
 
-        //  Underlying socket.
+        /// <summary>
+        /// Underlying socket.
+        /// </summary>
         private AsyncSocket m_handle;
 
-        // socket being accepted
+        /// <summary>
+        /// socket being accepted
+        /// </summary>
         private AsyncSocket m_acceptedSocket;
 
-        //  Socket the listerner belongs to.
+        /// <summary>
+        /// Socket the listerner belongs to.
+        /// </summary>
         private readonly SocketBase m_socket;
 
-        // String representation of endpoint to bind to
+        /// <summary>
+        /// String representation of endpoint to bind to
+        /// </summary>
         private String m_endpoint;
 
         private readonly IOObject m_ioObject;
 
-        // The port that was bound on
+        /// <summary>
+        /// The port that was bound on
+        /// </summary>
         private int m_port;
 
         public TcpListener(IOThread ioThread, SocketBase socket, Options options) :
@@ -82,7 +94,9 @@ namespace NetMQ.zmq.Transports.Tcp
             base.ProcessTerm(linger);
         }
 
-        //  Set address to listen on. return the used port
+        /// <summary>
+        /// Set address to listen on. return the used port
+        /// </summary>
         public virtual void SetAddress(String addr)
         {
             m_address.Resolve(addr, m_options.IPv4Only);
@@ -112,13 +126,13 @@ namespace NetMQ.zmq.Transports.Tcp
 
                 m_socket.EventListening(m_endpoint, m_handle);
 
-                m_port = m_handle.LocalEndPoint.Port;                               
+                m_port = m_handle.LocalEndPoint.Port;
             }
             catch (SocketException ex)
             {
                 Close();
                 throw NetMQException.Create(ex);
-            }            
+            }
         }
 
         private void Accept()
@@ -126,7 +140,7 @@ namespace NetMQ.zmq.Transports.Tcp
             m_acceptedSocket = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             // start accepting socket async
-            m_handle.Accept(m_acceptedSocket);            
+            m_handle.Accept(m_acceptedSocket);
         }
 
         public void InCompleted(SocketError socketError, int bytesTransferred)
@@ -195,7 +209,9 @@ namespace NetMQ.zmq.Transports.Tcp
             }
         }
 
-        //  Close the listening socket.
+        /// <summary>
+        /// Close the listening socket.
+        /// </summary>
         private void Close()
         {
             if (m_handle == null)
@@ -229,7 +245,7 @@ namespace NetMQ.zmq.Transports.Tcp
         public virtual String Address
         {
             get { return m_address.ToString(); }
-        }        
+        }
 
         public virtual int Port
         {

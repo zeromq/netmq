@@ -26,6 +26,10 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
+    /// <summary>
+    /// A TcpAddress implements IZAddress, and contains an IPEndPoint (the Address property)
+    /// and a Protocol property.
+    /// </summary>
     internal class TcpAddress : Address.IZAddress
     {
         public class TcpAddressMask : TcpAddress
@@ -136,12 +140,20 @@ namespace NetMQ.zmq.Transports.Tcp
             Address = new IPEndPoint(ipAddress, port);             
         }
 
+        /// <summary>
+        /// Get the Address implementation - which here is an IPEndPoint,
+        /// which contains Address, AddressFamily, and Port properties.
+        /// </summary>
         public IPEndPoint Address
         {
             get;
             private set;
         }
 
+        /// <summary>
+        /// Get the textual-representation of the communication protocol implied by this TcpAddress,
+        /// which here is simply "tcp".
+        /// </summary>
         public String Protocol
         {
             get { return zmq.Address.TcpProtocol; }

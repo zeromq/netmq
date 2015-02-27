@@ -39,17 +39,11 @@ namespace NetMQ.zmq.Patterns.Utils
 
         public Trie()
         {
-            m_minCharacter = 0;
-            m_count = 0;
-            m_liveNodes = 0;
-
-            m_referenceCount = 0;
-            m_next = null;
         }
-        
+
         /// <summary>
         /// Add key to the trie. Returns true if this is a new item in the trie
-        ///  rather than a duplicate.
+        /// rather than a duplicate.
         /// </summary>
         /// <param name="prefix"></param>
         /// <param name="start"></param>
@@ -123,10 +117,10 @@ namespace NetMQ.zmq.Patterns.Utils
             }
         }
 
-        
+
         /// <summary>
-        //  Remove key from the trie. Returns true if the item is actually
-        ///  removed from the trie.
+        /// Remove key from the trie. Returns true if the item is actually
+        /// removed from the trie.
         /// </summary>
         /// <param name="prefix"></param>
         /// <param name="start"></param>
@@ -189,7 +183,7 @@ namespace NetMQ.zmq.Patterns.Utils
                         }
 
                         Debug.Assert(node != null);
-                        
+
                         m_next = null;
                         m_next = new Trie[] { node };
                         m_count = 1;
@@ -238,9 +232,9 @@ namespace NetMQ.zmq.Patterns.Utils
 
             return wasRemoved;
         }
-                
+
         /// <summary>
-        ///  Check whether particular key is in the trie.
+        /// Check whether particular key is in the trie.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="size"></param>
@@ -273,7 +267,7 @@ namespace NetMQ.zmq.Patterns.Utils
                 else
                 {
                     current = current.m_next[character - current.m_minCharacter];
-                    
+
                     if (current == null)
                         return false;
                 }

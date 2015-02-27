@@ -11,6 +11,9 @@ namespace NetMQ
 {
     public class Poller : IDisposable
     {
+        /// <summary>
+        /// This is the list of sockets that this Poller is listening to.
+        /// </summary>
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
 
         /// <summary>
@@ -21,16 +24,27 @@ namespace NetMQ
         private SelectItem[] m_pollset;
 
         /// <summary>
-        /// An array of sockets.
+        /// An array of sockets that are active.
         /// </summary>
         private NetMQSocket[] m_pollact;
 
         private int m_pollSize;
 
+        /// <summary>
+        /// This is the list of NetMQTimers.
+        /// </summary>
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
+
+        /// <summary>
+        /// This is used to hold the list of expired timers.
+        /// </summary>
         private readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
 
         private int m_cancel;
+
+        /// <summary>
+        /// This ManualResetEvent is used for blocking until this Poller is actually stopped.
+        /// </summary>
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
 
         /// <summary>
@@ -72,8 +86,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create a new Poller object with an array of timers.
-        /// TODO: Needs more explanation.
+        /// Create a new Poller object with the given array of timers.
         /// </summary>
         /// <param name="timers">an array of NetMQTimers (must not be null) to be incorporated into this Poller</param>
         public Poller([NotNull] [ItemNotNull] params NetMQTimer[] timers)

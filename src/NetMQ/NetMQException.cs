@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Net.Sockets;
 using JetBrains.Annotations;
 
@@ -121,8 +120,9 @@ namespace NetMQ
 #if DEBUG
                     string s = String.Format("(And within NetMQException.Create: Unanticipated error-code: {0})", error.ToString());
                     return Create(errorCode: errorCode, message: s, innerException: innerException);
-#endif
+#else
                     break;
+#endif
             }
 
             return Create(errorCode, innerException);
@@ -451,7 +451,7 @@ namespace NetMQ
 
     /// <summary>
     /// FiniteStateMachineException is an Exception that is used within within the message-queuing system
-    /// to signal failures to communicate with a host.
+    /// to signal errors in the send/receive order with request/response sockets.
     /// </summary>
     [Serializable]
     public class FiniteStateMachineException : NetMQException

@@ -293,13 +293,19 @@ namespace NetMQ
         /// <summary>
         /// Get an available message over this socket.
         /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="options">this controls whether to wait for the message versus returning immedately</param>
+        /// <param name="msg">the Msg object to put it in</param>
+        /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {                        
             m_socketHandle.Recv(ref msg, options);
         }       
-                    
+          
+        /// <summary>
+        /// Send a Msg over this socket.
+        /// </summary>
+        /// <param name="msg">the Msg to send</param>
+        /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
+  
         public virtual void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_socketHandle.Send(ref msg, options);
@@ -330,9 +336,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Listen to the given endpoint for all SocketEvent events.
-        /// This is the same as calling the method Monitor with a value of SocketEvent.All for the events argument.
+        /// Listen to the given endpoint for SocketEvent events.
         /// </summary>
+        /// <param name="endpoint">a string denoting the endpoint to monitor</param>
         /// <param name="events">the specific SocketEvent events to report on. Default is SocketEvent.All if you omit this.</param>
         public void Monitor([NotNull] string endpoint, SocketEvent events = SocketEvent.All)
         {
@@ -352,7 +358,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// true if a message is waiting to be picked up, false otherwise
+        /// Get whether a message is waiting to be picked up (true if there is, false if there is none).
         /// </summary>
         public bool HasIn
         {
@@ -365,7 +371,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// true if a message is waiting to be sent, false otherwise
+        /// This is true if a message is waiting to be sent, false otherwise.
         /// </summary>
         public bool HasOut
         {
@@ -377,6 +383,11 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Get the integer-value of the specified ZmqSocketOptions.
+        /// </summary>
+        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
+        /// <returns>an integer that is the value of that option</returns>
         internal int GetSocketOption(ZmqSocketOptions socketOptions)
         {
             m_socketHandle.CheckDisposed();
@@ -384,6 +395,11 @@ namespace NetMQ
             return m_socketHandle.GetSocketOption(socketOptions);
         }
 
+        /// <summary>
+        /// Get the (generically-typed) value of the specified ZmqSocketOptions.
+        /// </summary>
+        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
+        /// <returns>an object of the given type, that is the value of that option</returns>
         internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
         {
             m_socketHandle.CheckDisposed();
@@ -391,16 +407,31 @@ namespace NetMQ
             return (T)m_socketHandle.GetSocketOptionX(socketOptions);
         }
 
+        /// <summary>
+        /// Get the TimeSpan-value of the specified ZmqSocketOptions.
+        /// </summary>
+        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
+        /// <returns>a TimeSpan that is the value of that option</returns>
         internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
         {
             return TimeSpan.FromMilliseconds(GetSocketOption(socketOptions));
         }
 
+        /// <summary>
+        /// Get the 64-bit integer-value of the specified ZmqSocketOptions.
+        /// </summary>
+        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
+        /// <returns>a long that is the value of that option</returns>
         internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
         {
             return GetSocketOptionX<long>(socketOptions);
         }
-     
+
+        /// <summary>
+        /// Assign the given integer value to the specified ZmqSocketOptions.
+        /// </summary>
+        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to set</param>
+        /// <param name="value">an integer that is the value to set that option to</param>
         internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
         {
             m_socketHandle.CheckDisposed();
@@ -408,11 +439,21 @@ namespace NetMQ
             m_socketHandle.SetSocketOption(socketOptions, value);
         }
 
+        /// <summary>
+        /// Assign the given TimeSpan to the specified ZmqSocketOptions.
+        /// </summary>
+        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to set</param>
+        /// <param name="value">a TimeSpan that is the value to set that option to</param>
         internal void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
         {
             SetSocketOption(socketOptions, (int)value.TotalMilliseconds);
         }
 
+        /// <summary>
+        /// Assign the given Object value to the specified ZmqSocketOptions.
+        /// </summary>
+        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to set</param>
+        /// <param name="value">an object that is the value to set that option to</param>
         internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
         {
             m_socketHandle.CheckDisposed();

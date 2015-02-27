@@ -37,19 +37,29 @@ namespace NetMQ.zmq.Transports.PGM
 
         public static readonly int RM_OPTIONSBASE = 1000;
 
+        /// <summary>
         // Set/Query rate (Kb/Sec) + window size (Kb and/or MSec) -- described by RM_SEND_WINDOW below
+        /// </summary>
         public static readonly SocketOptionName RM_RATE_WINDOW_SIZE = (SocketOptionName)(RM_OPTIONSBASE + 1);
 
-        // set IP multicast outgoing interface
+        /// <summary>
+        /// set IP multicast outgoing interface
+        /// </summary>
         public static readonly SocketOptionName RM_SET_SEND_IF = (SocketOptionName)(RM_OPTIONSBASE + 7);
 
-        // add IP multicast incoming interface
+        /// <summary>
+        /// add IP multicast incoming interface
+        /// </summary>
         public static readonly SocketOptionName RM_ADD_RECEIVE_IF = (SocketOptionName)(RM_OPTIONSBASE + 8);
 
-        // delete IP multicast incoming interface
+        /// <summary>
+        /// delete IP multicast incoming interface
+        /// </summary>
         public static readonly SocketOptionName RM_DEL_RECEIVE_IF = (SocketOptionName)(RM_OPTIONSBASE + 9);
 
-        // Set the Ttl of the MCast packets -- (ULONG)
+        /// <summary>
+        /// Set the Ttl of the MCast packets -- (ULONG)
+        /// </summary>
         public static readonly SocketOptionName RM_SET_MCAST_TTL = (SocketOptionName)(RM_OPTIONSBASE + 12);
 
         public static readonly SocketOptionName EnableGigabitOption = (SocketOptionName)1014;
@@ -77,8 +87,8 @@ namespace NetMQ.zmq.Transports.PGM
             }
             catch (SocketException x)
             {
-                string s = String.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this.ToString());
-                Debug.WriteLine(s);
+                string xMsg = String.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this.ToString());
+                Debug.WriteLine(xMsg);
                 // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
                 PlatformID p = Environment.OSVersion.Platform;
                 bool isWindows = true;
@@ -98,18 +108,18 @@ namespace NetMQ.zmq.Transports.PGM
                 {
                     Debug.WriteLine("For Microsoft Windows, you may want to check to see whether you have installed MSMQ on this host, to get PGM socket support.");
                 }
-                throw new FaultException(innerException: x, message: s);
+                throw new FaultException(innerException: x, message: xMsg);
             }
 #endif
             Handle.ExclusiveAddressUse = false;
             Handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-        }        
+        }
 
         internal void InitReceiver()
         {
             Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE);
         }
-        
+
         internal void InitOptions()
         {
             // Enable gigabit on the socket

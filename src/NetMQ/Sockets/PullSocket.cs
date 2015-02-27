@@ -17,8 +17,8 @@ namespace NetMQ.Sockets
         /// <summary>
         /// Don't invoke this on a PullSocket - you'll just get a NotSupportedException.
         /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="options"></param>
+        /// <param name="msg">the Msg to transmit</param>
+        /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
         public override void Send(ref Msg msg, SendReceiveOptions options)
         {        
             throw new NotSupportedException("Pull socket doesn't support sending");
