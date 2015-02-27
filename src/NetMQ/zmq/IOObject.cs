@@ -45,12 +45,7 @@ namespace NetMQ.zmq
         //  When migrating an object from one I/O thread to another, first
         //  unplug it, then migrate it, then plug it to the new thread.
 
-        public void Plug()
-        {
-            Plug(null);
-        }
-
-        public void Plug(IOThread ioThread)
+        public void Plug(IOThread ioThread = null)
         {
             Debug.Assert(ioThread != null);
 
