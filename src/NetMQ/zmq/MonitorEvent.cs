@@ -12,7 +12,7 @@ namespace NetMQ.zmq
 
         private readonly SocketEvent m_monitorEvent;
         private readonly String m_addr;
-        private readonly Object m_arg;
+        [CanBeNull] private readonly Object m_arg;
         private readonly int m_flag;
 
         private static readonly int SizeOfIntPtr;
@@ -27,29 +27,24 @@ namespace NetMQ.zmq
             }
         }
 
-        public MonitorEvent(SocketEvent monitorEvent, String addr, ErrorCode arg) :
-            this(monitorEvent, addr, (int)arg)
+        public MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, ErrorCode arg)
+            : this(monitorEvent, addr, (int)arg)
+        {}
+
+        public MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, int arg)
+            : this(monitorEvent, addr, (object)arg)
+        {}
+
+        public MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, AsyncSocket arg)
+            : this(monitorEvent, addr, (object)arg)
+        {}
+
+        private MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, [NotNull] Object arg)
         {
+            m_monitorEvent = monitorEvent;
+            m_addr = addr;
+            m_arg = arg;
 
-        }
-
-        public MonitorEvent(SocketEvent monitorEvent, String addr, int arg) : 
-            this(monitorEvent, addr, (object)arg)
-        {
-            
-        }
-
-        public MonitorEvent(SocketEvent monitorEvent, String addr, AsyncSocket arg) :
-            this(monitorEvent, addr, (object)arg)
-        {
-
-        }
-
-        private MonitorEvent(SocketEvent monitorEvent, String addr, Object arg)
-        {
-            this.m_monitorEvent = monitorEvent;
-            this.m_addr = addr;
-            this.m_arg = arg;
             if (arg is int)
                 m_flag = ValueInteger;
             else if (arg is AsyncSocket)
@@ -58,11 +53,13 @@ namespace NetMQ.zmq
                 m_flag = 0;
         }
 
+        [NotNull]
         public string Addr
         {
             get { return m_addr; }
         }
 
+        [NotNull]
         public object Arg
         {
             get { return m_arg; }
@@ -78,7 +75,7 @@ namespace NetMQ.zmq
             get { return m_monitorEvent; }
         }
 
-        public void Write(SocketBase s)
+        public void Write([NotNull] SocketBase s)
         {
             int size = 4 + 1 + m_addr.Length + 1; // event + len(addr) + addr + flag
             if (m_flag == ValueInteger)
@@ -124,7 +121,8 @@ namespace NetMQ.zmq
             s.Send(ref msg, 0);
         }
 
-        public static MonitorEvent Read(SocketBase s)
+        [NotNull]
+        public static MonitorEvent Read([NotNull] SocketBase s)
         {
             Msg msg = new Msg();
             msg.InitEmpty();

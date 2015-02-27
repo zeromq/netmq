@@ -1,31 +1,32 @@
 ﻿using System;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports
 {
     internal class ByteArraySegment
     {
-        private readonly byte[] m_innerBuffer;
+        [NotNull] private readonly byte[] m_innerBuffer;
 
-        public ByteArraySegment(byte[] buffer)
+        public ByteArraySegment([NotNull] byte[] buffer)
         {
             m_innerBuffer = buffer;
             Offset = 0;
         }
 
-        public ByteArraySegment(byte[] buffer, int offset)
+        public ByteArraySegment([NotNull] byte[] buffer, int offset)
         {
             m_innerBuffer = buffer;
             Offset = offset;
         }
 
-        public ByteArraySegment(ByteArraySegment otherSegment)
+        public ByteArraySegment([NotNull] ByteArraySegment otherSegment)
         {
             m_innerBuffer = otherSegment.m_innerBuffer;
             Offset = otherSegment.Offset;
         }
 
-        public ByteArraySegment(ByteArraySegment otherSegment, int offset)
+        public ByteArraySegment([NotNull] ByteArraySegment otherSegment, int offset)
         {
             m_innerBuffer = otherSegment.m_innerBuffer;
             Offset = otherSegment.Offset + offset;
