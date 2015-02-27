@@ -17,8 +17,8 @@ namespace NetMQ.Sockets
         /// <summary>
         /// Don't invoke this on a PushSocket - you'll just get a NotSupportedException.
         /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="options"></param>
+        /// <param name="msg">the Msg object to put it in</param>
+        /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
         public override void Receive(ref Msg msg, SendReceiveOptions options)
         {
             throw new NotSupportedException("Push socket doesn't support receiving");

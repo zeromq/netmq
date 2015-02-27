@@ -27,6 +27,9 @@ using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Class Options is essentially a container for socket-related option-settings.
+    /// </summary>
     internal class Options
     {
         /// <summary>

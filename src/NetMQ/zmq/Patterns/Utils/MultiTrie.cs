@@ -23,9 +23,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-//Multi-trie. Each node in the trie is a set of pointers to pipes.
 namespace NetMQ.zmq.Patterns.Utils
 {
+    /// <summary>
+    /// Multi-trie. Each node in the trie is a set of pointers to pipes.
+    /// </summary>
     internal class MultiTrie
     {
         private HashSet<Pipe> m_pipes;
@@ -47,8 +49,10 @@ namespace NetMQ.zmq.Patterns.Utils
             m_next = null;
         }
 
-        //  Add key to the trie. Returns true if it's a new subscription
-        //  rather than a duplicate.
+        /// <summary>
+        /// Add key to the trie. Returns true if it's a new subscription
+        /// rather than a duplicate.
+        /// </summary>
         public bool Add(byte[] prefix, int start, int size, Pipe pipe)
         {
             return AddHelper(prefix, start, size, pipe);
@@ -113,7 +117,7 @@ namespace NetMQ.zmq.Patterns.Utils
                     m_next[0] = new MultiTrie();
                     ++m_liveNodes;
                 }
-                
+
                 return m_next[0].AddHelper(prefix, start + 1, size - 1, pipe);
             }
             else
@@ -121,18 +125,18 @@ namespace NetMQ.zmq.Patterns.Utils
                 if (m_next[currentCharacter - m_minCharacter] == null)
                 {
                     m_next[currentCharacter - m_minCharacter] = new MultiTrie();
-                    ++m_liveNodes;                
+                    ++m_liveNodes;
                 }
 
                 return m_next[currentCharacter - m_minCharacter].AddHelper(prefix, start + 1, size - 1, pipe);
             }
         }
 
-        
+
         /// <summary>
         /// Remove all subscriptions for a specific peer from the trie.
-        ///  If there are no subscriptions left on some topics, invoke the
-        ///  supplied callback function.
+        /// If there are no subscriptions left on some topics, invoke the
+        /// supplied callback function.
         /// </summary>
         /// <param name="pipe"></param>
         /// <param name="func"></param>
@@ -182,13 +186,13 @@ namespace NetMQ.zmq.Patterns.Utils
             }
 
             //  If there are multiple subnodes.
-            
+
             //  New min non-null character in the node table after the removal
             int newMin = m_minCharacter + m_count - 1;
-            
+
             //  New max non-null character in the node table after the removal
             int newMax = m_minCharacter;
-            
+
             for (int currentCharacter = 0; currentCharacter != m_count; currentCharacter++)
             {
                 buffer[bufferSize] = (byte)(m_minCharacter + currentCharacter);
@@ -239,11 +243,11 @@ namespace NetMQ.zmq.Patterns.Utils
                 //  representation
                 Debug.Assert(newMin == newMax);
                 Debug.Assert(newMin >= m_minCharacter && newMin < m_minCharacter + m_count);
-                
+
                 MultiTrie node = m_next[newMin - m_minCharacter];
-                
+
                 Debug.Assert(node != null);
-                
+
                 m_next = null;
                 m_next = new MultiTrie[] { node };
                 m_count = 1;
@@ -267,10 +271,10 @@ namespace NetMQ.zmq.Patterns.Utils
             }
             return true;
         }
-        
+
         /// <summary>
         /// Remove specific subscription from the trie. Return true is it was
-        ///  actually removed rather than de-duplicated.
+        /// actually removed rather than de-duplicated.
         /// </summary>
         /// <param name="prefix"></param>
         /// <param name="start"></param>
@@ -384,7 +388,9 @@ namespace NetMQ.zmq.Patterns.Utils
             return ret;
         }
 
-        //  Signal all the matching pipes.
+        /// <summary>
+        /// Signal all the matching pipes.
+        /// </summary>
         public void Match(byte[] data, int size, MultiTrieDelegate func, Object arg)
         {
             MultiTrie current = this;

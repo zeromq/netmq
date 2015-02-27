@@ -159,7 +159,7 @@ namespace NetMQ.zmq.Utils
                 }
                 sb.Append(")");
 #else
-                sb.Append("Socket")
+                sb.Append("Socket");
 #endif
             }
             return sb.ToString();

@@ -30,37 +30,57 @@ namespace NetMQ.zmq.Transports.Tcp
 {
     internal class TcpConnecter : Own, IProcatorEvents
     {
+        /// <summary>
         //  ID of the timer used to delay the reconnection.
+        /// </summary>
         private const int ReconnectTimerId = 1;
 
         private readonly IOObject m_ioObject;
 
+        /// <summary>
         //  Address to connect to. Owned by session_base_t.
+        /// </summary>
         private readonly Address m_addr;
 
-        //  Underlying socket.
+        /// <summary>
+        /// Underlying socket.
+        /// </summary>
         private AsyncSocket m_s;
 
-        //  If true file descriptor is registered with the poller and 'handle'
-        //  contains valid value.
+        /// <summary>
+        /// If true file descriptor is registered with the poller and 'handle'
+        /// contains valid value.
+        /// </summary>
         private bool m_handleValid;
 
-        //  If true, connecter is waiting a while before trying to connect.
+        /// <summary>
+        /// If true, connecter is waiting a while before trying to connect.
+        /// </summary>
         private readonly bool m_delayedStart;
 
-        //  True iff a timer has been started.
+        /// <summary>
+        /// True iff a timer has been started.
+        /// </summary>
         private bool m_timerStarted;
 
-        //  Reference to the session we belong to.
+        /// <summary>
+        /// Reference to the session we belong to.
+        /// </summary>
         private readonly SessionBase m_session;
 
-        //  Current reconnect ivl, updated for backoff strategy
+        /// <summary>
+        /// Current reconnect ivl, updated for backoff strategy
+        /// </summary>
         private int m_currentReconnectIvl;
 
-        // String representation of endpoint to connect to
+        /// <summary>
+        /// String representation of endpoint to connect to
+        /// </summary>
         private readonly String m_endpoint;
 
-        // Socket
+        /// <summary>
+        /// Socket
+        /// </summary>
         private readonly SocketBase m_socket;
 
         public TcpConnecter(IOThread ioThread, SessionBase session, Options options, Address addr, bool delayedStart)
@@ -123,7 +143,9 @@ namespace NetMQ.zmq.Transports.Tcp
             throw new NotImplementedException();
         }
 
-        //  Internal function to start the actual connection establishment.
+        /// <summary>
+        /// Internal function to start the actual connection establishment.
+        /// </summary>
         private void StartConnecting()
         {
             Debug.Assert(m_s == null);
@@ -221,7 +243,9 @@ namespace NetMQ.zmq.Transports.Tcp
             StartConnecting();
         }
 
-        //  Internal function to add a reconnect timer
+        /// <summary>
+        /// Internal function to add a reconnect timer
+        /// </summary>
         private void AddReconnectTimer()
         {
             int rcIvl = GetNewReconnectIvl();
@@ -230,9 +254,11 @@ namespace NetMQ.zmq.Transports.Tcp
             m_timerStarted = true;
         }
 
-        //  Internal function to return a reconnect backoff delay.
-        //  Will modify the current_reconnect_ivl used for next call
-        //  Returns the currently used interval
+        /// <summary>
+        /// Internal function to return a reconnect backoff delay.
+        /// Will modify the current_reconnect_ivl used for next call
+        /// Returns the currently used interval
+        /// </summary>
         private int GetNewReconnectIvl()
         {
             //  The new interval is the current interval + random value.
@@ -254,7 +280,9 @@ namespace NetMQ.zmq.Transports.Tcp
             return thisInterval;
         }
 
-        //  Close the connecting socket.
+        /// <summary>
+        /// Close the connecting socket.
+        /// <summary>
         private void Close()
         {
             Debug.Assert(m_s != null);

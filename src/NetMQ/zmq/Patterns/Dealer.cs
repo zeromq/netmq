@@ -36,17 +36,23 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
-        //  Messages are fair-queued from inbound pipes. And load-balanced to
-        //  the outbound pipes.
+        /// <summary>
+        /// Messages are fair-queued from inbound pipes. And load-balanced to
+        /// the outbound pipes.
+        /// </summary>
         private readonly FairQueueing m_fairQueueing;
         private readonly LoadBalancer m_loadBalancer;
 
-        //  Have we prefetched a message.
+        /// <summary>
+        /// Have we prefetched a message.
+        /// </summary>
         private bool m_prefetched;
 
         private Msg m_prefetchedMsg;
 
-        //  Holds the prefetched message.
+        /// <summary>
+        /// Holds the prefetched message.
+        /// </summary>
         public Dealer(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
@@ -55,7 +61,7 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Dealer;
 
             m_fairQueueing = new FairQueueing();
-            m_loadBalancer = new LoadBalancer();            
+            m_loadBalancer = new LoadBalancer();
 
             m_options.RecvIdentity = true;
 
@@ -88,14 +94,14 @@ namespace NetMQ.zmq.Patterns
         }
 
         private bool ReceiveInternal(SendReceiveOptions flags, ref Msg msg)
-        {            
+        {
             //  If there is a prefetched message, return it.
             if (m_prefetched)
             {
                 msg.Move(ref m_prefetchedMsg);
-                
+
                 m_prefetched = false;
-                
+
                 return true;
             }
 
@@ -108,7 +114,7 @@ namespace NetMQ.zmq.Patterns
                 {
                     return false;
                 }
-             
+
                 if ((msg.Flags & MsgFlags.Identity) == 0)
                     break;
             }

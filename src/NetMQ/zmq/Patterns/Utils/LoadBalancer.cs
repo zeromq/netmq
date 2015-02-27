@@ -27,29 +27,34 @@ namespace NetMQ.zmq.Patterns.Utils
 {
     internal class LoadBalancer
     {
-        //  List of outbound pipes.
+        /// <summary>
+        /// List of outbound pipes.
+        /// </summary>
         private readonly List<Pipe> m_pipes;
 
-        //  Number of active pipes. All the active pipes are located at the
-        //  beginning of the pipes array.
+        /// <summary>
+        /// Number of active pipes. All the active pipes are located at the
+        /// beginning of the pipes array.
+        /// </summary>
         private int m_active;
 
-        //  Points to the last pipe that the most recent message was sent to.
+        /// <summary>
+        /// Points to the last pipe that the most recent message was sent to.
+        /// </summary>
         private int m_current;
 
-        //  True if last we are in the middle of a multipart message.
+        /// <summary>
+        /// True if last we are in the middle of a multipart message.
+        /// </summary>
         private bool m_more;
 
-        //  True if we are dropping current message.
+        /// <summary>
+        /// True if we are dropping current message.
+        /// </summary>
         private bool m_dropping;
 
         public LoadBalancer()
         {
-            m_active = 0;
-            m_current = 0;
-            m_more = false;
-            m_dropping = false;
-
             m_pipes = new List<Pipe>();
         }
 
@@ -78,7 +83,6 @@ namespace NetMQ.zmq.Patterns.Utils
                     m_current = 0;
             }
             m_pipes.Remove(pipe);
-
         }
 
         public void Activated(Pipe pipe)

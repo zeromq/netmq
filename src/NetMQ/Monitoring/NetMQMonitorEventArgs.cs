@@ -69,6 +69,12 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitorIntervalEventArgs : NetMQMonitorEventArgs
     {
+        /// <summary>
+        /// Create a new NetMQMonitorIntervalEventArgs containg the given NetMQMonitor, address, and time-interval.
+        /// </summary>
+        /// <param name="monitor">the NetMQMonitor</param>
+        /// <param name="address">a string denoting the address</param>
+        /// <param name="interval">the computed reconnect-interval</param>
         public NetMQMonitorIntervalEventArgs(NetMQMonitor monitor, string address, int interval)
             : base(monitor, address)
         {

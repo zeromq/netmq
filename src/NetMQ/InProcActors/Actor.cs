@@ -29,8 +29,6 @@ namespace NetMQ.Actors
         private readonly Shim<T> m_shim;
         private readonly Random rand = new Random();
         private T m_state;
-
-
         private Task m_shimTask;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
@@ -142,8 +140,7 @@ namespace NetMQ.Actors
                                                }
                                                catch (TerminatingException)
                                                {
-
-                                               }          
+                    }
 
                                                //  Do not block, if the other end of the pipe is already deleted
                                                m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
@@ -160,7 +157,6 @@ namespace NetMQ.Actors
                                              },
             TaskCreationOptions.LongRunning);
         }
-
 
       ~Actor()
         {
@@ -187,7 +183,6 @@ namespace NetMQ.Actors
                 }
                 catch (AgainException)
                 {
-                                        
                 }
                 
                 m_shimTask.Wait();                               

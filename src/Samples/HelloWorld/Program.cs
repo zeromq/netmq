@@ -29,6 +29,8 @@ namespace HelloWorld
 
                         Console.WriteLine("From Server: {0}", m2);
 
+                        Console.WriteLine();
+                        Console.Write("Press any key to exit...");
                         Console.ReadLine();
                     }
                 }

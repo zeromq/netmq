@@ -22,7 +22,7 @@ namespace NetMQ.Monitoring
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
 
-            monitoredSocket.Monitor(endpoint, eventsToMonitor);            
+            monitoredSocket.Monitor(endpoint, eventsToMonitor);
 
             MonitoringSocket = context.CreatePairSocket();
             MonitoringSocket.Options.Linger = TimeSpan.Zero;
@@ -181,7 +181,7 @@ namespace NetMQ.Monitoring
             catch (Exception)
             {
             }
-            finally 
+            finally
             {
                 IsRunning = false;
                 m_isStoppedEvent.Set();
@@ -235,7 +235,7 @@ namespace NetMQ.Monitoring
             }
         }
 
-       /// <summary>
+        /// <summary>
         /// Stop the socket monitoring
         /// </summary>
         public void Stop()

@@ -35,22 +35,33 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
-        //  Fair queueing object for inbound pipes.
+        /// <summary>
+        /// Fair queueing object for inbound pipes.
+        /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        //  Object for distributing the subscriptions upstream.
+        /// <summary>
+        /// Object for distributing the subscriptions upstream.
+        /// </summary>
         private readonly Distribution m_distribution;
 
-        //  The repository of subscriptions.
+        /// <summary>
+        /// The repository of subscriptions.
+        /// </summary>
         private readonly Trie m_subscriptions;
 
-        //  If true, 'message' contains a matching message to return on the
-        //  next recv call.
+        /// <summary>
+        /// If true, 'message' contains a matching message to return on the
+        /// next recv call.
+        /// </summary>
         private bool m_hasMessage;
+
         private Msg m_message;
 
-        //  If true, part of a multipart message was already received, but
-        //  there are following parts still waiting.
+        /// <summary>
+        /// If true, part of a multipart message was already received, but
+        /// there are following parts still waiting.
+        /// </summary>
         private bool m_more;
         private static readonly Trie.TrieDelegate s_sendSubscription;
 
@@ -138,19 +149,19 @@ namespace NetMQ.zmq.Patterns
         {
             byte[] data = msg.Data;
             int size = msg.Size;
-            
+
             if (size > 0 && data[0] == 1)
             {
                 // Process the subscription.
-                if (m_subscriptions.Add(data, 1, size-1))
+                if (m_subscriptions.Add(data, 1, size - 1))
                 {
                     m_distribution.SendToAll(ref msg, flags);
                     return true;
-                }               
+                }
             }
             else if (size > 0 && data[0] == 0)
             {
-                if (m_subscriptions.Remove(data, 1,size-1))
+                if (m_subscriptions.Remove(data, 1, size - 1))
                 {
                     m_distribution.SendToAll(ref msg, flags);
                     return true;
