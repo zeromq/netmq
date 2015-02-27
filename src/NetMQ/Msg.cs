@@ -51,7 +51,7 @@ namespace NetMQ
         Invalid = 0,
 
         /// <summary>
-        /// This is the minimum value that any MsgType may have (101).
+        /// The minimum valid value of MsgType bits.
         /// </summary>
         Min = 101,
 
@@ -61,11 +61,19 @@ namespace NetMQ
         Delimiter = 104,
 
         /// <summary>
-        /// This is the maximum value that any MsgType may have (104).
+        /// The maximum valid value of MsgType bits.
         /// </summary>
         Max = 104
     }
 
+    /// <summary>
+    /// The lowest-level interpretation of a ZeroMQ message. Supports message buffer pooling.
+    /// </summary>
+    /// <remarks>
+    /// Many users will not use this class directly. However in high-performance situations it
+    /// may be useful. When used correctly it's possible to have zero-copy and zero-allocation
+    /// behaviour.
+    /// </remarks>
     public struct Msg
     {
         /// <summary>
@@ -316,6 +324,17 @@ namespace NetMQ
         public void Put(byte b, int i)
         {
             Data[i] = b;
+        }
+
+        /// <summary>
+        /// Get and set the byte value in the <see cref="Data"/> buffer at a specific index.
+        /// </summary>
+        /// <param name="index">The index to access</param>
+        /// <returns></returns>
+        public byte this[int index]
+        {
+            get { return Data[index];  }
+            set { Data[index] = value;  }
         }
 
         /// <summary>
