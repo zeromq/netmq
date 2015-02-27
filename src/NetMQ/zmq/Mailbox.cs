@@ -117,6 +117,11 @@ namespace NetMQ.zmq
         {
             m_disposed = true;
         }
+
+        public override String ToString()
+        {
+            return base.ToString() + "[" + m_name + "]";
+        }
     }
 
     internal class Mailbox : IMailbox
