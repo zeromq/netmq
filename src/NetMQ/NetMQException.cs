@@ -25,17 +25,6 @@ namespace NetMQ
         public ErrorCode ErrorCode { get; private set; }
 
         /// <summary>
-        /// Create and return a new NetMQException with no Message, containing only the given SocketError.
-        /// </summary>
-        /// <param name="error">a SocketError that this exception will carry within it's ErrorCode property</param>
-        /// <returns>a new NetMQException</returns>
-        [NotNull]
-        public static NetMQException Create(SocketError error)
-        {
-            return Create(error, null);
-        }
-
-        /// <summary>
         /// Create and return a new NetMQException with no Message containing only the given SocketException.
         /// </summary>
         /// <param name="innerException">a SocketException that this exception will expose via it's InnerException property</param>
@@ -52,7 +41,7 @@ namespace NetMQ
         /// <param name="error">a SocketError that this exception will carry and expose via it's ErrorCode property</param>
         /// <param name="innerException">an Exception that this exception will expose via it's InnerException property</param>
         /// <returns>a new NetMQException</returns>
-        public static NetMQException Create(SocketError error, [CanBeNull] Exception innerException)
+        public static NetMQException Create(SocketError error, [CanBeNull] Exception innerException = null)
         {
             ErrorCode errorCode;
 
