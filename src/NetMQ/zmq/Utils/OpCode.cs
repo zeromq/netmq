@@ -1,28 +1,29 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
     internal static class Opcode
     {
-        private static IntPtr codeBuffer;
-        private static ulong size;
-        private static bool isArm;
+        private static IntPtr s_codeBuffer;
+        private static ulong s_size;
+        private static bool s_isArm;
 
         public static void Open()
         {
-            int p = (int)Environment.OSVersion.Platform;
+            var p = (int)Environment.OSVersion.Platform;
 
             byte[] rdtscCode = IntPtr.Size == 4 ? RDTSC_32 : RDTSC_64;
 
-            size = (ulong)(rdtscCode.Length);
+            s_size = (ulong)(rdtscCode.Length);
 
             if ((p == 4) || (p == 128))
             {
                 // Unix
-                isArm = IsARMArchitecture();
-                if (isArm)
+                s_isArm = IsARMArchitecture();
+                if (s_isArm)
                 {
                     Rdtsc = RdtscOnArm;
                     return;
@@ -43,10 +44,10 @@ namespace NetMQ.zmq.Utils
                     (int)mmapFlags.GetField("MAP_ANONYMOUS").GetValue(null) |
                     (int)mmapFlags.GetField("MAP_PRIVATE").GetValue(null));
 
-                codeBuffer = (IntPtr)mmap.Invoke(null, new object[] { IntPtr.Zero, 
-                    size, mmapProtsParam, mmapFlagsParam, -1, 0 });
+                s_codeBuffer = (IntPtr)mmap.Invoke(null,
+                    new[] { IntPtr.Zero, s_size, mmapProtsParam, mmapFlagsParam, -1, 0 });
 
-                if (codeBuffer == IntPtr.Zero || codeBuffer == (IntPtr)(-1))
+                if (s_codeBuffer == IntPtr.Zero || s_codeBuffer == (IntPtr)(-1))
                 {
                     throw new InvalidOperationException("Mmap failed");
                 }
@@ -54,45 +55,41 @@ namespace NetMQ.zmq.Utils
             else
             {
                 // Windows
-                codeBuffer = NativeMethods.VirtualAlloc(IntPtr.Zero,
-                    (UIntPtr)size, AllocationType.COMMIT | AllocationType.RESERVE,
+                s_codeBuffer = NativeMethods.VirtualAlloc(IntPtr.Zero,
+                    (UIntPtr)s_size, AllocationType.COMMIT | AllocationType.RESERVE,
                     MemoryProtection.EXECUTE_READWRITE);
             }
 
-            Marshal.Copy(rdtscCode, 0, codeBuffer, rdtscCode.Length);
+            Marshal.Copy(rdtscCode, 0, s_codeBuffer, rdtscCode.Length);
 
             Rdtsc = Marshal.GetDelegateForFunctionPointer(
-                codeBuffer, typeof(RdtscDelegate)) as RdtscDelegate;
+                s_codeBuffer, typeof(RdtscDelegate)) as RdtscDelegate;
         }
 
         private static bool IsARMArchitecture()
         {
-            bool result = false;
-            //force to load from mono gac
+            // force to load from mono gac
             Assembly currentAssembly = Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756");
             Type syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
             Type utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
             MethodInfo uname = syscall.GetMethod("uname");
             object[] parameters = { null };
 
-            int invokeResult = (int)uname.Invoke(null, parameters);
-            if (invokeResult == 0)
-            {
-                if (parameters != null)
-                {
-                    object currentValues = parameters[0];
-                    string machineValue = (string)utsname.GetField("machine").GetValue(currentValues);
-                    result = machineValue.ToLower().Contains("arm");
-                }
-            }
-            return result;
+            var invokeResult = (int)uname.Invoke(null, parameters);
+
+            if (invokeResult != 0)
+                return false;
+
+            var currentValues = parameters[0];
+            var machineValue = (string)utsname.GetField("machine").GetValue(currentValues);
+            return machineValue.ToLower().Contains("arm");
         }
 
         public static void Close()
         {
             Rdtsc = null;
 
-            int p = (int)Environment.OSVersion.Platform;
+            var p = (int)Environment.OSVersion.Platform;
             if ((p == 4) || (p == 128))
             { 
                 // Unix
@@ -102,14 +99,13 @@ namespace NetMQ.zmq.Utils
 
                 Type syscall = assembly.GetType("Mono.Unix.Native.Syscall");
                 MethodInfo munmap = syscall.GetMethod("munmap");
-                munmap.Invoke(null, new object[] { codeBuffer, size });
+                munmap.Invoke(null, new object[] { s_codeBuffer, s_size });
 
             }
             else
             { 
                 // Windows
-                NativeMethods.VirtualFree(codeBuffer, UIntPtr.Zero,
-                    FreeType.RELEASE);
+                NativeMethods.VirtualFree(s_codeBuffer, UIntPtr.Zero, FreeType.RELEASE);
             }
         }
 
@@ -121,7 +117,8 @@ namespace NetMQ.zmq.Utils
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate ulong RdtscDelegate();
 
-        public static RdtscDelegate Rdtsc;
+        [CanBeNull]
+        public static RdtscDelegate Rdtsc { get; private set; }
 
         // unsigned __int64 __stdcall rdtsc() {
         //   return __rdtsc();
@@ -176,13 +173,13 @@ namespace NetMQ.zmq.Utils
 
         private static class NativeMethods
         {
-            private const string KERNEL = "kernel32.dll";
+            private const string Kernel = "kernel32.dll";
 
-            [DllImport(KERNEL, CallingConvention = CallingConvention.Winapi)]
+            [DllImport(Kernel, CallingConvention = CallingConvention.Winapi)]
             public static extern IntPtr VirtualAlloc(IntPtr lpAddress, UIntPtr dwSize,
                 AllocationType flAllocationType, MemoryProtection flProtect);
 
-            [DllImport(KERNEL, CallingConvention = CallingConvention.Winapi)]
+            [DllImport(Kernel, CallingConvention = CallingConvention.Winapi)]
             public static extern bool VirtualFree(IntPtr lpAddress, UIntPtr dwSize,
                 FreeType dwFreeType);
         }

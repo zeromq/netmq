@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace NetMQ.zmq.Utils
 {
-    internal class ByteArrayEqualityComparer : IEqualityComparer<byte[]>
+    internal sealed class ByteArrayEqualityComparer : IEqualityComparer<byte[]>
     {
-        protected const uint C1 = 0xcc9e2d51;
-        protected const uint C2 = 0x1b873593;
+        private const uint C1 = 0xcc9e2d51;
+        private const uint C2 = 0x1b873593;
 
         public bool Equals(byte[] x, byte[] y)
         {
@@ -35,9 +35,10 @@ namespace NetMQ.zmq.Utils
 
                 uint hash = 0;
 
+                // Walk through data four bytes at a time
                 for (int i = 0; i < alignedLength; i += 4)
                 {
-                    uint k = (uint)(data[i] | data[i + 1] << 8 | data[i + 2] << 16 | data[i + 3] << 24);
+                    var k = (uint)(data[i] | data[i + 1] << 8 | data[i + 2] << 16 | data[i + 3] << 24);
                     k *= C1;
                     k = (k << 15) | (k >> (32 - 15));
                     k *= C2;
@@ -47,6 +48,7 @@ namespace NetMQ.zmq.Utils
                     hash = hash * 5 + 0xe6546b64;
                 }
 
+                // Deal with the one, two or three leftover bytes
                 if (remainder > 0)
                 {
                     uint k = 0;

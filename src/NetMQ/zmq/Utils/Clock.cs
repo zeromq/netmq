@@ -27,7 +27,7 @@ namespace NetMQ.zmq.Utils
     /// The Clock class provides properties for getting timer-counts in either milliseconds or microseconds,
     /// and the CPU's timestamp-counter if available.
     /// </summary>
-    internal class Clock
+    internal static class Clock
     {
         /// <summary>
         /// TSC timestamp of when last time measurement was made.
@@ -48,7 +48,8 @@ namespace NetMQ.zmq.Utils
         {
             try
             {
-                if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Unix ||
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT ||
+                    Environment.OSVersion.Platform == PlatformID.Unix ||
                     Environment.OSVersion.Platform == (PlatformID)128)
                 {
                     Opcode.Open();
@@ -105,14 +106,7 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         public static long Rdtsc()
         {
-            if (s_rdtscSupported)
-            {
-                return (long)Opcode.Rdtsc();
-            }
-            else
-            {
-                return 0;
-            }
+            return s_rdtscSupported ? (long)Opcode.Rdtsc() : 0;
         }
     }
 }

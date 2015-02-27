@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using AsyncIO;
+using JetBrains.Annotations;
 using NetMQ.zmq.Transports;
 
 namespace NetMQ.zmq
@@ -15,16 +16,14 @@ namespace NetMQ.zmq
         [CanBeNull] private readonly Object m_arg;
         private readonly int m_flag;
 
-        private static readonly int SizeOfIntPtr;
+        private static readonly int s_sizeOfIntPtr;
 
         static MonitorEvent()
         {
-            SizeOfIntPtr = Marshal.SizeOf(typeof(IntPtr));
+            s_sizeOfIntPtr = Marshal.SizeOf(typeof(IntPtr));
 
-            if (SizeOfIntPtr > 4)
-            {
-                SizeOfIntPtr = 8;
-            }
+            if (s_sizeOfIntPtr > 4)
+                s_sizeOfIntPtr = 8;
         }
 
         public MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, ErrorCode arg)
@@ -78,12 +77,11 @@ namespace NetMQ.zmq
         public void Write([NotNull] SocketBase s)
         {
             int size = 4 + 1 + m_addr.Length + 1; // event + len(addr) + addr + flag
+            
             if (m_flag == ValueInteger)
                 size += 4;
             else if (m_flag == ValueChannel)
-            {
-                size += SizeOfIntPtr;
-            }
+                size += s_sizeOfIntPtr;
 
             int pos = 0;
 
@@ -106,17 +104,13 @@ namespace NetMQ.zmq
             {
                 GCHandle handle = GCHandle.Alloc(m_arg, GCHandleType.Weak);
 
-                if (SizeOfIntPtr == 4)
-                {
+                if (s_sizeOfIntPtr == 4)
                     buffer.PutInteger(Endianness.Little, GCHandle.ToIntPtr(handle).ToInt32(), pos);
-                }
                 else
-                {
                     buffer.PutLong(Endianness.Little, GCHandle.ToIntPtr(handle).ToInt64(), pos);
-                }
             }
 
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitGC((byte[])buffer, buffer.Size);
             s.Send(ref msg, 0);
         }
@@ -124,7 +118,7 @@ namespace NetMQ.zmq
         [NotNull]
         public static MonitorEvent Read([NotNull] SocketBase s)
         {
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitEmpty();
 
             s.Recv(ref msg, SendReceiveOptions.None);
@@ -132,12 +126,12 @@ namespace NetMQ.zmq
             int pos = 0;
             ByteArraySegment data = msg.Data;
 
-            SocketEvent @event = (SocketEvent)data.GetInteger(Endianness.Little, pos);
+            var @event = (SocketEvent)data.GetInteger(Endianness.Little, pos);
             pos += 4;
-            int len = (int)data[pos++];
+            var len = (int)data[pos++];
             string addr = data.GetString(len, pos);
             pos += len;
-            int flag = (int)data[pos++];
+            var flag = (int)data[pos++];
             Object arg = null;
 
             if (flag == ValueInteger)
@@ -146,16 +140,9 @@ namespace NetMQ.zmq
             }
             else if (flag == ValueChannel)
             {
-                IntPtr value;
-
-                if (SizeOfIntPtr == 4)
-                {
-                    value = new IntPtr(data.GetInteger(Endianness.Little, pos));
-                }
-                else
-                {
-                    value = new IntPtr(data.GetLong(Endianness.Little, pos));
-                }
+                IntPtr value = s_sizeOfIntPtr == 4 
+                    ? new IntPtr(data.GetInteger(Endianness.Little, pos)) 
+                    : new IntPtr(data.GetLong(Endianness.Little, pos));
 
                 GCHandle handle = GCHandle.FromIntPtr(value);
                 AsyncSocket socket = null;
