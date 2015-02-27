@@ -159,7 +159,7 @@ namespace InterBrokerRouter
 
                 // setup the local worker queue for LRU and monitor cloud capacity
                 var workerQueue = new Queue<byte[]>();
-                int couldCapacity, previousLocalCapacity = 0;
+                int previousLocalCapacity = 0;
 
                 // receive the capacity available from other peer(s)
                 stateFrontend.ReceiveReady += (s, e) =>
@@ -169,6 +169,7 @@ namespace InterBrokerRouter
 
                     Debug.Assert(string.IsNullOrWhiteSpace(capacity), "StateFrontend: message was empty!");
 
+                    int couldCapacity;
                     var convertionResult = int.TryParse(capacity, out couldCapacity);
 
                     Debug.Assert(convertionResult, "StateFrontend: message did not contain a number!");
