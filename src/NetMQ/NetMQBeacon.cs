@@ -123,7 +123,7 @@ namespace NetMQ
                 }
             }
 
-            private bool Compare(NetMQFrame a, NetMQFrame b, int size)
+            private static bool Compare(NetMQFrame a, NetMQFrame b, int size)
             {
                 for (int i = 0; i < size; i++)
                 {
