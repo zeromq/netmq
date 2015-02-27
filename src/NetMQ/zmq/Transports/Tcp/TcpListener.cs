@@ -52,7 +52,7 @@ namespace NetMQ.zmq.Transports.Tcp
         private AsyncSocket m_acceptedSocket;
 
         /// <summary>
-        /// Socket the listerner belongs to.
+        /// Socket the listener belongs to.
         /// </summary>
         [NotNull]
         private readonly SocketBase m_socket;
@@ -201,7 +201,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 IOThread ioThread = ChooseIOThread(m_options.Affinity);
 
                 //  Create and launch a session object. 
-                // TODO: send null in address parameter, is unneed in this case
+                // TODO: send null in address parameter, is unneeded in this case
                 SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
                 session.IncSeqnum();
                 LaunchChild(session);
