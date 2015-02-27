@@ -38,7 +38,7 @@ namespace InterBrokerRouter
 
                 // build READY message
                 var msg = new NetMQMessage ();
-                var ready = NetMQFrame.Copy (new[] { Program.WORKER_READY });
+                var ready = NetMQFrame.Copy (new[] { Program.WorkerReady });
 
                 msg.Append (ready);
                 msg.Push (NetMQFrame.Empty);

@@ -1,10 +1,10 @@
-﻿namespace NetMQ.SimpleTests
-{
-    using System;
-    using System.IO;
-    using System.Text;
-    using System.Threading;
+﻿using System;
+using System.IO;
+using System.Text;
+using System.Threading;
 
+namespace NetMQ.SimpleTests
+{
     internal class HelloWorld : ITest
     {
         public string TestName
@@ -35,8 +35,7 @@
 
                 socket.Send(new NetMQFrame(Encoding.UTF8.GetBytes("Hello")).Buffer);
 
-                var buffer = new byte[100];
-                buffer = socket.Receive();
+                byte[] buffer = socket.Receive();
 
                 using (var stream = new MemoryStream(buffer, 0, buffer.Length))
                 {
@@ -52,7 +51,7 @@
             {
                 socket.Bind("tcp://*:8989");
 
-                NetMQFrame request = new NetMQFrame(socket.Receive());
+                var request = new NetMQFrame(socket.Receive());
                 Console.WriteLine(Encoding.UTF8.GetString(request.Buffer));
 
                 socket.Send(new NetMQFrame(Encoding.UTF8.GetBytes("World")).Buffer);
