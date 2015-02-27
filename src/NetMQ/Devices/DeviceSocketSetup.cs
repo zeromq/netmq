@@ -8,17 +8,41 @@ using NetMQ.Sockets;
 namespace NetMQ.Devices
 {
     /// <summary>
-    /// Configures the given socket
+    /// This is a configuration for a socket
+    /// that holds a list of endpoints to bind or connect to, of Actions to perform initialization on it,
+    /// all to happen when the Configure method is called.
     /// </summary>
     public class DeviceSocketSetup
     {
+        /// <summary>
+        /// The socket associated with this DeviceSocketSetup.
+        /// </summary>
         private readonly NetMQSocket m_socket;
+
+        /// <summary>
+        /// The list of Actions to perform initialization of the socket when Configure is called.
+        /// </summary>
         private readonly List<Action<NetMQSocket>> m_socketInitializers;
+
+        /// <summary>
+        /// The list of endpoints to bind to when Configure is called.
+        /// </summary>
         private readonly List<string> m_bindings;
+
+        /// <summary>
+        /// The list of endpoints to connect to when Configure is called.
+        /// </summary>
         private readonly List<string> m_connections;
 
+        /// <summary>
+        /// This indicates whether the Configure method has been called yet.
+        /// </summary>
         private bool m_isConfigured;
 
+        /// <summary>
+        /// The constructor: create a new DeviceSocketSetup object associated with the given NetMQSocket.
+        /// </summary>
+        /// <param name="socket">the NetMQSocket to associate with this DeviceSocketSetup</param>
         internal DeviceSocketSetup([NotNull] NetMQSocket socket)
         {
             if (socket == null)
@@ -31,8 +55,8 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
-        /// Configure the contained socket to bind to a given endpoint.
-        /// Essentially this simply adds this endpoint to the list of bindings.
+        /// Configure the socket to bind to a given endpoint.
+        /// This simply adds this endpoint to the list to bind to when the Configure method is called.
         /// </summary>
         /// <param name="endpoint">a string representing the endpoint to which the socket will bind (must not be null)</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
@@ -46,8 +70,8 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
-        /// Configure the contained socket to connect to a given endpoint.
-        /// Essentially this simply adds this endpoint to the list of connections.
+        /// Configure the socket to connect to a given endpoint.
+        /// This simply adds this endpoint to the list to connect to when the Configure method is called.
         /// </summary>
         /// <param name="endpoint">a string representing the endpoint to which the socket will connect (must not be null)</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
@@ -64,7 +88,7 @@ namespace NetMQ.Devices
         /// Set an integer-based socket option.
         /// </summary>
         /// <param name="property">the <see cref="TSocket"/> property to set</param>
-        /// <param name="value">the integer value to assignt</param>
+        /// <param name="value">the integer value to assign</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, int>> property, int value)
         {
@@ -94,7 +118,7 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
-        /// Configure the contained socket to subscribe to a specific prefix.
+        /// Add the given byte-array prefix to the list that the socket is to subscribe to when Configure is called.
         /// Note: This method should ONLY be called on a <see cref="SubscriberSocket"/>.
         /// </summary>
         /// <param name="prefix">a byte-array containing the prefix to which the socket will subscribe</param>
@@ -116,7 +140,7 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
-        /// Configure the socket to subscribe to a specific prefix.
+        /// Add the given string prefix to the list that the socket is to subscribe to when Configure is called.
         /// Note: This method should ONLY be called on a <see cref="SubscriberSocket"/>.
         /// </summary>
         /// <param name="prefix">a string that denotes the prefix to which the socket will subscribe</param>
@@ -149,7 +173,7 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
-        /// Performs initialization, binding, and connection actions on the socket.
+        /// Perform the initializations, bindings, and connections on the socket.
         /// </summary>
         internal void Configure()
         {
@@ -181,7 +205,7 @@ namespace NetMQ.Devices
         /// Set a socket option, to the given generic type.
         /// </summary>
         /// <param name="property">the "T" property to set</param>
-        /// <param name="value">the "T" value to assignt</param>
+        /// <param name="value">the "T" value to assign</param>
         /// <returns>the current DeviceSocketSetup</returns>
         private DeviceSocketSetup SetSocketOption<T>(Expression<Func<NetMQSocket, T>> property, T value)
         {

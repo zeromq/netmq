@@ -5,7 +5,7 @@ namespace NetMQ.Devices
 {
     /// <summary>
     /// A DeviceBase forwards messages received by a front-end socket to a back-end socket, from which
-    /// they are then sent.
+    /// they are then sent, and can contain a Poller.
     /// </summary>
     public abstract class DeviceBase : IDevice
     {
@@ -41,12 +41,12 @@ namespace NetMQ.Devices
         public bool IsRunning { get; private set; }
 
         /// <summary>
-        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the frontend socket.
+        /// Get a <see cref="DeviceSocketSetup"/> for configuring the frontend socket.
         /// </summary>
         public DeviceSocketSetup FrontendSetup { get; private set; }
 
         /// <summary>
-        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
+        /// Get a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
         /// </summary>
         public DeviceSocketSetup BackendSetup { get; private set; }
 
@@ -69,7 +69,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Create a new instance of the <see cref="DeviceBase"/> class.
         /// </summary>
-        /// <param name="poller">the <see cref="Poller"/> to use</param>		
+        /// <param name="poller">the <see cref="Poller"/> to use for detecting when messages are available</param>		
         /// <param name="frontendSocket">
         /// A <see cref="NetMQSocket"/> that will pass incoming messages to <paramref name="backendSocket"/>.
         /// </param>
@@ -105,6 +105,19 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
+        /// Initiate operation of the Poller associated with this device,
+        /// if this device owns it.
+        /// This also sets IsRunning to true.
+        /// </summary>
+        public void Run()
+        {
+            if (m_pollerIsOwned && !m_poller.IsStarted)
+                m_poller.PollTillCancelled();
+
+            IsRunning = true;
+        }
+
+        /// <summary>
         /// Configure the frontend and backend sockets and then Start this device.
         /// </summary>
         public void Start()
@@ -132,14 +145,6 @@ namespace NetMQ.Devices
             FrontendSocket.Close();
             BackendSocket.Close();
             IsRunning = false;
-        }
-
-        public void Run()
-        {
-            if (m_pollerIsOwned && !m_poller.IsStarted)
-                m_poller.PollTillCancelled();
-
-            IsRunning = true;
         }
 
         /// <summary>

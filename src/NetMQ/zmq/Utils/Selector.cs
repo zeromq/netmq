@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Utils
 {
@@ -57,7 +59,7 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         /// <param name="items">  (must not be null)</param>
         /// <param name="itemsCount"></param>
-        /// <param name="timeout"></param>
+        /// <param name="timeout">a time-out period, in milliseconds</param>
         /// <returns></returns>
         public bool Select(SelectItem[] items, int itemsCount, int timeout)
         {
@@ -130,15 +132,22 @@ namespace NetMQ.zmq.Utils
                     }
                 }
 
-
                 try
                 {
                     SocketUtility.Select(m_checkRead, m_checkWrite, m_checkError, currentTimeoutMicroSeconds);
                 }
                 catch (SocketException x)
                 {
-                    string s = String.Format("in SocketUtility.Select({0}, {1}, {2}, {3}", m_checkRead, m_checkWrite, m_checkError, currentTimeoutMicroSeconds);
-                    throw new FaultException(innerException: x, message: s);
+#if DEBUG
+                    string textOfListRead = StringLib.AsString(m_checkRead);
+                    string textOfListWrite = StringLib.AsString(m_checkWrite);
+                    string textOfListError = StringLib.AsString(m_checkError);
+                    string xMsg = String.Format("In Selector.Select, Socket.Select({0}, {1}, {2}, {3}) threw a SocketException: {4}", textOfListRead, textOfListWrite, textOfListError, currentTimeoutMicroSeconds, x.Message);
+                    Debug.WriteLine(xMsg);
+                    throw new FaultException(innerException: x, message: xMsg);
+#else
+                    throw new FaultException(innerException: x, message: "Within SocketUtility.Select");
+#endif
                 }
 
                 for (int i = 0; i < itemsCount; i++)

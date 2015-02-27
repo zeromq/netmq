@@ -296,14 +296,14 @@ namespace NetMQ.zmq
                         val = (byte[])optionValue;
                     else
                     {
-                        String s = String.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a String or byte-array.", optionValue == null ? "null" : optionValue.ToString());
-                        throw new InvalidException(s);
+                        String xMsg = String.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a String or byte-array.", optionValue == null ? "null" : optionValue.ToString());
+                        throw new InvalidException(xMsg);
                     }
 
                     if (val.Length == 0 || val.Length > 255)
                     {
-                        String s = String.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length);
-                        throw new InvalidException(s);
+                        String xMsg = String.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length);
+                        throw new InvalidException(xMsg);
                     }
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
@@ -334,8 +334,7 @@ namespace NetMQ.zmq
                     ReconnectIvl = (int)optionValue;
                     if (ReconnectIvl < -1)
                     {
-                        String s = String.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", ReconnectIvl);
-                        throw new InvalidException(s);
+                        throw new InvalidException(String.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", ReconnectIvl));
                     }
                     break;
 
@@ -343,8 +342,7 @@ namespace NetMQ.zmq
                     ReconnectIvlMax = (int)optionValue;
                     if (ReconnectIvlMax < 0)
                     {
-                        String s = String.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", ReconnectIvlMax);
-                        throw new InvalidException(s);
+                        throw new InvalidException(String.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", ReconnectIvlMax));
                     }
                     break;
 

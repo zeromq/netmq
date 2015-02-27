@@ -209,8 +209,12 @@ namespace NetMQ.zmq
                 !protocol.Equals(Address.IpcProtocol) && !protocol.Equals(Address.TcpProtocol) &&
                 !protocol.Equals(Address.PgmProtocol) && !protocol.Equals(Address.EpgmProtocol))
             {
-                String s = String.Format("SocketBase.CheckProtocol({0}), protocol is invalid.", protocol);
-                throw new ProtocolNotSupportedException(s);
+#if DEBUG
+                String xMsg = String.Format("SocketBase.CheckProtocol({0}), protocol is invalid.", protocol);
+                throw new ProtocolNotSupportedException(xMsg);
+#else
+                throw new ProtocolNotSupportedException();
+#endif
             }
 
             //  Check whether socket type and transport protocol match.
@@ -220,8 +224,12 @@ namespace NetMQ.zmq
                             m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
                             m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
             {
-                String s = String.Format("SocketBase.CheckProtocol({0}), socket type {1} and protocol do not match.", protocol, m_options.SocketType);
-                throw new ProtocolNotSupportedException(s);
+#if DEBUG
+                String xMsg = String.Format("SocketBase.CheckProtocol({0}), socket type {1} and protocol do not match.", protocol, m_options.SocketType);
+                throw new ProtocolNotSupportedException(xMsg);
+#else
+                throw new ProtocolNotSupportedException();
+#endif
             }
 
             //  Protocol is available.
@@ -356,8 +364,8 @@ namespace NetMQ.zmq
 
                 if (!addressRegistered)
                 {
-                    string s = String.Format("Cannot bind address ( {0} ), address already in use", addr);
-                    throw new AddressAlreadyInUseException(s);
+                    string xMsg = String.Format("Cannot bind address ( {0} ) - already in use.", addr);
+                    throw new AddressAlreadyInUseException(xMsg);
                 }
 
                 // Save last endpoint URI
@@ -738,16 +746,24 @@ namespace NetMQ.zmq
             bool isDontWaitSet = (flags & SendReceiveOptions.DontWait) > 0;
             if (isDontWaitSet || m_options.SendTimeout == 0)
             {
-                string s;
-                if (isDontWaitSet)
+#if DEBUG
+                string xMsg;
+                if (isDontWaitSet && m_options.SendTimeout == 0)
                 {
-                    s = "SocketBase.Send failed and DontWait is specified.";
+                    xMsg = "SocketBase.Send failed, and DontWait is true AND SendTimeout is 0.";
+                }
+                else if (isDontWaitSet)
+                {
+                    xMsg = "SocketBase.Send failed and DontWait is specified.";
                 }
                 else
                 {
-                    s = "SocketBase.Send failed and no SendTimeout is specified.";
+                    xMsg = "SocketBase.Send failed and no SendTimeout is specified.";
                 }
-                throw new AgainException(innerException: null, message: s);
+                throw new AgainException(innerException: null, message: xMsg);
+#else
+                throw new AgainException(innerException: null, message: "SocketBase.Send failed");
+#endif
             }
 
             //  Compute the time when the timeout should occur.
@@ -784,7 +800,11 @@ namespace NetMQ.zmq
             //  Check whether message passed to the function is valid.
             if (!msg.Check())
             {
+#if DEBUG
+                throw new FaultException(String.Format("In SocketBase.Recv - Check failed, MsgType is {0}hex", msg.MsgType.ToString("X")));
+#else
                 throw new FaultException("In SocketBase.Recv, Check failed.");
+#endif
             }
 
             //  Get the message.
@@ -824,16 +844,24 @@ namespace NetMQ.zmq
                 isMessageAvailable = XRecv(flags, ref msg);
                 if (!isMessageAvailable)
                 {
-                    string s;
-                    if (isDontWaitSet)
+#if DEBUG
+                    string xMsg;
+                    if (isDontWaitSet && m_options.ReceiveTimeout == 0)
                     {
-                        s = "SocketBase.Recv failed and DontWait is set.";
+                        xMsg = "SocketBase.Recv failed: No message is available, DontWait is set AND SendTimeout is 0.";
+                    }
+                    else if (isDontWaitSet)
+                    {
+                        xMsg = "SocketBase.Recv failed: No message is available, and DontWait is set.";
                     }
                     else
                     {
-                        s = "SocketBase.Recv failed and there is no ReceiveTimeout specified.";
+                        xMsg = "SocketBase.Recv failed: No message is available, and there is no ReceiveTimeout specified.";
                     }
-                    throw new AgainException(innerException: null, message: s);
+                    throw new AgainException(innerException: null, message: xMsg);
+#else
+                    throw new AgainException(innerException: null, message: "SocketBase.Recv failed");
+#endif
                 }
 
                 ExtractFlags(ref msg);

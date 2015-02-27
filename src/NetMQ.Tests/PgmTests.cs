@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace NetMQ.Tests
 {
     // Note: For these tests,
-    //       you need to install PGM socket support - which comes with MSMQ:
+    //       On Windows, you need to install PGM socket support - which comes with MSMQ:
     //       https://msdn.microsoft.com/en-us/library/aa967729%28v=vs.110%29.aspx
     //
     // Note: The 224.0.0.1 is the IPv4 All Hosts multicast group which addresses all hosts on the same network segment.
