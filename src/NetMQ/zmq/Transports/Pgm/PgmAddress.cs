@@ -7,8 +7,6 @@ namespace NetMQ.zmq.Transports.PGM
 {
     internal class PgmAddress : Address.IZAddress
     {
-        private string m_network;
-
         public PgmAddress(string network)
         {
             Resolve(network, true);
@@ -20,8 +18,6 @@ namespace NetMQ.zmq.Transports.PGM
 
         public void Resolve(string name, bool ip4Only)
         {
-            m_network = name;
-
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
