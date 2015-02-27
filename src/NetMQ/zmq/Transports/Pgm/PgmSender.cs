@@ -170,7 +170,7 @@ namespace NetMQ.zmq.Transports.PGM
                 //  Put offset information in the buffer.
                 m_writeSize = bfsz + sizeof(ushort);
 
-                m_outBuffer.PutUnsingedShort(m_options.Endian, offset == -1 ? (ushort)0xffff : (ushort)offset, 0);
+                m_outBuffer.PutUnsignedShort(m_options.Endian, offset == -1 ? (ushort)0xffff : (ushort)offset, 0);
             }
 
             try

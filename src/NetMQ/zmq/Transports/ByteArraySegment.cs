@@ -69,7 +69,7 @@ namespace NetMQ.zmq.Transports
             }
         }
 
-        public void PutUnsingedShort(Endianness endian, ushort value, int i)
+        public void PutUnsignedShort(Endianness endian, ushort value, int i)
         {
             if (endian == Endianness.Big)
             {
