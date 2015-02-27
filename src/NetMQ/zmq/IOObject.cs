@@ -30,10 +30,10 @@ namespace NetMQ.zmq
     /// It makes communication with the poller object easier and
     /// makes defining unneeded event handlers unnecessary.
     /// </summary>
-    internal class IOObject : IProcatorEvents
+    internal class IOObject : IProactorEvents
     {
         private IOThread m_ioThread;
-        private IProcatorEvents m_handler;
+        private IProactorEvents m_handler;
 
         public IOObject(IOThread ioThread)
         {            
@@ -99,7 +99,7 @@ namespace NetMQ.zmq
             m_ioThread.Proactor.AddTimer(timeout, this, id);
         }
 
-        public void SetHandler(IProcatorEvents handler)
+        public void SetHandler(IProactorEvents handler)
         {
             this.m_handler = handler;
         }

@@ -19,13 +19,13 @@ namespace NetMQ.zmq.Utils
 
         class Item
         {
-            public Item(IProcatorEvents procatorEvents)
+            public Item(IProactorEvents proactorEvents)
             {
-                ProcatorEvents = procatorEvents;
+                ProactorEvents = proactorEvents;
                 Cancelled = false;
             }
 
-            public IProcatorEvents ProcatorEvents { get; private set; }
+            public IProactorEvents ProactorEvents { get; private set; }
             public bool Cancelled { get; set; }
         }
 
@@ -74,9 +74,9 @@ namespace NetMQ.zmq.Utils
             m_completionPort.Signal(mailbox);
         }
 
-        public void AddSocket(AsyncSocket socket, IProcatorEvents procatorEvents)
+        public void AddSocket(AsyncSocket socket, IProactorEvents proactorEvents)
         {
-            var item = new Item(procatorEvents);
+            var item = new Item(proactorEvents);
             m_sockets.Add(socket,item);
 
             m_completionPort.AssociateSocket(socket, item);
@@ -125,13 +125,13 @@ namespace NetMQ.zmq.Utils
                                     {
                                         case OperationType.Accept:
                                         case OperationType.Receive:
-                                            item.ProcatorEvents.InCompleted(completionStatuses[i].SocketError,
+                                            item.ProactorEvents.InCompleted(completionStatuses[i].SocketError,
                                                 completionStatuses[i].BytesTransferred);
                                             break;
                                         case OperationType.Connect:
                                         case OperationType.Disconnect:
                                         case OperationType.Send:
-                                            item.ProcatorEvents.OutCompleted(completionStatuses[i].SocketError,
+                                            item.ProactorEvents.OutCompleted(completionStatuses[i].SocketError,
                                                 completionStatuses[i].BytesTransferred);
                                             break;
                                         default:

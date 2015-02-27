@@ -27,7 +27,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq.Transports
 {
-    internal class StreamEngine : IEngine, IProcatorEvents, IMsgSink
+    internal class StreamEngine : IEngine, IProactorEvents, IMsgSink
     {
         class StateMachineAction
         {

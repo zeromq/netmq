@@ -153,7 +153,7 @@
     <Compile Include="zmq\Transports\Ipc\IpcConnecter.cs" />
     <Compile Include="zmq\Transports\Ipc\IpcListener.cs" />
     <Compile Include="zmq\IPollEvents.cs" />
-    <Compile Include="zmq\IProcatorEvents.cs" />
+    <Compile Include="zmq\IProactorEvents.cs" />
     <Compile Include="zmq\ITimerEvent.cs" />
     <Compile Include="zmq\IZmqMonitor.cs" />
     <Compile Include="zmq\Patterns\Utils\FairQueueing.cs" />

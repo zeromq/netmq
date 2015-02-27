@@ -98,9 +98,9 @@ namespace NetMQ.zmq.Utils
         /// argument set to id.
         /// </summary>
         /// <param name="timeout">the timeout-period in milliseconds of the new timer</param>
-        /// <param name="sink">the IProcatorEvents to add for the sink of the new timer</param>
+        /// <param name="sink">the IProactorEvents to add for the sink of the new timer</param>
         /// <param name="id">the Id to assign to the new TimerInfo</param>
-        public void AddTimer(long timeout, IProcatorEvents sink, int id)
+        public void AddTimer(long timeout, IProactorEvents sink, int id)
         {
             long expiration = Clock.NowMs() + timeout;
             TimerInfo info = new TimerInfo(sink, id);

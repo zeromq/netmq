@@ -39,7 +39,7 @@ namespace NetMQ.zmq
 
     internal class IOThreadMailbox : IMailbox
     {
-        private readonly Proactor m_procator;
+        private readonly Proactor m_proactor;
 
         private readonly IMailboxEvent m_mailboxEvent;
 
@@ -58,7 +58,7 @@ namespace NetMQ.zmq
 
         public IOThreadMailbox(string name, Proactor proactor, IMailboxEvent mailboxEvent)
         {
-            m_procator = proactor;
+            m_proactor = proactor;
             m_mailboxEvent = mailboxEvent;
 
             m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
@@ -88,7 +88,7 @@ namespace NetMQ.zmq
 
             if (!ok)
             {
-                m_procator.SignalMailbox(this);
+                m_proactor.SignalMailbox(this);
             }
         }
 

@@ -26,7 +26,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    internal class TcpListener : Own, IProcatorEvents
+    internal class TcpListener : Own, IProactorEvents
     {
         private const SocketOptionName IPv6Only = (SocketOptionName)27;
 
@@ -252,7 +252,7 @@ namespace NetMQ.zmq.Transports.Tcp
             get { return m_port; }
         }
 
-        void IProcatorEvents.OutCompleted(SocketError socketError, int bytesTransferred)
+        void IProactorEvents.OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
         }

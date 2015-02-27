@@ -28,7 +28,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    internal class TcpConnecter : Own, IProcatorEvents
+    internal class TcpConnecter : Own, IProactorEvents
     {
         /// <summary>
         //  ID of the timer used to delay the reconnection.

@@ -103,7 +103,7 @@
     <Compile Include="zmq\IOObject.cs" />
     <Compile Include="zmq\IOThread.cs" />
     <Compile Include="zmq\IPollEvents.cs" />
-    <Compile Include="zmq\IProcatorEvents.cs" />
+    <Compile Include="zmq\IProactorEvents.cs" />
     <Compile Include="zmq\ITimerEvent.cs" />
     <Compile Include="zmq\IZmqMonitor.cs" />
     <Compile Include="zmq\Mailbox.cs" />

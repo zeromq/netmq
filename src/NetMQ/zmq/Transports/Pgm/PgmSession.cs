@@ -4,7 +4,7 @@ using AsyncIO;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    internal class PgmSession : IEngine, IProcatorEvents
+    internal class PgmSession : IEngine, IProactorEvents
     {
         private AsyncSocket m_handle;
         private readonly Options m_options;
