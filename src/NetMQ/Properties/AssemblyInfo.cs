@@ -6,8 +6,7 @@ using System.Runtime.CompilerServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("NetMQ")]
-[assembly: AssemblyDescription("NetMQ is 100% C# native port of ZeroMQ. " + 
-	"NetMQ is a lightweight high performance messaging library.")]
+[assembly: AssemblyDescription("A 100% native C# port of the lightweight high performance messaging library ZeroMQ")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NetMQ")]
 //[assembly: AssemblyCompany("iMatix Corporation")]
