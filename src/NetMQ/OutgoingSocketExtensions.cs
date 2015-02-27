@@ -151,12 +151,12 @@ namespace NetMQ
 
         public static void SignalOK(this IOutgoingSocket socket)
         {
-            Signal(socket, 0);
+            socket.Signal(0);
         }
 
         public static void SignalError(this IOutgoingSocket socket)
         {
-            Signal(socket, 1);
+            socket.Signal(1);
         }
 
         #endregion
