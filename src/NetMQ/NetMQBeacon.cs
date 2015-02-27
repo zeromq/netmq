@@ -49,10 +49,6 @@ namespace NetMQ
             private NetMQTimer m_pingTimer;
             private Poller m_poller;
 
-            public Shim()
-            {
-            }
-
             private void Configure(string interfaceName, int port)
             {
                 // incase the beacon was configured twice
