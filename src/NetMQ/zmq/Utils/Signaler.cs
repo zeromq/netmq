@@ -28,10 +28,10 @@ namespace NetMQ.zmq.Utils
     internal sealed class Signaler
     {
         //  Underlying write & read file descriptor.
-        private Socket m_writeSocket;
-        private Socket m_readSocket;
-        private readonly byte[] m_dummy;
-        private readonly byte[] m_receiveDummy;
+        [NotNull] private readonly Socket m_writeSocket;
+        [NotNull] private readonly Socket m_readSocket;
+        [NotNull] private readonly byte[] m_dummy;
+        [NotNull] private readonly byte[] m_receiveDummy;
 
         public Signaler()
         {
@@ -39,7 +39,21 @@ namespace NetMQ.zmq.Utils
             m_receiveDummy = new byte[1];
 
             //  Create the socketpair for signaling.
-            MakeSocketsPair();
+            using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
+            {
+                listener.NoDelay = true;
+                listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+                // using ephemeral port            
+                listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+                listener.Listen(1);
+
+                m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
+                m_writeSocket.NoDelay = true;
+
+                m_writeSocket.Connect(listener.LocalEndPoint);
+                m_readSocket = listener.Accept();
+            }
 
             m_writeSocket.Blocking = false;
             m_readSocket.Blocking = false;
@@ -71,24 +85,6 @@ namespace NetMQ.zmq.Utils
 
         //  Creates a pair of filedescriptors that will be used
         //  to pass the signals.
-        private void MakeSocketsPair()
-        {
-            using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
-            {
-                listener.NoDelay = true;
-                listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-
-                // using ephemeral port            
-                listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-                listener.Listen(1);
-
-                m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
-                m_writeSocket.NoDelay = true;
-
-                m_writeSocket.Connect(listener.LocalEndPoint);
-                m_readSocket = listener.Accept();
-            }
-        }
 
         [NotNull]
         public Socket Handle
