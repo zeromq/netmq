@@ -73,7 +73,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestReplyClient", "Sampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestReplyWorker", "Samples\Load Balancing Pattern\Extended Request Reply\RequestReplyWorker\RequestReplyWorker.csproj", "{63AAFEDF-47DC-4137-BE93-2F9AB4DA5136}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterBrokerRouter", "Samples\InterBrokerRouter\InterBrockerRouter\InterBrokerRouter.csproj", "{88F0CB10-D256-40D6-BF36-BF75CCF195AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterBrokerRouter", "Samples\InterBrokerRouter\InterBrokerRouter.csproj", "{88F0CB10-D256-40D6-BF36-BF75CCF195AE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InterBrokerRouter", "InterBrokerRouter", "{2F6A0636-3E13-438E-86F7-8BC1458C0AF2}"
 EndProject
