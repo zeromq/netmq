@@ -23,6 +23,7 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
@@ -30,14 +31,19 @@ namespace NetMQ.zmq.Transports.Tcp
     {
         private const SocketOptionName IPv6Only = (SocketOptionName)27;
 
+        [NotNull]
+        private readonly IOObject m_ioObject;
+
         /// <summary>
         /// Address to listen on.
         /// </summary>
+        [NotNull]
         private readonly TcpAddress m_address;
 
         /// <summary>
         /// Underlying socket.
         /// </summary>
+        [CanBeNull]
         private AsyncSocket m_handle;
 
         /// <summary>
@@ -48,6 +54,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <summary>
         /// Socket the listerner belongs to.
         /// </summary>
+        [NotNull]
         private readonly SocketBase m_socket;
 
         /// <summary>
@@ -55,15 +62,13 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private String m_endpoint;
 
-        private readonly IOObject m_ioObject;
-
         /// <summary>
         /// The port that was bound on
         /// </summary>
         private int m_port;
 
-        public TcpListener(IOThread ioThread, SocketBase socket, Options options) :
-            base(ioThread, options)
+        public TcpListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
+            : base(ioThread, options)
         {
 
             m_ioObject = new IOObject(ioThread);
@@ -97,7 +102,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <summary>
         /// Set address to listen on. return the used port
         /// </summary>
-        public virtual void SetAddress(String addr)
+        public virtual void SetAddress([NotNull] string addr)
         {
             m_address.Resolve(addr, m_options.IPv4Only);
             try
@@ -242,6 +247,7 @@ namespace NetMQ.zmq.Transports.Tcp
             m_handle = null;
         }
 
+        [NotNull]
         public virtual String Address
         {
             get { return m_address.ToString(); }

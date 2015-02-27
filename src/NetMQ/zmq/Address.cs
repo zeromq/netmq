@@ -20,6 +20,7 @@
 
 using System;
 using System.Net;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq
 {
@@ -58,9 +59,10 @@ namespace NetMQ.zmq
         /// </summary>
         public interface IZAddress
         {
-            void Resolve(String name, bool ip4Only);
-            IPEndPoint Address { get; }
-            String Protocol { get; }
+            void Resolve([NotNull] String name, bool ip4Only);
+            
+            [CanBeNull] IPEndPoint Address { get; }
+            [NotNull] String Protocol { get; }
         }
 
         /// <summary>

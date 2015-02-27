@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
@@ -83,6 +84,7 @@ namespace NetMQ.zmq.Transports.PGM
             Address = addrNet;
         }
 
+        [CanBeNull]
         public IPAddress InterfaceAddress { get; private set; }
 
         public IPEndPoint Address { get; set; }

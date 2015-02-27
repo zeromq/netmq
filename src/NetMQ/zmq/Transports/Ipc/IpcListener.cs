@@ -19,6 +19,7 @@
 */
 
 using System;
+using JetBrains.Annotations;
 using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
@@ -27,7 +28,7 @@ namespace NetMQ.zmq.Transports.Ipc
     {
         private readonly IpcAddress m_address;
 
-        public IpcListener(IOThread ioThread, SocketBase socket, Options options)
+        public IpcListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, socket, options)
         {
             m_address = new IpcAddress();

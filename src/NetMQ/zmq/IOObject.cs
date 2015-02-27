@@ -22,6 +22,7 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq
 {
@@ -32,10 +33,10 @@ namespace NetMQ.zmq
     /// </summary>
     internal class IOObject : IProactorEvents
     {
-        private IOThread m_ioThread;
-        private IProactorEvents m_handler;
+        [CanBeNull] private IOThread m_ioThread;
+        [CanBeNull] private IProactorEvents m_handler;
 
-        public IOObject(IOThread ioThread)
+        public IOObject([CanBeNull] IOThread ioThread)
         {            
             if (ioThread != null)
             {
