@@ -108,10 +108,10 @@ namespace NetMQ
 
         private static void ProxyBetween(NetMQSocket from, NetMQSocket to, [CanBeNull] NetMQSocket control)
         {
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitEmpty();
 
-            Msg copy = new Msg();
+            var copy = new Msg();
             copy.InitEmpty();
 
             while (true)

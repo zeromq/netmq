@@ -106,7 +106,7 @@ namespace NetMQ
                     errorCode = ErrorCode.HostUnreachable;
                     break;
                 default:
-                    errorCode = 0;  // to indicate no valid SocketError.
+                    errorCode = 0; // to indicate no valid SocketError.
 #if DEBUG
                     string s = String.Format("(And within NetMQException.Create: Unanticipated error-code: {0})", error.ToString());
                     return Create(errorCode: errorCode, message: s, innerException: innerException);

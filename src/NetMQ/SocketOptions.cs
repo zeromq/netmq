@@ -1,12 +1,12 @@
 ﻿using System;
-using NetMQ.zmq;
 using JetBrains.Annotations;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
     public class SocketOptions
     {
-        readonly NetMQSocket m_socket;
+        private readonly NetMQSocket m_socket;
 
         public SocketOptions([NotNull] NetMQSocket socket)
         {
@@ -20,14 +20,16 @@ namespace NetMQ
         }
 
         [Obsolete("This property doesn't effect NetMQ anymore")]
-        public bool CopyMessages { get { return false; } set {} }
+        public bool CopyMessages
+        {
+            get { return false; }
+            set { }
+        }
 
         public byte[] Identity
         {
-            [CanBeNull]
-            get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOptions.Identity); }
-            [NotNull]
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Identity, value); }
+            [CanBeNull] get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOptions.Identity); }
+            [NotNull] set { m_socket.SetSocketOption(ZmqSocketOptions.Identity, value); }
         }
 
         public int MulticastRate
@@ -139,12 +141,15 @@ namespace NetMQ
 
         [Obsolete("Use LastEndpoint instead")]
         [CanBeNull]
-        public string GetLastEndpoint { get { return LastEndpoint; } }
+        public string GetLastEndpoint
+        {
+            get { return LastEndpoint; }
+        }
 
         [CanBeNull]
         public string LastEndpoint
         {
-            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); } 
+            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); }
         }
 
         public bool RouterMandatory

@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using NetMQ.zmq;
 using JetBrains.Annotations;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -63,7 +63,7 @@ namespace NetMQ
 
             if (m_ownPoller)
             {
-                m_poller.PollTillCancelledNonBlocking();                
+                m_poller.PollTillCancelledNonBlocking();
             }
         }
 
@@ -112,7 +112,7 @@ namespace NetMQ
             }
 
             // disposing on the scheduler thread
-            Task task = new Task(DisposeSynced);
+            var task = new Task(DisposeSynced);
             task.Start(this);
             task.Wait();
 

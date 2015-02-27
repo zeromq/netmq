@@ -7,16 +7,16 @@ namespace NetMQ
 {
     public static class OutgoingSocketExtensions
     {
-        #region Byte Array
+        #region Sending Byte Array
 
-         /// <summary>
+        /// <summary>
         /// Transmit a byte-array of data over this socket.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>
-       public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
+        public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
         {
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitPool(length);
 
             Buffer.BlockCopy(data, 0, msg.Data, 0, length);
@@ -24,11 +24,11 @@ namespace NetMQ
             socket.Send(ref msg, options);
 
             msg.Close();
-        }        
+        }
 
         public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false, bool sendMore = false)
-        {            
-            SendReceiveOptions options = SendReceiveOptions.None;
+        {
+            var options = SendReceiveOptions.None;
 
             if (dontWait)
             {
@@ -37,11 +37,11 @@ namespace NetMQ
 
             if (sendMore)
             {
-                options|= SendReceiveOptions.SendMore;
+                options |= SendReceiveOptions.SendMore;
             }
 
-            socket.Send(data, length, options);         
-        }        
+            socket.Send(data, length, options);
+        }
 
         public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data)
         {
@@ -64,11 +64,11 @@ namespace NetMQ
 
         #endregion
 
-        #region Strings
+        #region Sending Strings
 
         public static void Send(this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, SendReceiveOptions options)
         {
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitPool(encoding.GetByteCount(message));
 
             encoding.GetBytes(message, 0, message.Length, msg.Data, 0);
@@ -79,8 +79,8 @@ namespace NetMQ
         }
 
         public static void Send(this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false, bool sendMore = false)
-        {            
-            SendReceiveOptions options = SendReceiveOptions.None;
+        {
+            var options = SendReceiveOptions.None;
 
             if (dontWait)
             {
@@ -92,14 +92,14 @@ namespace NetMQ
                 options |= SendReceiveOptions.SendMore;
             }
 
-            socket.Send(message, encoding, options);   
+            socket.Send(message, encoding, options);
         }
 
         public static void Send(this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false, bool sendMore = false)
         {
             Send(socket, message, Encoding.ASCII, dontWait, sendMore);
         }
-        
+
         /// <summary>
         /// Transmit a string-message of data over this socket, while indicating that more is to come
         /// (sendMore is set to true).
@@ -124,7 +124,7 @@ namespace NetMQ
 
         #endregion
 
-        #region NetMQMessage
+        #region Sending NetMQMessage
 
         public static void SendMessage(this IOutgoingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
         {
@@ -134,16 +134,16 @@ namespace NetMQ
             }
 
             socket.Send(message.Last.Buffer, message.Last.MessageSize, dontWait);
-        }       
+        }
 
         #endregion
 
-        #region Signals
+        #region Sending Signals
 
         private static void Signal(this IOutgoingSocket socket, byte status)
         {
             long signalValue = 0x7766554433221100L + status;
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(signalValue);
 
             socket.SendMessage(message);
@@ -159,6 +159,6 @@ namespace NetMQ
             Signal(socket, 1);
         }
 
-        #endregion       
+        #endregion
     }
 }

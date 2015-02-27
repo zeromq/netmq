@@ -20,8 +20,8 @@
 */
 
 using System;
-using NetMQ.zmq.Utils;
 using JetBrains.Annotations;
+using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
@@ -316,7 +316,7 @@ namespace NetMQ
         public void Put(byte b, int i)
         {
             Data[i] = b;
-        }        
+        }
 
         /// <summary>
         /// Close this Msg, and effectively make this Msg a copy of the given source Msg

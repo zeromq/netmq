@@ -36,18 +36,8 @@ namespace NetMQ
         /// </summary>
         public int ThreadPoolSize
         {
-            get
-            {
-                m_ctx.CheckDisposed();
-
-                return m_ctx.Get(ContextOption.IOThreads);                 
-            }
-            set
-            {
-                m_ctx.CheckDisposed();
-
-                m_ctx.Set(ContextOption.IOThreads, value);                               
-            }
+            get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.IOThreads); }
+            set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.IOThreads, value); }
         }
 
         /// <summary>
@@ -55,18 +45,8 @@ namespace NetMQ
         /// </summary>
         public int MaxSockets
         {
-            get
-            {
-                m_ctx.CheckDisposed();
-
-                return m_ctx.Get(ContextOption.MaxSockets);
-            }
-            set
-            {
-                m_ctx.CheckDisposed();
-
-                m_ctx.Set(ContextOption.MaxSockets, value);
-            }
+            get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.MaxSockets); }
+            set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.MaxSockets, value); }
         }
 
         [NotNull]
@@ -125,9 +105,7 @@ namespace NetMQ
         [NotNull]
         public RequestSocket CreateRequestSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Req);
-
-            return new RequestSocket(socketHandle);
+            return new RequestSocket(CreateHandle(ZmqSocketType.Req));
         }
 
         /// <summary>
@@ -137,9 +115,7 @@ namespace NetMQ
         [NotNull]
         public ResponseSocket CreateResponseSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Rep);
-
-            return new ResponseSocket(socketHandle);
+            return new ResponseSocket(CreateHandle(ZmqSocketType.Rep));
         }
 
         /// <summary>
@@ -149,9 +125,7 @@ namespace NetMQ
         [NotNull]
         public DealerSocket CreateDealerSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Dealer);
-
-            return new DealerSocket(socketHandle);
+            return new DealerSocket(CreateHandle(ZmqSocketType.Dealer));
         }
 
         /// <summary>
@@ -161,9 +135,7 @@ namespace NetMQ
         [NotNull]
         public RouterSocket CreateRouterSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Router);
-
-            return new RouterSocket(socketHandle);
+            return new RouterSocket(CreateHandle(ZmqSocketType.Router));
         }
 
         /// <summary>
@@ -173,9 +145,7 @@ namespace NetMQ
         [NotNull]
         public XPublisherSocket CreateXPublisherSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Xpub);
-
-            return new XPublisherSocket(socketHandle);
+            return new XPublisherSocket(CreateHandle(ZmqSocketType.Xpub));
         }
 
         /// <summary>
@@ -185,9 +155,7 @@ namespace NetMQ
         [NotNull]
         public PairSocket CreatePairSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Pair);
-
-            return new PairSocket(socketHandle);
+            return new PairSocket(CreateHandle(ZmqSocketType.Pair));
         }
 
         /// <summary>
@@ -197,9 +165,7 @@ namespace NetMQ
         [NotNull]
         public PushSocket CreatePushSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Push);
-
-            return new PushSocket(socketHandle);
+            return new PushSocket(CreateHandle(ZmqSocketType.Push));
         }
 
         /// <summary>
@@ -209,9 +175,7 @@ namespace NetMQ
         [NotNull]
         public PublisherSocket CreatePublisherSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Pub);
-
-            return new PublisherSocket(socketHandle);
+            return new PublisherSocket(CreateHandle(ZmqSocketType.Pub));
         }
 
         /// <summary>
@@ -221,9 +185,7 @@ namespace NetMQ
         [NotNull]
         public PullSocket CreatePullSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Pull);
-
-            return new PullSocket(socketHandle);
+            return new PullSocket(CreateHandle(ZmqSocketType.Pull));
         }
 
         /// <summary>
@@ -233,9 +195,7 @@ namespace NetMQ
         [NotNull]
         public SubscriberSocket CreateSubscriberSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Sub);
-
-            return new SubscriberSocket(socketHandle);
+            return new SubscriberSocket(CreateHandle(ZmqSocketType.Sub));
         }
 
         /// <summary>
@@ -245,9 +205,7 @@ namespace NetMQ
         [NotNull]
         public XSubscriberSocket CreateXSubscriberSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Xsub);
-
-            return new XSubscriberSocket(socketHandle);
+            return new XSubscriberSocket(CreateHandle(ZmqSocketType.Xsub));
         }
 
         /// <summary>
@@ -257,9 +215,7 @@ namespace NetMQ
         [NotNull]
         public StreamSocket CreateStreamSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Stream);
-
-            return new StreamSocket(socketHandle);
+            return new StreamSocket(CreateHandle(ZmqSocketType.Stream));
         }
 
         /// <summary>
@@ -289,12 +245,11 @@ namespace NetMQ
         /// </summary>
         public void Terminate()
         {
-            if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) == 0)
-            {
-                m_ctx.CheckDisposed();
+            if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) != 0)
+                return;
 
-                m_ctx.Terminate();                
-            }
+            m_ctx.CheckDisposed();
+            m_ctx.Terminate();
         }
 
         /// <summary>

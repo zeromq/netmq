@@ -43,7 +43,7 @@ namespace NetMQ
 
         #region Action shim handlers
 
-        class ActionShimHandler<T> : IShimHandler
+        private class ActionShimHandler<T> : IShimHandler
         {
             private readonly ShimAction<T> m_action;
             private readonly T m_state;
@@ -60,7 +60,7 @@ namespace NetMQ
             }
         }
 
-        class ActionShimHandler : IShimHandler
+        private class ActionShimHandler : IShimHandler
         {
             private readonly ShimAction m_action;
 
@@ -103,7 +103,7 @@ namespace NetMQ
                 () => m_self.SendReady += OnReceive,
                 () => m_self.SendReady += OnSend);
 
-            Random random = new Random();
+            var random = new Random();
 
             //now binding and connect pipe ends
             string endPoint = string.Empty;
@@ -149,16 +149,14 @@ namespace NetMQ
 
         #endregion
 
-        void RunShim()
+        private void RunShim()
         {
             try
             {
                 m_shimHandler.Run(m_shim);
             }
             catch (TerminatingException)
-            {
-
-            }
+            {}
 
             //  Do not block, if the other end of the pipe is already deleted
             m_shim.Options.SendTimeout = TimeSpan.Zero;
@@ -168,8 +166,7 @@ namespace NetMQ
                 m_shim.SignalOK();
             }
             catch (AgainException)
-            {
-            }
+            {}
 
             m_shim.Dispose();
         }
@@ -242,9 +239,7 @@ namespace NetMQ
                     m_self.WaitForSignal();
                 }
                 catch (AgainException)
-                {
-
-                }
+                {}
 
                 m_shimThread.Join();
                 m_self.Dispose();

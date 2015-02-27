@@ -127,13 +127,13 @@ namespace NetMQ
             m_frames.Add(new NetMQFrame(message));
         }
 
-        public void Append([NotNull]string message, [NotNull]Encoding encoding)
+        public void Append([NotNull] string message, [NotNull] Encoding encoding)
         {
             m_frames.Add(new NetMQFrame(message, encoding));
         }
 
         public void Append(int value)
-        {            
+        {
             Append(NetworkOrderBitsConverter.GetBytes(value));
         }
 
@@ -143,7 +143,7 @@ namespace NetMQ
         }
 
         [Obsolete("Use NetMQFrame instead of blobs")]
-        public void Append([NotNull]Blob blob)
+        public void Append([NotNull] Blob blob)
         {
             Append(blob.Data);
         }
@@ -264,9 +264,9 @@ namespace NetMQ
         {
             if (m_frames.Count == 0)
                 return "NetMQMessage[<no frames>]";
-            StringBuilder sb = new StringBuilder("NetMQMessage[");
+            var sb = new StringBuilder("NetMQMessage[");
             bool first = true;
-            foreach (NetMQFrame f in m_frames)
+            foreach (var f in m_frames)
             {
                 if (!first)
                     sb.Append(",");

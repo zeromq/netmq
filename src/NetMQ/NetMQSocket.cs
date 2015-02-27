@@ -79,7 +79,7 @@ namespace NetMQ
         /// Get or set an integer that represents the number of errors that have accumulated.
         /// </summary>
         internal int Errors { get; set; }
-        
+
         /// <summary>
         /// Raise the EventsChanged event.
         /// </summary>
@@ -121,7 +121,7 @@ namespace NetMQ
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.Bind(address);            
+            m_socketHandle.Bind(address);
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace NetMQ
         public int BindRandomPort([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
-            
+
             return m_socketHandle.BindRandomPort(address);
         }
 
@@ -227,9 +227,9 @@ namespace NetMQ
         /// </returns>
         public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
         {
-            SelectItem[] items = {new SelectItem(SocketHandle, pollEvents)};
+            SelectItem[] items = { new SelectItem(SocketHandle, pollEvents) };
 
-            m_selector.Select(items, 1, (int) timeout.TotalMilliseconds);
+            m_selector.Select(items, 1, (int)timeout.TotalMilliseconds);
             return items[0].ResultEvent;
         }
 
@@ -242,7 +242,7 @@ namespace NetMQ
         /// <returns>a PollEvents value that denotes which events have a listener</returns>
         internal PollEvents GetPollEvents()
         {
-            PollEvents events = PollEvents.PollError;
+            var events = PollEvents.PollError;
 
             if (m_sendReady != null)
             {
@@ -296,7 +296,7 @@ namespace NetMQ
         /// <param name="msg">the Msg object to put it in</param>
         /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
-        {                        
+        {
             m_socketHandle.Recv(ref msg, options);
         }       
           
@@ -305,7 +305,6 @@ namespace NetMQ
         /// </summary>
         /// <param name="msg">the Msg to send</param>
         /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
-  
         public virtual void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_socketHandle.Send(ref msg, options);
@@ -364,7 +363,7 @@ namespace NetMQ
         {
             get
             {
-                PollEvents pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
+                var pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
 
                 return pollEvents.HasFlag(PollEvents.PollIn);
             }
@@ -377,7 +376,7 @@ namespace NetMQ
         {
             get
             {
-                PollEvents pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
+                var pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
 
                 return pollEvents.HasFlag(PollEvents.PollOut);
             }

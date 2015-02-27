@@ -26,7 +26,7 @@ namespace NetMQ
                     m_registerToEvent();
                 }
 
-                m_counter++;                 
+                m_counter++;
             }
             remove
             {
