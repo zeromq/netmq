@@ -256,15 +256,13 @@ namespace NetMQ
             }
         }
 
-        private readonly Shim m_shim;
         private readonly NetMQActor m_actor;
 
         private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
         public NetMQBeacon([NotNull] NetMQContext context)
         {
-            m_shim = new Shim();
-            m_actor = NetMQActor.Create(context, m_shim);
+            m_actor = NetMQActor.Create(context, new Shim());
 
             m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(() => m_actor.ReceiveReady += OnReceiveReady,
                 () => m_actor.ReceiveReady -= OnReceiveReady);
