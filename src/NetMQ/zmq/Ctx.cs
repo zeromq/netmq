@@ -32,7 +32,7 @@ namespace NetMQ.zmq
     /// Objects of class Ctx are intended to encapsulate all of the global state
     /// associated with the NetMQ library.
     /// </summary>
-    internal class Ctx
+    internal sealed class Ctx
     {
         // Default for new contexts
         public const int DefaultIOThreads = 1;

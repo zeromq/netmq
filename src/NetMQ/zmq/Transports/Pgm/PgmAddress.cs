@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    internal class PgmAddress : Address.IZAddress
+    internal sealed class PgmAddress : Address.IZAddress
     {
         public PgmAddress([NotNull] string network)
         {

@@ -27,7 +27,7 @@ namespace NetMQ.zmq
     /// <summary>
     /// Class Address contains a specification of a protocol and an MqEndPoint.
     /// </summary>
-    internal class Address
+    internal sealed class Address
     {
         /// <summary>
         /// This is the string-literal "inproc".

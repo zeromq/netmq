@@ -28,7 +28,7 @@ namespace NetMQ.zmq
     /// <summary>
     /// This class defines the commands that can be sent between threads.
     /// </summary>
-    internal class Command
+    internal sealed class Command
     {
         /// <summary>
         /// Default constructor - create the Command object for processing commands.
