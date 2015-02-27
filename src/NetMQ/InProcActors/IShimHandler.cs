@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ.InProcActors
@@ -13,6 +14,6 @@ namespace NetMQ.InProcActors
     {
         void Initialise(T state);
 
-        void RunPipeline(PairSocket shim);
+        void RunPipeline([NotNull] PairSocket shim);
     }
 }

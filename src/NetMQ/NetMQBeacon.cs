@@ -15,7 +15,7 @@ namespace NetMQ
         /// Create a new NetMQBeaconEventArgs object containging the given NetMQBeacon.
         /// </summary>
         /// <param name="beacon">the NetMQBeacon object to hold a reference to</param>
-        public NetMQBeaconEventArgs(NetMQBeacon beacon)
+        public NetMQBeaconEventArgs([NotNull] NetMQBeacon beacon)
         {
             Beacon = beacon;
         }
@@ -23,6 +23,7 @@ namespace NetMQ
         /// <summary>
         /// Get the NetMQBeacon object that this holds.
         /// </summary>
+        [NotNull]
         public NetMQBeacon Beacon { get; private set; }
     }
 
@@ -49,7 +50,7 @@ namespace NetMQ
             private NetMQTimer m_pingTimer;
             private Poller m_poller;
 
-            private void Configure(string interfaceName, int port)
+            private void Configure([NotNull] string interfaceName, int port)
             {
                 // incase the beacon was configured twice
                 if (m_udpSocket != null)
@@ -123,7 +124,7 @@ namespace NetMQ
                 }
             }
 
-            private static bool Compare(NetMQFrame a, NetMQFrame b, int size)
+            private static bool Compare([NotNull] NetMQFrame a, [NotNull] NetMQFrame b, int size)
             {
                 for (int i = 0; i < size; i++)
                 {
@@ -318,7 +319,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="interfaceName">One of the ip address of the interface</param>
         /// <param name="port">Port to bind to</param>
-        public void Configure(string interfaceName, int port)
+        public void Configure([NotNull] string interfaceName, int port)
         {
             NetMQMessage message = new NetMQMessage();
             message.Append(ConfigureCommand);
@@ -335,7 +336,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish(string transmit, TimeSpan interval)
+        public void Publish([NotNull] string transmit, TimeSpan interval)
         {
             NetMQMessage message = new NetMQMessage();
             message.Append(PublishCommand);
@@ -350,7 +351,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish(byte[] transmit, TimeSpan interval)
+        public void Publish([NotNull] byte[] transmit, TimeSpan interval)
         {
             NetMQMessage message = new NetMQMessage();
             message.Append(PublishCommand);
@@ -364,7 +365,7 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>        
-        public void Publish(string transmit)
+        public void Publish([NotNull] string transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
         }
@@ -373,7 +374,7 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>        
-        public void Publish(byte[] transmit)
+        public void Publish([NotNull] byte[] transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
         }
@@ -390,7 +391,7 @@ namespace NetMQ
         /// Subscribe to beacon messages, will replace last subscribe call
         /// </summary>
         /// <param name="filter">Beacon will be filtered by this</param>
-        public void Subscribe(string filter)
+        public void Subscribe([NotNull] string filter)
         {
             m_actor.SendMore(SubscribeCommand).Send(filter);
         }
@@ -403,6 +404,7 @@ namespace NetMQ
             m_actor.Send(UnsubscribeCommand);
         }
 
+        [NotNull]
         public string ReceiveString(out string peerName)
         {
             peerName = m_actor.ReceiveString();
@@ -410,6 +412,7 @@ namespace NetMQ
             return m_actor.ReceiveString();
         }
 
+        [NotNull]
         public byte[] Receive(out string peerName)
         {
             peerName = m_actor.ReceiveString();

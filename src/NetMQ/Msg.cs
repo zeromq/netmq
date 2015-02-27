@@ -324,7 +324,7 @@ namespace NetMQ
         /// If this is a Pool Msg, then this also increases the reference-counter and sets the Shared bit.
         /// </summary>
         /// <param name="src">the source Msg to copy from</param>
-        public void Copy([NotNull] ref Msg src)
+        public void Copy(ref Msg src)
         {
             //  Check the validity of the source.
             if (!src.Check())
@@ -354,7 +354,7 @@ namespace NetMQ
         /// Close this Msg and make it reference the given source Msg, and then clear the Msg to empty.
         /// </summary>
         /// <param name="src">the source-Msg to become</param>
-        public void Move([NotNull] ref Msg src)
+        public void Move(ref Msg src)
         {
             //  Check the validity of the source.
             if (!src.Check())

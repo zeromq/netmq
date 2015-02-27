@@ -24,7 +24,7 @@ namespace NetMQ
         /// Create a new NetMQFrame containing the given byte-array data.
         /// </summary>
         /// <param name="buffer">a byte-array to hold as the frame's data</param>
-        public NetMQFrame([NotNull] byte[] buffer)
+        public NetMQFrame([CanBeNull] byte[] buffer)
         {
             if (buffer == null)
             {
@@ -124,6 +124,7 @@ namespace NetMQ
         /// <param name="buffer">the byte-array to copy into the new NetMQFrame</param>
         /// <returns>a new <see cref="NetMQFrame"/> containing a copy of the supplied byte-array</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        [NotNull]
         public static NetMQFrame Copy([NotNull] byte[] buffer)
         {
             if (buffer == null)

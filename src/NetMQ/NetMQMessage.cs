@@ -246,13 +246,11 @@ namespace NetMQ
             m_frames.Clear();
         }
 
-        [NotNull]
         public IEnumerator<NetMQFrame> GetEnumerator()
         {
             return m_frames.GetEnumerator();
         }
 
-        [NotNull]
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
@@ -262,7 +260,6 @@ namespace NetMQ
         /// Returns a string showing the frame contents.
         /// </summary>
         /// <returns></returns>
-        [NotNull]
         public override string ToString()
         {
             if (m_frames.Count == 0)

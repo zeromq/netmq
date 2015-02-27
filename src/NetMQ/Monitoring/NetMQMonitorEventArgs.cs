@@ -1,5 +1,6 @@
 ﻿using System;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.Monitoring
 {
@@ -13,7 +14,7 @@ namespace NetMQ.Monitoring
         /// </summary>
         /// <param name="monitor">a NetMQMonitor for this to hold</param>
         /// <param name="address">a string address for this to hold</param>
-        public NetMQMonitorEventArgs(NetMQMonitor monitor, string address)
+        public NetMQMonitorEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address)
         {
             Monitor = monitor;
             Address = address;
@@ -22,11 +23,13 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Get the NetMQMonitor that this NetMQMonitorEventArgs is holding.
         /// </summary>
+        [NotNull]
         public NetMQMonitor Monitor { get; private set; }
 
         /// <summary>
         /// Get the address, as a string, that this NetMQMonitorEventArgs is holding.
         /// </summary>
+        [NotNull]
         public string Address { get; private set; }
     }
 
@@ -35,7 +38,7 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitorSocketEventArgs : NetMQMonitorEventArgs
     {
-        public NetMQMonitorSocketEventArgs(NetMQMonitor monitor, string address, AsyncSocket socket)
+        public NetMQMonitorSocketEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, [NotNull] AsyncSocket socket)
             : base(monitor, address)
         {
             Socket = socket;
@@ -44,6 +47,7 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Get the AsyncSocket that this is holding.
         /// </summary>
+        [NotNull]
         public AsyncSocket Socket { get; private set; }
     }
 
@@ -52,7 +56,7 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitorErrorEventArgs : NetMQMonitorEventArgs
     {
-        public NetMQMonitorErrorEventArgs(NetMQMonitor monitor, string address, ErrorCode errorCode)
+        public NetMQMonitorErrorEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, ErrorCode errorCode)
             : base(monitor, address)
         {
             ErrorCode = errorCode;
@@ -75,7 +79,7 @@ namespace NetMQ.Monitoring
         /// <param name="monitor">the NetMQMonitor</param>
         /// <param name="address">a string denoting the address</param>
         /// <param name="interval">the computed reconnect-interval</param>
-        public NetMQMonitorIntervalEventArgs(NetMQMonitor monitor, string address, int interval)
+        public NetMQMonitorIntervalEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, int interval)
             : base(monitor, address)
         {
             Interval = interval;

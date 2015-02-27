@@ -93,7 +93,7 @@ namespace NetMQ
             }
         }
 
-        protected override bool TryExecuteTaskInline([NotNull] Task task, bool taskWasPreviouslyQueued)
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             return m_schedulerThread.Value && TryExecuteTask(task);
         }
@@ -141,7 +141,7 @@ namespace NetMQ
             throw new NotSupportedException();
         }
 
-        protected override void QueueTask([NotNull] Task task)
+        protected override void QueueTask(Task task)
         {
             m_tasksQueue.Enqueue(task);
 

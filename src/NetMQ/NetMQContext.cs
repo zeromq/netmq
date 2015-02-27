@@ -15,7 +15,7 @@ namespace NetMQ
         private readonly Ctx m_ctx;
         private int m_isClosed;
 
-        private NetMQContext(Ctx ctx)
+        private NetMQContext([NotNull] Ctx ctx)
         {
             m_ctx = ctx;
         }
@@ -69,6 +69,7 @@ namespace NetMQ
             }
         }
 
+        [NotNull]
         private SocketBase CreateHandle(ZmqSocketType socketType)
         {
             m_ctx.CheckDisposed();

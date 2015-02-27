@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 
 namespace NetMQ
@@ -12,7 +13,7 @@ namespace NetMQ
         /// Create a new NetMQSocketEventArgs referencing the given socket.
         /// </summary>
         /// <param name="socket">the NetMQSocket that this is about</param>
-        public NetMQSocketEventArgs(NetMQSocket socket)
+        public NetMQSocketEventArgs([NotNull] NetMQSocket socket)
         {
             Socket = socket;
         }
