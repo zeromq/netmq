@@ -30,7 +30,7 @@ namespace NetMQ
 
     public delegate void ShimAction(PairSocket shim);
 
-    public delegate void ShimAction<T>(PairSocket shim, T state);
+    public delegate void ShimAction<in T>(PairSocket shim, T state);
 
     /// <summary>
     /// The Actor represents one end of a two-way pipe between 2 PairSocket(s). Where
