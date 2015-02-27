@@ -120,14 +120,13 @@ namespace InterBrokerRouter
             using (var monitor = ctx.CreatePullSocket())
             {
                 // give every socket an unique identity, e.g. LocalFrontend[Port]
-                SetIdentities(localFrontend,
-                    myPort,
+                SetIdentities(myPort,
+                    localFrontend,
                     cloudFrontend,
                     localBackend,
                     stateBackend,
                     monitor,
-                    cloudBackend,
-                    stateFrontend);
+                    cloudBackend, stateFrontend);
 
                 // subscribe to any message on the stateFrontend socket!
                 stateFrontend.Subscribe("");
@@ -395,8 +394,9 @@ namespace InterBrokerRouter
         /// <summary>
         ///     sets unique identities for all sockets
         /// </summary>
-        private static void SetIdentities(RouterSocket localFrontend,
+        private static void SetIdentities(
             int myPort,
+            RouterSocket localFrontend,
             RouterSocket cloudFrontend,
             RouterSocket localBackend,
             PublisherSocket stateBackend,
