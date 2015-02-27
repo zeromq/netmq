@@ -49,6 +49,8 @@ namespace NetMQ
             set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.MaxSockets, value); }
         }
 
+        #region Socket Creation
+
         [NotNull]
         private SocketBase CreateHandle(ZmqSocketType socketType)
         {
@@ -238,6 +240,8 @@ namespace NetMQ
 
             return new NetMQMonitor(CreatePairSocket(), endpoint);
         }
+
+        #endregion
 
         /// <summary>
         /// Close (terminate) this context.
