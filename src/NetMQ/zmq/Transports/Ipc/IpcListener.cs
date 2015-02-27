@@ -34,22 +34,16 @@ namespace NetMQ.zmq.Transports.Ipc
             m_address = new IpcAddress();
         }
 
-        // Get the bound address for use with wildcards
         public override String Address
         {
-            get
-            {
-                return m_address.ToString();
-            }
+            get { return m_address.ToString(); }
         }
 
-        //  Set address to listen on.
-        public override void SetAddress(String addr)
+        public override void SetAddress(string addr)
         {
             m_address.Resolve(addr, false);
 
-            String fake = m_address.Address.Address + ":" + m_address.Address.Port;
-            base.SetAddress(fake);
+            base.SetAddress(m_address.Address.Address + ":" + m_address.Address.Port);
         }
     }
 }

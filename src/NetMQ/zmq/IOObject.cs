@@ -37,11 +37,9 @@ namespace NetMQ.zmq
         [CanBeNull] private IProactorEvents m_handler;
 
         public IOObject([CanBeNull] IOThread ioThread)
-        {            
+        {
             if (ioThread != null)
-            {
                 Plug(ioThread);
-            }
         }
 
         //  When migrating an object from one I/O thread to another, first
@@ -102,7 +100,7 @@ namespace NetMQ.zmq
 
         public void SetHandler(IProactorEvents handler)
         {
-            this.m_handler = handler;
+            m_handler = handler;
         }
 
         public void CancelTimer(int id)

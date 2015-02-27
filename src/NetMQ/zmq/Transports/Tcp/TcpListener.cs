@@ -70,7 +70,6 @@ namespace NetMQ.zmq.Transports.Tcp
         public TcpListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, options)
         {
-
             m_ioObject = new IOObject(ioThread);
             m_address = new TcpAddress();
             m_handle = null;
@@ -81,7 +80,6 @@ namespace NetMQ.zmq.Transports.Tcp
         {
             Debug.Assert(m_handle == null);
         }
-
 
         protected override void ProcessPlug()
         {
@@ -102,12 +100,16 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <summary>
         /// Set address to listen on. return the used port
         /// </summary>
+        /// <param name="addr"></param>
         public virtual void SetAddress([NotNull] string addr)
         {
             m_address.Resolve(addr, m_options.IPv4Only);
+
             try
             {
                 m_handle = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                
+                Debug.Assert(m_handle != null);
 
                 if (!m_options.IPv4Only && m_address.Address.AddressFamily == AddressFamily.InterNetworkV6)
                 {
@@ -181,7 +183,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
-                        ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
+                        var bytes = new ByteArraySegment(new byte[12]);
 
                         Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
 
@@ -194,7 +196,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 }
 
                 //  Create the engine object for this connection.
-                StreamEngine engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);
+                var engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);
 
                 //  Choose I/O thread to run connecter in. Given that we are already
                 //  running in an I/O thread, there must be at least one available.
@@ -247,6 +249,9 @@ namespace NetMQ.zmq.Transports.Tcp
             m_handle = null;
         }
 
+        /// <summary>
+        /// Get the bound address for use with wildcards
+        /// </summary>
         [NotNull]
         public virtual String Address
         {
