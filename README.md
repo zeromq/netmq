@@ -91,7 +91,7 @@ You can join our mailing list [here](https://groups.google.com/d/forum/netmq-dev
 
 NetMQ is owned by all its authors and contributors. 
 This is an open source project licensed under the LGPLv3. 
-To contribute to NetMQ please read the [C4 process](http://rfc.zeromq.org/spec:16), it's what we use.
+To contribute to NetMQ please read the [C4.1 process](http://rfc.zeromq.org/spec:22), it's what we use.
 There are open issues in the issues tab that still need to be taken care of, feel free to pick one up and submit a patch to the project.
 
 ## Build Server
