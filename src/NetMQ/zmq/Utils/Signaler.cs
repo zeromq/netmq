@@ -34,12 +34,12 @@ namespace NetMQ.zmq.Utils
 
         public Signaler()
         {
-            m_dummy = new byte[1]{0};
+            m_dummy = new byte[] { 0 };
             m_receiveDummy = new byte[1];
 
             //  Create the socketpair for signaling.
             MakeSocketsPair();
-            
+
             m_writeSocket.Blocking = false;
             m_readSocket.Blocking = false;
         }
@@ -51,31 +51,28 @@ namespace NetMQ.zmq.Utils
                 m_writeSocket.LingerState = new LingerOption(true, 0);
             }
             catch (SocketException)
-            {                                
-            }
+            {}
 
             try
             {
                 m_writeSocket.Close();
             }
             catch (SocketException)
-            {
-            }
+            {}
 
             try
             {
                 m_readSocket.Close();
             }
             catch (SocketException)
-            {
-            }
+            {}
         }
 
         //  Creates a pair of filedescriptors that will be used
         //  to pass the signals.
         private void MakeSocketsPair()
         {
-            using (Socket listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
+            using (var listner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
             {
                 listner.NoDelay = true;
                 listner.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -89,19 +86,16 @@ namespace NetMQ.zmq.Utils
 
                 m_writeSocket.Connect(listner.LocalEndPoint);
                 m_readSocket = listner.Accept();
-            }            
+            }
         }
 
         public Socket Handle
         {
-            get
-            {
-                return m_readSocket;
-            }
+            get { return m_readSocket; }
         }
 
         public void Send()
-        {            
+        {
             int sent = m_writeSocket.Send(m_dummy);
 
             Debug.Assert(sent == 1);
@@ -109,14 +103,14 @@ namespace NetMQ.zmq.Utils
 
         public bool WaitEvent(int timeout)
         {
-            if(m_readSocket.Connected)
-                return m_readSocket.Poll(timeout * 1000, SelectMode.SelectRead);
+            if (m_readSocket.Connected)
+                return m_readSocket.Poll(timeout*1000, SelectMode.SelectRead);
 
             return false;
         }
 
         public void Recv()
-        {            
+        {
             int received = m_readSocket.Receive(m_receiveDummy);
 
             Debug.Assert(received == 1);

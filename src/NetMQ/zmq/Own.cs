@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq
 {
@@ -30,6 +31,7 @@ namespace NetMQ.zmq
     /// </summary>
     internal abstract class Own : ZObject
     {
+        [NotNull]
         protected readonly Options m_options;
 
         /// <summary>
@@ -52,6 +54,7 @@ namespace NetMQ.zmq
         /// Socket owning this object. It's responsible for shutting down
         /// this object.
         /// </summary>
+        [CanBeNull]
         private Own m_owner;
 
         /// <summary>

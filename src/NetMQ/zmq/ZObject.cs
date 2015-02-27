@@ -20,6 +20,7 @@
 */
 
 using System;
+using JetBrains.Annotations;
 using NetMQ.zmq.Transports;
 
 namespace NetMQ.zmq
@@ -39,28 +40,34 @@ namespace NetMQ.zmq
         /// </summary>
         private readonly int m_threadId;
 
-        protected ZObject(Ctx ctx, int threadId)
+        protected ZObject([NotNull] Ctx ctx, int threadId)
         {
-            this.m_ctx = ctx;
-            this.m_threadId = threadId;
+            m_ctx = ctx;
+            m_threadId = threadId;
         }
 
-        protected ZObject(ZObject parent)
+        protected ZObject([NotNull] ZObject parent)
             : this(parent.m_ctx, parent.m_threadId)
-        {
-        }
+        {}
 
         /// <summary>
         /// Get the id of the thread that this object belongs to.
         /// </summary>
-        public int ThreadId { get { return m_threadId; } }
+        public int ThreadId
+        {
+            get { return m_threadId; }
+        }
 
         /// <summary>
         /// Get the context that provides access to the global state.
         /// </summary>
-        protected Ctx Ctx { get { return m_ctx; } }
+        [NotNull]
+        protected Ctx Ctx
+        {
+            get { return m_ctx; }
+        }
 
-        public void ProcessCommand(Command cmd)
+        public void ProcessCommand([NotNull] Command cmd)
         {
             switch (cmd.CommandType)
             {
@@ -163,6 +170,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="affinity"></param>
         /// <returns>the IOThread</returns>
+        [CanBeNull]
         protected IOThread ChooseIOThread(long affinity)
         {
             return m_ctx.ChooseIOThread(affinity);
@@ -175,22 +183,21 @@ namespace NetMQ.zmq
         {
             //  'stop' command goes always from administrative thread to
             //  the current object. 
-            Command cmd = new Command(this, CommandType.Stop);
+            var cmd = new Command(this, CommandType.Stop);
             m_ctx.SendCommand(m_threadId, cmd);
         }
 
-       /// <summary>
+        /// <summary>
         /// Send the Plug command, incrementing the destinations sequence-number if incSeqnum is true.
         /// </summary>
         /// <param name="destination">the Own to send the command to</param>
         /// <param name="incSeqnum">a flag that dictates whether to increment the sequence-number on the destination (optional - defaults to false)</param>
-        protected void SendPlug(Own destination, bool incSeqnum = true)
+        protected void SendPlug([NotNull] Own destination, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();
 
-            Command cmd = new Command(destination, CommandType.Plug);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.Plug));
         }
 
         /// <summary>
@@ -198,11 +205,10 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="destination">the Own to send the command to</param>
         /// <param name="obj">the object to Own</param>
-        protected void SendOwn(Own destination, Own obj)
+        protected void SendOwn([NotNull] Own destination, Own obj)
         {
             destination.IncSeqnum();
-            Command cmd = new Command(destination, CommandType.Own, obj);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.Own, obj));
         }
 
         /// <summary>
@@ -211,94 +217,81 @@ namespace NetMQ.zmq
         /// <param name="destination">the Own to send the command to</param>
         /// <param name="engine"></param>
         /// <param name="incSeqnum"></param>
-        protected void SendAttach(SessionBase destination, IEngine engine, bool incSeqnum = true)
+        protected void SendAttach([NotNull] SessionBase destination, IEngine engine, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();
 
-            Command cmd = new Command(destination, CommandType.Attach, engine);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.Attach, engine));
         }
 
-       /// <summary>
+        /// <summary>
         /// Send the Bind command
         /// </summary>
         /// <param name="destination"></param>
         /// <param name="pipe"></param>
         /// <param name="incSeqnum"></param>
-        protected void SendBind(Own destination, Pipe pipe, bool incSeqnum = true)
+        protected void SendBind([NotNull] Own destination, [NotNull] Pipe pipe, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();
 
-            Command cmd = new Command(destination, CommandType.Bind, pipe);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.Bind, pipe));
         }
 
-        protected void SendActivateRead(Pipe destination)
+        protected void SendActivateRead([NotNull] Pipe destination)
         {
-            Command cmd = new Command(destination, CommandType.ActivateRead);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.ActivateRead));
         }
 
-        protected void SendActivateWrite(Pipe destination, long msgsRead)
+        protected void SendActivateWrite([NotNull] Pipe destination, long msgsRead)
         {
-            Command cmd = new Command(destination, CommandType.ActivateWrite, msgsRead);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.ActivateWrite, msgsRead));
         }
 
-        protected void SendHiccup(Pipe destination, Object pipe)
+        protected void SendHiccup([NotNull] Pipe destination, [NotNull] Object pipe)
         {
-            Command cmd = new Command(destination, CommandType.Hiccup, pipe);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.Hiccup, pipe));
         }
 
-        protected void SendPipeTerm(Pipe destination)
+        protected void SendPipeTerm([NotNull] Pipe destination)
         {
-            Command cmd = new Command(destination, CommandType.PipeTerm);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.PipeTerm));
         }
 
-        protected void SendPipeTermAck(Pipe destination)
+        protected void SendPipeTermAck([NotNull] Pipe destination)
         {
-            Command cmd = new Command(destination, CommandType.PipeTermAck);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.PipeTermAck));
         }
 
-        protected void SendTermReq(Own destination, Own object_)
+        protected void SendTermReq([NotNull] Own destination, Own object_)
         {
-            Command cmd = new Command(destination, CommandType.TermReq, object_);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.TermReq, object_));
         }
 
-        protected void SendTerm(Own destination, int linger)
+        protected void SendTerm([NotNull] Own destination, int linger)
         {
-            Command cmd = new Command(destination, CommandType.Term, linger);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.Term, linger));
         }
 
-        protected void SendTermAck(Own destination)
+        protected void SendTermAck([NotNull] Own destination)
         {
-            Command cmd = new Command(destination, CommandType.TermAck);
-            SendCommand(cmd);
+            SendCommand(new Command(destination, CommandType.TermAck));
         }
 
-        protected void SendReap(SocketBase socket)
+        protected void SendReap([NotNull] SocketBase socket)
         {
-            Command cmd = new Command(m_ctx.GetReaper(), CommandType.Reap, socket);
-            SendCommand(cmd);
+            SendCommand(new Command(m_ctx.GetReaper(), CommandType.Reap, socket));
         }
 
         protected void SendReaped()
         {
-            Command cmd = new Command(m_ctx.GetReaper(), CommandType.Reaped);
-            SendCommand(cmd);
+            SendCommand(new Command(m_ctx.GetReaper(), CommandType.Reaped));
         }
 
         protected void SendDone()
         {
-            Command cmd = new Command(null, CommandType.Done);
-            m_ctx.SendCommand(Ctx.TermTid, cmd);
+            m_ctx.SendCommand(Ctx.TermTid, new Command(null, CommandType.Done));
         }
 
         protected virtual void ProcessStop()

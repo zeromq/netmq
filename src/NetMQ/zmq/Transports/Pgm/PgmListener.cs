@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
@@ -26,7 +27,7 @@ namespace NetMQ.zmq.Transports.PGM
             m_ioObject = new IOObject(ioThread);
         }
 
-        public void Init(string network)
+        public void Init([NotNull] string network)
         {
             m_address = new PgmAddress(network);
 
@@ -52,9 +53,7 @@ namespace NetMQ.zmq.Transports.PGM
         }
 
         public override void Destroy()
-        {
-
-        }
+        {}
 
         protected override void ProcessPlug()
         {
@@ -88,7 +87,7 @@ namespace NetMQ.zmq.Transports.PGM
                 m_socket.EventCloseFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
             }
             catch (NetMQException ex)
-            {             
+            {
                 m_socket.EventCloseFailed(m_address.ToString(), ex.ErrorCode);
             }
             m_handle = null;
@@ -110,7 +109,7 @@ namespace NetMQ.zmq.Transports.PGM
             {
                 m_acceptedSocket.InitOptions();
 
-                PgmSession pgmSession = new PgmSession(m_acceptedSocket, m_options);
+                var pgmSession = new PgmSession(m_acceptedSocket, m_options);
 
                 IOThread ioThread = ChooseIOThread(m_options.Affinity);
 

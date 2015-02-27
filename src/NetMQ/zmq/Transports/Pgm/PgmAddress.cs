@@ -7,7 +7,7 @@ namespace NetMQ.zmq.Transports.PGM
 {
     internal class PgmAddress : Address.IZAddress
     {
-        public PgmAddress(string network)
+        public PgmAddress([NotNull] string network)
         {
             Resolve(network, true);
         }
