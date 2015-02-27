@@ -81,7 +81,7 @@ namespace NetMQ.zmq
 
         public void Send(Command command)
         {
-            bool ok = false;
+            bool ok;
             lock (m_sync)
             {
                 m_cpipe.Write(ref command, false);
@@ -171,7 +171,7 @@ namespace NetMQ.zmq
 
         public void Send(Command cmd)
         {
-            bool ok = false;
+            bool ok;
             lock (m_sync)
             {
                 m_cpipe.Write(ref cmd, false);
@@ -191,11 +191,10 @@ namespace NetMQ.zmq
         public Command Recv(int timeout)
         {
             Command cmd = null;
-            bool ok;
             //  Try to get the command straight away.
             if (m_active)
             {
-                ok = m_cpipe.Read(ref cmd);
+                m_cpipe.Read(ref cmd);
                 
                 if (cmd != null)
                     return cmd;
@@ -215,7 +214,7 @@ namespace NetMQ.zmq
             m_active = true;
 
             //  Get a command.
-            ok = m_cpipe.Read(ref cmd);
+            bool ok = m_cpipe.Read(ref cmd);
             Debug.Assert(ok);
 
             return cmd;
