@@ -56,7 +56,7 @@ namespace NetMQ.zmq
         {
             Debug.Assert(ioThread != null);
 
-            m_ioThread = ioThread;                        
+            m_ioThread = ioThread;
         }
 
         public void Unplug()
@@ -77,7 +77,7 @@ namespace NetMQ.zmq
         public void RemoveSocket(AsyncSocket socket)
         {
             m_ioThread.Proactor.RemoveSocket(socket);
-        }        
+        }
 
         public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
