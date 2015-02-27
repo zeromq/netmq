@@ -376,7 +376,7 @@ namespace InterBrokerRouter
                 poller.AddTimer(timer);
 
                 // start monitoring the sockets
-                var pollTask = Task.Factory.StartNew(() => poller.PollTillCancelled());
+                Task.Factory.StartNew(poller.PollTillCancelled);
 
                 // we wait for a CTRL+C to exit
                 while (s_keepRunning)
