@@ -5,7 +5,7 @@ NetMQ comes with support for three main protocols
 
 + TCP (`tcp://`)
 + InProc (`inproc://`)
-+ PGM (`pgm://`) &mdash; requires MSMQ
++ PGM (`pgm://`) &mdash; requires MSMQ and running as administrator
 
 Each of these is discussed below.
 
@@ -141,7 +141,7 @@ To use PGM with NetMQ, we do not have to do too much. We just need to follow the
 
 Here is a small demo that use PGM, as well as `PublisherSocket` and `SubscriberSocket` and a few option values.
 
-    ::csharp
+    :::csharp
     const int MegaBit = 1024;
     const int MegaByte = 1024;
     using (NetMQContext context = NetMQContext.Create())

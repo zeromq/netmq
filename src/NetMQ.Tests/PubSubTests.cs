@@ -14,11 +14,11 @@ namespace NetMQ.Tests
             {
                 using (var pub = contex.CreatePublisherSocket())
                 {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                    var port = pub.BindRandomPort("tcp://127.0.0.1");
 
                     using (var sub = contex.CreateSubscriberSocket())
                     {
-                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Subscribe("A");
 
                         // let the subscrbier connect to the publisher before sending a message
@@ -50,11 +50,11 @@ namespace NetMQ.Tests
             {
                 using (var pub = contex.CreatePublisherSocket())
                 {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                    var port = pub.BindRandomPort("tcp://127.0.0.1");
 
                     using (var sub = contex.CreateSubscriberSocket())
                     {
-                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Subscribe("");
 
                         // let the subscrbier connect to the publisher before sending a message
@@ -80,11 +80,11 @@ namespace NetMQ.Tests
             {
                 using (var pub = contex.CreatePublisherSocket())
                 {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                    var port = pub.BindRandomPort("tcp://127.0.0.1");
 
                     using (var sub = contex.CreateSubscriberSocket())
                     {
-                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Connect("tcp://127.0.0.1:" + port);
 
                         // let the subscrbier connect to the publisher before sending a message
                         Thread.Sleep(500);
@@ -109,11 +109,11 @@ namespace NetMQ.Tests
             {
                 using (var pub = contex.CreatePublisherSocket())
                 {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                    var port = pub.BindRandomPort("tcp://127.0.0.1");
 
                     using (var sub = contex.CreateSubscriberSocket())
                     {
-                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Subscribe("C");
                         sub.Subscribe("B");
                         sub.Subscribe("A");
@@ -141,18 +141,18 @@ namespace NetMQ.Tests
             {
                 using (var pub = contex.CreatePublisherSocket())
                 {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                    var port = pub.BindRandomPort("tcp://127.0.0.1");
 
                     using (var sub = contex.CreateSubscriberSocket())
                     using (var sub2 = contex.CreateSubscriberSocket())
                     {
-                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Subscribe("A");
                         sub.Subscribe("AB");
                         sub.Subscribe("B");
                         sub.Subscribe("C");
 
-                        sub2.Connect("tcp://127.0.0.1:5002");
+                        sub2.Connect("tcp://127.0.0.1:" + port);
                         sub2.Subscribe("A");
                         sub2.Subscribe("AB");
                         sub2.Subscribe("C");
@@ -179,19 +179,17 @@ namespace NetMQ.Tests
             using (NetMQContext contex = NetMQContext.Create()) {
                 using (var pub = contex.CreatePublisherSocket())
                 using (var pub2 = contex.CreatePublisherSocket()) {
-                    var address = "tcp://127.0.0.1:5002";
-                    var address2 = "tcp://127.0.0.1:5003";
-                    pub.Bind(address);
-                    pub2.Bind(address2);
+                    int port = pub.BindRandomPort("tcp://127.0.0.1");
+                    int port2 = pub2.BindRandomPort("tcp://127.0.0.1");
 
                     using (var sub = contex.CreateSubscriberSocket())
                     using (var sub2 = contex.CreateSubscriberSocket()) {
 
-                        sub.Connect(address);
-                        sub.Connect(address2);
+                        sub.Connect("tcp://127.0.0.1:" + port);
+                        sub.Connect("tcp://127.0.0.1:" + port2);
 
-                        sub2.Connect(address);
-                        sub2.Connect(address2);
+                        sub2.Connect("tcp://127.0.0.1:" + port);
+                        sub2.Connect("tcp://127.0.0.1:" + port2);
 
                         // should subscribe to both
                         sub.Subscribe("A");
@@ -263,11 +261,11 @@ namespace NetMQ.Tests
             {
                 using (var pub = contex.CreatePublisherSocket())
                 {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                    int port = pub.BindRandomPort("tcp://127.0.0.1");
 
                     using (var sub = contex.CreateSubscriberSocket())
                     {
-                        sub.Connect("tcp://127.0.0.1:5002");
+                        sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Subscribe("A");
 
                         // let the subscrbier connect to the publisher before sending a message

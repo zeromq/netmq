@@ -246,6 +246,7 @@ namespace NetMQ
 
                 }
 
+                m_shimThread.Join();
                 m_self.Dispose();
             }
         }

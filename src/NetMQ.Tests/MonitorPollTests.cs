@@ -37,11 +37,11 @@ namespace NetMQ.Tests
 
                         var pollerTask = Task.Factory.StartNew(monitor.Start);
 
-                        rep.Bind("tcp://127.0.0.1:5002");
+                        var port2 = rep.BindRandomPort("tcp://127.0.0.1");
 
                         using (var req = contex.CreateRequestSocket())
                         {
-                            req.Connect("tcp://127.0.0.1:5002");
+                            req.Connect("tcp://127.0.0.1:" + port2);
                             req.Send("a");
 
                             bool more;
@@ -91,10 +91,10 @@ namespace NetMQ.Tests
 
                             var pollerTask = Task.Factory.StartNew(monitor.Start);
 
-                            rep.Bind("tcp://127.0.0.1:5002");
+                            var port = rep.BindRandomPort("tcp://127.0.0.1");
 
 
-                            req.Connect("tcp://127.0.0.1:5002");
+                            req.Connect("tcp://127.0.0.1:" + port);
                             req.Send("a");
 
                             bool more;
@@ -141,8 +141,8 @@ namespace NetMQ.Tests
                     monitorTask = Task.Factory.StartNew(() => monitor.Start());
 
                     //The bug is only occuring when monitor a tcp socket
-                    resSocket.Bind("tcp://127.0.0.1:12345");
-                    reqSocket.Connect("tcp://127.0.0.1:12345");
+                    var port = resSocket.BindRandomPort("tcp://127.0.0.1");
+                    reqSocket.Connect("tcp://127.0.0.1:" + port);
 
                     reqSocket.Send("question");
                     Assert.That(resSocket.ReceiveString(), Is.EqualTo("question"));
