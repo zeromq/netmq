@@ -122,6 +122,7 @@
     <Compile Include="Blob.cs" />
     <Compile Include="BufferPool.cs" />
     <Compile Include="zmq\Utils\ByteArrayEqualityComparer.cs" />
+    <Compile Include="zmq\Utils\StringLib.cs" />
     <Compile Include="zmq\Utils\Selector.cs" />
     <Compile Include="zmq\Transports\ByteArraySegment.cs" />
     <Compile Include="zmq\Utils\Clock.cs" />

@@ -170,6 +170,7 @@
     <Compile Include="zmq\Utils\SocketUtility3.5.cs" />
     <Compile Include="zmq\Utils\Selector.cs" />
     <Compile Include="zmq\Utils\Signaler.cs" />
+    <Compile Include="zmq\Utils\StringLib.cs" />
     <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\ZObject.cs" />
