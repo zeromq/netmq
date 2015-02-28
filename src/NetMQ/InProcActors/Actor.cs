@@ -95,7 +95,7 @@ namespace NetMQ.Actors
             }
 
             //Create Shim thread handler
-            CreateShimThread(state);
+            CreateShimThread();
 
             //  Mandatory handshake for new actor so that constructor returns only
             //  when actor has also initialized. This eliminates timing issues at
@@ -130,7 +130,7 @@ namespace NetMQ.Actors
             m_sendEventDelegatorHelper.Fire(this, new NetMQActorEventArgs<T>(this));
         }
 
-        private void CreateShimThread(T state)
+        private void CreateShimThread()
         {
             // start shim task
             m_shimTask = Task.Factory.StartNew(
