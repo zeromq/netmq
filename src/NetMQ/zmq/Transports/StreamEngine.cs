@@ -24,12 +24,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports
 {
-    internal class StreamEngine : IEngine, IProactorEvents, IMsgSink
+    internal sealed class StreamEngine : IEngine, IProactorEvents, IMsgSink
     {
-        class StateMachineAction
+        private class StateMachineAction
         {
             public StateMachineAction(Action action, SocketError socketError, int bytesTransferred)
             {
@@ -43,7 +44,7 @@ namespace NetMQ.zmq.Transports
             public int BytesTransferred { get; private set; }
         }
 
-        enum State
+        private enum State
         {
             Closed,
             Handshaking,
@@ -51,7 +52,7 @@ namespace NetMQ.zmq.Transports
             Stalled,
         }
 
-        enum HandshakeState
+        private enum HandshakeState
         {
             Closed,
             SendingGreeting,
@@ -60,17 +61,21 @@ namespace NetMQ.zmq.Transports
             ReceivingRestOfGreeting
         }
 
-        enum ReceiveState
+        private enum ReceiveState
         {
-            Idle, Active, Stuck,
+            Idle,
+            Active,
+            Stuck,
         }
 
-        enum SendState
+        private enum SendState
         {
-            Idle, Active, Error
+            Idle,
+            Active,
+            Error
         }
 
-        enum Action
+        private enum Action
         {
             Start,
             InCompleted,
@@ -136,11 +141,8 @@ namespace NetMQ.zmq.Transports
         private State m_state;
         private HandshakeState m_handshakeState;
 
-
         // queue for actions that happen during the state machine
         private readonly Queue<StateMachineAction> m_actionsQueue;
-
-
 
         public StreamEngine(AsyncSocket handle, Options options, String endpoint)
         {
@@ -181,14 +183,12 @@ namespace NetMQ.zmq.Transports
                     m_handle.Dispose();
                 }
                 catch (SocketException)
-                {
-                }
+                {}
                 m_handle = null;
             }
         }
 
-        public void Plug(IOThread ioThread,
-                         SessionBase session)
+        public void Plug(IOThread ioThread, SessionBase session)
         {
             Debug.Assert(!m_plugged);
             m_plugged = true;
@@ -345,10 +345,10 @@ namespace NetMQ.zmq.Transports
                 case State.Stalled:
                     switch (action)
                     {
-                        //  There was an input error but the engine could not
-                        //  be terminated (due to the stalled decoder).
-                        //  Flush the pending message and terminate the engine now.
                         case Action.ActivateIn:
+                            //  There was an input error but the engine could not
+                            //  be terminated (due to the stalled decoder).
+                            //  Flush the pending message and terminate the engine now.
                             m_decoder.ProcessBuffer(m_inpos, 0);
                             Debug.Assert(!m_decoder.Stalled());
                             m_session.Flush();
@@ -436,7 +436,7 @@ namespace NetMQ.zmq.Transports
                                 {
                                     m_greetingBytesRead = 0;
 
-                                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
 
                                     m_handshakeState = HandshakeState.ReceivingGreeting;
 
@@ -446,7 +446,7 @@ namespace NetMQ.zmq.Transports
                             break;
                         case Action.ActivateIn:
                         case Action.ActivateOut:
-                            // nothing todo
+                            // nothing to do
                             break;
                         default:
                             Debug.Assert(false);
@@ -481,8 +481,8 @@ namespace NetMQ.zmq.Transports
                                     //  skip the message header, we simply throw that
                                     //  header data away.
                                     int headerSize = m_options.IdentitySize + 1 >= 255 ? 10 : 2;
-                                    byte[] tmp = new byte[10];
-                                    ByteArraySegment bufferp = new ByteArraySegment(tmp);
+                                    var tmp = new byte[10];
+                                    var bufferp = new ByteArraySegment(tmp);
 
                                     int bufferSize = headerSize;
 
@@ -495,8 +495,8 @@ namespace NetMQ.zmq.Transports
                                     m_insize = m_greetingBytesRead;
 
                                     //  To allow for interoperability with peers that do not forward
-                                    //  their subscriptions, we inject a phony subsription
-                                    //  message into the incomming message stream. To put this
+                                    //  their subscriptions, we inject a phony subscription
+                                    //  message into the incoming message stream. To put this
                                     //  message right after the identity message, we temporarily
                                     //  divert the message stream from session to ourselves.
                                     if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
@@ -506,7 +506,7 @@ namespace NetMQ.zmq.Transports
                                 }
                                 else if (m_greetingBytesRead < 10)
                                 {
-                                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
                                     BeginRead(greetingSegment, PreambleSize - m_greetingBytesRead);
                                 }
                                 else
@@ -524,7 +524,7 @@ namespace NetMQ.zmq.Transports
                             break;
                         case Action.ActivateIn:
                         case Action.ActivateOut:
-                            // nothing todo
+                            // nothing to do
                             break;
                         default:
                             Debug.Assert(false);
@@ -552,7 +552,7 @@ namespace NetMQ.zmq.Transports
                                 }
                                 else
                                 {
-                                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
 
                                     m_handshakeState = HandshakeState.ReceivingRestOfGreeting;
                                     BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
@@ -561,7 +561,7 @@ namespace NetMQ.zmq.Transports
                             break;
                         case Action.ActivateIn:
                         case Action.ActivateOut:
-                            // nothing todo
+                            // nothing to do
                             break;
                         default:
                             Debug.Assert(false);
@@ -584,7 +584,7 @@ namespace NetMQ.zmq.Transports
 
                                 if (m_greetingBytesRead < GreetingSize)
                                 {
-                                    ByteArraySegment greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
                                     BeginRead(greetingSegment, GreetingSize);
                                 }
                                 else
@@ -612,7 +612,7 @@ namespace NetMQ.zmq.Transports
                             break;
                         case Action.ActivateIn:
                         case Action.ActivateOut:
-                            // nothing todo
+                            // nothing to do
                             break;
                         default:
                             Debug.Assert(false);
@@ -695,7 +695,7 @@ namespace NetMQ.zmq.Transports
                 {
                     m_inpos = null;
                     m_insize = 0;
-                }                
+                }
             }
 
             //  Flush all messages the decoder may have produced.
@@ -771,9 +771,7 @@ namespace NetMQ.zmq.Transports
             return isMessagePushed;
         }
 
-
-
-        private int EndWrite(SocketError socketError, int bytesTransferred)
+        private static int EndWrite(SocketError socketError, int bytesTransferred)
         {
             if (socketError == SocketError.Success && bytesTransferred > 0)
             {
@@ -795,7 +793,7 @@ namespace NetMQ.zmq.Transports
             }
         }
 
-        private void BeginWrite(ByteArraySegment data, int size)
+        private void BeginWrite([NotNull] ByteArraySegment data, int size)
         {
             try
             {
@@ -803,33 +801,28 @@ namespace NetMQ.zmq.Transports
             }
             catch (SocketException ex)
             {
-                EnqueueAction(Action.OutCompleted, ex.SocketErrorCode, 0);                
+                EnqueueAction(Action.OutCompleted, ex.SocketErrorCode, 0);
             }
         }
 
-        private int EndRead(SocketError socketError, int bytesTransferred)
+        private static int EndRead(SocketError socketError, int bytesTransferred)
         {
             if (socketError == SocketError.Success && bytesTransferred > 0)
-            {
                 return bytesTransferred;
-            }
-            else if (bytesTransferred == 0 ||
+
+            if (bytesTransferred == 0 ||
                 socketError == SocketError.NetworkDown ||
                 socketError == SocketError.NetworkReset ||
                 socketError == SocketError.HostUnreachable ||
                 socketError == SocketError.ConnectionAborted ||
                 socketError == SocketError.TimedOut ||
                 socketError == SocketError.ConnectionReset)
-            {
                 return -1;
-            }
-            else
-            {
-                throw NetMQException.Create(socketError);
-            }
+
+            throw NetMQException.Create(socketError);
         }
 
-        private void BeginRead(ByteArraySegment data, int size)
+        private void BeginRead([NotNull] ByteArraySegment data, int size)
         {
             try
             {

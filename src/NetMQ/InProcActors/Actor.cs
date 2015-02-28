@@ -33,7 +33,7 @@ namespace NetMQ.Actors
         private T m_state;
         private Task m_shimTask;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
-        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
+        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper;
 
         private string GetEndPointName()
         {
@@ -41,18 +41,19 @@ namespace NetMQ.Actors
                 rand.Next(0, 10000), rand.Next(0, 10000));
         }
 
-        public Actor(NetMQContext context,
-            IShimHandler<T> shimHandler, T state)
+        public Actor([NotNull] NetMQContext context, [NotNull] IShimHandler<T> shimHandler, T state)
         {
-            this.m_self = context.CreatePairSocket();
-            this.m_shim = new Shim<T>(shimHandler, context.CreatePairSocket());
-            this.m_self.Options.SendHighWatermark = 1000;
-            this.m_self.Options.SendHighWatermark = 1000;
-            this.m_state = state;
+            m_self = context.CreatePairSocket();
+            m_shim = new Shim<T>(shimHandler, context.CreatePairSocket());
+            m_self.Options.SendHighWatermark = 1000;
+            m_self.Options.SendHighWatermark = 1000;
+            m_state = state;
 
-            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(() => m_self.ReceiveReady += OnReceive,
+            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
+                () => m_self.ReceiveReady += OnReceive,
                 () => m_self.ReceiveReady += OnReceive);
-            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(() => m_self.SendReady += OnReceive,
+            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
+                () => m_self.SendReady += OnReceive,
                 () => m_self.SendReady += OnSend);
 
             //now binding and connect pipe ends
@@ -84,7 +85,7 @@ namespace NetMQ.Actors
             try
             {
                 //Initialise the shim handler
-                this.m_shim.Handler.Initialise(state);
+                m_shim.Handler.Initialise(state);
             }
             catch (Exception)
             {
@@ -92,7 +93,7 @@ namespace NetMQ.Actors
                 m_shim.Pipe.Dispose();
 
                 throw;
-            }            
+            }
 
             //Create Shim thread handler
             CreateShimThread(state);
@@ -132,35 +133,33 @@ namespace NetMQ.Actors
 
         private void CreateShimThread(T state)
         {
-          //start Shim thread
-          m_shimTask = Task.Factory.StartNew(
-                                             x =>
-                                             {
-                                               try
-                                               {
-                                                 this.m_shim.Handler.RunPipeline(this.m_shim.Pipe);
-                                               }
-                                               catch (TerminatingException)
-                                               {
+            // start shim task
+            m_shimTask = Task.Factory.StartNew(
+                x =>
+                {
+                    try
+                    {
+                        m_shim.Handler.RunPipeline(m_shim.Pipe);
                     }
+                    catch (TerminatingException)
+                    {}
 
-                                               //  Do not block, if the other end of the pipe is already deleted
-                                               m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
+                    //  Do not block, if the other end of the pipe is already deleted
+                    m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
 
-                                               try
-                                               {
-                                                 m_shim.Pipe.SignalOK();
-                                               }
-                                               catch (AgainException)
-                                               {                                                
-                                               }
+                    try
+                    {
+                        m_shim.Pipe.SignalOK();
+                    }
+                    catch (AgainException)
+                    {}
 
-                                               m_shim.Pipe.Dispose();
-                                             },
-            TaskCreationOptions.LongRunning);
+                    m_shim.Pipe.Dispose();
+                },
+                TaskCreationOptions.LongRunning);
         }
 
-      ~Actor()
+        ~Actor()
         {
             Dispose(false);
         }
@@ -184,10 +183,9 @@ namespace NetMQ.Actors
                     m_self.WaitForSignal();
                 }
                 catch (AgainException)
-                {
-                }
-                
-                m_shimTask.Wait();                               
+                {}
+
+                m_shimTask.Wait();
                 m_self.Dispose();
             }
         }

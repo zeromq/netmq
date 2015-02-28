@@ -19,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//  If 'delay' is true connecter first waits for a while, then starts
-//  connection process.
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
@@ -29,17 +27,17 @@ using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    internal class TcpConnecter : Own, IProactorEvents
+    internal class TcpConnector : Own, IProactorEvents
     {
         /// <summary>
-        //  ID of the timer used to delay the reconnection.
+        ///  ID of the timer used to delay the reconnection.
         /// </summary>
         private const int ReconnectTimerId = 1;
 
         private readonly IOObject m_ioObject;
 
         /// <summary>
-        //  Address to connect to. Owned by session_base_t.
+        ///  Address to connect to. Owned by session_base_t.
         /// </summary>
         private readonly Address m_addr;
 
@@ -55,7 +53,7 @@ namespace NetMQ.zmq.Transports.Tcp
         private bool m_handleValid;
 
         /// <summary>
-        /// If true, connecter is waiting a while before trying to connect.
+        /// If true, connector is waiting a while before trying to connect.
         /// </summary>
         private readonly bool m_delayedStart;
 
@@ -79,12 +77,9 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private readonly String m_endpoint;
 
-        /// <summary>
-        /// Socket
-        /// </summary>
         private readonly SocketBase m_socket;
 
-        public TcpConnecter([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
+        public TcpConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);

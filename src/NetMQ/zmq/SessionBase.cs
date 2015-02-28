@@ -496,28 +496,26 @@ namespace NetMQ.zmq
         {
             Debug.Assert(m_connect);
 
-            //  Choose I/O thread to run connecter in. Given that we are already
+            //  Choose I/O thread to run connector in. Given that we are already
             //  running in an I/O thread, there must be at least one available.
             IOThread ioThread = ChooseIOThread(m_options.Affinity);
             Debug.Assert(ioThread != null);
 
-            //  Create the connecter object.
+            //  Create the connector object.
 
             if (m_addr.Protocol.Equals(Address.TcpProtocol))
             {
-                var connecter = new TcpConnecter(
-                    ioThread, this, m_options, m_addr, wait);
-                //alloc_Debug.Assert(connecter);
-                LaunchChild(connecter);
+                var connector = new TcpConnector(ioThread, this, m_options, m_addr, wait);
+                //alloc_Debug.Assert(connector);
+                LaunchChild(connector);
                 return;
             }
 
             if (m_addr.Protocol.Equals(Address.IpcProtocol))
             {
-                var connecter = new IpcConnecter(
-                    ioThread, this, m_options, m_addr, wait);
-                //alloc_Debug.Assert(connecter);
-                LaunchChild(connecter);
+                var connector = new IpcConnector(ioThread, this, m_options, m_addr, wait);
+                //alloc_Debug.Assert(connector);
+                LaunchChild(connector);
                 return;
             }
 

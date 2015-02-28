@@ -24,7 +24,7 @@ using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    internal class IpcListener : TcpListener
+    internal sealed class IpcListener : TcpListener
     {
         private readonly IpcAddress m_address;
 

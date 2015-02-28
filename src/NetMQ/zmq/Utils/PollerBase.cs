@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
@@ -40,7 +41,7 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         private class TimerInfo
         {
-            public TimerInfo(ITimerEvent sink, int id)
+            public TimerInfo([NotNull] ITimerEvent sink, int id)
             {
                 Sink = sink;
                 Id = id;
@@ -49,6 +50,7 @@ namespace NetMQ.zmq.Utils
             /// <summary>
             /// Get the ITimerEvent that serves as the event-sink.
             /// </summary>
+            [NotNull]
             public ITimerEvent Sink { get; private set; }
 
             /// <summary>
@@ -100,10 +102,10 @@ namespace NetMQ.zmq.Utils
         /// <param name="timeout">the timeout-period in milliseconds of the new timer</param>
         /// <param name="sink">the IProactorEvents to add for the sink of the new timer</param>
         /// <param name="id">the Id to assign to the new TimerInfo</param>
-        public void AddTimer(long timeout, IProactorEvents sink, int id)
+        public void AddTimer(long timeout, [NotNull] IProactorEvents sink, int id)
         {
             long expiration = Clock.NowMs() + timeout;
-            TimerInfo info = new TimerInfo(sink, id);
+            var info = new TimerInfo(sink, id);
 
             if (!m_timers.ContainsKey(expiration))
                 m_timers.Add(expiration, new List<TimerInfo>());
@@ -116,7 +118,7 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         /// <param name="sink">the ITimerEvent that the timer was created with</param>
         /// <param name="id">the Id of the timer to cancel</param>
-        public void CancelTimer(ITimerEvent sink, int id)
+        public void CancelTimer([NotNull] ITimerEvent sink, int id)
         {
             // Complexity of this operation is O(n). We assume it is rarely used.
             var foundTimers = new Dictionary<long, TimerInfo>();

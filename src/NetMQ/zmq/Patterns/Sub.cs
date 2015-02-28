@@ -21,21 +21,20 @@
 
 using System;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns
 {
-    internal class Sub : XSub
+    internal sealed class Sub : XSub
     {
         public class SubSession : XSubSession
         {
-            public SubSession(IOThread ioThread, bool connect,
-                              SocketBase socket, Options options, Address addr)
+            public SubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
-        public Sub(Ctx parent, int threadId, int socketId)
+        public Sub([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Sub;
@@ -62,12 +61,12 @@ namespace NetMQ.zmq.Patterns
                 throw new InvalidException(String.Format("In Sub.XSetSocketOption({0},{1}), optval must be either a String or a byte-array.", option, (optval == null ? "null" : optval.ToString())));
 
             //  Create the subscription message.
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitPool(val.Length + 1);
             if (option == ZmqSocketOptions.Subscribe)
-                msg.Put((byte)1);
+                msg.Put(1);
             else if (option == ZmqSocketOptions.Unsubscribe)
-                msg.Put((byte)0);
+                msg.Put(0);
             msg.Put(val, 1, val.Length);
 
             try

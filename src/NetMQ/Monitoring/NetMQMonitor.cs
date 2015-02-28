@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using AsyncIO;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 
 namespace NetMQ.Monitoring
@@ -17,7 +18,7 @@ namespace NetMQ.Monitoring
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
 
-        public NetMQMonitor(NetMQContext context, NetMQSocket monitoredSocket, string endpoint, SocketEvent eventsToMonitor)
+        public NetMQMonitor([NotNull] NetMQContext context, [NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvent eventsToMonitor)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -33,11 +34,11 @@ namespace NetMQ.Monitoring
         }
 
         /// <summary>
-        /// This constuctor receives an already-created monitored socket. The other constructor is preferred; this one is here to support clrzmq signature
+        /// This constructor receives an already-created monitored socket. The other constructor is preferred; this one is here to support clrzmq signature
         /// </summary>
         /// <param name="socket"></param>
         /// <param name="endpoint"></param>
-        public NetMQMonitor(NetMQSocket socket, string endpoint)
+        public NetMQMonitor([NotNull] NetMQSocket socket, [NotNull] string endpoint)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -184,7 +185,7 @@ namespace NetMQ.Monitoring
             }
         }
 
-        public void AttachToPoller(Poller poller)
+        public void AttachToPoller([NotNull] Poller poller)
         {
             InternalStart();
             m_attachedPoller = poller;
