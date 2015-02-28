@@ -124,11 +124,12 @@ namespace NetMQ
                 {
                     if (m_isStarted)
                     {
-                        Cancel(false);
+                        Cancel(true);
                     }
                 }
 
                 m_disposed = true;
+                m_isStoppedEvent.Close();
             }
         }
 

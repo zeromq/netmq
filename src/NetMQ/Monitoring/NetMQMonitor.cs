@@ -259,6 +259,8 @@ namespace NetMQ.Monitoring
                 Stop();
             }
 
+            m_isStoppedEvent.Close();
+
             if (m_isOwner)
             {
                 MonitoringSocket.Dispose();

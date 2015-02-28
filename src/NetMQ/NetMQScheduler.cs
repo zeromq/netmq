@@ -69,7 +69,7 @@ namespace NetMQ
 
         private void OnMessageFirstTime(object sender, NetMQSocketEventArgs e)
         {
-            // set the current thread as the scheduler thread, this only happen the first time message arrived and important for the TryExecuteTaskInline
+            // set the current thread as the scheduler thread, this only happens the first time a message arrived and is important for the TryExecuteTaskInline
             m_schedulerThread.Value = true;
 
             // stop calling the OnMessageFirstTime and start calling OnMessage
@@ -120,7 +120,9 @@ namespace NetMQ
             if (m_ownPoller)
             {
                 m_poller.CancelAndJoin();
+                m_poller.Dispose();
             }
+            m_schedulerThread.Dispose();
         }
 
         private void DisposeSynced()
