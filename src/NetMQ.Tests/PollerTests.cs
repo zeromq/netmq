@@ -29,10 +29,8 @@ namespace NetMQ.Tests
                 rep.ReceiveReady += (s, a) =>
                 {
                     bool more;
-                    string m = a.Socket.ReceiveString(out more);
-
+                    Assert.AreEqual("Hello", a.Socket.ReceiveString(out more));
                     Assert.False(more);
-                    Assert.AreEqual("Hello", m);
 
                     a.Socket.Send("World");
                 };
@@ -44,10 +42,8 @@ namespace NetMQ.Tests
                 req.Send("Hello");
 
                 bool more2;
-                string m1 = req.ReceiveString(out more2);
-
+                Assert.AreEqual("World", req.ReceiveString(out more2));
                 Assert.IsFalse(more2);
-                Assert.AreEqual("World", m1);
 
                 poller.CancelAndJoin();
 
@@ -87,13 +83,11 @@ namespace NetMQ.Tests
                     req.Connect("tcp://127.0.0.1:" + port);
                     req.Send("a");
 
-                    bool more;
-
-                    string m = rep.ReceiveString(out more);
+                    rep.ReceiveString();
 
                     rep.Send("b");
 
-                    string m2 = req.ReceiveString(out more);
+                    req.ReceiveString();
 
                     Assert.IsTrue(listeningEvent.WaitOne(300));
                     Assert.IsTrue(connectedEvent.WaitOne(300));
@@ -125,12 +119,10 @@ namespace NetMQ.Tests
                 bool router1arrived = false;
                 bool router2arrived = false;
 
-                bool more;
-
                 router2.ReceiveReady += (s, a) =>
                 {
-                    router2.Receive(out more);
-                    router2.Receive(out more);
+                    router2.Receive();
+                    router2.Receive();
                     router2arrived = true;
                 };
 
@@ -138,8 +130,8 @@ namespace NetMQ.Tests
                 {
                     router1arrived = true;
 
-                    router.Receive(out more);
-                    router.Receive(out more);
+                    router.Receive();
+                    router.Receive();
 
                     poller.AddSocket(router2);
                 };
@@ -258,14 +250,12 @@ namespace NetMQ.Tests
                 bool router3arrived = false;
                 bool router4arrived = false;
 
-                bool more;
-
                 router.ReceiveReady += (s, a) =>
                 {
                     router1arrived++;
 
-                    router.Receive(out more);
-                    router.Receive(out more);
+                    router.Receive();
+                    router.Receive();
 
                     poller.RemoveSocket(router);
                 };
@@ -274,23 +264,23 @@ namespace NetMQ.Tests
 
                 router3.ReceiveReady += (s, a) =>
                 {
-                    router3.Receive(out more);
-                    router3.Receive(out more);
+                    router3.Receive();
+                    router3.Receive();
                     router3arrived = true;
                 };
 
                 router4.ReceiveReady += (s, a) =>
                 {
-                    router4.Receive(out more);
-                    router4.Receive(out more);
+                    router4.Receive();
+                    router4.Receive();
                     router4arrived = true;
                 };
 
                 router2.ReceiveReady += (s, a) =>
                 {
                     router2arrived++;
-                    router2.Receive(out more);
-                    router2.Receive(out more);
+                    router2.Receive();
+                    router2.Receive();
 
                     if (router2arrived == 1)
                     {
@@ -316,12 +306,12 @@ namespace NetMQ.Tests
 
                 poller.CancelAndJoin();
 
+                bool more;
+                
                 router.Receive(true, out more);
-
                 Assert.IsTrue(more);
 
                 router.Receive(true, out more);
-
                 Assert.IsFalse(more);
 
                 Assert.AreEqual(1, router1arrived);
@@ -356,13 +346,11 @@ namespace NetMQ.Tests
 
                 router2.ReceiveReady += (s, a) =>
                 {
-                    bool more;
-
                     // identity
-                    byte[] identity = a.Socket.Receive(out more);
+                    byte[] identity = a.Socket.Receive();
 
                     // message
-                    a.Socket.Receive(out more);
+                    a.Socket.Receive();
 
                     a.Socket.SendMore(identity);
                     a.Socket.Send("2");
@@ -378,15 +366,12 @@ namespace NetMQ.Tests
                     }
                     first = false;
 
-                    bool more;
-
                     // identity
-                    a.Socket.Receive(out more);
+                    a.Socket.Receive();
 
-                    string m = a.Socket.ReceiveString(out more);
-
+                    bool more;
+                    Assert.AreEqual("Hello", a.Socket.ReceiveString(out more));
                     Assert.False(more);
-                    Assert.AreEqual("Hello", m);
 
                     // cancelling the socket
                     poller.RemoveSocket(a.Socket);
@@ -396,13 +381,11 @@ namespace NetMQ.Tests
 
                 router3.ReceiveReady += (s, a) =>
                 {
-                    bool more;
-
                     // identity
-                    byte[] identity = a.Socket.Receive(out more);
+                    byte[] identity = a.Socket.Receive();
 
                     // message
-                    a.Socket.Receive(out more);
+                    a.Socket.Receive();
 
                     a.Socket.SendMore(identity).Send("3");
                 };
@@ -423,17 +406,13 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(500);
 
-                bool more2;
-
                 // making sure the socket defined before the one cancelled still works
                 dealer2.Send("1");
-                string msg = dealer2.ReceiveString(out more2);
-                Assert.AreEqual("2", msg);
+                Assert.AreEqual("2", dealer2.ReceiveString());
 
                 // making sure the socket defined after the one cancelled still works
                 dealer3.Send("1");
-                msg = dealer3.ReceiveString(out more2);
-                Assert.AreEqual("3", msg);
+                Assert.AreEqual("3", dealer3.ReceiveString());
 
                 // we have to give this some time if we want to make sure it's really not happening and it not only because of time
                 Thread.Sleep(300);
@@ -457,16 +436,12 @@ namespace NetMQ.Tests
 
                 dealer.Connect("tcp://127.0.0.1:" + port);
 
-
                 bool messageArrived = false;
 
                 router.ReceiveReady += (s, a) =>
                 {
-                    bool isMore;
-                    router.Receive(out isMore);
-                    router.Receive(out isMore);
-
-
+                    router.Receive();
+                    router.Receive();
                     messageArrived = true;
                 };
 
