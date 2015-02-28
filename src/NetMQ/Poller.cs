@@ -444,7 +444,7 @@ namespace NetMQ
         /// Poll as long as the given Func evaluates to true.
         /// </summary>
         /// <param name="condition">a Func that returns a boolean value, to evaluate on each iteration</param>
-        private void PollWhile([InstantHandle] Func<bool> condition)
+        private void PollWhile([NotNull,InstantHandle] Func<bool> condition)
         {
             if (m_disposed)
             {
