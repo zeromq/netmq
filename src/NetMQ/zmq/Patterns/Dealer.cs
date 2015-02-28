@@ -20,6 +20,7 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
@@ -28,12 +29,9 @@ namespace NetMQ.zmq.Patterns
     {
         public class DealerSession : SessionBase
         {
-            public DealerSession(IOThread ioThread, bool connect,
-                                 SocketBase socket, Options options,
-                                 Address addr)
+            public DealerSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
         /// <summary>
@@ -41,6 +39,7 @@ namespace NetMQ.zmq.Patterns
         /// the outbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
+
         private readonly LoadBalancer m_loadBalancer;
 
         /// <summary>
@@ -53,10 +52,9 @@ namespace NetMQ.zmq.Patterns
         /// <summary>
         /// Holds the prefetched message.
         /// </summary>
-        public Dealer(Ctx parent, int threadId, int socketId)
+        public Dealer([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-
             m_prefetched = false;
             m_options.SocketType = ZmqSocketType.Dealer;
 
@@ -90,10 +88,10 @@ namespace NetMQ.zmq.Patterns
 
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
-            return ReceiveInternal(flags, ref msg);
+            return ReceiveInternal(ref msg);
         }
 
-        private bool ReceiveInternal(SendReceiveOptions flags, ref Msg msg)
+        private bool ReceiveInternal(ref Msg msg)
         {
             //  If there is a prefetched message, return it.
             if (m_prefetched)
@@ -129,18 +127,13 @@ namespace NetMQ.zmq.Patterns
                 return true;
 
             //  Try to read the next message to the pre-fetch buffer.
-
-            bool isMessageAvailable = ReceiveInternal(SendReceiveOptions.DontWait, ref m_prefetchedMsg);
+            bool isMessageAvailable = ReceiveInternal(ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
-            {
                 return false;
-            }
-            else
-            {
-                m_prefetched = true;
-                return true;
-            }
+
+            m_prefetched = true;
+            return true;
         }
 
         protected override bool XHasOut()

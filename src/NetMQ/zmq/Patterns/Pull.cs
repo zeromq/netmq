@@ -20,20 +20,18 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    internal class Pull : SocketBase
+    internal sealed class Pull : SocketBase
     {
         public class PullSession : SessionBase
         {
-            public PullSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options,
-                               Address addr)
+            public PullSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
         /// <summary>
@@ -41,7 +39,7 @@ namespace NetMQ.zmq.Patterns
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        public Pull(Ctx parent, int threadId, int socketId)
+        public Pull([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pull;

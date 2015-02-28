@@ -103,8 +103,8 @@ namespace NetMQ.zmq
 
         //  Concrete algorithms for the x- methods are to be defined by
         //  individual socket types.
-        protected abstract void XAttachPipe(Pipe pipe, bool icanhasall);
-        protected abstract void XTerminated(Pipe pipe);
+        protected abstract void XAttachPipe([NotNull] Pipe pipe, bool icanhasall);
+        protected abstract void XTerminated([NotNull] Pipe pipe);
 
         /// <summary>
         /// Throw exception if socket is disposed
