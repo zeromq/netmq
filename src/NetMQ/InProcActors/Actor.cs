@@ -30,7 +30,6 @@ namespace NetMQ.Actors
         private readonly PairSocket m_self;
         private readonly Shim<T> m_shim;
         private readonly Random rand = new Random();
-        private T m_state;
         private Task m_shimTask;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper;
@@ -47,7 +46,6 @@ namespace NetMQ.Actors
             m_shim = new Shim<T>(shimHandler, context.CreatePairSocket());
             m_self.Options.SendHighWatermark = 1000;
             m_self.Options.SendHighWatermark = 1000;
-            m_state = state;
 
             m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
                 () => m_self.ReceiveReady += OnReceive,
