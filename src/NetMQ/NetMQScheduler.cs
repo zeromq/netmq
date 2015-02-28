@@ -105,7 +105,6 @@ namespace NetMQ
 
         public void Dispose()
         {
-            m_schedulerThread.Dispose();
             if (!m_ownPoller && !m_poller.IsStarted)
             {
                 DisposeSynced();
@@ -123,6 +122,7 @@ namespace NetMQ
                 m_poller.CancelAndJoin();
                 m_poller.Dispose();
             }
+            m_schedulerThread.Dispose();
         }
 
         private void DisposeSynced()

@@ -129,7 +129,7 @@ namespace NetMQ
                 }
 
                 m_disposed = true;
-                m_isStoppedEvent.Dispose();
+                m_isStoppedEvent.Close();
             }
         }
 

@@ -259,7 +259,7 @@ namespace NetMQ.Monitoring
                 Stop();
             }
 
-            m_isStoppedEvent.Dispose();
+            m_isStoppedEvent.Close();
 
             if (m_isOwner)
             {
