@@ -1019,7 +1019,7 @@ namespace NetMQ.zmq
             base.ProcessTerm(linger);
         }
 
-        /// </summary>
+        /// <summary>
         /// Delay actual destruction of the socket.
         /// </summary>
         protected override void ProcessDestroy()

@@ -248,7 +248,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <summary>
         /// Write the message to the pipe. Make the pipe inactive if writing
         /// fails. In such a case false is returned.
-        /// <summary>
+        /// </summary>
         private bool Write([NotNull] Pipe pipe, ref Msg msg)
         {
             if (!pipe.Write(ref msg))

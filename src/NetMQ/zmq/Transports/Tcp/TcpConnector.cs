@@ -277,7 +277,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
         /// <summary>
         /// Close the connecting socket.
-        /// <summary>
+        /// </summary>
         private void Close()
         {
             Debug.Assert(m_s != null);
