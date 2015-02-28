@@ -27,9 +27,10 @@ namespace NetMQ.Actors
     [Obsolete("Use non generic NetMQActor")]
     public class Actor<T> : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
+        private static readonly Random s_rand = new Random();
+
         private readonly PairSocket m_self;
         private readonly Shim<T> m_shim;
-        private readonly Random rand = new Random();
         private Task m_shimTask;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper;
@@ -37,7 +38,7 @@ namespace NetMQ.Actors
         private string GetEndPointName()
         {
             return string.Format("inproc://zactor-{0}-{1}",
-                rand.Next(0, 10000), rand.Next(0, 10000));
+                s_rand.Next(0, 10000), s_rand.Next(0, 10000));
         }
 
         public Actor([NotNull] NetMQContext context, [NotNull] IShimHandler<T> shimHandler, T state)
