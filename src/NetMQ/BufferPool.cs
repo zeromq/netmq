@@ -4,14 +4,30 @@ using JetBrains.Annotations;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// The IBufferPool interface specifies two methods: Take, and Return.
+    /// These provide for taking byte-array data from a common pool, and returning it.
+    /// </summary>
     public interface IBufferPool
     {
+        /// <summary>
+        /// Take byte-array storage from the buffer-pool.
+        /// </summary>
+        /// <param name="size">the number of bytes to take</param>
+        /// <returns>a byte-array that comes from the buffer-pool</returns>
         [NotNull]
         byte[] Take(int size);
 
+        /// <summary>
+        /// Return the given byte-array buffer to the common buffer-pool.
+        /// </summary>
+        /// <param name="buffer">the byte-array to return to the buffer-pool</param>
         void Return([NotNull] byte[] buffer);
     }
 
+    /// <summary>
+    /// BufferManagerBufferPool implements IBufferPool to provide a simple buffer-pool.
+    /// </summary>
     public class BufferManagerBufferPool : IBufferPool
     {
         private readonly BufferManager m_bufferManager;
@@ -44,6 +60,9 @@ namespace NetMQ
         }
     }
 
+    /// <summary>
+    /// BufferPool contains a IBufferPool and provides a simple common pool of byte-array buffers.
+    /// </summary>
     public static class BufferPool
     {
         private static IBufferPool s_bufferPool;

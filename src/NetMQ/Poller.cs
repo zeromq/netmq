@@ -57,6 +57,7 @@ namespace NetMQ
 
         private readonly Selector m_selector = new Selector();
 
+        #region constructors
         /// <summary>
         /// Create a new Poller object, with a default PollTimeout of 1 second.
         /// </summary>
@@ -102,6 +103,7 @@ namespace NetMQ
                 AddTimer(timer);
             }
         }
+        #endregion constructors
 
         #region Dtors
 
@@ -134,10 +136,7 @@ namespace NetMQ
 
         #endregion
 
-        /// <summary>
-        /// Get or set the poll timeout in milliseconds.
-        /// </summary>
-        public int PollTimeout { get; set; }
+        #region public properties
 
         /// <summary>
         /// Get whether the polling has started.
@@ -149,7 +148,16 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Add the given socket and action this Poller's dictionary of socket/actions.
+        /// Get or set the poll timeout in milliseconds.
+        /// </summary>
+        public int PollTimeout { get; set; }
+
+        #endregion public properties
+
+        #region public methods
+
+        /// <summary>
+        /// Add the given socket and Action to this Poller's collection of socket/actions.
         /// </summary>
         /// <param name="socket">the Socket to add</param>
         /// <param name="callback">the Action to add</param>
@@ -181,7 +189,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Delete the given socket from this Poller's dictionary of socket/actions.
+        /// Delete the given socket from this Poller's collection of socket/actions.
         /// </summary>
         /// <param name="socket">the Socket to remove</param>
         public void RemovePollInSocket([NotNull] Socket socket)
@@ -252,18 +260,6 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Handle the EventsChanged event of any of the sockets contained within this Poller,
-        /// by marking this poller as "dirty" in order to reset the poll events.
-        /// </summary>
-        /// <param name="sender">the object that was the source of the event</param>
-        /// <param name="e">the NetMQSocketEventArgs associated with the event</param>
-        private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
-        {
-            // when the sockets SendReady or ReceiveReady changed we marked the poller as dirty in order to reset the poll events
-            m_isDirty = true;
-        }
-
-        /// <summary>
         /// Add the given timer to this Poller's list.
         /// </summary>
         /// <param name="timer">the NetMQTimer to add to the list</param>
@@ -300,6 +296,92 @@ namespace NetMQ
 
             timer.When = -1;
             m_zombies.Add(timer);
+        }
+
+        /// <summary>
+        /// Cancel the poller job when PollTillCancelled is called
+        /// </summary>
+        public void Cancel()
+        {
+            Cancel(false);
+        }
+
+        /// <summary>
+        /// Cancel the poller job when PollTillCancelled is called and wait for for the PollTillCancelled to complete
+        /// </summary>
+        public void CancelAndJoin()
+        {
+            Cancel(true);
+        }
+
+        /// <summary>
+        /// Poll one time.
+        /// </summary>
+        public void PollOnce()
+        {
+            int timesToPoll = 1;
+            PollWhile(() => timesToPoll-- > 0);
+        }
+
+        /// <summary>
+        /// Poll till Cancel or CancelAndJoin is called. This is a blocking method.
+        /// </summary>
+        public void PollTillCancelled()
+        {
+            PollWhile(() => m_cancel == 0);
+        }
+
+        /// <summary>
+        /// The non blocking version of PollTillCancelled, starting the PollTillCancelled on new thread. 
+        /// Will poll till Cancel or CancelAndJoin is called. This method is not blocking.
+        /// </summary>
+        public void PollTillCancelledNonBlocking()
+        {
+            var thread = new Thread(PollTillCancelled);
+            thread.Start();
+        }
+
+        [Obsolete("Use PollTillCancelled instead")]
+        public void Start()
+        {
+            PollTillCancelled();
+        }
+
+        /// <summary>
+        /// Stop the poller job. It may take a while until the poller is fully stopped.
+        /// If it doesn't stop within 20 seconds, it times-out anyway and returns.
+        /// </summary>
+        /// <param name="waitForCloseToComplete">if true, this method will block until the poller is fully stopped</param>
+        [Obsolete("Use Cancel or CancelAndJoin")]
+        public void Stop(bool waitForCloseToComplete)
+        {
+            Cancel(waitForCloseToComplete);
+        }
+
+        /// <summary>
+        /// Stop the poller job. This returns after waiting for that thread to stop.
+        /// This is equivalent to calling CancelAndJoin.
+        /// </summary>
+        [Obsolete("Use Cancel or CancelAndJoin")]
+        public void Stop()
+        {
+            Cancel(true);
+        }
+
+        #endregion public methods
+
+        #region internal implementation
+
+        /// <summary>
+        /// Handle the EventsChanged event of any of the sockets contained within this Poller,
+        /// by marking this poller as "dirty" in order to reset the poll events.
+        /// </summary>
+        /// <param name="sender">the object that was the source of the event</param>
+        /// <param name="e">the NetMQSocketEventArgs associated with the event</param>
+        private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
+        {
+            // when the sockets SendReady or ReceiveReady changed we marked the poller as dirty in order to reset the poll events
+            m_isDirty = true;
         }
 
         private void RebuildPollset()
@@ -355,39 +437,6 @@ namespace NetMQ
             }
 
             return timeout;
-        }
-
-        [Obsolete("Use PollTillCancelled instead")]
-        public void Start()
-        {
-            PollTillCancelled();
-        }
-
-        /// <summary>
-        /// Poll till Cancel or CancelAndJoin is called. This is a blocking method.
-        /// </summary>
-        public void PollTillCancelled()
-        {
-            PollWhile(() => m_cancel == 0);
-        }
-
-        /// <summary>
-        /// The non blocking version of PollTillCancelled, starting the PollTillCancelled on new thread. 
-        /// Will poll till Cancel or CancelAndJoin is called. This method is not blocking.
-        /// </summary>
-        public void PollTillCancelledNonBlocking()
-        {
-            var thread = new Thread(PollTillCancelled);
-            thread.Start();
-        }
-
-        /// <summary>
-        /// Poll one time.
-        /// </summary>
-        public void PollOnce()
-        {
-            int timesToPoll = 1;
-            PollWhile(() => timesToPoll-- > 0);
         }
 
         /// <summary>
@@ -534,43 +583,6 @@ namespace NetMQ
             }
         }
 
-        /// <summary>
-        /// Stop the poller job. It may take a while until the poller is fully stopped.
-        /// If it doesn't stop within 20 seconds, it times-out anyway and returns.
-        /// </summary>
-        /// <param name="waitForCloseToComplete">if true, this method will block until the poller is fully stopped</param>
-        [Obsolete("Use Cancel or CancelAndJoin")]
-        public void Stop(bool waitForCloseToComplete)
-        {
-            Cancel(waitForCloseToComplete);
-        }
-
-        /// <summary>
-        /// Stop the poller job. This returns after waiting for that thread to stop.
-        /// This is equivalent to calling CancelAndJoin.
-        /// </summary>
-        [Obsolete("Use Cancel or CancelAndJoin")]
-        public void Stop()
-        {
-            Cancel(true);
-        }
-
-        /// <summary>
-        /// Cancel the poller job when PollTillCancelled is called
-        /// </summary>
-        public void Cancel()
-        {
-            Cancel(false);
-        }
-
-        /// <summary>
-        /// Cancel poller job when PollTillCancelled is called and wait for for the PollTillCancelled to complete
-        /// </summary>
-        public void CancelAndJoin()
-        {
-            Cancel(true);
-        }
-
         private void Cancel(bool waitForCloseToComplete)
         {
             if (m_disposed)
@@ -594,5 +606,7 @@ namespace NetMQ
                 throw new InvalidOperationException("Poller is unstarted");
             }
         }
+
+        #endregion internal implementation
     }
 }

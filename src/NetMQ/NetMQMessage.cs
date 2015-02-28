@@ -7,6 +7,22 @@ using JetBrains.Annotations;
 
 namespace NetMQ
 {
+    #region Doc-stuff
+    /// <summary>
+    /// This namespace encompasses the NetMQ message-queuing library
+    /// and attendant utility software.
+    /// </summary>
+    public static class NamespaceDoc
+    {
+        // This class exists only to provide a hook for adding summary documentation
+        // for the NetMQ namespace.
+    }
+    #endregion
+
+    /// <summary>
+    /// A NetMQMessage is basically a collection of NetMQFrames, and is the basic message-unit that is sent and received
+    /// across this messae-queuing subsystem.
+    /// </summary>
     public class NetMQMessage : IEnumerable<NetMQFrame>
     {
         /// <summary>
@@ -14,6 +30,7 @@ namespace NetMQ
         /// </summary>
         private readonly List<NetMQFrame> m_frames;
 
+        #region constructors
         /// <summary>
         /// The default-constructor for NetMQMessage: create a new instance of NetMQMessage
         /// with an empty frame-stack.
@@ -50,6 +67,9 @@ namespace NetMQ
 
             m_frames = buffers.Select(buf => new NetMQFrame(buf)).ToList();
         }
+        #endregion constructors
+
+        #region public properties
 
         /// <summary>
         /// Gets the first frame in the current message.
@@ -99,6 +119,11 @@ namespace NetMQ
             get { return m_frames[index]; }
         }
 
+        #endregion public properties
+
+        #region public methods
+
+        #region append
         /// <summary>
         /// Add the given NetMQFrame to this NetMQMessage, at the highest-indexed position of the frame-stack.
         /// </summary>
@@ -152,7 +177,9 @@ namespace NetMQ
         {
             m_frames.Add(NetMQFrame.Empty);
         }
+        #endregion append
 
+        #region push
         /// <summary>
         /// Insert the given NetMQFrame into the lowest-indexed position of this NetMQMessage,
         /// pushing all of the other frames upward in index-position.
@@ -209,6 +236,15 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Push an empty frame (a NetMQFrame.Empty) onto the frame-stack.
+        /// </summary>
+        public void PushEmptyFrame()
+        {
+            m_frames.Insert(0, NetMQFrame.Empty);
+        }
+        #endregion push
+
+        /// <summary>
         /// Remove the first frame
         /// </summary>
         /// <returns>the first frame, which was popped - which is the frame from the lowest-indexed position</returns>
@@ -228,14 +264,6 @@ namespace NetMQ
         public void RemoveFrame([NotNull] NetMQFrame frame)
         {
             m_frames.Remove(frame);
-        }
-
-        /// <summary>
-        /// Push an empty frame (a NetMQFrame.Empty) onto the frame-stack.
-        /// </summary>
-        public void PushEmptyFrame()
-        {
-            m_frames.Insert(0, NetMQFrame.Empty);
         }
 
         /// <summary>
@@ -275,5 +303,6 @@ namespace NetMQ
             }
             return sb.Append("]").ToString();
         }
+        #endregion public methods
     }
 }

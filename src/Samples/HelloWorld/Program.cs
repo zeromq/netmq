@@ -23,6 +23,10 @@ namespace HelloWorld
 
                 Console.WriteLine("From Server: {0}", 
                     client.ReceiveString());
+
+                        Console.WriteLine();
+                        Console.Write("Press any key to exit...");
+                        Console.ReadKey();
             }
         }
     }

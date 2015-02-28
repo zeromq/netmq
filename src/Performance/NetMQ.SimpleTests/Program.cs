@@ -22,7 +22,9 @@ namespace NetMQ.SimpleTests
             }
 
             Console.WriteLine("Finished running tests.");
-            Console.ReadLine();
+            Console.WriteLine();
+            Console.Write("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }

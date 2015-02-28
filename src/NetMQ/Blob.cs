@@ -24,12 +24,16 @@ using JetBrains.Annotations;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// Class Blob serves to hold a byte-array buffer and methods for creating and accessing it.
+    /// Use NetMQFrame instead; Blob is still present simply for backward compatibility.
+    /// </summary>
     [Obsolete("Use NetMQFrame instead of Blob")]
     public class Blob
     {
         [NotNull]
         private readonly byte[] m_buffer;
-        private int m_hash = 0;
+        private int m_hash;
 
         public Blob([NotNull] byte[] data, int size)
         {
