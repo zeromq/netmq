@@ -111,49 +111,35 @@ namespace NetMQ.zmq
         [NotNull]
         public static SessionBase Create([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
         {
-            SessionBase s;
             switch (options.SocketType)
             {
                 case ZmqSocketType.Req:
-                    s = new Req.ReqSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Req.ReqSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Dealer:
-                    s = new Dealer.DealerSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Dealer.DealerSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Rep:
-                    s = new Rep.RepSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Rep.RepSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Router:
-                    s = new Router.RouterSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Router.RouterSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pub:
-                    s = new Pub.PubSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Pub.PubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Xpub:
-                    s = new XPub.XPubSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new XPub.XPubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Sub:
-                    s = new Sub.SubSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Sub.SubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Xsub:
-                    s = new XSub.XSubSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new XSub.XSubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Push:
-                    s = new Push.PushSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Push.PushSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pull:
-                    s = new Pull.PullSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Pull.PullSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pair:
-                    s = new Pair.PairSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Pair.PairSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Stream:
-                    s = new Stream.StreamSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Stream.StreamSession(ioThread, connect, socket, options, addr);
                 default:
                     throw new InvalidException("SessionBase.Create called with invalid SocketType of " + options.SocketType);
             }
-            return s;
         }
 
         public SessionBase([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
