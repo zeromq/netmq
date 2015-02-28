@@ -869,16 +869,14 @@ namespace NetMQ.Tests
                     Assert.Throws<InvalidOperationException>(() => { poller.PollTillCancelled(); });
                 }
 
-                Assert.That(!poller.IsStarted);
+                Assert.That(poller.IsStarted, Is.False);
                 Assert.Throws<ObjectDisposedException>(() => { poller.PollTillCancelled(); });
                 Assert.Throws<ObjectDisposedException>(() => { poller.CancelAndJoin(); });
                 Assert.Throws<ObjectDisposedException>(() => { poller.AddTimer(timer); });
                 Assert.Throws<ObjectDisposedException>(() => { poller.RemoveTimer(timer); });
 
                 Assert.AreEqual(3, count);
-
-                Console.WriteLine("Length1:{0}, Length2:{1}", length1, length2);
-
+ 
                 Assert.GreaterOrEqual(length1, 8);
                 Assert.LessOrEqual(length1, 12);
 
