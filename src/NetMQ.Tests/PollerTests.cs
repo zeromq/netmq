@@ -598,9 +598,10 @@ namespace NetMQ.Tests
         public void EnableTimer()
         {
             var timer = new NetMQTimer(TimeSpan.FromMilliseconds(20));
-            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(20));
+            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(20)) { Enable = false};
 
             int count = 0;
+            int count2 = 0;
 
             timer.Elapsed += (a, s) =>
             {
@@ -617,8 +618,6 @@ namespace NetMQ.Tests
                 }
             };
 
-            int count2 = 0;
-
             timer2.Elapsed += (s, a) =>
             {
                 timer.Enable = true;
@@ -626,8 +625,6 @@ namespace NetMQ.Tests
 
                 count2++;
             };
-
-            timer2.Enable = false;
 
             using (var poller = new Poller(timer, timer2))
             {
