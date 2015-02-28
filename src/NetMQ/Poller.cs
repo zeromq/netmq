@@ -390,12 +390,9 @@ namespace NetMQ
 
         private void RebuildPollset()
         {
-            m_pollset = null;
-            m_pollact = null;
-
             m_pollSize = m_sockets.Count + m_pollinSockets.Count;
-            m_pollset = new SelectItem[m_pollSize];
 
+            m_pollset = new SelectItem[m_pollSize];
             m_pollact = new NetMQSocket[m_sockets.Count];
 
             uint itemNbr = 0;
