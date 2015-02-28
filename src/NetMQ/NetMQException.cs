@@ -190,7 +190,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// AddressAlreadyInUseException is an Exception that is used within SocketBase.Bind to signal an address-conflict.
+    /// AddressAlreadyInUseException is a NetMQException that is used within SocketBase.Bind to signal an address-conflict.
     /// </summary>
     public class AddressAlreadyInUseException : NetMQException
     {
@@ -215,7 +215,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// EndpointNotFoundException is an Exception that is used within Ctx.FindEndpoint to signal a failure to find a specified address.
+    /// EndpointNotFoundException is a NetMQException that is used within Ctx.FindEndpoint to signal a failure to find a specified address.
     /// </summary>
     [Serializable]
     public class EndpointNotFoundException : NetMQException
@@ -249,7 +249,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// AgainException is an Exception that is used within SocketBase.Send and SocketBase.Recv to signal failures
+    /// AgainException is a NetMQException that is used within SocketBase.Send and SocketBase.Recv to signal failures
     /// (as when the Send/Recv fails and and DontWait is set or no timeout is specified)
     /// and is raised within Sub.XSetSocketOption if sending the queued-message fails.
     /// </summary>
@@ -276,7 +276,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// TerminatingException is an Exception that is used within SocketBase and Ctx to signal
+    /// TerminatingException is a NetMQException that is used within SocketBase and Ctx to signal
     /// that you're trying to do further work after terminating the message-queuing system.
     /// </summary>
     [Serializable]
@@ -302,7 +302,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// InvalidException is an Exception that is used within within the message-queuing system to signal invalid value errors.
+    /// InvalidException is a NetMQException that is used within within the message-queuing system to signal invalid value errors.
     /// </summary>
     [Serializable]
     public class InvalidException : NetMQException
@@ -336,7 +336,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// FaultException is an Exception that is used within within the message-queuing system to signal general fault conditions.
+    /// FaultException is a NetMQException that is used within within the message-queuing system to signal general fault conditions.
     /// </summary>
     [Serializable]
     public class FaultException : NetMQException
@@ -370,7 +370,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// ProtocolNotSupportedException is an Exception that is used within within the message-queuing system to signal
+    /// ProtocolNotSupportedException is a NetMQException that is used within within the message-queuing system to signal
     /// mistakes in properly utilizing the communications protocols.
     /// </summary>
     [Serializable]

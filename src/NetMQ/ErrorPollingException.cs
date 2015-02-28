@@ -3,6 +3,10 @@ using JetBrains.Annotations;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// ErrorPollingException is an Exception that had been used within within the message-queuing system to signal polling-related errors.
+    /// Use one of the NetMQException-derived exception classes instead.
+    /// </summary>
     [Obsolete]
     public class ErrorPollingException : Exception
     {

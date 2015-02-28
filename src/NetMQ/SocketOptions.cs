@@ -8,6 +8,10 @@ namespace NetMQ
     {
         private readonly NetMQSocket m_socket;
 
+        /// <summary>
+        /// Create a new SocketOptions containing the given NetMQSocket.
+        /// </summary>
+        /// <param name="socket">the NetMQSocket for this SocketOptions to hold a reference to</param>
         public SocketOptions([NotNull] NetMQSocket socket)
         {
             m_socket = socket;
@@ -28,8 +32,10 @@ namespace NetMQ
 
         public byte[] Identity
         {
-            [CanBeNull] get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOptions.Identity); }
-            [NotNull] set { m_socket.SetSocketOption(ZmqSocketOptions.Identity, value); }
+            [CanBeNull]
+            get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOptions.Identity); }
+            [NotNull]
+            set { m_socket.SetSocketOption(ZmqSocketOptions.Identity, value); }
         }
 
         public int MulticastRate
@@ -70,7 +76,6 @@ namespace NetMQ
         public bool ReceiveMore
         {
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.ReceiveMore); }
-//            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveMore, value); }
         }
 
         public TimeSpan Linger
@@ -154,7 +159,6 @@ namespace NetMQ
 
         public bool RouterMandatory
         {
-//            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.RouterMandatory); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.RouterMandatory, value); }
         }
 
@@ -167,7 +171,6 @@ namespace NetMQ
         [Obsolete("This option is not supported and has no effect")]
         public int TcpKeepaliveCnt
         {
-//            get { return m_socket.GetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt); }
             set { /* m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt, value); */ }
         }
 
@@ -199,13 +202,11 @@ namespace NetMQ
 
         public bool XPubVerbose
         {
-//            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XpubVerbose); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.XpubVerbose, value); }
         }
 
         public bool RouterRawSocket
         {
-//            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.RouterRawSocket); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.RouterRawSocket, value); }
         }
 
@@ -217,7 +218,6 @@ namespace NetMQ
 
         public bool ManualPublisher
         {
-            // get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.XPublisherManual); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.XPublisherManual, value); }
         }
     }

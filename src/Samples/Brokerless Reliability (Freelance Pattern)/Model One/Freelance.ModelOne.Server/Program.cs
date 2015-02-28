@@ -44,8 +44,8 @@ namespace Freelance.ModelOne.Server
                     Console.WriteLine("Wrong IP address");
                 }
 
-                Console.WriteLine("Press ENTER to exit...");
-                Console.ReadLine();
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey();
             }
         }
 

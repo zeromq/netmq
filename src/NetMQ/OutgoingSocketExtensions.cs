@@ -5,6 +5,9 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// This static class serves to provide extension methods for IOutgoingSocket.
+    /// </summary>
     public static class OutgoingSocketExtensions
     {
         #region Sending Byte Array

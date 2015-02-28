@@ -6,7 +6,6 @@ namespace NetMQ.zmq.Utils
     /// <summary>
     /// This class exists only to provide a wrapper for the Socket.Select method,
     /// such that the call may be handled slightly differently on .NET 3.5 as opposed to later versions.
-    /// This, is the version for .NET versions above 3.5.
     /// </summary>
     internal static class SocketUtility
     {
@@ -47,7 +46,7 @@ namespace NetMQ.zmq.Utils
         public static void Select(IList checkRead, IList checkWrite, IList checkError, int microSeconds)
         {
 #if NET35
-            // Dot3.5 has a bug that -1 is not blocking the select call, therefore we are using the maximum int value
+            // .NET 3.5 has a bug, such that -1 is not blocking the select call - therefore we use here instead the maximum integer value.
             if (microSeconds == -1)
                 microSeconds = int.MaxValue;
 #endif

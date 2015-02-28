@@ -118,7 +118,7 @@ namespace NetMQ.Devices
         }
 
         /// <summary>
-        /// Add the given prefix to the list that the socket is to subscribe to when Configure is called.
+        /// Add the given byte-array prefix to the list that the socket is to subscribe to when Configure is called.
         /// Note: This method should ONLY be called on a <see cref="SubscriberSocket"/>.
         /// </summary>
         /// <param name="prefix">a byte-array containing the prefix to which the socket will subscribe</param>

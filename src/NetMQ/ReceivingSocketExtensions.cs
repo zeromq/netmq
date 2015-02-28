@@ -7,6 +7,9 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// This static class serves to provide extension methods for IReceivingSocket.
+    /// </summary>
     public static class ReceivingSocketExtensions
     {
         #region Byte Array
@@ -14,7 +17,7 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">teh socket to use</param>
+        /// <param name="socket">the socket to use</param>
         /// <param name="options">the send & receive options to use</param>
         /// <param name="hasMore"><c>true</c> when more parts of a multi-part message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
@@ -431,7 +434,12 @@ namespace NetMQ
 
         #region Signals
 
-        // todo: please comment this method
+        /// <summary>
+        /// Extension-method for IReceivingSocket: repeatedly call Rece on this socket, until we receive
+        /// a message with one 8-byte frame, which matches a specific pattern.
+        /// </summary>
+        /// <param name="socket">this socket to receive the messages from</param>
+        /// <returns>true if that one frame has no bits set other than in the lowest-order byte</returns>
         public static bool WaitForSignal(this IReceivingSocket socket)
         {
             while (true)

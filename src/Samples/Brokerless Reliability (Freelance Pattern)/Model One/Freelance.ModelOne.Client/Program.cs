@@ -41,8 +41,8 @@ namespace Freelance.ModelOne.Client
                 }
             }
 
-            Console.WriteLine("Press ENTER to exit...");
-            Console.ReadLine();
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
 
         private static bool TryRequest(NetMQContext context, string endpoint, string requestString)
