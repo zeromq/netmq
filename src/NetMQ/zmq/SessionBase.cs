@@ -106,7 +106,7 @@ namespace NetMQ.zmq
         /// </summary>
         private readonly Address m_addr;
 
-        private readonly IOObject m_ioObject;
+        [NotNull] private readonly IOObject m_ioObject;
 
         [NotNull]
         public static SessionBase Create([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)

@@ -19,12 +19,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//  If 'delay' is true connecter first waits for a while, then starts
+//  connection process.
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
-//  If 'delay' is true connecter first waits for a while, then starts
-//  connection process.
 using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.Tcp
@@ -46,7 +46,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <summary>
         /// Underlying socket.
         /// </summary>
-        private AsyncSocket m_s;
+        [CanBeNull] private AsyncSocket m_s;
 
         /// <summary>
         /// If true file descriptor is registered with the poller and 'handle'
@@ -178,7 +178,7 @@ namespace NetMQ.zmq.Transports.Tcp
         }
 
         public void OutCompleted(SocketError socketError, int bytesTransferred)
-        {            
+        {
             if (socketError != SocketError.Success)
             {
                 m_ioObject.RemoveSocket(m_s);
@@ -211,7 +211,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
-                        ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
+                        var bytes = new ByteArraySegment(new byte[12]);
 
                         Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
 
@@ -222,9 +222,9 @@ namespace NetMQ.zmq.Transports.Tcp
                         m_s.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
                     }
                 }
-                
+
                 //  Create the engine object for this connection.
-                StreamEngine engine = new StreamEngine(m_s, m_options, m_endpoint);
+                var engine = new StreamEngine(m_s, m_options, m_endpoint);
 
                 m_socket.EventConnected(m_endpoint, m_s);
 
@@ -268,11 +268,10 @@ namespace NetMQ.zmq.Transports.Tcp
             //  Only change the current reconnect interval  if the maximum reconnect
             //  interval was set and if it's larger than the reconnect interval.
             if (m_options.ReconnectIvlMax > 0 &&
-                    m_options.ReconnectIvlMax > m_options.ReconnectIvl)
+                m_options.ReconnectIvlMax > m_options.ReconnectIvl)
             {
-
                 //  Calculate the next interval
-                m_currentReconnectIvl = m_currentReconnectIvl * 2;
+                m_currentReconnectIvl = m_currentReconnectIvl*2;
                 if (m_currentReconnectIvl >= m_options.ReconnectIvlMax)
                 {
                     m_currentReconnectIvl = m_options.ReconnectIvlMax;
@@ -297,7 +296,6 @@ namespace NetMQ.zmq.Transports.Tcp
             {
                 m_socket.EventCloseFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
             }
-
         }
     }
 }
