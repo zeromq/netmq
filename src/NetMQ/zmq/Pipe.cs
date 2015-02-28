@@ -22,6 +22,7 @@
 
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq
 {
@@ -37,11 +38,10 @@ namespace NetMQ.zmq
     {
         public interface IPipeEvents
         {
-
-            void ReadActivated(Pipe pipe);
-            void WriteActivated(Pipe pipe);
-            void Hiccuped(Pipe pipe);
-            void Terminated(Pipe pipe);
+            void ReadActivated([NotNull] Pipe pipe);
+            void WriteActivated([NotNull] Pipe pipe);
+            void Hiccuped([NotNull] Pipe pipe);
+            void Terminated([NotNull] Pipe pipe);
         }
 
         /// <summary>

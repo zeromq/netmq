@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns;
 using NetMQ.zmq.Transports;
 using NetMQ.zmq.Transports.Ipc;
@@ -33,8 +34,8 @@ using NetMQ.zmq.Transports.Tcp;
 namespace NetMQ.zmq
 {
     internal class SessionBase : Own,
-                                 Pipe.IPipeEvents, IProactorEvents,
-                                 IMsgSink, IMsgSource
+        Pipe.IPipeEvents, IProactorEvents,
+        IMsgSink, IMsgSource
     {
         /// <summary>
         /// If true, this session (re)connects to the peer. Otherwise, it's
@@ -107,8 +108,8 @@ namespace NetMQ.zmq
 
         private readonly IOObject m_ioObject;
 
-        public static SessionBase Create(IOThread ioThread, bool connect,
-                                         SocketBase socket, Options options, Address addr)
+        [NotNull]
+        public static SessionBase Create([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
         {
             SessionBase s;
             switch (options.SocketType)
@@ -155,8 +156,7 @@ namespace NetMQ.zmq
             return s;
         }
 
-        public SessionBase(IOThread ioThread, bool connect,
-                           SocketBase socket, Options options, Address addr)
+        public SessionBase([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -199,7 +199,7 @@ namespace NetMQ.zmq
         }
 
         //  To be used once only, when creating the session.
-        public void AttachPipe(Pipe pipe)
+        public void AttachPipe([NotNull] Pipe pipe)
         {
             Debug.Assert(!IsTerminating);
             Debug.Assert(m_pipe == null);
@@ -282,7 +282,7 @@ namespace NetMQ.zmq
                 //  Remove any half-read message from the in pipe.
                 while (m_incompleteIn)
                 {
-                    Msg msg = new Msg();
+                    var msg = new Msg();
                     msg.InitEmpty();
 
                     if (!PullMsg(ref msg))
@@ -359,6 +359,7 @@ namespace NetMQ.zmq
             throw new NotSupportedException("Must Override");
         }
 
+        [NotNull]
         public SocketBase Socket
         {
             get { return m_socket; }
@@ -422,7 +423,7 @@ namespace NetMQ.zmq
 
             //  If the termination of the pipe happens before the term command is
             //  delivered there's nothing much to do. We can proceed with the
-            //  stadard termination immediately.
+            //  standard termination immediately.
             if (m_pipe == null)
             {
                 ProceedWithTerm();
@@ -485,7 +486,7 @@ namespace NetMQ.zmq
             //  For delayed connect situations, terminate the pipe
             //  and reestablish later on
             if (m_pipe != null && m_options.DelayAttachOnConnect
-                    && m_addr.Protocol != Address.PgmProtocol && m_addr.Protocol != Address.EpgmProtocol)
+                && m_addr.Protocol != Address.PgmProtocol && m_addr.Protocol != Address.EpgmProtocol)
             {
                 m_pipe.Hiccup();
                 m_pipe.Terminate(false);
@@ -518,7 +519,7 @@ namespace NetMQ.zmq
 
             if (m_addr.Protocol.Equals(Address.TcpProtocol))
             {
-                TcpConnecter connecter = new TcpConnecter(
+                var connecter = new TcpConnecter(
                     ioThread, this, m_options, m_addr, wait);
                 //alloc_Debug.Assert(connecter);
                 LaunchChild(connecter);
@@ -527,7 +528,7 @@ namespace NetMQ.zmq
 
             if (m_addr.Protocol.Equals(Address.IpcProtocol))
             {
-                IpcConnecter connecter = new IpcConnecter(
+                var connecter = new IpcConnecter(
                     ioThread, this, m_options, m_addr, wait);
                 //alloc_Debug.Assert(connecter);
                 LaunchChild(connecter);
@@ -536,7 +537,7 @@ namespace NetMQ.zmq
 
             if (m_addr.Protocol.Equals(Address.PgmProtocol) || m_addr.Protocol.Equals(Address.EpgmProtocol))
             {
-                PgmSender pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
+                var pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
                 pgmSender.Init(m_addr.Resolved as PgmAddress);
 
                 SendAttach(this, pgmSender);

@@ -21,12 +21,15 @@
 */
 
 //  Abstract interface to be implemented by various engines.
+
+using JetBrains.Annotations;
+
 namespace NetMQ.zmq.Transports
 {
     internal interface IEngine
     {
         //  Plug the engine to the session.
-        void Plug(IOThread ioThread, SessionBase session);
+        void Plug([NotNull] IOThread ioThread, [NotNull] SessionBase session);
 
         //  Terminate and deallocate the engine. Note that 'detached'
         //  events are not fired on termination.

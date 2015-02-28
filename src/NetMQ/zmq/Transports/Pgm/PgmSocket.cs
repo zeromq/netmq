@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
@@ -17,58 +18,58 @@ namespace NetMQ.zmq.Transports.PGM
         Listener
     }
 
-    internal struct RM_SEND_WINDOW
-    {
-        public uint RateKbitsPerSec; // Send rate
-        public uint WindowSizeInMSecs;
-        public uint WindowSizeInBytes;
-    }
+//    internal struct RM_SEND_WINDOW
+//    {
+//        public uint RateKbitsPerSec; // Send rate
+//        public uint WindowSizeInMSecs;
+//        public uint WindowSizeInBytes;
+//    }
 
     /// <summary>
     /// A PgmSocket utilizes the Pragmatic General Multicast (PGM) multicast protocol, which is also referred to as "reliable multicast".
     /// This is only supported on Windows when Microsoft Message Queuing (MSMQ) is installed.
     /// See RFC 3208.
     /// </summary>
-    internal class PgmSocket
+    internal sealed class PgmSocket
     {
-        public static readonly int PROTOCOL_TYPE_NUMBER = 113;
-        public static readonly ProtocolType PGM_PROTOCOL_TYPE = (ProtocolType)113;
-        public static readonly SocketOptionLevel PGM_LEVEL = (SocketOptionLevel)PROTOCOL_TYPE_NUMBER;
+        public const int ProtocolTypeNumber = 113;
+        public const ProtocolType PgmProtocolType = (ProtocolType)113;
+        public const SocketOptionLevel PgmLevel = (SocketOptionLevel)ProtocolTypeNumber;
 
-        public static readonly int RM_OPTIONSBASE = 1000;
+        public const int RmOptionsbase = 1000;
 
         /// <summary>
-        // Set/Query rate (Kb/Sec) + window size (Kb and/or MSec) -- described by RM_SEND_WINDOW below
+        /// Set/Query rate (Kb/Sec) + window size (Kb and/or MSec) -- described by RM_SEND_WINDOW below
         /// </summary>
-        public static readonly SocketOptionName RM_RATE_WINDOW_SIZE = (SocketOptionName)(RM_OPTIONSBASE + 1);
+        public const SocketOptionName RM_RATE_WINDOW_SIZE = (SocketOptionName)(RmOptionsbase + 1);
 
         /// <summary>
         /// set IP multicast outgoing interface
         /// </summary>
-        public static readonly SocketOptionName RM_SET_SEND_IF = (SocketOptionName)(RM_OPTIONSBASE + 7);
+        public const SocketOptionName RM_SET_SEND_IF = (SocketOptionName)(RmOptionsbase + 7);
 
         /// <summary>
         /// add IP multicast incoming interface
         /// </summary>
-        public static readonly SocketOptionName RM_ADD_RECEIVE_IF = (SocketOptionName)(RM_OPTIONSBASE + 8);
+        public const SocketOptionName RM_ADD_RECEIVE_IF = (SocketOptionName)(RmOptionsbase + 8);
 
-        /// <summary>
-        /// delete IP multicast incoming interface
-        /// </summary>
-        public static readonly SocketOptionName RM_DEL_RECEIVE_IF = (SocketOptionName)(RM_OPTIONSBASE + 9);
+//        /// <summary>
+//        /// delete IP multicast incoming interface
+//        /// </summary>
+//        public const SocketOptionName RM_DEL_RECEIVE_IF = (SocketOptionName)(RmOptionsbase + 9);
 
         /// <summary>
         /// Set the Ttl of the MCast packets -- (ULONG)
         /// </summary>
-        public static readonly SocketOptionName RM_SET_MCAST_TTL = (SocketOptionName)(RM_OPTIONSBASE + 12);
+        public const SocketOptionName RM_SET_MCAST_TTL = (SocketOptionName)(RmOptionsbase + 12);
 
-        public static readonly SocketOptionName EnableGigabitOption = (SocketOptionName)1014;
+        public const SocketOptionName EnableGigabitOption = (SocketOptionName)1014;
 
         private readonly Options m_options;
         private readonly PgmSocketType m_pgmSocketType;
         private readonly PgmAddress m_pgmAddress;
 
-        public PgmSocket(Options options, PgmSocketType pgmSocketType, PgmAddress pgmAddress)
+        public PgmSocket([NotNull] Options options, PgmSocketType pgmSocketType, [NotNull] PgmAddress pgmAddress)
         {
             m_options = options;
             m_pgmSocketType = pgmSocketType;
@@ -82,12 +83,12 @@ namespace NetMQ.zmq.Transports.PGM
             try
             {
 #endif
-                Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE);
+                Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PgmProtocolType);
 #if DEBUG
             }
             catch (SocketException x)
             {
-                string xMsg = String.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this.ToString());
+                string xMsg = String.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this);
                 Debug.WriteLine(xMsg);
                 // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
                 PlatformID p = Environment.OSVersion.Platform;
@@ -117,13 +118,13 @@ namespace NetMQ.zmq.Transports.PGM
 
         internal void InitReceiver()
         {
-            Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE);
+            Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PgmProtocolType);
         }
 
         internal void InitOptions()
         {
             // Enable gigabit on the socket
-            Handle.SetSocketOption(PGM_LEVEL, EnableGigabitOption, BitConverter.GetBytes((uint)1));
+            Handle.SetSocketOption(PgmLevel, EnableGigabitOption, BitConverter.GetBytes((uint)1));
 
             // set the receive buffer size for receiver and listener
             if (m_options.ReceiveBuffer > 0 && (m_pgmSocketType == PgmSocketType.Receiver || m_pgmSocketType == PgmSocketType.Listener))
@@ -142,18 +143,18 @@ namespace NetMQ.zmq.Transports.PGM
             {
                 if (m_pgmAddress.InterfaceAddress != null)
                 {
-                    Handle.SetSocketOption(PGM_LEVEL, RM_ADD_RECEIVE_IF, m_pgmAddress.InterfaceAddress.GetAddressBytes());
+                    Handle.SetSocketOption(PgmLevel, RM_ADD_RECEIVE_IF, m_pgmAddress.InterfaceAddress.GetAddressBytes());
                 }
             }
             else if (m_pgmSocketType == PgmSocketType.Publisher)
             {
                 // set multicast hops for the publisher
-                Handle.SetSocketOption(PGM_LEVEL, RM_SET_MCAST_TTL, m_options.MulticastHops);
+                Handle.SetSocketOption(PgmLevel, RM_SET_MCAST_TTL, m_options.MulticastHops);
 
                 // set the publisher send interface
                 if (m_pgmAddress.InterfaceAddress != null)
                 {
-                    Handle.SetSocketOption(PGM_LEVEL, RM_SET_SEND_IF, m_pgmAddress.InterfaceAddress.GetAddressBytes());
+                    Handle.SetSocketOption(PgmLevel, RM_SET_SEND_IF, m_pgmAddress.InterfaceAddress.GetAddressBytes());
                 }
 
                 // instead of using the struct _RM_SEND_WINDOW we are using byte array of size 12 (the size of the original struct and the size of three ints)
@@ -162,21 +163,21 @@ namespace NetMQ.zmq.Transports.PGM
                 //  ULONG WindowSizeInMSecs;
                 //  ULONG WindowSizeInBytes;
                 //} RM_SEND_WINDOW;
-                byte[] sendWindow = new byte[12];
+                var sendWindow = new byte[12];
 
-                // setting the rate of the transmittion in Kilobits per second
-                uint rate = (uint)(m_options.Rate);
+                // setting the rate of the transmission in Kilobits per second
+                var rate = (uint)(m_options.Rate);
                 Array.Copy(BitConverter.GetBytes(rate), 0, sendWindow, 0, 4);
 
                 // setting the recovery interval
-                uint sizeInMS = (uint)(m_options.RecoveryIvl);
+                var sizeInMS = (uint)(m_options.RecoveryIvl);
                 Array.Copy(BitConverter.GetBytes(sizeInMS), 0, sendWindow, 4, 4);
 
-                // we are not setting the size in bytes because it get filled automaticlly, if we want to set it we would just uncomment the following lines
+                // we are not setting the size in bytes because it get filled automatically, if we want to set it we would just uncomment the following lines
                 //uint sizeInBytes = (uint)((rate / 8.0) * sizeInMS);
                 //Array.Copy(BitConverter.GetBytes(sizeInBytes), 0, sendWindow, 8, 4);
 
-                Handle.SetSocketOption(PGM_LEVEL, RM_RATE_WINDOW_SIZE, sendWindow);
+                Handle.SetSocketOption(PgmLevel, RM_RATE_WINDOW_SIZE, sendWindow);
             }
         }
 

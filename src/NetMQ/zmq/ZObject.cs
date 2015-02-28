@@ -140,27 +140,28 @@ namespace NetMQ.zmq
             }
         }
 
-        protected bool RegisterEndpoint(String addr, Ctx.Endpoint endpoint)
+        protected bool RegisterEndpoint([NotNull] String addr, [NotNull] Ctx.Endpoint endpoint)
         {
             return m_ctx.RegisterEndpoint(addr, endpoint);
         }
 
-        protected bool UnregisterEndpoint(string addr, SocketBase socket)
+        protected bool UnregisterEndpoint([NotNull] string addr, [NotNull] SocketBase socket)
         {
             return m_ctx.UnregisterEndpoint(addr, socket);
         }
 
-        protected void UnregisterEndpoints(SocketBase socket)
+        protected void UnregisterEndpoints([NotNull] SocketBase socket)
         {
             m_ctx.UnregisterEndpoints(socket);
         }
 
-        protected Ctx.Endpoint FindEndpoint(String addr)
+        [NotNull]
+        protected Ctx.Endpoint FindEndpoint([NotNull] String addr)
         {
             return m_ctx.FindEndpoint(addr);
         }
 
-        protected void DestroySocket(SocketBase socket)
+        protected void DestroySocket([NotNull] SocketBase socket)
         {
             m_ctx.DestroySocket(socket);
         }
@@ -181,10 +182,8 @@ namespace NetMQ.zmq
         /// </summary>
         protected void SendStop()
         {
-            //  'stop' command goes always from administrative thread to
-            //  the current object. 
-            var cmd = new Command(this, CommandType.Stop);
-            m_ctx.SendCommand(m_threadId, cmd);
+            // 'stop' command goes always from administrative thread to the current object. 
+            m_ctx.SendCommand(m_threadId, new Command(this, CommandType.Stop));
         }
 
         /// <summary>
@@ -205,7 +204,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="destination">the Own to send the command to</param>
         /// <param name="obj">the object to Own</param>
-        protected void SendOwn([NotNull] Own destination, Own obj)
+        protected void SendOwn([NotNull] Own destination, [NotNull] Own obj)
         {
             destination.IncSeqnum();
             SendCommand(new Command(destination, CommandType.Own, obj));
@@ -217,7 +216,7 @@ namespace NetMQ.zmq
         /// <param name="destination">the Own to send the command to</param>
         /// <param name="engine"></param>
         /// <param name="incSeqnum"></param>
-        protected void SendAttach([NotNull] SessionBase destination, IEngine engine, bool incSeqnum = true)
+        protected void SendAttach([NotNull] SessionBase destination, [NotNull] IEngine engine, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();
@@ -264,9 +263,9 @@ namespace NetMQ.zmq
             SendCommand(new Command(destination, CommandType.PipeTermAck));
         }
 
-        protected void SendTermReq([NotNull] Own destination, Own object_)
+        protected void SendTermReq([NotNull] Own destination, [NotNull] Own obj)
         {
-            SendCommand(new Command(destination, CommandType.TermReq, object_));
+            SendCommand(new Command(destination, CommandType.TermReq, obj));
         }
 
         protected void SendTerm([NotNull] Own destination, int linger)
@@ -291,6 +290,7 @@ namespace NetMQ.zmq
 
         protected void SendDone()
         {
+            // Use m_ctx.SendCommand directly as we have a null destination
             m_ctx.SendCommand(Ctx.TermTid, new Command(null, CommandType.Done));
         }
 

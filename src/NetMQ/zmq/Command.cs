@@ -37,7 +37,7 @@ namespace NetMQ.zmq
         {
         }
 
-        public Command([NotNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null)
+        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null)
         {
             Destination = destination;
             CommandType = type;
@@ -45,7 +45,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>The destination to which the command should be applied.</summary>
-        [NotNull]
+        [CanBeNull]
         public ZObject Destination { get; private set; }
 
         /// <summary>The type of this command.</summary>

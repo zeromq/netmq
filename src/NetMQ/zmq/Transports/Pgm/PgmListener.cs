@@ -7,20 +7,14 @@ namespace NetMQ.zmq.Transports.PGM
 {
     internal class PgmListener : Own, IProactorEvents
     {
-        private PgmSocket m_pgmSocket;
-
-        [NotNull]
-        private readonly SocketBase m_socket;
-
+        [NotNull] private readonly SocketBase m_socket;
+        [NotNull] private readonly IOObject m_ioObject;
         private AsyncSocket m_handle;
-
+        private PgmSocket m_pgmSocket;
         private PgmSocket m_acceptedSocket;
-
-        private readonly IOObject m_ioObject;
-
         private PgmAddress m_address;
 
-        public PgmListener(IOThread ioThread, [NotNull] SocketBase socket, Options options)
+        public PgmListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, options)
         {
             m_socket = socket;
@@ -91,6 +85,7 @@ namespace NetMQ.zmq.Transports.PGM
             {
                 m_socket.EventCloseFailed(m_address.ToString(), ex.ErrorCode);
             }
+
             m_handle = null;
         }
 

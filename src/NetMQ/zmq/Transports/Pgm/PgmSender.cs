@@ -3,10 +3,11 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    internal class PgmSender : IOObject, IEngine, IProactorEvents
+    internal sealed class PgmSender : IOObject, IEngine, IProactorEvents
     {
         private readonly Options m_options;
         private readonly Address m_addr;
@@ -32,7 +33,7 @@ namespace NetMQ.zmq.Transports.PGM
         private State m_state;
         private PgmAddress m_pgmAddress;
 
-        public PgmSender(IOThread ioThread, Options options, Address addr)
+        public PgmSender([NotNull] IOThread ioThread, [NotNull] Options options, [NotNull] Address addr)
             : base(ioThread)
         {
             m_options = options;
@@ -46,7 +47,7 @@ namespace NetMQ.zmq.Transports.PGM
             m_state = State.Idle;
         }
 
-        public void Init(PgmAddress pgmAddress)
+        public void Init([NotNull] PgmAddress pgmAddress)
         {
             m_pgmAddress = pgmAddress;
 
@@ -91,7 +92,6 @@ namespace NetMQ.zmq.Transports.PGM
             RemoveSocket(m_socket);
             m_encoder.SetMsgSource(null);
         }
-
 
         public void ActivateOut()
         {

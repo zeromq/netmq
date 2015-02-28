@@ -25,6 +25,7 @@ using System.Net.Sockets;
 using AsyncIO;
 //  If 'delay' is true connecter first waits for a while, then starts
 //  connection process.
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
@@ -83,7 +84,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private readonly SocketBase m_socket;
 
-        public TcpConnecter(IOThread ioThread, SessionBase session, Options options, Address addr, bool delayedStart)
+        public TcpConnecter([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);

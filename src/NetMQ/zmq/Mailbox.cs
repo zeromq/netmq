@@ -155,7 +155,7 @@ namespace NetMQ.zmq
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
 
-            Command cmd = new Command();
+            var cmd = new Command();
 
             bool ok = m_cpipe.Read(ref cmd);
             Debug.Assert(!ok);
@@ -164,6 +164,7 @@ namespace NetMQ.zmq
             m_name = name;
         }
 
+        [NotNull]
         public Socket Handle
         {
             get { return m_signaler.Handle; }
