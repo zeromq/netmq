@@ -117,13 +117,6 @@ namespace NetMQ.Tests
                 bool router1arrived = false;
                 bool router2arrived = false;
 
-                router2.ReceiveReady += (s, a) =>
-                {
-                    router2.Receive();
-                    router2.Receive();
-                    router2arrived = true;
-                };
-
                 router.ReceiveReady += (s, a) =>
                 {
                     router1arrived = true;
@@ -132,6 +125,13 @@ namespace NetMQ.Tests
                     router.Receive();
 
                     poller.AddSocket(router2);
+                };
+
+                router2.ReceiveReady += (s, a) =>
+                {
+                    router2.Receive();
+                    router2.Receive();
+                    router2arrived = true;
                 };
 
                 poller.PollTillCancelledNonBlocking();
@@ -181,19 +181,19 @@ namespace NetMQ.Tests
                     poller.RemoveSocket(router);
                 };
 
-                router3.ReceiveReady += (s, a) =>
-                {
-                    router3arrived = true;
-                    router3.Receive();
-                    router3.Receive();
-                };
-
                 router2.ReceiveReady += (s, a) =>
                 {
                     router2arrived = true;
                     router2.Receive();
                     router2.Receive();
                     poller.AddSocket(router3);
+                };
+
+                router3.ReceiveReady += (s, a) =>
+                {
+                    router3arrived = true;
+                    router3.Receive();
+                    router3.Receive();
                 };
 
                 poller.PollTillCancelledNonBlocking();
@@ -252,20 +252,6 @@ namespace NetMQ.Tests
                     poller.RemoveSocket(router);
                 };
 
-                router3.ReceiveReady += (s, a) =>
-                {
-                    router3.Receive();
-                    router3.Receive();
-                    router3arrived = true;
-                };
-
-                router4.ReceiveReady += (s, a) =>
-                {
-                    router4.Receive();
-                    router4.Receive();
-                    router4arrived = true;
-                };
-
                 router2.ReceiveReady += (s, a) =>
                 {
                     router2arrived++;
@@ -278,6 +264,20 @@ namespace NetMQ.Tests
 
                         poller.AddSocket(router4);
                     }
+                };
+
+                router3.ReceiveReady += (s, a) =>
+                {
+                    router3.Receive();
+                    router3.Receive();
+                    router3arrived = true;
+                };
+
+                router4.ReceiveReady += (s, a) =>
+                {
+                    router4.Receive();
+                    router4.Receive();
+                    router4arrived = true;
                 };
 
                 poller.PollTillCancelledNonBlocking();
@@ -332,18 +332,6 @@ namespace NetMQ.Tests
 
                 bool first = true;
 
-                router2.ReceiveReady += (s, a) =>
-                {
-                    // identity
-                    byte[] identity = a.Socket.Receive();
-
-                    // message
-                    a.Socket.Receive();
-
-                    a.Socket.SendMore(identity);
-                    a.Socket.Send("2");
-                };
-
                 router.ReceiveReady += (s, a) =>
                 {
                     if (!first)
@@ -361,6 +349,18 @@ namespace NetMQ.Tests
 
                     // cancelling the socket
                     poller.RemoveSocket(a.Socket);
+                };
+
+                router2.ReceiveReady += (s, a) =>
+                {
+                    // identity
+                    byte[] identity = a.Socket.Receive();
+
+                    // message
+                    a.Socket.Receive();
+
+                    a.Socket.SendMore(identity);
+                    a.Socket.Send("2");
                 };
 
                 router3.ReceiveReady += (s, a) =>
