@@ -20,7 +20,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var rep = context.CreateResponseSocket())
             using (var req = context.CreateRequestSocket())
-            using (var poller = new Poller())
+            using (var poller = new Poller(rep))
             {
                 int port = rep.BindRandomPort("tcp://127.0.0.1");
 
@@ -34,8 +34,6 @@ namespace NetMQ.Tests
 
                     a.Socket.Send("World");
                 };
-
-                poller.AddSocket(rep);
 
                 Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
 
@@ -108,7 +106,7 @@ namespace NetMQ.Tests
             using (var router2 = context.CreateRouterSocket())
             using (var dealer = context.CreateDealerSocket())
             using (var dealer2 = context.CreateDealerSocket())
-            using (var poller = new Poller())
+            using (var poller = new Poller(router))
             {
                 int port = router.BindRandomPort("tcp://127.0.0.1");
                 int port2 = router2.BindRandomPort("tcp://127.0.0.1");
@@ -136,8 +134,6 @@ namespace NetMQ.Tests
                     poller.AddSocket(router2);
                 };
 
-                poller.AddSocket(router);
-
                 poller.PollTillCancelledNonBlocking();
 
                 dealer.Send("1");
@@ -162,7 +158,7 @@ namespace NetMQ.Tests
             using (var dealer = context.CreateDealerSocket())
             using (var dealer2 = context.CreateDealerSocket())
             using (var dealer3 = context.CreateDealerSocket())
-            using (var poller = new Poller())
+            using (var poller = new Poller(router, router2))
             {
                 int port = router.BindRandomPort("tcp://127.0.0.1");
                 int port2 = router2.BindRandomPort("tcp://127.0.0.1");
@@ -185,8 +181,6 @@ namespace NetMQ.Tests
                     poller.RemoveSocket(router);
                 };
 
-                poller.AddSocket(router);
-
                 router3.ReceiveReady += (s, a) =>
                 {
                     router3arrived = true;
@@ -201,8 +195,6 @@ namespace NetMQ.Tests
                     router2.Receive();
                     poller.AddSocket(router3);
                 };
-
-                poller.AddSocket(router2);
 
                 poller.PollTillCancelledNonBlocking();
 
@@ -233,7 +225,7 @@ namespace NetMQ.Tests
             using (var dealer2 = context.CreateDealerSocket())
             using (var dealer3 = context.CreateDealerSocket())
             using (var dealer4 = context.CreateDealerSocket())
-            using (var poller = new Poller())
+            using (var poller = new Poller(router, router2))
             {
                 int port = router.BindRandomPort("tcp://127.0.0.1");
                 int port2 = router2.BindRandomPort("tcp://127.0.0.1");
@@ -259,8 +251,6 @@ namespace NetMQ.Tests
 
                     poller.RemoveSocket(router);
                 };
-
-                poller.AddSocket(router);
 
                 router3.ReceiveReady += (s, a) =>
                 {
@@ -289,8 +279,6 @@ namespace NetMQ.Tests
                         poller.AddSocket(router4);
                     }
                 };
-
-                poller.AddSocket(router2);
 
                 poller.PollTillCancelledNonBlocking();
 
@@ -332,7 +320,7 @@ namespace NetMQ.Tests
             using (var dealer = context.CreateDealerSocket())
             using (var dealer2 = context.CreateDealerSocket())
             using (var dealer3 = context.CreateDealerSocket())
-            using (var poller = new Poller())
+            using (var poller = new Poller(router, router2, router3))
             {
                 int port = router.BindRandomPort("tcp://127.0.0.1");
                 int port2 = router2.BindRandomPort("tcp://127.0.0.1");
@@ -356,8 +344,6 @@ namespace NetMQ.Tests
                     a.Socket.Send("2");
                 };
 
-                poller.AddSocket(router2);
-
                 router.ReceiveReady += (s, a) =>
                 {
                     if (!first)
@@ -377,8 +363,6 @@ namespace NetMQ.Tests
                     poller.RemoveSocket(a.Socket);
                 };
 
-                poller.AddSocket(router);
-
                 router3.ReceiveReady += (s, a) =>
                 {
                     // identity
@@ -389,8 +373,6 @@ namespace NetMQ.Tests
 
                     a.Socket.SendMore(identity).Send("3");
                 };
-
-                poller.AddSocket(router3);
 
                 Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
 
@@ -430,7 +412,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var router = context.CreateRouterSocket())
             using (var dealer = context.CreateDealerSocket())
-            using (var poller = new Poller())
+            using (var poller = new Poller(router))
             {
                 int port = router.BindRandomPort("tcp://127.0.0.1");
 
@@ -444,8 +426,6 @@ namespace NetMQ.Tests
                     router.Receive();
                     messageArrived = true;
                 };
-
-                poller.AddSocket(router);
 
                 bool timerTriggered = false;
 
@@ -484,7 +464,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var router = context.CreateRouterSocket())
             using (var dealer = context.CreateDealerSocket())
-            using (var poller = new Poller())
+            using (var poller = new Poller(router))
             {
                 int port = router.BindRandomPort("tcp://127.0.0.1");
 
@@ -510,8 +490,6 @@ namespace NetMQ.Tests
                     poller.RemoveTimer(timer);
                 };
 
-                poller.AddSocket(router);
-
                 poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(20);
@@ -530,23 +508,21 @@ namespace NetMQ.Tests
         [Test]
         public void RunMultipleTimes()
         {
-            using (var poller = new Poller())
+            int count = 0;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
+            timer.Elapsed += (a, s) =>
             {
-                int count = 0;
+                count++;
 
-                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
-                timer.Elapsed += (a, s) =>
+                if (count == 3)
                 {
-                    count++;
+                    timer.Enable = false;
+                }
+            };
 
-                    if (count == 3)
-                    {
-                        timer.Enable = false;
-                    }
-                };
-
-                poller.AddTimer(timer);
-
+            using (var poller = new Poller(timer))
+            {
                 poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(300);
@@ -560,23 +536,21 @@ namespace NetMQ.Tests
         [Test]
         public void PollOnce()
         {
-            using (var poller = new Poller())
+            int count = 0;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
+            timer.Elapsed += (a, s) =>
             {
-                int count = 0;
+                count++;
 
-                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
-                timer.Elapsed += (a, s) =>
+                if (count == 3)
                 {
-                    count++;
+                    timer.Enable = false;
+                }
+            };
 
-                    if (count == 3)
-                    {
-                        timer.Enable = false;
-                    }
-                };
-
-                poller.AddTimer(timer);
-
+            using (var poller = new Poller(timer))
+            {
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
                 poller.PollOnce();
@@ -591,148 +565,136 @@ namespace NetMQ.Tests
         [Test]
         public void TwoTimers()
         {
-            using (var poller = new Poller())
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(52));
+            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(40));
+
+            int count = 0;
+
+            timer.Elapsed += (a, s) =>
             {
-                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(52));
+                count++;
+                timer.Enable = false;
+                timer2.Enable = false;
+            };
 
-                var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(40));
+            int count2 = 0;
 
-                int count = 0;
+            timer2.Elapsed += (s, a) => { count2++; };
 
-                timer.Elapsed += (a, s) =>
-                {
-                    count++;
-                    timer.Enable = false;
-                    timer2.Enable = false;
-                };
-
-                poller.AddTimer(timer);
-
-                int count2 = 0;
-
-                timer2.Elapsed += (s, a) => { count2++; };
-                poller.AddTimer(timer2);
-
+            using (var poller = new Poller(timer, timer2))
+            {
                 poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(300);
 
                 poller.CancelAndJoin();
-
-                Assert.AreEqual(1, count);
-                Assert.AreEqual(1, count2);
             }
+
+            Assert.AreEqual(1, count);
+            Assert.AreEqual(1, count2);
         }
 
         [Test]
         public void EnableTimer()
         {
-            using (var poller = new Poller())
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(20));
+            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(20));
+
+            int count = 0;
+
+            timer.Elapsed += (a, s) =>
             {
-                int count = 0;
+                count++;
 
-                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(20));
-
-                var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(20));
-
-                timer.Elapsed += (a, s) =>
+                if (count == 1)
                 {
-                    count++;
-
-                    if (count == 1)
-                    {
-                        timer2.Enable = true;
-                        timer.Enable = false;
-                    }
-                    else if (count == 2)
-                    {
-                        timer.Enable = false;
-                    }
-                };
-
-                int count2 = 0;
-
-                timer2.Elapsed += (s, a) =>
+                    timer2.Enable = true;
+                    timer.Enable = false;
+                }
+                else if (count == 2)
                 {
-                    timer.Enable = true;
-                    timer2.Enable = false;
+                    timer.Enable = false;
+                }
+            };
 
-                    count2++;
-                };
+            int count2 = 0;
 
+            timer2.Elapsed += (s, a) =>
+            {
+                timer.Enable = true;
                 timer2.Enable = false;
 
-                poller.AddTimer(timer);
-                poller.AddTimer(timer2);
+                count2++;
+            };
 
+            timer2.Enable = false;
+
+            using (var poller = new Poller(timer, timer2))
+            {
                 poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(300);
 
                 poller.CancelAndJoin();
-
-                Assert.AreEqual(2, count);
-                Assert.AreEqual(1, count2);
             }
+
+            Assert.AreEqual(2, count);
+            Assert.AreEqual(1, count2);
         }
 
         [Test]
         public void ChangeTimerInterval()
         {
-            using (var poller = new Poller())
+            int count = 0;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(10));
+
+            var stopwatch = new Stopwatch();
+
+            long length1 = 0;
+            long length2 = 0;
+
+            timer.Elapsed += (a, s) =>
             {
-                int count = 0;
+                count++;
 
-                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(10));
-
-                var stopwatch = new Stopwatch();
-
-                long length1 = 0;
-                long length2 = 0;
-
-                timer.Elapsed += (a, s) =>
+                if (count == 1)
                 {
-                    count++;
+                    stopwatch.Start();
+                }
+                else if (count == 2)
+                {
+                    length1 = stopwatch.ElapsedMilliseconds;
 
-                    if (count == 1)
-                    {
-                        stopwatch.Start();
-                    }
-                    else if (count == 2)
-                    {
-                        length1 = stopwatch.ElapsedMilliseconds;
+                    timer.Interval = 20;
+                    stopwatch.Restart();
+                }
+                else if (count == 3)
+                {
+                    length2 = stopwatch.ElapsedMilliseconds;
 
-                        timer.Interval = 20;
-                        stopwatch.Restart();
-                    }
-                    else if (count == 3)
-                    {
-                        length2 = stopwatch.ElapsedMilliseconds;
+                    stopwatch.Stop();
 
-                        stopwatch.Stop();
+                    timer.Enable = false;
+                }
+            };
 
-                        timer.Enable = false;
-                    }
-                };
-
-                poller.AddTimer(timer);
-
+            using (var poller = new Poller(timer))
+            {
                 poller.PollTillCancelledNonBlocking();
 
                 Thread.Sleep(500);
 
                 poller.CancelAndJoin();
-
-                Assert.AreEqual(3, count);
-
-                Console.WriteLine("Length1:{0}, Length2:{1}", length1, length2);
-
-                Assert.GreaterOrEqual(length1, 8);
-                Assert.LessOrEqual(length1, 12);
-
-                Assert.GreaterOrEqual(length2, 18);
-                Assert.LessOrEqual(length2, 22);
             }
+
+            Assert.AreEqual(3, count);
+
+            Assert.GreaterOrEqual(length1, 8);
+            Assert.LessOrEqual(length1, 12);
+
+            Assert.GreaterOrEqual(length2, 18);
+            Assert.LessOrEqual(length2, 22);
         }
 
         [Test]
