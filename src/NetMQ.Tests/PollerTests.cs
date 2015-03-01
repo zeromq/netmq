@@ -691,11 +691,8 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(3, count);
 
-            Assert.GreaterOrEqual(length1, 8);
-            Assert.LessOrEqual(length1, 12);
-
-            Assert.GreaterOrEqual(length2, 18);
-            Assert.LessOrEqual(length2, 22);
+            Assert.AreEqual(10.0, length1, 2.0);
+            Assert.AreEqual(20.0, length2, 2.0);
         }
 
         [Test]
@@ -748,11 +745,8 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(3, count);
 
-            Assert.GreaterOrEqual(length1, 8);
-            Assert.LessOrEqual(length1, 12);
-
-            Assert.GreaterOrEqual(length2, 18);
-            Assert.LessOrEqual(length2, 22);
+            Assert.AreEqual(10.0, length1, 2.0);
+            Assert.AreEqual(20.0, length2, 2.0);
         }
 
         [Test]
