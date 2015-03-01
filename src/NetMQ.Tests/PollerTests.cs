@@ -37,7 +37,7 @@ namespace NetMQ.Tests
                     a.Socket.Send("World");
                 };
 
-                Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
+                poller.PollTillCancelledNonBlocking();
 
                 req.Send("Hello");
 
@@ -46,9 +46,6 @@ namespace NetMQ.Tests
                 Assert.IsFalse(more2);
 
                 poller.CancelAndJoin();
-
-                Thread.Sleep(100);
-                Assert.IsTrue(pollerTask.IsCompleted);
             }
         }
 
@@ -119,14 +116,16 @@ namespace NetMQ.Tests
                 bool router1arrived = false;
                 bool router2arrived = false;
 
+                var signal1 = new ManualResetEvent(false);
+                var signal2 = new ManualResetEvent(false);
+
                 router1.ReceiveReady += (s, a) =>
                 {
+                    router1.Receive();
+                    router1.Receive();
                     router1arrived = true;
-
-                    router1.Receive();
-                    router1.Receive();
-
                     poller.AddSocket(router2);
+                    signal1.Set();
                 };
 
                 router2.ReceiveReady += (s, a) =>
@@ -134,14 +133,15 @@ namespace NetMQ.Tests
                     router2.Receive();
                     router2.Receive();
                     router2arrived = true;
+                    signal2.Set();
                 };
 
                 poller.PollTillCancelledNonBlocking();
 
                 dealer1.Send("1");
-                Thread.Sleep(300);
+                Assert.IsTrue(signal1.WaitOne(300));
                 dealer2.Send("2");
-                Thread.Sleep(300);
+                Assert.IsTrue(signal1.WaitOne(300));
 
                 poller.CancelAndJoin();
 
@@ -174,6 +174,10 @@ namespace NetMQ.Tests
                 bool router2arrived = false;
                 bool router3arrived = false;
 
+                var signal1 = new ManualResetEvent(false);
+                var signal2 = new ManualResetEvent(false);
+                var signal3 = new ManualResetEvent(false);
+
                 router1.ReceiveReady += (s, a) =>
                 {
                     router1arrived = true;
@@ -181,6 +185,7 @@ namespace NetMQ.Tests
                     router1.Receive();
                     router1.Receive();
                     poller.RemoveSocket(router1);
+                    signal1.Set();
                 };
 
                 router2.ReceiveReady += (s, a) =>
@@ -189,6 +194,7 @@ namespace NetMQ.Tests
                     router2.Receive();
                     router2.Receive();
                     poller.AddSocket(router3);
+                    signal2.Set();
                 };
 
                 router3.ReceiveReady += (s, a) =>
@@ -196,16 +202,17 @@ namespace NetMQ.Tests
                     router3arrived = true;
                     router3.Receive();
                     router3.Receive();
+                    signal3.Set();
                 };
 
                 poller.PollTillCancelledNonBlocking();
 
                 dealer1.Send("1");
-                Thread.Sleep(300);
+                Assert.IsTrue(signal1.WaitOne(300));
                 dealer2.Send("2");
-                Thread.Sleep(300);
+                Assert.IsTrue(signal2.WaitOne(300));
                 dealer3.Send("3");
-                Thread.Sleep(300);
+                Assert.IsTrue(signal3.WaitOne(300));
 
                 poller.CancelAndJoin();
 
@@ -244,14 +251,18 @@ namespace NetMQ.Tests
                 bool router3arrived = false;
                 bool router4arrived = false;
 
+                var signal1 = new ManualResetEvent(false);
+                var signal2 = new ManualResetEvent(false);
+                var signal3 = new ManualResetEvent(false);
+                var signal4 = new ManualResetEvent(false);
+
                 router1.ReceiveReady += (s, a) =>
                 {
                     router1arrived++;
-
                     router1.Receive();
                     router1.Receive();
-
                     poller.RemoveSocket(router1);
+                    signal1.Set();
                 };
 
                 router2.ReceiveReady += (s, a) =>
@@ -263,8 +274,8 @@ namespace NetMQ.Tests
                     if (router2arrived == 1)
                     {
                         poller.AddSocket(router3);
-
                         poller.AddSocket(router4);
+                        signal2.Set();
                     }
                 };
 
@@ -273,6 +284,7 @@ namespace NetMQ.Tests
                     router3.Receive();
                     router3.Receive();
                     router3arrived = true;
+                    signal3.Set();
                 };
 
                 router4.ReceiveReady += (s, a) =>
@@ -280,19 +292,21 @@ namespace NetMQ.Tests
                     router4.Receive();
                     router4.Receive();
                     router4arrived = true;
+                    signal4.Set();
                 };
 
                 poller.PollTillCancelledNonBlocking();
 
                 dealer1.Send("1");
-                Thread.Sleep(300);
+                Assert.IsTrue(signal1.WaitOne(300));
                 dealer2.Send("2");
-                Thread.Sleep(300);
+                Assert.IsTrue(signal2.WaitOne(300));
                 dealer3.Send("3");
                 dealer4.Send("4");
                 dealer2.Send("2");
                 dealer1.Send("1");
-                Thread.Sleep(300);
+                Assert.IsTrue(signal3.WaitOne(300));
+                Assert.IsTrue(signal4.WaitOne(300));
 
                 poller.CancelAndJoin();
 
@@ -337,9 +351,7 @@ namespace NetMQ.Tests
                 router1.ReceiveReady += (s, a) =>
                 {
                     if (!first)
-                    {
-                        Assert.Fail("This should happen because we cancelled the socket");
-                    }
+                        Assert.Fail("This should not happen because we cancelled the socket");
                     first = false;
 
                     // identity
@@ -350,7 +362,7 @@ namespace NetMQ.Tests
                     Assert.False(more);
 
                     // cancelling the socket
-                    poller.RemoveSocket(a.Socket);
+                    poller.RemoveSocket(a.Socket); // remove self
                 };
 
                 router2.ReceiveReady += (s, a) =>
@@ -378,17 +390,11 @@ namespace NetMQ.Tests
 
                 Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
 
+                // Send three messages. Only the first will be processes, as then handler removes
+                // the socket from the poller.
                 dealer1.Send("Hello");
-
-                // sending this should not arrive on the poller, therefore response for this will never arrive
                 dealer1.Send("Hello2");
-
-                Thread.Sleep(100);
-
-                // sending this should not arrive on the poller, therefore response for this will never arrive						
                 dealer1.Send("Hello3");
-
-                Thread.Sleep(500);
 
                 // making sure the socket defined before the one cancelled still works
                 dealer2.Send("1");
@@ -398,12 +404,7 @@ namespace NetMQ.Tests
                 dealer3.Send("1");
                 Assert.AreEqual("3", dealer3.ReceiveString());
 
-                // we have to give this some time if we want to make sure it's really not happening and it not only because of time
-                Thread.Sleep(300);
-
                 poller.CancelAndJoin();
-
-                Thread.Sleep(100);
                 Assert.IsTrue(pollerTask.IsCompleted);
             }
         }
@@ -411,6 +412,8 @@ namespace NetMQ.Tests
         [Test]
         public void SimpleTimer()
         {
+            // TODO it is not really clear what this test is actually testing -- maybe split it into a few smaller tests
+
             using (var context = NetMQContext.Create())
             using (var router = context.CreateRouterSocket())
             using (var dealer = context.CreateDealerSocket())
@@ -424,6 +427,7 @@ namespace NetMQ.Tests
 
                 router.ReceiveReady += (s, a) =>
                 {
+                    Assert.IsFalse(messageArrived);
                     router.Receive();
                     router.Receive();
                     messageArrived = true;
@@ -433,7 +437,9 @@ namespace NetMQ.Tests
 
                 int count = 0;
 
-                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(100));
+                const int timerIntervalMillis = 100;
+
+                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
                 timer.Elapsed += (a, s) =>
                 {
                     // the timer should jump before the message
@@ -512,7 +518,9 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
+            const int timerIntervalMillis = 20;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
             timer.Elapsed += (a, s) =>
             {
                 count++;
@@ -527,7 +535,7 @@ namespace NetMQ.Tests
             {
                 poller.PollTillCancelledNonBlocking();
 
-                Thread.Sleep(300);
+                Thread.Sleep(timerIntervalMillis * 6);
 
                 poller.CancelAndJoin();
 
@@ -573,23 +581,31 @@ namespace NetMQ.Tests
             var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(40));
 
             int count = 0;
+            int count2 = 0;
+
+            var signal1 = new ManualResetEvent(false);
+            var signal2 = new ManualResetEvent(false);
 
             timer1.Elapsed += (a, s) =>
             {
                 count++;
                 timer1.Enable = false;
                 timer2.Enable = false;
+                signal1.Set();
             };
 
-            int count2 = 0;
-
-            timer2.Elapsed += (s, a) => { count2++; };
+            timer2.Elapsed += (s, a) =>
+            {
+                count2++;
+                signal2.Set();
+            };
 
             using (var poller = new Poller(timer1, timer2) { PollTimeout = TestPollTimeoutMillis })
             {
                 poller.PollTillCancelledNonBlocking();
 
-                Thread.Sleep(300);
+                Assert.IsTrue(signal1.WaitOne(300));
+                Assert.IsTrue(signal2.WaitOne(300));
 
                 poller.CancelAndJoin();
             }
@@ -601,8 +617,10 @@ namespace NetMQ.Tests
         [Test]
         public void EnableTimer()
         {
-            var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(20));
-            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(20)) { Enable = false};
+            const int timerIntervalMillis = 20;
+
+            var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
+            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis)) { Enable = false};
 
             int count = 0;
             int count2 = 0;
@@ -634,7 +652,7 @@ namespace NetMQ.Tests
             {
                 poller.PollTillCancelledNonBlocking();
 
-                Thread.Sleep(300);
+                Thread.Sleep(timerIntervalMillis * 6);
 
                 poller.CancelAndJoin();
             }
@@ -648,7 +666,9 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(10));
+            const int timerIntervalMillis = 10;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
 
             var stopwatch = new Stopwatch();
 
@@ -684,7 +704,7 @@ namespace NetMQ.Tests
             {
                 poller.PollTillCancelledNonBlocking();
 
-                Thread.Sleep(500);
+                Thread.Sleep(timerIntervalMillis * 6);
 
                 poller.CancelAndJoin();
             }
@@ -700,9 +720,13 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(10));
+            const int timerIntervalMillis = 10;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
 
             var stopwatch = new Stopwatch();
+
+            var signal = new ManualResetEvent(false);
 
             long length1 = 0;
             long length2 = 0;
@@ -726,6 +750,7 @@ namespace NetMQ.Tests
                     length2 = stopwatch.ElapsedMilliseconds;
                     stopwatch.Stop();
                     timer.Enable = false;
+                    signal.Set();
                 }
             };
 
@@ -733,7 +758,7 @@ namespace NetMQ.Tests
             using (poller = new Poller(timer) { PollTimeout = TestPollTimeoutMillis })
             {
                 poller.PollTillCancelledNonBlocking();
-                Thread.Sleep(500);
+                Assert.IsTrue(signal.WaitOne(500));
                 Assert.Throws<InvalidOperationException>(() => poller.PollTillCancelled());
             }
 
@@ -784,12 +809,12 @@ namespace NetMQ.Tests
                 poller.PollTillCancelledNonBlocking();
 
                 // no message is waiting for the socket so it should fail
-                Assert.IsFalse(socketSignal.WaitOne(200));
+                Assert.IsFalse(socketSignal.WaitOne(100));
 
                 // sending a message back to the socket
                 streamServer.SendMore(identity).Send("a");
 
-                Assert.IsTrue(socketSignal.WaitOne(200));
+                Assert.IsTrue(socketSignal.WaitOne(100));
 
                 socketSignal.Reset();
 
@@ -797,7 +822,7 @@ namespace NetMQ.Tests
                 streamServer.SendMore(identity).Send("a");
 
                 // we remove the native socket so it should fail
-                Assert.IsFalse(socketSignal.WaitOne(200));
+                Assert.IsFalse(socketSignal.WaitOne(100));
 
                 poller.CancelAndJoin();
             }
