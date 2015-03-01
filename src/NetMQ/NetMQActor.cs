@@ -117,7 +117,7 @@ namespace NetMQ
                 }
                 catch (AddressAlreadyInUseException)
                 {
-                    // In case address already in use we continue searching for an adderess
+                    // In case address already in use we continue searching for an address
                 }
             }
 
