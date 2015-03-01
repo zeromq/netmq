@@ -261,9 +261,10 @@ namespace NetMQ
         /// Delete the given frame from the frame-stack.
         /// </summary>
         /// <param name="frame">the frame to remove</param>
-        public void RemoveFrame([NotNull] NetMQFrame frame)
+        /// <returns><c>true</c> if removed, otherwise <c>false</c>.</returns>
+        public bool RemoveFrame([NotNull] NetMQFrame frame)
         {
-            m_frames.Remove(frame);
+            return m_frames.Remove(frame);
         }
 
         /// <summary>
