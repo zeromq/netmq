@@ -8,37 +8,34 @@ namespace NetMQ.Tests
         [Test]
         public void StreamToStream()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var server = context.CreateStreamSocket())
+            using (var client = context.CreateStreamSocket())
             {
-                using (var server = context.CreateStreamSocket())
-                {
-                    var port = server.BindRandomPort("tcp://*");
+                var port = server.BindRandomPort("tcp://*");
+                client.Connect("tcp://127.0.0.1:" + port);
 
-                    using (var client = context.CreateStreamSocket())
-                    {
-                        client.Connect("tcp://127.0.0.1:" + port);
+                byte[] id = client.Options.Identity;
 
-                        byte[] id = client.Options.Identity;
+                client.SendMore(id).Send("GET /\r\n");
 
-                        client.SendMore(id).Send("GET /\r\n");
+                id = server.Receive();
 
-                        id = server.Receive();
+                string message = server.ReceiveString();
 
-                        string message = server.ReceiveString();
+                Assert.AreEqual(message, "GET /\r\n");
 
-                        Assert.AreEqual(message, "GET /\r\n");
+                const string response = "HTTP/1.0 200 OK\r\n" +
+                                        "Content-Type: text/plain\r\n" +
+                                        "\r\n" +
+                                        "Hello, World!";
 
-                        string response = "HTTP/1.0 200 OK\r\n" +
-                                          "Content-Type: text/plain\r\n\r\n" + "Hello, World!";
+                server.SendMore(id).Send(response);
 
-                        server.SendMore(id).Send(response);
+                client.Receive();
+                message = client.ReceiveString();
 
-                        client.Receive();
-                        message = client.ReceiveString();
-
-                        Assert.AreEqual(message, response);
-                    }
-                }
+                Assert.AreEqual(message, response);
             }
         }
     }

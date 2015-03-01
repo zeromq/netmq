@@ -41,8 +41,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPClient(hostAddress))
             {
@@ -147,8 +147,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPClient(hostAddress))
             {
@@ -185,8 +185,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPClient(hostAddress))
             {
@@ -232,8 +232,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPClient(hostAddress))
             {
@@ -286,8 +286,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPClient(hostAddress))
             {

@@ -235,7 +235,7 @@ namespace NetMQ.Tests
 
             Task pubTask = Task.Factory.StartNew(() =>
             {
-                using (NetMQContext context = NetMQContext.Create())
+                using (var context = NetMQContext.Create())
                 using (var pub = context.CreatePublisherSocket())
                 {
                     pub.Connect("pgm://224.0.0.1:5555");
@@ -260,7 +260,7 @@ namespace NetMQ.Tests
         [Test]
         public void LargeMessage()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
             using (var pub = context.CreatePublisherSocket())
             using (var sub = context.CreateSubscriberSocket())
             {

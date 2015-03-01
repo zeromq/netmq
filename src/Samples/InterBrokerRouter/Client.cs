@@ -43,9 +43,9 @@ namespace InterBrokerRouter
             // we use a poller because we have a socket and a timer to monitor
             var clientPoller = new Poller();
 
-            using (var ctx = NetMQContext.Create())
-            using (var client = ctx.CreateRequestSocket())
-            using (var monitor = ctx.CreatePushSocket())
+            using (var context = NetMQContext.Create())
+            using (var client = context.CreateRequestSocket())
+            using (var monitor = context.CreatePushSocket())
             {
                 client.Connect(m_localFrontendAddress);
                 monitor.Connect(m_monitorAddress);

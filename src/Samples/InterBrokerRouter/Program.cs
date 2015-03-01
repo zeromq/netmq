@@ -110,14 +110,14 @@ namespace InterBrokerRouter
             var monitorAddress = baseAddress + (myPort + 4);
 
             // create the context and all the sockets
-            using (var ctx = NetMQContext.Create())
-            using (var localFrontend = ctx.CreateRouterSocket())
-            using (var localBackend = ctx.CreateRouterSocket())
-            using (var cloudFrontend = ctx.CreateRouterSocket())
-            using (var cloudBackend = ctx.CreateRouterSocket())
-            using (var stateBackend = ctx.CreatePublisherSocket())
-            using (var stateFrontend = ctx.CreateSubscriberSocket())
-            using (var monitor = ctx.CreatePullSocket())
+            using (var context = NetMQContext.Create())
+            using (var localFrontend = context.CreateRouterSocket())
+            using (var localBackend = context.CreateRouterSocket())
+            using (var cloudFrontend = context.CreateRouterSocket())
+            using (var cloudBackend = context.CreateRouterSocket())
+            using (var stateBackend = context.CreatePublisherSocket())
+            using (var stateFrontend = context.CreateSubscriberSocket())
+            using (var monitor = context.CreatePullSocket())
             {
                 // give every socket an unique identity, e.g. LocalFrontend[Port]
                 SetIdentities(myPort,

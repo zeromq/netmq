@@ -19,7 +19,7 @@ namespace SimplePirate.Client
         {
             _retriesLeft = RequestRetries;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
             {
                 var client = CreateServerSocket(context);
 

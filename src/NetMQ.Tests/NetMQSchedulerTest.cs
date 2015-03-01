@@ -13,19 +13,14 @@ namespace NetMQ.Tests
         {
             bool triggered = false;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var scheduler = new NetMQScheduler(context))
             {
-                using (NetMQScheduler scheduler = new NetMQScheduler(context))
-                {
-                    Task task = new Task(() =>
-                                            {
-                                                triggered = true;
-                                            });
-                    task.Start(scheduler);
-                    task.Wait();
+                var task = new Task(() => { triggered = true; });
+                task.Start(scheduler);
+                task.Wait();
 
-                    Assert.IsTrue(triggered);
-                }
+                Assert.IsTrue(triggered);
             }
         }
 
@@ -38,29 +33,28 @@ namespace NetMQ.Tests
             int runCount1 = 0;
             int runCount2 = 0;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var scheduler = new NetMQScheduler(context))
             {
-                using (NetMQScheduler scheduler = new NetMQScheduler(context))
+                var task = new Task(() =>
                 {
-                    Task task = new Task(() =>
-                                            {
-                                                threadId1 = Thread.CurrentThread.ManagedThreadId;
-                                                runCount1++;
-                                            });
-                    Task task2 = task.ContinueWith(t =>
-                                                    {
-                                                        threadId2 = Thread.CurrentThread.ManagedThreadId;
-                                                        runCount2++;
-                                                    }, scheduler);
+                    threadId1 = Thread.CurrentThread.ManagedThreadId;
+                    runCount1++;
+                });
+                
+                var task2 = task.ContinueWith(t =>
+                {
+                    threadId2 = Thread.CurrentThread.ManagedThreadId;
+                    runCount2++;
+                }, scheduler);
 
-                    task.Start(scheduler);
-                    task.Wait();
-                    task2.Wait();
+                task.Start(scheduler);
+                task.Wait();
+                task2.Wait();
 
-                    Assert.AreEqual(threadId1, threadId2);
-                    Assert.AreEqual(1, runCount1);
-                    Assert.AreEqual(1, runCount2);
-                }
+                Assert.AreEqual(threadId1, threadId2);
+                Assert.AreEqual(1, runCount1);
+                Assert.AreEqual(1, runCount2);
             }
         }
 
@@ -69,51 +63,36 @@ namespace NetMQ.Tests
         {
             bool triggered = false;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var poller = new Poller())
+            using (var scheduler = new NetMQScheduler(context, poller))
             {
-                Poller poller = new Poller();
+                poller.PollTillCancelledNonBlocking();
 
-                using (NetMQScheduler scheduler = new NetMQScheduler(context, poller))
-                {
-                    poller.PollTillCancelledNonBlocking();
+                var task = new Task(() => { triggered = true; });
+                task.Start(scheduler);
+                task.Wait();
 
-                    Task task = new Task(() =>
-                    {
-                        triggered = true;
-                    });
-                    task.Start(scheduler);
-                    task.Wait();
-
-                    Assert.IsTrue(triggered);
-                }
-
-                poller.CancelAndJoin();
+                Assert.IsTrue(triggered);
             }
         }
 
         [Test]
         public void CanDisposeSchedulerWhenPollerExternalAndCancelled()
         {
-          using (NetMQContext context = NetMQContext.Create())
-          {
-            using (Poller poller = new Poller())
+            using (var context = NetMQContext.Create())
+            using (var poller = new Poller())
+            using (var scheduler = new NetMQScheduler(context, poller))
             {
-              using (NetMQScheduler scheduler = new NetMQScheduler(context, poller))
-              {
                 poller.PollTillCancelledNonBlocking();
 
-                ManualResetEvent startedEvent = new ManualResetEvent(false);
-                Task.Factory.StartNew(() =>
-                {
-                  startedEvent.Set();
-                }, CancellationToken.None, TaskCreationOptions.None, scheduler);
+                var startedEvent = new ManualResetEvent(false);
+                Task.Factory.StartNew(() => { startedEvent.Set(); }, CancellationToken.None, TaskCreationOptions.None, scheduler);
 
                 startedEvent.WaitOne();
 
                 poller.CancelAndJoin();
-              }
             }
-          }
         }
 
         [Test]
@@ -122,46 +101,37 @@ namespace NetMQ.Tests
             int count1 = 0;
             int count2 = 0;
 
-            ConcurrentBag<Task> allTasks = new ConcurrentBag<Task>();
+            var allTasks = new ConcurrentBag<Task>();
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var scheduler = new NetMQScheduler(context))
             {
-                using (NetMQScheduler scheduler = new NetMQScheduler(context))
+                Task t1 = Task.Factory.StartNew(() =>
                 {
-                    Task t1 = Task.Factory.StartNew(() =>
-                                                        {
-                                                            for (int i = 0; i < 100; i++)
-                                                            {
-                                                                Task task = new Task(() =>
-                                                                                        {
-                                                                                            count1++;
-                                                                                        });
-                                                                allTasks.Add(task);
-                                                                task.Start(scheduler);
-
-                                                            }
-                                                        });
-
-                    Task t2 = Task.Factory.StartNew(() =>
+                    for (int i = 0; i < 100; i++)
                     {
-                        for (int i = 0; i < 100; i++)
-                        {
-                            Task task = new Task(() =>
-                            {
-                                count2++;
-                            });
-                            allTasks.Add(task);
-                            task.Start(scheduler);
-                        }
-                    });
+                        var task = new Task(() => { count1++; });
+                        allTasks.Add(task);
+                        task.Start(scheduler);
+                    }
+                });
 
-                    t1.Wait(100);
-                    t2.Wait(100);
-                    Task.WaitAll(allTasks.ToArray(), 100);
+                Task t2 = Task.Factory.StartNew(() =>
+                {
+                    for (int i = 0; i < 100; i++)
+                    {
+                        var task = new Task(() => { count2++; });
+                        allTasks.Add(task);
+                        task.Start(scheduler);
+                    }
+                });
 
-                    Assert.AreEqual(100, count1);
-                    Assert.AreEqual(100, count2);
-                }
+                t1.Wait(100);
+                t2.Wait(100);
+                Task.WaitAll(allTasks.ToArray(), 100);
+
+                Assert.AreEqual(100, count1);
+                Assert.AreEqual(100, count2);
             }
         }
     }

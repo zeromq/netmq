@@ -8,48 +8,32 @@ namespace NetMQ.Tests
         [Test]
         public void SimplePushPull()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pullSocket = context.CreatePullSocket())
+            using (var pushSocket = context.CreatePushSocket())
             {
-                using (var pullSocket = context.CreatePullSocket())
-                {
-                    var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
+                var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
+                pushSocket.Connect("tcp://127.0.0.1:" + port);
 
-                    using (var pushSocket = context.CreatePushSocket())
-                    {
-                        pushSocket.Connect("tcp://127.0.0.1:" + port);
+                pushSocket.Send("hello");
 
-                        pushSocket.Send("hello");
-
-                        bool more;
-                        string m = pullSocket.ReceiveString(out more);
-
-                        Assert.AreEqual("hello", m);
-                    }
-                }
+                Assert.AreEqual("hello", pullSocket.ReceiveString());
             }
         }
 
         [Test]
         public void EmptyMessage()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pullSocket = context.CreatePullSocket())
+            using (var pushSocket = context.CreatePushSocket())
             {
-                using (var pullSocket = context.CreatePullSocket())
-                {
-                    var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
+                var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
+                pushSocket.Connect("tcp://127.0.0.1:" + port);
 
-                    using (var pushSocket = context.CreatePushSocket())
-                    {
-                        pushSocket.Connect("tcp://127.0.0.1:" + port);
+                pushSocket.Send(new byte[300]);
 
-                        pushSocket.Send(new byte[300]);
-
-                        bool more;
-                        byte[] m = pullSocket.Receive(out more);
-
-                        Assert.AreEqual(300, m.Length);
-                    }
-                }
+                Assert.AreEqual(300, pullSocket.Receive().Length);
             }
         }
     }
