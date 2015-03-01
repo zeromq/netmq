@@ -73,27 +73,23 @@ namespace NetMQ.Tests
                 reqMonitor.Connected += (s, a) => connectedEvent.Set();
 
                 reqMonitor.AttachToPoller(poller);
-                try
-                {
-                    poller.PollTillCancelledNonBlocking();
 
-                    req.Connect("tcp://127.0.0.1:" + port);
-                    req.Send("a");
+                poller.PollTillCancelledNonBlocking();
 
-                    rep.ReceiveString();
+                req.Connect("tcp://127.0.0.1:" + port);
+                req.Send("a");
 
-                    rep.Send("b");
+                rep.ReceiveString();
 
-                    req.ReceiveString();
+                rep.Send("b");
 
-                    Assert.IsTrue(listeningEvent.WaitOne(300));
-                    Assert.IsTrue(connectedEvent.WaitOne(300));
-                    Assert.IsTrue(acceptedEvent.WaitOne(300));
-                }
-                finally
-                {
-                    poller.CancelAndJoin();
-                }
+                req.ReceiveString();
+
+                Assert.IsTrue(listeningEvent.WaitOne(300));
+                Assert.IsTrue(connectedEvent.WaitOne(300));
+                Assert.IsTrue(acceptedEvent.WaitOne(300));
+
+                poller.CancelAndJoin();
             }
         }
 
