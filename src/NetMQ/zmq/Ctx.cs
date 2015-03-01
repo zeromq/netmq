@@ -252,6 +252,7 @@ namespace NetMQ.zmq
                 //  Wait till reaper thread closes all the sockets.
                 Command cmd = m_termMailbox.Recv(-1);
 
+                Debug.Assert(cmd != null);
                 Debug.Assert(cmd.CommandType == CommandType.Done);
                 Monitor.Enter(m_slotSync);
                 Debug.Assert(m_sockets.Count == 0);
@@ -260,7 +261,6 @@ namespace NetMQ.zmq
 
             //  Deallocate the resources.
             Destroy();
-
         }
 
         /// <summary>
