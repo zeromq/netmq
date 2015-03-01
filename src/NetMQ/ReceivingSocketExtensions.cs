@@ -18,7 +18,7 @@ namespace NetMQ
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
         /// <param name="socket">the socket to use</param>
-        /// <param name="options">the send & receive options to use</param>
+        /// <param name="options">the send and receive options to use</param>
         /// <param name="hasMore"><c>true</c> when more parts of a multi-part message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
@@ -46,8 +46,8 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">teh socket to use</param>
-        /// <param name="options">the send & receive options to use</param>
+        /// <param name="socket">the socket to use</param>
+        /// <param name="options">the send and receive options to use</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
         public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options)

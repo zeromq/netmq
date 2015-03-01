@@ -34,7 +34,7 @@ namespace InterBrokerRouter
         ///                     |         |
         ///                  BROKER 2   BROKER n
         /// 
-        ///     BROKER 2 & n are not included and must be setup separately
+        ///     BROKER 2 and n are not included and must be setup separately
         /// 
         ///     A minimum of two address must be supplied
         /// </summary>
@@ -58,7 +58,7 @@ namespace InterBrokerRouter
         /// 
         ///               this broker's monitor PUSH connects to    tcp://127.0.0.1:5559
         /// 
-        ///                         (if peer's address & port is    tcp://127.0.0.1:5575)
+        ///                         (if peer's address and port is  tcp://127.0.0.1:5575)
         ///             
         ///               this broker's cloud backend connects to                  :5576
         ///               this broker's state frontend connects to                 :5578

@@ -69,7 +69,7 @@ namespace MajordomoProtocol
         private readonly object m_syncRoot = new object ();     // used as synchronization object for Purge ()
 
         /// <summary>
-        ///     the socket for communicating with clients & workers
+        ///     the socket for communicating with clients and workers
         /// </summary>
         public NetMQSocket Socket { get; private set; }
 
