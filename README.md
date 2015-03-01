@@ -65,7 +65,7 @@ using (var client = context.CreateRequestSocket())
 ## Contributing
 
 We need help, so if you have good knowledge of C# and ZeroMQ just grab one of the issues and add a pull request.
-We are using [C4 process](http://rfc.zeromq.org/spec:16), so make sure you read this before.
+We are using [C4.1 process](http://rfc.zeromq.org/spec:22), so make sure you read this before.
 
 Regarding coding standards, we are using C# coding styles, to be a little more specific: we are using `camelCase` for variables and fields (with `m_` prefix for instance members and `s_` for static fields) and `PascalCase` for methods, classes and constants. Make sure you are using 'Insert Spaces' and 4 for tab and indent size.
 
