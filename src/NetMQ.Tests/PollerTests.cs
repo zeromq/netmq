@@ -714,40 +714,18 @@ namespace NetMQ.Tests
         [Test]
         public void TestPollerDispose()
         {
-            int count = 0;
-
             const int timerIntervalMillis = 10;
 
             var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
 
-            var stopwatch = new Stopwatch();
-
             var signal = new ManualResetEvent(false);
 
-            long length1 = 0;
-            long length2 = 0;
+            var count = 0;
 
             timer.Elapsed += (a, s) =>
             {
-                count++;
-
-                if (count == 1)
-                {
-                    stopwatch.Start();
-                }
-                else if (count == 2)
-                {
-                    length1 = stopwatch.ElapsedMilliseconds;
-                    timer.Interval = 20;
-                    stopwatch.Restart();
-                }
-                else if (count == 3)
-                {
-                    length2 = stopwatch.ElapsedMilliseconds;
-                    stopwatch.Stop();
-                    timer.Enable = false;
+                if (count++ == 5)
                     signal.Set();
-                }
             };
 
             Poller poller;
@@ -755,19 +733,15 @@ namespace NetMQ.Tests
             {
                 poller.PollTillCancelledNonBlocking();
                 Assert.IsTrue(signal.WaitOne(500));
+                Assert.IsTrue(poller.IsStarted);
                 Assert.Throws<InvalidOperationException>(() => poller.PollTillCancelled());
             }
 
-            Assert.That(poller.IsStarted, Is.False);
+            Assert.IsFalse(poller.IsStarted);
             Assert.Throws<ObjectDisposedException>(() => poller.PollTillCancelled());
             Assert.Throws<ObjectDisposedException>(() => poller.CancelAndJoin());
             Assert.Throws<ObjectDisposedException>(() => poller.AddTimer(timer));
             Assert.Throws<ObjectDisposedException>(() => poller.RemoveTimer(timer));
-
-            Assert.AreEqual(3, count);
-
-            Assert.AreEqual(10.0, length1, 2.0);
-            Assert.AreEqual(20.0, length2, 2.0);
         }
 
         [Test]
