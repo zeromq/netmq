@@ -26,8 +26,8 @@ namespace NetMQ.Tests.Devices
 
         protected int WorkerReceiveCount;
 
-        private CancellationTokenSource m_workCancelationSource;
-        private CancellationToken m_workerCancelationToken;
+        private CancellationTokenSource m_workerCancellationSource;
+        private CancellationToken m_workerCancellationToken;
 
         protected ManualResetEvent WorkerDone;
 
@@ -36,8 +36,8 @@ namespace NetMQ.Tests.Devices
         {
             WorkerReceiveCount = 0;
             WorkerDone = new ManualResetEvent(false);
-            m_workCancelationSource = new CancellationTokenSource();
-            m_workerCancelationToken = m_workCancelationSource.Token;
+            m_workerCancellationSource = new CancellationTokenSource();
+            m_workerCancellationToken = m_workerCancellationSource.Token;
 
             Context = NetMQContext.Create();
             SetupTest();
@@ -71,7 +71,7 @@ namespace NetMQ.Tests.Devices
                     socket.ReceiveReady += (s, a) => { };
                     socket.SendReady += (s, a) => { };
 
-                    while (!m_workerCancelationToken.IsCancellationRequested)
+                    while (!m_workerCancellationToken.IsCancellationRequested)
                     {
                         var has = socket.Poll(TimeSpan.FromMilliseconds(1));
 
@@ -92,7 +92,7 @@ namespace NetMQ.Tests.Devices
 
         protected void StopWorker()
         {
-            m_workCancelationSource.Cancel();
+            m_workerCancellationSource.Cancel();
             WorkerDone.WaitOne();
         }
 
