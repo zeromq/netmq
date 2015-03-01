@@ -85,12 +85,12 @@ namespace NetMQ.zmq.Utils
         /// This flag is used to tell the polling-loop thread to shut down,
         /// wherein it will stop at the end of it's current loop iteration.
         /// </summary>
-        volatile private bool m_stopping;
+        private volatile bool m_stopping;
 
         /// <summary>
         /// This indicates whether the polling-thread is not presently running. Default is true.
         /// </summary>
-        volatile private bool m_stopped = true;
+        private volatile bool m_stopped = true;
 
         /// <summary>
         /// This is the background-thread that performs the polling-loop.
