@@ -87,7 +87,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Set an integer-based socket option.
         /// </summary>
-        /// <param name="property">the <see cref="TSocket"/> property to set</param>
+        /// <param name="property">the property to set</param>
         /// <param name="value">the integer value to assign</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, int>> property, int value)
@@ -98,7 +98,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Set an timespan-based socket option.
         /// </summary>
-        /// <param name="property">the <see cref="TSocket"/> property to set</param>
+        /// <param name="property">the property to set</param>
         /// <param name="value">the timespan value to assign</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, TimeSpan>> property, TimeSpan value)
@@ -109,7 +109,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Set a socket option that is other than an integer or timespan.
         /// </summary>
-        /// <param name="property">the <see cref="TSocket"/> property to set</param>
+        /// <param name="property">the property to set</param>
         /// <param name="value">the object value to assign</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, object>> property, object value)

@@ -27,7 +27,7 @@ namespace NetMQ.zmq
 {
     /// <summary>
     /// Base class for objects forming a part of ownership hierarchy.
-    /// It handles initialisation and destruction of such objects.
+    /// It handles initialization and destruction of such objects.
     /// </summary>
     internal abstract class Own : ZObject
     {
@@ -140,7 +140,7 @@ namespace NetMQ.zmq
             //  Catch up with counter of processed commands.
             m_processedSeqnum++;
 
-            //  We may have catched up and still have pending terms acks.
+            //  We may have caught up and still have pending terms acks.
             CheckTermAcks();
         }
 
@@ -208,7 +208,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Ask owner object to terminate this object. It may take a while while actual termination is started.
+        /// Ask owner object to terminate this object. It may take a while actual termination is started.
         /// </summary>
         /// <remarks>
         /// This function should not be called more than once.
@@ -220,7 +220,7 @@ namespace NetMQ.zmq
             if (m_terminating)
                 return;
 
-            //  As for the root of the ownership tree, there's noone to terminate it,
+            //  As for the root of the ownership tree, there's no-one to terminate it,
             //  so it has to terminate itself.
             if (m_owner == null)
             {

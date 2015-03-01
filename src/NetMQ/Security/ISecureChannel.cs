@@ -7,7 +7,7 @@ namespace NetMQ.Security
     /// <summary>
     /// This delegate defines a method signature that takes a PkixCertificate and returns a bool.
     /// </summary>
-    /// <param name="certificate">the PkixCertificate that is to do the verification</param>
+    /// <param name="certificate2">the PkixCertificate that is to do the verification</param>
     /// <returns>the result of the verification - which is true if it verifies ok, false if it fails verification</returns>
     public delegate bool VerifyCertificateDelegate(X509Certificate2 certificate2);
 
@@ -33,7 +33,7 @@ namespace NetMQ.Security
         CipherSuite[] AllowedCipherSuites { get; set; }
 
         /// <summary>
-        /// Set the verify ceritificate method, by default the ceritificate is validate by the certificate Chain
+        /// Set the verify-certificate method, by default the certificate is validated by the certificate Chain
         /// </summary>
         /// <param name="verifyCertificate">Delegate for the verify certificate method</param>
         void SetVerifyCertificate(VerifyCertificateDelegate verifyCertificate);

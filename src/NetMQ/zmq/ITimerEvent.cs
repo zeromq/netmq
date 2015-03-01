@@ -1,7 +1,8 @@
 ﻿namespace NetMQ.zmq
 {
     /// <summary>
-    /// The ITimerEvent interface provides for one method, TimerEvent, that is called with an id-value when the timer expires.
+    /// The ITimerEvent interface mandates a TimerEvent( int id ) method,
+    /// that is called with an id-value when the timer expires.
     /// </summary>
     internal interface ITimerEvent
     {

@@ -74,7 +74,7 @@ namespace NetMQ.Monitoring
     public class NetMQMonitorIntervalEventArgs : NetMQMonitorEventArgs
     {
         /// <summary>
-        /// Create a new NetMQMonitorIntervalEventArgs containg the given NetMQMonitor, address, and time-interval.
+        /// Create a new NetMQMonitorIntervalEventArgs containing the given NetMQMonitor, address, and time-interval.
         /// </summary>
         /// <param name="monitor">the NetMQMonitor</param>
         /// <param name="address">a string denoting the address</param>

@@ -26,6 +26,7 @@ using System.Text;
 using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
+
 namespace NetMQ.zmq.Patterns
 {
     internal class XPub : SocketBase
@@ -53,10 +54,12 @@ namespace NetMQ.zmq.Patterns
 
         private Msg m_welcomeMessage;
 
-        //  True if we are in the middle of sending a multi-part message.
+        /// <summary>
+        /// True if we are in the middle of sending a multi-part message.
+        /// </summary>
         private bool m_more;
 
-        //  List of pending (un)subscriptions, ie. those that were already
+        //  List of pending un-subscriptions, ie. those that were already
         //  applied to the trie, but not yet received by the user.
         private readonly Queue<byte[]> m_pending;
 
@@ -77,7 +80,7 @@ namespace NetMQ.zmq.Patterns
 
                 if (self.m_options.SocketType != ZmqSocketType.Pub)
                 {
-                    //  Place the unsubscription to the queue of pending (un)subscriptions
+                    //  Place the un-subscription to the queue of pending un-subscriptions
                     //  to be retrieved by the user later on.
 
                     var unsub = new byte[size + 1];
@@ -176,11 +179,11 @@ namespace NetMQ.zmq.Patterns
             m_distribution.Activated(pipe);
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optionValue)
         {
             if (option == ZmqSocketOptions.XpubVerbose)
             {
-                m_verbose = (bool)optval;
+                m_verbose = (bool)optionValue;
                 return true;
             }
             else if (option == ZmqSocketOptions.XPublisherManual)
@@ -192,13 +195,13 @@ namespace NetMQ.zmq.Patterns
             {
                 byte[] subscription;
 
-                if (optval is byte[])
+                if (optionValue is byte[])
                 {
-                    subscription = optval as byte[];
+                    subscription = optionValue as byte[];
                 }
                 else
                 {
-                    subscription = Encoding.ASCII.GetBytes((String)optval);
+                    subscription = Encoding.ASCII.GetBytes((String)optionValue);
                 }
 
                 m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
@@ -208,13 +211,13 @@ namespace NetMQ.zmq.Patterns
             {
                 byte[] subscription;
 
-                if (optval is byte[])
+                if (optionValue is byte[])
                 {
-                    subscription = optval as byte[];
+                    subscription = optionValue as byte[];
                 }
                 else
                 {
-                    subscription = Encoding.ASCII.GetBytes((String)optval);
+                    subscription = Encoding.ASCII.GetBytes((String)optionValue);
                 }
 
                 m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
@@ -224,11 +227,11 @@ namespace NetMQ.zmq.Patterns
             {
                 m_welcomeMessage.Close();
 
-                if (optval != null)
+                if (optionValue != null)
                 {
-                    if (optval is byte[])
+                    if (optionValue is byte[])
                     {
-                        var value = (byte[])optval;
+                        var value = (byte[])optionValue;
 
                         var welcomeBytes = new byte[value.Length];
                         value.CopyTo(welcomeBytes, 0);
@@ -237,7 +240,7 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        throw new InvalidException(String.Format("In XPub.XSetSocketOption({0},{1}), optval must be a byte-array.", option, optval));
+                        throw new InvalidException(String.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
                     }
                 }
                 else
@@ -254,7 +257,7 @@ namespace NetMQ.zmq.Patterns
         protected override void XTerminated(Pipe pipe)
         {
             //  Remove the pipe from the trie. If there are topics that nobody
-            //  is interested in anymore, send corresponding unsubscriptions
+            //  is interested in anymore, send corresponding un-subscriptions
             //  upstream.
 
 

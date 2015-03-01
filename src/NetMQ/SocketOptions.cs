@@ -4,12 +4,20 @@ using NetMQ.zmq;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// A SocketOptions is simply a convenient way to accesss the options of a particular socket.
+    /// This class holds a reference to the socket, and it's properties provide a concise way
+    /// to access that socket's option values -- instead of calling GetSocketOption/SetSockeetOption.
+    /// </summary>
     public class SocketOptions
     {
+        /// <summary>
+        /// The NetMQSocket that this SocketOptions is referencing.
+        /// </summary>
         private readonly NetMQSocket m_socket;
 
         /// <summary>
-        /// Create a new SocketOptions containing the given NetMQSocket.
+        /// Create a new SocketOptions that references the given NetMQSocket.
         /// </summary>
         /// <param name="socket">the NetMQSocket for this SocketOptions to hold a reference to</param>
         public SocketOptions([NotNull] NetMQSocket socket)
@@ -17,6 +25,12 @@ namespace NetMQ
             m_socket = socket;
         }
 
+        /// <summary>
+        /// Get or set the I/O-thread affinity. This is a 64-bit value used to specify  which threads from the I/O thread-pool
+        /// associated with the socket's context shall handle newly-created connections.
+        /// 0 means no affinity, meaning that work shall be distributed fairly among all I/O threads.
+        /// For non-zero values, the lowest bit corresponds to thread 1, second lowest bit to thread 2, and so on.
+        /// </summary>
         public long Affinity
         {
             get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Affinity); }
@@ -92,8 +106,8 @@ namespace NetMQ
 
         public TimeSpan ReconnectIntervalMax
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvl, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvlMax); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvlMax, value); }
         }
 
         public int Backlog
@@ -108,12 +122,24 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.Maxmsgsize, value); }
         }
 
+        /// <summary>
+        /// Get or set the high-water-mark for transmission.
+        /// This is a hard limit on the number of messages that are allowed to queue up
+        /// before mitigative action is taken.
+        /// The default is 1000.
+        /// </summary>
         public int SendHighWatermark
         {
             get { return m_socket.GetSocketOption(ZmqSocketOptions.SendHighWatermark); }
             set { m_socket.SetSocketOption(ZmqSocketOptions.SendHighWatermark, value); }
         }
 
+        /// <summary>
+        /// Get or set the high-water-mark for reception.
+        /// This is a hard limit on the number of messages that are allowed to queue up
+        /// before mitigative action is taken.
+        /// The default is 1000.
+        /// </summary>
         public int ReceiveHighWatermark
         {
             get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceiveHighWatermark); }

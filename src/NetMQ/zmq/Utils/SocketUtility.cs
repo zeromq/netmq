@@ -29,7 +29,7 @@ namespace NetMQ.zmq.Utils
         /// 
         /// If you make a non-blocking call to Connect, writability means that you have connected successfully. If you already
         /// have a connection established, writability means that all send operations will succeed without blocking.
-        /// If you have made a non-blocking call to Connect, the checkError paramter identifies sockets that have not connected successfully.
+        /// If you have made a non-blocking call to Connect, the checkError parameter identifies sockets that have not connected successfully.
         /// 
         /// See this reference for further details of the operation of the Socket.Select method:
         /// https://msdn.microsoft.com/en-us/library/system.net.sockets.socket.select(v=vs.110).aspx

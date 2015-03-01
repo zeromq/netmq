@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Text;
 using NetMQ.zmq.Transports.Tcp;
 
+
 namespace NetMQ.zmq
 {
     /// <summary>
@@ -158,7 +159,7 @@ namespace NetMQ.zmq
         public int MulticastHops { get; set; }
 
         /// <summary>
-        /// Get or set the maximum tranfer rate [Kb/s]. The default is 100 Kb/s.
+        /// Get or set the maximum transfer rate [Kb/s]. The default is 100 Kb/s.
         /// </summary>
         public int Rate { get; set; }
 
@@ -210,7 +211,7 @@ namespace NetMQ.zmq
         public int SendHighWatermark { get; set; }
 
         /// <summary>
-        /// Get or set the high-water mark for message-reception.
+        /// Get or set the high-water mark for message reception.
         /// The default value is 1000.
         /// </summary>
         public int ReceiveHighWatermark { get; set; }

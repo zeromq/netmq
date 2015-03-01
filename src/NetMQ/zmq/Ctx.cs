@@ -39,9 +39,11 @@ namespace NetMQ.zmq
         public const int DefaultIOThreads = 1;
         public const int DefaultMaxSockets = 1024;
 
-        //  Information associated with inproc endpoint. Note that endpoint options
-        //  are registered as well so that the peer can access them without a need
-        //  for synchronisation, handshaking or similar.
+        /// <summary>
+        /// Information associated with inproc endpoint. Note that endpoint options
+        /// are registered as well so that the peer can access them without a need
+        /// for synchronization, handshaking or similar.
+        /// </summary>
 
         public class Endpoint
         {
@@ -84,8 +86,8 @@ namespace NetMQ.zmq
         private bool m_terminating;
 
         /// <summary>
-        /// This object is for synchronisation of accesses to global slot-related data:
-        /// sockets, empty_slots, terminating. It also synchronises
+        /// This object is for synchronization of accesses to global slot-related data:
+        /// sockets, empty_slots, terminating. It also synchronizes
         /// access to zombie sockets as such (as opposed to slots) and provides
         /// a memory barrier to ensure that all CPU cores see the same data.
         /// </summary>
@@ -122,7 +124,7 @@ namespace NetMQ.zmq
         private readonly Dictionary<string, Endpoint> m_endpoints;
 
         /// <summary>
-        /// This object provides synchronisation of access to the list of inproc endpoints.
+        /// This object provides synchronization of access to the list of inproc endpoints.
         /// </summary>
         private readonly object m_endpointsSync;
 
@@ -265,26 +267,26 @@ namespace NetMQ.zmq
         /// Set either the max-sockets or the I/O-thread-count, depending upon which ContextOption is indicated.
         /// </summary>
         /// <param name="option">this determines which of the two properties to set</param>
-        /// <param name="optval">the value to assign to that property</param>
-        public void Set(ContextOption option, int optval)
+        /// <param name="optionValue">the value to assign to that property</param>
+        public void Set(ContextOption option, int optionValue)
         {
-            if (option == ContextOption.MaxSockets && optval >= 1)
+            if (option == ContextOption.MaxSockets && optionValue >= 1)
             {
                 lock (m_optSync)
                 {
-                    m_maxSockets = optval;
+                    m_maxSockets = optionValue;
                 }
             }
-            else if (option == ContextOption.IOThreads && optval >= 0)
+            else if (option == ContextOption.IOThreads && optionValue >= 0)
             {
                 lock (m_optSync)
                 {
-                    m_ioThreadCount = optval;
+                    m_ioThreadCount = optionValue;
                 }
             }
             else
             {
-                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets or IOThreads, and optval >= 1 or 0.", option, optval));
+                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets or IOThreads, and optionValue >= 1 or 0.", option, optionValue));
             }
         }
 
@@ -309,7 +311,7 @@ namespace NetMQ.zmq
                 if (m_starting)
                 {
                     m_starting = false;
-                    //  Initialise the array of mailboxes. Additional three slots are for
+                    //  Initialize the array of mailboxes. Additional three slots are for
                     //  zmq_term thread and reaper thread.
 
                     int ios;
@@ -324,7 +326,7 @@ namespace NetMQ.zmq
                     m_slots = new IMailbox[m_slotCount];
                     //alloc_Debug.Assert(slots);
 
-                    //  Initialise the infrastructure for zmq_term thread.
+                    //  Initialize the infrastructure for zmq_term thread.
                     m_slots[TermTid] = m_termMailbox;
 
                     //  Create the reaper thread.

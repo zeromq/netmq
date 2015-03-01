@@ -24,7 +24,7 @@ using System;
 namespace NetMQ.zmq
 {
     /// <summary>
-    /// An IZmqMonitor provides a Monitor method.
+    /// Interface IZmqMonitor mandates a Monitor( SocketBase, int, Object[] ) method.
     /// </summary>
     internal interface IZmqMonitor
     {

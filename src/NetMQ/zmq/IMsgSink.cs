@@ -1,12 +1,15 @@
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Interface IMsgSink mandates a PushMsg( Msg ) method.
+    /// </summary>
     internal interface IMsgSink
     {
         /// <summary>
-        ///  Delivers a message. Returns true if successful; false otherwise.
-        ///  The function takes ownership of the passed message.
+        /// Deliver a message. Return true if successful; false otherwise.
+        /// This function takes ownership of the passed message.
         /// </summary>
-        /// <param name="msg">the message to deliver</param>
+        /// <param name="msg">the message (of type Msg) to deliver</param>
         bool PushMsg(ref Msg msg);
     }
 }

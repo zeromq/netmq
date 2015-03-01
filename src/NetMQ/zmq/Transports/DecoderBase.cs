@@ -124,7 +124,7 @@ namespace NetMQ.zmq.Transports
 
         /// <summary>
         /// Processes the data in the buffer previously allocated using
-        /// get_buffer function. size_ argument specifies nemuber of bytes
+        /// get_buffer function. size argument specifies the number of bytes
         /// actually filled into the buffer. Function returns number of
         /// bytes actually processed.
         /// </summary>

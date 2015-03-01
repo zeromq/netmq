@@ -154,7 +154,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create and return a new NetMQException with the given ErrorCode, Messag, and Exception.
+        /// Create and return a new NetMQException with the given ErrorCode, Message, and Exception.
         /// </summary>
         /// <param name="errorCode">an ErrorCode that this exception will contain and expose via it's ErrorCode property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
@@ -250,7 +250,7 @@ namespace NetMQ
 
     /// <summary>
     /// AgainException is a NetMQException that is used within SocketBase.Send and SocketBase.Recv to signal failures
-    /// (as when the Send/Recv fails and and DontWait is set or no timeout is specified)
+    /// (as when the Send/Receive fails and DontWait is set or no timeout is specified)
     /// and is raised within Sub.XSetSocketOption if sending the queued-message fails.
     /// </summary>
     [Serializable]
@@ -277,7 +277,7 @@ namespace NetMQ
 
     /// <summary>
     /// TerminatingException is a NetMQException that is used within SocketBase and Ctx to signal
-    /// that you're trying to do further work after terminating the message-queuing system.
+    /// that you're making the mistake of trying to do further work after terminating the message-queuing system.
     /// </summary>
     [Serializable]
     public class TerminatingException : NetMQException
@@ -302,7 +302,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// InvalidException is a NetMQException that is used within within the message-queuing system to signal invalid value errors.
+    /// InvalidException is a NetMQException that is used within the message-queuing system to signal invalid value errors.
     /// </summary>
     [Serializable]
     public class InvalidException : NetMQException
@@ -370,7 +370,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// ProtocolNotSupportedException is a NetMQException that is used within within the message-queuing system to signal
+    /// ProtocolNotSupportedException is a NetMQException that is used within the message-queuing system to signal
     /// mistakes in properly utilizing the communications protocols.
     /// </summary>
     [Serializable]
@@ -440,7 +440,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// FiniteStateMachineException is an Exception that is used within within the message-queuing system
+    /// FiniteStateMachineException is an Exception that is used within the message-queuing system
     /// to signal errors in the send/receive order with request/response sockets.
     /// </summary>
     [Serializable]

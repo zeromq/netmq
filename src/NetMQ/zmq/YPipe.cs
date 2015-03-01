@@ -27,29 +27,39 @@ namespace NetMQ.zmq
 {
     internal sealed class YPipe<T>
     {
-        //  Allocation-efficient queue to store pipe items.
-        //  Front of the queue points to the first prefetched item, back of
-        //  the pipe points to last un-flushed item. Front is used only by
-        //  reader thread, while back is used only by writer thread.
+        /// <summary>
+        /// Allocation-efficient queue to store pipe items.
+        /// Front of the queue points to the first prefetched item, back of
+        /// the pipe points to last un-flushed item. Front is used only by
+        /// reader thread, while back is used only by writer thread.
+        /// </summary> 
         private readonly YQueue<T> m_queue;
 
-        //  Points to the first un-flushed item. This variable is used
-        //  exclusively by writer thread.
+        /// <summary>
+        /// Points to the first un-flushed item. This variable is used
+        /// exclusively by writer thread.
+        /// </summary> 
         private int m_flushFromIndex;
 
-        //  Points to the first un-prefetched item. This variable is used
-        //  exclusively by reader thread.
+        /// <summary>
+        /// Points to the first un-prefetched item. This variable is used
+        /// exclusively by reader thread.
+        /// </summary> 
         private int m_readToIndex;
 
-        //  Points to the first item to be flushed in the future.
+        /// <summary>
+        /// Points to the first item to be flushed in the future.
+        /// </summary> 
         private int m_flushToIndex;
 
         private string m_name;
 
-        //  The single point of contention between writer and reader thread.
-        //  Points past the last flushed item. If it is NULL,
-        //  reader is asleep. This pointer should be always accessed using
-        //  atomic operations.
+        /// <summary>
+        /// The single point of contention between writer and reader thread.
+        /// Points past the last flushed item. If it is NULL,
+        /// reader is asleep. This pointer should be always accessed using
+        /// atomic operations.
+        /// </summary> 
         private int m_lastAllowedToReadIndex;
 
         public YPipe(int qsize, string name)
@@ -59,10 +69,12 @@ namespace NetMQ.zmq
             m_lastAllowedToReadIndex = m_flushFromIndex = m_readToIndex = m_flushToIndex = m_queue.BackPos;
         }
 
-        //  Write an item to the pipe.  Don't flush it yet. If incomplete is
-        //  set to true the item is assumed to be continued by items
-        //  subsequently written to the pipe. Incomplete items are never
-        //  flushed down the stream.
+        /// <summary>
+        /// Write an item to the pipe.  Don't flush it yet. If incomplete is
+        /// set to true the item is assumed to be continued by items
+        /// subsequently written to the pipe. Incomplete items are never
+        /// flushed down the stream.
+        /// </summary> 
         public void Write(ref T value, bool incomplete)
         {
             //  Place the value to the queue, add new terminator element.
@@ -75,8 +87,10 @@ namespace NetMQ.zmq
             }
         }
 
-        /// <summary>Pop an incomplete item from the pipe.</summary> 
-        /// <returns>Returns the element revoked if such item exists, <c>null</c> otherwise.</returns>  
+        /// <summary>
+        /// Pop an incomplete item from the pipe.
+        /// </summary> 
+        /// <returns>the element revoked if such item exists, <c>null</c> otherwise.</returns>  
         public bool Unwrite(ref T value)
         {
             if (m_flushToIndex == m_queue.BackPos)
@@ -86,9 +100,12 @@ namespace NetMQ.zmq
             return true;
         }
 
-        /// <summary> Flush all the completed items into the pipe. </summary>
+        /// <summary>
+        /// Flush all the completed items into the pipe.
+        /// </summary>
         /// <returns> Returns <c>false</c> if the reader thread is sleeping. In that case, caller is obliged to
-        /// wake the reader up before using the pipe again.</returns>
+        /// wake the reader up before using the pipe again.
+        /// </returns>
         public bool Flush()
         {
             //  If there are no un-flushed items, do nothing.
@@ -116,7 +133,9 @@ namespace NetMQ.zmq
             return true;
         }
 
-        //  Check whether item is available for reading.
+        /// <summary>
+        /// Check whether item is available for reading.
+        /// </summary> 
         public bool CheckRead()
         {
             //  Was the value prefetched already? If so, return.
@@ -150,8 +169,10 @@ namespace NetMQ.zmq
         }
 
 
-        //  Reads an item from the pipe. Returns false if there is no value.
-        //  available.
+        /// <summary>
+        /// Reads an item from the pipe. Returns false if there is no value.
+        /// available.
+        /// </summary> 
         public bool Read(ref T value)
         {
             //  Try to prefetch a value.
@@ -165,9 +186,11 @@ namespace NetMQ.zmq
             return true;
         }
 
-        //  Applies the function fn to the first elemenent in the pipe
-        //  and returns the value returned by the fn.
-        //  The pipe mustn't be empty or the function crashes.
+        /// <summary>
+        /// Applies the function fn to the first element in the pipe
+        /// and returns the value returned by the fn.
+        /// The pipe mustn't be empty or the function crashes.
+        /// </summary>
         public T Probe()
         {
             bool rc = CheckRead();

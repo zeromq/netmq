@@ -159,7 +159,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Convert the buffer to integer in network byte order (Big endian)
+        /// Convert the buffer to integer in network byte order (big-endian)
         /// </summary>
         /// <returns></returns>
         public int ConvertToInt32()
@@ -168,7 +168,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Convert the buffer to long in network byte order (Big endian)
+        /// Convert the buffer to long in network byte order (big-endian)
         /// </summary>
         /// <returns></returns>
         public long ConvertToInt64()

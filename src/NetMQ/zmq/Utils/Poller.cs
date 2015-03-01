@@ -46,7 +46,7 @@ namespace NetMQ.zmq.Utils
             public IPollEvents Handler { get; private set; }
 
             /// <summary>
-            /// Get or set whether this PollSet is cancelled.
+            /// Get or set whether this PollSet is canceled.
             /// </summary>
             public bool Cancelled { get; set; }
 
@@ -161,7 +161,7 @@ namespace NetMQ.zmq.Utils
         {
             PollSet pollSet;
 
-            // if the socket was removed before being added there is no reason to mark retired, so just cancelling the socket and removing from add list 
+            // if the socket was removed before being added there is no reason to mark retired, so just canceling the socket and removing from add list 
             if ((pollSet = m_addList.FirstOrDefault(p => p.Socket == handle)) != null)
             {
                 m_addList.Remove(pollSet);
@@ -336,7 +336,7 @@ namespace NetMQ.zmq.Utils
 
                 if (m_retired)
                 {
-                    // Take any sockets that have been cancelled out of the list..
+                    // Take any sockets that have been canceled out of the list..
                     foreach (var item in m_handles.Where(k => k.Cancelled).ToList())
                     {
                         m_handles.Remove(item);

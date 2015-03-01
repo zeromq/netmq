@@ -22,6 +22,7 @@
 using System;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ.zmq
 {
     internal class IOThread : ZObject, IMailboxEvent
@@ -30,8 +31,10 @@ namespace NetMQ.zmq
         /// I/O thread accesses incoming commands via this mailbox.
         /// </summary>
         private readonly IOThreadMailbox m_mailbox;
-        
-        //  I/O multiplexing is performed using a poller object.
+
+        /// <summary>
+        /// I/O multiplexing is performed using a poller object.
+        /// </summary>
         private readonly Proactor m_proactor;
 
         readonly String m_name;
@@ -78,10 +81,10 @@ namespace NetMQ.zmq
         public int Load
         {
             get { return m_proactor.Load; }
-        }                  
-      
+        }
+
         protected override void ProcessStop()
-        {            
+        {
             m_proactor.Stop();
         }
 

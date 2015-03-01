@@ -44,7 +44,7 @@ namespace NetMQ.zmq.Patterns
             m_options.Filter = true;
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optionValue)
         {
             if (option != ZmqSocketOptions.Subscribe && option != ZmqSocketOptions.Unsubscribe)
             {
@@ -53,12 +53,12 @@ namespace NetMQ.zmq.Patterns
 
             byte[] val;
 
-            if (optval is String)
-                val = Encoding.ASCII.GetBytes((String)optval);
-            else if (optval is byte[])
-                val = (byte[])optval;
+            if (optionValue is String)
+                val = Encoding.ASCII.GetBytes((String)optionValue);
+            else if (optionValue is byte[])
+                val = (byte[])optionValue;
             else
-                throw new InvalidException(String.Format("In Sub.XSetSocketOption({0},{1}), optval must be either a String or a byte-array.", option, (optval == null ? "null" : optval.ToString())));
+                throw new InvalidException(String.Format("In Sub.XSetSocketOption({0},{1}), optionValue must be either a String or a byte-array.", option, (optionValue == null ? "null" : optionValue.ToString())));
 
             //  Create the subscription message.
             var msg = new Msg();
@@ -76,7 +76,7 @@ namespace NetMQ.zmq.Patterns
 
                 if (!isMessageSent)
                 {
-                    string xMsg = String.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optval);
+                    string xMsg = String.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
                     throw new AgainException(innerException: null, message: xMsg);
                 }
             }

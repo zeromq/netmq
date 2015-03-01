@@ -40,7 +40,7 @@ namespace NetMQ.zmq.Patterns
 
         /// <summary>
         /// If true, we are starting to receive a request. The beginning
-        /// of the request is the backtrace stack.
+        /// of the request is the back-trace stack.
         /// </summary>
         private bool m_requestBegins;
 

@@ -21,7 +21,7 @@ namespace NetMQ
 
     /// <summary>
     /// A NetMQMessage is basically a collection of NetMQFrames, and is the basic message-unit that is sent and received
-    /// across this messae-queuing subsystem.
+    /// across this message-queuing subsystem.
     /// </summary>
     public class NetMQMessage : IEnumerable<NetMQFrame>
     {
