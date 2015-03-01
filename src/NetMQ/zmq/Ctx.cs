@@ -379,11 +379,7 @@ namespace NetMQ.zmq
 
                 //  Create the socket and register its mailbox.
                 SocketBase s = SocketBase.Create(type, this, slot, socketId);
-                if (s == null)
-                {
-                    m_emptySlots.Push(slot);
-                    return null;
-                }
+
                 m_sockets.Add(s);
                 m_slots[slot] = s.Mailbox;
 
@@ -524,9 +520,11 @@ namespace NetMQ.zmq
         [NotNull]
         public Endpoint FindEndpoint([NotNull] String addr)
         {
+            Debug.Assert(addr != null);
+
             lock (m_endpointsSync)
             {
-                if (addr == null || !m_endpoints.ContainsKey(addr))
+                if (!m_endpoints.ContainsKey(addr))
                 {
                     throw new EndpointNotFoundException();
                 }

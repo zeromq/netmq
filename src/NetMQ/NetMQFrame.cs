@@ -97,7 +97,7 @@ namespace NetMQ
         /// </summary>
         public int BufferSize
         {
-            get { return Buffer == null ? 0 : Buffer.Length; }
+            get { return Buffer.Length; }
         }
 
         /// <summary>
