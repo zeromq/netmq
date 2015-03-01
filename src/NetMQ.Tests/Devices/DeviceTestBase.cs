@@ -10,13 +10,12 @@ namespace NetMQ.Tests.Devices
         where TDevice : IDevice
         where TWorkerSocket : NetMQSocket
     {
-
         protected const string Frontend = "inproc://front.addr";
         protected const string Backend = "inproc://back.addr";
 
         protected readonly Random Random = new Random();
 
-        protected NetMQContext Context;
+        private NetMQContext m_context;
         protected TDevice Device;
 
         protected Func<NetMQContext, TDevice> CreateDevice;
@@ -29,19 +28,19 @@ namespace NetMQ.Tests.Devices
         private CancellationTokenSource m_workerCancellationSource;
         private CancellationToken m_workerCancellationToken;
 
-        protected ManualResetEvent WorkerDone;
+        private ManualResetEvent m_workerDone;
 
         [TestFixtureSetUp]
-        protected virtual void Initialize()
+        protected void Initialize()
         {
             WorkerReceiveCount = 0;
-            WorkerDone = new ManualResetEvent(false);
+            m_workerDone = new ManualResetEvent(false);
             m_workerCancellationSource = new CancellationTokenSource();
             m_workerCancellationToken = m_workerCancellationSource.Token;
 
-            Context = NetMQContext.Create();
+            m_context = NetMQContext.Create();
             SetupTest();
-            Device = CreateDevice(Context);
+            Device = CreateDevice(m_context);
             Device.Start();
 
             StartWorker();
@@ -50,9 +49,9 @@ namespace NetMQ.Tests.Devices
         protected abstract void SetupTest();
 
         [TestFixtureTearDown]
-        protected virtual void Cleanup()
+        protected void Cleanup()
         {
-            Context.Dispose();
+            m_context.Dispose();
         }
 
         protected abstract void DoWork(NetMQSocket socket);
@@ -63,7 +62,7 @@ namespace NetMQ.Tests.Devices
         {
             Task.Factory.StartNew(() =>
             {
-                using (var socket = CreateWorkerSocket(Context))
+                using (var socket = CreateWorkerSocket(m_context))
                 {
                     socket.Connect(Backend);
                     WorkerSocketAfterConnect(socket);
@@ -86,14 +85,14 @@ namespace NetMQ.Tests.Devices
                     }
                 }
 
-                WorkerDone.Set();
+                m_workerDone.Set();
             }, TaskCreationOptions.LongRunning);
         }
 
         protected void StopWorker()
         {
             m_workerCancellationSource.Cancel();
-            WorkerDone.WaitOne();
+            m_workerDone.WaitOne();
         }
 
         protected abstract void DoClient(int id, NetMQSocket socket);
@@ -102,7 +101,7 @@ namespace NetMQ.Tests.Devices
         {
             Task.Factory.StartNew(() =>
             {
-                using (var client = CreateClientSocket(Context))
+                using (var client = CreateClientSocket(m_context))
                 {
                     client.Connect(Frontend);
 
