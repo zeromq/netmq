@@ -1,5 +1,4 @@
 ﻿using System;
-using NetMQ.InProcActors;
 using NetMQ.Sockets;
 
 namespace NetMQ.Tests.InProcActors.Echo
@@ -22,19 +21,9 @@ namespace NetMQ.Tests.InProcActors.Echo
     ///    break out of the while loop, and dispose of the shim socket.
     /// 3. When an Exception occurs you should send that down the wire to Actors' calling code.
     /// </summary>
-    public class EchoShimHandler : IShimHandler<string>
+    public class EchoShimHandler : IShimHandler
     {
-
-        public void Initialise(string state)
-        {
-            if (string.IsNullOrEmpty(state) || state != "Hello World")
-            {
-                throw new InvalidOperationException(
-                    "Args were not correct, expected 'Hello World'");
-            }
-        }
-
-        public void RunPipeline(PairSocket shim)
+        public void Run(PairSocket shim)
         {
             shim.SignalOK();
 
@@ -57,8 +46,7 @@ namespace NetMQ.Tests.InProcActors.Echo
 
                     if (command == "ECHO")
                     {
-                        shim.Send(string.Format("ECHO BACK : {0}",
-                            msg[1].ConvertToString()));
+                        shim.Send(string.Format("ECHO BACK : {0}", msg[1].ConvertToString()));
                     }
                     else
                     {
@@ -66,7 +54,7 @@ namespace NetMQ.Tests.InProcActors.Echo
                     }
                 }
                 // You WILL need to decide what Exceptions should be caught here, this is for 
-                // demonstration purposes only, any unhandled falut will bubble up to callers code
+                // demonstration purposes only, any unhandled fault will bubble up to caller's code
                 catch (Exception e)
                 {
                     shim.Send(string.Format("Error: Exception occurred {0}", e.Message));

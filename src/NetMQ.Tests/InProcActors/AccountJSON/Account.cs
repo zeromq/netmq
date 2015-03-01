@@ -3,12 +3,6 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
 {
     public class Account
     {
-
-        public Account()
-        {
-
-        }
-
         public Account(int id, string name, string sortCode, decimal balance)
         {
             Id = id;

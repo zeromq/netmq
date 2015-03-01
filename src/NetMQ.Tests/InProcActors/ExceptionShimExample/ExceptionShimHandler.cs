@@ -1,5 +1,4 @@
 ﻿using System;
-using NetMQ.InProcActors;
 using NetMQ.Sockets;
 
 namespace NetMQ.Tests.InProcActors.ExceptionShimExample
@@ -23,16 +22,9 @@ namespace NetMQ.Tests.InProcActors.ExceptionShimExample
     ///    break out of the while loop, and dispose of the shim socket
     /// 3. When an Exception occurs you should send that down the wire to Actors calling code
     /// </summary>
-    public class ExceptionShimHandler : IShimHandler<object>
+    public class ExceptionShimHandler : IShimHandler
     {
-
-        public void Initialise(object state)
-        {
-
-        }
-
-
-        public void RunPipeline(PairSocket shim)
+        public void Run(PairSocket shim)
         {
             shim.SignalOK();
 
@@ -51,7 +43,7 @@ namespace NetMQ.Tests.InProcActors.ExceptionShimExample
                     throw new InvalidOperationException("Actors Shim threw an Exception");
                 }
                 //You WILL need to decide what Exceptions should be caught here, this is for 
-                //demonstration purposes only, any unhandled falut will bubble up to callers code
+                //demonstration purposes only, any unhandled fault will bubble up to caller's code
                 catch (InvalidOperationException e)
                 {
                     shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
