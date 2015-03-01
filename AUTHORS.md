@@ -3,6 +3,7 @@ Contributors
 
 * Alexey Yakovlev &mdash; [@yallie](https://github.com/yallie)
 * Christophe Juniet &mdash; [@cjuniet](https://github.com/cjuniet)
+* Dan de Zille &mdash; [@dandezille](https://github.com/dandezille)
 * Dorom Somech &mdash; [@somdoron](https://github.com/somdoron)
 * Drew Noakes &mdash; [@drewnoakes](https://github.com/drewnoakes)
 * Eugen Dück &mdash; [@EugenDueck](https://github.com/EugenDueck)
