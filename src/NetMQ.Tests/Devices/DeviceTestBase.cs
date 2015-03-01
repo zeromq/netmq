@@ -63,28 +63,28 @@ namespace NetMQ.Tests.Devices
         {
             Task.Factory.StartNew(() =>
             {
-                var socket = CreateWorkerSocket(Context);
-                socket.Connect(Backend);
-                WorkerSocketAfterConnect(socket);
-
-                socket.ReceiveReady += (s, a) => { };
-                socket.SendReady += (s, a) => { };
-
-                while (!m_workerCancelationToken.IsCancellationRequested)
+                using (var socket = CreateWorkerSocket(Context))
                 {
-                    var has = socket.Poll(TimeSpan.FromMilliseconds(1));
+                    socket.Connect(Backend);
+                    WorkerSocketAfterConnect(socket);
 
-                    if (!has)
+                    socket.ReceiveReady += (s, a) => { };
+                    socket.SendReady += (s, a) => { };
+
+                    while (!m_workerCancelationToken.IsCancellationRequested)
                     {
-                        Thread.Sleep(1);
-                        continue;
+                        var has = socket.Poll(TimeSpan.FromMilliseconds(1));
+
+                        if (!has)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
+
+                        DoWork(socket);
+                        Interlocked.Increment(ref WorkerReceiveCount);
                     }
-
-                    DoWork(socket);
-                    Interlocked.Increment(ref WorkerReceiveCount);
                 }
-
-                socket.Close();
 
                 WorkerDone.Set();
             }, TaskCreationOptions.LongRunning);
@@ -102,14 +102,15 @@ namespace NetMQ.Tests.Devices
         {
             Task.Factory.StartNew(() =>
             {
-                var client = CreateClientSocket(Context);
-                client.Connect(Frontend);
+                using (var client = CreateClientSocket(Context))
+                {
+                    client.Connect(Frontend);
 
-                if (waitBeforeSending > 0)
-                    Thread.Sleep(waitBeforeSending);
+                    if (waitBeforeSending > 0)
+                        Thread.Sleep(waitBeforeSending);
 
-                DoClient(id, client);
-                client.Close();
+                    DoClient(id, client);
+                }
             });
         }
 
