@@ -107,7 +107,7 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void SendMultiplartMessage()
+        public void SendMultipartMessage()
         {
             using (NetMQContext ctx = NetMQContext.Create())
             {

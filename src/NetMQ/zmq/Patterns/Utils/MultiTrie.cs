@@ -283,10 +283,10 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <returns></returns>
         public bool Remove(byte[] prefix, int start, int size, Pipe pipe)
         {
-            return RemovemHelper(prefix, start, size, pipe);
+            return RemoveHelper(prefix, start, size, pipe);
         }
 
-        private bool RemovemHelper(byte[] prefix, int start, int size, Pipe pipe)
+        private bool RemoveHelper(byte[] prefix, int start, int size, Pipe pipe)
         {
             if (size == 0)
             {
@@ -311,7 +311,7 @@ namespace NetMQ.zmq.Patterns.Utils
             if (nextNode == null)
                 return false;
 
-            bool ret = nextNode.RemovemHelper(prefix, start + 1, size - 1, pipe);
+            bool ret = nextNode.RemoveHelper(prefix, start + 1, size - 1, pipe);
             if (nextNode.IsRedundant)
             {
                 Debug.Assert(m_count > 0);

@@ -283,7 +283,7 @@ namespace NetMQ.zmq.Utils
                         continue;
                     }
 
-                    // Invoke it's handler's InEvent if it's in our error-list.
+                    // Invoke its handler's InEvent if it's in our error-list.
                     if (errorList.Contains(pollSet.Socket))
                     {
                         try
@@ -300,7 +300,7 @@ namespace NetMQ.zmq.Utils
                         continue;
                     }
 
-                    // Invoke it's handler's OutEvent if it's in our write-list.
+                    // Invoke its handler's OutEvent if it's in our write-list.
                     if (writeList.Contains(pollSet.Socket))
                     {
                         try
@@ -317,7 +317,7 @@ namespace NetMQ.zmq.Utils
                         continue;
                     }
 
-                    // Invoke it's handler's InEvent if it's in our read-list.
+                    // Invoke its handler's InEvent if it's in our read-list.
                     if (readList.Contains(pollSet.Socket))
                     {
                         try

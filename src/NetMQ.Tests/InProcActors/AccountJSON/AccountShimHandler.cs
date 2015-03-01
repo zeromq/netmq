@@ -10,7 +10,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
     /// to implement per actor. This essentially contains your commands/protocol
     /// and should deal with any command workload, as well as sending back to the
     /// other end of the PairSocket which calling code would receive by using the
-    /// Actor classes various RecieveXXX() methods
+    /// Actor classes various ReceiveXXX() methods
     /// 
     /// This is a VERY simple protocol but it just demonstrates what you would need
     /// to do to implement your own Shim handler
@@ -20,7 +20,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
     /// 
     /// 1. Bad commands should always send the following message
     ///    "Error: invalid message to actor"
-    /// 2. When we recieve a command from the actor telling us to exit the pipeline we should immediately
+    /// 2. When we receive a command from the actor telling us to exit the pipeline we should immediately
     ///    break out of the while loop, and dispose of the shim socket
     /// 3. When an Exception occurs you should send that down the wire to Actors calling code
     /// </summary>

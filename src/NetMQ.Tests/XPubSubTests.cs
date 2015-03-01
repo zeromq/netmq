@@ -366,7 +366,7 @@ namespace NetMQ.Tests
                         sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Send(new byte[] {1, (byte) 'A'});
 
-                        // let the subscrbier connect to the publisher before sending a message
+                        // let the subscriber connect to the publisher before sending a message
                         Thread.Sleep(500);
 
                         pub.SendMore("A");

@@ -422,7 +422,7 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void DisposeImmediatly()
+        public void DisposeImmediately()
         {
             using (NetMQContext context = NetMQContext.Create())
             {

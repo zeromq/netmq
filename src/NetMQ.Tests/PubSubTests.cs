@@ -21,7 +21,7 @@ namespace NetMQ.Tests
                         sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Subscribe("A");
 
-                        // let the subscrbier connect to the publisher before sending a message
+                        // let the subscriber connect to the publisher before sending a message
                         Thread.Sleep(500);
 
                         pub.SendMore("A");
@@ -57,7 +57,7 @@ namespace NetMQ.Tests
                         sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Subscribe("");
 
-                        // let the subscrbier connect to the publisher before sending a message
+                        // let the subscriber connect to the publisher before sending a message
                         Thread.Sleep(500);
 
                         pub.Send("Hello");
@@ -86,7 +86,7 @@ namespace NetMQ.Tests
                     {
                         sub.Connect("tcp://127.0.0.1:" + port);
 
-                        // let the subscrbier connect to the publisher before sending a message
+                        // let the subscriber connect to the publisher before sending a message
                         Thread.Sleep(500);
 
                         pub.Send("Hello");
@@ -268,7 +268,7 @@ namespace NetMQ.Tests
                         sub.Connect("tcp://127.0.0.1:" + port);
                         sub.Subscribe("A");
 
-                        // let the subscrbier connect to the publisher before sending a message
+                        // let the subscriber connect to the publisher before sending a message
                         Thread.Sleep(500);
 
                         pub.SendMore("A");

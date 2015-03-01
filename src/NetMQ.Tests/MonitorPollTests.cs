@@ -126,7 +126,7 @@ namespace NetMQ.Tests
             // The bug:
             // Given we monitor a netmq tcp socket
             // Given we disposed of the monitored socket first
-            // When we dipose of the monitor
+            // When we dispose of the monitor
             // Then our monitor is Faulted with a EndpointNotFoundException
             // And monitor can't be stopped or disposed
 
@@ -139,7 +139,7 @@ namespace NetMQ.Tests
                     monitor = new NetMQMonitor(theContext, reqSocket, "inproc://#monitor", SocketEvent.All);
                     Task.Factory.StartNew(() => monitor.Start());
 
-                    //The bug is only occuring when monitor a tcp socket
+                    //The bug is only occurring when monitor a tcp socket
                     var port = resSocket.BindRandomPort("tcp://127.0.0.1");
                     reqSocket.Connect("tcp://127.0.0.1:" + port);
 

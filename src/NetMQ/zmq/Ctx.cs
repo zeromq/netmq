@@ -166,7 +166,7 @@ namespace NetMQ.zmq
             m_endpointsSync = new object();
             m_optSync = new object();
 
-            m_termMailbox = new Mailbox("terminater");
+            m_termMailbox = new Mailbox("terminator");
 
             m_emptySlots = new Stack<int>();
             m_ioThreads = new List<IOThread>();
