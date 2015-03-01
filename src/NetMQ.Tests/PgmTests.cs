@@ -60,7 +60,7 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectBothSockets()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
             using (var pub = context.CreatePublisherSocket())
             using (var sub = context.CreateSubscriberSocket())
             {
@@ -81,11 +81,11 @@ namespace NetMQ.Tests
         public void UseInterface()
         {
             var hostEntry = Dns.GetHostEntry(Dns.GetHostName());
-            string ip = (
-                                 from addr in hostEntry.AddressList
-                                 where addr.AddressFamily == AddressFamily.InterNetwork
-                                 select addr.ToString()
-                    ).FirstOrDefault();
+
+            string ip = hostEntry.AddressList
+                .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork)
+                .Select(addr => addr.ToString())
+                .FirstOrDefault();
 
             using (var context = NetMQContext.Create())
             using (var pub = context.CreatePublisherSocket())
