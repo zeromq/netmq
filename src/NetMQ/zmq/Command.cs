@@ -21,13 +21,14 @@
 
 using System;
 
-//  This structure defines the commands that can be sent between threads.
+using JetBrains.Annotations;
+
 namespace NetMQ.zmq
 {
     /// <summary>
-    ///  This class defines the commands that can be sent between threads.
+    /// This class defines the commands that can be sent between threads.
     /// </summary>
-    internal class Command
+    internal sealed class Command
     {
         /// <summary>
         /// Default constructor - create the Command object for processing commands.
@@ -36,24 +37,22 @@ namespace NetMQ.zmq
         {
         }
 
-        public Command(ZObject destination, CommandType type)
-            : this(destination, type, null)
+        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null)
         {
+            Destination = destination;
+            CommandType = type;
+            Arg = arg;
         }
 
-        public Command(ZObject destination, CommandType type, Object arg)
-        {
-            this.Destination = destination;
-            this.CommandType = type;
-            this.Arg = arg;
-        }
-
+        /// <summary>The destination to which the command should be applied.</summary>
+        [CanBeNull]
         public ZObject Destination { get; private set; }
+
+        /// <summary>The type of this command.</summary>
         public CommandType CommandType { get; private set; }
 
-        /// <summary>
-        /// Get the argument to this command.
-        /// </summary>
+        /// <summary>An optional argument for the command, if required.</summary>
+        [CanBeNull]
         public Object Arg { get; private set; }
 
         public override String ToString()

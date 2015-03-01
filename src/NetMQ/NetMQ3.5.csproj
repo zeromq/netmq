@@ -103,7 +103,7 @@
     <Compile Include="zmq\IOObject.cs" />
     <Compile Include="zmq\IOThread.cs" />
     <Compile Include="zmq\IPollEvents.cs" />
-    <Compile Include="zmq\IProcatorEvents.cs" />
+    <Compile Include="zmq\IProactorEvents.cs" />
     <Compile Include="zmq\ITimerEvent.cs" />
     <Compile Include="zmq\IZmqMonitor.cs" />
     <Compile Include="zmq\Mailbox.cs" />
@@ -142,7 +142,7 @@
     <Compile Include="zmq\Transports\IEncoder.cs" />
     <Compile Include="zmq\Transports\IEngine.cs" />
     <Compile Include="zmq\Transports\Ipc\IpcAddress.cs" />
-    <Compile Include="zmq\Transports\Ipc\IpcConnecter.cs" />
+    <Compile Include="zmq\Transports\Ipc\IpcConnector.cs" />
     <Compile Include="zmq\Transports\Ipc\IpcListener.cs" />
     <Compile Include="zmq\Transports\Pgm\PgmAddress.cs" />
     <Compile Include="zmq\Transports\Pgm\PgmListener.cs" />
@@ -153,7 +153,7 @@
     <Compile Include="zmq\Transports\RawEncoder.cs" />
     <Compile Include="zmq\Transports\StreamEngine.cs" />
     <Compile Include="zmq\Transports\Tcp\TcpAddress.cs" />
-    <Compile Include="zmq\Transports\Tcp\TcpConnecter.cs" />
+    <Compile Include="zmq\Transports\Tcp\TcpConnector.cs" />
     <Compile Include="zmq\Transports\Tcp\TcpListener.cs" />
     <Compile Include="zmq\Transports\V1Decoder.cs" />
     <Compile Include="zmq\Transports\V1Encoder.cs" />

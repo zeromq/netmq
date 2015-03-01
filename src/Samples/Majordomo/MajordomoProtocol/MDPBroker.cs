@@ -63,13 +63,13 @@ namespace MajordomoProtocol
         private string m_endpoint;                              // the endpoint the broker binds to
         private int m_heartbeatLiveliness;                      // indicates the 'liveliness' of a worker
         private TimeSpan m_heartbeatExpiry;                     // when a worker expiers -> set by HeartbeatLiveliness(!)
-        private TimeSpan m_heartbeatInterval;                   // the time interval between heartbeats
+        private readonly TimeSpan m_heartbeatInterval;          // the time interval between heartbeats
         private bool m_isBound;                                 // true if socket is bound to address
         private bool m_isRunning;                               // true if the broker is running
         private readonly object m_syncRoot = new object ();     // used as synchronization object for Purge ()
 
         /// <summary>
-        ///     the socket for communicating with clients & workers
+        ///     the socket for communicating with clients and workers
         /// </summary>
         public NetMQSocket Socket { get; private set; }
 

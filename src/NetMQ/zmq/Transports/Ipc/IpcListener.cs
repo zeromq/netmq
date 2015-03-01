@@ -19,36 +19,31 @@
 */
 
 using System;
+using JetBrains.Annotations;
 using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    internal class IpcListener : TcpListener
+    internal sealed class IpcListener : TcpListener
     {
         private readonly IpcAddress m_address;
 
-        public IpcListener(IOThread ioThread, SocketBase socket, Options options)
+        public IpcListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, socket, options)
         {
             m_address = new IpcAddress();
         }
 
-        // Get the bound address for use with wildcards
         public override String Address
         {
-            get
-            {
-                return m_address.ToString();
-            }
+            get { return m_address.ToString(); }
         }
 
-        //  Set address to listen on.
-        public override void SetAddress(String addr)
+        public override void SetAddress(string addr)
         {
             m_address.Resolve(addr, false);
 
-            String fake = m_address.Address.Address + ":" + m_address.Address.Port;
-            base.SetAddress(fake);
+            base.SetAddress(m_address.Address.Address + ":" + m_address.Address.Port);
         }
     }
 }

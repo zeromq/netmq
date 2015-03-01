@@ -20,13 +20,14 @@
 
 using System;
 using System.Net;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq
 {
     /// <summary>
     /// Class Address contains a specification of a protocol and an MqEndPoint.
     /// </summary>
-    internal class Address
+    internal sealed class Address
     {
         /// <summary>
         /// This is the string-literal "inproc".
@@ -58,9 +59,10 @@ namespace NetMQ.zmq
         /// </summary>
         public interface IZAddress
         {
-            void Resolve(String name, bool ip4Only);
-            IPEndPoint Address { get; }
-            String Protocol { get; }
+            void Resolve([NotNull] String name, bool ip4Only);
+            
+            [CanBeNull] IPEndPoint Address { get; }
+            [NotNull] String Protocol { get; }
         }
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="protocol">the protocol of this Address - as in tcp, ipc, pgm</param>
         /// <param name="address">a text representation of the address</param>
-        public Address(String protocol, String address)
+        public Address([NotNull] String protocol, [NotNull] String address)
         {
             Protocol = protocol;
             AddressString = address;
@@ -79,24 +81,25 @@ namespace NetMQ.zmq
         /// Create a new Address instance based upon the given endpoint, assuming a protocol of tcp.
         /// </summary>
         /// <param name="endpoint">the subclass of EndPoint to base this Address upon</param>
-        public Address(EndPoint endpoint)
+        public Address([NotNull] EndPoint endpoint)
         {
             Protocol = TcpProtocol;
 
-            if (endpoint is DnsEndPoint)
+            var dnsEndPoint = endpoint as DnsEndPoint;
+            if (dnsEndPoint != null)
             {
-                DnsEndPoint dnsEndpoint = (DnsEndPoint)endpoint;
-                AddressString = dnsEndpoint.Host + ":" + dnsEndpoint.Port;
+                AddressString = dnsEndPoint.Host + ":" + dnsEndPoint.Port;
+                return;
             }
-            else if (endpoint is IPEndPoint)
+
+            var ipEndPoint = endpoint as IPEndPoint;
+            if (ipEndPoint != null)
             {
-                IPEndPoint ipEndpoint = (IPEndPoint)endpoint;
-                AddressString = ipEndpoint.Address + ":" + ipEndpoint.Port;
+                AddressString = ipEndPoint.Address + ":" + ipEndPoint.Port;
+                return;
             }
-            else
-            {
-                AddressString = endpoint.ToString();
-            }
+
+            AddressString = endpoint.ToString();
         }
 
 
@@ -132,10 +135,13 @@ namespace NetMQ.zmq
             return null; //TODO: REVIEW - Although not explicitly prohibited, returning null from ToString seems sketchy; return string.Empty? 
         }
 
+        [NotNull]
         public String Protocol { get; private set; }
 
+        [NotNull]
         public String AddressString { get; private set; }
 
+        [CanBeNull]
         public IZAddress Resolved { get; set; }
     }
 }

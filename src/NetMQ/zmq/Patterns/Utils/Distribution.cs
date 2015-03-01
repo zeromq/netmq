@@ -21,6 +21,7 @@
 */
 
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
@@ -70,7 +71,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// Adds the pipe to the distributor object.
         /// </summary>
         /// <param name="pipe"></param>  
-        public void Attach(Pipe pipe)
+        public void Attach([NotNull] Pipe pipe)
         {
             //  If we are in the middle of sending a message, we'll add new pipe
             //  into the list of eligible pipes. Otherwise we add it to the list
@@ -95,7 +96,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// will send message also to this pipe.
         /// </summary>
         /// <param name="pipe"></param>
-        public void Match(Pipe pipe)
+        public void Match([NotNull] Pipe pipe)
         {
             int index = m_pipes.IndexOf(pipe);
 
@@ -124,7 +125,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// Removes the pipe from the distributor object.
         /// </summary>
         /// <param name="pipe"></param>
-        public void Terminated(Pipe pipe)
+        public void Terminated([NotNull] Pipe pipe)
         {
             //  Remove the pipe from the list; adjust number of matching, active and/or
             //  eligible pipes accordingly.
@@ -141,7 +142,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// Activates pipe that have previously reached high watermark.
         /// </summary>
         /// <param name="pipe"></param>  
-        public void Activated(Pipe pipe)
+        public void Activated([NotNull] Pipe pipe)
         {
             //  Move the pipe from passive to eligible state.
             m_pipes.Swap(m_pipes.IndexOf(pipe), m_eligible);
@@ -164,23 +165,22 @@ namespace NetMQ.zmq.Patterns.Utils
         public void SendToAll(ref Msg msg, SendReceiveOptions flags)
         {
             m_matching = m_active;
-            SendToMatching(ref msg, flags);
+            SendToMatching(ref msg);
         }
 
         /// <summary>
         /// Send the message to the matching outbound pipes.
         /// </summary>
         /// <param name="msg"></param>
-        /// <param name="flags"></param>  
-        public void SendToMatching(ref Msg msg, SendReceiveOptions flags)
+        public void SendToMatching(ref Msg msg)
         {
             //  Is this end of a multipart message?
             bool hasMore = msg.HasMore;
 
             //  Push the message to matching pipes.
-            Distribute(ref msg, flags);
+            Distribute(ref msg);
 
-            //  If mutlipart message is fully sent, activate all the eligible pipes.
+            //  If multipart message is fully sent, activate all the eligible pipes.
             if (!hasMore)
                 m_active = m_eligible;
 
@@ -190,7 +190,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <summary>
         /// Put the message to all active pipes.
         /// </summary>
-        private void Distribute(ref Msg msg, SendReceiveOptions flags)
+        private void Distribute(ref Msg msg)
         {
             //  If there are no matching pipes available, simply drop the message.
             if (m_matching == 0)
@@ -247,8 +247,8 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <summary>
         /// Write the message to the pipe. Make the pipe inactive if writing
         /// fails. In such a case false is returned.
-        /// <summary>
-        private bool Write(Pipe pipe, ref Msg msg)
+        /// </summary>
+        private bool Write([NotNull] Pipe pipe, ref Msg msg)
         {
             if (!pipe.Write(ref msg))
             {

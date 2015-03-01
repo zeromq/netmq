@@ -22,6 +22,7 @@
 
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq
 {
@@ -37,11 +38,10 @@ namespace NetMQ.zmq
     {
         public interface IPipeEvents
         {
-
-            void ReadActivated(Pipe pipe);
-            void WriteActivated(Pipe pipe);
-            void Hiccuped(Pipe pipe);
-            void Terminated(Pipe pipe);
+            void ReadActivated([NotNull] Pipe pipe);
+            void WriteActivated([NotNull] Pipe pipe);
+            void Hiccuped([NotNull] Pipe pipe);
+            void Terminated([NotNull] Pipe pipe);
         }
 
         /// <summary>
@@ -138,8 +138,9 @@ namespace NetMQ.zmq
         /// <remarks>
         /// Constructor is private as pipe can only be created using <see cref="PipePair"/> method.
         /// </remarks>
-        private Pipe(ZObject parent, YPipe<Msg> inboundPipe, YPipe<Msg> outboundPipe,
-                      int inHighWatermark, int outHighWatermark, bool delay)
+        private Pipe(
+            [NotNull] ZObject parent, [NotNull] YPipe<Msg> inboundPipe, [NotNull] YPipe<Msg> outboundPipe, 
+            int inHighWatermark, int outHighWatermark, bool delay)
             : base(parent)
         {
             m_parent = parent;
@@ -168,22 +169,24 @@ namespace NetMQ.zmq
         /// pipe receives all the pending messages before terminating, otherwise it
         /// terminates straight away.</param>
         /// <returns>A pipe pair for bi-directional transfer of messages. </returns>
-        public static Pipe[] PipePair(ZObject[] parents, int[] highWaterMarks, bool[] delays)
+        [NotNull]
+        public static Pipe[] PipePair([NotNull] ZObject[] parents, [NotNull] int[] highWaterMarks, [NotNull] bool[] delays)
         {
-            //   Creates two pipe objects. These objects are connected by two ypipes,
-            //   each to pass messages in one direction.
+            // Creates two pipe objects. These objects are connected by two ypipes,
+            // each to pass messages in one direction.
 
-            YPipe<Msg> upipe1 = new YPipe<Msg>(Config.MessagePipeGranularity, "upipe1");
-            YPipe<Msg> upipe2 = new YPipe<Msg>(Config.MessagePipeGranularity, "upipe2");
+            var upipe1 = new YPipe<Msg>(Config.MessagePipeGranularity, "upipe1");
+            var upipe2 = new YPipe<Msg>(Config.MessagePipeGranularity, "upipe2");
 
-            var pipes = new Pipe[2];
-            pipes[0] = new Pipe(parents[0], upipe1, upipe2,
-                                  highWaterMarks[1], highWaterMarks[0], delays[0]);
-            pipes[1] = new Pipe(parents[1], upipe2, upipe1,
-                                  highWaterMarks[0], highWaterMarks[1], delays[1]);
+            var pipes = new[]
+            {
+                new Pipe(parents[0], upipe1, upipe2, highWaterMarks[1], highWaterMarks[0], delays[0]),
+                new Pipe(parents[1], upipe2, upipe1, highWaterMarks[0], highWaterMarks[1], delays[1])
+            };
 
             pipes[0].SetPeer(pipes[1]);
             pipes[1].SetPeer(pipes[0]);
+
             return pipes;
         }
 
@@ -191,7 +194,7 @@ namespace NetMQ.zmq
         /// <see cref="PipePair"/> uses this function to let us know about the peer pipe object.
         /// </summary>
         /// <param name="peer">The peer to be assigned.</param>
-        private void SetPeer(Pipe peer)
+        private void SetPeer([NotNull] Pipe peer)
         {
             //  Peer can be set once only.
             Debug.Assert(peer != null);
@@ -202,7 +205,7 @@ namespace NetMQ.zmq
         /// Specifies the object to send events to.
         /// </summary>
         /// <param name="sink"> The receiver of the events. </param>
-        public void SetEventSink(IPipeEvents sink)
+        public void SetEventSink([NotNull] IPipeEvents sink)
         {
             Debug.Assert(m_sink == null);
             m_sink = sink;
@@ -211,6 +214,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Get or set the byte-array that comprises the identity of this Pipe.
         /// </summary>
+        [CanBeNull]
         public byte[] Identity { get; set; }
 
         /// <summary>
@@ -231,9 +235,9 @@ namespace NetMQ.zmq
 
             //  If the next item in the pipe is message delimiter,
             //  initiate termination process.
-            if (IsDelimiter(m_inboundPipe.Probe()))
+            if (m_inboundPipe.Probe().IsDelimiter)
             {
-                Msg msg = new Msg();
+                var msg = new Msg();
                 bool ok = m_inboundPipe.Read(ref msg);
                 Debug.Assert(ok);
                 Delimit();
@@ -268,7 +272,7 @@ namespace NetMQ.zmq
             if (!msg.HasMore)
                 m_numberOfMessagesRead++;
 
-            if (m_lowWatermark > 0 && m_numberOfMessagesRead % m_lowWatermark == 0)
+            if (m_lowWatermark > 0 && m_numberOfMessagesRead%m_lowWatermark == 0)
                 SendActivateWrite(m_peer, m_numberOfMessagesRead);
 
             return true;
@@ -284,7 +288,7 @@ namespace NetMQ.zmq
             if (!m_outActive || m_state != State.Active)
                 return false;
 
-            bool full = m_highWatermark > 0 && m_numberOfMessagesWritten - m_peersMsgsRead == (long)(m_highWatermark);
+            bool full = m_highWatermark > 0 && m_numberOfMessagesWritten - m_peersMsgsRead == m_highWatermark;
 
             if (full)
             {
@@ -320,7 +324,7 @@ namespace NetMQ.zmq
         public void Rollback()
         {
             //  Remove incomplete message from the outbound pipe.
-            Msg msg = new Msg();
+            var msg = new Msg();
             if (m_outboundPipe != null)
             {
                 while (m_outboundPipe.Unwrite(ref msg))
@@ -369,7 +373,7 @@ namespace NetMQ.zmq
             //  migrated to this thread.
             Debug.Assert(m_outboundPipe != null);
             m_outboundPipe.Flush();
-            Msg msg = new Msg();
+            var msg = new Msg();
             while (m_outboundPipe.Read(ref msg))
             {
                 msg.Close();
@@ -453,7 +457,7 @@ namespace NetMQ.zmq
             //  First, delete all the unread messages in the pipe. We have to do it by
             //  hand because msg_t doesn't have automatic destructor. Then deallocate
             //  the ypipe itself.
-            Msg msg = new Msg();
+            var msg = new Msg();
             while (m_inboundPipe.Read(ref msg))
             {
                 msg.Close();
@@ -471,80 +475,67 @@ namespace NetMQ.zmq
         /// before actual shutdown. </param>
         public void Terminate(bool delay)
         {
-            //  Overload the value specified at pipe creation.
+            // Overload the value specified at pipe creation.
             m_delay = delay;
 
-            //  If terminate was already called, we can ignore the duplicit invocation.
+            // If terminate was already called, we can ignore the duplicate invocation.
             if (m_state == State.Terminated || m_state == State.DoubleTerminated)
                 return;
 
-            //  If the pipe is in the phase of async termination, it's going to
-            //  closed anyway. No need to do anything special here.
-            else if (m_state == State.Terminating)
+            // If the pipe is in the phase of async termination, it's going to
+            // closed anyway. No need to do anything special here.
+            if (m_state == State.Terminating)
                 return;
 
-            //  The simple sync termination case. Ask the peer to terminate and wait
-            //  for the ack.
-            else if (m_state == State.Active)
+            if (m_state == State.Active)
             {
+                // The simple sync termination case. Ask the peer to terminate and wait
+                // for the ack.
                 SendPipeTerm(m_peer);
                 m_state = State.Terminated;
             }
-
-            //  There are still pending messages available, but the user calls
-            //  'terminate'. We can act as if all the pending messages were read.
             else if (m_state == State.Pending && !m_delay)
             {
+                // There are still pending messages available, but the user calls
+                // 'terminate'. We can act as if all the pending messages were read.
                 m_outboundPipe = null;
                 SendPipeTermAck(m_peer);
                 m_state = State.Terminating;
             }
-
-            //  If there are pending messages still availabe, do nothing.
             else if (m_state == State.Pending)
             {
+                // If there are pending messages still available, do nothing.
             }
-
-            //  We've already got delimiter, but not term command yet. We can ignore
-            //  the delimiter and ack synchronously terminate as if we were in
-            //  active state.
             else if (m_state == State.Delimited)
             {
+                // We've already got delimiter, but not term command yet. We can ignore
+                // the delimiter and ack synchronously terminate as if we were in
+                // active state.
                 SendPipeTerm(m_peer);
                 m_state = State.Terminated;
             }
-
-            //  There are no other states.
             else
+            {
+                // There are no other states.
                 Debug.Assert(false);
+            }
 
             //  Stop outbound flow of messages.
             m_outActive = false;
 
             if (m_outboundPipe != null)
             {
-
                 //  Drop any unfinished outbound messages.
                 Rollback();
 
                 //  Write the delimiter into the pipe. Note that watermarks are not
                 //  checked; thus the delimiter can be written even when the pipe is full.
 
-                Msg msg = new Msg();
+                var msg = new Msg();
                 msg.InitDelimiter();
                 m_outboundPipe.Write(ref msg, false);
                 Flush();
             }
-        }
-
-        /// <summary>
-        /// Verifies whether specified <paramref name="message"/> is a delimiter.
-        /// </summary>
-        /// <param name="message">The message to verify.</param>
-        /// <returns> <c>true</c> if the specified message is delimiter; otherwise, <c>false</c>. </returns>
-        private static bool IsDelimiter(Msg message)
-        {
-            return message.IsDelimiter;
         }
 
         /// <summary>
@@ -574,8 +565,9 @@ namespace NetMQ.zmq
             //  That done, we still we have to account for the cases where
             //  HWM < max_wm_delta thus driving LWM to negative numbers.
             //  Let's make LWM 1/2 of HWM in such cases.
-            int result = (highWatermark > Config.MaxWatermarkDelta * 2) ?
-                                                                highWatermark - Config.MaxWatermarkDelta : (highWatermark + 1) / 2;
+            int result = (highWatermark > Config.MaxWatermarkDelta*2)
+                ? highWatermark - Config.MaxWatermarkDelta
+                : (highWatermark + 1)/2;
 
             return result;
         }
@@ -602,7 +594,6 @@ namespace NetMQ.zmq
             //  Delimiter in any other state is invalid.
             Debug.Assert(false);
         }
-
 
         /// <summary>
         /// Temporarily disconnects the inbound message stream and drops

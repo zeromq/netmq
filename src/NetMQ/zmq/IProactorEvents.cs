@@ -25,9 +25,9 @@ namespace NetMQ.zmq
 {
     /// <summary>
     /// This is an ITimerEvent, with InCompleted and OutCompleted callback-methods,
-    /// used for implementing a Proactor pattern (I assume "Procator" is a mispelling? jh).
+    /// used for implementing a Proactor pattern.
     /// </summary>
-    internal interface IProcatorEvents : ITimerEvent
+    internal interface IProactorEvents : ITimerEvent
     {
         /// <summary>
         /// This is the "Input-Completed" method - called by the I/O-thread when the file descriptor is ready for reading.

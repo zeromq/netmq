@@ -20,20 +20,18 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    internal class Push : SocketBase
+    internal sealed class Push : SocketBase
     {
         public class PushSession : SessionBase
         {
-            public PushSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options,
-                               Address addr)
+            public PushSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
         /// <summary>
@@ -41,7 +39,7 @@ namespace NetMQ.zmq.Patterns
         /// </summary>
         private readonly LoadBalancer m_loadBalancer;
 
-        public Push(Ctx parent, int threadId, int socketId)
+        public Push([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Push;

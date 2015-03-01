@@ -1,31 +1,32 @@
 ﻿using System;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports
 {
-    internal class ByteArraySegment
+    internal sealed class ByteArraySegment
     {
-        private readonly byte[] m_innerBuffer;
+        [NotNull] private readonly byte[] m_innerBuffer;
 
-        public ByteArraySegment(byte[] buffer)
+        public ByteArraySegment([NotNull] byte[] buffer)
         {
             m_innerBuffer = buffer;
             Offset = 0;
         }
 
-        public ByteArraySegment(byte[] buffer, int offset)
+        public ByteArraySegment([NotNull] byte[] buffer, int offset)
         {
             m_innerBuffer = buffer;
             Offset = offset;
         }
 
-        public ByteArraySegment(ByteArraySegment otherSegment)
+        public ByteArraySegment([NotNull] ByteArraySegment otherSegment)
         {
             m_innerBuffer = otherSegment.m_innerBuffer;
             Offset = otherSegment.Offset;
         }
 
-        public ByteArraySegment(ByteArraySegment otherSegment, int offset)
+        public ByteArraySegment([NotNull] ByteArraySegment otherSegment, int offset)
         {
             m_innerBuffer = otherSegment.m_innerBuffer;
             Offset = otherSegment.Offset + offset;
@@ -69,7 +70,7 @@ namespace NetMQ.zmq.Transports
             }
         }
 
-        public void PutUnsingedShort(Endianness endian, ushort value, int i)
+        public void PutUnsignedShort(Endianness endian, ushort value, int i)
         {
             if (endian == Endianness.Big)
             {
@@ -101,12 +102,12 @@ namespace NetMQ.zmq.Transports
             }
         }
 
-        public void PutString(string s, int length, int i)
+        public void PutString([NotNull] string s, int length, int i)
         {
             Buffer.BlockCopy(Encoding.ASCII.GetBytes(s), 0, m_innerBuffer, Offset + i, length);
         }
 
-        public void PutString(string s, int i)
+        public void PutString([NotNull] string s, int i)
         {
             PutString(s, s.Length, i);
         }
@@ -172,25 +173,27 @@ namespace NetMQ.zmq.Transports
             else
             {
                 return (ushort)(((m_innerBuffer[i + Offset + 1]) << 8) |
-                (m_innerBuffer[i + Offset]));
+                    (m_innerBuffer[i + Offset]));
             }
         }
 
+        [NotNull]
         public string GetString(int length, int i)
         {
             return Encoding.ASCII.GetString(m_innerBuffer, Offset + i, length);
         }
 
-        public void CopyTo(ByteArraySegment otherSegment, int toCopy)
+        public void CopyTo([NotNull] ByteArraySegment otherSegment, int toCopy)
         {
             CopyTo(0, otherSegment, 0, toCopy);
         }
 
-        public void CopyTo(int fromOffset, ByteArraySegment dest, int destOffset, int toCopy)
+        public void CopyTo(int fromOffset, [NotNull] ByteArraySegment dest, int destOffset, int toCopy)
         {
             Buffer.BlockCopy(m_innerBuffer, Offset + fromOffset, dest.m_innerBuffer, dest.Offset + destOffset, toCopy);
         }
 
+        [NotNull]
         public ByteArraySegment Clone()
         {
             return new ByteArraySegment(this);
@@ -202,20 +205,31 @@ namespace NetMQ.zmq.Transports
             set { m_innerBuffer[i + Offset] = value; }
         }
 
-        public static ByteArraySegment operator +(ByteArraySegment byteArray, int offset)
+        public void Reset()
+        {
+            Offset = 0;
+        }
+
+        #region Operator overloads
+
+        public static ByteArraySegment operator +([NotNull] ByteArraySegment byteArray, int offset)
         {
             return new ByteArraySegment(byteArray, offset);
         }
 
-        public static implicit operator ByteArraySegment(byte[] buffer)
+        public static implicit operator ByteArraySegment([NotNull] byte[] buffer)
         {
             return new ByteArraySegment(buffer);
         }
 
-        public static explicit operator byte[](ByteArraySegment buffer)
+        public static explicit operator byte[]([NotNull] ByteArraySegment buffer)
         {
             return buffer.m_innerBuffer;
         }
+
+        #endregion
+
+        #region Hash code and equality
 
         public override bool Equals(object obj)
         {
@@ -232,17 +246,12 @@ namespace NetMQ.zmq.Transports
 
         public override int GetHashCode()
         {
-            int value = m_innerBuffer.GetHashCode() * 27;
+            int value = m_innerBuffer.GetHashCode()*27;
             value += Offset;
 
             return value;
         }
 
-        internal void Reset()
-        {
-            Offset = 0;
-        }
-
-
+        #endregion
     }
 }

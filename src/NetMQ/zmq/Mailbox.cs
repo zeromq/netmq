@@ -22,13 +22,15 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
     internal interface IMailbox
     {
-        void Send(Command command);
+        void Send([NotNull] Command command);
+
         void Close();
     }
 
@@ -39,26 +41,26 @@ namespace NetMQ.zmq
 
     internal class IOThreadMailbox : IMailbox
     {
-        private readonly Proactor m_procator;
+        [NotNull] private readonly Proactor m_proactor;
 
-        private readonly IMailboxEvent m_mailboxEvent;
+        [NotNull] private readonly IMailboxEvent m_mailboxEvent;
 
-        private readonly YPipe<Command> m_cpipe;
+        [NotNull] private readonly YPipe<Command> m_cpipe;
 
         //  There's only one thread receiving from the mailbox, but there
         //  is arbitrary number of threads sending. Given that ypipe requires
         //  synchronised access on both of its endpoints, we have to synchronise
         //  the sending side.
-        private readonly object m_sync;
+        [NotNull] private readonly object m_sync;
 
         // mailbox name, for better debugging
-        private readonly String m_name;
+        [CanBeNull] private readonly String m_name;
 
         private bool m_disposed ;
 
-        public IOThreadMailbox(string name, Proactor proactor, IMailboxEvent mailboxEvent)
+        public IOThreadMailbox([CanBeNull] string name, [NotNull] Proactor proactor, [NotNull] IMailboxEvent mailboxEvent)
         {
-            m_procator = proactor;
+            m_proactor = proactor;
             m_mailboxEvent = mailboxEvent;
 
             m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
@@ -67,7 +69,7 @@ namespace NetMQ.zmq
             //  Get the pipe into passive state. That way, if the users starts by
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
-            Command cmd = new Command();
+            var cmd = new Command();
 
             bool ok = m_cpipe.Read(ref cmd);
             Debug.Assert(!ok);
@@ -79,7 +81,7 @@ namespace NetMQ.zmq
 
         public void Send(Command command)
         {
-            bool ok = false;
+            bool ok;
             lock (m_sync)
             {
                 m_cpipe.Write(ref command, false);
@@ -88,10 +90,11 @@ namespace NetMQ.zmq
 
             if (!ok)
             {
-                m_procator.SignalMailbox(this);
+                m_proactor.SignalMailbox(this);
             }
         }
 
+        [CanBeNull]
         public Command Recv()
         {            
             Command cmd = null;
@@ -113,6 +116,11 @@ namespace NetMQ.zmq
         public void Close()
         {
             m_disposed = true;
+        }
+
+        public override String ToString()
+        {
+            return base.ToString() + "[" + m_name + "]";
         }
     }
 
@@ -147,7 +155,7 @@ namespace NetMQ.zmq
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
 
-            Command cmd = new Command();
+            var cmd = new Command();
 
             bool ok = m_cpipe.Read(ref cmd);
             Debug.Assert(!ok);
@@ -156,6 +164,7 @@ namespace NetMQ.zmq
             m_name = name;
         }
 
+        [NotNull]
         public Socket Handle
         {
             get { return m_signaler.Handle; }
@@ -163,7 +172,7 @@ namespace NetMQ.zmq
 
         public void Send(Command cmd)
         {
-            bool ok = false;
+            bool ok;
             lock (m_sync)
             {
                 m_cpipe.Write(ref cmd, false);
@@ -179,19 +188,18 @@ namespace NetMQ.zmq
             }
         }
 
+        [CanBeNull]
         public Command Recv(int timeout)
         {
             Command cmd = null;
-            bool ok;
+            
             //  Try to get the command straight away.
             if (m_active)
             {
-                ok = m_cpipe.Read(ref cmd);
+                m_cpipe.Read(ref cmd);
+                
                 if (cmd != null)
-                {
-
                     return cmd;
-                }
 
                 //  If there are no more commands available, switch into passive state.
                 m_active = false;
@@ -208,7 +216,7 @@ namespace NetMQ.zmq
             m_active = true;
 
             //  Get a command.
-            ok = m_cpipe.Read(ref cmd);
+            bool ok = m_cpipe.Read(ref cmd);
             Debug.Assert(ok);
 
             return cmd;

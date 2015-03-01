@@ -27,32 +27,33 @@ namespace NetMQ.Actors
     [Obsolete("Use non generic NetMQActor")]
     public class Actor<T> : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
+        private static readonly Random s_rand = new Random();
+
         private readonly PairSocket m_self;
         private readonly Shim<T> m_shim;
-        private readonly Random rand = new Random();
-        private T m_state;
         private Task m_shimTask;
         private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
-        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper; 
+        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper;
 
-        private string GetEndPointName()
+        [NotNull]
+        private static string GetEndPointName()
         {
             return string.Format("inproc://zactor-{0}-{1}",
-                rand.Next(0, 10000), rand.Next(0, 10000));
+                s_rand.Next(0, 10000), s_rand.Next(0, 10000));
         }
 
-        public Actor(NetMQContext context,
-            IShimHandler<T> shimHandler, T state)
+        public Actor([NotNull] NetMQContext context, [NotNull] IShimHandler<T> shimHandler, T state)
         {
-            this.m_self = context.CreatePairSocket();
-            this.m_shim = new Shim<T>(shimHandler, context.CreatePairSocket());
-            this.m_self.Options.SendHighWatermark = 1000;
-            this.m_self.Options.SendHighWatermark = 1000;
-            this.m_state = state;
+            m_self = context.CreatePairSocket();
+            m_shim = new Shim<T>(shimHandler, context.CreatePairSocket());
+            m_self.Options.SendHighWatermark = 1000;
+            m_self.Options.SendHighWatermark = 1000;
 
-            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(() => m_self.ReceiveReady += OnReceive,
+            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
+                () => m_self.ReceiveReady += OnReceive,
                 () => m_self.ReceiveReady += OnReceive);
-            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(() => m_self.SendReady += OnReceive,
+            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
+                () => m_self.SendReady += OnReceive,
                 () => m_self.SendReady += OnSend);
 
             //now binding and connect pipe ends
@@ -84,7 +85,7 @@ namespace NetMQ.Actors
             try
             {
                 //Initialise the shim handler
-                this.m_shim.Handler.Initialise(state);
+                m_shim.Handler.Initialise(state);
             }
             catch (Exception)
             {
@@ -92,10 +93,10 @@ namespace NetMQ.Actors
                 m_shim.Pipe.Dispose();
 
                 throw;
-            }            
+            }
 
             //Create Shim thread handler
-            CreateShimThread(state);
+            CreateShimThread();
 
             //  Mandatory handshake for new actor so that constructor returns only
             //  when actor has also initialized. This eliminates timing issues at
@@ -130,37 +131,35 @@ namespace NetMQ.Actors
             m_sendEventDelegatorHelper.Fire(this, new NetMQActorEventArgs<T>(this));
         }
 
-        private void CreateShimThread(T state)
+        private void CreateShimThread()
         {
-          //start Shim thread
-          m_shimTask = Task.Factory.StartNew(
-                                             x =>
-                                             {
-                                               try
-                                               {
-                                                 this.m_shim.Handler.RunPipeline(this.m_shim.Pipe);
-                                               }
-                                               catch (TerminatingException)
-                                               {
+            // start shim task
+            m_shimTask = Task.Factory.StartNew(
+                x =>
+                {
+                    try
+                    {
+                        m_shim.Handler.RunPipeline(m_shim.Pipe);
                     }
+                    catch (TerminatingException)
+                    {}
 
-                                               //  Do not block, if the other end of the pipe is already deleted
-                                               m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
+                    //  Do not block, if the other end of the pipe is already deleted
+                    m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
 
-                                               try
-                                               {
-                                                 m_shim.Pipe.SignalOK();
-                                               }
-                                               catch (AgainException)
-                                               {                                                
-                                               }
+                    try
+                    {
+                        m_shim.Pipe.SignalOK();
+                    }
+                    catch (AgainException)
+                    {}
 
-                                               m_shim.Pipe.Dispose();
-                                             },
-            TaskCreationOptions.LongRunning);
+                    m_shim.Pipe.Dispose();
+                },
+                TaskCreationOptions.LongRunning);
         }
 
-      ~Actor()
+        ~Actor()
         {
             Dispose(false);
         }
@@ -184,10 +183,9 @@ namespace NetMQ.Actors
                     m_self.WaitForSignal();
                 }
                 catch (AgainException)
-                {
-                }
-                
-                m_shimTask.Wait();                               
+                {}
+
+                m_shimTask.Wait();
                 m_self.Dispose();
             }
         }

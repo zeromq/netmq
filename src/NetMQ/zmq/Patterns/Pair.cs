@@ -20,24 +20,22 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns
 {
-    internal class Pair : SocketBase
+    internal sealed class Pair : SocketBase
     {
         public class PairSession : SessionBase
         {
-            public PairSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options,
-                               Address addr)
+            public PairSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
         private Pipe m_pipe;
 
-        public Pair(Ctx parent, int threadId, int socketId)
+        public Pair([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pair;
@@ -77,9 +75,7 @@ namespace NetMQ.zmq.Patterns
         protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
         {
             if (m_pipe == null || !m_pipe.Write(ref msg))
-            {
                 return false;
-            }
 
             if ((flags & SendReceiveOptions.SendMore) == 0)
                 m_pipe.Flush();
@@ -93,30 +89,25 @@ namespace NetMQ.zmq.Patterns
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             //  Deallocate old content of the message.
-
             msg.Close();
+
             if (m_pipe == null || !m_pipe.Read(ref msg))
             {
                 msg.InitEmpty();
                 return false;
             }
+
             return true;
         }
 
         protected override bool XHasIn()
         {
-            if (m_pipe == null)
-                return false;
-
-            return m_pipe.CheckRead();
+            return m_pipe != null && m_pipe.CheckRead();
         }
 
         protected override bool XHasOut()
         {
-            if (m_pipe == null)
-                return false;
-
-            return m_pipe.CheckWrite();
+            return m_pipe != null && m_pipe.CheckWrite();
         }
     }
 }

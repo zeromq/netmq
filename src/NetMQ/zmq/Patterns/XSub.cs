@@ -20,6 +20,7 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
@@ -28,11 +29,9 @@ namespace NetMQ.zmq.Patterns
     {
         public class XSubSession : SessionBase
         {
-            public XSubSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options, Address addr)
+            public XSubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
         /// <summary>
@@ -63,18 +62,19 @@ namespace NetMQ.zmq.Patterns
         /// there are following parts still waiting.
         /// </summary>
         private bool m_more;
+
         private static readonly Trie.TrieDelegate s_sendSubscription;
 
         static XSub()
         {
             s_sendSubscription = (data, size, arg) =>
             {
-                Pipe pipe = (Pipe)arg;
+                var pipe = (Pipe)arg;
 
-                //  Create the subsctription message.
-                Msg msg = new Msg();
+                //  Create the subscription message.
+                var msg = new Msg();
                 msg.InitPool(size + 1);
-                msg.Put((byte)1);
+                msg.Put(1);
                 msg.Put(data, 1, size);
 
                 //  Send it to the pipe.
@@ -88,10 +88,9 @@ namespace NetMQ.zmq.Patterns
             };
         }
 
-        public XSub(Ctx parent, int threadId, int socketId)
+        public XSub([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-
             m_options.SocketType = ZmqSocketType.Xsub;
             m_hasMessage = false;
             m_more = false;
@@ -205,7 +204,6 @@ namespace NetMQ.zmq.Patterns
             //  semantics.
             while (true)
             {
-
                 //  Get a message using fair queueing algorithm.
                 bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
 
@@ -250,7 +248,6 @@ namespace NetMQ.zmq.Patterns
             //  stream of non-matching messages.
             while (true)
             {
-
                 //  Get a message using fair queueing algorithm.
                 bool isMessageAvailable = m_fairQueueing.Recv(ref m_message);
 

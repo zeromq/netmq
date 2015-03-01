@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
@@ -31,11 +32,9 @@ namespace NetMQ.zmq.Patterns
     {
         public class XPubSession : SessionBase
         {
-            public XPubSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options, Address addr)
+            public XPubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
         //  List of all subscriptions mapped to corresponding pipes.
@@ -46,7 +45,7 @@ namespace NetMQ.zmq.Patterns
 
         // If true, send all subscription messages upstream, not just
         // unique ones
-        bool m_verbose;
+        private bool m_verbose;
 
         private bool m_manual;
 
@@ -62,39 +61,37 @@ namespace NetMQ.zmq.Patterns
         private readonly Queue<byte[]> m_pending;
 
         private static readonly MultiTrie.MultiTrieDelegate s_markAsMatching;
-        private static readonly MultiTrie.MultiTrieDelegate s_SendUnsubscription;
+        private static readonly MultiTrie.MultiTrieDelegate s_sendUnsubscription;
 
         static XPub()
         {
-            s_markAsMatching = (pipe, data,size, arg) =>
+            s_markAsMatching = (pipe, data, size, arg) =>
             {
-                XPub self = (XPub)arg;
+                var self = (XPub)arg;
                 self.m_distribution.Match(pipe);
             };
 
-            s_SendUnsubscription = (pipe, data,size, arg) =>
+            s_sendUnsubscription = (pipe, data, size, arg) =>
             {
-
-                XPub self = (XPub)arg;
+                var self = (XPub)arg;
 
                 if (self.m_options.SocketType != ZmqSocketType.Pub)
                 {
-                    //  Place the unsubscription to the queue of pending (un)sunscriptions
-                    //  to be retrived by the user later on.
+                    //  Place the unsubscription to the queue of pending (un)subscriptions
+                    //  to be retrieved by the user later on.
 
-                    byte[] unsub = new byte[size+1];
+                    var unsub = new byte[size + 1];
                     unsub[0] = 0;
                     Buffer.BlockCopy(data, 0, unsub, 1, size);
-                    
+
                     self.m_pending.Enqueue(unsub);
                 }
             };
         }
 
-        public XPub(Ctx parent, int threadId, int socketId)
+        public XPub([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-
             m_options.SocketType = ZmqSocketType.Xpub;
             m_verbose = false;
             m_manual = false;
@@ -106,7 +103,7 @@ namespace NetMQ.zmq.Patterns
             m_subscriptions = new MultiTrie();
             m_distribution = new Distribution();
             m_pending = new Queue<byte[]>();
-        }                
+        }
 
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
@@ -116,12 +113,12 @@ namespace NetMQ.zmq.Patterns
             //  If icanhasall_ is specified, the caller would like to subscribe
             //  to all data on this pipe, implicitly.
             if (icanhasall)
-                m_subscriptions.Add(null,0,0, pipe);
+                m_subscriptions.Add(null, 0, 0, pipe);
 
             // if welcome message was set
             if (m_welcomeMessage.Size > 0)
             {
-                Msg copy = new Msg();
+                var copy = new Msg();
                 copy.InitEmpty();
                 copy.Copy(ref m_welcomeMessage);
 
@@ -137,7 +134,7 @@ namespace NetMQ.zmq.Patterns
         protected override void XReadActivated(Pipe pipe)
         {
             //  There are some subscriptions waiting. Let's process them.
-            Msg sub = new Msg();
+            var sub = new Msg();
             while (pipe.Read(ref sub))
             {
                 //  Apply the subscription to the trie.
@@ -147,7 +144,7 @@ namespace NetMQ.zmq.Patterns
                 {
                     if (m_manual)
                     {
-                        m_lastPipe = pipe;                        
+                        m_lastPipe = pipe;
 
                         m_pending.Enqueue(GetBytesFromMsg(ref sub));
                     }
@@ -169,7 +166,7 @@ namespace NetMQ.zmq.Patterns
                 {
                     m_pending.Enqueue(GetBytesFromMsg(ref sub));
                 }
-                
+
                 sub.Close();
             }
         }
@@ -186,11 +183,11 @@ namespace NetMQ.zmq.Patterns
                 m_verbose = (bool)optval;
                 return true;
             }
-            if (option == ZmqSocketOptions.XPublisherManual)
+            else if (option == ZmqSocketOptions.XPublisherManual)
             {
                 m_manual = true;
                 return true;
-            }            
+            }
             else if (option == ZmqSocketOptions.Subscribe && m_manual && m_lastPipe != null)
             {
                 byte[] subscription;
@@ -201,7 +198,7 @@ namespace NetMQ.zmq.Patterns
                 }
                 else
                 {
-                   subscription = Encoding.ASCII.GetBytes((String)optval);
+                    subscription = Encoding.ASCII.GetBytes((String)optval);
                 }
 
                 m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
@@ -228,12 +225,12 @@ namespace NetMQ.zmq.Patterns
                 m_welcomeMessage.Close();
 
                 if (optval != null)
-                {                    
+                {
                     if (optval is byte[])
                     {
-                        byte[] value = (byte[]) optval;
+                        var value = (byte[])optval;
 
-                        byte[] welcomeBytes = new byte[value.Length];
+                        var welcomeBytes = new byte[value.Length];
                         value.CopyTo(welcomeBytes, 0);
 
                         m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);
@@ -241,7 +238,7 @@ namespace NetMQ.zmq.Patterns
                     else
                     {
                         throw new InvalidException(String.Format("In XPub.XSetSocketOption({0},{1}), optval must be a byte-array.", option, optval));
-                    }                    
+                    }
                 }
                 else
                 {
@@ -261,7 +258,7 @@ namespace NetMQ.zmq.Patterns
             //  upstream.
 
 
-            m_subscriptions.RemoveHelper(pipe, s_SendUnsubscription, this);
+            m_subscriptions.RemoveHelper(pipe, s_sendUnsubscription, this);
 
             m_distribution.Terminated(pipe);
         }
@@ -273,11 +270,11 @@ namespace NetMQ.zmq.Patterns
             //  For the first part of multi-part message, find the matching pipes.
             if (!m_more)
                 m_subscriptions.Match(msg.Data, msg.Size,
-                                                        s_markAsMatching, this);
+                    s_markAsMatching, this);
 
             //  Send the message to all the pipes that were marked as matching
             //  in the previous step.
-            m_distribution.SendToMatching(ref msg, flags);
+            m_distribution.SendToMatching(ref msg);
 
             //  If we are at the end of multi-part message we can mark all the pipes
             //  as non-matching.
@@ -299,16 +296,16 @@ namespace NetMQ.zmq.Patterns
         {
             //  If there is at least one 
             if (m_pending.Count == 0)
-            {                
+            {
                 return false;
             }
 
             msg.Close();
-            
+
             byte[] first = m_pending.Dequeue();
             msg.InitPool(first.Length);
 
-            msg.Put(first,0, first.Length);
+            msg.Put(first, 0, first.Length);
 
             return true;
         }
@@ -318,9 +315,9 @@ namespace NetMQ.zmq.Patterns
             return m_pending.Count != 0;
         }
 
-        private byte[] GetBytesFromMsg(ref Msg msg)
+        private static byte[] GetBytesFromMsg(ref Msg msg)
         {
-            byte[] bytes = new byte[msg.Size];
+            var bytes = new byte[msg.Size];
             Buffer.BlockCopy(msg.Data, 0, bytes, 0, msg.Size);
 
             return bytes;

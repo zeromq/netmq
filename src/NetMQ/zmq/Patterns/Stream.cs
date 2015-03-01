@@ -23,34 +23,34 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    internal class Stream : SocketBase
+    internal sealed class Stream : SocketBase
     {
         private static readonly Random s_random = new Random();
 
         public class StreamSession : SessionBase
         {
-            public StreamSession(IOThread ioThread, bool connect,
-                                 SocketBase socket, Options options,
-                                 Address addr)
+            public StreamSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
         private class Outpipe
         {
-            public Outpipe(Pipe pipe, bool active)
+            public Outpipe([NotNull] Pipe pipe, bool active)
             {
                 Pipe = pipe;
                 Active = active;
             }
 
+            [NotNull]
             public Pipe Pipe { get; private set; }
+
             public bool Active;
         }
 
@@ -101,7 +101,7 @@ namespace NetMQ.zmq.Patterns
         /// </summary>
         private int m_nextPeerId;
 
-        public Stream(Ctx parent, int threadId, int socketId)
+        public Stream([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_prefetched = false;
@@ -143,7 +143,7 @@ namespace NetMQ.zmq.Patterns
         {
             Outpipe old;
 
-            m_outpipes.TryGetValue(pipe.Identity, out  old);
+            m_outpipes.TryGetValue(pipe.Identity, out old);
             m_outpipes.Remove(pipe.Identity);
 
             Debug.Assert(old != null);
@@ -249,9 +249,6 @@ namespace NetMQ.zmq.Patterns
 
                 m_currentOut = null;
             }
-            else
-            {
-            }
 
             //  Detach the message from the data buffer.
             msg.InitEmpty();
@@ -277,7 +274,7 @@ namespace NetMQ.zmq.Patterns
                 return true;
             }
 
-            Pipe[] pipe = new Pipe[1];
+            var pipe = new Pipe[1];
 
             bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
 
@@ -311,7 +308,7 @@ namespace NetMQ.zmq.Patterns
 
             //  Try to read the next message.
             //  The message, if read, is kept in the pre-fetch buffer.
-            Pipe[] pipe = new Pipe[1];
+            var pipe = new Pipe[1];
 
             bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
 
@@ -343,13 +340,10 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        private void IdentifyPeer(Pipe pipe)
+        private void IdentifyPeer([NotNull] Pipe pipe)
         {
-            byte[] identity;
-
             // Always assign identity for raw-socket
-            identity = new byte[5];
-            identity[0] = 0;
+            var identity = new byte[5];
 
             byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
@@ -359,8 +353,9 @@ namespace NetMQ.zmq.Patterns
             m_options.IdentitySize = (byte)identity.Length;
 
             pipe.Identity = identity;
+
             //  Add the record into output pipes lookup table
-            Outpipe outpipe = new Outpipe(pipe, true);
+            var outpipe = new Outpipe(pipe, true);
             m_outpipes.Add(identity, outpipe);
         }
     }

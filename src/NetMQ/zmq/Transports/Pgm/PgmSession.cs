@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    internal class PgmSession : IEngine, IProcatorEvents
+    internal sealed class PgmSession : IEngine, IProactorEvents
     {
         private AsyncSocket m_handle;
         private readonly Options m_options;
@@ -21,7 +22,7 @@ namespace NetMQ.zmq.Transports.PGM
         /// <summary>
         /// This enum-type is Idle, Receiving, Stuck, or Error.
         /// </summary>
-        enum State
+        private enum State
         {
             Idle,
             Receiving,
@@ -31,7 +32,7 @@ namespace NetMQ.zmq.Transports.PGM
 
         private State m_state;
 
-        public PgmSession(PgmSocket pgmSocket, Options options)
+        public PgmSession([NotNull] PgmSocket pgmSocket, [NotNull] Options options)
         {
             m_handle = pgmSocket.Handle;
             m_options = options;
@@ -41,7 +42,7 @@ namespace NetMQ.zmq.Transports.PGM
             m_state = State.Idle;
         }
 
-        public void Plug(IOThread ioThread, SessionBase session)
+        void IEngine.Plug(IOThread ioThread, SessionBase session)
         {
             m_session = session;
             m_ioObject = new IOObject(null);
@@ -62,8 +63,7 @@ namespace NetMQ.zmq.Transports.PGM
         }
 
         public void Terminate()
-        {
-        }
+        {}
 
         public void BeginReceive()
         {
@@ -155,9 +155,9 @@ namespace NetMQ.zmq.Transports.PGM
         private void Error()
         {
             Debug.Assert(m_session != null);
-                        
+
             m_session.Detach();
-            
+
             m_ioObject.RemoveSocket(m_handle);
 
             //  Disconnect from I/O threads poller object.
@@ -183,23 +183,20 @@ namespace NetMQ.zmq.Transports.PGM
                     m_handle.Dispose();
                 }
                 catch (SocketException)
-                {
-                }
+                {}
                 m_handle = null;
             }
         }
 
         public void OutCompleted(SocketError socketError, int bytesTransferred)
-        {
-        }
+        {}
 
         public void TimerEvent(int id)
-        {
-        }
+        {}
 
         private void DropSubscriptions()
         {
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitEmpty();
 
             while (m_session.PullMsg(ref msg))

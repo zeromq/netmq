@@ -11,626 +11,527 @@ namespace NetMQ.Tests
 {
     // Note: you can have failures here if you excute these on a machine that has only one processor-core.
 
-
     [TestFixture]
     public class PollerTests
     {
+        private const int TestPollTimeoutMillis = 10;
+
         [Test]
         public void ResponsePoll()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var req = context.CreateRequestSocket())
+            using (var poller = new Poller(rep) { PollTimeout = TestPollTimeoutMillis })
             {
-                using (var rep = contex.CreateResponseSocket())
+                int port = rep.BindRandomPort("tcp://127.0.0.1");
+
+                req.Connect("tcp://127.0.0.1:" + port);
+
+                rep.ReceiveReady += (s, a) =>
                 {
-                    int port = rep.BindRandomPort("tcp://127.0.0.1");
+                    bool more;
+                    Assert.AreEqual("Hello", a.Socket.ReceiveString(out more));
+                    Assert.False(more);
 
-                    using (var req = contex.CreateRequestSocket())
-                    using (Poller poller = new Poller())
-                    {
-                        req.Connect("tcp://127.0.0.1:" + port);
+                    a.Socket.Send("World");
+                };
 
+                poller.PollTillCancelledNonBlocking();
 
-                        rep.ReceiveReady += (s, a) =>
-                                                                    {
-                                                                        bool more;
-                                                                        string m = a.Socket.ReceiveString(out more);
+                req.Send("Hello");
 
-                                                                        Assert.False(more);
-                                                                        Assert.AreEqual("Hello", m);
+                bool more2;
+                Assert.AreEqual("World", req.ReceiveString(out more2));
+                Assert.IsFalse(more2);
 
-                                                                        a.Socket.Send("World");
-                                                                    };
-
-                        poller.AddSocket(rep);
-
-                        Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
-
-                        req.Send("Hello");
-
-                        bool more2;
-                        string m1 = req.ReceiveString(out more2);
-
-                        Assert.IsFalse(more2);
-                        Assert.AreEqual("World", m1);
-
-                        poller.CancelAndJoin();
-
-                        Thread.Sleep(100);
-                        Assert.IsTrue(pollerTask.IsCompleted);
-                    }
-                }
+                poller.CancelAndJoin();
             }
         }
 
         [Test]
         public void Monitoring()
         {
-            ManualResetEvent listeningEvent = new ManualResetEvent(false);
-            ManualResetEvent acceptedEvent = new ManualResetEvent(false);
-            ManualResetEvent connectedEvent = new ManualResetEvent(false);
+            var listeningEvent = new ManualResetEvent(false);
+            var acceptedEvent = new ManualResetEvent(false);
+            var connectedEvent = new ManualResetEvent(false);
 
-
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var req = context.CreateRequestSocket())
+            using (var poller = new Poller { PollTimeout = TestPollTimeoutMillis })
+            using (var repMonitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
+            using (var reqMonitor = new NetMQMonitor(context, req, "inproc://req.inproc", SocketEvent.Connected))
             {
-                using (var rep = contex.CreateResponseSocket())
-                {
-                    using (NetMQMonitor monitor = new NetMQMonitor(contex, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
-                    {
-                        monitor.Accepted += (s, a) => acceptedEvent.Set();
-                        monitor.Listening += (s, a) => listeningEvent.Set();
+                repMonitor.Accepted += (s, a) => acceptedEvent.Set();
+                repMonitor.Listening += (s, a) => listeningEvent.Set();
 
-                        monitor.AttachToPoller(poller);
+                repMonitor.AttachToPoller(poller);
 
-                        int port = rep.BindRandomPort("tcp://127.0.0.1");
+                int port = rep.BindRandomPort("tcp://127.0.0.1");
 
-                        using (var req = contex.CreateRequestSocket())
-                        {
-                            using (NetMQMonitor reqMonitor = new NetMQMonitor(contex, req, "inproc://req.inproc", SocketEvent.Connected))
-                            {
-                                reqMonitor.Connected += (s, a) => connectedEvent.Set();
+                reqMonitor.Connected += (s, a) => connectedEvent.Set();
 
-                                reqMonitor.AttachToPoller(poller);
-                                try
-                                {
-                                    poller.PollTillCancelledNonBlocking();
+                reqMonitor.AttachToPoller(poller);
 
-                                    req.Connect("tcp://127.0.0.1:" + port);
-                                    req.Send("a");
+                poller.PollTillCancelledNonBlocking();
 
-                                    bool more;
+                req.Connect("tcp://127.0.0.1:" + port);
+                req.Send("a");
 
-                                    string m = rep.ReceiveString(out more);
+                rep.ReceiveString();
 
-                                    rep.Send("b");
+                rep.Send("b");
 
-                                    string m2 = req.ReceiveString(out more);
+                req.ReceiveString();
 
-                                    Assert.IsTrue(listeningEvent.WaitOne(300));
-                                    Assert.IsTrue(connectedEvent.WaitOne(300));
-                                    Assert.IsTrue(acceptedEvent.WaitOne(300));
-                                }
-                                finally
-                                {
-                                    poller.CancelAndJoin();
-                                }
-                            }
-                        }
-                    }
-                }
+                Assert.IsTrue(listeningEvent.WaitOne(300));
+                Assert.IsTrue(connectedEvent.WaitOne(300));
+                Assert.IsTrue(acceptedEvent.WaitOne(300));
+
+                poller.CancelAndJoin();
             }
         }
 
         [Test]
         public void AddSocketDuringWork()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var router1 = context.CreateRouterSocket())
+            using (var router2 = context.CreateRouterSocket())
+            using (var dealer1 = context.CreateDealerSocket())
+            using (var dealer2 = context.CreateDealerSocket())
+            using (var poller = new Poller(router1) { PollTimeout = TestPollTimeoutMillis })
             {
-                // we are using three responses to make sure we actually move the correct socket and other sockets still work
-                using (var router = contex.CreateRouterSocket())
-                using (var router2 = contex.CreateRouterSocket())
+                int port1 = router1.BindRandomPort("tcp://127.0.0.1");
+                int port2 = router2.BindRandomPort("tcp://127.0.0.1");
+
+                dealer1.Connect("tcp://127.0.0.1:" + port1);
+                dealer2.Connect("tcp://127.0.0.1:" + port2);
+
+                bool router1arrived = false;
+                bool router2arrived = false;
+
+                var signal1 = new ManualResetEvent(false);
+                var signal2 = new ManualResetEvent(false);
+
+                router1.ReceiveReady += (s, a) =>
                 {
-                    int port = router.BindRandomPort("tcp://127.0.0.1");
-                    int port2 = router2.BindRandomPort("tcp://127.0.0.1");
+                    router1.Receive();
+                    router1.Receive();
+                    router1arrived = true;
+                    poller.AddSocket(router2);
+                    signal1.Set();
+                };
 
-                    using (var dealer = contex.CreateDealerSocket())
-                    using (var dealer2 = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
-                    {
-                        dealer.Connect("tcp://127.0.0.1:" + port);
-                        dealer2.Connect("tcp://127.0.0.1:" + port2);
+                router2.ReceiveReady += (s, a) =>
+                {
+                    router2.Receive();
+                    router2.Receive();
+                    router2arrived = true;
+                    signal2.Set();
+                };
 
-                        bool router1arrived = false;
-                        bool router2arrived = false;
+                poller.PollTillCancelledNonBlocking();
 
+                dealer1.Send("1");
+                Assert.IsTrue(signal1.WaitOne(300));
+                dealer2.Send("2");
+                Assert.IsTrue(signal1.WaitOne(300));
 
-                        bool more;
+                poller.CancelAndJoin();
 
-                        router2.ReceiveReady += (s, a) =>
-                        {
-                            router2.Receive(out more);
-                            router2.Receive(out more);
-                            router2arrived = true;
-                        };
-
-                        router.ReceiveReady += (s, a) =>
-                                                                        {
-                                                                            router1arrived = true;
-
-                                                                            router.Receive(out more);
-                                                                            router.Receive(out more);
-
-                                                                            poller.AddSocket(router2);
-                                                                        };
-
-                        poller.AddSocket(router);
-
-                        poller.PollTillCancelledNonBlocking();
-
-                        dealer.Send("1");
-                        Thread.Sleep(300);
-                        dealer2.Send("2");
-                        Thread.Sleep(300);
-
-                        poller.CancelAndJoin();
-
-                        Assert.IsTrue(router1arrived);
-                        Assert.IsTrue(router2arrived);
-                    }
-                }
+                Assert.IsTrue(router1arrived);
+                Assert.IsTrue(router2arrived);
             }
         }
 
         [Test]
         public void AddSocketAfterRemoving()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var router1 = context.CreateRouterSocket())
+            using (var router2 = context.CreateRouterSocket())
+            using (var router3 = context.CreateRouterSocket())
+            using (var dealer1 = context.CreateDealerSocket())
+            using (var dealer2 = context.CreateDealerSocket())
+            using (var dealer3 = context.CreateDealerSocket())
+            using (var poller = new Poller(router1, router2) { PollTimeout = TestPollTimeoutMillis })
             {
-                // we are using three responses to make sure we actually move the correct socket and other sockets still work
-                using (var router = contex.CreateRouterSocket())
-                using (var router2 = contex.CreateRouterSocket())
-                using (var router3 = contex.CreateRouterSocket())
+                int port1 = router1.BindRandomPort("tcp://127.0.0.1");
+                int port2 = router2.BindRandomPort("tcp://127.0.0.1");
+                int port3 = router3.BindRandomPort("tcp://127.0.0.1");
+
+                dealer1.Connect("tcp://127.0.0.1:" + port1);
+                dealer2.Connect("tcp://127.0.0.1:" + port2);
+                dealer3.Connect("tcp://127.0.0.1:" + port3);
+
+                bool router1arrived = false;
+                bool router2arrived = false;
+                bool router3arrived = false;
+
+                var signal1 = new ManualResetEvent(false);
+                var signal2 = new ManualResetEvent(false);
+                var signal3 = new ManualResetEvent(false);
+
+                router1.ReceiveReady += (s, a) =>
                 {
-                    int port = router.BindRandomPort("tcp://127.0.0.1");
-                    int port2 = router2.BindRandomPort("tcp://127.0.0.1");
-                    int port3 = router3.BindRandomPort("tcp://127.0.0.1");
+                    router1arrived = true;
 
-                    using (var dealer = contex.CreateDealerSocket())
-                    using (var dealer2 = contex.CreateDealerSocket())
-                    using (var dealer3 = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
-                    {
-                        dealer.Connect("tcp://127.0.0.1:" + port);
-                        dealer2.Connect("tcp://127.0.0.1:" + port2);
-                        dealer3.Connect("tcp://127.0.0.1:" + port3);
+                    router1.Receive();
+                    router1.Receive();
+                    poller.RemoveSocket(router1);
+                    signal1.Set();
+                };
 
-                        bool router1arrived = false;
-                        bool router2arrived = false;
-                        bool router3arrived = false;
+                router2.ReceiveReady += (s, a) =>
+                {
+                    router2arrived = true;
+                    router2.Receive();
+                    router2.Receive();
+                    poller.AddSocket(router3);
+                    signal2.Set();
+                };
 
+                router3.ReceiveReady += (s, a) =>
+                {
+                    router3arrived = true;
+                    router3.Receive();
+                    router3.Receive();
+                    signal3.Set();
+                };
 
-                        bool more;
+                poller.PollTillCancelledNonBlocking();
 
-                        router.ReceiveReady += (s, a) =>
-                                                                        {
-                                                                            router1arrived = true;
+                dealer1.Send("1");
+                Assert.IsTrue(signal1.WaitOne(300));
+                dealer2.Send("2");
+                Assert.IsTrue(signal2.WaitOne(300));
+                dealer3.Send("3");
+                Assert.IsTrue(signal3.WaitOne(300));
 
-                                                                            router.Receive(out more);
-                                                                            router.Receive(out more);
+                poller.CancelAndJoin();
 
-                                                                            poller.RemoveSocket(router);
-
-                                                                        };
-
-                        poller.AddSocket(router);
-
-                        router3.ReceiveReady += (s, a) =>
-                        {
-                            router3.Receive(out more);
-                            router3.Receive(out more);
-                            router3arrived = true;
-                        };
-
-                        router2.ReceiveReady += (s, a) =>
-                                                                            {
-                                                                                router2arrived = true;
-                                                                                router2.Receive(out more);
-                                                                                router2.Receive(out more);
-
-                                                                                poller.AddSocket(router3);
-                                                                            };
-                        poller.AddSocket(router2);
-
-                        poller.PollTillCancelledNonBlocking();
-
-                        dealer.Send("1");
-                        Thread.Sleep(300);
-                        dealer2.Send("2");
-                        Thread.Sleep(300);
-                        dealer3.Send("3");
-                        Thread.Sleep(300);
-
-                        poller.CancelAndJoin();
-
-                        Assert.IsTrue(router1arrived);
-                        Assert.IsTrue(router2arrived);
-                        Assert.IsTrue(router3arrived);
-                    }
-                }
+                Assert.IsTrue(router1arrived);
+                Assert.IsTrue(router2arrived);
+                Assert.IsTrue(router3arrived);
             }
         }
 
         [Test]
         public void AddTwoSocketAfterRemoving()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var router1 = context.CreateRouterSocket())
+            using (var router2 = context.CreateRouterSocket())
+            using (var router3 = context.CreateRouterSocket())
+            using (var router4 = context.CreateRouterSocket())
+            using (var dealer1 = context.CreateDealerSocket())
+            using (var dealer2 = context.CreateDealerSocket())
+            using (var dealer3 = context.CreateDealerSocket())
+            using (var dealer4 = context.CreateDealerSocket())
+            using (var poller = new Poller(router1, router2) { PollTimeout = TestPollTimeoutMillis })
             {
-                // we are using three responses to make sure we actually move the correct socket and other sockets still work
-                using (var router = contex.CreateRouterSocket())
-                using (var router2 = contex.CreateRouterSocket())
-                using (var router3 = contex.CreateRouterSocket())
-                using (var router4 = contex.CreateRouterSocket())
+                int port1 = router1.BindRandomPort("tcp://127.0.0.1");
+                int port2 = router2.BindRandomPort("tcp://127.0.0.1");
+                int port3 = router3.BindRandomPort("tcp://127.0.0.1");
+                int port4 = router4.BindRandomPort("tcp://127.0.0.1");
+
+                dealer1.Connect("tcp://127.0.0.1:" + port1);
+                dealer2.Connect("tcp://127.0.0.1:" + port2);
+                dealer3.Connect("tcp://127.0.0.1:" + port3);
+                dealer4.Connect("tcp://127.0.0.1:" + port4);
+
+                int router1arrived = 0;
+                int router2arrived = 0;
+                bool router3arrived = false;
+                bool router4arrived = false;
+
+                var signal1 = new ManualResetEvent(false);
+                var signal2 = new ManualResetEvent(false);
+                var signal3 = new ManualResetEvent(false);
+                var signal4 = new ManualResetEvent(false);
+
+                router1.ReceiveReady += (s, a) =>
                 {
-                    int port = router.BindRandomPort("tcp://127.0.0.1");
-                    int port2 = router2.BindRandomPort("tcp://127.0.0.1");
-                    int port3 = router3.BindRandomPort("tcp://127.0.0.1");
-                    int port4 = router4.BindRandomPort("tcp://127.0.0.1");
+                    router1arrived++;
+                    router1.Receive();
+                    router1.Receive();
+                    poller.RemoveSocket(router1);
+                    signal1.Set();
+                };
 
-                    using (var dealer = contex.CreateDealerSocket())
-                    using (var dealer2 = contex.CreateDealerSocket())
-                    using (var dealer3 = contex.CreateDealerSocket())
-                    using (var dealer4 = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
+                router2.ReceiveReady += (s, a) =>
+                {
+                    router2arrived++;
+                    router2.Receive();
+                    router2.Receive();
+
+                    if (router2arrived == 1)
                     {
-                        dealer.Connect("tcp://127.0.0.1:" + port);
-                        dealer2.Connect("tcp://127.0.0.1:" + port2);
-                        dealer3.Connect("tcp://127.0.0.1:" + port3);
-                        dealer4.Connect("tcp://127.0.0.1:" + port4);
-
-                        int router1arrived = 0;
-                        int router2arrived = 0;
-                        bool router3arrived = false;
-                        bool router4arrived = false;
-
-                        bool more;
-
-                        router.ReceiveReady += (s, a) =>
-                                                                        {
-                                                                            router1arrived++;
-
-                                                                            router.Receive(out more);
-                                                                            router.Receive(out more);
-
-                                                                            poller.RemoveSocket(router);
-
-                                                                        };
-
-                        poller.AddSocket(router);
-
-                        router3.ReceiveReady += (s, a) =>
-                                                                            {
-                                                                                router3.Receive(out more);
-                                                                                router3.Receive(out more);
-                                                                                router3arrived = true;
-                                                                            };
-
-                        router4.ReceiveReady += (s, a) =>
-                                                                            {
-                                                                                router4.Receive(out more);
-                                                                                router4.Receive(out more);
-                                                                                router4arrived = true;
-                                                                            };
-
-                        router2.ReceiveReady += (s, a) =>
-                                                                            {
-                                                                                router2arrived++;
-                                                                                router2.Receive(out more);
-                                                                                router2.Receive(out more);
-
-                                                                                if (router2arrived == 1)
-                                                                                {
-                                                                                    poller.AddSocket(router3);
-
-                                                                                    poller.AddSocket(router4);
-                                                                                }
-                                                                            };
-
-                        poller.AddSocket(router2);
-
-                        poller.PollTillCancelledNonBlocking();
-
-                        dealer.Send("1");
-                        Thread.Sleep(300);
-                        dealer2.Send("2");
-                        Thread.Sleep(300);
-                        dealer3.Send("3");
-                        dealer4.Send("4");
-                        dealer2.Send("2");
-                        dealer.Send("1");
-                        Thread.Sleep(300);
-
-                        poller.CancelAndJoin();
-
-                        router.Receive(true, out more);
-
-                        Assert.IsTrue(more);
-
-                        router.Receive(true, out more);
-
-                        Assert.IsFalse(more);
-
-                        Assert.AreEqual(1, router1arrived);
-                        Assert.AreEqual(2, router2arrived);
-                        Assert.IsTrue(router3arrived);
-                        Assert.IsTrue(router4arrived);
+                        poller.AddSocket(router3);
+                        poller.AddSocket(router4);
+                        signal2.Set();
                     }
-                }
+                };
+
+                router3.ReceiveReady += (s, a) =>
+                {
+                    router3.Receive();
+                    router3.Receive();
+                    router3arrived = true;
+                    signal3.Set();
+                };
+
+                router4.ReceiveReady += (s, a) =>
+                {
+                    router4.Receive();
+                    router4.Receive();
+                    router4arrived = true;
+                    signal4.Set();
+                };
+
+                poller.PollTillCancelledNonBlocking();
+
+                dealer1.Send("1");
+                Assert.IsTrue(signal1.WaitOne(300));
+                dealer2.Send("2");
+                Assert.IsTrue(signal2.WaitOne(300));
+                dealer3.Send("3");
+                dealer4.Send("4");
+                dealer2.Send("2");
+                dealer1.Send("1");
+                Assert.IsTrue(signal3.WaitOne(300));
+                Assert.IsTrue(signal4.WaitOne(300));
+
+                poller.CancelAndJoin();
+
+                bool more;
+                
+                router1.Receive(true, out more);
+                Assert.IsTrue(more);
+
+                router1.Receive(true, out more);
+                Assert.IsFalse(more);
+
+                Assert.AreEqual(1, router1arrived);
+                Assert.AreEqual(2, router2arrived);
+                Assert.IsTrue(router3arrived);
+                Assert.IsTrue(router4arrived);
             }
         }
 
 
         [Test]
-        public void CancelSocket()
+        public void RemoveSocket()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var router1 = context.CreateRouterSocket())
+            using (var router2 = context.CreateRouterSocket())
+            using (var router3 = context.CreateRouterSocket())
+            using (var dealer1 = context.CreateDealerSocket())
+            using (var dealer2 = context.CreateDealerSocket())
+            using (var dealer3 = context.CreateDealerSocket())
+            using (var poller = new Poller(router1, router2, router3) { PollTimeout = TestPollTimeoutMillis })
             {
-                // we are using three responses to make sure we actually move the correct socket and other sockets still work
-                using (var router = contex.CreateRouterSocket())
-                using (var router2 = contex.CreateRouterSocket())
-                using (var router3 = contex.CreateRouterSocket())
+                int port1 = router1.BindRandomPort("tcp://127.0.0.1");
+                int port2 = router2.BindRandomPort("tcp://127.0.0.1");
+                int port3 = router3.BindRandomPort("tcp://127.0.0.1");
+
+                dealer1.Connect("tcp://127.0.0.1:" + port1);
+                dealer2.Connect("tcp://127.0.0.1:" + port2);
+                dealer3.Connect("tcp://127.0.0.1:" + port3);
+
+                bool first = true;
+
+                router1.ReceiveReady += (s, a) =>
                 {
-                    int port = router.BindRandomPort("tcp://127.0.0.1");
-                    int port2 = router2.BindRandomPort("tcp://127.0.0.1");
-                    int port3 = router3.BindRandomPort("tcp://127.0.0.1");
+                    if (!first)
+                        Assert.Fail("This should not happen because we cancelled the socket");
+                    first = false;
 
-                    using (var dealer = contex.CreateDealerSocket())
-                    using (var dealer2 = contex.CreateDealerSocket())
-                    using (var dealer3 = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
-                    {
-                        dealer.Connect("tcp://127.0.0.1:" + port);
-                        dealer2.Connect("tcp://127.0.0.1:" + port2);
-                        dealer3.Connect("tcp://127.0.0.1:" + port3);
+                    // identity
+                    a.Socket.Receive();
 
-                        bool first = true;
+                    bool more;
+                    Assert.AreEqual("Hello", a.Socket.ReceiveString(out more));
+                    Assert.False(more);
 
-                        router2.ReceiveReady += (s, a) =>
-                                                                            {
-                                                                                bool more;
+                    // cancelling the socket
+                    poller.RemoveSocket(a.Socket); // remove self
+                };
 
-                                                                                // identity
-                                                                                byte[] identity = a.Socket.Receive(out more);
+                router2.ReceiveReady += (s, a) =>
+                {
+                    // identity
+                    byte[] identity = a.Socket.Receive();
 
-                                                                                // message
-                                                                                a.Socket.Receive(out more);
+                    // message
+                    a.Socket.Receive();
 
-                                                                                a.Socket.SendMore(identity);
-                                                                                a.Socket.Send("2");
-                                                                            };
+                    a.Socket.SendMore(identity);
+                    a.Socket.Send("2");
+                };
 
-                        poller.AddSocket(router2);
+                router3.ReceiveReady += (s, a) =>
+                {
+                    // identity
+                    byte[] identity = a.Socket.Receive();
 
-                        router.ReceiveReady += (s, a) =>
-                                                                        {
-                                                                            if (!first)
-                                                                            {
-                                                                                Assert.Fail("This should happen because we cancelled the socket");
-                                                                            }
-                                                                            first = false;
+                    // message
+                    a.Socket.Receive();
 
-                                                                            bool more;
+                    a.Socket.SendMore(identity).Send("3");
+                };
 
-                                                                            // identity
-                                                                            a.Socket.Receive(out more);
+                Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
 
-                                                                            string m = a.Socket.ReceiveString(out more);
+                // Send three messages. Only the first will be processes, as then handler removes
+                // the socket from the poller.
+                dealer1.Send("Hello");
+                dealer1.Send("Hello2");
+                dealer1.Send("Hello3");
 
-                                                                            Assert.False(more);
-                                                                            Assert.AreEqual("Hello", m);
+                // making sure the socket defined before the one cancelled still works
+                dealer2.Send("1");
+                Assert.AreEqual("2", dealer2.ReceiveString());
 
-                                                                            // cancellign the socket
-                                                                            poller.RemoveSocket(a.Socket);
-                                                                        };
+                // making sure the socket defined after the one cancelled still works
+                dealer3.Send("1");
+                Assert.AreEqual("3", dealer3.ReceiveString());
 
-                        poller.AddSocket(router);
-
-                        router3.ReceiveReady += (s, a) =>
-                                                                            {
-                                                                                bool more;
-
-                                                                                // identity
-                                                                                byte[] identity = a.Socket.Receive(out more);
-
-                                                                                // message
-                                                                                a.Socket.Receive(out more);
-
-                                                                                a.Socket.SendMore(identity).Send("3");
-                                                                            };
-
-                        poller.AddSocket(router3);
-
-                        Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
-
-                        dealer.Send("Hello");
-
-                        // sending this should not arrive on the poller, therefore response for this will never arrive
-                        dealer.Send("Hello2");
-
-                        Thread.Sleep(100);
-
-                        // sending this should not arrive on the poller, therefore response for this will never arrive						
-                        dealer.Send("Hello3");
-
-                        Thread.Sleep(500);
-
-                        bool more2;
-
-                        // making sure the socket defined before the one cancelled still works
-                        dealer2.Send("1");
-                        string msg = dealer2.ReceiveString(out more2);
-                        Assert.AreEqual("2", msg);
-
-                        // making sure the socket defined after the one cancelled still works
-                        dealer3.Send("1");
-                        msg = dealer3.ReceiveString(out more2);
-                        Assert.AreEqual("3", msg);
-
-                        // we have to give this some time if we want to make sure it's really not happening and it not only because of time
-                        Thread.Sleep(300);
-
-                        poller.CancelAndJoin();
-
-                        Thread.Sleep(100);
-                        Assert.IsTrue(pollerTask.IsCompleted);
-                    }
-                }
+                poller.CancelAndJoin();
+                Assert.IsTrue(pollerTask.IsCompleted);
             }
         }
 
         [Test]
         public void SimpleTimer()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            // TODO it is not really clear what this test is actually testing -- maybe split it into a few smaller tests
+
+            using (var context = NetMQContext.Create())
+            using (var router = context.CreateRouterSocket())
+            using (var dealer = context.CreateDealerSocket())
+            using (var poller = new Poller(router) { PollTimeout = TestPollTimeoutMillis })
             {
-                // we are using three responses to make sure we actually move the correct socket and other sockets still work
-                using (var router = contex.CreateRouterSocket())
+                int port = router.BindRandomPort("tcp://127.0.0.1");
+
+                dealer.Connect("tcp://127.0.0.1:" + port);
+
+                bool messageArrived = false;
+
+                router.ReceiveReady += (s, a) =>
                 {
-                    int port = router.BindRandomPort("tcp://127.0.0.1");
+                    Assert.IsFalse(messageArrived);
+                    router.Receive();
+                    router.Receive();
+                    messageArrived = true;
+                };
 
-                    using (var dealer = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
-                    {
-                        dealer.Connect("tcp://127.0.0.1:" + port);
+                bool timerTriggered = false;
 
+                int count = 0;
 
-                        bool messageArrived = false;
+                const int timerIntervalMillis = 100;
 
-                        router.ReceiveReady += (s, a) =>
-                                                                        {
-                                                                            bool isMore;
-                                                                            router.Receive(out isMore);
-                                                                            router.Receive(out isMore);
+                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
+                timer.Elapsed += (a, s) =>
+                {
+                    // the timer should jump before the message
+                    Assert.IsFalse(messageArrived);
+                    timerTriggered = true;
+                    timer.Enable = false;
+                    count++;
+                };
+                poller.AddTimer(timer);
 
+                poller.PollTillCancelledNonBlocking();
 
-                                                                            messageArrived = true;
-                                                                        };
+                Thread.Sleep(150);
 
-                        poller.AddSocket(router);
+                dealer.Send("hello");
 
-                        bool timerTriggered = false;
+                Thread.Sleep(300);
 
-                        int count = 0;
+                poller.CancelAndJoin();
 
-                        NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(100));
-                        timer.Elapsed += (a, s) =>
-                                                            {
-                                                                // the timer should jump before the message
-                                                                Assert.IsFalse(messageArrived);
-                                                                timerTriggered = true;
-                                                                timer.Enable = false;
-                                                                count++;
-                                                            };
-                        poller.AddTimer(timer);
-
-                        poller.PollTillCancelledNonBlocking();
-
-                        Thread.Sleep(150);
-
-                        dealer.Send("hello");
-
-                        Thread.Sleep(300);
-
-                        poller.CancelAndJoin();
-
-                        Assert.IsTrue(messageArrived);
-                        Assert.IsTrue(timerTriggered);
-                        Assert.AreEqual(1, count);
-                    }
-                }
+                Assert.IsTrue(messageArrived);
+                Assert.IsTrue(timerTriggered);
+                Assert.AreEqual(1, count);
             }
         }
 
         [Test]
-        public void CancelTimer()
+        public void RemoveTimer()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var router = context.CreateRouterSocket())
+            using (var dealer = context.CreateDealerSocket())
+            using (var poller = new Poller(router) { PollTimeout = TestPollTimeoutMillis })
             {
-                // we are using three responses to make sure we actually move the correct socket and other sockets still work
-                using (var router = contex.CreateRouterSocket())
+                int port = router.BindRandomPort("tcp://127.0.0.1");
+
+                dealer.Connect("tcp://127.0.0.1:" + port);
+
+                bool timerTriggered = false;
+
+                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(100));
+                timer.Elapsed += (a, s) => { timerTriggered = true; };
+
+                // the timer will jump after 100ms
+                poller.AddTimer(timer);
+
+                bool messageArrived = false;
+
+                router.ReceiveReady += (s, a) =>
                 {
-                    int port = router.BindRandomPort("tcp://127.0.0.1");
+                    bool isMore;
+                    router.Receive(out isMore);
+                    router.Receive(out isMore);
 
-                    using (var dealer = contex.CreateDealerSocket())
-                    using (Poller poller = new Poller())
-                    {
-                        dealer.Connect("tcp://127.0.0.1:" + port);
+                    messageArrived = true;
+                    poller.RemoveTimer(timer);
+                };
 
-                        bool timerTriggered = false;
+                poller.PollTillCancelledNonBlocking();
 
-                        NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(100));
-                        timer.Elapsed += (a, s) =>
-                                                            {
-                                                                timerTriggered = true;
-                                                            };
+                Thread.Sleep(20);
 
-                        // the timer will jump after 100ms
-                        poller.AddTimer(timer);
+                dealer.Send("hello");
 
-                        bool messageArrived = false;
+                Thread.Sleep(300);
 
-                        router.ReceiveReady += (s, a) =>
-                                                                        {
-                                                                            bool isMore;
-                                                                            router.Receive(out isMore);
-                                                                            router.Receive(out isMore);
+                poller.CancelAndJoin();
 
-                                                                            messageArrived = true;
-                                                                            poller.RemoveTimer(timer);
-                                                                        };
-
-                        poller.AddSocket(router);
-
-                        poller.PollTillCancelledNonBlocking();
-
-                        Thread.Sleep(20);
-
-                        dealer.Send("hello");
-
-                        Thread.Sleep(300);
-
-                        poller.CancelAndJoin();
-
-                        Assert.IsTrue(messageArrived);
-                        Assert.IsFalse(timerTriggered);
-                    }
-                }
+                Assert.IsTrue(messageArrived);
+                Assert.IsFalse(timerTriggered);
             }
         }
 
         [Test]
         public void RunMultipleTimes()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            int count = 0;
+
+            const int timerIntervalMillis = 20;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
+            timer.Elapsed += (a, s) =>
             {
-                int count = 0;
+                count++;
 
-                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
-                timer.Elapsed += (a, s) =>
+                if (count == 3)
                 {
-                    count++;
+                    timer.Enable = false;
+                }
+            };
 
-                    if (count == 3)
-                    {
-                        timer.Enable = false;
-                    }
-                };
-
-                poller.AddTimer(timer);
-
+            using (var poller = new Poller(timer) { PollTimeout = TestPollTimeoutMillis })
+            {
                 poller.PollTillCancelledNonBlocking();
 
-                Thread.Sleep(300);
+                Thread.Sleep(timerIntervalMillis * 6);
 
                 poller.CancelAndJoin();
 
@@ -641,25 +542,23 @@ namespace NetMQ.Tests
         [Test]
         public void PollOnce()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            int count = 0;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
+            timer.Elapsed += (a, s) =>
             {
+                count++;
 
-                int count = 0;
-
-                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
-                timer.Elapsed += (a, s) =>
+                if (count == 3)
                 {
-                    count++;
+                    timer.Enable = false;
+                }
+            };
 
-                    if (count == 3)
-                    {
-                        timer.Enable = false;
-                    }
-                };
+            // NOTE if the PollTimeout here is less than the timer period, it won't fire during PollOnce -- is this by design?
 
-                poller.AddTimer(timer);
-
+            using (var poller = new Poller(timer) { PollTimeout = 1000 })
+            {
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
                 poller.PollOnce();
@@ -674,276 +573,229 @@ namespace NetMQ.Tests
         [Test]
         public void TwoTimers()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(52));
+            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(40));
+
+            int count = 0;
+            int count2 = 0;
+
+            var signal1 = new ManualResetEvent(false);
+            var signal2 = new ManualResetEvent(false);
+
+            timer1.Elapsed += (a, s) =>
             {
-                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(52));
+                count++;
+                timer1.Enable = false;
+                timer2.Enable = false;
+                signal1.Set();
+            };
 
-                NetMQTimer timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(40));
+            timer2.Elapsed += (s, a) =>
+            {
+                count2++;
+                signal2.Set();
+            };
 
-                int count = 0;
-
-                timer.Elapsed += (a, s) =>
-                {
-                    count++;
-                    timer.Enable = false;
-                    timer2.Enable = false;
-                };
-
-                poller.AddTimer(timer);
-
-                int count2 = 0;
-
-                timer2.Elapsed += (s, a) => { count2++; };
-                poller.AddTimer(timer2);
-
+            using (var poller = new Poller(timer1, timer2) { PollTimeout = TestPollTimeoutMillis })
+            {
                 poller.PollTillCancelledNonBlocking();
 
-                Thread.Sleep(300);
+                Assert.IsTrue(signal1.WaitOne(300));
+                Assert.IsTrue(signal2.WaitOne(300));
 
                 poller.CancelAndJoin();
-
-                Assert.AreEqual(1, count);
-                Assert.AreEqual(1, count2);
             }
+
+            Assert.AreEqual(1, count);
+            Assert.AreEqual(1, count2);
         }
 
         [Test]
         public void EnableTimer()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            const int timerIntervalMillis = 20;
+
+            var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
+            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis)) { Enable = false};
+
+            int count = 0;
+            int count2 = 0;
+
+            timer1.Elapsed += (a, s) =>
             {
+                count++;
 
-                int count = 0;
-
-                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(20));
-
-                NetMQTimer timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(20));
-
-                timer.Elapsed += (a, s) =>
+                if (count == 1)
                 {
-                    count++;
+                    timer2.Enable = true;
+                    timer1.Enable = false;
+                }
+                else if (count == 2)
+                {
+                    timer1.Enable = false;
+                }
+            };
 
-                    if (count == 1)
-                    {
-                        timer2.Enable = true;
-                        timer.Enable = false;
-                    }
-                    else if (count == 2)
-                    {
-                        timer.Enable = false;
-                    }
-                };
-
-                int count2 = 0;
-
-                timer2.Elapsed += (s, a) =>
-                                                        {
-                                                            timer.Enable = true;
-                                                            timer2.Enable = false;
-
-                                                            count2++;
-                                                        };
-
+            timer2.Elapsed += (s, a) =>
+            {
+                timer1.Enable = true;
                 timer2.Enable = false;
 
-                poller.AddTimer(timer);
-                poller.AddTimer(timer2);
+                count2++;
+            };
 
+            using (var poller = new Poller(timer1, timer2) { PollTimeout = TestPollTimeoutMillis })
+            {
                 poller.PollTillCancelledNonBlocking();
 
-                Thread.Sleep(300);
+                Thread.Sleep(timerIntervalMillis * 6);
 
                 poller.CancelAndJoin();
-
-                Assert.AreEqual(2, count);
-                Assert.AreEqual(1, count2);
             }
+
+            Assert.AreEqual(2, count);
+            Assert.AreEqual(1, count2);
         }
 
         [Test]
         public void ChangeTimerInterval()
         {
-            using (NetMQContext contex = NetMQContext.Create())
-            using (Poller poller = new Poller())
+            int count = 0;
+
+            const int timerIntervalMillis = 10;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
+
+            var stopwatch = new Stopwatch();
+
+            long length1 = 0;
+            long length2 = 0;
+
+            timer.Elapsed += (a, s) =>
             {
+                count++;
 
-                int count = 0;
-
-                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(10));
-
-                Stopwatch stopwatch = new Stopwatch();
-
-                long length1 = 0;
-                long length2 = 0;
-
-                timer.Elapsed += (a, s) =>
+                if (count == 1)
                 {
-                    count++;
+                    stopwatch.Start();
+                }
+                else if (count == 2)
+                {
+                    length1 = stopwatch.ElapsedMilliseconds;
 
-                    if (count == 1)
-                    {
-                        stopwatch.Start();
-                    }
-                    else if (count == 2)
-                    {
-                        length1 = stopwatch.ElapsedMilliseconds;
+                    timer.Interval = 20;
+                    stopwatch.Restart();
+                }
+                else if (count == 3)
+                {
+                    length2 = stopwatch.ElapsedMilliseconds;
 
-                        timer.Interval = 20;
-                        stopwatch.Restart();
-                    }
-                    else if (count == 3)
-                    {
-                        length2 = stopwatch.ElapsedMilliseconds;
+                    stopwatch.Stop();
 
-                        stopwatch.Stop();
+                    timer.Enable = false;
+                }
+            };
 
-                        timer.Enable = false;
-                    }
-                };
-
-                poller.AddTimer(timer);
-
+            using (var poller = new Poller(timer) { PollTimeout = TestPollTimeoutMillis })
+            {
                 poller.PollTillCancelledNonBlocking();
 
-                Thread.Sleep(500);
+                Thread.Sleep(timerIntervalMillis * 6);
 
                 poller.CancelAndJoin();
-
-                Assert.AreEqual(3, count);
-
-                Console.WriteLine("Length1:{0}, Length2:{1}", length1, length2);
-
-                Assert.GreaterOrEqual(length1, 8);
-                Assert.LessOrEqual(length1, 12);
-
-                Assert.GreaterOrEqual(length2, 18);
-                Assert.LessOrEqual(length2, 22);
             }
+
+            Assert.AreEqual(3, count);
+
+            Assert.AreEqual(10.0, length1, 2.0);
+            Assert.AreEqual(20.0, length2, 2.0);
         }
 
         [Test]
         public void TestPollerDispose()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            const int timerIntervalMillis = 10;
+
+            var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
+
+            var signal = new ManualResetEvent(false);
+
+            var count = 0;
+
+            timer.Elapsed += (a, s) =>
             {
+                if (count++ == 5)
+                    signal.Set();
+            };
 
-                int count = 0;
-
-                NetMQTimer timer = new NetMQTimer(TimeSpan.FromMilliseconds(10));
-
-                Stopwatch stopwatch = new Stopwatch();
-
-                long length1 = 0;
-                long length2 = 0;
-
-
-                timer.Elapsed += (a, s) =>
-                {
-                    count++;
-
-                    if (count == 1)
-                    {
-                        stopwatch.Start();
-                    }
-                    else if (count == 2)
-                    {
-                        length1 = stopwatch.ElapsedMilliseconds;
-                        timer.Interval = 20;
-                        stopwatch.Restart();
-                    }
-                    else if (count == 3)
-                    {
-                        length2 = stopwatch.ElapsedMilliseconds;
-                        stopwatch.Stop();
-                        timer.Enable = false;
-                    }
-                };
-
-                Poller poller;
-                using (poller = new Poller(timer))
-                {
-                    poller.PollTillCancelledNonBlocking();
-                    Thread.Sleep(500);
-                    Assert.Throws<InvalidOperationException>(() => { poller.PollTillCancelled(); });
-                }
-
-                Assert.That(poller.IsStarted, Is.False);
-                Assert.Throws<ObjectDisposedException>(() => { poller.PollTillCancelled(); });
-                Assert.Throws<ObjectDisposedException>(() => { poller.CancelAndJoin(); });
-                Assert.Throws<ObjectDisposedException>(() => { poller.AddTimer(timer); });
-                Assert.Throws<ObjectDisposedException>(() => { poller.RemoveTimer(timer); });
-
-                Assert.AreEqual(3, count);
- 
-                Assert.GreaterOrEqual(length1, 8);
-                Assert.LessOrEqual(length1, 12);
-
-                Assert.GreaterOrEqual(length2, 18);
-                Assert.LessOrEqual(length2, 22);
+            Poller poller;
+            using (poller = new Poller(timer) { PollTimeout = TestPollTimeoutMillis })
+            {
+                poller.PollTillCancelledNonBlocking();
+                Assert.IsTrue(signal.WaitOne(500));
+                Assert.IsTrue(poller.IsStarted);
+                Assert.Throws<InvalidOperationException>(() => poller.PollTillCancelled());
             }
+
+            Assert.IsFalse(poller.IsStarted);
+            Assert.Throws<ObjectDisposedException>(() => poller.PollTillCancelled());
+            Assert.Throws<ObjectDisposedException>(() => poller.CancelAndJoin());
+            Assert.Throws<ObjectDisposedException>(() => poller.AddTimer(timer));
+            Assert.Throws<ObjectDisposedException>(() => poller.RemoveTimer(timer));
         }
 
         [Test]
         public void NativeSocket()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var streamServer = context.CreateStreamSocket())
+            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
-                using (var streamServer = context.CreateStreamSocket())
+                int port = streamServer.BindRandomPort("tcp://*");
+
+                socket.Connect("127.0.0.1", port);
+
+                var buffer = new byte[] { 1 };
+                socket.Send(buffer);
+
+                byte[] identity = streamServer.Receive();
+                byte[] message = streamServer.Receive();
+
+                Assert.AreEqual(buffer[0], message[0]);
+
+                var socketSignal = new ManualResetEvent(false);
+
+                var poller = new Poller { PollTimeout = TestPollTimeoutMillis };
+                poller.AddPollInSocket(socket, s =>
                 {
-                    int port = streamServer.BindRandomPort("tcp://*");
+                    socket.Receive(buffer);
 
-                    using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-                    {
-                        socket.Connect("127.0.0.1", port);
+                    socketSignal.Set();
 
-                        byte[] buffer = new byte[] { 1 };
-                        socket.Send(buffer);
+                    // removing the socket
+                    poller.RemovePollInSocket(socket);
+                });
 
-                        byte[] identity = streamServer.Receive();
-                        byte[] message = streamServer.Receive();
+                poller.PollTillCancelledNonBlocking();
 
-                        Assert.AreEqual(buffer[0], message[0]);
+                // no message is waiting for the socket so it should fail
+                Assert.IsFalse(socketSignal.WaitOne(100));
 
-                        ManualResetEvent socketSignal = new ManualResetEvent(false);
+                // sending a message back to the socket
+                streamServer.SendMore(identity).Send("a");
 
-                        Poller poller = new Poller();
-                        poller.AddPollInSocket(socket, s =>
-                        {
-                            socket.Receive(buffer);
+                Assert.IsTrue(socketSignal.WaitOne(100));
 
-                            socketSignal.Set();
+                socketSignal.Reset();
 
-                            // removing the socket
-                            poller.RemovePollInSocket(socket);
-                        });
+                // sending a message back to the socket
+                streamServer.SendMore(identity).Send("a");
 
-                        poller.PollTillCancelledNonBlocking();
+                // we remove the native socket so it should fail
+                Assert.IsFalse(socketSignal.WaitOne(100));
 
-                        // no message is waiting for the socket so it should fail
-                        Assert.IsFalse(socketSignal.WaitOne(200));
-
-                        // sending a message back to the socket
-                        streamServer.SendMore(identity).Send("a");
-
-                        Assert.IsTrue(socketSignal.WaitOne(200));
-
-                        socketSignal.Reset();
-
-                        // sending a message back to the socket
-                        streamServer.SendMore(identity).Send("a");
-
-                        // we remove the native socket so it should fail
-                        Assert.IsFalse(socketSignal.WaitOne(200));
-
-                        poller.CancelAndJoin();
-                    }
-                }
+                poller.CancelAndJoin();
             }
-
-
-
         }
     }
 }

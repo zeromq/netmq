@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns;
 using NetMQ.zmq.Transports;
 using NetMQ.zmq.Transports.Ipc;
@@ -33,8 +34,8 @@ using NetMQ.zmq.Transports.Tcp;
 namespace NetMQ.zmq
 {
     internal class SessionBase : Own,
-                                 Pipe.IPipeEvents, IProcatorEvents,
-                                 IMsgSink, IMsgSource
+        Pipe.IPipeEvents, IProactorEvents,
+        IMsgSink, IMsgSource
     {
         /// <summary>
         /// If true, this session (re)connects to the peer. Otherwise, it's
@@ -105,58 +106,43 @@ namespace NetMQ.zmq
         /// </summary>
         private readonly Address m_addr;
 
-        private readonly IOObject m_ioObject;
+        [NotNull] private readonly IOObject m_ioObject;
 
-        public static SessionBase Create(IOThread ioThread, bool connect,
-                                         SocketBase socket, Options options, Address addr)
+        [NotNull]
+        public static SessionBase Create([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
         {
-            SessionBase s;
             switch (options.SocketType)
             {
                 case ZmqSocketType.Req:
-                    s = new Req.ReqSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Req.ReqSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Dealer:
-                    s = new Dealer.DealerSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Dealer.DealerSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Rep:
-                    s = new Rep.RepSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Rep.RepSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Router:
-                    s = new Router.RouterSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Router.RouterSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pub:
-                    s = new Pub.PubSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Pub.PubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Xpub:
-                    s = new XPub.XPubSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new XPub.XPubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Sub:
-                    s = new Sub.SubSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Sub.SubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Xsub:
-                    s = new XSub.XSubSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new XSub.XSubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Push:
-                    s = new Push.PushSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Push.PushSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pull:
-                    s = new Pull.PullSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Pull.PullSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pair:
-                    s = new Pair.PairSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Pair.PairSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Stream:
-                    s = new Stream.StreamSession(ioThread, connect, socket, options, addr);
-                    break;
+                    return new Stream.StreamSession(ioThread, connect, socket, options, addr);
                 default:
                     throw new InvalidException("SessionBase.Create called with invalid SocketType of " + options.SocketType);
             }
-            return s;
         }
 
-        public SessionBase(IOThread ioThread, bool connect,
-                           SocketBase socket, Options options, Address addr)
+        public SessionBase([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -199,7 +185,7 @@ namespace NetMQ.zmq
         }
 
         //  To be used once only, when creating the session.
-        public void AttachPipe(Pipe pipe)
+        public void AttachPipe([NotNull] Pipe pipe)
         {
             Debug.Assert(!IsTerminating);
             Debug.Assert(m_pipe == null);
@@ -282,7 +268,7 @@ namespace NetMQ.zmq
                 //  Remove any half-read message from the in pipe.
                 while (m_incompleteIn)
                 {
-                    Msg msg = new Msg();
+                    var msg = new Msg();
                     msg.InitEmpty();
 
                     if (!PullMsg(ref msg))
@@ -359,6 +345,7 @@ namespace NetMQ.zmq
             throw new NotSupportedException("Must Override");
         }
 
+        [NotNull]
         public SocketBase Socket
         {
             get { return m_socket; }
@@ -422,7 +409,7 @@ namespace NetMQ.zmq
 
             //  If the termination of the pipe happens before the term command is
             //  delivered there's nothing much to do. We can proceed with the
-            //  stadard termination immediately.
+            //  standard termination immediately.
             if (m_pipe == null)
             {
                 ProceedWithTerm();
@@ -485,7 +472,7 @@ namespace NetMQ.zmq
             //  For delayed connect situations, terminate the pipe
             //  and reestablish later on
             if (m_pipe != null && m_options.DelayAttachOnConnect
-                    && m_addr.Protocol != Address.PgmProtocol && m_addr.Protocol != Address.EpgmProtocol)
+                && m_addr.Protocol != Address.PgmProtocol && m_addr.Protocol != Address.EpgmProtocol)
             {
                 m_pipe.Hiccup();
                 m_pipe.Terminate(false);
@@ -509,34 +496,32 @@ namespace NetMQ.zmq
         {
             Debug.Assert(m_connect);
 
-            //  Choose I/O thread to run connecter in. Given that we are already
+            //  Choose I/O thread to run connector in. Given that we are already
             //  running in an I/O thread, there must be at least one available.
             IOThread ioThread = ChooseIOThread(m_options.Affinity);
             Debug.Assert(ioThread != null);
 
-            //  Create the connecter object.
+            //  Create the connector object.
 
             if (m_addr.Protocol.Equals(Address.TcpProtocol))
             {
-                TcpConnecter connecter = new TcpConnecter(
-                    ioThread, this, m_options, m_addr, wait);
-                //alloc_Debug.Assert(connecter);
-                LaunchChild(connecter);
+                var connector = new TcpConnector(ioThread, this, m_options, m_addr, wait);
+                //alloc_Debug.Assert(connector);
+                LaunchChild(connector);
                 return;
             }
 
             if (m_addr.Protocol.Equals(Address.IpcProtocol))
             {
-                IpcConnecter connecter = new IpcConnecter(
-                    ioThread, this, m_options, m_addr, wait);
-                //alloc_Debug.Assert(connecter);
-                LaunchChild(connecter);
+                var connector = new IpcConnector(ioThread, this, m_options, m_addr, wait);
+                //alloc_Debug.Assert(connector);
+                LaunchChild(connector);
                 return;
             }
 
             if (m_addr.Protocol.Equals(Address.PgmProtocol) || m_addr.Protocol.Equals(Address.EpgmProtocol))
             {
-                PgmSender pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
+                var pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
                 pgmSender.Init(m_addr.Resolved as PgmAddress);
 
                 SendAttach(this, pgmSender);

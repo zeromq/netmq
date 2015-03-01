@@ -17,7 +17,7 @@ namespace NetMQ
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
 
         /// <summary>
-        /// A Dictionary of entries each of which associates a sockeet with an action.
+        /// A Dictionary of entries each of which associates a socket with an action.
         /// </summary>
         private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
 
@@ -40,6 +40,9 @@ namespace NetMQ
         /// </summary>
         private readonly List<NetMQTimer> m_zombies = new List<NetMQTimer>();
 
+        /// <summary>
+        /// Flag used to signal completion of the loop.
+        /// </summary>
         private int m_cancel;
 
         /// <summary>
@@ -282,7 +285,7 @@ namespace NetMQ
         /// <summary>
         /// Delete the given timer from this Poller's list.
         /// </summary>
-        /// <param name="timer">the NetMQTimer to rremove from the list</param>
+        /// <param name="timer">the NetMQTimer to remove from the list</param>
         public void RemoveTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -387,12 +390,9 @@ namespace NetMQ
 
         private void RebuildPollset()
         {
-            m_pollset = null;
-            m_pollact = null;
-
             m_pollSize = m_sockets.Count + m_pollinSockets.Count;
-            m_pollset = new SelectItem[m_pollSize];
 
+            m_pollset = new SelectItem[m_pollSize];
             m_pollact = new NetMQSocket[m_sockets.Count];
 
             uint itemNbr = 0;
@@ -444,7 +444,7 @@ namespace NetMQ
         /// Poll as long as the given Func evaluates to true.
         /// </summary>
         /// <param name="condition">a Func that returns a boolean value, to evaluate on each iteration</param>
-        private void PollWhile([InstantHandle] Func<bool> condition)
+        private void PollWhile([NotNull,InstantHandle] Func<bool> condition)
         {
             if (m_disposed)
             {

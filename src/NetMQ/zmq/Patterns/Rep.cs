@@ -19,18 +19,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using JetBrains.Annotations;
+
 namespace NetMQ.zmq.Patterns
 {
-    internal class Rep : Router
+    internal sealed class Rep : Router
     {
         public class RepSession : RouterSession
         {
-            public RepSession(IOThread ioThread, bool connect,
-                              SocketBase socket, Options options,
-                              Address addr)
+            public RepSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
         /// <summary>
@@ -45,10 +44,9 @@ namespace NetMQ.zmq.Patterns
         /// </summary>
         private bool m_requestBegins;
 
-        public Rep(Ctx parent, int threadId, int socketId)
+        public Rep([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-
             m_sendingReply = false;
             m_requestBegins = true;
 
@@ -69,11 +67,10 @@ namespace NetMQ.zmq.Patterns
             bool isMessageSent = base.XSend(ref msg, flags);
 
             if (!isMessageSent)
-            {
                 return false;
-            }
+
             //  If the reply is complete flip the FSM back to request receiving state.
-            else if (!more)
+            if (!more)
                 m_sendingReply = false;
 
             return true;
@@ -85,9 +82,7 @@ namespace NetMQ.zmq.Patterns
 
             //  If we are in middle of sending a reply, we cannot receive next request.
             if (m_sendingReply)
-            {
                 throw new FiniteStateMachineException("Rep.XRecv - cannot receive another request");
-            }
 
             //  First thing to do when receiving a request is to copy all the labels
             //  to the reply pipe.
@@ -98,9 +93,7 @@ namespace NetMQ.zmq.Patterns
                     isMessageAvailable = base.XRecv(flags, ref msg);
 
                     if (!isMessageAvailable)
-                    {
                         return false;
-                    }
 
                     if (msg.HasMore)
                     {
@@ -109,10 +102,9 @@ namespace NetMQ.zmq.Patterns
 
                         //  Push it to the reply pipe.
                         isMessageAvailable = base.XSend(ref msg, flags);
+                        
                         if (!isMessageAvailable)
-                        {
                             return false;
-                        }
 
                         if (bottom)
                             break;

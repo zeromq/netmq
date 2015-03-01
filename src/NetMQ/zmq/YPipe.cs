@@ -25,7 +25,7 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    internal class YPipe<T>
+    internal sealed class YPipe<T>
     {
         //  Allocation-efficient queue to store pipe items.
         //  Front of the queue points to the first prefetched item, back of
@@ -68,7 +68,7 @@ namespace NetMQ.zmq
             //  Place the value to the queue, add new terminator element.
             m_queue.Push(ref value);
 
-            //  Move the "flush up to here" poiter.
+            //  Move the "flush up to here" pointer.
             if (!incomplete)
             {
                 m_flushToIndex = m_queue.BackPos;
@@ -79,7 +79,6 @@ namespace NetMQ.zmq
         /// <returns>Returns the element revoked if such item exists, <c>null</c> otherwise.</returns>  
         public bool Unwrite(ref T value)
         {
-
             if (m_flushToIndex == m_queue.BackPos)
                 return false;
             value = m_queue.Unpush();

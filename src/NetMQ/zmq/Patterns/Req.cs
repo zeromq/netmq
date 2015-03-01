@@ -21,14 +21,15 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns
 {
-    internal class Req : Dealer
+    internal sealed class Req : Dealer
     {
         /// <summary>
         /// If true, request was already sent and reply wasn't received yet or
-        /// was raceived partially.
+        /// was received partially.
         /// </summary>
         private bool m_receivingReply;
 
@@ -38,7 +39,7 @@ namespace NetMQ.zmq.Patterns
         /// </summary>
         private bool m_messageBegins;
 
-        public Req(Ctx parent, int threadId, int socketId)
+        public Req([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_receivingReply = false;
@@ -60,15 +61,13 @@ namespace NetMQ.zmq.Patterns
             //  First part of the request is the request identity.
             if (m_messageBegins)
             {
-                Msg bottom = new Msg();
+                var bottom = new Msg();
                 bottom.InitEmpty();
                 bottom.SetFlags(MsgFlags.More);
                 isMessageSent = base.XSend(ref bottom, 0);
 
                 if (!isMessageSent)
-                {
                     return false;
-                }
 
                 m_messageBegins = false;
             }
@@ -78,11 +77,10 @@ namespace NetMQ.zmq.Patterns
             isMessageSent = base.XSend(ref msg, flags);
 
             if (!isMessageSent)
-            {
                 return false;
-            }
+
             //  If the request was fully sent, flip the FSM into reply-receiving state.
-            else if (!more)
+            if (!more)
             {
                 m_receivingReply = true;
                 m_messageBegins = true;
@@ -131,9 +129,7 @@ namespace NetMQ.zmq.Patterns
 
             isMessageAvailable = base.XRecv(flags, ref msg);
             if (!isMessageAvailable)
-            {
                 return false;
-            }
 
             //  If the reply is fully received, flip the FSM into request-sending state.
             if (!msg.HasMore)
@@ -163,18 +159,16 @@ namespace NetMQ.zmq.Patterns
 
         public class ReqSession : DealerSession
         {
-            enum State
+            private enum State
             {
                 Identity,
                 Bottom,
                 Body
             };
 
-            State m_state;
+            private State m_state;
 
-            public ReqSession(IOThread ioThread, bool connect,
-                              SocketBase socket, Options options,
-                              Address addr)
+            public ReqSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
                 m_state = State.Identity;
@@ -193,10 +187,8 @@ namespace NetMQ.zmq.Patterns
                         break;
                     case State.Body:
                         if (msg.Flags == MsgFlags.More)
-                        {
                             return base.PushMsg(ref msg);
-                        }
-                        else if (msg.Flags == 0)
+                        if (msg.Flags == 0)
                         {
                             m_state = State.Bottom;
                             return base.PushMsg(ref msg);

@@ -51,7 +51,7 @@ namespace NetMQ
 
         #region Socket Creation
 
-        [NotNull]
+        [CanBeNull]
         private SocketBase CreateHandle(ZmqSocketType socketType)
         {
             m_ctx.CheckDisposed();

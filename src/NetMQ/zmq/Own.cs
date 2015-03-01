@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq
 {
@@ -30,6 +31,7 @@ namespace NetMQ.zmq
     /// </summary>
     internal abstract class Own : ZObject
     {
+        [NotNull]
         protected readonly Options m_options;
 
         /// <summary>
@@ -52,6 +54,7 @@ namespace NetMQ.zmq
         /// Socket owning this object. It's responsible for shutting down
         /// this object.
         /// </summary>
+        [CanBeNull]
         private Own m_owner;
 
         /// <summary>
@@ -74,7 +77,7 @@ namespace NetMQ.zmq
         /// Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
         /// when the object is plugged in.
         /// </remarks>
-        protected Own(Ctx parent, int threadId)
+        protected Own([NotNull] Ctx parent, int threadId)
             : base(parent, threadId)
         {
             m_terminating = false;
@@ -94,7 +97,7 @@ namespace NetMQ.zmq
         /// Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
         /// when the object is plugged in.
         /// </remarks>
-        protected Own(IOThread ioThread, Options options)
+        protected Own([NotNull] IOThread ioThread, [NotNull] Options options)
             : base(ioThread)
         {
             m_options = options;
@@ -114,7 +117,7 @@ namespace NetMQ.zmq
             Destroy();
         }
 
-        private void SetOwner(Own owner)
+        private void SetOwner([NotNull] Own owner)
         {
             Debug.Assert(m_owner == null);
             m_owner = owner;
@@ -141,33 +144,32 @@ namespace NetMQ.zmq
             CheckTermAcks();
         }
 
-
         /// <summary>
         /// Launch the supplied object and become its owner.
         /// </summary>
-        /// <param name="object_">The object to be launched.</param>
-        protected void LaunchChild(Own object_)
+        /// <param name="obj">The object to be launched.</param>
+        protected void LaunchChild([NotNull] Own obj)
         {
             //  Specify the owner of the object.
-            object_.SetOwner(this);
+            obj.SetOwner(this);
 
             //  Plug the object into the I/O thread.
-            SendPlug(object_);
+            SendPlug(obj);
 
             //  Take ownership of the object.
-            SendOwn(this, object_);
+            SendOwn(this, obj);
         }
 
         /// <summary>
         /// Terminate owned object.
         /// </summary>
-        /// <param name="object_"></param>
-        protected void TermChild(Own object_)
+        /// <param name="obj"></param>
+        protected void TermChild([NotNull] Own obj)
         {
-            ProcessTermReq(object_);
+            ProcessTermReq(obj);
         }
 
-        protected override void ProcessTermReq(Own object_)
+        protected override void ProcessTermReq(Own obj)
         {
             //  When shutting down we can ignore termination requests from owned
             //  objects. The termination request was already sent to the object.
@@ -178,31 +180,31 @@ namespace NetMQ.zmq
 
             //  If not found, we assume that termination request was already sent to
             //  the object so we can safely ignore the request.
-            if (!m_owned.Contains(object_))
+            if (!m_owned.Contains(obj))
                 return;
 
-            m_owned.Remove(object_);
+            m_owned.Remove(obj);
             RegisterTermAcks(1);
 
             //  Note that this object is the root of the (partial shutdown) thus, its
             //  value of linger is used, rather than the value stored by the children.
-            SendTerm(object_, m_options.Linger);
+            SendTerm(obj, m_options.Linger);
         }
 
 
-        protected override void ProcessOwn(Own object_)
+        protected override void ProcessOwn(Own obj)
         {
             //  If the object is already being shut down, new owned objects are
             //  immediately asked to terminate. Note that linger is set to zero.
             if (m_terminating)
             {
                 RegisterTermAcks(1);
-                SendTerm(object_, 0);
+                SendTerm(obj, 0);
                 return;
             }
 
             //  Store the reference to the owned object.
-            m_owned.Add(object_);
+            m_owned.Add(obj);
         }
 
         /// <summary>
@@ -291,8 +293,9 @@ namespace NetMQ.zmq
 
         private void CheckTermAcks()
         {
-            if (m_terminating && m_processedSeqnum == Interlocked.Read(ref m_sentSeqnum) &&
-                    m_termAcks == 0)
+            if (m_terminating &&
+                m_processedSeqnum == Interlocked.Read(ref m_sentSeqnum) &&
+                m_termAcks == 0)
             {
                 //  Sanity check. There should be no active children at this point.
                 Debug.Assert(m_owned.Count == 0);

@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 
 
 namespace NetMQ.zmq
@@ -32,7 +33,7 @@ namespace NetMQ.zmq
     /// Objects of class Ctx are intended to encapsulate all of the global state
     /// associated with the NetMQ library.
     /// </summary>
-    internal class Ctx
+    internal sealed class Ctx
     {
         // Default for new contexts
         public const int DefaultIOThreads = 1;
@@ -44,13 +45,16 @@ namespace NetMQ.zmq
 
         public class Endpoint
         {
-            public Endpoint(SocketBase socket, Options options)
+            public Endpoint([NotNull] SocketBase socket, [NotNull] Options options)
             {
                 Socket = socket;
                 Options = options;
             }
 
+            [NotNull]
             public SocketBase Socket { get; private set; }
+
+            [NotNull]
             public Options Options { get; private set; }
         }
 
@@ -168,7 +172,7 @@ namespace NetMQ.zmq
             m_endpoints = new Dictionary<string, Endpoint>();
         }
 
-        protected void Destroy()
+        private void Destroy()
         {
             foreach (IOThread it in m_ioThreads)
             {
@@ -292,17 +296,14 @@ namespace NetMQ.zmq
         {
             if (option == ContextOption.MaxSockets)
                 return m_maxSockets;
-            else if (option == ContextOption.IOThreads)
+            if (option == ContextOption.IOThreads)
                 return m_ioThreadCount;
-            else
-            {
-                throw new InvalidException(String.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
-            }
+            throw new InvalidException(String.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
         }
 
+        [CanBeNull]
         public SocketBase CreateSocket(ZmqSocketType type)
         {
-            SocketBase s = null;
             lock (m_slotSync)
             {
                 if (m_starting)
@@ -335,7 +336,7 @@ namespace NetMQ.zmq
                     //  Create I/O thread objects and launch them.
                     for (int i = 2; i != ios + 2; i++)
                     {
-                        IOThread ioThread = new IOThread(this, i);
+                        var ioThread = new IOThread(this, i);
                         //alloc_Debug.Assert(io_thread);
                         m_ioThreads.Add(ioThread);
                         m_slots[i] = ioThread.Mailbox;
@@ -343,13 +344,11 @@ namespace NetMQ.zmq
                     }
 
                     //  In the unused part of the slot array, create a list of empty slots.
-                    for (int i = (int)m_slotCount - 1;
-                             i >= (int)ios + 2; i--)
+                    for (int i = m_slotCount - 1; i >= ios + 2; i--)
                     {
                         m_emptySlots.Push(i);
                         m_slots[i] = null;
                     }
-
                 }
 
                 //  Once zmq_term() was called, we can't create new sockets.
@@ -377,7 +376,7 @@ namespace NetMQ.zmq
                 int socketId = Interlocked.Increment(ref s_maxSocketId);
 
                 //  Create the socket and register its mailbox.
-                s = SocketBase.Create(type, this, slot, socketId);
+                SocketBase s = SocketBase.Create(type, this, slot, socketId);
                 if (s == null)
                 {
                     m_emptySlots.Push(slot);
@@ -387,13 +386,12 @@ namespace NetMQ.zmq
                 m_slots[slot] = s.Mailbox;
 
                 //LOG.debug("NEW Slot [" + slot + "] " + s);
-            }
 
-            return s;
+                return s;
+            }
         }
 
-
-        public void DestroySocket(SocketBase socket)
+        public void DestroySocket([NotNull] SocketBase socket)
         {
             //  Free the associated thread slot.
             lock (m_slotSync)
@@ -426,7 +424,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Send a command to the given destination thread.
         /// </summary>
-        public void SendCommand(int threadId, Command command)
+        public void SendCommand(int threadId, [NotNull] Command command)
         {
             m_slots[threadId].Send(command);
         }
@@ -436,6 +434,7 @@ namespace NetMQ.zmq
         /// Affinity specifies which I/O threads are eligible (0 = all).
         /// Returns NULL if no I/O thread is available.
         /// </summary>
+        [CanBeNull]
         public IOThread ChooseIOThread(long affinity)
         {
             if (m_ioThreads.Count == 0)
@@ -467,7 +466,7 @@ namespace NetMQ.zmq
         /// <param name="addr">the textual name to give this endpoint</param>
         /// <param name="endpoint">the Endpoint to remember</param>
         /// <returns>true if the given addr was NOT already registered</returns>
-        public bool RegisterEndpoint(String addr, Endpoint endpoint)
+        public bool RegisterEndpoint([NotNull] String addr, [NotNull] Endpoint endpoint)
         {
             lock (m_endpointsSync)
             {
@@ -483,7 +482,7 @@ namespace NetMQ.zmq
             }
         }
 
-        public bool UnregisterEndpoint(string addr, SocketBase socket)
+        public bool UnregisterEndpoint([NotNull] string addr, [NotNull] SocketBase socket)
         {
             lock (m_endpointsSync)
             {
@@ -507,11 +506,10 @@ namespace NetMQ.zmq
             }
         }
 
-        public void UnregisterEndpoints(SocketBase socket)
+        public void UnregisterEndpoints([NotNull] SocketBase socket)
         {
             lock (m_endpointsSync)
             {
-
                 IList<string> removeList = (from e in m_endpoints where e.Value.Socket == socket select e.Key).ToList();
 
                 foreach (var item in removeList)
@@ -521,9 +519,9 @@ namespace NetMQ.zmq
             }
         }
 
-        public Endpoint FindEndpoint(String addr)
+        [NotNull]
+        public Endpoint FindEndpoint([NotNull] String addr)
         {
-            Endpoint endpoint = null;
             lock (m_endpointsSync)
             {
                 if (addr == null || !m_endpoints.ContainsKey(addr))
@@ -531,7 +529,8 @@ namespace NetMQ.zmq
                     throw new EndpointNotFoundException();
                 }
 
-                endpoint = m_endpoints[addr];
+                var endpoint = m_endpoints[addr];
+
                 if (endpoint == null)
                 {
                     throw new EndpointNotFoundException();
@@ -542,8 +541,9 @@ namespace NetMQ.zmq
                 //  The subsequent 'bind' has to be called with inc_seqnum parameter
                 //  set to false, so that the seqnum isn't incremented twice.
                 endpoint.Socket.IncSeqnum();
+
+                return endpoint;
             }
-            return endpoint;
         }
     }
 }

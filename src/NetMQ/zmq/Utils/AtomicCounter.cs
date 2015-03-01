@@ -6,7 +6,7 @@ namespace NetMQ.zmq.Utils
     /// This class simply provides a counter-value, which may be set, increased, and decremented.
     /// Increase and Decrement are both thread-safe operations.
     /// </summary>
-    class AtomicCounter
+    internal sealed class AtomicCounter
     {
         private int m_value;
 

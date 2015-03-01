@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns;
 using NetMQ.zmq.Transports.Ipc;
 using NetMQ.zmq.Transports.PGM;
@@ -37,9 +38,9 @@ namespace NetMQ.zmq
 {
     internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        private readonly Dictionary<String, Own> m_endpoints;
+        [NotNull] private readonly Dictionary<String, Own> m_endpoints;
 
-        private readonly Dictionary<string, Pipe> m_inprocs;
+        [NotNull] private readonly Dictionary<string, Pipe> m_inprocs;
 
         private bool m_disposed;
 
@@ -52,10 +53,10 @@ namespace NetMQ.zmq
         private bool m_destroyed;
 
         //  Socket's mailbox object.
-        private readonly Mailbox m_mailbox;
+        [NotNull] private readonly Mailbox m_mailbox;
 
         //  List of attached pipes.        
-        private readonly List<Pipe> m_pipes;
+        [NotNull] private readonly List<Pipe> m_pipes;
 
         //  Reaper's poller and handle of this socket within it.
         private Utils.Poller m_poller;
@@ -79,7 +80,7 @@ namespace NetMQ.zmq
         // The tcp port that was bound to, if any
         private int m_port;
 
-        protected SocketBase(Ctx parent, int threadId, int socketId)
+        protected SocketBase([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId)
         {
             m_disposed = false;
@@ -102,8 +103,8 @@ namespace NetMQ.zmq
 
         //  Concrete algorithms for the x- methods are to be defined by
         //  individual socket types.
-        abstract protected void XAttachPipe(Pipe pipe, bool icanhasall);
-        abstract protected void XTerminated(Pipe pipe);
+        protected abstract void XAttachPipe([NotNull] Pipe pipe, bool icanhasall);
+        protected abstract void XTerminated([NotNull] Pipe pipe);
 
         /// <summary>
         /// Throw exception if socket is disposed
@@ -128,51 +129,38 @@ namespace NetMQ.zmq
         }
 
         //  Create a socket of a specified type.
-        public static SocketBase Create(ZmqSocketType type, Ctx parent, int threadId, int socketId)
+        [NotNull]
+        public static SocketBase Create(ZmqSocketType type, [NotNull] Ctx parent, int threadId, int socketId)
         {
-            SocketBase socketBase;
             switch (type)
             {
                 case ZmqSocketType.Pair:
-                    socketBase = new Pair(parent, threadId, socketId);
-                    break;
+                    return new Pair(parent, threadId, socketId);
                 case ZmqSocketType.Pub:
-                    socketBase = new Pub(parent, threadId, socketId);
-                    break;
+                    return new Pub(parent, threadId, socketId);
                 case ZmqSocketType.Sub:
-                    socketBase = new Sub(parent, threadId, socketId);
-                    break;
+                    return new Sub(parent, threadId, socketId);
                 case ZmqSocketType.Req:
-                    socketBase = new Req(parent, threadId, socketId);
-                    break;
+                    return new Req(parent, threadId, socketId);
                 case ZmqSocketType.Rep:
-                    socketBase = new Rep(parent, threadId, socketId);
-                    break;
+                    return new Rep(parent, threadId, socketId);
                 case ZmqSocketType.Dealer:
-                    socketBase = new Dealer(parent, threadId, socketId);
-                    break;
+                    return new Dealer(parent, threadId, socketId);
                 case ZmqSocketType.Router:
-                    socketBase = new Router(parent, threadId, socketId);
-                    break;
+                    return new Router(parent, threadId, socketId);
                 case ZmqSocketType.Pull:
-                    socketBase = new Pull(parent, threadId, socketId);
-                    break;
+                    return new Pull(parent, threadId, socketId);
                 case ZmqSocketType.Push:
-                    socketBase = new Push(parent, threadId, socketId);
-                    break;
+                    return new Push(parent, threadId, socketId);
                 case ZmqSocketType.Xpub:
-                    socketBase = new XPub(parent, threadId, socketId);
-                    break;
+                    return new XPub(parent, threadId, socketId);
                 case ZmqSocketType.Xsub:
-                    socketBase = new XSub(parent, threadId, socketId);
-                    break;
+                    return new XSub(parent, threadId, socketId);
                 case ZmqSocketType.Stream:
-                    socketBase = new Stream(parent, threadId, socketId);
-                    break;
+                    return new Stream(parent, threadId, socketId);
                 default:
                     throw new InvalidException("SocketBase.Create called with invalid type of " + type);
             }
-            return socketBase;
         }
 
         /// <summary>
@@ -188,6 +176,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Returns the mailbox associated with this socket.
         /// </summary>
+        [NotNull]
         public Mailbox Mailbox
         {
             get { return m_mailbox; }
@@ -210,9 +199,9 @@ namespace NetMQ.zmq
         /// Check whether transport protocol, as specified in connect or
         /// bind, is available and compatible with the socket type.
         /// </summary>
-        private void CheckProtocol(String protocol)
+        private void CheckProtocol([NotNull] string protocol)
         {
-            //  First check out whether the protcol is something we are aware of.
+            //  First check out whether the protocol is something we are aware of.
             if (!protocol.Equals(Address.InProcProtocol) &&
                 !protocol.Equals(Address.IpcProtocol) && !protocol.Equals(Address.TcpProtocol) &&
                 !protocol.Equals(Address.PgmProtocol) && !protocol.Equals(Address.EpgmProtocol))
@@ -229,8 +218,8 @@ namespace NetMQ.zmq
             //  Specifically, multicast protocols can't be combined with
             //  bi-directional messaging patterns (socket types).
             if ((protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol)) &&
-                            m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
-                            m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
+                m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
+                m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
             {
 #if DEBUG
                 String xMsg = String.Format("SocketBase.CheckProtocol({0}), socket type {1} and protocol do not match.", protocol, m_options.SocketType);
@@ -247,12 +236,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Register the pipe with this socket.
         /// </summary>
-        private void AttachPipe(Pipe pipe)
-        {
-            AttachPipe(pipe, false);
-        }
-
-        private void AttachPipe(Pipe pipe, bool icanhasall)
+        private void AttachPipe([NotNull] Pipe pipe, bool icanhasall = false)
         {
             //  First, register the pipe so that we can terminate it later on.
 
@@ -351,7 +335,7 @@ namespace NetMQ.zmq
             return m_options.GetSocketOption(option);
         }
 
-        public void Bind(String addr)
+        public void Bind([NotNull] string addr)
         {
             CheckContextTerminated();
 
@@ -367,7 +351,7 @@ namespace NetMQ.zmq
 
             if (protocol.Equals(Address.InProcProtocol))
             {
-                Ctx.Endpoint endpoint = new Ctx.Endpoint(this, m_options);
+                var endpoint = new Ctx.Endpoint(this, m_options);
 
                 bool addressRegistered = RegisterEndpoint(addr, endpoint);
 
@@ -385,13 +369,13 @@ namespace NetMQ.zmq
             if ((protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol)) && (
                 m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub))
             {
-                //  For convenience's sake, bind can be used interchageable with
+                //  For convenience's sake, bind can be used interchangeable with
                 //  connect for PGM and EPGM transports.
                 Connect(addr);
                 return;
             }
 
-            //  Remaining trasnports require to be run in an I/O thread, so at this
+            //  Remaining transports require to be run in an I/O thread, so at this
             //  point we'll choose one.
             IOThread ioThread = ChooseIOThread(m_options.Affinity);
             if (ioThread == null)
@@ -401,8 +385,7 @@ namespace NetMQ.zmq
 
             if (protocol.Equals(Address.TcpProtocol))
             {
-                TcpListener listener = new TcpListener(
-                        ioThread, this, m_options);
+                var listener = new TcpListener(ioThread, this, m_options);
 
                 try
                 {
@@ -431,7 +414,7 @@ namespace NetMQ.zmq
 
             if (protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol))
             {
-                PgmListener listener = new PgmListener(ioThread, this, m_options);
+                var listener = new PgmListener(ioThread, this, m_options);
 
                 try
                 {
@@ -454,8 +437,7 @@ namespace NetMQ.zmq
 
             if (protocol.Equals(Address.IpcProtocol))
             {
-                IpcListener listener = new IpcListener(
-                        ioThread, this, m_options);
+                var listener = new IpcListener(ioThread, this, m_options);
 
                 try
                 {
@@ -481,29 +463,25 @@ namespace NetMQ.zmq
             throw new FaultException(String.Format("SocketBase.Bind({0}) failure.", addr));
         }
 
-        public int BindRandomPort(String addr)
+        public int BindRandomPort([NotNull] string addr)
         {
             string address, protocol;
 
             DecodeAddress(addr, out address, out protocol);
-            if (protocol.Equals(Address.TcpProtocol))
-            {
-                Bind(addr + ":0");
-                return m_port;
-            }
-            else
-            {
+
+            if (!protocol.Equals(Address.TcpProtocol))
                 throw new ProtocolNotSupportedException(String.Format("In SocketBase.BindRandomPort({0}), protocol should be tcp.", addr));
-            }
+
+            Bind(addr + ":0");
+            return m_port;
         }
 
-        public void Connect(String addr)
+        public void Connect([NotNull] string addr)
         {
             CheckContextTerminated();
 
             //  Process pending commands, if any.
             ProcessCommands(0, false);
-
 
             string address;
             string protocol;
@@ -513,7 +491,6 @@ namespace NetMQ.zmq
 
             if (protocol.Equals(Address.InProcProtocol))
             {
-
                 //  TODO: inproc connect is specific with respect to creating pipes
                 //  as there's no 'reconnect' functionality implemented. Once that
                 //  is in place we should follow generic pipe creation algorithm.
@@ -546,7 +523,7 @@ namespace NetMQ.zmq
                 //  If required, send the identity of the peer to the local socket.
                 if (peer.Options.RecvIdentity)
                 {
-                    Msg id = new Msg();
+                    var id = new Msg();
                     id.InitPool(peer.Options.IdentitySize);
                     id.Put(peer.Options.Identity, 0, peer.Options.IdentitySize);
                     id.SetFlags(MsgFlags.Identity);
@@ -558,7 +535,7 @@ namespace NetMQ.zmq
                 //  If required, send the identity of the local socket to the peer.
                 if (m_options.RecvIdentity)
                 {
-                    Msg id = new Msg();
+                    var id = new Msg();
                     id.InitPool(m_options.IdentitySize);
                     id.Put(m_options.Identity, 0, m_options.IdentitySize);
                     id.SetFlags(MsgFlags.Identity);
@@ -587,14 +564,14 @@ namespace NetMQ.zmq
             {
                 throw NetMQException.Create("Empty IO Thread", ErrorCode.EmptyThread);
             }
-            Address paddr = new Address(protocol, address);
+            var paddr = new Address(protocol, address);
 
             //  Resolve address (if needed by the protocol)
             if (protocol.Equals(Address.TcpProtocol))
             {
                 paddr.Resolved = (new TcpAddress());
                 paddr.Resolved.Resolve(
-                        address, m_options.IPv4Only);
+                    address, m_options.IPv4Only);
             }
             else if (protocol.Equals(Address.IpcProtocol))
             {
@@ -640,32 +617,29 @@ namespace NetMQ.zmq
             m_options.LastEndpoint = paddr.ToString();
 
             AddEndpoint(addr, session);
-            return;
         }
 
-        private void DecodeAddress(string addr, out string address, out string protocol)
+        private static void DecodeAddress([NotNull] string addr, out string address, out string protocol)
         {
             const string protocolDelimeter = "://";
-            int protocolDelimeterIndex = addr.IndexOf(protocolDelimeter);
+            int protocolDelimeterIndex = addr.IndexOf(protocolDelimeter, StringComparison.Ordinal);
 
             protocol = addr.Substring(0, protocolDelimeterIndex);
             address = addr.Substring(protocolDelimeterIndex + protocolDelimeter.Length);
         }
 
-
         /// <summary>
         /// Creates new endpoint ID and adds the endpoint to the map.
         /// </summary>
-        private void AddEndpoint(String addr, Own endpoint)
+        private void AddEndpoint([NotNull] string addr, [NotNull] Own endpoint)
         {
             //  Activate the session. Make it a child of this socket.
             LaunchChild(endpoint);
             m_endpoints[addr] = endpoint;
         }
 
-        public void TermEndpoint(String addr)
+        public void TermEndpoint([NotNull] string addr)
         {
-
             CheckContextTerminated();
 
             //  Check whether endpoint address passed to the function is valid.
@@ -945,7 +919,7 @@ namespace NetMQ.zmq
         /// Using this function reaper thread ask the socket to register with
         /// its poller.
         /// </summary>
-        internal void StartReaping(Utils.Poller poller)
+        internal void StartReaping([NotNull] Utils.Poller poller)
         {
             //  Plug the socket to the reaper thread.
             m_poller = poller;
@@ -989,7 +963,6 @@ namespace NetMQ.zmq
                 //  a timestamp is a very cheap operation (tens of nanoseconds).
                 if (tsc != 0 && throttle)
                 {
-
                     //  Check whether TSC haven't jumped backwards (in case of migration
                     //  between CPU cores) and whether certain time have elapsed since
                     //  last command processing. If it didn't do nothing.
@@ -1046,7 +1019,7 @@ namespace NetMQ.zmq
             base.ProcessTerm(linger);
         }
 
-        /// </summary>
+        /// <summary>
         /// Delay actual destruction of the socket.
         /// </summary>
         protected override void ProcessDestroy()
@@ -1059,7 +1032,7 @@ namespace NetMQ.zmq
         /// options for the particular socket type. If not so, overload this
         /// method.
         /// </summary>
-        protected virtual bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected virtual bool XSetSocketOption(ZmqSocketOptions option, [CanBeNull] Object optval)
         {
             return false;
         }
@@ -1084,17 +1057,17 @@ namespace NetMQ.zmq
             throw new NotSupportedException("Must Override");
         }
 
-        protected virtual void XReadActivated(Pipe pipe)
+        protected virtual void XReadActivated([NotNull] Pipe pipe)
         {
             throw new NotSupportedException("Must Override");
         }
 
-        protected virtual void XWriteActivated(Pipe pipe)
+        protected virtual void XWriteActivated([NotNull] Pipe pipe)
         {
             throw new NotSupportedException("Must Override");
         }
 
-        protected virtual void XHiccuped(Pipe pipe)
+        protected virtual void XHiccuped([NotNull] Pipe pipe)
         {
             throw new NotSupportedException("Must override");
         }
@@ -1158,7 +1131,6 @@ namespace NetMQ.zmq
             XWriteActivated(pipe);
         }
 
-
         public void Hiccuped(Pipe pipe)
         {
             if (m_options.DelayAttachOnConnect)
@@ -1201,7 +1173,7 @@ namespace NetMQ.zmq
             m_rcvMore = msg.HasMore;
         }
 
-        public void Monitor(String addr, SocketEvent events)
+        public void Monitor([CanBeNull] string addr, SocketEvent events)
         {
             CheckContextTerminated();
 
@@ -1232,7 +1204,7 @@ namespace NetMQ.zmq
                 throw new FaultException("In SocketBase.Monitor, Ctx.CreateSocket(ZmqSocketType.Pair) failed.");
 
             // Never block context termination on pending event messages
-            int linger = 0;
+            const int linger = 0;
 
             try
             {
@@ -1256,7 +1228,7 @@ namespace NetMQ.zmq
             }
         }
 
-        public void EventConnected(String addr, AsyncSocket ch)
+        public void EventConnected([NotNull] String addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Connected) == 0)
                 return;
@@ -1264,7 +1236,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Connected, addr, ch));
         }
 
-        public void EventConnectDelayed(String addr, ErrorCode errno)
+        public void EventConnectDelayed([NotNull] String addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvent.ConnectDelayed) == 0)
                 return;
@@ -1272,7 +1244,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.ConnectDelayed, addr, errno));
         }
 
-        public void EventConnectRetried(String addr, int interval)
+        public void EventConnectRetried([NotNull] String addr, int interval)
         {
             if ((m_monitorEvents & SocketEvent.ConnectRetried) == 0)
                 return;
@@ -1280,7 +1252,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.ConnectRetried, addr, interval));
         }
 
-        public void EventListening(String addr, AsyncSocket ch)
+        public void EventListening([NotNull] String addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Listening) == 0)
                 return;
@@ -1288,7 +1260,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Listening, addr, ch));
         }
 
-        public void EventBindFailed(String addr, ErrorCode errno)
+        public void EventBindFailed([NotNull] String addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvent.BindFailed) == 0)
                 return;
@@ -1296,7 +1268,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.BindFailed, addr, errno));
         }
 
-        public void EventAccepted(String addr, AsyncSocket ch)
+        public void EventAccepted([NotNull] String addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Accepted) == 0)
                 return;
@@ -1304,7 +1276,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Accepted, addr, ch));
         }
 
-        public void EventAcceptFailed(String addr, ErrorCode errno)
+        public void EventAcceptFailed([NotNull] String addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvent.AcceptFailed) == 0)
                 return;
@@ -1312,7 +1284,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.AcceptFailed, addr, errno));
         }
 
-        public void EventClosed(String addr, AsyncSocket ch)
+        public void EventClosed([NotNull] String addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Closed) == 0)
                 return;
@@ -1320,7 +1292,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Closed, addr, ch));
         }
 
-        public void EventCloseFailed(String addr, ErrorCode errno)
+        public void EventCloseFailed([NotNull] String addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvent.CloseFailed) == 0)
                 return;
@@ -1328,7 +1300,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.CloseFailed, addr, errno));
         }
 
-        public void EventDisconnected(String addr, AsyncSocket ch)
+        public void EventDisconnected([NotNull] String addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Disconnected) == 0)
                 return;
@@ -1336,9 +1308,8 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Disconnected, addr, ch));
         }
 
-        protected void MonitorEvent(MonitorEvent monitorEvent)
+        private void MonitorEvent([NotNull] MonitorEvent monitorEvent)
         {
-
             if (m_monitorSocket == null)
                 return;
 
@@ -1348,9 +1319,8 @@ namespace NetMQ.zmq
         /// <summary>
         /// If there is a monitor-socket, close it and set monitor-events to 0.
         /// </summary>
-        protected void StopMonitor()
+        private void StopMonitor()
         {
-
             if (m_monitorSocket != null)
             {
                 m_monitorSocket.Close();
@@ -1359,7 +1329,7 @@ namespace NetMQ.zmq
             }
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + m_options.SocketId + "]";
         }
@@ -1367,6 +1337,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Get the Socket (Handle) - which is actually the Handle of the contained mailbox.
         /// </summary>
+        [NotNull]
         public Socket Handle
         {
             get { return m_mailbox.Handle; }
@@ -1376,7 +1347,8 @@ namespace NetMQ.zmq
         /// Return a short bit of text that denotes the SocketType of this socket.
         /// </summary>
         /// <returns>a short type-string such as PAIR, PUB, OR UNKNOWN</returns>
-        public String GetTypeString()
+        [NotNull]
+        public string GetTypeString()
         {
             switch (m_options.SocketType)
             {
@@ -1399,7 +1371,7 @@ namespace NetMQ.zmq
                 case ZmqSocketType.Push:
                     return "PUSH";
                 default:
-                    return "UNKOWN";
+                    return "UNKNOWN";
             }
         }
     }
