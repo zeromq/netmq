@@ -69,12 +69,12 @@ namespace NetMQ.zmq.Utils
         /// <summary>
         /// This is the list of registered descriptors (PollSets).
         /// </summary>
-        private readonly List<PollSet> m_handles;
+        private readonly List<PollSet> m_handles = new List<PollSet>();
 
         /// <summary>
         /// List of sockets to add at the start of the next loop
         /// </summary>
-        private readonly List<PollSet> m_addList;
+        private readonly List<PollSet> m_addList = new List<PollSet>();
 
         /// <summary>
         /// If true, there's at least one retired event source.
@@ -113,9 +113,6 @@ namespace NetMQ.zmq.Utils
         public Poller([NotNull] String name)
         {
             m_name = name;
-
-            m_handles = new List<PollSet>();
-            m_addList = new List<PollSet>();
         }
 
         /// <summary>
