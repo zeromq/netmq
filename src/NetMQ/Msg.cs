@@ -281,7 +281,7 @@ namespace NetMQ
         /// <param name="flags">which Flags bits to set (More, Identity, or Shared)</param>
         public void SetFlags(MsgFlags flags)
         {
-            Flags = Flags | flags;
+            Flags |= flags;
         }
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace NetMQ
         /// <param name="flags">which Flags bits to clear (More, Identity, or Shared)</param>
         public void ResetFlags(MsgFlags flags)
         {
-            Flags = Flags & ~flags;
+            Flags &= ~flags;
         }       
 
         /// <summary>
