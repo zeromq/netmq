@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
@@ -43,7 +44,7 @@ namespace NetMQ.zmq.Utils
         /// such as a broken network cable, or that the remote host was shut down ungracefully.
         /// You must attempt to send or receive data to detect these kinds of errors.
         /// </remarks>
-        public static void Select(IList checkRead, IList checkWrite, IList checkError, int microSeconds)
+        public static void Select([CanBeNull] IList checkRead, [CanBeNull] IList checkWrite, [CanBeNull] IList checkError, int microSeconds)
         {
 #if NET35
             // .NET 3.5 has a bug, such that -1 is not blocking the select call - therefore we use here instead the maximum integer value.

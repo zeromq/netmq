@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
@@ -38,11 +39,13 @@ namespace NetMQ.zmq.Utils
             /// <summary>
             /// Get the Socket that this PollSet contains.
             /// </summary>
+            [NotNull]
             public Socket Socket { get; private set; }
 
             /// <summary>
             /// Get the IPollEvents object that has methods to signal when ready for reading or writing.
             /// </summary>
+            [NotNull]
             public IPollEvents Handler { get; private set; }
 
             /// <summary>
@@ -55,7 +58,7 @@ namespace NetMQ.zmq.Utils
             /// </summary>
             /// <param name="socket">the Socket to contain</param>
             /// <param name="handler">the IPollEvents to signal when ready for reading or writing</param>
-            public PollSet(Socket socket, IPollEvents handler)
+            public PollSet([NotNull] Socket socket, [NotNull] IPollEvents handler)
             {
                 Handler = handler;
                 Socket = socket;
@@ -115,7 +118,7 @@ namespace NetMQ.zmq.Utils
         /// Create a new Poller object with the given name.
         /// </summary>
         /// <param name="name">a name to assign to this Poller</param>
-        public Poller(String name)
+        public Poller([NotNull] String name)
         {
             m_name = name;
 
@@ -148,7 +151,7 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         /// <param name="handle">the Socket to add</param>
         /// <param name="events">the IPollEvents to include in the new PollSet to add</param>
-        public void AddHandle(Socket handle, IPollEvents events)
+        public void AddHandle([NotNull] Socket handle, [NotNull] IPollEvents events)
         {
             m_addList.Add(new PollSet(handle, events));
 
@@ -157,7 +160,7 @@ namespace NetMQ.zmq.Utils
             AdjustLoad(1);
         }
 
-        public void RemoveHandle(Socket handle)
+        public void RemoveHandle([NotNull] Socket handle)
         {
             PollSet pollSet;
 
