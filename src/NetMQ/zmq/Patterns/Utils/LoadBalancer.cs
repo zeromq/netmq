@@ -31,7 +31,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <summary>
         /// List of outbound pipes.
         /// </summary>
-        private readonly List<Pipe> m_pipes;
+        private readonly List<Pipe> m_pipes = new List<Pipe>();
 
         /// <summary>
         /// Number of active pipes. All the active pipes are located at the
@@ -53,11 +53,6 @@ namespace NetMQ.zmq.Patterns.Utils
         /// True if we are dropping current message.
         /// </summary>
         private bool m_dropping;
-
-        public LoadBalancer()
-        {
-            m_pipes = new List<Pipe>();
-        }
 
         public void Attach([NotNull] Pipe pipe)
         {
