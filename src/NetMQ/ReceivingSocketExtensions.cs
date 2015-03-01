@@ -96,14 +96,9 @@ namespace NetMQ
         /// <returns>a newly allocated array of bytes or <c>null</c> if no message arrived within the timeout period</returns>
         /// <exception cref="InvalidCastException">if the socket not a NetMQSocket</exception>
         [CanBeNull]
-        public static byte[] Receive([NotNull] this IReceivingSocket socket, TimeSpan timeout)
+        public static byte[] Receive([NotNull] this NetMQSocket socket, TimeSpan timeout)
         {
-            var s = socket as NetMQSocket;
-
-            if (s == null)
-                throw new InvalidCastException(string.Format("Expected a NetMQSocket but got a {0}", socket.GetType()));
-
-            var result = s.Poll(PollEvents.PollIn, timeout);
+            var result = socket.Poll(PollEvents.PollIn, timeout);
 
             if (!result.HasFlag(PollEvents.PollIn))
                 return null;
