@@ -30,8 +30,8 @@ namespace NetMQ.Tests.Devices
 
         private ManualResetEvent m_workerDone;
 
-        [TestFixtureSetUp]
-        protected void Initialize()
+        [SetUp]
+        protected void SetUp()
         {
             WorkerReceiveCount = 0;
             m_workerDone = new ManualResetEvent(false);
@@ -48,8 +48,8 @@ namespace NetMQ.Tests.Devices
 
         protected abstract void SetupTest();
 
-        [TestFixtureTearDown]
-        protected void Cleanup()
+        [TearDown]
+        protected void TearDown()
         {
             m_context.Dispose();
         }
