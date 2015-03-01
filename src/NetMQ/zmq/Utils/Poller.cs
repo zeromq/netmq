@@ -107,14 +107,6 @@ namespace NetMQ.zmq.Utils
         private readonly HashSet<Socket> m_checkError = new HashSet<Socket>();
 
         /// <summary>
-        /// Create a new Poller object with the default name "poller".
-        /// </summary>
-        public Poller()
-            : this("poller")
-        {
-        }
-
-        /// <summary>
         /// Create a new Poller object with the given name.
         /// </summary>
         /// <param name="name">a name to assign to this Poller</param>
