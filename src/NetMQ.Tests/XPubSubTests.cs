@@ -294,7 +294,7 @@ namespace NetMQ.Tests
                         // this returns the result of the latest 
                         // connect - address2, not the source of the message
                         // This is documented here: http://api.zeromq.org/3-2:zmq-getsockopt
-                        var ep = sub2.Options.LastEndpoint;
+                        //var ep = sub2.Options.LastEndpoint;
                         //Assert.AreEqual(address, ep);
 
                         // same for sub2
@@ -319,7 +319,7 @@ namespace NetMQ.Tests
 
                         Assert.AreEqual("Hello from the second publisher", m4);
                         Assert.False(more);
-                        ep = sub2.Options.LastEndpoint;
+                        var ep = sub2.Options.LastEndpoint;
                         Assert.AreEqual("tcp://127.0.0.1:" + port2, ep);
 
 

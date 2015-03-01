@@ -33,7 +33,7 @@ namespace NetMQ.Tests
 
                         server.SendMore(id).Send(response);
 
-                        id = client.Receive();
+                        client.Receive();
                         message = client.ReceiveString();
 
                         Assert.AreEqual(message, response);

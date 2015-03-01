@@ -130,15 +130,14 @@ namespace NetMQ.Tests
             // Then our monitor is Faulted with a EndpointNotFoundException
             // And monitor can't be stopped or disposed
 
-            Task monitorTask;
             using (var theContext = NetMQContext.Create())
             using (var resSocket = theContext.CreateResponseSocket())
             {
-                NetMQMonitor monitor = null;
+                NetMQMonitor monitor;
                 using (var reqSocket = theContext.CreateRequestSocket())
                 {
                     monitor = new NetMQMonitor(theContext, reqSocket, "inproc://#monitor", SocketEvent.All);
-                    monitorTask = Task.Factory.StartNew(() => monitor.Start());
+                    Task.Factory.StartNew(() => monitor.Start());
 
                     //The bug is only occuring when monitor a tcp socket
                     var port = resSocket.BindRandomPort("tcp://127.0.0.1");
