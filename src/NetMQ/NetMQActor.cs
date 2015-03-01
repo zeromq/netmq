@@ -217,35 +217,20 @@ namespace NetMQ
 
         #region Disposing
 
-        ~NetMQActor()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            // release other disposable objects
-            if (disposing)
+            // send destroy message to pipe
+            m_self.Options.SendTimeout = TimeSpan.Zero;
+            try
             {
-                // send destroy message to pipe
-                m_self.Options.SendTimeout = TimeSpan.Zero;
-                try
-                {
-                    m_self.Send(EndShimMessage);
-                    m_self.WaitForSignal();
-                }
-                catch (AgainException)
-                {}
-
-                m_shimThread.Join();
-                m_self.Dispose();
+                m_self.Send(EndShimMessage);
+                m_self.WaitForSignal();
             }
+            catch (AgainException)
+            {}
+
+            m_shimThread.Join();
+            m_self.Dispose();
         }
 
         #endregion
