@@ -17,6 +17,8 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>
+        /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
+        /// <param name="options">options to control how the data is sent</param>
         public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
         {
             var msg = new Msg();
