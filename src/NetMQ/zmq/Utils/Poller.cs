@@ -187,6 +187,7 @@ namespace NetMQ.zmq.Utils
             m_checkRead.Add(handle);
         }
 
+/*
         /// <summary>
         /// Remove the given Socket from the list to be checked for read-readiness at each poll iteration.
         /// </summary>
@@ -213,6 +214,7 @@ namespace NetMQ.zmq.Utils
         {
             m_checkWrite.Remove(handle);
         }
+*/
 
         /// <summary>
         /// Begin running the polling-loop, on a background thread.
