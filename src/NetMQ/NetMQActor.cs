@@ -132,16 +132,19 @@ namespace NetMQ
             m_self.WaitForSignal();
         }
 
+        [NotNull]
         public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
         {
             return new NetMQActor(context, shimHandler);
         }
 
+        [NotNull]
         public static NetMQActor Create<T>([NotNull] NetMQContext context, [NotNull] ShimAction<T> action, T state)
         {
             return new NetMQActor(context, new ActionShimHandler<T>(action, state));
         }
 
+        [NotNull]
         public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] ShimAction action)
         {
             return new NetMQActor(context, new ActionShimHandler(action));
@@ -195,7 +198,6 @@ namespace NetMQ
             remove { m_sendEventDelegatorHelper.Event -= value; }
         }
 
-        [NotNull]
         NetMQSocket ISocketPollable.Socket
         {
             get { return m_self; }
