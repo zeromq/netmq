@@ -17,7 +17,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>
-        public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
+        /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
+        /// <param name="options">options to control how the data is sent</param>
+        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
         {
             var msg = new Msg();
             msg.InitPool(length);
@@ -29,7 +31,7 @@ namespace NetMQ
             msg.Close();
         }
 
-        public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false, bool sendMore = false)
+        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false, bool sendMore = false)
         {
             var options = SendReceiveOptions.None;
 
@@ -46,20 +48,20 @@ namespace NetMQ
             socket.Send(data, length, options);
         }
 
-        public static void Send(this IOutgoingSocket socket, [NotNull] byte[] data)
+        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data)
         {
             socket.Send(data, data.Length);
         }
 
         [NotNull]
-        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] byte[] data, bool dontWait = false)
+        public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, bool dontWait = false)
         {
             socket.Send(data, data.Length, dontWait, true);
             return socket;
         }
 
         [NotNull]
-        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false)
+        public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false)
         {
             socket.Send(data, length, dontWait, true);
             return socket;
@@ -69,7 +71,7 @@ namespace NetMQ
 
         #region Sending Strings
 
-        public static void Send(this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, SendReceiveOptions options)
+        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, SendReceiveOptions options)
         {
             var msg = new Msg();
             msg.InitPool(encoding.GetByteCount(message));
@@ -81,7 +83,7 @@ namespace NetMQ
             msg.Close();
         }
 
-        public static void Send(this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false, bool sendMore = false)
+        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false, bool sendMore = false)
         {
             var options = SendReceiveOptions.None;
 
@@ -98,7 +100,7 @@ namespace NetMQ
             socket.Send(message, encoding, options);
         }
 
-        public static void Send(this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false, bool sendMore = false)
+        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false, bool sendMore = false)
         {
             Send(socket, message, Encoding.ASCII, dontWait, sendMore);
         }
@@ -112,14 +114,14 @@ namespace NetMQ
         /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete</param>
         /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
-        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false)
+        public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false)
         {
             socket.Send(message, dontWait, true);
             return socket;
         }
 
         [NotNull]
-        public static IOutgoingSocket SendMore(this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false)
+        public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false)
         {
             socket.Send(message, encoding, dontWait, true);
             return socket;
@@ -129,7 +131,7 @@ namespace NetMQ
 
         #region Sending NetMQMessage
 
-        public static void SendMessage(this IOutgoingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
+        public static void SendMessage([NotNull] this IOutgoingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
         {
             for (int i = 0; i < message.FrameCount - 1; i++)
             {
@@ -143,7 +145,7 @@ namespace NetMQ
 
         #region Sending Signals
 
-        private static void Signal(this IOutgoingSocket socket, byte status)
+        private static void Signal([NotNull] this IOutgoingSocket socket, byte status)
         {
             long signalValue = 0x7766554433221100L + status;
             var message = new NetMQMessage();
@@ -152,12 +154,12 @@ namespace NetMQ
             socket.SendMessage(message);
         }
 
-        public static void SignalOK(this IOutgoingSocket socket)
+        public static void SignalOK([NotNull] this IOutgoingSocket socket)
         {
             socket.Signal(0);
         }
 
-        public static void SignalError(this IOutgoingSocket socket)
+        public static void SignalError([NotNull] this IOutgoingSocket socket)
         {
             socket.Signal(1);
         }

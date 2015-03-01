@@ -12,7 +12,7 @@ namespace NetMQ
     /// </summary>
     public static class ReceivingSocketExtensions
     {
-        #region Byte Array
+        #region Receiving Byte Array
 
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
@@ -22,7 +22,7 @@ namespace NetMQ
         /// <param name="hasMore"><c>true</c> when more parts of a multi-part message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
-        public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
+        public static byte[] Receive([NotNull] this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
         {
             var msg = new Msg();
             msg.InitEmpty();
@@ -50,7 +50,7 @@ namespace NetMQ
         /// <param name="options">the send and receive options to use</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
-        public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options)
+        public static byte[] Receive([NotNull] this IReceivingSocket socket, SendReceiveOptions options)
         {
             bool hasMore;
             return socket.Receive(options, out hasMore);
@@ -64,7 +64,7 @@ namespace NetMQ
         /// <param name="hasMore"><c>true</c> when more parts of a multi-part message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
-        public static byte[] Receive(this IReceivingSocket socket, bool dontWait, out bool hasMore)
+        public static byte[] Receive([NotNull] this IReceivingSocket socket, bool dontWait, out bool hasMore)
         {
             var options = SendReceiveOptions.None;
 
@@ -83,7 +83,7 @@ namespace NetMQ
         /// <param name="hasMore"><c>true</c> when more parts of a multi-part message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
-        public static byte[] Receive(this IReceivingSocket socket, out bool hasMore)
+        public static byte[] Receive([NotNull] this IReceivingSocket socket, out bool hasMore)
         {
             return socket.Receive(false, out hasMore);
         }
@@ -96,14 +96,9 @@ namespace NetMQ
         /// <returns>a newly allocated array of bytes or <c>null</c> if no message arrived within the timeout period</returns>
         /// <exception cref="InvalidCastException">if the socket not a NetMQSocket</exception>
         [CanBeNull]
-        public static byte[] Receive(this IReceivingSocket socket, TimeSpan timeout)
+        public static byte[] Receive([NotNull] this NetMQSocket socket, TimeSpan timeout)
         {
-            var s = socket as NetMQSocket;
-
-            if (s == null)
-                throw new InvalidCastException(string.Format("Expected a NetMQSocket but got a {0}", socket.GetType()));
-
-            var result = s.Poll(PollEvents.PollIn, timeout);
+            var result = socket.Poll(PollEvents.PollIn, timeout);
 
             if (!result.HasFlag(PollEvents.PollIn))
                 return null;
@@ -117,30 +112,35 @@ namespace NetMQ
         /// <param name="socket">the socket to use</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
-        public static byte[] Receive(this IReceivingSocket socket)
+        public static byte[] Receive([NotNull] this IReceivingSocket socket)
         {
             bool hasMore;
             return socket.Receive(false, out hasMore);
         }
 
-        /// <summary>
-        ///     get all data parts of a multi-part message
-        /// </summary>
-        /// <param name="socket">the socket to use</param>
-        /// <returns>iterable sequence of byte arrays</returns>
+        /// <summary>Receives a list of all frames of the next message, each as an array of bytes.</summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
+        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
+        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <returns>A list of all frames of the next message, each as an array of bytes.</returns>
         [NotNull]
         [ItemNotNull]
-        public static IEnumerable<byte[]> ReceiveMessages(this IReceivingSocket socket)
+        public static List<byte[]> ReceiveMessages([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
+            var frames = new List<byte[]>(capacity: expectedFrameCount);
+
             bool hasMore = true;
 
             while (hasMore)
-                yield return socket.Receive(false, out hasMore);
+                frames.Add(socket.Receive(false, out hasMore));
+
+            return frames;
         }
 
         #endregion
 
-        #region Strings
+        #region Receiving Strings
 
         /// <summary>
         /// reads an available message and extracts the data which is converted to a string
@@ -153,9 +153,9 @@ namespace NetMQ
         /// <returns>the string representation of the encoded data of the message</returns>
         /// <exception cref="ArgumentNullException">is thrown if encoding is null</exception>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options, out bool hasMore)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options, out bool hasMore)
         {
-            if (ReferenceEquals(encoding, null))
+            if (encoding == null)
                 throw new ArgumentNullException("encoding");
 
             var msg = new Msg();
@@ -165,12 +165,9 @@ namespace NetMQ
 
             hasMore = msg.HasMore;
 
-            string data = string.Empty;
-
-            if (msg.Size > 0)
-            {
-                data = encoding.GetString(msg.Data, 0, msg.Size);
-            }
+            string data = msg.Size > 0 
+                ? encoding.GetString(msg.Data, 0, msg.Size) 
+                : string.Empty;
 
             msg.Close();
 
@@ -186,7 +183,7 @@ namespace NetMQ
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
         {
             return socket.ReceiveString(Encoding.ASCII, options, out hasMore);
         }
@@ -199,7 +196,7 @@ namespace NetMQ
         /// <param name="options">the send/receive options to use</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, SendReceiveOptions options)
         {
             bool hasMore;
             return socket.ReceiveString(options, out hasMore);
@@ -214,7 +211,7 @@ namespace NetMQ
         /// <param name="options">the send/receive options to use</param>
         /// <returns>the string representation of the encoded data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options)
         {
             bool hasMore;
             return socket.ReceiveString(encoding, options, out hasMore);
@@ -229,7 +226,7 @@ namespace NetMQ
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, bool dontWait, out bool hasMore)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, bool dontWait, out bool hasMore)
         {
             return ReceiveString(socket, Encoding.ASCII, dontWait, out hasMore);
         }
@@ -244,7 +241,7 @@ namespace NetMQ
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, [NotNull] Encoding encoding, bool dontWait, out bool hasMore)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, bool dontWait, out bool hasMore)
         {
             var options = SendReceiveOptions.None;
 
@@ -264,7 +261,7 @@ namespace NetMQ
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, out bool hasMore)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, out bool hasMore)
         {
             return socket.ReceiveString(false, out hasMore);
         }
@@ -278,7 +275,7 @@ namespace NetMQ
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the string representation of the encoded data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, [NotNull] Encoding encoding, out bool hasMore)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, out bool hasMore)
         {
             return socket.ReceiveString(encoding, false, out hasMore);
         }
@@ -291,7 +288,7 @@ namespace NetMQ
         /// <param name="encoding">the encoding to use for the string representation</param>
         /// <returns>the string representation of the encoded data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket, [NotNull] Encoding encoding)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding)
         {
             bool hasMore;
             return socket.ReceiveString(encoding, false, out hasMore);
@@ -304,7 +301,7 @@ namespace NetMQ
         /// <param name="socket">the socket to read from</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
         [NotNull]
-        public static string ReceiveString(this IReceivingSocket socket)
+        public static string ReceiveString([NotNull] this IReceivingSocket socket)
         {
             bool hasMore;
             return socket.ReceiveString(false, out hasMore);
@@ -320,7 +317,7 @@ namespace NetMQ
         /// no message arrived with in the timespan
         /// </returns>
         [CanBeNull]
-        public static string ReceiveString(this NetMQSocket socket, TimeSpan timeout)
+        public static string ReceiveString([NotNull] this NetMQSocket socket, TimeSpan timeout)
         {
             return ReceiveString(socket, Encoding.ASCII, timeout);
         }
@@ -336,7 +333,7 @@ namespace NetMQ
         /// no message arrived with in the timespan
         /// </returns>
         [CanBeNull]
-        public static string ReceiveString(this NetMQSocket socket, [NotNull] Encoding encoding, TimeSpan timeout)
+        public static string ReceiveString([NotNull] this NetMQSocket socket, [NotNull] Encoding encoding, TimeSpan timeout)
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
@@ -347,37 +344,44 @@ namespace NetMQ
             return msg;
         }
 
-        /// <summary>
-        /// returns all message parts of a multi-part message as strings
-        /// </summary>
-        /// <param name="socket">the socket to receive from</param>
-        /// <returns>the iterable ASCII strings of all data parts of the multi-part message</returns>
+        /// <summary>Receives a list of all frames of the next message, decoded as ASCII strings.</summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
+        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
+        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <returns>A list of all frames of the next message, decoded as strings.</returns>
         [NotNull]
         [ItemNotNull]
-        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket)
+        public static List<string> ReceiveStringMessages([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
-            return ReceiveStringMessages(socket, Encoding.ASCII);
+            return ReceiveStringMessages(socket, Encoding.ASCII, expectedFrameCount);
         }
 
-        /// <summary>
-        /// returns all message parts of a multi-part message as strings
-        /// </summary>
-        /// <param name="socket">the socket to receive from</param>
-        /// <param name="encoding">the encoding to use for the string representation</param>
-        /// <returns>the iterable strings of all encoded data parts of the multi-part message</returns>
+        /// <summary>Receives a list of all frames of the next message, decoded as strings having the specifed <paramref name="encoding"/>.</summary>
+        /// <remarks>Blocks until a message is received. The list may have one or more entries.</remarks>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="encoding">The encoding to use when converting a frame's bytes into a string.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
+        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
+        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <returns>A list of all frames of the next message, decoded as strings.</returns>
         [NotNull]
         [ItemNotNull]
-        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket, [NotNull] Encoding encoding)
+        public static List<string> ReceiveStringMessages([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, int expectedFrameCount = 4)
         {
+            var frames = new List<string>(capacity: expectedFrameCount);
+
             bool hasMore = true;
 
             while (hasMore)
-                yield return socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore);
+                frames.Add(socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore));
+
+            return frames;
         }
 
         #endregion
 
-        #region NetMQMessge
+        #region Receiving NetMQMessge
 
         /// <summary>
         /// non-blocking receive of a (multi-part)message and stores it in the NetMQMessage object
@@ -385,7 +389,7 @@ namespace NetMQ
         /// <param name="socket">the IReceivingSocket to receive bytes from</param>
         /// <param name="message">the NetMQMessage to receive the bytes into</param>
         /// <param name="dontWait">non-blocking if <c>true</c> and blocking otherwise</param>
-        public static void ReceiveMessage(this IReceivingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
+        public static void ReceiveMessage([NotNull] this IReceivingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
         {
             message.Clear();
 
@@ -405,7 +409,7 @@ namespace NetMQ
         /// <param name="dontWait">non-blocking if <c>true</c> and blocking otherwise</param>
         /// <returns>the received message</returns>
         [NotNull]
-        public static NetMQMessage ReceiveMessage(this IReceivingSocket socket, bool dontWait = false)
+        public static NetMQMessage ReceiveMessage([NotNull] this IReceivingSocket socket, bool dontWait = false)
         {
             var message = new NetMQMessage();
             socket.ReceiveMessage(message, dontWait);
@@ -419,7 +423,7 @@ namespace NetMQ
         /// <param name="timeout">the timespan to wait for a message</param>
         /// <returns>the received message or <c>null</c> if non arrived within the timeout period</returns>
         [CanBeNull]
-        public static NetMQMessage ReceiveMessage(this NetMQSocket socket, TimeSpan timeout)
+        public static NetMQMessage ReceiveMessage([NotNull] this NetMQSocket socket, TimeSpan timeout)
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
@@ -432,7 +436,7 @@ namespace NetMQ
 
         #endregion
 
-        #region Signals
+        #region Receiving Signals
 
         /// <summary>
         /// Extension-method for IReceivingSocket: repeatedly call Rece on this socket, until we receive
@@ -463,7 +467,7 @@ namespace NetMQ
         [Obsolete("Use ReceiveMessages extension method instead")]
         [NotNull]
         [ItemNotNull]
-        public static IList<byte[]> ReceiveAll(this IReceivingSocket socket)
+        public static IList<byte[]> ReceiveAll([NotNull] this IReceivingSocket socket)
         {
             return socket.ReceiveMessages().ToList();
         }
@@ -471,7 +475,7 @@ namespace NetMQ
         [Obsolete("Use ReceiveStringMessages extension method instead")]
         [NotNull]
         [ItemNotNull]
-        public static IList<string> ReceiveAllString(this IReceivingSocket socket)
+        public static IList<string> ReceiveAllString([NotNull] this IReceivingSocket socket)
         {
             return socket.ReceiveStringMessages().ToList();
         }

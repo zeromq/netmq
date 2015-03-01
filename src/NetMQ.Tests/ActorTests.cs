@@ -10,7 +10,7 @@ namespace NetMQ.Tests
         {
             using (var context = NetMQContext.Create())
             {
-                using (NetMQActor actor = NetMQActor.Create(context, shim =>
+                ShimAction shimAction = shim =>
                 {
                     shim.SignalOK();
 
@@ -23,16 +23,16 @@ namespace NetMQ.Tests
                         if (command == NetMQActor.EndShimMessage)
                             break;
 
-                        else if (command == "Hello")
-                        {
+                        if (command == "Hello")
                             shim.Send("World");
-                        }
                     }
-                }))
+                };
+
+                using (var actor = NetMQActor.Create(context, shimAction))
                 {
                     actor.SendMore("Hello");
                     actor.Send("Hello");
-                    var result = actor.ReceiveString();                    
+                    var result = actor.ReceiveString();
                     Assert.AreEqual("World", result);
                 }
             }

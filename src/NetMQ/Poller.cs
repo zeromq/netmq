@@ -108,30 +108,14 @@ namespace NetMQ
         }
         #endregion constructors
 
-        #region Dtors
-
-        ~Poller()
-        {
-            Dispose(false);
-        }
+        #region Dispose
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
             if (!m_disposed)
             {
-                if (disposing)
-                {
-                    if (m_isStarted)
-                    {
-                        Cancel(true);
-                    }
-                }
+                if (m_isStarted)
+                    Cancel(true);
 
                 m_disposed = true;
                 m_isStoppedEvent.Close();

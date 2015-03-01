@@ -21,7 +21,7 @@ namespace NetMQ
 
     /// <summary>
     /// A NetMQMessage is basically a collection of NetMQFrames, and is the basic message-unit that is sent and received
-    /// across this messae-queuing subsystem.
+    /// across this message-queuing subsystem.
     /// </summary>
     public class NetMQMessage : IEnumerable<NetMQFrame>
     {
@@ -31,6 +31,7 @@ namespace NetMQ
         private readonly List<NetMQFrame> m_frames;
 
         #region constructors
+
         /// <summary>
         /// The default-constructor for NetMQMessage: create a new instance of NetMQMessage
         /// with an empty frame-stack.
@@ -67,6 +68,7 @@ namespace NetMQ
 
             m_frames = buffers.Select(buf => new NetMQFrame(buf)).ToList();
         }
+
         #endregion constructors
 
         #region public properties
@@ -245,7 +247,7 @@ namespace NetMQ
         #endregion push
 
         /// <summary>
-        /// Remove the first frame
+        /// Remove and return the first frame.
         /// </summary>
         /// <returns>the first frame, which was popped - which is the frame from the lowest-indexed position</returns>
         [NotNull]
@@ -261,9 +263,10 @@ namespace NetMQ
         /// Delete the given frame from the frame-stack.
         /// </summary>
         /// <param name="frame">the frame to remove</param>
-        public void RemoveFrame([NotNull] NetMQFrame frame)
+        /// <returns><c>true</c> if removed, otherwise <c>false</c>.</returns>
+        public bool RemoveFrame([NotNull] NetMQFrame frame)
         {
-            m_frames.Remove(frame);
+            return m_frames.Remove(frame);
         }
 
         /// <summary>
@@ -274,6 +277,8 @@ namespace NetMQ
             m_frames.Clear();
         }
 
+        #region IEnumerable
+
         public IEnumerator<NetMQFrame> GetEnumerator()
         {
             return m_frames.GetEnumerator();
@@ -283,6 +288,10 @@ namespace NetMQ
         {
             return GetEnumerator();
         }
+
+        #endregion
+
+        #region Formatting
 
         /// <summary>
         /// Returns a string showing the frame contents.
@@ -303,6 +312,9 @@ namespace NetMQ
             }
             return sb.Append("]").ToString();
         }
+
+        #endregion
+
         #endregion public methods
     }
 }

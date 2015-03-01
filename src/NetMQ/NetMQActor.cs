@@ -106,7 +106,7 @@ namespace NetMQ
             var random = new Random();
 
             //now binding and connect pipe ends
-            string endPoint = string.Empty;
+            string endPoint;
             while (true)
             {
                 try
@@ -117,7 +117,7 @@ namespace NetMQ
                 }
                 catch (AddressAlreadyInUseException)
                 {
-                    // In case address already in use we continue searching for an adderess
+                    // In case address already in use we continue searching for an address
                 }
             }
 
@@ -132,16 +132,19 @@ namespace NetMQ
             m_self.WaitForSignal();
         }
 
+        [NotNull]
         public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
         {
             return new NetMQActor(context, shimHandler);
         }
 
+        [NotNull]
         public static NetMQActor Create<T>([NotNull] NetMQContext context, [NotNull] ShimAction<T> action, T state)
         {
             return new NetMQActor(context, new ActionShimHandler<T>(action, state));
         }
 
+        [NotNull]
         public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] ShimAction action)
         {
             return new NetMQActor(context, new ActionShimHandler(action));
@@ -195,7 +198,6 @@ namespace NetMQ
             remove { m_sendEventDelegatorHelper.Event -= value; }
         }
 
-        [NotNull]
         NetMQSocket ISocketPollable.Socket
         {
             get { return m_self; }
@@ -215,35 +217,20 @@ namespace NetMQ
 
         #region Disposing
 
-        ~NetMQActor()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            // release other disposable objects
-            if (disposing)
+            // send destroy message to pipe
+            m_self.Options.SendTimeout = TimeSpan.Zero;
+            try
             {
-                // send destroy message to pipe
-                m_self.Options.SendTimeout = TimeSpan.Zero;
-                try
-                {
-                    m_self.Send(EndShimMessage);
-                    m_self.WaitForSignal();
-                }
-                catch (AgainException)
-                {}
-
-                m_shimThread.Join();
-                m_self.Dispose();
+                m_self.Send(EndShimMessage);
+                m_self.WaitForSignal();
             }
+            catch (AgainException)
+            {}
+
+            m_shimThread.Join();
+            m_self.Dispose();
         }
 
         #endregion
