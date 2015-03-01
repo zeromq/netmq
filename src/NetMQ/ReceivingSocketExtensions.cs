@@ -123,19 +123,24 @@ namespace NetMQ
             return socket.Receive(false, out hasMore);
         }
 
-        /// <summary>
-        ///     get all data parts of a multi-part message
-        /// </summary>
-        /// <param name="socket">the socket to use</param>
-        /// <returns>iterable sequence of byte arrays</returns>
+        /// <summary>Receives a list of all frames of the next message, each as an array of bytes.</summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
+        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
+        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <returns>A list of all frames of the next message, each as an array of bytes.</returns>
         [NotNull]
         [ItemNotNull]
-        public static IEnumerable<byte[]> ReceiveMessages([NotNull] this IReceivingSocket socket)
+        public static List<byte[]> ReceiveMessages([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
+            var frames = new List<byte[]>(capacity: expectedFrameCount);
+
             bool hasMore = true;
 
             while (hasMore)
-                yield return socket.Receive(false, out hasMore);
+                frames.Add(socket.Receive(false, out hasMore));
+
+            return frames;
         }
 
         #endregion
@@ -347,32 +352,39 @@ namespace NetMQ
             return msg;
         }
 
-        /// <summary>
-        /// returns all message parts of a multi-part message as strings
-        /// </summary>
-        /// <param name="socket">the socket to receive from</param>
-        /// <returns>the iterable ASCII strings of all data parts of the multi-part message</returns>
+        /// <summary>Receives a list of all frames of the next message, decoded as ASCII strings.</summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
+        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
+        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <returns>A list of all frames of the next message, decoded as strings.</returns>
         [NotNull]
         [ItemNotNull]
-        public static IEnumerable<string> ReceiveStringMessages([NotNull] this IReceivingSocket socket)
+        public static List<string> ReceiveStringMessages([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
-            return ReceiveStringMessages(socket, Encoding.ASCII);
+            return ReceiveStringMessages(socket, Encoding.ASCII, expectedFrameCount);
         }
 
-        /// <summary>
-        /// returns all message parts of a multi-part message as strings
-        /// </summary>
-        /// <param name="socket">the socket to receive from</param>
-        /// <param name="encoding">the encoding to use for the string representation</param>
-        /// <returns>the iterable strings of all encoded data parts of the multi-part message</returns>
+        /// <summary>Receives a list of all frames of the next message, decoded as strings having the specifed <paramref name="encoding"/>.</summary>
+        /// <remarks>Blocks until a message is received. The list may have one or more entries.</remarks>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="encoding">The encoding to use when converting a frame's bytes into a string.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
+        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
+        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <returns>A list of all frames of the next message, decoded as strings.</returns>
         [NotNull]
         [ItemNotNull]
-        public static IEnumerable<string> ReceiveStringMessages([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding)
+        public static List<string> ReceiveStringMessages([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, int expectedFrameCount = 4)
         {
+            var frames = new List<string>(capacity: expectedFrameCount);
+
             bool hasMore = true;
 
             while (hasMore)
-                yield return socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore);
+                frames.Add(socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore));
+
+            return frames;
         }
 
         #endregion
