@@ -141,7 +141,7 @@ namespace NetMQ.Tests
                     manualResetEvent.Set();
                 };
 
-                using (var poller = new Poller(listener))
+                using (var poller = new Poller(listener) { PollTimeout = 10})
                 {
                     poller.PollTillCancelledNonBlocking();
 
