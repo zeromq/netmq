@@ -17,7 +17,14 @@ namespace NetMQ.zmq
     /// </summary>
     public enum ZmqSocketType
     {
+        /// <summary>
+        /// No socket-type is specified
+        /// </summary>
         None = -1,
+
+        /// <summary>
+        /// This denotes a Pair socket (usually paired with another Pair socket).
+        /// </summary>
         Pair = 0,
 
         /// <summary>
@@ -36,11 +43,18 @@ namespace NetMQ.zmq
         Req = 3,
 
         /// <summary>
-        /// This denotes a Reponse socket (usually paired with a Request socket).
+        /// This denotes a Response socket (usually paired with a Request socket).
         /// </summary>
         Rep = 4,
 
+        /// <summary>
+        /// This denotes an Dealer socket (CBL)
+        /// </summary>
         Dealer = 5,
+
+        /// <summary>
+        /// This denotes an Router socket (CBL)
+        /// </summary>
         Router = 6,
 
         /// <summary>
@@ -53,7 +67,14 @@ namespace NetMQ.zmq
         /// </summary>
         Push = 8,
 
+        /// <summary>
+        /// This denotes an XPublisher socket (CBL)
+        /// </summary>
         Xpub = 9,
+
+        /// <summary>
+        /// This denotes an XSubscriber socket (CBL)
+        /// </summary>
         Xsub = 10,
         Stream = 11
     }
@@ -63,7 +84,14 @@ namespace NetMQ.zmq
     /// </summary>
     public enum ZmqSocketOptions
     {
+        /// <summary>
+        /// The I/O-thread affinity. This is a 64-bit value used to specify  which threads from the I/O thread-pool
+        /// associated with the socket's context shall handle newly-created connections.
+        /// 0 means no affinity, meaning that work shall be distributed fairly among all I/O threads.
+        /// For non-zero values, the lowest bit corresponds to thread 1, second lowest bit to thread 2, and so on.
+        /// </summary>
         Affinity = 4,
+
         Identity = 5,
         Subscribe = 6,
         Unsubscribe = 7,
@@ -74,7 +102,7 @@ namespace NetMQ.zmq
         ReceivevBuffer = ReceiveBuffer,
         ReceiveBuffer = 12,
         ReceiveMore = 13,
-        
+
         [Obsolete("Use Handle")]
         FD = 14,
         Handle = 14,
@@ -86,10 +114,22 @@ namespace NetMQ.zmq
         Backlog = 19,
         ReconnectIvlMax = 21,
         Maxmsgsize = 22,
+
+        /// <summary>
+        /// The high-water mark for message transmission, which is the number of messages that are allowed to queue up
+        /// before mitigative action is taken. The default value is 1000.
+        /// </summary>
         SendHighWatermark = 23,
+
         [Obsolete("Use ReceiveHighWatermark instead")]
         ReceivevHighWatermark = ReceiveHighWatermark,
+
+        /// <summary>
+        /// The high-water mark for message reception, which is the number of messages that are allowed to queue up
+        /// before mitigative action is taken. The default value is 1000.
+        /// </summary>
         ReceiveHighWatermark = 24,
+
         MulticastHops = 25,
         ReceiveTimeout = 27,
         SendTimeout = 28,
@@ -128,15 +168,15 @@ namespace NetMQ.zmq
     }
 
     /// <summary>
-    /// This flags enum-type provides a way to specify basic Receive behavior.
-    /// It may be None, or have the DontWait bit set (indicating to wait for a message,
-    /// or the SendMore bit.
+    /// This flags enum-type provides a way to specify basic Receive behaviour.
+    /// It may be None, or have the DontWait bit (indicating to wait for a message),
+    /// or the SendMore bit, set.
     /// </summary>
     [Flags]
     public enum SendReceiveOptions
     {
         /// <summary>
-        /// Clear all flags (set neither DontWait nor SendMore).
+        /// Both bits cleared (neither DontWait nor SendMore are set)
         /// </summary>
         None = 0,
 
@@ -146,7 +186,7 @@ namespace NetMQ.zmq
         DontWait = 1,
 
         /// <summary>
-        /// Set this flag if you want to set the SendMore bit.
+        /// Set this (the SendMore bit) to signal more messages beyond the current one, for a given unit of communication.
         /// </summary>
         SendMore = 2,
 

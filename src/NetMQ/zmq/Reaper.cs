@@ -31,7 +31,7 @@ namespace NetMQ.zmq
         private readonly Mailbox mailbox;
 
         /// <summary>
-        /// Is is a Socket, used as the handle associated with the mailbox's file descriptor.
+        /// This is a Socket, used as the handle associated with the mailbox's file descriptor.
         /// </summary>
         private readonly Socket m_mailboxHandle;
 

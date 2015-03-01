@@ -40,10 +40,15 @@ namespace NetMQ.zmq.Transports
             }
 
             public Action Action { get; private set; }
+
             public SocketError SocketError { get; private set; }
+
             public int BytesTransferred { get; private set; }
         }
 
+        /// <summary>
+        /// This enum-type denotes the operational state of this StreamEngine - whether Closed, doing Handshaking, Active, or Stalled.
+        /// </summary>
         private enum State
         {
             Closed,
@@ -316,7 +321,7 @@ namespace NetMQ.zmq.Transports
 
                             //  IO error has occurred. We stop waiting for output events.
                             //  The engine is not terminated until we detect input error;
-                            //  this is necessary to prevent losing incomming messages.
+                            //  this is necessary to prevent losing incoming messages.
                             if (bytesSent == -1)
                             {
                                 m_sendingState = SendState.Error;

@@ -6,7 +6,7 @@ using NetMQ.zmq.Utils;
 namespace NetMQ
 {
     /// <summary>
-    /// NetMQSocket provides the base-class for the various message-queuing sockets used in this system,
+    /// NetMQSocket provides the base-class for the various message-queueing sockets used in this system,
     /// and holds a SocketBase as well as a SocketOptions.
     /// </summary>
     public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
@@ -222,7 +222,7 @@ namespace NetMQ
         /// PollEvents.None     -> no message available
         /// PollEvents.PollIn   -> no message arrived
         /// PollEvents.PollOut  -> no message to send
-        /// PollEvents.Error    -> an error has occured
+        /// PollEvents.Error    -> an error has occurred
         /// or any combination thereof
         /// </returns>
         public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)

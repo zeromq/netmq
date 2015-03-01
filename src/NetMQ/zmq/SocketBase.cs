@@ -118,7 +118,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Throw a TerminatingException if the message-queuing system has started terminating.
+        /// Throw a TerminatingException if the message-queueing system has started terminating.
         /// </summary>
         public void CheckContextTerminated()
         {
@@ -513,9 +513,9 @@ namespace NetMQ.zmq
 
                 //  Create a bi-directional pipe to connect the peers.
                 ZObject[] parents = { this, peer.Socket };
-                int[] hwms = { sndhwm, rcvhwm };
+                int[] highWaterMarks = { sndhwm, rcvhwm };
                 bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-                Pipe[] pipes = Pipe.PipePair(parents, hwms, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, delays);
 
                 //  Attach local end of the pipe to this socket object.
                 AttachPipe(pipes[0]);
@@ -696,7 +696,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Transmit the given Msg across the message-queuing system.
+        /// Transmit the given Msg across the message-queueing system.
         /// If the msg fails to immediately send, then - if DontWait is specified and no SendTimeout was set
         /// then throw an AgainException.
         /// </summary>
@@ -858,7 +858,7 @@ namespace NetMQ.zmq
             }
 
             //  Compute the time when the timeout should occur.
-            //  If the timeout is infite, don't care. 
+            //  If the timeout is infinite, don't care. 
             int timeout = m_options.ReceiveTimeout;
             long end = timeout < 0 ? 0 : (Clock.NowMs() + timeout);
 
@@ -1177,7 +1177,7 @@ namespace NetMQ.zmq
         {
             CheckContextTerminated();
 
-            // Support deregistering monitoring endpoints as well
+            // Support de-registering monitoring endpoints as well
             if (addr == null)
             {
                 StopMonitor();

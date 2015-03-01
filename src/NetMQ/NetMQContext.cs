@@ -8,7 +8,10 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     /// <summary>
-    /// Context class of the NetMQ message-queuing subsystem. You should (ordinarily) have only one context in your application process.
+    /// NetMQContext is the context class of the NetMQ message-queueing subsystem.
+    /// This contains all of the state-information for the message-queueing subsystem, and provides
+    /// methods for socket creation.
+    /// You should (ordinarily) have only one context in your application process.
     /// </summary>
     public class NetMQContext : IDisposable
     {
@@ -201,7 +204,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create and return a new xsub-socket.
+        /// Create and return a new xsubscriber-socket.
         /// </summary>
         /// <returns>the new XSubscriberSocket</returns>
         [NotNull]

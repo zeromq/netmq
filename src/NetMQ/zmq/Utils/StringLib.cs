@@ -12,7 +12,7 @@ namespace NetMQ.zmq.Utils
     {
         #region AsString (List<string>)
         /// <summary>
-        /// Return a string that gives detailed information of the staste of the given List of Sockets,
+        /// Return a string that gives detailed information of the state of the given List of Sockets,
         /// for debugging purposes.
         /// </summary>
         /// <param name="list">the List of Sockets to describe</param>

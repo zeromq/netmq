@@ -47,16 +47,20 @@ namespace NetMQ.zmq
 
         [NotNull] private readonly YPipe<Command> m_cpipe;
 
-        //  There's only one thread receiving from the mailbox, but there
-        //  is arbitrary number of threads sending. Given that ypipe requires
-        //  synchronised access on both of its endpoints, we have to synchronise
-        //  the sending side.
+        /// <summary>
+        /// There's only one thread receiving from the mailbox, but there
+        /// is arbitrary number of threads sending. Given that ypipe requires
+        /// synchronised access on both of its endpoints, we have to synchronize
+        /// the sending side.
+        /// </summary>
         [NotNull] private readonly object m_sync;
 
-        // mailbox name, for better debugging
+        /// <summary>
+        /// mailbox name, for better debugging
+        /// </summary>
         [CanBeNull] private readonly String m_name;
 
-        private bool m_disposed ;
+        private bool m_disposed;
 
         public IOThreadMailbox([CanBeNull] string name, [NotNull] Proactor proactor, [NotNull] IMailboxEvent mailboxEvent)
         {
@@ -126,23 +130,33 @@ namespace NetMQ.zmq
 
     internal class Mailbox : IMailbox
     {
-        //  The pipe to store actual commands.
+        /// <summary>
+        /// The pipe to store actual commands.
+        /// </summary>
         private readonly YPipe<Command> m_cpipe;
 
-        //  Signaler to pass signals from writer thread to reader thread.
+        /// <summary>
+        /// Signaler to pass signals from writer thread to reader thread.
+        /// </summary>
         private readonly Signaler m_signaler;
 
-        //  There's only one thread receiving from the mailbox, but there
-        //  is arbitrary number of threads sending. Given that ypipe requires
-        //  synchronised access on both of its endpoints, we have to synchronise
-        //  the sending side.
+        /// <summary>
+        /// There's only one thread receiving from the mailbox, but there
+        /// is arbitrary number of threads sending. Given that ypipe requires
+        /// synchronised access on both of its endpoints, we have to synchronize
+        /// the sending side.
+        /// </summary>
         private readonly object m_sync;
 
-        //  True if the underlying pipe is active, ie. when we are allowed to
-        //  read commands from it.
+        /// <summary>
+        /// True if the underlying pipe is active, ie. when we are allowed to
+        /// read commands from it.
+        /// </summary>
         private bool m_active;
 
-        // mailbox name, for better debugging
+        /// <summary>
+        /// mailbox name, for better debugging
+        /// </summary>
         private readonly String m_name;
 
         public Mailbox(String name)

@@ -27,6 +27,9 @@ namespace NetMQ.zmq.Patterns
 {
     internal class XSub : SocketBase
     {
+        /// <summary>
+        /// An XSubSession is a subclass of SessionBase that provides nothing more.
+        /// </summary>
         public class XSubSession : SessionBase
         {
             public XSubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)

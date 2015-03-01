@@ -20,7 +20,6 @@
 */
 
 using System;
-
 using JetBrains.Annotations;
 
 namespace NetMQ.zmq
@@ -51,7 +50,9 @@ namespace NetMQ.zmq
         /// <summary>The type of this command.</summary>
         public CommandType CommandType { get; private set; }
 
-        /// <summary>An optional argument for the command, if required.</summary>
+        /// <summary>
+        /// Get the argument to this command.
+        /// </summary>
         [CanBeNull]
         public Object Arg { get; private set; }
 

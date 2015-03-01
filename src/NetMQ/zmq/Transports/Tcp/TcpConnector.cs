@@ -27,6 +27,9 @@ using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
+    /// <summary>
+    /// If 'delay' is true connector first waits for a while, then starts connection process.
+    /// </summary>
     internal class TcpConnector : Own, IProactorEvents
     {
         /// <summary>
@@ -58,7 +61,7 @@ namespace NetMQ.zmq.Transports.Tcp
         private readonly bool m_delayedStart;
 
         /// <summary>
-        /// True iff a timer has been started.
+        /// True if a timer has been started.
         /// </summary>
         private bool m_timerStarted;
 
@@ -68,7 +71,7 @@ namespace NetMQ.zmq.Transports.Tcp
         private readonly SessionBase m_session;
 
         /// <summary>
-        /// Current reconnect ivl, updated for backoff strategy
+        /// Current reconnect-interval, updated for back-off strategy
         /// </summary>
         private int m_currentReconnectIvl;
 
@@ -77,6 +80,9 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private readonly String m_endpoint;
 
+        /// <summary>
+        /// Socket
+        /// </summary>
         private readonly SocketBase m_socket;
 
         public TcpConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
@@ -228,7 +234,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 //  Attach the engine to the corresponding session object.
                 SendAttach(m_session, engine);
 
-                //  Shut the connecter down.
+                //  Shut the connector down.
                 Terminate();
             }
         }
@@ -251,7 +257,7 @@ namespace NetMQ.zmq.Transports.Tcp
         }
 
         /// <summary>
-        /// Internal function to return a reconnect backoff delay.
+        /// Internal function to return a reconnect back-off delay.
         /// Will modify the current_reconnect_ivl used for next call
         /// Returns the currently used interval
         /// </summary>

@@ -366,9 +366,9 @@ namespace NetMQ.zmq
             if (m_pipe == null && !IsTerminating)
             {
                 ZObject[] parents = { this, m_socket };
-                int[] hwms = { m_options.ReceiveHighWatermark, m_options.SendHighWatermark };
+                int[] highWaterMarks = { m_options.ReceiveHighWatermark, m_options.SendHighWatermark };
                 bool[] delays = { m_options.DelayOnClose, m_options.DelayOnDisconnect };
-                Pipe[] pipes = Pipe.PipePair(parents, hwms, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, delays);
 
                 //  Plug the local end of the pipe.
                 pipes[0].SetEventSink(this);

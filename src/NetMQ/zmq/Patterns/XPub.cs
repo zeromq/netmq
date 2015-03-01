@@ -53,7 +53,9 @@ namespace NetMQ.zmq.Patterns
 
         private Msg m_welcomeMessage;
 
-        //  True if we are in the middle of sending a multi-part message.
+        /// <summary>
+        /// True if we are in the middle of sending a multipart message.
+        /// </summary>
         private bool m_more;
 
         //  List of pending (un)subscriptions, ie. those that were already
@@ -176,11 +178,11 @@ namespace NetMQ.zmq.Patterns
             m_distribution.Activated(pipe);
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optionValue)
         {
             if (option == ZmqSocketOptions.XpubVerbose)
             {
-                m_verbose = (bool)optval;
+                m_verbose = (bool)optionValue;
                 return true;
             }
             else if (option == ZmqSocketOptions.XPublisherManual)
@@ -192,13 +194,13 @@ namespace NetMQ.zmq.Patterns
             {
                 byte[] subscription;
 
-                if (optval is byte[])
+                if (optionValue is byte[])
                 {
-                    subscription = optval as byte[];
+                    subscription = optionValue as byte[];
                 }
                 else
                 {
-                    subscription = Encoding.ASCII.GetBytes((String)optval);
+                    subscription = Encoding.ASCII.GetBytes((String)optionValue);
                 }
 
                 m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
@@ -208,13 +210,13 @@ namespace NetMQ.zmq.Patterns
             {
                 byte[] subscription;
 
-                if (optval is byte[])
+                if (optionValue is byte[])
                 {
-                    subscription = optval as byte[];
+                    subscription = optionValue as byte[];
                 }
                 else
                 {
-                    subscription = Encoding.ASCII.GetBytes((String)optval);
+                    subscription = Encoding.ASCII.GetBytes((String)optionValue);
                 }
 
                 m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
@@ -224,11 +226,11 @@ namespace NetMQ.zmq.Patterns
             {
                 m_welcomeMessage.Close();
 
-                if (optval != null)
+                if (optionValue != null)
                 {
-                    if (optval is byte[])
+                    if (optionValue is byte[])
                     {
-                        var value = (byte[])optval;
+                        var value = (byte[])optionValue;
 
                         var welcomeBytes = new byte[value.Length];
                         value.CopyTo(welcomeBytes, 0);
@@ -237,7 +239,7 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        throw new InvalidException(String.Format("In XPub.XSetSocketOption({0},{1}), optval must be a byte-array.", option, optval));
+                        throw new InvalidException(String.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
                     }
                 }
                 else
@@ -267,7 +269,7 @@ namespace NetMQ.zmq.Patterns
         {
             bool msgMore = msg.HasMore;
 
-            //  For the first part of multi-part message, find the matching pipes.
+            //  For the first part of multipart message, find the matching pipes.
             if (!m_more)
                 m_subscriptions.Match(msg.Data, msg.Size,
                     s_markAsMatching, this);
@@ -276,7 +278,7 @@ namespace NetMQ.zmq.Patterns
             //  in the previous step.
             m_distribution.SendToMatching(ref msg);
 
-            //  If we are at the end of multi-part message we can mark all the pipes
+            //  If we are at the end of multipart message we can mark all the pipes
             //  as non-matching.
             if (!msgMore)
                 m_distribution.Unmatch();

@@ -13,17 +13,17 @@ namespace NetMQ.Security
         InvalidFramesCount,
 
         /// <summary>
-        /// The length of a plain frame is diffrent than expected
+        /// The length of a plain frame is different than expected
         /// </summary>
         InvalidFrameLength,
 
         /// <summary>
-        /// Protcol version is not matching the implementation
+        /// Protocol version is not matching the implementation
         /// </summary>
         InvalidProtocolVersion,
 
         /// <summary>
-        /// Diffrent content type was expected
+        /// Different content type was expected
         /// </summary>
         InvalidContentType,
 
@@ -53,7 +53,7 @@ namespace NetMQ.Security
         EncryptedFrameInvalidLength,
 
         /// <summary>
-        /// The handshake layer expected a diffrent message type
+        /// The handshake layer expected a different message type
         /// </summary>
         HandshakeUnexpectedMessage,
 
@@ -69,7 +69,7 @@ namespace NetMQ.Security
     }
 
     /// <summary>
-    /// Thrown by the SecureChannel when error occured, check the ErrorCode property for the specific error.
+    /// Thrown by the SecureChannel when error occurred, check the ErrorCode property for the specific error.
     /// </summary>
     public class NetMQSecurityException : Exception
     {

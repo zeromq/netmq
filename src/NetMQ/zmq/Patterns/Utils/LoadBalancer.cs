@@ -125,7 +125,7 @@ namespace NetMQ.zmq.Patterns.Utils
                 return false;
             }
 
-            //  If it's part of the message we can fluch it downstream and
+            //  If it's part of the message we can flush it downstream and
             //  continue round-robinning (load balance).
             m_more = msg.HasMore;
             if (!m_more)

@@ -62,7 +62,7 @@ namespace NetMQ.zmq.Patterns.Utils
             if (currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
             {
                 //  The character is out of range of currently handled
-                //  charcters. We have to extend the table.
+                //  characters. We have to extend the table.
                 if (m_count == 0)
                 {
                     m_minCharacter = currentCharacter;

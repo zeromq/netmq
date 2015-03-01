@@ -28,7 +28,9 @@ namespace NetMQ.zmq.Transports
             m_inProgress.InitEmpty();
         }
 
-        //  Set the receiver of decoded messages.
+        /// <summary>
+        /// Set the receiver of decoded messages.
+        /// </summary>
         public override void SetMsgSink(IMsgSink msgSink)
         {
             m_msgSink = msgSink;
@@ -51,8 +53,6 @@ namespace NetMQ.zmq.Transports
                     return false;
             }
         }
-
-
 
         private bool OneByteSizeReady()
         {

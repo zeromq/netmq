@@ -32,8 +32,19 @@ namespace NetMQ
     [Flags]
     public enum MsgFlags
     {
+        /// <summary>
+        /// This value (the default) indicates that none of the bits are set.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// This is the "More" bit, which is used to signal that more messages follow.
+        /// </summary>
         More = 1,
+
+        /// <summary>
+        /// This bit indicates a message is intended to convey the identity of the associated socket.
+        /// </summary>
         Identity = 64,
 
         /// <summary>
@@ -48,6 +59,9 @@ namespace NetMQ
     [Flags]
     public enum MsgType : byte
     {
+        /// <summary>
+        /// This (the default value of MsgType) indicates a value that has not been set yet, since it is invalid.
+        /// </summary>
         Invalid = 0,
 
         /// <summary>
@@ -55,9 +69,26 @@ namespace NetMQ
         /// </summary>
         Min = 101,
 
+        /// <summary>
+        /// This flag indicates a message that is empty of content.
+        /// </summary>
         Empty = 101,
+
+        /// <summary>
+        /// This flag indicates that the byte-array data de-allocation is managed by the .NET Garbage-Collector.
+        /// </summary>
         GC = 102,
+
+        /// <summary>
+        /// This flag indicates that the byte-array data is provided by a data-pool manager,
+        /// as opposed to being continually allocated/deallocated.
+        /// </summary>
         Pool = 103,
+
+        /// <summary>
+        /// This flag indicates that the message is intended for use simply as a delimiter -
+        /// to mark a boundary between other parts of some unit of communication.
+        /// </summary>
         Delimiter = 104,
 
         /// <summary>
@@ -67,7 +98,9 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// The lowest-level interpretation of a ZeroMQ message. Supports message buffer pooling.
+    /// A Msg struct is the lowest-level interpretation of a ZeroMQ message, and simply contains byte-array data
+    /// and MsgType and MsgFlags properties.
+    /// It supports message buffer pooling.
     /// </summary>
     /// <remarks>
     /// Many users will not use this class directly. However in high-performance situations it
@@ -90,7 +123,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get whether the Delimiter bit is set on the Flags property.
+        /// Get whether the Delimiter bit is set on the Flags property,
+        /// which would indicate that this message is intended for use simply to mark a boundary
+        /// between other parts of some unit of communication.
         /// </summary>
         public bool IsDelimiter
         {
@@ -175,7 +210,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Set this Msg to be of MsgType.Delimiter with no bits set within MsgFlags.
+        /// Set this Msg to be of type MsgType.Delimiter with no bits set within MsgFlags.
         /// </summary>
         public void InitDelimiter()
         {

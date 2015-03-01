@@ -39,9 +39,11 @@ namespace NetMQ.zmq
         public const int DefaultIOThreads = 1;
         public const int DefaultMaxSockets = 1024;
 
-        //  Information associated with inproc endpoint. Note that endpoint options
-        //  are registered as well so that the peer can access them without a need
-        //  for synchronisation, handshaking or similar.
+        /// <summary>
+        /// Information associated with inproc endpoint. Note that endpoint options
+        /// are registered as well so that the peer can access them without a need
+        /// for synchronisation, handshaking or similar.
+        /// </summary>
 
         public class Endpoint
         {
@@ -265,26 +267,26 @@ namespace NetMQ.zmq
         /// Set either the max-sockets or the I/O-thread-count, depending upon which ContextOption is indicated.
         /// </summary>
         /// <param name="option">this determines which of the two properties to set</param>
-        /// <param name="optval">the value to assign to that property</param>
-        public void Set(ContextOption option, int optval)
+        /// <param name="optionValue">the value to assign to that property</param>
+        public void Set(ContextOption option, int optionValue)
         {
-            if (option == ContextOption.MaxSockets && optval >= 1)
+            if (option == ContextOption.MaxSockets && optionValue >= 1)
             {
                 lock (m_optSync)
                 {
-                    m_maxSockets = optval;
+                    m_maxSockets = optionValue;
                 }
             }
-            else if (option == ContextOption.IOThreads && optval >= 0)
+            else if (option == ContextOption.IOThreads && optionValue >= 0)
             {
                 lock (m_optSync)
                 {
-                    m_ioThreadCount = optval;
+                    m_ioThreadCount = optionValue;
                 }
             }
             else
             {
-                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets or IOThreads, and optval >= 1 or 0.", option, optval));
+                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets or IOThreads, and optionValue >= 1 or 0.", option, optionValue));
             }
         }
 

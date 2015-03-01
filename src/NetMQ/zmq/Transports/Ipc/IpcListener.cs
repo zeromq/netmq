@@ -24,21 +24,37 @@ using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
+    /// <summary>
+    /// An IpcListener is a TcpListener that also has an Address property and a SetAddress method.
+    /// </summary>
     internal sealed class IpcListener : TcpListener
     {
         private readonly IpcAddress m_address;
 
+        /// <summary>
+        /// Create a new IpcListener with the given IOThread, socket, and Options.
+        /// </summary>
+        /// <param name="ioThread"></param>
+        /// <param name="socket">the SocketBase to listen to</param>
+        /// <param name="options">an Options value that dictates the settings for this IpcListener</param>
         public IpcListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, socket, options)
         {
             m_address = new IpcAddress();
         }
 
+        /// <summary>
+        /// Get the bound address for use with wildcards
+        /// </summary>
         public override String Address
         {
             get { return m_address.ToString(); }
         }
 
+        /// <summary>
+        /// Set address to listen on.
+        /// </summary>
+        /// <param name="addr">a string denoting the address to listen to</param>
         public override void SetAddress(string addr)
         {
             m_address.Resolve(addr, false);

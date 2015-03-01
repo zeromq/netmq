@@ -106,7 +106,7 @@ namespace NetMQ.Security.V0_1
 
                 if (contentType != ContentType.ChangeCipherSpec && contentType != ContentType.Handshake)
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, "Unkown content type");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, "Unknown content type");
                 }
 
                 if (ChangeSuiteChangeArrived)
@@ -202,7 +202,7 @@ namespace NetMQ.Security.V0_1
 
             if (contentType != ContentType.ApplicationData)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, "Not an applicagtion data message");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, "Not an application data message");
             }
 
             return m_recordLayer.DecryptMessage(ContentType.ApplicationData, cipherMessage);

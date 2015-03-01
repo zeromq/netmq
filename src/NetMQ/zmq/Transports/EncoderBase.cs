@@ -26,22 +26,27 @@ namespace NetMQ.zmq.Transports
 {
     internal abstract class EncoderBase : IEncoder
     {
-        //  Where to get the data to write from.    
+        /// <summary>
+        /// Where to get the data to write from.    
+        /// </summary>
         private ByteArraySegment m_writePos;
 
-        //  If true, first byte of the message is being written.
-        //    @SuppressWarnings("unused")
+        /// <summary>
+        /// If true, first byte of the message is being written.
+        /// </summary>
         private bool m_beginning;
 
-
-        //  How much data to write before next step should be executed.
+        /// <summary>
+        /// How much data to write before the next step should be executed.
+        /// </summary>
         private int m_toWrite;
 
-        //  The buffer for encoded data.
+        /// <summary>
+        /// The buffer for encoded data.
+        /// </summary>
         private readonly byte[] m_buf;
 
         private readonly int m_buffersize;
-
 
         private bool m_error;
 
@@ -57,11 +62,11 @@ namespace NetMQ.zmq.Transports
 
         public abstract void SetMsgSource(IMsgSource msgSource);
 
-        //  The function returns a batch of binary data. The data
-        //  are filled to a supplied buffer. If no buffer is supplied (data_
-        //  points to NULL) decoder object will provide buffer of its own.
-
-
+        /// <summary>
+        /// The function returns a batch of binary data. The data
+        /// are filled to a supplied buffer. If no buffer is supplied (data_
+        /// points to NULL) decoder object will provide buffer of its own.
+        /// </summary>
         public void GetData(ref ByteArraySegment data, ref int size)
         {
             int offset = -1;

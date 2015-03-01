@@ -91,7 +91,7 @@ namespace NetMQ.zmq
         private long m_peersMsgsRead;
 
         /// <summary>
-        /// The pipe object on the other side of the pipepair.
+        /// The pipe object on the other side of the pipe-pair.
         /// </summary>
         private Pipe m_peer;
 
@@ -369,7 +369,7 @@ namespace NetMQ.zmq
 
         protected override void ProcessHiccup(object pipe)
         {
-            //  Destroy old outpipe. Note that the read end of the pipe was already
+            //  Destroy old out-pipe. Note that the read end of the pipe was already
             //  migrated to this thread.
             Debug.Assert(m_outboundPipe != null);
             m_outboundPipe.Flush();
@@ -379,7 +379,7 @@ namespace NetMQ.zmq
                 msg.Close();
             }
 
-            //  Plug in the new outpipe.
+            //  Plug in the new out-pipe.
             Debug.Assert(pipe != null);
             m_outboundPipe = (YPipe<Msg>)pipe;
             m_outActive = true;
