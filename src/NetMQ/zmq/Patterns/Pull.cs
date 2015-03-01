@@ -35,7 +35,7 @@ namespace NetMQ.zmq.Patterns
         }
 
         /// <summary>
-        /// Fair queueing object for inbound pipes.
+        /// Fair queuing object for inbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
 

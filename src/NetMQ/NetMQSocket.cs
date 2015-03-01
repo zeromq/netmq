@@ -222,7 +222,7 @@ namespace NetMQ
         /// PollEvents.None     -> no message available
         /// PollEvents.PollIn   -> no message arrived
         /// PollEvents.PollOut  -> no message to send
-        /// PollEvents.Error    -> an error has occured
+        /// PollEvents.Error    -> an error has occurred
         /// or any combination thereof
         /// </returns>
         public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)

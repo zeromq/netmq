@@ -102,7 +102,7 @@ namespace NetMQ
         /// <summary>
         /// If there are any subscribers - raise the Elapsed event.
         /// </summary>
-        /// <param name="sender">the sender to include withint the event's event-args</param>
+        /// <param name="sender">the sender to include within the event's event-args</param>
         internal void InvokeElapsed(object sender)
         {
             var temp = Elapsed;

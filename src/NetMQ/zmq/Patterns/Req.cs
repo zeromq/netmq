@@ -34,8 +34,8 @@ namespace NetMQ.zmq.Patterns
         private bool m_receivingReply;
 
         /// <summary>
-        /// If true, we are starting to send/recv a message. The first part
-        /// of the message must be empty message part (backtrace stack bottom).
+        /// If true, we are starting to send/receive a message. The first part
+        /// of the message must be empty message part (back-trace stack bottom).
         /// </summary>
         private bool m_messageBegins;
 

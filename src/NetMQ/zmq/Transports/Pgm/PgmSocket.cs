@@ -59,7 +59,7 @@ namespace NetMQ.zmq.Transports.PGM
 //        public const SocketOptionName RM_DEL_RECEIVE_IF = (SocketOptionName)(RmOptionsbase + 9);
 
         /// <summary>
-        /// Set the Ttl of the MCast packets -- (ULONG)
+        /// Set the Time-To-Live (TTL) of the MCast packets -- (ULONG)
         /// </summary>
         public const SocketOptionName RM_SET_MCAST_TTL = (SocketOptionName)(RmOptionsbase + 12);
 

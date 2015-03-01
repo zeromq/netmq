@@ -37,13 +37,13 @@ namespace NetMQ.Security.V0_1
         /// </summary>
         private HandshakeType m_lastSentMessage = HandshakeType.HelloRequest;
 
-        /// <summary>
+       /// <summary>
         /// This is the local hash-calculator, as opposed to the hash-calculator for the remote-peer.
         /// It uses the SHA-256 algorithm (SHA stands for Standard Hashing Algorithm).
         /// </summary>
         private SHA256 m_localHash;
 
-        /// <summary>
+       /// <summary>
         /// This is the hash-calculator for the remote peer.
         /// It uses the SHA-256 algorithm (SHA stands for Standard Hashing Algorithm).
         /// </summary>
@@ -65,14 +65,14 @@ namespace NetMQ.Security.V0_1
         /// </summary>
         private IPRF m_prf = new SHA256PRF();
 
-        /// <summary>
+         /// <summary>
         /// Create a new HandshakeLayer object given a SecureChannel and which end of the connection it is to be.
         /// </summary>
         /// <param name="secureChannel">the SecureChannel that comprises the secure functionality of this layer</param>
         /// <param name="connectionEnd">this specifies which end of the connection - Server or Client</param>
-        public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
+       public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
         {
-            // SHA256 is a class that computes the SHA-256 (SHA stands for Standard Hasing Algorithm) of it's input.
+            // SHA256 is a class that computes the SHA-256 (SHA stands for Standard Hashing Algorithm) of it's input.
             m_localHash = SHA256.Create();
             m_remoteHash = SHA256.Create();
 
@@ -113,20 +113,20 @@ namespace NetMQ.Security.V0_1
         /// <summary>
         /// This event signals a change to the cipher-suite.
         /// </summary>
-        public event EventHandler CipherSuiteChange;
+       public event EventHandler CipherSuiteChange;
 
-        /// <summary>
+         /// <summary>
         /// Get or set the delegate to use to call the method for verifying the certificate.
         /// </summary>
         public VerifyCertificateDelegate VerifyCertificate { get; set; }
 
-        /// <summary>
+         /// <summary>
         /// Given an incoming handshake-protocol message, route it to the corresponding handler.
         /// </summary>
         /// <param name="incomingMessage">the NetMQMessage that has come in</param>
         /// <param name="outgoingMessages">a collection of NetMQMessages that are to be sent</param>
         /// <returns>true if finished - ie, an incoming message of type Finished was received</returns>
-        public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
+       public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
         {
             if (incomingMessage == null)
             {
@@ -174,12 +174,12 @@ namespace NetMQ.Security.V0_1
             return m_done;
         }
 
-        /// <summary>
+         /// <summary>
         /// Compute the hash of the given message twice, first using the local hashing algorithm
         /// and then again using the remote-peer hashing algorithm.
         /// </summary>
         /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
-        private void HashLocalAndRemote(NetMQMessage message)
+       private void HashLocalAndRemote(NetMQMessage message)
         {
             HashLocal(message);
             HashRemote(message);
@@ -291,7 +291,7 @@ namespace NetMQ.Security.V0_1
 
             SecurityParameters.ServerRandom = serverHelloMessage.RandomNumber;
 
-            // in case their is no much the server will return this defaul
+            // in case their is no much the server will return this default
             serverHelloMessage.CipherSuite = CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA;
 
             foreach (var cipherSuite in cipherSuites)
@@ -348,7 +348,7 @@ namespace NetMQ.Security.V0_1
         }
 
         private void OnServerHelloDone(NetMQMessage incomingMessage,
-            OutgoingMessageBag outgoingMessages)
+                                      OutgoingMessageBag outgoingMessages)
         {
             if (m_lastReceivedMessage != HandshakeType.Certificate || m_lastSentMessage != HandshakeType.ClientHello)
             {
@@ -410,11 +410,11 @@ namespace NetMQ.Security.V0_1
         {
             if (
                 (SecurityParameters.Entity == ConnectionEnd.Client &&
-                 (!m_secureChannel.ChangeSuiteChangeArrived ||
-                  m_lastReceivedMessage != HandshakeType.ServerHelloDone || m_lastSentMessage != HandshakeType.Finished)) ||
+                (!m_secureChannel.ChangeSuiteChangeArrived ||
+                    m_lastReceivedMessage != HandshakeType.ServerHelloDone || m_lastSentMessage != HandshakeType.Finished)) ||
                 (SecurityParameters.Entity == ConnectionEnd.Server &&
-                 (!m_secureChannel.ChangeSuiteChangeArrived ||
-                  m_lastReceivedMessage != HandshakeType.ClientKeyExchange || m_lastSentMessage != HandshakeType.ServerHelloDone)))
+                (!m_secureChannel.ChangeSuiteChangeArrived ||
+                m_lastReceivedMessage != HandshakeType.ClientKeyExchange || m_lastSentMessage != HandshakeType.ServerHelloDone)))
             {
                 throw new NetMQSecurityException(NetMQSecurityErrorCode.HandshakeUnexpectedMessage, "Finished received when expecting another message");
             }
@@ -445,7 +445,7 @@ namespace NetMQ.Security.V0_1
             }
 
             byte[] verifyData =
-                PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
+              PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
 
             if (!verifyData.SequenceEqual(finishedMessage.VerifyData))
             {
@@ -482,7 +482,7 @@ namespace NetMQ.Security.V0_1
             var finishedMessage = new FinishedMessage();
 
             finishedMessage.VerifyData =
-                PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
+              PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
 
             NetMQMessage outgoingMessage = finishedMessage.ToNetMQMessage();
             outgoingMessages.AddHandshakeMessage(outgoingMessage);
@@ -573,7 +573,7 @@ namespace NetMQ.Security.V0_1
             Buffer.BlockCopy(SecurityParameters.ServerRandom, 0, seed, RandomNumberLength, RandomNumberLength);
 
             SecurityParameters.MasterSecret =
-                PRF.Get(preMasterSecret, MasterSecretLabel, seed, MasterSecretLength);
+              PRF.Get(preMasterSecret, MasterSecretLabel, seed, MasterSecretLength);
 
             Array.Clear(preMasterSecret, 0, preMasterSecret.Length);
         }

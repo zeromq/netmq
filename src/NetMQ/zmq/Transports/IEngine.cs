@@ -20,27 +20,37 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//  Abstract interface to be implemented by various engines.
-
 using JetBrains.Annotations;
+
 
 namespace NetMQ.zmq.Transports
 {
+    /// <summary>
+    /// Abstract interface to be implemented by various engines.
+    /// </summary>
     internal interface IEngine
     {
-        //  Plug the engine to the session.
+        /// <summary>
+        /// Plug the engine to the session.
+        /// </summary>
         void Plug([NotNull] IOThread ioThread, [NotNull] SessionBase session);
 
-        //  Terminate and deallocate the engine. Note that 'detached'
-        //  events are not fired on termination.
+        /// <summary>
+        /// Terminate and deallocate the engine. Note that 'detached'
+        /// events are not fired on termination.
+        /// </summary>
         void Terminate();
 
-        //  This method is called by the session to signalise that more
-        //  messages can be written to the pipe.
+        /// <summary>
+        /// This method is called by the session to signal that more
+        /// messages can be written to the pipe.
+        /// </summary>
         void ActivateIn();
 
-        //  This method is called by the session to signalise that there
-        //  are messages to send available.
+        /// <summary>
+        /// This method is called by the session to signal that there
+        /// are messages to send available.
+        /// </summary>
         void ActivateOut();
     }
 }

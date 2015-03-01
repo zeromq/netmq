@@ -8,27 +8,17 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     /// <summary>
-    /// Context class of the NetMQ message-queuing subsystem. You should (ordinarily) have only one context in your application process.
+    /// NetMQContext is the context class of the NetMQ message-queuing subsystem.
+    /// This contains all of the state-information for the message-queuing subsystem, and provides
+    /// methods for socket creation.
+    /// You should (ordinarily) have only one context in your application process.
     /// </summary>
     public class NetMQContext : IDisposable
     {
         private readonly Ctx m_ctx;
         private int m_isClosed;
 
-        private NetMQContext([NotNull] Ctx ctx)
-        {
-            m_ctx = ctx;
-        }
-
-        /// <summary>
-        /// Create and return a new context.
-        /// </summary>
-        /// <returns>the new NetMQContext</returns>
-        [NotNull]
-        public static NetMQContext Create()
-        {
-            return new NetMQContext(new Ctx());
-        }
+        #region public properties
 
         /// <summary>
         /// Get or set the number of IO Threads in the context, default is 1.
@@ -47,6 +37,23 @@ namespace NetMQ
         {
             get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.MaxSockets); }
             set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.MaxSockets, value); }
+        }
+
+        #endregion public properties
+
+        private NetMQContext([NotNull] Ctx ctx)
+        {
+            m_ctx = ctx;
+        }
+
+        /// <summary>
+        /// Create and return a new context.
+        /// </summary>
+        /// <returns>the new NetMQContext</returns>
+        [NotNull]
+        public static NetMQContext Create()
+        {
+            return new NetMQContext(new Ctx());
         }
 
         #region Socket Creation
@@ -201,7 +208,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create and return a new xsub-socket.
+        /// Create and return a new xsubscriber-socket.
         /// </summary>
         /// <returns>the new XSubscriberSocket</returns>
         [NotNull]

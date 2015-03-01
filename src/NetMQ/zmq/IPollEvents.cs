@@ -34,6 +34,6 @@ namespace NetMQ.zmq
         /// <summary>
         /// Called by the I/O thread when the file descriptor is ready for writing.
         /// </summary>
-        void OutEvent();       
+        void OutEvent();
     }
 }

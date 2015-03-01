@@ -311,7 +311,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Cancel the poller job when PollTillCancelled is called and wait for for the PollTillCancelled to complete
+        /// Cancel the poller job when PollTillCancelled is called and wait for the PollTillCancelled to complete
         /// </summary>
         public void CancelAndJoin()
         {
@@ -356,7 +356,7 @@ namespace NetMQ
         /// If it doesn't stop within 20 seconds, it times-out anyway and returns.
         /// </summary>
         /// <param name="waitForCloseToComplete">if true, this method will block until the poller is fully stopped</param>
-        [Obsolete("Use Cancel or CancelAndJoin")]
+        [Obsolete("Use Cancel(if your argument was false) or CancelAndJoin (if your argument was true)")]
         public void Stop(bool waitForCloseToComplete)
         {
             Cancel(waitForCloseToComplete);
@@ -366,7 +366,7 @@ namespace NetMQ
         /// Stop the poller job. This returns after waiting for that thread to stop.
         /// This is equivalent to calling CancelAndJoin.
         /// </summary>
-        [Obsolete("Use Cancel or CancelAndJoin")]
+        [Obsolete("Use CancelAndJoin")]
         public void Stop()
         {
             Cancel(true);

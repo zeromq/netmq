@@ -51,11 +51,11 @@ namespace NetMQ.zmq.Transports
         private IMsgSink m_msgSink;
 
         /// <summary>
-        /// Create a enw V1Decoder with the given buffer-size, maximum-message-size and Endianness.
+        /// Create a new V1Decoder with the given buffer-size, maximum-message-size and Endian-ness.
         /// </summary>
-        /// <param name="bufsize"></param>
+        /// <param name="bufsize">the buffer-size to give the contained buffer</param>
         /// <param name="maxMessageSize">the maximum message size. -1 indicates no limit.</param>
-        /// <param name="endian"></param>
+        /// <param name="endian">the Endianness to specify for it - either Big or Little</param>
         public V1Decoder(int bufsize, long maxMessageSize, Endianness endian)
             : base(bufsize, endian)
         {
@@ -69,7 +69,9 @@ namespace NetMQ.zmq.Transports
             m_inProgress.InitEmpty();
         }
 
-        //  Set the receiver of decoded messages.    
+        /// <summary>
+        /// Set the receiver of decoded messages.    
+        /// </summary>
         public override void SetMsgSink(IMsgSink msgSink)
         {
             m_msgSink = msgSink;
@@ -114,9 +116,9 @@ namespace NetMQ.zmq.Transports
                     return false;
                 }
 
-                //  in_progress is initialised at this point so in theory we should
+                //  in_progress is initialized at this point so in theory we should
                 //  close it before calling zmq_msg_init_size, however, it's a 0-byte
-                //  message and thus we can treat it as uninitialised...
+                //  message and thus we can treat it as uninitialized...
                 if (m_maxMessageSize >= 0 && (long)(first - 1) > m_maxMessageSize)
                 {
                     DecodingError();
@@ -171,7 +173,6 @@ namespace NetMQ.zmq.Transports
             NextStep(m_tmpbuf, 1, FlagsReadyState);
 
             return true;
-
         }
 
         private bool FlagsReady()
@@ -215,7 +216,6 @@ namespace NetMQ.zmq.Transports
                 DecodingError();
                 return false;
             }
-            
         }
     }
 }

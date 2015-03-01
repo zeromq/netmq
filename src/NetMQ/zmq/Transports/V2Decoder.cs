@@ -28,7 +28,9 @@ namespace NetMQ.zmq.Transports
             m_inProgress.InitEmpty();
         }
 
-        //  Set the receiver of decoded messages.
+        /// <summary>
+        /// Set the receiver of decoded messages.
+        /// </summary>
         public override void SetMsgSink(IMsgSink msgSink)
         {
             m_msgSink = msgSink;
@@ -52,8 +54,6 @@ namespace NetMQ.zmq.Transports
             }
         }
 
-
-
         private bool OneByteSizeReady()
         {
             m_tmpbuf.Reset();
@@ -66,9 +66,9 @@ namespace NetMQ.zmq.Transports
                     return false;
                 }
 
-            //  in_progress is initialised at this point so in theory we should
+            //  in_progress is initialized at this point so in theory we should
             //  close it before calling zmq_msg_init_size, however, it's a 0-byte
-            //  message and thus we can treat it as uninitialised...
+            //  message and thus we can treat it as uninitialized...
             m_inProgress.InitPool(m_tmpbuf[0]);
 
             m_inProgress.SetFlags(m_msgFlags);
@@ -101,9 +101,9 @@ namespace NetMQ.zmq.Transports
                 return false;
             }
 
-            //  in_progress is initialised at this point so in theory we should
+            //  in_progress is initialized at this point so in theory we should
             //  close it before calling init_size, however, it's a 0-byte
-            //  message and thus we can treat it as uninitialised.
+            //  message and thus we can treat it as uninitialized.
             m_inProgress.InitPool((int)msg_size);
 
             m_inProgress.SetFlags(m_msgFlags);

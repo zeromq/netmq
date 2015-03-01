@@ -61,12 +61,12 @@ namespace NetMQ.zmq.Patterns
         };
 
         /// <summary>
-        /// Fair queueing object for inbound pipes.
+        /// Fair queuing object for inbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
         /// <summary>
-        /// True iff there is a message held in the pre-fetch buffer.
+        /// True if there is a message held in the pre-fetch buffer.
         /// </summary>
         private bool m_prefetched;
 
@@ -308,7 +308,7 @@ namespace NetMQ.zmq.Patterns
             {
                 // Close the remote connection if user has asked to do so
                 // by sending zero length message.
-                // Pending messages in the pipe will be dropped (on receiving term- ack)
+                // Pending messages in the pipe will be dropped (on receiving term-ack)
                 if (m_rawSocket && msg.Size == 0)
                 {
                     m_currentOut.Terminate(false);
@@ -379,7 +379,7 @@ namespace NetMQ.zmq.Patterns
             else
             {
                 //  We are at the beginning of a message.
-                //  Keep the message part we have in the prefetch buffer
+                //  Keep the message part we have in the pre-fetch buffer
                 //  and return the ID of the peer instead.
                 m_prefetchedMsg.Move(ref msg);
 
@@ -453,7 +453,7 @@ namespace NetMQ.zmq.Patterns
         protected override bool XHasOut()
         {
             //  In theory, ROUTER socket is always ready for writing. Whether actual
-            //  attempt to write succeeds depends on whitch pipe the message is going
+            //  attempt to write succeeds depends on which pipe the message is going
             //  to be routed to.
             return true;
         }

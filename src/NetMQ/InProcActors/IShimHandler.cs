@@ -12,6 +12,10 @@ namespace NetMQ.InProcActors
     [Obsolete("Use non generic NetMQActor and IShimHandler")]
     public interface IShimHandler<in T>
     {
+        /// <summary>
+        /// Initialize the shim to the given state - which is of type T.
+        /// </summary>
+        /// <param name="state">an object of type T to specify the initial state</param>
         void Initialise(T state);
 
         void RunPipeline([NotNull] PairSocket shim);

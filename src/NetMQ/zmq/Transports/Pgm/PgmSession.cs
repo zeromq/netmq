@@ -121,7 +121,7 @@ namespace NetMQ.zmq.Transports.PGM
                     Debug.Assert(offset <= bytesTransferred);
                     Debug.Assert(m_decoder == null);
 
-                    //  We have to move data to the begining of the first message.
+                    //  We have to move data to the beginning of the first message.
                     m_data.AdvanceOffset(offset);
                     bytesTransferred -= offset;
 

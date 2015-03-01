@@ -55,12 +55,12 @@ namespace NetMQ.zmq.Patterns
         }
 
         /// <summary>
-        /// Fair queueing object for inbound pipes.
+        /// Fair queuing object for inbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
         /// <summary>
-        /// True iff there is a message held in the pre-fetch buffer.
+        /// True if there is a message held in the pre-fetch buffer.
         /// </summary>
         private bool m_prefetched;
 
@@ -287,7 +287,7 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(!m_prefetchedMsg.HasMore);
 
             //  We have received a frame with TCP data.
-            //  Rather than sendig this frame, we keep it in prefetched
+            //  Rather than sending this frame, we keep it in prefetched
             //  buffer and send a frame with peer's ID.
             byte[] identity = pipe[0].Identity;
             msg.InitPool(identity.Length);
@@ -335,7 +335,7 @@ namespace NetMQ.zmq.Patterns
         protected override bool XHasOut()
         {
             //  In theory, STREAM socket is always ready for writing. Whether actual
-            //  attempt to write succeeds depends on whitch pipe the message is going
+            //  attempt to write succeeds depends on which pipe the message is going
             //  to be routed to.
             return true;
         }

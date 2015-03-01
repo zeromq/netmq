@@ -74,7 +74,7 @@ namespace NetMQ.zmq
         // Monitor socket
         private SocketBase m_monitorSocket;
 
-        // Bitmask of events being monitored
+        // Bit-mask of events being monitored
         private SocketEvent m_monitorEvents;
 
         // The tcp port that was bound to, if any
@@ -513,9 +513,9 @@ namespace NetMQ.zmq
 
                 //  Create a bi-directional pipe to connect the peers.
                 ZObject[] parents = { this, peer.Socket };
-                int[] hwms = { sndhwm, rcvhwm };
+                int[] highWaterMarks = { sndhwm, rcvhwm };
                 bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-                Pipe[] pipes = Pipe.PipePair(parents, hwms, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, delays);
 
                 //  Attach local end of the pipe to this socket object.
                 AttachPipe(pipes[0]);
@@ -858,7 +858,7 @@ namespace NetMQ.zmq
             }
 
             //  Compute the time when the timeout should occur.
-            //  If the timeout is infite, don't care. 
+            //  If the timeout is infinite, don't care. 
             int timeout = m_options.ReceiveTimeout;
             long end = timeout < 0 ? 0 : (Clock.NowMs() + timeout);
 
@@ -955,11 +955,11 @@ namespace NetMQ.zmq
                 //  Get the CPU's tick counter. If 0, the counter is not available.								
                 long tsc = Clock.Rdtsc();
 
-                //  Optimised version of command processing - it doesn't have to check
+                //  Optimized version of command processing - it doesn't have to check
                 //  for incoming commands each time. It does so only if certain time
                 //  elapsed since last command processing. Command delay varies
                 //  depending on CPU speed: It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU
-                //  etc. The optimisation makes sense only on platforms where getting
+                //  etc. The optimization makes sense only on platforms where getting
                 //  a timestamp is a very cheap operation (tens of nanoseconds).
                 if (tsc != 0 && throttle)
                 {
@@ -1177,7 +1177,7 @@ namespace NetMQ.zmq
         {
             CheckContextTerminated();
 
-            // Support deregistering monitoring endpoints as well
+            // Support de-registering monitoring endpoints as well
             if (addr == null)
             {
                 StopMonitor();
