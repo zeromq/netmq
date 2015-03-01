@@ -409,7 +409,7 @@ namespace NetMQ.Tests
                         // the has in should indicate a message is ready
                         Assert.IsTrue(server.HasIn);
 
-                        byte[] identity = server.Receive();
+                        server.Receive(); // identity
                         string message = server.ReceiveString();
 
                         Assert.AreEqual(message, "1");
@@ -605,7 +605,7 @@ namespace NetMQ.Tests
                             }
                             else
                             {
-                                var exception = Assert.Throws<EndpointNotFoundException>(() =>
+                                Assert.Throws<EndpointNotFoundException>(() =>
                                 {
                                     client2.Connect(address2);
                                 });

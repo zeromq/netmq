@@ -46,11 +46,11 @@ namespace NetMQ.Tests
 
                             bool more;
 
-                            string m = rep.ReceiveString(out more);
+                            rep.ReceiveString(out more);
 
                             rep.Send("b");
 
-                            string m2 = req.ReceiveString(out more);
+                            req.ReceiveString(out more);
 
                             Thread.Sleep(200);
 
@@ -99,11 +99,11 @@ namespace NetMQ.Tests
 
                             bool more;
 
-                            string m = rep.ReceiveString(out more);
+                            rep.ReceiveString(out more);
 
                             rep.Send("b");
 
-                            string m2 = req.ReceiveString(out more);
+                            req.ReceiveString(out more);
 
                             Thread.Sleep(200);
 

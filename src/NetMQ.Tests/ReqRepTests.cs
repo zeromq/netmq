@@ -59,7 +59,7 @@ namespace NetMQ.Tests
                         bool more;
                         rep.Receive(out more);
 
-                        var ex = Assert.Throws<FiniteStateMachineException>(() => req.Send("Hi2"));                        
+                        Assert.Throws<FiniteStateMachineException>(() => req.Send("Hi2"));                        
                     }
                 }
             }
@@ -81,7 +81,7 @@ namespace NetMQ.Tests
 
                         bool more;
 
-                        var ex = Assert.Throws<FiniteStateMachineException>(() => req.ReceiveString(out more));                        
+                        Assert.Throws<FiniteStateMachineException>(() => req.ReceiveString(out more));                        
                     }
                 }
             }
@@ -100,7 +100,7 @@ namespace NetMQ.Tests
                     {
                         req.Connect("tcp://localhost:" + port);
 
-                        var ex = Assert.Throws<FiniteStateMachineException>(() => rep.Send("1"));                        
+                        Assert.Throws<FiniteStateMachineException>(() => rep.Send("1"));
                     }
                 }
             }

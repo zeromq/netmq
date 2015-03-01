@@ -93,7 +93,7 @@ namespace NetMQ.Tests
 
                         bool more;
 
-                        string m = sub.ReceiveString(true, out more);
+                        sub.ReceiveString(true, out more);
                     }
                 }
             }
@@ -293,7 +293,7 @@ namespace NetMQ.Tests
                         pub.SendMore("A");
                         pub.Send("Hello");
 
-                        string m3 = sub.ReceiveString(true, out more);
+                        sub.ReceiveString(true, out more);
                     }
                 }
             }
