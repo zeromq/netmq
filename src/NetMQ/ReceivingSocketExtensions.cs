@@ -12,7 +12,7 @@ namespace NetMQ
     /// </summary>
     public static class ReceivingSocketExtensions
     {
-        #region Byte Array
+        #region Receiving Byte Array
 
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
@@ -140,7 +140,7 @@ namespace NetMQ
 
         #endregion
 
-        #region Strings
+        #region Receiving Strings
 
         /// <summary>
         /// reads an available message and extracts the data which is converted to a string
@@ -377,7 +377,7 @@ namespace NetMQ
 
         #endregion
 
-        #region NetMQMessge
+        #region Receiving NetMQMessge
 
         /// <summary>
         /// non-blocking receive of a (multi-part)message and stores it in the NetMQMessage object
@@ -432,7 +432,7 @@ namespace NetMQ
 
         #endregion
 
-        #region Signals
+        #region Receiving Signals
 
         /// <summary>
         /// Extension-method for IReceivingSocket: repeatedly call Rece on this socket, until we receive
