@@ -31,6 +31,7 @@ namespace NetMQ
         private readonly List<NetMQFrame> m_frames;
 
         #region constructors
+
         /// <summary>
         /// The default-constructor for NetMQMessage: create a new instance of NetMQMessage
         /// with an empty frame-stack.
@@ -67,6 +68,7 @@ namespace NetMQ
 
             m_frames = buffers.Select(buf => new NetMQFrame(buf)).ToList();
         }
+
         #endregion constructors
 
         #region public properties
@@ -275,6 +277,8 @@ namespace NetMQ
             m_frames.Clear();
         }
 
+        #region IEnumerable
+
         public IEnumerator<NetMQFrame> GetEnumerator()
         {
             return m_frames.GetEnumerator();
@@ -284,6 +288,10 @@ namespace NetMQ
         {
             return GetEnumerator();
         }
+
+        #endregion
+
+        #region Formatting
 
         /// <summary>
         /// Returns a string showing the frame contents.
@@ -304,6 +312,9 @@ namespace NetMQ
             }
             return sb.Append("]").ToString();
         }
+
+        #endregion
+
         #endregion public methods
     }
 }
