@@ -645,7 +645,7 @@ namespace NetMQ.zmq.Transports
 
             if (m_insize == 0)
             {
-                m_decoder.GetBuffer(ref m_inpos, ref m_insize);
+                m_decoder.GetBuffer(out m_inpos, out m_insize);
                 BeginRead(m_inpos, m_insize);
             }
             else
@@ -725,7 +725,7 @@ namespace NetMQ.zmq.Transports
             }
             else if (m_receivingState != ReceiveState.Stuck)
             {
-                m_decoder.GetBuffer(ref m_inpos, ref m_insize);
+                m_decoder.GetBuffer(out m_inpos, out m_insize);
                 BeginRead(m_inpos, m_insize);
             }
         }

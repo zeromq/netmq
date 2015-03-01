@@ -4,7 +4,7 @@ namespace NetMQ.zmq.Transports
     {
         void SetMsgSink(IMsgSink msgSink);
 
-        void GetBuffer(ref ByteArraySegment data, ref int size);
+        void GetBuffer(out ByteArraySegment data, out int size);
 
         int ProcessBuffer(ByteArraySegment data, int size);
 
