@@ -313,7 +313,7 @@ namespace NetMQ.Tests
 
 
         [Test]
-        public void CancelSocket()
+        public void RemoveSocket()
         {
             using (var context = NetMQContext.Create())
             using (var router1 = context.CreateRouterSocket())
@@ -461,7 +461,7 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void CancelTimer()
+        public void RemoveTimer()
         {
             using (var context = NetMQContext.Create())
             using (var router = context.CreateRouterSocket())
