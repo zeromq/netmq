@@ -28,7 +28,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Reaper thread accesses incoming commands via this mailbox.
         /// </summary>
-        private readonly Mailbox mailbox;
+        private readonly Mailbox m_mailbox;
 
         /// <summary>
         /// This is a Socket, used as the handle associated with the mailbox's file descriptor.
@@ -50,19 +50,18 @@ namespace NetMQ.zmq
         /// </summary>
         private volatile bool m_terminating;
 
-        private readonly String m_name;
-
         public Reaper(Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
             m_sockets = 0;
             m_terminating = false;
-            m_name = "reaper-" + threadId;
-            m_poller = new Utils.Poller(m_name);
+            
+            string name = "reaper-" + threadId;
+            m_poller = new Utils.Poller(name);
 
-            mailbox = new Mailbox(m_name);
+            m_mailbox = new Mailbox(name);
 
-            m_mailboxHandle = mailbox.Handle;
+            m_mailboxHandle = m_mailbox.Handle;
             m_poller.AddHandle(m_mailboxHandle, this);
             m_poller.SetPollin(m_mailboxHandle);
         }
@@ -70,12 +69,12 @@ namespace NetMQ.zmq
         public void Destroy()
         {
             m_poller.Destroy();
-            mailbox.Close();
+            m_mailbox.Close();
         }
 
         public Mailbox Mailbox
         {
-            get { return mailbox; }
+            get { return m_mailbox; }
         }
 
         public void Start()
@@ -94,7 +93,7 @@ namespace NetMQ.zmq
             while (true)
             {
                 //  Get the next command. If there is none, exit.
-                Command cmd = mailbox.Recv(0);
+                Command cmd = m_mailbox.Recv(0);
                 if (cmd == null)
                     break;
 
