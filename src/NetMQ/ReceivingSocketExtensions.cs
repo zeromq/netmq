@@ -155,7 +155,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options, out bool hasMore)
         {
-            if (ReferenceEquals(encoding, null))
+            if (encoding == null)
                 throw new ArgumentNullException("encoding");
 
             var msg = new Msg();
