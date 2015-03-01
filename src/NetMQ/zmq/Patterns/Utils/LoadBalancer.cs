@@ -22,6 +22,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
@@ -58,13 +59,13 @@ namespace NetMQ.zmq.Patterns.Utils
             m_pipes = new List<Pipe>();
         }
 
-        public void Attach(Pipe pipe)
+        public void Attach([NotNull] Pipe pipe)
         {
             m_pipes.Add(pipe);
             Activated(pipe);
         }
 
-        public void Terminated(Pipe pipe)
+        public void Terminated([NotNull] Pipe pipe)
         {
             int index = m_pipes.IndexOf(pipe);
 
@@ -85,7 +86,7 @@ namespace NetMQ.zmq.Patterns.Utils
             m_pipes.Remove(pipe);
         }
 
-        public void Activated(Pipe pipe)
+        public void Activated([NotNull] Pipe pipe)
         {
             //  Move the pipe to the list of active pipes.
             m_pipes.Swap(m_pipes.IndexOf(pipe), m_active);
