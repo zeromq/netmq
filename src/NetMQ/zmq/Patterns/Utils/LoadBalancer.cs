@@ -88,7 +88,7 @@ namespace NetMQ.zmq.Patterns.Utils
             m_active++;
         }
 
-        public bool Send(ref Msg msg, SendReceiveOptions flags)
+        public bool Send(ref Msg msg)
         {
             //  Drop the message if required. If we are at the end of the message
             //  switch back to non-dropping mode.

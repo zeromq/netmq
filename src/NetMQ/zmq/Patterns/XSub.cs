@@ -157,7 +157,7 @@ namespace NetMQ.zmq.Patterns
                 // Process the subscription.
                 if (m_subscriptions.Add(data, 1, size - 1))
                 {
-                    m_distribution.SendToAll(ref msg, flags);
+                    m_distribution.SendToAll(ref msg);
                     return true;
                 }
             }
@@ -165,14 +165,14 @@ namespace NetMQ.zmq.Patterns
             {
                 if (m_subscriptions.Remove(data, 1, size - 1))
                 {
-                    m_distribution.SendToAll(ref msg, flags);
+                    m_distribution.SendToAll(ref msg);
                     return true;
                 }
             }
             else
             {
                 // upstream message unrelated to sub/unsub
-                m_distribution.SendToAll(ref msg, flags);
+                m_distribution.SendToAll(ref msg);
 
                 return true;
             }
