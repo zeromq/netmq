@@ -165,12 +165,9 @@ namespace NetMQ
 
             hasMore = msg.HasMore;
 
-            string data = string.Empty;
-
-            if (msg.Size > 0)
-            {
-                data = encoding.GetString(msg.Data, 0, msg.Size);
-            }
+            string data = msg.Size > 0 
+                ? encoding.GetString(msg.Data, 0, msg.Size) 
+                : string.Empty;
 
             msg.Close();
 
