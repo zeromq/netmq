@@ -106,7 +106,7 @@ namespace NetMQ
             var random = new Random();
 
             //now binding and connect pipe ends
-            string endPoint = string.Empty;
+            string endPoint;
             while (true)
             {
                 try
