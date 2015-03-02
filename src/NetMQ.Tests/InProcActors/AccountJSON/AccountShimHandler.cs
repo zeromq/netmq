@@ -1,5 +1,4 @@
 ﻿using System;
-using NetMQ.InProcActors;
 using NetMQ.Sockets;
 using Newtonsoft.Json;
 
@@ -10,30 +9,23 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
     /// to implement per actor. This essentially contains your commands/protocol
     /// and should deal with any command workload, as well as sending back to the
     /// other end of the PairSocket which calling code would receive by using the
-    /// Actor classes various RecieveXXX() methods
+    /// Actor classes various ReceiveXXX() methods
     /// 
     /// This is a VERY simple protocol but it just demonstrates what you would need
     /// to do to implement your own Shim handler
     /// 
     /// The only things you MUST do is to follow this example for handling
-    /// a fews things
+    /// a few things
     /// 
     /// 1. Bad commands should always send the following message
     ///    "Error: invalid message to actor"
-    /// 2. When we recieve a command from the actor telling us to exit the pipeline we should immediately
+    /// 2. When we receive a command from the actor telling us to exit the pipeline we should immediately
     ///    break out of the while loop, and dispose of the shim socket
     /// 3. When an Exception occurs you should send that down the wire to Actors calling code
     /// </summary>
-    public class AccountShimHandler : IShimHandler<object>
+    public class AccountShimHandler : IShimHandler
     {
-
-        public void Initialise(object state)
-        {
-            //not used in this example
-        }
-
-
-        public void RunPipeline(PairSocket shim)
+        public void Run(PairSocket shim)
         {
             shim.SignalOK();
 
@@ -57,10 +49,10 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                     if (msg[0].ConvertToString() == "AMEND ACCOUNT")
                     {
                         string accountActionJson = msg[1].ConvertToString();
-                        AccountAction accountAction = JsonConvert.DeserializeObject<AccountAction>(accountActionJson);
+                        var accountAction = JsonConvert.DeserializeObject<AccountAction>(accountActionJson);
 
                         string accountJson = msg[2].ConvertToString();
-                        Account account = JsonConvert.DeserializeObject<Account>(accountJson);
+                        var account = JsonConvert.DeserializeObject<Account>(accountJson);
                         AmmendAccount(accountAction, account);
                         shim.Send(JsonConvert.SerializeObject(account));
                     }
@@ -70,7 +62,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                     }
                 }
                 // You WILL need to decide what Exceptions should be caught here, this is for 
-                // demonstration purposes only, any unhandled fault will bubble up to callers code.
+                // demonstration purposes only, any unhandled fault will bubble up to caller's code.
                 catch (Exception e)
                 {
                     shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
@@ -78,7 +70,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
             }
         }
 
-        private void AmmendAccount(AccountAction action, Account account)
+        private static void AmmendAccount(AccountAction action, Account account)
         {
             decimal currentAmount = account.Balance;
             account.Balance = action.TransactionType == TransactionType.Debit

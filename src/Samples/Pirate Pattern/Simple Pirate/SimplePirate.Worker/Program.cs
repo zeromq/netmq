@@ -26,7 +26,7 @@ namespace SimplePirate.Worker
                     //  Read and save all frames until we get an empty frame
                     //  In this example there is only 1 but it could be more
                     byte[] address = worker.Receive();
-                    byte[] empty = worker.Receive();
+                    worker.Receive(); // empty
                     byte[] request = worker.Receive();
 
                     worker.SendMore(address);

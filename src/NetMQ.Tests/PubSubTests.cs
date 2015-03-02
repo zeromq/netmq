@@ -10,246 +10,202 @@ namespace NetMQ.Tests
         [Test]
         public void TopicPubSub()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    var port = pub.BindRandomPort("tcp://127.0.0.1");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("A");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:" + port);
-                        sub.Subscribe("A");
+                // let the subscriber connect to the publisher before sending a message
+                Thread.Sleep(500);
 
-                        // let the subscrbier connect to the publisher before sending a message
-                        Thread.Sleep(500);
+                pub.SendMore("A");
+                pub.Send("Hello");
 
-                        pub.SendMore("A");
-                        pub.Send("Hello");
+                bool more;
 
-                        bool more;
+                Assert.AreEqual("A", sub.ReceiveString(out more));
+                Assert.IsTrue(more);
 
-                        string m = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("A", m);
-                        Assert.IsTrue(more);
-
-                        string m2 = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello", m2);
-                        Assert.False(more);
-                    }
-                }
+                Assert.AreEqual("Hello", sub.ReceiveString(out more));
+                Assert.False(more);
             }
         }
 
         [Test]
         public void SimplePubSub()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    var port = pub.BindRandomPort("tcp://127.0.0.1");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:" + port);
-                        sub.Subscribe("");
+                // let the subscriber connect to the publisher before sending a message
+                Thread.Sleep(500);
 
-                        // let the subscrbier connect to the publisher before sending a message
-                        Thread.Sleep(500);
+                pub.Send("Hello");
 
-                        pub.Send("Hello");
+                bool more;
 
-                        bool more;
+                string m = sub.ReceiveString(out more);
 
-                        string m = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello", m);
-                        Assert.False(more);
-                    }
-                }
+                Assert.AreEqual("Hello", m);
+                Assert.False(more);
             }
         }
 
         [Test, ExpectedException(typeof(AgainException))]
         public void NotSubscribed()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    var port = pub.BindRandomPort("tcp://127.0.0.1");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:" + port);
+                // let the subscriber connect to the publisher before sending a message
+                Thread.Sleep(500);
 
-                        // let the subscrbier connect to the publisher before sending a message
-                        Thread.Sleep(500);
+                pub.Send("Hello");
 
-                        pub.Send("Hello");
+                bool more;
 
-                        bool more;
-
-                        string m = sub.ReceiveString(true, out more);
-                    }
-                }
+                sub.ReceiveString(true, out more);
             }
         }
 
         /// <summary>
-        /// This test trying to reproduce bug #45 NetMQ.zmq.Utils.Realloc broken!
+        /// This test trying to reproduce issue #45 NetMQ.zmq.Utils.Realloc broken!
         /// </summary>
         [Test]
         public void MultipleSubscriptions()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    var port = pub.BindRandomPort("tcp://127.0.0.1");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("C");
+                sub.Subscribe("B");
+                sub.Subscribe("A");
+                sub.Subscribe("D");
+                sub.Subscribe("E");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:" + port);
-                        sub.Subscribe("C");
-                        sub.Subscribe("B");
-                        sub.Subscribe("A");
-                        sub.Subscribe("D");
-                        sub.Subscribe("E");
+                Thread.Sleep(500);
 
-                        Thread.Sleep(500);
+                sub.Unsubscribe("C");
+                sub.Unsubscribe("B");
+                sub.Unsubscribe("A");
+                sub.Unsubscribe("D");
+                sub.Unsubscribe("E");
 
-                        sub.Unsubscribe("C");
-                        sub.Unsubscribe("B");
-                        sub.Unsubscribe("A");
-                        sub.Unsubscribe("D");
-                        sub.Unsubscribe("E");
-
-                        Thread.Sleep(500);
-                    }
-                }
+                Thread.Sleep(500);
             }
         }
 
         [Test]
         public void MultipleSubscribers()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
+            using (var sub2 = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    var port = pub.BindRandomPort("tcp://127.0.0.1");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    using (var sub2 = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:" + port);
-                        sub.Subscribe("A");
-                        sub.Subscribe("AB");
-                        sub.Subscribe("B");
-                        sub.Subscribe("C");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("A");
+                sub.Subscribe("AB");
+                sub.Subscribe("B");
+                sub.Subscribe("C");
 
-                        sub2.Connect("tcp://127.0.0.1:" + port);
-                        sub2.Subscribe("A");
-                        sub2.Subscribe("AB");
-                        sub2.Subscribe("C");
+                sub2.Connect("tcp://127.0.0.1:" + port);
+                sub2.Subscribe("A");
+                sub2.Subscribe("AB");
+                sub2.Subscribe("C");
 
-                        Thread.Sleep(500);
+                Thread.Sleep(500);
 
-                        pub.SendMore("AB");
-                        pub.Send("1");
+                pub.SendMore("AB");
+                pub.Send("1");
 
-                        string message = sub.ReceiveStringMessages().First();
+                string message = sub.ReceiveStringMessages().First();
 
-                        Assert.AreEqual("AB", message, "First subscriber is expected to receive the message");
+                Assert.AreEqual("AB", message, "First subscriber is expected to receive the message");
 
-                        message = sub2.ReceiveStringMessages().First();
+                message = sub2.ReceiveStringMessages().First();
 
-                        Assert.AreEqual("AB", message, "Second subscriber is expected to receive the message");
-                    }
-                }
+                Assert.AreEqual("AB", message, "Second subscriber is expected to receive the message");
             }
         }
 
         [Test]
-        public void MultiplePublishers() {
-            using (NetMQContext contex = NetMQContext.Create()) {
-                using (var pub = contex.CreatePublisherSocket())
-                using (var pub2 = contex.CreatePublisherSocket()) {
-                    int port = pub.BindRandomPort("tcp://127.0.0.1");
-                    int port2 = pub2.BindRandomPort("tcp://127.0.0.1");
+        public void MultiplePublishers()
+        {
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var pub2 = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
+            using (var sub2 = context.CreateSubscriberSocket())
+            {
+                int port = pub.BindRandomPort("tcp://127.0.0.1");
+                int port2 = pub2.BindRandomPort("tcp://127.0.0.1");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    using (var sub2 = contex.CreateSubscriberSocket()) {
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Connect("tcp://127.0.0.1:" + port2);
 
-                        sub.Connect("tcp://127.0.0.1:" + port);
-                        sub.Connect("tcp://127.0.0.1:" + port2);
+                sub2.Connect("tcp://127.0.0.1:" + port);
+                sub2.Connect("tcp://127.0.0.1:" + port2);
 
-                        sub2.Connect("tcp://127.0.0.1:" + port);
-                        sub2.Connect("tcp://127.0.0.1:" + port2);
+                // should subscribe to both
+                sub.Subscribe("A");
+                sub2.Subscribe("A");
 
-                        // should subscribe to both
-                        sub.Subscribe("A");
-                        sub2.Subscribe("A");
-
-                        Thread.Sleep(500);
-
-
-                        pub.SendMore("A");
-                        pub.Send("Hello from the first publisher");
-
-                        bool more;
-                        string m = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("A", m);
-                        Assert.IsTrue(more);
-
-                        string m2 = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello from the first publisher", m2);
-                        Assert.False(more);
-
-                        pub2.SendMore("A");
-                        pub2.Send("Hello from the second publisher");
-
-                        string m3 = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("A", m3);
-                        Assert.IsTrue(more);
-
-                        string m4 = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello from the second publisher", m4);
-                        Assert.False(more);
+                Thread.Sleep(500);
 
 
-                        // same for sub 2
+                pub.SendMore("A");
+                pub.Send("Hello from the first publisher");
 
-                        m = sub2.ReceiveString(out more);
+                bool more;
 
-                        Assert.AreEqual("A", m);
-                        Assert.IsTrue(more);
+                Assert.AreEqual("A", sub.ReceiveString(out more));
+                Assert.IsTrue(more);
 
-                        m2 = sub2.ReceiveString(out more);
+                Assert.AreEqual("Hello from the first publisher", sub.ReceiveString(out more));
+                Assert.False(more);
 
-                        Assert.AreEqual("Hello from the first publisher", m2);
-                        Assert.False(more);
 
-                        m3 = sub2.ReceiveString(out more);
+                pub2.SendMore("A");
+                pub2.Send("Hello from the second publisher");
 
-                        Assert.AreEqual("A", m3);
-                        Assert.IsTrue(more);
+                Assert.AreEqual("A", sub.ReceiveString(out more));
+                Assert.IsTrue(more);
 
-                        m4 = sub2.ReceiveString(out more);
+                Assert.AreEqual("Hello from the second publisher", sub.ReceiveString(out more));
+                Assert.False(more);
 
-                        Assert.AreEqual("Hello from the second publisher", m4);
-                        Assert.False(more);
 
-                    }
-                }
+                // same for sub 2
+
+                Assert.AreEqual("A", sub2.ReceiveString(out more));
+                Assert.IsTrue(more);
+
+                Assert.AreEqual("Hello from the first publisher", sub2.ReceiveString(out more));
+                Assert.False(more);
+
+                Assert.AreEqual("A", sub2.ReceiveString(out more));
+                Assert.IsTrue(more);
+
+                Assert.AreEqual("Hello from the second publisher", sub2.ReceiveString(out more));
+                Assert.False(more);
             }
         }
 
@@ -257,45 +213,41 @@ namespace NetMQ.Tests
         [Test, ExpectedException(typeof(AgainException))]
         public void UnSubscribe()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    int port = pub.BindRandomPort("tcp://127.0.0.1");
+                int port = pub.BindRandomPort("tcp://127.0.0.1");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:" + port);
-                        sub.Subscribe("A");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("A");
 
-                        // let the subscrbier connect to the publisher before sending a message
-                        Thread.Sleep(500);
+                // let the subscriber connect to the publisher before sending a message
+                Thread.Sleep(500);
 
-                        pub.SendMore("A");
-                        pub.Send("Hello");
+                pub.SendMore("A");
+                pub.Send("Hello");
 
-                        bool more;
+                bool more;
 
-                        string m = sub.ReceiveString(out more);
+                string m = sub.ReceiveString(out more);
 
-                        Assert.AreEqual("A", m);
-                        Assert.IsTrue(more);
+                Assert.AreEqual("A", m);
+                Assert.IsTrue(more);
 
-                        string m2 = sub.ReceiveString(out more);
+                string m2 = sub.ReceiveString(out more);
 
-                        Assert.AreEqual("Hello", m2);
-                        Assert.False(more);
+                Assert.AreEqual("Hello", m2);
+                Assert.False(more);
 
-                        sub.Unsubscribe("A");
+                sub.Unsubscribe("A");
 
-                        Thread.Sleep(500);
+                Thread.Sleep(500);
 
-                        pub.SendMore("A");
-                        pub.Send("Hello");
+                pub.SendMore("A");
+                pub.Send("Hello");
 
-                        string m3 = sub.ReceiveString(true, out more);
-                    }
-                }
+                sub.ReceiveString(true, out more);
             }
         }
     }

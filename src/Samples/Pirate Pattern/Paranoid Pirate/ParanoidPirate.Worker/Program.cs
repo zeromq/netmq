@@ -23,9 +23,9 @@ namespace ParanoidPirate.Worker
             var rnd = new Random();
             var workerId = rnd.Next(100, 500);
 
-            using (var ctx = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
             {
-                var worker = GetWorkerSocket(ctx, verbose, workerId);
+                var worker = GetWorkerSocket(context, verbose, workerId);
 
                 // if liveliness == 0 -> queue is considered dead/disconnected
                 var liveliness = Commons.HeartbeatLiveliness;
@@ -112,7 +112,7 @@ namespace ParanoidPirate.Worker
                             }
 
                             worker.Dispose();
-                            worker = GetWorkerSocket(ctx, verbose, workerId);
+                            worker = GetWorkerSocket(context, verbose, workerId);
                             liveliness = Commons.HeartbeatLiveliness;
                         }
                     }

@@ -13,58 +13,42 @@ namespace NetMQ.Tests
         [Test]
         public void Monitoring()
         {
-            bool listening = false;
-            bool accepted = false;
-
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var req = context.CreateRequestSocket())
+            using (var monitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
             {
-                using (var rep = contex.CreateResponseSocket())
-                {
-                    using (NetMQMonitor monitor = new NetMQMonitor(contex, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
-                    {
-                        monitor.Accepted += (s, a) =>
-                            {
-                                accepted = true;
-                                //Console.WriteLine(a.Socket.LocalEndPoint.ToString());
-                            };
-                        monitor.Listening += (s, a) =>
-                            {
-                                listening = true;
-                                Console.WriteLine(a.Socket.LocalEndPoint.ToString());
-                            };
+                bool listening = false;
+                bool accepted = false;
 
-                        monitor.Timeout = TimeSpan.FromMilliseconds(100);
+                monitor.Accepted += (s, a) => { accepted = true; };
+                monitor.Listening += (s, a) => { listening = true; };
 
-                        var pollerTask = Task.Factory.StartNew(monitor.Start);
+                monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
-                        var port2 = rep.BindRandomPort("tcp://127.0.0.1");
+                var pollerTask = Task.Factory.StartNew(monitor.Start);
 
-                        using (var req = contex.CreateRequestSocket())
-                        {
-                            req.Connect("tcp://127.0.0.1:" + port2);
-                            req.Send("a");
+                var port = rep.BindRandomPort("tcp://127.0.0.1");
 
-                            bool more;
+                req.Connect("tcp://127.0.0.1:" + port);
+                req.Send("a");
 
-                            string m = rep.ReceiveString(out more);
+                rep.ReceiveString();
 
-                            rep.Send("b");
+                rep.Send("b");
 
-                            string m2 = req.ReceiveString(out more);
+                req.ReceiveString();
 
-                            Thread.Sleep(200);
+                Thread.Sleep(200);
 
-                            Assert.IsTrue(listening);
-                            Assert.IsTrue(accepted);
+                Assert.IsTrue(listening);
+                Assert.IsTrue(accepted);
 
-                            monitor.Stop();
+                monitor.Stop();
 
-                            Thread.Sleep(200);
+                Thread.Sleep(200);
 
-                            Assert.IsTrue(pollerTask.IsCompleted);
-                        }
-                    }
-                }
+                Assert.IsTrue(pollerTask.IsCompleted);
             }
         }
 
@@ -73,50 +57,37 @@ namespace NetMQ.Tests
         {
             bool eventArrived = false;
 
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var req = context.CreateRequestSocket())
+            using (var rep = context.CreateResponseSocket())
+            using (var monitor = new NetMQMonitor(context, req, "inproc://rep.inproc", SocketEvent.ConnectDelayed))
             {
-                using (var req = contex.CreateRequestSocket())
-                {
-                    using (var rep = contex.CreateResponseSocket())
-                    {
-                        using (NetMQMonitor monitor =
-                            new NetMQMonitor(contex, req, "inproc://rep.inproc", SocketEvent.ConnectDelayed))
-                        {
-                            monitor.ConnectDelayed += (s, a) =>
-                            {
-                                eventArrived = true;
-                            };
+                monitor.ConnectDelayed += (s, a) => { eventArrived = true; };
 
-                            monitor.Timeout = TimeSpan.FromMilliseconds(100);
+                monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
-                            var pollerTask = Task.Factory.StartNew(monitor.Start);
+                var pollerTask = Task.Factory.StartNew(monitor.Start);
 
-                            var port = rep.BindRandomPort("tcp://127.0.0.1");
+                var port = rep.BindRandomPort("tcp://127.0.0.1");
 
+                req.Connect("tcp://127.0.0.1:" + port);
+                req.Send("a");
 
-                            req.Connect("tcp://127.0.0.1:" + port);
-                            req.Send("a");
+                rep.ReceiveString();
 
-                            bool more;
+                rep.Send("b");
 
-                            string m = rep.ReceiveString(out more);
+                req.ReceiveString();
 
-                            rep.Send("b");
+                Thread.Sleep(200);
 
-                            string m2 = req.ReceiveString(out more);
+                Assert.IsTrue(eventArrived);
 
-                            Thread.Sleep(200);
+                monitor.Stop();
 
-                            Assert.IsTrue(eventArrived);
+                Thread.Sleep(200);
 
-                            monitor.Stop();
-
-                            Thread.Sleep(200);
-
-                            Assert.IsTrue(pollerTask.IsCompleted);
-                        }
-                    }
-                }
+                Assert.IsTrue(pollerTask.IsCompleted);
             }
         }
 
@@ -126,21 +97,20 @@ namespace NetMQ.Tests
             // The bug:
             // Given we monitor a netmq tcp socket
             // Given we disposed of the monitored socket first
-            // When we dipose of the monitor
+            // When we dispose of the monitor
             // Then our monitor is Faulted with a EndpointNotFoundException
             // And monitor can't be stopped or disposed
 
-            Task monitorTask;
             using (var theContext = NetMQContext.Create())
             using (var resSocket = theContext.CreateResponseSocket())
             {
-                NetMQMonitor monitor = null;
+                NetMQMonitor monitor;
                 using (var reqSocket = theContext.CreateRequestSocket())
                 {
                     monitor = new NetMQMonitor(theContext, reqSocket, "inproc://#monitor", SocketEvent.All);
-                    monitorTask = Task.Factory.StartNew(() => monitor.Start());
+                    Task.Factory.StartNew(() => monitor.Start());
 
-                    //The bug is only occuring when monitor a tcp socket
+                    //The bug is only occurring when monitor a tcp socket
                     var port = resSocket.BindRandomPort("tcp://127.0.0.1");
                     reqSocket.Connect("tcp://127.0.0.1:" + port);
 

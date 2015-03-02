@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
@@ -38,11 +39,13 @@ namespace NetMQ.zmq.Utils
             /// <summary>
             /// Get the Socket that this PollSet contains.
             /// </summary>
+            [NotNull]
             public Socket Socket { get; private set; }
 
             /// <summary>
             /// Get the IPollEvents object that has methods to signal when ready for reading or writing.
             /// </summary>
+            [NotNull]
             public IPollEvents Handler { get; private set; }
 
             /// <summary>
@@ -55,7 +58,7 @@ namespace NetMQ.zmq.Utils
             /// </summary>
             /// <param name="socket">the Socket to contain</param>
             /// <param name="handler">the IPollEvents to signal when ready for reading or writing</param>
-            public PollSet(Socket socket, IPollEvents handler)
+            public PollSet([NotNull] Socket socket, [NotNull] IPollEvents handler)
             {
                 Handler = handler;
                 Socket = socket;
@@ -66,12 +69,12 @@ namespace NetMQ.zmq.Utils
         /// <summary>
         /// This is the list of registered descriptors (PollSets).
         /// </summary>
-        private readonly List<PollSet> m_handles;
+        private readonly List<PollSet> m_handles = new List<PollSet>();
 
         /// <summary>
         /// List of sockets to add at the start of the next loop
         /// </summary>
-        private readonly List<PollSet> m_addList;
+        private readonly List<PollSet> m_addList = new List<PollSet>();
 
         /// <summary>
         /// If true, there's at least one retired event source.
@@ -82,12 +85,12 @@ namespace NetMQ.zmq.Utils
         /// This flag is used to tell the polling-loop thread to shut down,
         /// wherein it will stop at the end of it's current loop iteration.
         /// </summary>
-        volatile private bool m_stopping;
+        private volatile bool m_stopping;
 
         /// <summary>
         /// This indicates whether the polling-thread is not presently running. Default is true.
         /// </summary>
-        volatile private bool m_stopped = true;
+        private volatile bool m_stopped = true;
 
         /// <summary>
         /// This is the background-thread that performs the polling-loop.
@@ -104,23 +107,12 @@ namespace NetMQ.zmq.Utils
         private readonly HashSet<Socket> m_checkError = new HashSet<Socket>();
 
         /// <summary>
-        /// Create a new Poller object with the default name "poller".
-        /// </summary>
-        public Poller()
-            : this("poller")
-        {
-        }
-
-        /// <summary>
         /// Create a new Poller object with the given name.
         /// </summary>
         /// <param name="name">a name to assign to this Poller</param>
-        public Poller(String name)
+        public Poller([NotNull] String name)
         {
             m_name = name;
-
-            m_handles = new List<PollSet>();
-            m_addList = new List<PollSet>();
         }
 
         /// <summary>
@@ -148,7 +140,7 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         /// <param name="handle">the Socket to add</param>
         /// <param name="events">the IPollEvents to include in the new PollSet to add</param>
-        public void AddHandle(Socket handle, IPollEvents events)
+        public void AddHandle([NotNull] Socket handle, [NotNull] IPollEvents events)
         {
             m_addList.Add(new PollSet(handle, events));
 
@@ -157,7 +149,7 @@ namespace NetMQ.zmq.Utils
             AdjustLoad(1);
         }
 
-        public void RemoveHandle(Socket handle)
+        public void RemoveHandle([NotNull] Socket handle)
         {
             PollSet pollSet;
 
@@ -192,6 +184,7 @@ namespace NetMQ.zmq.Utils
             m_checkRead.Add(handle);
         }
 
+/*
         /// <summary>
         /// Remove the given Socket from the list to be checked for read-readiness at each poll iteration.
         /// </summary>
@@ -218,6 +211,7 @@ namespace NetMQ.zmq.Utils
         {
             m_checkWrite.Remove(handle);
         }
+*/
 
         /// <summary>
         /// Begin running the polling-loop, on a background thread.
@@ -283,7 +277,7 @@ namespace NetMQ.zmq.Utils
                         continue;
                     }
 
-                    // Invoke it's handler's InEvent if it's in our error-list.
+                    // Invoke its handler's InEvent if it's in our error-list.
                     if (errorList.Contains(pollSet.Socket))
                     {
                         try
@@ -300,7 +294,7 @@ namespace NetMQ.zmq.Utils
                         continue;
                     }
 
-                    // Invoke it's handler's OutEvent if it's in our write-list.
+                    // Invoke its handler's OutEvent if it's in our write-list.
                     if (writeList.Contains(pollSet.Socket))
                     {
                         try
@@ -317,7 +311,7 @@ namespace NetMQ.zmq.Utils
                         continue;
                     }
 
-                    // Invoke it's handler's InEvent if it's in our read-list.
+                    // Invoke its handler's InEvent if it's in our read-list.
                     if (readList.Contains(pollSet.Socket))
                     {
                         try

@@ -20,6 +20,7 @@
 */
 
 using System;
+using System.Diagnostics;
 using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
@@ -54,9 +55,8 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// This flags enum-type indicates whether a Msg is Invalid, Empty, GC, Pool, or a Delimiter.
+    /// Enumeration of possible <see cref="Msg"/> types.
     /// </summary>
-    [Flags]
     public enum MsgType : byte
     {
         /// <summary>
@@ -336,7 +336,9 @@ namespace NetMQ
         /// <param name="len">the number of bytes to copy</param>
         public void Put([NotNull] byte[] src, int i, int len)
         {
-            if (len == 0 || src == null)
+            Debug.Assert(src != null);
+
+            if (len == 0)
                 return;
 
             Buffer.BlockCopy(src, 0, Data, i, len);

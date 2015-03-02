@@ -1,6 +1,4 @@
-﻿
-
-namespace NetMQ.Tests.InProcActors.AccountJSON
+﻿namespace NetMQ.Tests.InProcActors.AccountJSON
 {
     /// <summary>
     /// This enum-type indicates the type of payment-card to be used in a transaction,
@@ -21,9 +19,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
         /// Create a new AccountAction object with a default TransactionType of Debit, and Amount of 0.
         /// </summary>
         public AccountAction()
-        {
-
-        }
+        {}
 
         /// <summary>
         /// Create a new AccountAction object with the given TransactionType and Amount.

@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Reflection;
+using NUnit.ConsoleRunner;
 
 namespace NetMQ.Tests
 {
-    class NetMQTestRunner
+    internal static class NetMQTestRunner
     {
         [STAThread]
-        static void Main(string[] args)
+        private static void Main()
         {
-            NUnit.ConsoleRunner.Runner.Main(new string[] { Assembly.GetExecutingAssembly().Location });
+            Runner.Main(new[] { Assembly.GetExecutingAssembly().Location });
         }
     }
 }

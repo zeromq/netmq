@@ -15,11 +15,11 @@ namespace SimplePirate.Client
         private static bool _expectReply = true;
         private static int _retriesLeft = 0;
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             _retriesLeft = RequestRetries;
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
             {
                 var client = CreateServerSocket(context);
 

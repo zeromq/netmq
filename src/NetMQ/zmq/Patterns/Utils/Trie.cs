@@ -22,6 +22,7 @@
 
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
@@ -33,13 +34,9 @@ namespace NetMQ.zmq.Patterns.Utils
         private short m_count;
         private short m_liveNodes;
 
-        public delegate void TrieDelegate(byte[] data, int size, Object arg);
+        public delegate void TrieDelegate([NotNull] byte[] data, int size, [CanBeNull] Object arg);
 
-        Trie[] m_next;
-
-        public Trie()
-        {
-        }
+        private Trie[] m_next;
 
         /// <summary>
         /// Add key to the trie. Returns true if this is a new item in the trie
@@ -49,7 +46,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <param name="start"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public bool Add(byte[] prefix, int start, int size)
+        public bool Add([NotNull] byte[] prefix, int start, int size)
         {
             //  We are at the node corresponding to the prefix. We are done.
             if (size == 0)
@@ -126,7 +123,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <param name="start"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public bool Remove(byte[] prefix, int start, int size)
+        public bool Remove([NotNull] byte[] prefix, int start, int size)
         {
             if (size == 0)
             {
@@ -185,7 +182,7 @@ namespace NetMQ.zmq.Patterns.Utils
                         Debug.Assert(node != null);
 
                         m_next = null;
-                        m_next = new Trie[] { node };
+                        m_next = new[] { node };
                         m_count = 1;
                     }
                     else if (currentCharacter == m_minCharacter)
@@ -239,7 +236,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <param name="data"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public bool Check(byte[] data, int size)
+        public bool Check([NotNull] byte[] data, int size)
         {
             //  This function is on critical path. It deliberately doesn't use
             //  recursion to get a bit better performance.
@@ -277,12 +274,12 @@ namespace NetMQ.zmq.Patterns.Utils
         }
 
         //  Apply the function supplied to each subscription in the trie.
-        public void Apply(TrieDelegate func, Object arg)
+        public void Apply([NotNull] TrieDelegate func, [CanBeNull] Object arg)
         {
             ApplyHelper(null, 0, 0, func, arg);
         }
 
-        private void ApplyHelper(byte[] buffer, int bufferSize, int maxBufferSize, TrieDelegate func, Object arg)
+        private void ApplyHelper([NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] TrieDelegate func, [CanBeNull] Object arg)
         {
             //  If this node is a subscription, apply the function.
             if (m_referenceCount > 0)

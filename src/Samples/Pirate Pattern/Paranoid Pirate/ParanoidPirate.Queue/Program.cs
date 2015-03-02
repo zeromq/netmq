@@ -24,9 +24,9 @@ namespace ParanoidPirate.Queue
 
             var verbose = args.Length > 0 && args[0] == "-v";
 
-            using (var ctx = NetMQContext.Create())
-            using (var frontend = ctx.CreateRouterSocket())
-            using (var backend = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var frontend = context.CreateRouterSocket())
+            using (var backend = context.CreateRouterSocket())
             using (var poller = new Poller())
             {
                 frontend.Bind(Commons.QueueFrontend);

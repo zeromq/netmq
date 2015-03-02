@@ -166,7 +166,7 @@ namespace NetMQ.zmq
             m_endpointsSync = new object();
             m_optSync = new object();
 
-            m_termMailbox = new Mailbox("terminater");
+            m_termMailbox = new Mailbox("terminator");
 
             m_emptySlots = new Stack<int>();
             m_ioThreads = new List<IOThread>();
@@ -252,6 +252,7 @@ namespace NetMQ.zmq
                 //  Wait till reaper thread closes all the sockets.
                 Command cmd = m_termMailbox.Recv(-1);
 
+                Debug.Assert(cmd != null);
                 Debug.Assert(cmd.CommandType == CommandType.Done);
                 Monitor.Enter(m_slotSync);
                 Debug.Assert(m_sockets.Count == 0);
@@ -260,7 +261,6 @@ namespace NetMQ.zmq
 
             //  Deallocate the resources.
             Destroy();
-
         }
 
         /// <summary>
@@ -379,11 +379,7 @@ namespace NetMQ.zmq
 
                 //  Create the socket and register its mailbox.
                 SocketBase s = SocketBase.Create(type, this, slot, socketId);
-                if (s == null)
-                {
-                    m_emptySlots.Push(slot);
-                    return null;
-                }
+
                 m_sockets.Add(s);
                 m_slots[slot] = s.Mailbox;
 
@@ -524,9 +520,11 @@ namespace NetMQ.zmq
         [NotNull]
         public Endpoint FindEndpoint([NotNull] String addr)
         {
+            Debug.Assert(addr != null);
+
             lock (m_endpointsSync)
             {
-                if (addr == null || !m_endpoints.ContainsKey(addr))
+                if (!m_endpoints.ContainsKey(addr))
                 {
                     throw new EndpointNotFoundException();
                 }

@@ -10,8 +10,8 @@ namespace NetMQ.Tests
         [Test]
         public void DefaultValues()
         {
-            using (var ctx = NetMQContext.Create())
-            using (var socket = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var socket = context.CreateRouterSocket())
             {
                 Assert.IsNull(socket.Options.Identity);
 //                Assert.IsNull(socket.Options.TcpAcceptFilter);
@@ -22,8 +22,8 @@ namespace NetMQ.Tests
         [Test]
         public void GetAndSetAllProperties()
         {
-            using (var ctx = NetMQContext.Create())
-            using (var socket = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var socket = context.CreateRouterSocket())
             {
                 socket.Options.Affinity = 1L;
                 Assert.AreEqual(1L, socket.Options.Affinity);
@@ -106,8 +106,8 @@ namespace NetMQ.Tests
                 Assert.AreEqual(Endianness.Little, socket.Options.Endian);
             }
 
-            using (var ctx = NetMQContext.Create())
-            using (var socket = ctx.CreateXPublisherSocket())
+            using (var context = NetMQContext.Create())
+            using (var socket = context.CreateXPublisherSocket())
             {
                 socket.Options.XPubVerbose = true;
 //                Assert.AreEqual(true, socket.Options.XPubVerbose);

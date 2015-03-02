@@ -42,8 +42,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPWorker(hostAddress, "test", new[] { (byte)'1' }))
             {
@@ -102,8 +102,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPWorker(hostAddress, "test"))
             {
@@ -138,8 +138,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPWorker(hostAddress, "test"))
             {
@@ -195,8 +195,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPWorker(hostAddress, "test"))
             {
@@ -254,8 +254,8 @@ namespace MajordomoTests
             var first = true;
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPWorker(hostAddress, "test", Encoding.ASCII.GetBytes("Worker"), 2))
             {
@@ -318,8 +318,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPWorker(hostAddress, "test"))
             {
@@ -374,8 +374,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var ctx = NetMQContext.Create())
-            using (var broker = ctx.CreateRouterSocket())
+            using (var context = NetMQContext.Create())
+            using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPWorker(hostAddress, "test", new[] { (byte)'W', (byte)'1' }))
             {

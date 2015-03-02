@@ -81,62 +81,57 @@ namespace NetMQ.Tests
         [Test]
         public void RouterDealerMessaging()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var server = context.CreateRouterSocket())
+            using (var client = context.CreateDealerSocket())
             {
-                using (var server = context.CreateRouterSocket())
-                {
-                    int port = server.BindRandomPort("tcp://127.0.0.1");
+                int port = server.BindRandomPort("tcp://127.0.0.1");
+                client.Connect("tcp://127.0.0.1:" + port);
 
-                    using (var client = context.CreateDealerSocket())
-                    {
-                        client.Connect("tcp://127.0.0.1:" + port);
+                var clientOutgoingMessage = new NetMQMessage();
+                clientOutgoingMessage.Append("Hello");
 
-                        NetMQMessage clientOutgoingMessage = new NetMQMessage();
-                        clientOutgoingMessage.Append("Hello");
+                client.SendMessage(clientOutgoingMessage);
 
-                        client.SendMessage(clientOutgoingMessage);
+                NetMQMessage serverIncomingMessage = server.ReceiveMessage();
 
-                        NetMQMessage serverIncomingMessage = server.ReceiveMessage();
+                // number of frames should be one because first message should be identity of client
+                Assert.AreEqual(2, serverIncomingMessage.FrameCount);
+                Assert.AreEqual("Hello", serverIncomingMessage[1].ConvertToString());
 
-                        // number of frames should be one because first message should be identity of client
-                        Assert.AreEqual(2, serverIncomingMessage.FrameCount);
-                        Assert.AreEqual("Hello", serverIncomingMessage[1].ConvertToString());
+                var serverOutgoingMessage = new NetMQMessage();
 
-                        NetMQMessage serverOutgoingMessage = new NetMQMessage();
+                // first adding the identity
+                serverOutgoingMessage.Append(serverIncomingMessage[0]);
+                serverOutgoingMessage.Append("World");
 
-                        // first adding the identity
-                        serverOutgoingMessage.Append(serverIncomingMessage[0]);
-                        serverOutgoingMessage.Append("World");
+                server.SendMessage(serverOutgoingMessage);
 
-                        server.SendMessage(serverOutgoingMessage);
+                var incomingClientMessage = new NetMQMessage();
+                client.ReceiveMessage(incomingClientMessage);
 
-                        NetMQMessage incomingClientMessage = new NetMQMessage();
-                        client.ReceiveMessage(incomingClientMessage);
-
-                        Assert.AreEqual(1, incomingClientMessage.FrameCount);
-                        Assert.AreEqual("World", incomingClientMessage[0].ConvertToString());
-                    }
-                }
+                Assert.AreEqual(1, incomingClientMessage.FrameCount);
+                Assert.AreEqual("World", incomingClientMessage[0].ConvertToString());
             }
         }
 
         [Test]
         public void Issue52_ReqToRouterBug()
         {
-            using (var ctx = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var router = context.CreateRouterSocket())
+            using (var req = context.CreateRequestSocket())
             {
-                using (NetMQSocket router = ctx.CreateRouterSocket(), req = ctx.CreateRequestSocket())
-                {
-                    router.Bind("inproc://example");
-                    req.Connect("inproc://example");
+                router.Bind("inproc://example");
+                req.Connect("inproc://example");
 
-                    string testmessage = "Simple Messaging Test";
-                    req.Send(testmessage);
+                const string testmessage = "Simple Messaging Test";
 
-                    var msg = router.ReceiveMessage();
-                    Assert.AreEqual(3, msg.FrameCount);
-                    Assert.AreEqual(msg[2].ConvertToString(), testmessage);
-                }
+                req.Send(testmessage);
+
+                var msg = router.ReceiveMessage();
+                Assert.AreEqual(3, msg.FrameCount);
+                Assert.AreEqual(msg[2].ConvertToString(), testmessage);
             }
         }
 
@@ -157,7 +152,7 @@ namespace NetMQ.Tests
         [Test]
         public void SpecifyEncoding()
         {
-            NetMQFrame frame =new NetMQFrame("Hello", Encoding.UTF32);
+            var frame = new NetMQFrame("Hello", Encoding.UTF32);
             
             // size should be 4 times the string length because of using utf32
             Assert.AreEqual(20, frame.MessageSize);
@@ -168,7 +163,7 @@ namespace NetMQ.Tests
         [Test]
         public void AppendInt32()
         {
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
 
             message.Append("Hello");
             message.Append(5);
@@ -180,7 +175,7 @@ namespace NetMQ.Tests
         [Test]
         public void PushInt32()
         {
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
 
             message.Append("Hello");
             message.Push(5);
@@ -192,9 +187,9 @@ namespace NetMQ.Tests
         [Test]
         public void AppendInt64()
         {
-            long num = (long)int.MaxValue + 1;            
+            const long num = (long)int.MaxValue + 1;            
 
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
 
             message.Append("Hello");
             message.Append(num);
@@ -206,9 +201,9 @@ namespace NetMQ.Tests
         [Test]
         public void PushInt64()
         {
-            long num = (long)int.MaxValue + 1;            
+            const long num = (long)int.MaxValue + 1;            
 
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
 
             message.Append("Hello");
             message.Push(num);

@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
@@ -37,7 +38,7 @@ namespace NetMQ.zmq.Patterns.Utils
         private int m_liveNodes;
         private MultiTrie[] m_next;
 
-        public delegate void MultiTrieDelegate(Pipe pipe, byte[] data, int size, Object arg);
+        public delegate void MultiTrieDelegate([CanBeNull] Pipe pipe, [CanBeNull] byte[] data, int size, [CanBeNull] Object arg);
 
         public MultiTrie()
         {
@@ -53,12 +54,12 @@ namespace NetMQ.zmq.Patterns.Utils
         /// Add key to the trie. Returns true if it's a new subscription
         /// rather than a duplicate.
         /// </summary>
-        public bool Add(byte[] prefix, int start, int size, Pipe pipe)
+        public bool Add([NotNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
         {
             return AddHelper(prefix, start, size, pipe);
         }
 
-        private bool AddHelper(byte[] prefix, int start, int size, Pipe pipe)
+        private bool AddHelper([NotNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
         {
             //  We are at the node corresponding to the prefix. We are done.
             if (size == 0)
@@ -142,12 +143,12 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <param name="func"></param>
         /// <param name="arg"></param>
         /// <returns></returns>
-        public bool RemoveHelper(Pipe pipe, MultiTrieDelegate func, Object arg)
+        public bool RemoveHelper([NotNull] Pipe pipe, [NotNull] MultiTrieDelegate func, [CanBeNull] Object arg)
         {
             return RemoveHelper(pipe, new byte[0], 0, 0, func, arg);
         }
 
-        private bool RemoveHelper(Pipe pipe, byte[] buffer, int bufferSize, int maxBufferSize, MultiTrieDelegate func, Object arg)
+        private bool RemoveHelper([NotNull] Pipe pipe, [NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] MultiTrieDelegate func, [CanBeNull] Object arg)
         {
             //  Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
@@ -199,7 +200,7 @@ namespace NetMQ.zmq.Patterns.Utils
                 if (m_next[currentCharacter] != null)
                 {
                     m_next[currentCharacter].RemoveHelper(pipe, buffer, bufferSize + 1,
-                                       maxBufferSize, func, arg);
+                        maxBufferSize, func, arg);
 
                     //  Prune redundant nodes from the mtrie
                     if (m_next[currentCharacter].IsRedundant)
@@ -249,7 +250,7 @@ namespace NetMQ.zmq.Patterns.Utils
                 Debug.Assert(node != null);
 
                 m_next = null;
-                m_next = new MultiTrie[] { node };
+                m_next = new[] { node };
                 m_count = 1;
                 m_minCharacter = newMin;
             }
@@ -257,7 +258,7 @@ namespace NetMQ.zmq.Patterns.Utils
             {
                 Debug.Assert(newMax - newMin + 1 > 1);
 
-                MultiTrie[] old_table = m_next;
+                MultiTrie[] oldTable = m_next;
                 Debug.Assert(newMin > m_minCharacter || newMax < m_minCharacter + m_count - 1);
                 Debug.Assert(newMin >= m_minCharacter);
                 Debug.Assert(newMax <= m_minCharacter + m_count - 1);
@@ -265,7 +266,7 @@ namespace NetMQ.zmq.Patterns.Utils
                 m_count = newMax - newMin + 1;
                 m_next = new MultiTrie[m_count];
 
-                Array.Copy(old_table, (newMin - m_minCharacter), m_next, 0, m_count);
+                Array.Copy(oldTable, (newMin - m_minCharacter), m_next, 0, m_count);
 
                 m_minCharacter = newMin;
             }
@@ -281,12 +282,12 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <param name="size"></param>
         /// <param name="pipe"></param>
         /// <returns></returns>
-        public bool Remove(byte[] prefix, int start, int size, Pipe pipe)
+        public bool Remove([NotNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
         {
-            return RemovemHelper(prefix, start, size, pipe);
+            return RemoveHelper(prefix, start, size, pipe);
         }
 
-        private bool RemovemHelper(byte[] prefix, int start, int size, Pipe pipe)
+        private bool RemoveHelper([NotNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
         {
             if (size == 0)
             {
@@ -311,7 +312,7 @@ namespace NetMQ.zmq.Patterns.Utils
             if (nextNode == null)
                 return false;
 
-            bool ret = nextNode.RemovemHelper(prefix, start + 1, size - 1, pipe);
+            bool ret = nextNode.RemoveHelper(prefix, start + 1, size - 1, pipe);
             if (nextNode.IsRedundant)
             {
                 Debug.Assert(m_count > 0);
@@ -348,7 +349,7 @@ namespace NetMQ.zmq.Patterns.Utils
                         m_minCharacter += i;
                         m_count = 1;
                         MultiTrie old = m_next[i];
-                        m_next = new MultiTrie[] { old };
+                        m_next = new[] { old };
                     }
                     else if (currentCharacter == m_minCharacter)
                     {
@@ -391,7 +392,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <summary>
         /// Signal all the matching pipes.
         /// </summary>
-        public void Match(byte[] data, int size, MultiTrieDelegate func, Object arg)
+        public void Match([NotNull] byte[] data, int size, [NotNull] MultiTrieDelegate func, [CanBeNull] Object arg)
         {
             MultiTrie current = this;
 

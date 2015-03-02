@@ -161,8 +161,7 @@ namespace NetMQ.zmq.Patterns.Utils
         /// Send the message to all the outbound pipes.
         /// </summary>
         /// <param name="msg"></param>
-        /// <param name="flags"></param>  
-        public void SendToAll(ref Msg msg, SendReceiveOptions flags)
+        public void SendToAll(ref Msg msg)
         {
             m_matching = m_active;
             SendToMatching(ref msg);

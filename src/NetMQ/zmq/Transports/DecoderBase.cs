@@ -99,7 +99,7 @@ namespace NetMQ.zmq.Transports
         /// <summary>
         /// Returns a buffer to be filled with binary data.
         /// </summary>
-        public void GetBuffer(ref ByteArraySegment data, ref int size)
+        public void GetBuffer(out ByteArraySegment data, out int size)
         {
             //  If we are expected to read large message, we'll opt for zero-
             //  copy, i.e. we'll ask caller to fill the data directly to the
