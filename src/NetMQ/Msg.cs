@@ -60,17 +60,18 @@ namespace NetMQ
     public enum MsgType : byte
     {
         /// <summary>
-        /// This (the default value of MsgType) indicates a value that has not been set yet, since it is invalid.
+        /// The <see cref="Msg"/> has not yet been initialised.
         /// </summary>
         Invalid = 0,
 
         /// <summary>
-        /// The minimum valid value of MsgType bits.
+        /// The minimum valid enum value.
         /// </summary>
+        [Obsolete]
         Min = 101,
 
         /// <summary>
-        /// This flag indicates a message that is empty of content.
+        /// The <see cref="Msg"/> is empty.
         /// </summary>
         Empty = 101,
 
@@ -92,8 +93,9 @@ namespace NetMQ
         Delimiter = 104,
 
         /// <summary>
-        /// The maximum valid value of MsgType bits.
+        /// The maximum valid enum value.
         /// </summary>
+        [Obsolete]
         Max = 104
     }
 
@@ -145,9 +147,7 @@ namespace NetMQ
             get { return (Flags & MsgFlags.More) == MsgFlags.More; }
         }
 
-        /// <summary>
-        /// Get the MsgType flags-enum value, which indicates which of the Invalid, Empty, GC, Pool, or Delimiter bits are set.
-        /// </summary>
+        /// <summary>Get the type of this message, from the MsgType enum.</summary>
         public MsgType MsgType { get; private set; }
 
         /// <summary>
@@ -160,13 +160,21 @@ namespace NetMQ
         /// </summary>
         public byte[] Data { get; private set; }
 
-        /// <summary>
-        /// Return true if the MsgType property is within the allowable range.
-        /// </summary>
-        /// <returns>true if the value of MsgType is 101..104</returns>
+        /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
+        [Obsolete("Use the IsInitialised property instead")]
         public bool Check()
         {
-            return MsgType >= MsgType.Min && MsgType <= MsgType.Max;
+            return IsInitialised;
+        }
+
+        /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
+        /// <remarks>A newly constructed <see cref="Msg"/> is uninitialised, and can be initialised via one
+        /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC"/>, or <see cref="InitPool"/>. 
+        /// Calling <see cref="Close"/> will cause the <see cref="Msg"/> to become uninitialised again.</remarks>
+        /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
+        public bool IsInitialised
+        {
+            get { return MsgType != MsgType.Invalid; }
         }
 
         /// <summary>
@@ -191,7 +199,6 @@ namespace NetMQ
             Flags = MsgFlags.None;
             Data = BufferPool.Take(size);
             Size = size;
-
             m_atomicCounter = new AtomicCounter();
         }
 
@@ -225,25 +232,20 @@ namespace NetMQ
         /// </summary>
         public void Close()
         {
-            if (!Check())
-            {
-                throw new FaultException("In Msg.Close, Check failed.");
-            }
+            if (!IsInitialised)
+                throw new FaultException("Cannot close an uninitialised Msg.");
 
             if (MsgType == MsgType.Pool)
             {
                 // if not shared or reference counter drop to zero
                 if ((Flags & MsgFlags.Shared) == 0 || m_atomicCounter.Decrement() == 0)
-                {
                     BufferPool.Return(Data);
-                }
 
                 m_atomicCounter = null;
             }
 
+            // Make the message invalid.
             Data = null;
-
-            //  Make the message invalid.
             MsgType = MsgType.Invalid;
         }
 
@@ -283,9 +285,7 @@ namespace NetMQ
         public void RemoveReferences(int amount)
         {
             if (amount == 0)
-            {
                 return;
-            }
 
             if (MsgType != MsgType.Pool || (Flags & MsgFlags.Shared) == 0)
             {
@@ -382,11 +382,9 @@ namespace NetMQ
         /// <param name="src">the source Msg to copy from</param>
         public void Copy(ref Msg src)
         {
-            //  Check the validity of the source.
-            if (!src.Check())
-            {
-                throw new FaultException("In Msg.Copy, Check failed.");
-            }
+            // Check the validity of the source.
+            if (!src.IsInitialised)
+                throw new FaultException("Cannot copy an uninitialised Msg.");
 
             Close();
 
@@ -412,11 +410,9 @@ namespace NetMQ
         /// <param name="src">the source-Msg to become</param>
         public void Move(ref Msg src)
         {
-            //  Check the validity of the source.
-            if (!src.Check())
-            {
-                throw new FaultException("In Msg.Move, Check failed.");
-            }
+            // Check the validity of the source.
+            if (!src.IsInitialised)
+                throw new FaultException("Cannot move an uninitialised Msg.");
 
             Close();
 
