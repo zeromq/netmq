@@ -504,7 +504,7 @@ namespace NetMQ
                         {
                             NetMQSocket socket = m_pollact[itemNbr];
 
-                            if (item.ResultEvent.HasFlag(PollEvents.PollError) && !socket.IgnoreErrors)
+                            if (item.ResultEvent.HasFlag(PollEvents.PollError))
                             {
                                 socket.Errors++;
 
