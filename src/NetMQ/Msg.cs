@@ -137,6 +137,10 @@ namespace NetMQ
         /// <summary>
         /// Get the byte-array that represents the data payload of this <see cref="Msg"/>.
         /// </summary>
+        /// <remarks>
+        /// This value will be <c>null</c> if <see cref="MsgType"/> is <see cref="NetMQ.MsgType.Uninitialised"/>,
+        /// <see cref="NetMQ.MsgType.Empty"/> or <see cref="NetMQ.MsgType.Delimiter"/>.
+        /// </remarks>
         public byte[] Data { get; private set; }
 
         /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
