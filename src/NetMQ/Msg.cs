@@ -47,7 +47,11 @@ namespace NetMQ
     public enum MsgType : byte
     {
         /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
+        [Obsolete("Use Uninitialised instead")]
         Invalid = 0,
+
+        /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
+        Uninitialised = 0,
 
         /// <summary>The minimum valid enum value.</summary>
         [Obsolete]
@@ -149,7 +153,7 @@ namespace NetMQ
         /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
         public bool IsInitialised
         {
-            get { return MsgType != MsgType.Invalid; }
+            get { return MsgType != MsgType.Uninitialised; }
         }
 
         /// <summary>
@@ -219,9 +223,9 @@ namespace NetMQ
                 m_atomicCounter = null;
             }
 
-            // Make the message invalid.
+            // Uninitialise the frame
             Data = null;
-            MsgType = MsgType.Invalid;
+            MsgType = MsgType.Uninitialised;
         }
 
         /// <summary>
