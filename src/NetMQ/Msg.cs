@@ -55,9 +55,8 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// This flags enum-type indicates whether a Msg is Invalid, Empty, GC, Pool, or a Delimiter.
+    /// Enumeration of possible <see cref="Msg"/> types.
     /// </summary>
-    [Flags]
     public enum MsgType : byte
     {
         /// <summary>
