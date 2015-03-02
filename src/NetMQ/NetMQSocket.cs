@@ -67,9 +67,6 @@ namespace NetMQ
             }
         }
 
-        [Obsolete]
-        public bool IgnoreErrors { get; set; }
-
         /// <summary>
         /// This event gets raised when either the SendReady or ReceiveReady event is set.
         /// </summary>
