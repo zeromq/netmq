@@ -26,75 +26,50 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    /// <summary>
-    /// This flags enum-type is used to indicate characteristics of a Msg
-    /// - including More, Identity, and Shared (the default is None).
-    /// </summary>
+    /// <summary>Defines a set of flags applicable to a <see cref="Msg"/> instance.</summary>
     [Flags]
     public enum MsgFlags
     {
-        /// <summary>
-        /// This value (the default) indicates that none of the bits are set.
-        /// </summary>
+        /// <summary>Indicates no flags are set.</summary>
         None = 0,
 
-        /// <summary>
-        /// This is the "More" bit, which is used to signal that more messages follow.
-        /// </summary>
+        /// <summary>Indicates that more frames of the same message follow.</summary>
         More = 1,
 
-        /// <summary>
-        /// This bit indicates a message is intended to convey the identity of the associated socket.
-        /// </summary>
+        /// <summary>Indicates that this frame conveys the identity of a connected peer.</summary>
         Identity = 64,
 
-        /// <summary>
-        /// This bit indicates that the internal data is shared with other Msg objects.
-        /// </summary>
+        /// <summary>Indicates that this frame's internal data is shared with other <see cref="Msg"/> objects.</summary>
         Shared = 128,
     }
 
-    /// <summary>
-    /// Enumeration of possible <see cref="Msg"/> types.
-    /// </summary>
+    /// <summary>Enumeration of possible <see cref="Msg"/> types.</summary>
     public enum MsgType : byte
     {
-        /// <summary>
-        /// The <see cref="Msg"/> has not yet been initialised.
-        /// </summary>
+        /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
         Invalid = 0,
 
-        /// <summary>
-        /// The minimum valid enum value.
-        /// </summary>
+        /// <summary>The minimum valid enum value.</summary>
         [Obsolete]
         Min = 101,
 
-        /// <summary>
-        /// The <see cref="Msg"/> is empty.
-        /// </summary>
+        /// <summary>The <see cref="Msg"/> is empty.</summary>
         Empty = 101,
 
-        /// <summary>
-        /// This flag indicates that the byte-array data de-allocation is managed by the .NET Garbage-Collector.
-        /// </summary>
+        /// <summary>The <see cref="Msg"/> data will be garbage collected when no longer needed.</summary>
         GC = 102,
 
         /// <summary>
-        /// This flag indicates that the byte-array data is provided by a data-pool manager,
-        /// as opposed to being continually allocated/deallocated.
+        /// The <see cref="Msg"/> data was allocated by <see cref="BufferPool"/>, and must be released back
+        /// to this pool when no longer needed. This happens when <see cref="Msg.Close"/> is called.
         /// </summary>
         Pool = 103,
 
-        /// <summary>
-        /// This flag indicates that the message is intended for use simply as a delimiter -
-        /// to mark a boundary between other parts of some unit of communication.
-        /// </summary>
+        /// <summary>The <see cref="Msg"/> is a delimiter frame and doesn't contain any data.</summary>
+        /// <remarks>Delimiters are commonly used to mark a boundary between groups frames.</remarks>
         Delimiter = 104,
 
-        /// <summary>
-        /// The maximum valid enum value.
-        /// </summary>
+        /// <summary>The maximum valid enum value.</summary>
         [Obsolete]
         Max = 104
     }
@@ -156,7 +131,7 @@ namespace NetMQ
         public MsgFlags Flags { get; private set; }
 
         /// <summary>
-        /// Get the byte-array that represents the data payload of this Msg.
+        /// Get the byte-array that represents the data payload of this <see cref="Msg"/>.
         /// </summary>
         public byte[] Data { get; private set; }
 
