@@ -28,7 +28,7 @@ namespace NetMQ
 {
     /// <summary>Defines a set of flags applicable to a <see cref="Msg"/> instance.</summary>
     [Flags]
-    public enum MsgFlags
+    public enum MsgFlags : byte
     {
         /// <summary>Indicates no flags are set.</summary>
         None = 0,
