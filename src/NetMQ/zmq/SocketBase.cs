@@ -778,13 +778,7 @@ namespace NetMQ.zmq
 
             //  Check whether message passed to the function is valid.
             if (!msg.IsInitialised)
-            {
-#if DEBUG
-                throw new FaultException(String.Format("SocketBase.Recv passed an uninitialised Msg (with type {0}).", msg.MsgType));
-#else
                 throw new FaultException("SocketBase.Recv passed an uninitialised Msg.");
-#endif
-            }
 
             //  Get the message.
             bool isMessageAvailable = XRecv(flags, ref msg);
