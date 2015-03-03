@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using NetMQ.Sockets;
 using JetBrains.Annotations;
+using NetMQ.Sockets;
 
 namespace NetMQ
 {
