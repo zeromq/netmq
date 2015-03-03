@@ -1,3 +1,4 @@
+using System;
 using System.ServiceModel.Channels;
 using System.Threading;
 using JetBrains.Annotations;
@@ -8,7 +9,7 @@ namespace NetMQ
     /// The IBufferPool interface specifies two methods: Take, and Return.
     /// These provide for taking byte-array data from a common pool, and returning it.
     /// </summary>
-    public interface IBufferPool
+    public interface IBufferPool : IDisposable
     {
         /// <summary>
         /// Take byte-array storage from the buffer-pool.
@@ -46,6 +47,11 @@ namespace NetMQ
         {
             m_bufferManager.ReturnBuffer(buffer);
         }
+
+        public void Dispose()
+        {
+            m_bufferManager.Clear();
+        }
     }
 
     public class GCBufferPool : IBufferPool
@@ -56,8 +62,10 @@ namespace NetMQ
         }
 
         public void Return(byte[] buffer)
-        {
-        }
+        {}
+
+        public void Dispose()
+        {}
     }
 
     /// <summary>
@@ -74,12 +82,15 @@ namespace NetMQ
 
         public static void SetBufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {
-            Interlocked.Exchange(ref s_bufferPool, new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
+            SetCustomBufferPool(new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
         }
 
         public static void SetCustomBufferPool([NotNull] IBufferPool bufferPool)
         {
-            Interlocked.Exchange(ref s_bufferPool, bufferPool);
+            var prior = Interlocked.Exchange(ref s_bufferPool, bufferPool);
+
+            if (prior != null)
+                prior.Dispose();
         }
 
         [NotNull]
