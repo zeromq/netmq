@@ -96,12 +96,14 @@ namespace NetMQ
         private AtomicCounter m_atomicCounter;
 
         /// <summary>
-        /// Get whether the Identity bit is set on the Flags property.
+        /// Get the number of bytes within the Data property.
         /// </summary>
-        public bool IsIdentity
-        {
-            get { return (Flags & MsgFlags.Identity) != 0; }
-        }
+        public int Size { get; private set; }
+
+        #region MsgType
+
+        /// <summary>Get the type of this message, from the MsgType enum.</summary>
+        public MsgType MsgType { get; private set; }
 
         /// <summary>
         /// Get whether the Delimiter bit is set on the Flags property,
@@ -113,10 +115,24 @@ namespace NetMQ
             get { return MsgType == MsgType.Delimiter; }
         }
 
+        /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
+        /// <remarks>A newly constructed <see cref="Msg"/> is uninitialised, and can be initialised via one
+        /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC"/>, or <see cref="InitPool"/>. 
+        /// Calling <see cref="Close"/> will cause the <see cref="Msg"/> to become uninitialised again.</remarks>
+        /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
+        public bool IsInitialised
+        {
+            get { return MsgType != MsgType.Uninitialised; }
+        }
+
+        #endregion
+
+        #region MsgFlags
+
         /// <summary>
-        /// Get the number of bytes within the Data property.
+        /// Get the flags-enum MsgFlags value, which indicates which of the More, Identity, or Shared bits are set.
         /// </summary>
-        public int Size { get; private set; }
+        public MsgFlags Flags { get; private set; }
 
         /// <summary>
         /// Get the "Has-More" flag, which when set on a message-queue frame indicates that there are more frames to follow.
@@ -126,13 +142,24 @@ namespace NetMQ
             get { return (Flags & MsgFlags.More) == MsgFlags.More; }
         }
 
-        /// <summary>Get the type of this message, from the MsgType enum.</summary>
-        public MsgType MsgType { get; private set; }
+        /// <summary>
+        /// Whether this <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
+        /// Only applies to pooled message types.
+        /// </summary>
+        public bool IsShared
+        {
+            get { return (Flags & MsgFlags.Shared) != 0; }
+        }
 
         /// <summary>
-        /// Get the flags-enum MsgFlags value, which indicates which of the More, Identity, or Shared bits are set.
+        /// Get whether the Identity bit is set on the Flags property.
         /// </summary>
-        public MsgFlags Flags { get; private set; }
+        public bool IsIdentity
+        {
+            get { return (Flags & MsgFlags.Identity) != 0; }
+        }
+
+        #endregion
 
         /// <summary>
         /// Get the byte-array that represents the data payload of this <see cref="Msg"/>.
@@ -150,15 +177,7 @@ namespace NetMQ
             return IsInitialised;
         }
 
-        /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
-        /// <remarks>A newly constructed <see cref="Msg"/> is uninitialised, and can be initialised via one
-        /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC"/>, or <see cref="InitPool"/>. 
-        /// Calling <see cref="Close"/> will cause the <see cref="Msg"/> to become uninitialised again.</remarks>
-        /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
-        public bool IsInitialised
-        {
-            get { return MsgType != MsgType.Uninitialised; }
-        }
+        #region Initialisation
 
         /// <summary>
         /// Clear this Msg to empty - ie, set MsgFlags to None, MsgType to Empty, and clear the Data.
@@ -207,6 +226,8 @@ namespace NetMQ
             MsgType = MsgType.Delimiter;
             Flags = MsgFlags.None;
         }
+
+        #endregion
 
         /// <summary>
         /// Clear the Data and set the MsgType to Invalid.
