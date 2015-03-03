@@ -324,9 +324,9 @@ namespace NetMQ.zmq
         public void Rollback()
         {
             //  Remove incomplete message from the outbound pipe.
-            var msg = new Msg();
             if (m_outboundPipe != null)
             {
+                var msg = new Msg();
                 while (m_outboundPipe.Unwrite(ref msg))
                 {
                     Debug.Assert(msg.HasMore);
