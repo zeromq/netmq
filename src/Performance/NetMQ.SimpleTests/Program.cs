@@ -8,7 +8,6 @@ namespace NetMQ.SimpleTests
         {
             ITest[] tests =
             {
-                new HelloWorld(),
                 new LatencyBenchmark(),
                 new ThroughputBenchmark()
             };

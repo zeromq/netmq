@@ -114,7 +114,6 @@
     <Compile Include="ITest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="HelloWorld.cs" />
     <Compile Include="LatencyBenchmark.cs" />
     <Compile Include="ThroughputBenchmark.cs" />
   </ItemGroup>
