@@ -164,7 +164,7 @@ namespace NetMQ.zmq.Patterns
                 Identity,
                 Bottom,
                 Body
-            };
+            }
 
             private State m_state;
 
