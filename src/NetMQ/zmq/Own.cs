@@ -107,7 +107,7 @@ namespace NetMQ.zmq
             m_termAcks = 0;
         }
 
-        abstract public void Destroy();
+        public abstract void Destroy();
 
         /// <summary>
         /// A place to hook in when physical destruction of the object is to be delayed.

@@ -40,7 +40,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// This gets set to "iothread-" plus the thread-id.
         /// </summary>
-        readonly String m_name;
+        private readonly String m_name;
 
         /// <summary>
         /// Create a new IOThread object within the given context (Ctx) and thread.
