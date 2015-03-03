@@ -80,11 +80,6 @@ namespace NetMQ.zmq
         protected Own([NotNull] Ctx parent, int threadId)
             : base(parent, threadId)
         {
-            m_terminating = false;
-            m_processedSeqnum = 0;
-            m_owner = null;
-            m_termAcks = 0;
-
             m_options = new Options();
         }
 
@@ -101,10 +96,6 @@ namespace NetMQ.zmq
             : base(ioThread)
         {
             m_options = options;
-            m_terminating = false;
-            m_processedSeqnum = 0;
-            m_owner = null;
-            m_termAcks = 0;
         }
 
         public abstract void Destroy();
