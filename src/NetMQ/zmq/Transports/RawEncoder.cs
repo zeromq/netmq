@@ -41,7 +41,7 @@
         {
             //  Write message body into the buffer.
             NextStep(m_inProgress.Data, m_inProgress.Size,
-                RawMessageReadyState, !m_inProgress.Flags.HasFlag(MsgFlags.More));
+                RawMessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 
