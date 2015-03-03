@@ -14,13 +14,13 @@ namespace NetMQ.SimpleTests
 
             foreach (var test in tests)
             {
-                Console.WriteLine("Running test {0}...", test.TestName);
+                Console.WriteLine("======== {0}", test.TestName);
                 Console.WriteLine();
                 test.RunTest();
                 Console.WriteLine();
             }
 
-            Console.WriteLine("Finished running tests.");
+            Console.WriteLine();
             Console.WriteLine();
             Console.Write("Press any key to exit...");
             Console.ReadKey();

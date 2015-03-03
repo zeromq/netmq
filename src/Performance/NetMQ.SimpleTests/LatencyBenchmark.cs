@@ -1,33 +1,35 @@
-﻿namespace NetMQ.SimpleTests
-{
-    using System;
-    using System.Diagnostics;
-    using System.Threading;
+﻿using System;
+using System.Diagnostics;
+using System.Threading;
 
+namespace NetMQ.SimpleTests
+{
     internal class LatencyBenchmark : ITest
     {
-        private const int RoundTripCount = 10000;
+        private const int Iterations = 20000;
 
-        private static readonly int[] MessageSizes = { 8, 64, 512, 4096, 8192, 16384, 32768 };
+        private static readonly int[] s_messageSizes = { 8, 64, 512, 4096, 8192, 16384, 32768 };
 
         public string TestName
         {
-            get { return "Latency Benchmark"; }
+            get { return "Req/Rep Latency Benchmark"; }
         }
 
         public void RunTest()
         {
-            var client = new Thread(ClientThread);
-            var server = new Thread(ServerThread);
+            Console.Out.WriteLine("Iterations: {0}", Iterations);
+            Console.Out.WriteLine();
+            Console.Out.WriteLine(" {0,-6} {1}", "Size", "Latency (µs)");
+            Console.Out.WriteLine("---------------------");
 
-            client.Name = "Client";
-            server.Name = "Server";
+            var client = new Thread(ClientThread) { Name = "Client" };
+            var server = new Thread(ServerThread) { Name = "Server" };
 
             server.Start();
             client.Start();
 
-            server.Join(5000);
-            client.Join(5000);
+            server.Join();
+            client.Join();
         }
 
         private static void ClientThread()
@@ -37,27 +39,27 @@
             {
                 socket.Connect("tcp://127.0.0.1:9000");
 
-                foreach (int messageSize in MessageSizes)
+                foreach (int messageSize in s_messageSizes)
                 {
                     var msg = new byte[messageSize];
 
-                    var watch = new Stopwatch();
-                    watch.Start();
+                    var watch = Stopwatch.StartNew();
 
-                    for (int i = 0; i < RoundTripCount; i++)
+                    for (int i = 0; i < Iterations; i++)
                     {
                         socket.Send(msg);
                         socket.Receive(); // ignore response
                     }
 
                     watch.Stop();
-                    long elapsedTime = watch.ElapsedTicks;
 
-                    Console.WriteLine("Message size: " + messageSize + " [B]");
-                    Console.WriteLine("Roundtrips: " + RoundTripCount);
+                    const long tripCount = Iterations*2;
+                    long ticks = watch.ElapsedTicks;
+                    double seconds = (double)ticks/Stopwatch.Frequency;
+                    double microsecond = seconds*1000000.0;
+                    double microsecondsPerTrip = microsecond / tripCount;
 
-                    double latency = (double)elapsedTime / RoundTripCount / 2 * 1000000 / Stopwatch.Frequency;
-                    Console.WriteLine("Your average latency is {0} [us]", latency.ToString("f2"));
+                    Console.Out.WriteLine(" {0,-7} {1,6:0.0}", messageSize, microsecondsPerTrip);
                 }
             }
         }
@@ -69,9 +71,9 @@
             {
                 socket.Bind("tcp://*:9000");
 
-                for (int index = 0; index < MessageSizes.Length; index++)
+                for (int index = 0; index < s_messageSizes.Length; index++)
                 {
-                    for (int i = 0; i < RoundTripCount; i++)
+                    for (int i = 0; i < Iterations; i++)
                     {
                         byte[] message = socket.Receive();
                         socket.Send(message);
