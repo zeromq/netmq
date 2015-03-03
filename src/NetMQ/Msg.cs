@@ -392,7 +392,7 @@ namespace NetMQ
 
             Close();
 
-            if (MsgType == MsgType.Pool)
+            if (src.MsgType == MsgType.Pool)
             {
                 //  One reference is added to shared messages. Non-shared messages
                 //  are turned into shared messages and reference count is set to 2.
