@@ -100,7 +100,7 @@ namespace NetMQ
         /// </summary>
         public bool IsIdentity
         {
-            get { return (Flags & MsgFlags.Identity) == MsgFlags.Identity; }
+            get { return (Flags & MsgFlags.Identity) != 0; }
         }
 
         /// <summary>
