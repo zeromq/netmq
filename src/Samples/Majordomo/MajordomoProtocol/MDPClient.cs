@@ -1,8 +1,6 @@
 ﻿using System;
-
-using NetMQ;
-
 using MajordomoProtocol.Contracts;
+using NetMQ;
 
 namespace MajordomoProtocol
 {

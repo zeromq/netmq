@@ -66,6 +66,7 @@ namespace MajordomoProtocol
         private TimeSpan m_heartbeatInterval;                   // the time interval between heartbeats
         private bool m_isBound;                                 // true if socket is bound to address
         private bool m_isRunning;                               // true if the broker is running
+
         private readonly object m_syncRoot = new object ();     // used as synchronization object for Purge ()
 
         /// <summary>
@@ -199,7 +200,7 @@ namespace MajordomoProtocol
 
             m_isRunning = true;
 
-            using (var poller = new NetMQ.Poller ())
+            using (var poller = new Poller ())
             {
                 Socket.ReceiveReady += ProcessReceiveMessage;
                 // get timer for scheduling heartbeat
@@ -243,7 +244,7 @@ namespace MajordomoProtocol
 
             m_isRunning = true;
 
-            using (var poller = new NetMQ.Poller ())
+            using (var poller = new Poller ())
             {
                 Socket.ReceiveReady += ProcessReceiveMessage;
                 // get timer for scheduling heartbeat
@@ -408,7 +409,7 @@ namespace MajordomoProtocol
             if (message.FrameCount < 2)
                 throw new ArgumentException ("The message is malformed!");
 
-            var serviceFrame = message.Pop ();                  // [service name][request] OR ["mmi.service"][service name]
+            var serviceFrame = message.Pop ();                 // [service name][request] OR ["mmi.service"][service name]
             var serviceName = serviceFrame.ConvertToString ();
             var service = ServiceRequired (serviceName);
 
@@ -453,7 +454,6 @@ namespace MajordomoProtocol
                 // send to a worker offering the requested service
                 // will add command, header and worker adr evenlope
                 ServiceDispatch (service, request);             // [CLIENT ADR][e][request]
-
             }
         }
 
@@ -464,20 +464,30 @@ namespace MajordomoProtocol
         ///     at the first worker, which is essential when we have large numbers of
         ///     workers (we call this method in our critical path)
         /// </summary>
+        /// <remarks>
+        ///     we must use a lock to guarantee that only one thread will have
+        ///     access to the purging at a time!
+        /// </remarks>
         private void Purge ()
         {
             DebugLog ("[BROKER DEBUG] start purging for all services");
 
-            foreach (var service in m_services)
-                foreach (var worker in service.WaitingWorkers)
-                {
-                    if (DateTime.UtcNow < worker.Expiry)
-                        // we found the first woker not expired in that service
-                        // any following worker will be younger -> we're done for the service
-                        break;
+            lock (m_syncRoot)
+            {
+                foreach (var service in m_services)
+                    lock (m_syncRoot)
+                    {
+                        foreach (var worker in service.WaitingWorkers)
+                        {
+                            if (DateTime.UtcNow < worker.Expiry)
+                                // we found the first woker not expired in that service
+                                // any following worker will be younger -> we're done for the service
+                                break;
 
-                    RemoveWorker (worker);
-                }
+                            RemoveWorker (worker);
+                        }
+                    }
+            }
         }
 
         /// <summary>

@@ -1,8 +1,7 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
+
 using NetMQ;
-using NetMQ.zmq;
 
 namespace MajordomoProtocol
 {
@@ -13,7 +12,7 @@ namespace MajordomoProtocol
     /// </summary>
     internal class Service
     {
-        private readonly List<Worker> m_workers;                // list of known worker for this service 
+        private readonly List<Worker> m_workers;                // list of known and active worker for this service 
         private readonly List<NetMQMessage> m_pendingRequests;  // list of client requests for that service
         private readonly List<Worker> m_waitingWorkers;         // queue of workers waiting for requests FIFO!
 
@@ -23,9 +22,13 @@ namespace MajordomoProtocol
         public string Name { get; private set; }
 
         /// <summary>
-        ///     returns a sequence of waiting workers - some of which may have expired
+        ///     returns a readonly sequence of waiting workers - some of which may have expired
         /// </summary>
-        public IEnumerable<Worker> WaitingWorkers { get { return m_waitingWorkers; } }
+        /// <remarks>
+        ///     we need to copy the array in order to allow the changing of it in an iteration
+        ///     since we will change the list while iterating we must operate on a copy
+        /// </remarks>
+        public IEnumerable<Worker> WaitingWorkers { get { return m_waitingWorkers.ToArray(); } }
 
         /// <summary>
         ///     returns a list of requests pending for being send to workers
@@ -65,7 +68,7 @@ namespace MajordomoProtocol
         ///     get the longest waiting worker for this service
         ///     and remove it from the waiting list
         /// </summary>
-        /// <returns>the worker or if non is available <c>null</c></returns>
+        /// <returns>the worker or if none is available <c>null</c></returns>
         public Worker GetNextWorker ()
         {
             var worker = m_waitingWorkers.Count == 0 ? null : m_waitingWorkers[0];
@@ -96,6 +99,8 @@ namespace MajordomoProtocol
         ///     deletes worker from the list of known workers and
         ///     if the worker is registered for waiting removes it 
         ///     from that list as well
+        ///     in order to synchronize the deleting access to the 
+        ///     local lists <c>m_syncRoot</c> is used to lock
         /// </summary>
         /// <param name="worker">the worker to delete</param>
         public void DeleteWorker (Worker worker)
@@ -120,6 +125,9 @@ namespace MajordomoProtocol
         /// <summary>
         ///     return the oldest pending request or null if non exists
         /// </summary>
+        /// <remarks>
+        ///     no synchronization necessary since no concurrent access
+        /// </remarks>
         public NetMQMessage GetNextRequest ()
         {
             // get one or null
@@ -168,11 +176,6 @@ namespace MajordomoProtocol
         private bool IsWaiting (Worker worker)
         {
             return m_waitingWorkers.Contains (worker);
-        }
-
-        private bool IsWaiting (string name)
-        {
-            return m_waitingWorkers.Exists (w => w.Id == name);
         }
     }
 }

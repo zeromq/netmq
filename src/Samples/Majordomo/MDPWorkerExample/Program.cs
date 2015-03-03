@@ -25,6 +25,7 @@ namespace MDPWorkerExample
                 // create worker offering the service 'echo'
                 using (var session = new MDPWorker ("tcp://localhost:5555", "echo", id))
                 {
+                    session.HeartbeatDelay = TimeSpan.FromMilliseconds (10000);
                     // logging info to be displayed on screen
                     if (verbose)
                         session.LogInfoReady += (s, e) => Console.WriteLine ("{0}", e.Info);
