@@ -53,12 +53,12 @@ namespace NetMQ
         /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
         Uninitialised = 0,
 
+        /// <summary>The <see cref="Msg"/> is empty.</summary>
+        Empty = 101,
+
         /// <summary>The minimum valid enum value.</summary>
         [Obsolete]
         Min = 101,
-
-        /// <summary>The <see cref="Msg"/> is empty.</summary>
-        Empty = 101,
 
         /// <summary>The <see cref="Msg"/> data will be garbage collected when no longer needed.</summary>
         GC = 102,
