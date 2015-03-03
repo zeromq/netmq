@@ -188,14 +188,14 @@ namespace NetMQ.zmq.Patterns
                     case State.Body:
                         if (msg.Flags == MsgFlags.More)
                             return base.PushMsg(ref msg);
-                        if (msg.Flags == 0)
+                        if (msg.Flags == MsgFlags.None)
                         {
                             m_state = State.Bottom;
                             return base.PushMsg(ref msg);
                         }
                         break;
                     case State.Identity:
-                        if (msg.Flags == 0)
+                        if (msg.Flags == MsgFlags.None)
                         {
                             m_state = State.Bottom;
                             return base.PushMsg(ref msg);
