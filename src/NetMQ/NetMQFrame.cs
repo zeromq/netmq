@@ -277,6 +277,21 @@ namespace NetMQ
             return Equals(obj as NetMQFrame);
         }
 
+        public static bool operator ==(NetMQFrame one, NetMQFrame other)
+        {
+            // NOTE use of ReferenceEquals here to avoid recurrance and stack overflow exception
+
+            if (ReferenceEquals(one, null) && ReferenceEquals(other, null))
+                return true;
+
+            return !ReferenceEquals(one, null) && one.Equals(other);
+        }
+
+        public static bool operator !=(NetMQFrame one, NetMQFrame other)
+        {
+            return !(one == other);
+        }
+
         /// <summary>
         /// Override the Object.GetHashCode method to return a hash-code derived from the content of the Buffer.
         /// That is only computed the first time this method is called.

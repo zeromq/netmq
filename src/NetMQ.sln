@@ -139,6 +139,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D
 		..\docs\xpub-xsub.md = ..\docs\xpub-xsub.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDPServiceDiscoveryClientExample", "Samples\Majordomo\MDPServiceDiscoveryClientExample\MDPServiceDiscoveryClientExample.csproj", "{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -572,6 +574,18 @@ Global
 		{BEDD69FB-36D7-4E11-9306-FB4BF97F356E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BEDD69FB-36D7-4E11-9306-FB4BF97F356E}.Release|x64.ActiveCfg = Release|Any CPU
 		{BEDD69FB-36D7-4E11-9306-FB4BF97F356E}.Release|x86.ActiveCfg = Release|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Release|x64.ActiveCfg = Release|Any CPU
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -622,5 +636,6 @@ Global
 		{B2233737-D928-4C46-9FD0-3B7AD6BD23BB} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 		{110BC076-1D16-4593-B0C0-62F0A67ED264} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 		{BEDD69FB-36D7-4E11-9306-FB4BF97F356E} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
+		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 	EndGlobalSection
 EndGlobal

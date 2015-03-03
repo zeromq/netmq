@@ -7,7 +7,7 @@ namespace MDPBrokerProcess
 {
     internal static class Program
     {
-        private static bool s_verbose;
+        private static bool s_verbose, s_debug;
 
         private static void Main(string[] args)
         {
@@ -24,6 +24,9 @@ namespace MDPBrokerProcess
             Console.WriteLine("\tto stop processing use CTRL+C");
 
             s_verbose = args.Length > 0 && args[0] == "-v";
+            s_debug = args.Length == 2 && args[1] == "-d";
+
+            Console.WriteLine ("\nMessageLevel: Verbose = {0} and Debug = {1}", s_verbose, s_debug);
 
             // used to signal to stop the broker process
             var cts = new CancellationTokenSource();
@@ -70,15 +73,21 @@ namespace MDPBrokerProcess
             }
         }
 
-
         private static async Task RunBroker(CancellationTokenSource cts)
         {
             using (var broker = new MDPBroker("tcp://*:5555"))
             {
                 if (s_verbose)
                     broker.LogInfoReady += (s, e) => Console.WriteLine(e.Info);
+                if (s_verbose)
+                    broker.LogInfoReady += (s, e) => Console.WriteLine(e.Info);
 
                 await broker.Run(cts.Token);
+             
+                if (s_verbose)
+                    broker.DebugInfoReady += (s, e) => Console.WriteLine(e.Info);
+
+                await broker.Run (cts.Token);
             }
         }
     }
