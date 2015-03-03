@@ -66,7 +66,7 @@ namespace NetMQ.zmq
         /// Override of ToString, which returns a string in the form [ command-type, destination ].
         /// </summary>
         /// <returns>a string that denotes the command-type and destination</returns>
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + CommandType + ", " + Destination + "]";
         }

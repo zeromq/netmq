@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
@@ -143,7 +142,7 @@ namespace NetMQ.zmq.Utils
                     string textOfListRead = StringLib.AsString(m_checkRead);
                     string textOfListWrite = StringLib.AsString(m_checkWrite);
                     string textOfListError = StringLib.AsString(m_checkError);
-                    string xMsg = String.Format("In Selector.Select, Socket.Select({0}, {1}, {2}, {3}) threw a SocketException: {4}", textOfListRead, textOfListWrite, textOfListError, currentTimeoutMicroSeconds, x.Message);
+                    string xMsg = string.Format("In Selector.Select, Socket.Select({0}, {1}, {2}, {3}) threw a SocketException: {4}", textOfListRead, textOfListWrite, textOfListError, currentTimeoutMicroSeconds, x.Message);
                     Debug.WriteLine(xMsg);
                     throw new FaultException(innerException: x, message: xMsg);
 #else

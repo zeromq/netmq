@@ -532,7 +532,7 @@ namespace NetMQ.zmq
             Debug.Assert(false);
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + m_options.SocketId + "]";
         }

@@ -206,7 +206,7 @@ namespace NetMQ.zmq.Patterns
                 }
                 else
                 {
-                    subscription = Encoding.ASCII.GetBytes((String)optionValue);
+                    subscription = Encoding.ASCII.GetBytes((string)optionValue);
                 }
 
                 m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
@@ -222,7 +222,7 @@ namespace NetMQ.zmq.Patterns
                 }
                 else
                 {
-                    subscription = Encoding.ASCII.GetBytes((String)optionValue);
+                    subscription = Encoding.ASCII.GetBytes((string)optionValue);
                 }
 
                 m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
@@ -245,7 +245,7 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        throw new InvalidException(String.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
+                        throw new InvalidException(string.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
                     }
                 }
                 else

@@ -127,7 +127,7 @@ namespace NetMQ.zmq
         /// Get or set the last socket endpoint resolved URI
         /// The initial value is null.
         /// </summary>
-        public String LastEndpoint { get; set; }
+        public string LastEndpoint { get; set; }
 
         /// <summary>
         /// Get or set the Linger time, in milliseconds.
@@ -293,19 +293,19 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.Identity:
                     byte[] val;
 
-                    if (optionValue is String)
-                        val = Encoding.ASCII.GetBytes((String)optionValue);
+                    if (optionValue is string)
+                        val = Encoding.ASCII.GetBytes((string)optionValue);
                     else if (optionValue is byte[])
                         val = (byte[])optionValue;
                     else
                     {
-                        String xMsg = String.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a String or byte-array.", optionValue == null ? "null" : optionValue.ToString());
+                        string xMsg = string.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue == null ? "null" : optionValue.ToString());
                         throw new InvalidException(xMsg);
                     }
 
                     if (val.Length == 0 || val.Length > 255)
                     {
-                        String xMsg = String.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length);
+                        string xMsg = string.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length);
                         throw new InvalidException(xMsg);
                     }
                     Identity = new byte[val.Length];
@@ -337,7 +337,7 @@ namespace NetMQ.zmq
                     ReconnectIvl = (int)optionValue;
                     if (ReconnectIvl < -1)
                     {
-                        throw new InvalidException(String.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", ReconnectIvl));
+                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", ReconnectIvl));
                     }
                     break;
 
@@ -345,7 +345,7 @@ namespace NetMQ.zmq
                     ReconnectIvlMax = (int)optionValue;
                     if (ReconnectIvlMax < 0)
                     {
-                        throw new InvalidException(String.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", ReconnectIvlMax));
+                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", ReconnectIvlMax));
                     }
                     break;
 
@@ -377,7 +377,7 @@ namespace NetMQ.zmq
                     TcpKeepalive = (int)optionValue;
                     if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
                     {
-                        throw new InvalidException(String.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", TcpKeepalive));
+                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", TcpKeepalive));
                     }
                     break;
 
@@ -394,14 +394,14 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOptions.TcpAcceptFilter:
-                    String filterStr = (String)optionValue;
+                    string filterStr = (string)optionValue;
                     if (filterStr == null)
                     {
                         TcpAcceptFilters.Clear();
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw new InvalidException(String.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1) but must be 1..255", filterStr, filterStr.Length));
+                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1) but must be 1..255", filterStr, filterStr.Length));
                     }
                     else
                     {

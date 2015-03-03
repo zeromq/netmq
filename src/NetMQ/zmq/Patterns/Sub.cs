@@ -53,12 +53,12 @@ namespace NetMQ.zmq.Patterns
 
             byte[] val;
 
-            if (optionValue is String)
-                val = Encoding.ASCII.GetBytes((String)optionValue);
+            if (optionValue is string)
+                val = Encoding.ASCII.GetBytes((string)optionValue);
             else if (optionValue is byte[])
                 val = (byte[])optionValue;
             else
-                throw new InvalidException(String.Format("In Sub.XSetSocketOption({0},{1}), optionValue must be either a String or a byte-array.", option, (optionValue == null ? "null" : optionValue.ToString())));
+                throw new InvalidException(string.Format("In Sub.XSetSocketOption({0},{1}), optionValue must be either a string or a byte-array.", option, (optionValue == null ? "null" : optionValue.ToString())));
 
             //  Create the subscription message.
             var msg = new Msg();
@@ -76,7 +76,7 @@ namespace NetMQ.zmq.Patterns
 
                 if (!isMessageSent)
                 {
-                    string xMsg = String.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
+                    string xMsg = string.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
                     throw new AgainException(innerException: null, message: xMsg);
                 }
             }

@@ -26,7 +26,6 @@ using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 
-
 namespace NetMQ.zmq
 {
     /// <summary>
@@ -295,7 +294,7 @@ namespace NetMQ.zmq
             }
             else
             {
-                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets with optionValue >= 1, or IOThreads with optionValue >= 0.", option, optionValue));
+                throw new InvalidException(string.Format("In Ctx.Set({0}, {1}), option must be MaxSockets with optionValue >= 1, or IOThreads with optionValue >= 0.", option, optionValue));
             }
         }
 
@@ -310,7 +309,7 @@ namespace NetMQ.zmq
                 return m_maxSockets;
             if (option == ContextOption.IOThreads)
                 return m_ioThreadCount;
-            throw new InvalidException(String.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
+            throw new InvalidException(string.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
         }
 
         /// <summary>
@@ -373,7 +372,7 @@ namespace NetMQ.zmq
                 //  Once zmq_term() was called, we can't create new sockets.
                 if (m_terminating)
                 {
-                    string xMsg = String.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
+                    string xMsg = string.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
                     throw new TerminatingException(innerException: null, message: xMsg);
                 }
 
@@ -381,7 +380,7 @@ namespace NetMQ.zmq
                 if (m_emptySlots.Count == 0)
                 {
 #if DEBUG
-                    string xMsg = String.Format("Ctx.CreateSocket({0}), max number of sockets {1} reached.", type, m_maxSockets);
+                    string xMsg = string.Format("Ctx.CreateSocket({0}), max number of sockets {1} reached.", type, m_maxSockets);
                     throw NetMQException.Create(xMsg, ErrorCode.TooManyOpenSockets);
 #else
                     throw NetMQException.Create(ErrorCode.TooManyOpenSockets);
@@ -481,7 +480,7 @@ namespace NetMQ.zmq
         /// <param name="addr">the textual name to give this endpoint</param>
         /// <param name="endpoint">the Endpoint to remember</param>
         /// <returns>true if the given addr was NOT already registered</returns>
-        public bool RegisterEndpoint([NotNull] String addr, [NotNull] Endpoint endpoint)
+        public bool RegisterEndpoint([NotNull] string addr, [NotNull] Endpoint endpoint)
         {
             lock (m_endpointsSync)
             {
@@ -541,7 +540,7 @@ namespace NetMQ.zmq
         /// <returns></returns>
         /// <exception cref="EndpointNotFoundException">The given address was not found in the list of endpoints.</exception>
         [NotNull]
-        public Endpoint FindEndpoint([NotNull] String addr)
+        public Endpoint FindEndpoint([NotNull] string addr)
         {
             Debug.Assert(addr != null);
 

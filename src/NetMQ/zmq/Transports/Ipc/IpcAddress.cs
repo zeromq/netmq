@@ -18,16 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Net;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
     internal class IpcAddress : Address.IZAddress
     {
-        private String m_name;
+        private string m_name;
 
-        public override String ToString()
+        public override string ToString()
         {
             if (m_name == null)
                 return string.Empty;
@@ -35,7 +34,7 @@ namespace NetMQ.zmq.Transports.Ipc
             return Protocol + "://" + m_name;
         }
 
-        public void Resolve(String name, bool ip4Only)
+        public void Resolve(string name, bool ip4Only)
         {
             m_name = name;
 
@@ -50,7 +49,7 @@ namespace NetMQ.zmq.Transports.Ipc
 
         public IPEndPoint Address { get; private set; }
 
-        public String Protocol
+        public string Protocol
         {
             get { return zmq.Address.IpcProtocol; }
         }

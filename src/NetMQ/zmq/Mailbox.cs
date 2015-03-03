@@ -19,7 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using JetBrains.Annotations;
@@ -58,7 +57,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// mailbox name, for better debugging
         /// </summary>
-        [CanBeNull] private readonly String m_name;
+        [CanBeNull] private readonly string m_name;
 
         private bool m_disposed;
 
@@ -122,7 +121,7 @@ namespace NetMQ.zmq
             m_disposed = true;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";
         }
@@ -157,9 +156,9 @@ namespace NetMQ.zmq
         /// <summary>
         /// mailbox name, for better debugging
         /// </summary>
-        private readonly String m_name;
+        private readonly string m_name;
 
-        public Mailbox(String name)
+        public Mailbox(string name)
         {
             m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
             m_sync = new object();
@@ -241,7 +240,7 @@ namespace NetMQ.zmq
             m_signaler.Close();
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";
         }

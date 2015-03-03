@@ -149,7 +149,7 @@ namespace NetMQ.zmq
             }
         }
 
-        protected bool RegisterEndpoint([NotNull] String addr, [NotNull] Ctx.Endpoint endpoint)
+        protected bool RegisterEndpoint([NotNull] string addr, [NotNull] Ctx.Endpoint endpoint)
         {
             return m_ctx.RegisterEndpoint(addr, endpoint);
         }
@@ -165,7 +165,7 @@ namespace NetMQ.zmq
         }
 
         [NotNull]
-        protected Ctx.Endpoint FindEndpoint([NotNull] String addr)
+        protected Ctx.Endpoint FindEndpoint([NotNull] string addr)
         {
             return m_ctx.FindEndpoint(addr);
         }

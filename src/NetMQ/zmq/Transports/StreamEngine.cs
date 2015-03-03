@@ -130,8 +130,8 @@ namespace NetMQ.zmq.Transports
 
         private readonly Options m_options;
 
-        // String representation of endpoint
-        private readonly String m_endpoint;
+        // string representation of endpoint
+        private readonly string m_endpoint;
 
         private bool m_plugged;
 
@@ -149,7 +149,7 @@ namespace NetMQ.zmq.Transports
         // queue for actions that happen during the state machine
         private readonly Queue<StateMachineAction> m_actionsQueue;
 
-        public StreamEngine(AsyncSocket handle, Options options, String endpoint)
+        public StreamEngine(AsyncSocket handle, Options options, string endpoint)
         {
             m_handle = handle;
             m_insize = 0;

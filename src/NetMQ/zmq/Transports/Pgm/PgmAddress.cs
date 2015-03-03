@@ -21,12 +21,12 @@ namespace NetMQ.zmq.Transports.PGM
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
-                throw new InvalidException(String.Format("In PgmAddress.Resolve({0},{1}), delimiter ({2}) must be non-negative.", name, ip4Only, delimiter));
+                throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), delimiter ({2}) must be non-negative.", name, ip4Only, delimiter));
             }
 
             //  Separate the address/port.
-            String addrStr = name.Substring(0, delimiter);
-            String portStr = name.Substring(delimiter + 1);
+            string addrStr = name.Substring(0, delimiter);
+            string portStr = name.Substring(delimiter + 1);
 
             if (addrStr.Contains(";"))
             {
@@ -58,7 +58,7 @@ namespace NetMQ.zmq.Transports.PGM
                 port = Convert.ToInt32(portStr);
                 
                 if (port == 0)
-                    throw new InvalidException(String.Format("In PgmAddress.Resolve({0},{1}), portStr ({2}) must denote a valid nonzero integer.", name, ip4Only, portStr));
+                    throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), portStr ({2}) must denote a valid nonzero integer.", name, ip4Only, portStr));
             }
 
             if (addrStr.Equals("*"))
@@ -66,7 +66,7 @@ namespace NetMQ.zmq.Transports.PGM
 
             IPAddress ipAddress;
             if (!IPAddress.TryParse(addrStr, out ipAddress))
-                throw new InvalidException(String.Format("In PgmAddress.Resolve({0},{1}), addrStr ({2}) must be a valid IPAddress.", name, ip4Only, addrStr));
+                throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), addrStr ({2}) must be a valid IPAddress.", name, ip4Only, addrStr));
 
             Address = new IPEndPoint(ipAddress, port);
         }
@@ -76,7 +76,7 @@ namespace NetMQ.zmq.Transports.PGM
 
         public IPEndPoint Address { get; private set; }
 
-        public override String ToString()
+        public override string ToString()
         {
             if (Address == null)
                 return string.Empty;
@@ -89,7 +89,7 @@ namespace NetMQ.zmq.Transports.PGM
                 return Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
-        public String Protocol
+        public string Protocol
         {
             get { return zmq.Address.PgmProtocol; }
         }

@@ -60,7 +60,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <summary>
         /// String representation of endpoint to bind to
         /// </summary>
-        private String m_endpoint;
+        private string m_endpoint;
 
         /// <summary>
         /// The port that was bound on
@@ -253,7 +253,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// Get the bound address for use with wildcards
         /// </summary>
         [NotNull]
-        public virtual String Address
+        public virtual string Address
         {
             get { return m_address.ToString(); }
         }

@@ -327,7 +327,7 @@ namespace NetMQ
         /// Override the Object ToString method to show the object-type, and values of the MsgType, Size, and Flags properties.
         /// </summary>
         /// <returns>a string that provides some detail about this Msg's state</returns>
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + MsgType + "," + Size + "," + Flags + "]";
         }

@@ -19,7 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using NetMQ.zmq.Utils;
 
 
@@ -40,7 +39,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// This gets set to "iothread-" plus the thread-id.
         /// </summary>
-        private readonly String m_name;
+        private readonly string m_name;
 
         /// <summary>
         /// Create a new IOThread object within the given context (Ctx) and thread.

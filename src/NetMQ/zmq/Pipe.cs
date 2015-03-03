@@ -20,7 +20,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
 using JetBrains.Annotations;
 
@@ -621,7 +620,7 @@ namespace NetMQ.zmq
         /// Override the ToString method to return a string denoting the type and the parent.
         /// </summary>
         /// <returns>a string containing this type and also the value of the parent-property</returns>
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + m_parent + "]";
         }
