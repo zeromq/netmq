@@ -176,6 +176,8 @@ namespace NetMQ.zmq.Patterns
 
             public override bool PushMsg(ref Msg msg)
             {
+                // TODO the flags checks here don't check specific bits -- should they use HasMore instead? does this work with shared Msg objects?
+
                 switch (m_state)
                 {
                     case State.Bottom:
