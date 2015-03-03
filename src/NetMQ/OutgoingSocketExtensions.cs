@@ -74,8 +74,14 @@ namespace NetMQ
         public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, SendReceiveOptions options)
         {
             var msg = new Msg();
+
+            // Count the number of bytes required to encode the string.
+            // Note that non-ASCII strings may not have an equal number of characters
+            // and bytes. The encoding must be queried for this answer.
+            // With this number, request a buffer from the pool.
             msg.InitPool(encoding.GetByteCount(message));
 
+            // Encode the string into the buffer
             encoding.GetBytes(message, 0, message.Length, msg.Data, 0);
 
             socket.Send(ref msg, options);
