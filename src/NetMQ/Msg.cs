@@ -260,7 +260,7 @@ namespace NetMQ
             if (MsgType == MsgType.Pool)
             {
                 // if not shared or reference counter drop to zero
-                if ((Flags & MsgFlags.Shared) == 0 || m_atomicCounter.Decrement() == 0)
+                if (!IsShared || m_atomicCounter.Decrement() == 0)
                     BufferPool.Return(Data);
 
                 m_atomicCounter = null;
@@ -286,7 +286,7 @@ namespace NetMQ
 
             if (MsgType == MsgType.Pool)
             {
-                if ((Flags & MsgFlags.Shared) != 0)
+                if (IsShared)
                 {
                     m_atomicCounter.Increase(amount);
                 }
@@ -309,7 +309,7 @@ namespace NetMQ
             if (amount == 0)
                 return;
 
-            if (MsgType != MsgType.Pool || (Flags & MsgFlags.Shared) == 0)
+            if (MsgType != MsgType.Pool || !IsShared)
             {
                 Close();
                 return;
@@ -396,8 +396,10 @@ namespace NetMQ
             {
                 //  One reference is added to shared messages. Non-shared messages
                 //  are turned into shared messages and reference count is set to 2.
-                if ((src.Flags & MsgFlags.Shared) != 0)
+                if (IsShared)
+                {
                     src.m_atomicCounter.Increase(1);
+                }
                 else
                 {
                     src.Flags |= MsgFlags.Shared;

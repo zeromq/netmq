@@ -113,7 +113,7 @@ namespace NetMQ.zmq.Patterns
                     return false;
                 }
 
-                if ((msg.Flags & MsgFlags.Identity) == 0)
+                if (!msg.IsIdentity)
                     break;
             }
 

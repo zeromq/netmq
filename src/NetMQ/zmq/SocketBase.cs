@@ -1150,7 +1150,7 @@ namespace NetMQ.zmq
         private void ExtractFlags(ref Msg msg)
         {
             //  Test whether IDENTITY flag is valid for this socket type.
-            if ((msg.Flags & MsgFlags.Identity) != 0)
+            if (msg.IsIdentity)
                 Debug.Assert(m_options.RecvIdentity);
 
             //  Remove MORE flag.

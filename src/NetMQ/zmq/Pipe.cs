@@ -329,7 +329,7 @@ namespace NetMQ.zmq
             {
                 while (m_outboundPipe.Unwrite(ref msg))
                 {
-                    Debug.Assert((msg.Flags & MsgFlags.More) != 0);
+                    Debug.Assert(msg.HasMore);
                     msg.Close();
                 }
             }
