@@ -390,7 +390,8 @@ namespace NetMQ
             if (!src.IsInitialised)
                 throw new FaultException("Cannot copy an uninitialised Msg.");
 
-            Close();
+            if (IsInitialised)
+                Close();
 
             if (src.MsgType == MsgType.Pool)
             {
@@ -407,6 +408,7 @@ namespace NetMQ
                 }
             }
 
+            // Populate this instance via a memberwise-copy from the 'src' instance.
             this = src;
         }
 
@@ -420,7 +422,8 @@ namespace NetMQ
             if (!src.IsInitialised)
                 throw new FaultException("Cannot move an uninitialised Msg.");
 
-            Close();
+            if (IsInitialised)
+                Close();
 
             this = src;
 
