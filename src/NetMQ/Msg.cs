@@ -159,6 +159,24 @@ namespace NetMQ
             get { return (Flags & MsgFlags.Identity) != 0; }
         }
 
+        /// <summary>
+        /// Set the indicated Flags bits.
+        /// </summary>
+        /// <param name="flags">which Flags bits to set (More, Identity, or Shared)</param>
+        public void SetFlags(MsgFlags flags)
+        {
+            Flags |= flags;
+        }
+
+        /// <summary>
+        /// Clear the indicated Flags bits.
+        /// </summary>
+        /// <param name="flags">which Flags bits to clear (More, Identity, or Shared)</param>
+        public void ResetFlags(MsgFlags flags)
+        {
+            Flags &= ~flags;
+        }
+
         #endregion
 
         /// <summary>
@@ -313,24 +331,6 @@ namespace NetMQ
         {
             return base.ToString() + "[" + MsgType + "," + Size + "," + Flags + "]";
         }
-
-        /// <summary>
-        /// Set the indicated Flags bits.
-        /// </summary>
-        /// <param name="flags">which Flags bits to set (More, Identity, or Shared)</param>
-        public void SetFlags(MsgFlags flags)
-        {
-            Flags |= flags;
-        }
-
-        /// <summary>
-        /// Clear the indicated Flags bits.
-        /// </summary>
-        /// <param name="flags">which Flags bits to clear (More, Identity, or Shared)</param>
-        public void ResetFlags(MsgFlags flags)
-        {
-            Flags &= ~flags;
-        }       
 
         /// <summary>
         /// Copy the given byte-array data to this Msg's Data buffer.
