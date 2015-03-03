@@ -73,11 +73,11 @@ namespace NetMQ
     /// </summary>
     public static class BufferPool
     {
-        private static IBufferPool s_bufferPool;
-       
-        static BufferPool()
-        {            
-            s_bufferPool = new GCBufferPool();
+        private static IBufferPool s_bufferPool = new GCBufferPool();
+
+        public static void SetGCBufferPool()
+        {
+            SetCustomBufferPool(new GCBufferPool());
         }
 
         public static void SetBufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
