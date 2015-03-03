@@ -268,7 +268,7 @@ namespace NetMQ
 
             if (MsgType == MsgType.Pool)
             {
-                if (Flags == MsgFlags.Shared)
+                if ((Flags & MsgFlags.Shared) != 0)
                 {
                     m_atomicCounter.Increase(amount);
                 }
