@@ -334,11 +334,9 @@ namespace NetMQ
         /// <param name="src">the source byte-array to copy from</param>
         /// <param name="i">offset within the source to start copying from</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([NotNull] byte[] src, int i, int len)
+        public void Put([CanBeNull] byte[] src, int i, int len)
         {
-            Debug.Assert(src != null);
-
-            if (len == 0)
+            if (len == 0 || src == null)
                 return;
 
             Buffer.BlockCopy(src, 0, Data, i, len);
