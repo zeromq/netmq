@@ -27,7 +27,8 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// BufferManagerBufferPool implements IBufferPool to provide a simple buffer-pool.
+    /// This implementation of <see cref="IBufferPool"/> uses WCF's <see cref="BufferManager"/>
+    /// class to manage a pool of buffers.
     /// </summary>
     public class BufferManagerBufferPool : IBufferPool
     {
@@ -54,6 +55,11 @@ namespace NetMQ
         }
     }
 
+    /// <summary>
+    /// This simple implementation of <see cref="IBufferPool"/> does no buffer pooling. Instead, it uses regular
+    /// .NET memory management to allocate a buffer each time <see cref="Take"/> is called. Unused buffers
+    /// passed to <see cref="Return"/> are simply left for the .NET garbage collector to deal with.
+    /// </summary>
     public class GCBufferPool : IBufferPool
     {
         public byte[] Take(int size)
@@ -69,8 +75,21 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// BufferPool contains a IBufferPool and provides a simple common pool of byte-array buffers.
+    /// Contains a singleton instance of <see cref="IBufferPool"/> used for allocating byte arrays
+    /// for <see cref="Msg"/> instances with type <see cref="MsgType.Pool"/>.
     /// </summary>
+    /// <remarks>
+    /// Sending and receiving message frames requires the use of buffers (byte arrays), which are expensive to create and destroy.
+    /// You can use the BufferPool class to pool buffers for reuse, reducing allocation, deallocation and garbage collection.
+    /// <para/>
+    /// The default implementation is <see cref="GCBufferPool"/>.
+    /// <list type="bullet">
+    /// <item>Call <see cref="SetBufferManagerBufferPool"/> to replace it with a <see cref="BufferManagerBufferPool"/>.</item>
+    /// <item>Call <see cref="SetGCBufferPool"/> to reinstate the default <see cref="GCBufferPool"/>.</item>
+    /// <item>Call <see cref="SetCustomBufferPool"/> to substitute a custom implementation for the allocation and
+    /// deallocation of message buffers.</item>
+    /// </list>
+    /// </remarks>
     public static class BufferPool
     {
         private static IBufferPool s_bufferPool = new GCBufferPool();
@@ -93,12 +112,21 @@ namespace NetMQ
                 prior.Dispose();
         }
 
+        /// <summary>
+        /// Allocate a buffer of at least <paramref name="size"/> bytes from the current <see cref="IBufferPool"/>.
+        /// </summary>
+        /// <param name="size">The minimum size required, in bytes.</param>
+        /// <returns>A byte array having at least <paramref name="size"/> bytes.</returns>
         [NotNull]
         public static byte[] Take(int size)
         {
             return s_bufferPool.Take(size);
         }
 
+        /// <summary>
+        /// Returns <paramref name="buffer"/> to the <see cref="IBufferPool"/>.
+        /// </summary>
+        /// <param name="buffer">The byte array to be returned to the pool.</param>
         public static void Return([NotNull] byte[] buffer)
         {
             s_bufferPool.Return(buffer);
