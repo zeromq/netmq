@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using JetBrains.Annotations;
+using NetMQ.zmq;
 
 namespace NetMQ.SimpleTests
 {
-    internal class LatencyBenchmark : ITest
+    internal abstract class LatencyBenchmarkBase : ITest
     {
-        private const int Iterations = 20000;
+        protected const int Iterations = 20000;
 
         private static readonly int[] s_messageSizes = { 8, 64, 512, 4096, 8192, 16384, 32768 };
 
-        public string TestName
-        {
-            get { return "Req/Rep Latency Benchmark"; }
-        }
+        public string TestName { get; protected set; }
 
         public void RunTest()
         {
-            Console.Out.WriteLine("Iterations: {0}", Iterations);
+            Console.Out.WriteLine(" Iterations: {0:#,##0}", Iterations);
             Console.Out.WriteLine();
             Console.Out.WriteLine(" {0,-6} {1}", "Size", "Latency (µs)");
             Console.Out.WriteLine("---------------------");
@@ -32,29 +31,18 @@ namespace NetMQ.SimpleTests
             client.Join();
         }
 
-        private static void ClientThread()
+        private void ClientThread()
         {
             using (var context = NetMQContext.Create())
-            using (var socket = context.CreateRequestSocket())
+            using (var socket = CreateClientSocket(context))
             {
                 socket.Connect("tcp://127.0.0.1:9000");
 
                 foreach (int messageSize in s_messageSizes)
                 {
-                    var msg = new byte[messageSize];
-
-                    var watch = Stopwatch.StartNew();
-
-                    for (int i = 0; i < Iterations; i++)
-                    {
-                        socket.Send(msg);
-                        socket.Receive(); // ignore response
-                    }
-
-                    watch.Stop();
+                    var ticks = DoClient(socket, messageSize);
 
                     const long tripCount = Iterations*2;
-                    long ticks = watch.ElapsedTicks;
                     double seconds = (double)ticks/Stopwatch.Frequency;
                     double microsecond = seconds*1000000.0;
                     double microsecondsPerTrip = microsecond / tripCount;
@@ -64,22 +52,109 @@ namespace NetMQ.SimpleTests
             }
         }
 
-        private static void ServerThread()
+        private void ServerThread()
         {
             using (var context = NetMQContext.Create())
-            using (var socket = context.CreateResponseSocket())
+            using (var socket = CreateServerSocket(context))
             {
                 socket.Bind("tcp://*:9000");
 
-                for (int index = 0; index < s_messageSizes.Length; index++)
+                foreach (int messageSize in s_messageSizes)
                 {
-                    for (int i = 0; i < Iterations; i++)
-                    {
-                        byte[] message = socket.Receive();
-                        socket.Send(message);
-                    }
+                    DoServer(socket, messageSize);
                 }
             }
+        }
+
+        [NotNull] protected abstract NetMQSocket CreateClientSocket([NotNull] NetMQContext context);
+        [NotNull] protected abstract NetMQSocket CreateServerSocket([NotNull] NetMQContext context);
+
+        protected abstract long DoClient([NotNull] NetMQSocket socket, int messageSize);
+        protected abstract void DoServer([NotNull] NetMQSocket socket, int messageSize);
+    }
+
+    internal class LatencyBenchmark : LatencyBenchmarkBase
+    {
+        public LatencyBenchmark()
+        {
+            TestName = "Req/Rep Latency Benchmark";
+        }
+
+        protected override long DoClient(NetMQSocket socket, int messageSize)
+        {
+            var msg = new byte[messageSize];
+
+            var watch = Stopwatch.StartNew();
+
+            for (int i = 0; i < Iterations; i++)
+            {
+                socket.Send(msg);
+                socket.Receive(); // ignore response
+            }
+
+            return watch.ElapsedTicks;
+        }
+
+        protected override void DoServer(NetMQSocket socket, int messageSize)
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                byte[] message = socket.Receive();
+                socket.Send(message);
+            }
+        }
+
+        protected override NetMQSocket CreateClientSocket(NetMQContext context)
+        {
+            return context.CreateRequestSocket();
+        }
+
+        protected override NetMQSocket CreateServerSocket(NetMQContext context)
+        {
+            return context.CreateResponseSocket();
+        }
+    }
+
+    internal class LatencyBenchmarkReusingMsg : LatencyBenchmarkBase
+    {
+        public LatencyBenchmarkReusingMsg()
+        {
+            TestName = "Req/Rep Latency Benchmark (reusing Msg)";
+        }
+
+        protected override long DoClient(NetMQSocket socket, int messageSize)
+        {
+            var msg = new Msg();
+            msg.InitGC(new byte[messageSize], messageSize);
+
+            var watch = Stopwatch.StartNew();
+
+            for (int i = 0; i < Iterations; i++)
+            {
+                socket.Send(ref msg, SendReceiveOptions.None);
+                socket.Receive(ref msg, SendReceiveOptions.None);
+            }
+
+            return watch.ElapsedTicks;
+        }
+
+        protected override void DoServer(NetMQSocket socket, int messageSize)
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                byte[] message = socket.Receive();
+                socket.Send(message);
+            }
+        }
+
+        protected override NetMQSocket CreateClientSocket(NetMQContext context)
+        {
+            return context.CreateRequestSocket();
+        }
+
+        protected override NetMQSocket CreateServerSocket(NetMQContext context)
+        {
+            return context.CreateResponseSocket();
         }
     }
 }

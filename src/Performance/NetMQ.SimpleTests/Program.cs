@@ -9,8 +9,11 @@ namespace NetMQ.SimpleTests
             ITest[] tests =
             {
                 new LatencyBenchmark(),
+                new LatencyBenchmarkReusingMsg(),
                 new ThroughputBenchmark()
             };
+
+            Console.WriteLine();
 
             foreach (var test in tests)
             {
