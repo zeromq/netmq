@@ -6,6 +6,9 @@ namespace NetMQ.SimpleTests
     {
         public static void Main()
         {
+            // TODO include inproc variations
+            // TODO print system specs, as possible
+
             ITest[] tests =
             {
                 new LatencyBenchmark(),
