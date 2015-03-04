@@ -26,74 +26,55 @@ using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    /// <summary>
-    /// This flags enum-type is used to indicate characteristics of a Msg
-    /// - including More, Identity, and Shared (the default is None).
-    /// </summary>
+    /// <summary>Defines a set of flags applicable to a <see cref="Msg"/> instance.</summary>
     [Flags]
-    public enum MsgFlags
+    public enum MsgFlags : byte
     {
-        /// <summary>
-        /// This value (the default) indicates that none of the bits are set.
-        /// </summary>
+        /// <summary>Indicates no flags are set.</summary>
         None = 0,
 
-        /// <summary>
-        /// This is the "More" bit, which is used to signal that more messages follow.
-        /// </summary>
+        /// <summary>Indicates that more frames of the same message follow.</summary>
         More = 1,
 
-        /// <summary>
-        /// This bit indicates a message is intended to convey the identity of the associated socket.
-        /// </summary>
+        /// <summary>Indicates that this frame conveys the identity of a connected peer.</summary>
         Identity = 64,
 
-        /// <summary>
-        /// This bit indicates that the internal data is shared with other Msg objects.
-        /// </summary>
+        /// <summary>Indicates that this frame's internal data is shared with other <see cref="Msg"/> objects.</summary>
         Shared = 128,
     }
 
-    /// <summary>
-    /// Enumeration of possible <see cref="Msg"/> types.
-    /// </summary>
+    /// <summary>Enumeration of possible <see cref="Msg"/> types.</summary>
     public enum MsgType : byte
     {
-        /// <summary>
-        /// This (the default value of MsgType) indicates a value that has not been set yet, since it is invalid.
-        /// </summary>
+        /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
+        [Obsolete("Use Uninitialised instead")]
         Invalid = 0,
 
-        /// <summary>
-        /// The minimum valid value of MsgType bits.
-        /// </summary>
-        Min = 101,
+        /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
+        Uninitialised = 0,
 
-        /// <summary>
-        /// This flag indicates a message that is empty of content.
-        /// </summary>
+        /// <summary>The <see cref="Msg"/> is empty.</summary>
         Empty = 101,
 
-        /// <summary>
-        /// This flag indicates that the byte-array data de-allocation is managed by the .NET Garbage-Collector.
-        /// </summary>
+        /// <summary>The minimum valid enum value.</summary>
+        [Obsolete]
+        Min = 101,
+
+        /// <summary>The <see cref="Msg"/> data will be garbage collected when no longer needed.</summary>
         GC = 102,
 
         /// <summary>
-        /// This flag indicates that the byte-array data is provided by a data-pool manager,
-        /// as opposed to being continually allocated/deallocated.
+        /// The <see cref="Msg"/> data was allocated by <see cref="BufferPool"/>, and must be released back
+        /// to this pool when no longer needed. This happens when <see cref="Msg.Close"/> is called.
         /// </summary>
         Pool = 103,
 
-        /// <summary>
-        /// This flag indicates that the message is intended for use simply as a delimiter -
-        /// to mark a boundary between other parts of some unit of communication.
-        /// </summary>
+        /// <summary>The <see cref="Msg"/> is a delimiter frame and doesn't contain any data.</summary>
+        /// <remarks>Delimiters are commonly used to mark a boundary between groups frames.</remarks>
         Delimiter = 104,
 
-        /// <summary>
-        /// The maximum valid value of MsgType bits.
-        /// </summary>
+        /// <summary>The maximum valid enum value.</summary>
+        [Obsolete]
         Max = 104
     }
 
@@ -109,18 +90,19 @@ namespace NetMQ
     /// </remarks>
     public struct Msg
     {
-        /// <summary>
-        /// This serves as a reference-counter for shared byte-array data.
-        /// </summary>
-        private AtomicCounter m_atomicCounter;
+        /// <summary>An atomic reference count for knowing when to release a pooled data buffer back to the <see cref="BufferPool"/>.</summary>
+        /// <remarks>Will be <c>null</c> unless <see cref="MsgType"/> equals <see cref="NetMQ.MsgType.Pool"/>.</remarks>
+        private AtomicCounter m_refCount;
 
         /// <summary>
-        /// Get whether the Identity bit is set on the Flags property.
+        /// Get the number of bytes within the Data property.
         /// </summary>
-        public bool IsIdentity
-        {
-            get { return (Flags & MsgFlags.Identity) == MsgFlags.Identity; }
-        }
+        public int Size { get; private set; }
+
+        #region MsgType
+
+        /// <summary>Get the type of this message, from the MsgType enum.</summary>
+        public MsgType MsgType { get; private set; }
 
         /// <summary>
         /// Get whether the Delimiter bit is set on the Flags property,
@@ -132,10 +114,24 @@ namespace NetMQ
             get { return MsgType == MsgType.Delimiter; }
         }
 
+        /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
+        /// <remarks>A newly constructed <see cref="Msg"/> is uninitialised, and can be initialised via one
+        /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC"/>, or <see cref="InitPool"/>. 
+        /// Calling <see cref="Close"/> will cause the <see cref="Msg"/> to become uninitialised again.</remarks>
+        /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
+        public bool IsInitialised
+        {
+            get { return MsgType != MsgType.Uninitialised; }
+        }
+
+        #endregion
+
+        #region MsgFlags
+
         /// <summary>
-        /// Get the number of bytes within the Data property.
+        /// Get the flags-enum MsgFlags value, which indicates which of the More, Identity, or Shared bits are set.
         /// </summary>
-        public int Size { get; private set; }
+        public MsgFlags Flags { get; private set; }
 
         /// <summary>
         /// Get the "Has-More" flag, which when set on a message-queue frame indicates that there are more frames to follow.
@@ -146,168 +142,20 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get the MsgType flags-enum value, which indicates which of the Invalid, Empty, GC, Pool, or Delimiter bits are set.
+        /// Whether this <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
+        /// Only applies to pooled message types.
         /// </summary>
-        public MsgType MsgType { get; private set; }
-
-        /// <summary>
-        /// Get the flags-enum MsgFlags value, which indicates which of the More, Identity, or Shared bits are set.
-        /// </summary>
-        public MsgFlags Flags { get; private set; }
-
-        /// <summary>
-        /// Get the byte-array that represents the data payload of this Msg.
-        /// </summary>
-        public byte[] Data { get; private set; }
-
-        /// <summary>
-        /// Return true if the MsgType property is within the allowable range.
-        /// </summary>
-        /// <returns>true if the value of MsgType is 101..104</returns>
-        public bool Check()
+        public bool IsShared
         {
-            return MsgType >= MsgType.Min && MsgType <= MsgType.Max;
+            get { return (Flags & MsgFlags.Shared) != 0; }
         }
 
         /// <summary>
-        /// Clear this Msg to empty - ie, set MsgFlags to None, MsgType to Empty, and clear the Data.
+        /// Get whether the Identity bit is set on the Flags property.
         /// </summary>
-        public void InitEmpty()
+        public bool IsIdentity
         {
-            MsgType = MsgType.Empty;
-            Flags = MsgFlags.None;
-            Size = 0;
-            Data = null;
-            m_atomicCounter = null;
-        }
-
-        /// <summary>
-        /// Initialize this Msg to be of MsgType.Pool, with a data-buffer of the given number of bytes.
-        /// </summary>
-        /// <param name="size">the number of bytes to allocate in the data-buffer</param>
-        public void InitPool(int size)
-        {
-            MsgType = MsgType.Pool;
-            Flags = MsgFlags.None;
-            Data = BufferPool.Take(size);
-            Size = size;
-
-            m_atomicCounter = new AtomicCounter();
-        }
-
-        /// <summary>
-        /// Initialize this Msg to be of MsgType.GC with the given data-buffer value.
-        /// </summary>
-        /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
-        /// <param name="size">the number of bytes that are in the data byte-array</param>
-        public void InitGC([NotNull] byte[] data, int size)
-        {
-            MsgType = MsgType.GC;
-            Flags = MsgFlags.None;
-            Data = data;
-            Size = size;
-            m_atomicCounter = null;
-        }
-
-        /// <summary>
-        /// Set this Msg to be of type MsgType.Delimiter with no bits set within MsgFlags.
-        /// </summary>
-        public void InitDelimiter()
-        {
-            MsgType = MsgType.Delimiter;
-            Flags = MsgFlags.None;
-        }
-
-        /// <summary>
-        /// Clear the Data and set the MsgType to Invalid.
-        /// If this is not a shared-data Msg (MsgFlags.Shared is not set), or it is shared but the reference-counter has dropped to zero,
-        /// then return the data back to the BufferPool.
-        /// </summary>
-        public void Close()
-        {
-            if (!Check())
-            {
-                throw new FaultException("In Msg.Close, Check failed.");
-            }
-
-            if (MsgType == MsgType.Pool)
-            {
-                // if not shared or reference counter drop to zero
-                if ((Flags & MsgFlags.Shared) == 0 || m_atomicCounter.Decrement() == 0)
-                {
-                    BufferPool.Return(Data);
-                }
-
-                m_atomicCounter = null;
-            }
-
-            Data = null;
-
-            //  Make the message invalid.
-            MsgType = MsgType.Invalid;
-        }
-
-        /// <summary>
-        /// If this Msg is of MsgType.Pool, then - add the given amount number to the reference-counter
-        /// and set the shared-data Flags bit.
-        /// If this is not a Pool Msg, this does nothing.
-        /// </summary>
-        /// <param name="amount">the number to add to the internal reference-counter</param>
-        public void AddReferences(int amount)
-        {
-            if (amount == 0)
-            {
-                return;
-            }
-
-            if (MsgType == MsgType.Pool)
-            {
-                if (Flags == MsgFlags.Shared)
-                {
-                    m_atomicCounter.Increase(amount);
-                }
-                else
-                {
-                    m_atomicCounter.Set(amount);
-                    Flags |= MsgFlags.Shared;
-                }
-            }
-        }
-
-        /// <summary>
-        /// If this Msg is of MsgType.Pool and is marked as Shared, then - subtract the given amount number from the reference-counter
-        /// and, if that reaches zero - return the data to the shared-data pool.
-        /// If this is not both a Pool Msg and also marked as Shared, this simply Closes this Msg.
-        /// </summary>
-        /// <param name="amount">the number to subtract from the internal reference-counter</param>
-        public void RemoveReferences(int amount)
-        {
-            if (amount == 0)
-            {
-                return;
-            }
-
-            if (MsgType != MsgType.Pool || (Flags & MsgFlags.Shared) == 0)
-            {
-                Close();
-                return;
-            }
-
-            if (m_atomicCounter.Decrement(amount) == 0)
-            {
-                m_atomicCounter = null;
-
-                BufferPool.Return(Data);
-            }
-        }
-
-        /// <summary>
-        /// Override the Object ToString method to show the object-type, and values of the MsgType, Size, and Flags properties.
-        /// </summary>
-        /// <returns>a string that provides some detail about this Msg's state</returns>
-        public override String ToString()
-        {
-            return base.ToString() + "[" + MsgType + "," + Size + "," + Flags + "]";
+            get { return (Flags & MsgFlags.Identity) != 0; }
         }
 
         /// <summary>
@@ -326,7 +174,164 @@ namespace NetMQ
         public void ResetFlags(MsgFlags flags)
         {
             Flags &= ~flags;
-        }       
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Get the byte-array that represents the data payload of this <see cref="Msg"/>.
+        /// </summary>
+        /// <remarks>
+        /// This value will be <c>null</c> if <see cref="MsgType"/> is <see cref="NetMQ.MsgType.Uninitialised"/>,
+        /// <see cref="NetMQ.MsgType.Empty"/> or <see cref="NetMQ.MsgType.Delimiter"/>.
+        /// </remarks>
+        public byte[] Data { get; private set; }
+
+        /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
+        [Obsolete("Use the IsInitialised property instead")]
+        public bool Check()
+        {
+            return IsInitialised;
+        }
+
+        #region Initialisation
+
+        /// <summary>
+        /// Clear this Msg to empty - ie, set MsgFlags to None, MsgType to Empty, and clear the Data.
+        /// </summary>
+        public void InitEmpty()
+        {
+            MsgType = MsgType.Empty;
+            Flags = MsgFlags.None;
+            Size = 0;
+            Data = null;
+            m_refCount = null;
+        }
+
+        /// <summary>
+        /// Initialize this Msg to be of MsgType.Pool, with a data-buffer of the given number of bytes.
+        /// </summary>
+        /// <param name="size">the number of bytes to allocate in the data-buffer</param>
+        public void InitPool(int size)
+        {
+            MsgType = MsgType.Pool;
+            Flags = MsgFlags.None;
+            Data = BufferPool.Take(size);
+            Size = size;
+            m_refCount = new AtomicCounter();
+        }
+
+        /// <summary>
+        /// Initialize this Msg to be of MsgType.GC with the given data-buffer value.
+        /// </summary>
+        /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
+        /// <param name="size">the number of bytes that are in the data byte-array</param>
+        public void InitGC([NotNull] byte[] data, int size)
+        {
+            MsgType = MsgType.GC;
+            Flags = MsgFlags.None;
+            Data = data;
+            Size = size;
+            m_refCount = null;
+        }
+
+        /// <summary>
+        /// Set this Msg to be of type MsgType.Delimiter with no bits set within MsgFlags.
+        /// </summary>
+        public void InitDelimiter()
+        {
+            MsgType = MsgType.Delimiter;
+            Flags = MsgFlags.None;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Clear the Data and set the MsgType to Invalid.
+        /// If this is not a shared-data Msg (MsgFlags.Shared is not set), or it is shared but the reference-counter has dropped to zero,
+        /// then return the data back to the BufferPool.
+        /// </summary>
+        public void Close()
+        {
+            if (!IsInitialised)
+                throw new FaultException("Cannot close an uninitialised Msg.");
+
+            if (MsgType == MsgType.Pool)
+            {
+                // if not shared or reference counter drop to zero
+                if (!IsShared || m_refCount.Decrement() == 0)
+                    BufferPool.Return(Data);
+
+                m_refCount = null;
+            }
+
+            // Uninitialise the frame
+            Data = null;
+            MsgType = MsgType.Uninitialised;
+        }
+
+        /// <summary>
+        /// If this Msg is of MsgType.Pool, then - add the given amount number to the reference-counter
+        /// and set the shared-data Flags bit.
+        /// If this is not a Pool Msg, this does nothing.
+        /// </summary>
+        /// <param name="amount">the number to add to the internal reference-counter</param>
+        public void AddReferences(int amount)
+        {
+            if (amount == 0)
+            {
+                return;
+            }
+
+            if (MsgType == MsgType.Pool)
+            {
+                if (IsShared)
+                {
+                    m_refCount.Increase(amount);
+                }
+                else
+                {
+                    m_refCount.Set(amount);
+                    Flags |= MsgFlags.Shared;
+                }
+            }
+        }
+
+        /// <summary>
+        /// If this Msg is of MsgType.Pool and is marked as Shared, then - subtract the given amount number from the reference-counter
+        /// and, if that reaches zero - return the data to the shared-data pool.
+        /// If this is not both a Pool Msg and also marked as Shared, this simply Closes this Msg.
+        /// </summary>
+        /// <param name="amount">the number to subtract from the internal reference-counter</param>
+        public void RemoveReferences(int amount)
+        {
+            if (amount == 0)
+                return;
+
+            if (MsgType != MsgType.Pool || !IsShared)
+            {
+                Close();
+                return;
+            }
+
+            if (m_refCount.Decrement(amount) == 0)
+            {
+                m_refCount = null;
+
+                BufferPool.Return(Data);
+
+                // TODO shouldn't we set the type to uninitialised, or call clear, here? the object has a null refCount, but other methods may try to use it
+            }
+        }
+
+        /// <summary>
+        /// Override the Object ToString method to show the object-type, and values of the MsgType, Size, and Flags properties.
+        /// </summary>
+        /// <returns>a string that provides some detail about this Msg's state</returns>
+        public override String ToString()
+        {
+            return base.ToString() + "[" + MsgType + "," + Size + "," + Flags + "]";
+        }
 
         /// <summary>
         /// Copy the given byte-array data to this Msg's Data buffer.
@@ -380,27 +385,29 @@ namespace NetMQ
         /// <param name="src">the source Msg to copy from</param>
         public void Copy(ref Msg src)
         {
-            //  Check the validity of the source.
-            if (!src.Check())
-            {
-                throw new FaultException("In Msg.Copy, Check failed.");
-            }
+            // Check the validity of the source.
+            if (!src.IsInitialised)
+                throw new FaultException("Cannot copy an uninitialised Msg.");
 
-            Close();
+            if (IsInitialised)
+                Close();
 
-            if (MsgType == MsgType.Pool)
+            if (src.MsgType == MsgType.Pool)
             {
                 //  One reference is added to shared messages. Non-shared messages
                 //  are turned into shared messages and reference count is set to 2.
-                if (src.Flags.HasFlag(MsgFlags.Shared))
-                    src.m_atomicCounter.Increase(1);
+                if (IsShared)
+                {
+                    src.m_refCount.Increase(1);
+                }
                 else
                 {
                     src.Flags |= MsgFlags.Shared;
-                    src.m_atomicCounter.Set(2);
+                    src.m_refCount.Set(2);
                 }
             }
 
+            // Populate this instance via a memberwise-copy from the 'src' instance.
             this = src;
         }
 
@@ -410,13 +417,12 @@ namespace NetMQ
         /// <param name="src">the source-Msg to become</param>
         public void Move(ref Msg src)
         {
-            //  Check the validity of the source.
-            if (!src.Check())
-            {
-                throw new FaultException("In Msg.Move, Check failed.");
-            }
+            // Check the validity of the source.
+            if (!src.IsInitialised)
+                throw new FaultException("Cannot move an uninitialised Msg.");
 
-            Close();
+            if (IsInitialised)
+                Close();
 
             this = src;
 

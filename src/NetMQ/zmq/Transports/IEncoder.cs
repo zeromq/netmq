@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace NetMQ.zmq.Transports
 {
     /// <summary>
@@ -8,15 +10,15 @@ namespace NetMQ.zmq.Transports
         /// <summary>
         /// Set message producer.
         /// </summary>
-        void SetMsgSource(IMsgSource msgSource);
+        void SetMsgSource([NotNull] IMsgSource msgSource);
 
         /// <summary>
         /// Get a ByteArraySegment of binary data. The data
         /// are filled to a supplied buffer. If no buffer is supplied (data is null)
         /// encoder will provide buffer of its own.
         /// </summary>
-        void GetData(ref ByteArraySegment data, ref int size);
+        void GetData([NotNull] ref ByteArraySegment data, ref int size);
 
-        void GetData(ref ByteArraySegment data, ref int size, ref int offset);
+        void GetData([NotNull] ref ByteArraySegment data, ref int size, ref int offset);
     }
 }

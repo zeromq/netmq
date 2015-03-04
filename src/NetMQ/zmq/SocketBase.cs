@@ -707,10 +707,8 @@ namespace NetMQ.zmq
             CheckContextTerminated();
 
             //  Check whether message passed to the function is valid.
-            if (!msg.Check())
-            {
-                throw new FaultException("In SocketBase.Send, Msg.Check failed.");
-            }
+            if (!msg.IsInitialised)
+                throw new FaultException("SocketBase.Send passed an uninitialised Msg.");
 
             //  Process pending commands, if any.
             ProcessCommands(0, true);
@@ -726,9 +724,7 @@ namespace NetMQ.zmq
             bool isMessageSent = XSend(ref msg, flags);
 
             if (isMessageSent)
-            {
                 return;
-            }
 
             //  In case of non-blocking send we'll simply propagate
             //  the error - including EAGAIN - up the stack.
@@ -738,17 +734,11 @@ namespace NetMQ.zmq
 #if DEBUG
                 string xMsg;
                 if (isDontWaitSet && m_options.SendTimeout == 0)
-                {
                     xMsg = "SocketBase.Send failed, and DontWait is true AND SendTimeout is 0.";
-                }
                 else if (isDontWaitSet)
-                {
                     xMsg = "SocketBase.Send failed and DontWait is specified.";
-                }
                 else
-                {
                     xMsg = "SocketBase.Send failed and no SendTimeout is specified.";
-                }
                 throw new AgainException(innerException: null, message: xMsg);
 #else
                 throw new AgainException(innerException: null, message: "SocketBase.Send failed");
@@ -768,17 +758,17 @@ namespace NetMQ.zmq
                 ProcessCommands(timeout, false);
 
                 isMessageSent = XSend(ref msg, flags);
+                
                 if (isMessageSent)
                     break;
 
-                if (timeout > 0)
-                {
-                    timeout = (int)(end - Clock.NowMs());
-                    if (timeout <= 0)
-                    {
-                        throw new AgainException(innerException: null, message: "SocketBase.Send failed and timeout <= 0");
-                    }
-                }
+                if (timeout <= 0)
+                    continue;
+
+                timeout = (int)(end - Clock.NowMs());
+                    
+                if (timeout <= 0)
+                    throw new AgainException(innerException: null, message: "SocketBase.Send failed and timeout <= 0");
             }
         }
 
@@ -787,14 +777,8 @@ namespace NetMQ.zmq
             CheckContextTerminated();
 
             //  Check whether message passed to the function is valid.
-            if (!msg.Check())
-            {
-#if DEBUG
-                throw new FaultException(String.Format("In SocketBase.Recv - Check failed, MsgType is {0}hex", msg.MsgType.ToString("X")));
-#else
-                throw new FaultException("In SocketBase.Recv, Check failed.");
-#endif
-            }
+            if (!msg.IsInitialised)
+                throw new FaultException("SocketBase.Recv passed an uninitialised Msg.");
 
             //  Get the message.
             bool isMessageAvailable = XRecv(flags, ref msg);
@@ -1166,8 +1150,7 @@ namespace NetMQ.zmq
         private void ExtractFlags(ref Msg msg)
         {
             //  Test whether IDENTITY flag is valid for this socket type.
-            if ((msg.Flags & MsgFlags.Identity) != 0)
-                Debug.Assert(m_options.RecvIdentity);
+            Debug.Assert(!msg.IsIdentity || m_options.RecvIdentity);
 
             //  Remove MORE flag.
             m_rcvMore = msg.HasMore;

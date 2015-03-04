@@ -164,7 +164,7 @@ namespace NetMQ.zmq.Patterns
                 Identity,
                 Bottom,
                 Body
-            };
+            }
 
             private State m_state;
 
@@ -176,6 +176,8 @@ namespace NetMQ.zmq.Patterns
 
             public override bool PushMsg(ref Msg msg)
             {
+                // TODO the flags checks here don't check specific bits -- should they use HasMore instead? does this work with shared Msg objects?
+
                 switch (m_state)
                 {
                     case State.Bottom:
@@ -188,14 +190,14 @@ namespace NetMQ.zmq.Patterns
                     case State.Body:
                         if (msg.Flags == MsgFlags.More)
                             return base.PushMsg(ref msg);
-                        if (msg.Flags == 0)
+                        if (msg.Flags == MsgFlags.None)
                         {
                             m_state = State.Bottom;
                             return base.PushMsg(ref msg);
                         }
                         break;
                     case State.Identity:
-                        if (msg.Flags == 0)
+                        if (msg.Flags == MsgFlags.None)
                         {
                             m_state = State.Bottom;
                             return base.PushMsg(ref msg);
