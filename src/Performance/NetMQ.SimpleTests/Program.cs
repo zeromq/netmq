@@ -10,7 +10,8 @@ namespace NetMQ.SimpleTests
             {
                 new LatencyBenchmark(),
                 new LatencyBenchmarkReusingMsg(),
-                new ThroughputBenchmark()
+                new ThroughputBenchmark(),
+                new ThroughputBenchmarkReusingMsg()
             };
 
             Console.WriteLine();
