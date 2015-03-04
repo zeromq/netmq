@@ -90,10 +90,9 @@ namespace NetMQ
     /// </remarks>
     public struct Msg
     {
-        /// <summary>
-        /// This serves as a reference-counter for shared byte-array data.
-        /// </summary>
-        private AtomicCounter m_atomicCounter;
+        /// <summary>An atomic reference count for knowing when to release a pooled data buffer back to the <see cref="BufferPool"/>.</summary>
+        /// <remarks>Will be <c>null</c> unless <see cref="MsgType"/> equals <see cref="NetMQ.MsgType.Pool"/>.</remarks>
+        private AtomicCounter m_refCount;
 
         /// <summary>
         /// Get the number of bytes within the Data property.
@@ -206,7 +205,7 @@ namespace NetMQ
             Flags = MsgFlags.None;
             Size = 0;
             Data = null;
-            m_atomicCounter = null;
+            m_refCount = null;
         }
 
         /// <summary>
@@ -219,7 +218,7 @@ namespace NetMQ
             Flags = MsgFlags.None;
             Data = BufferPool.Take(size);
             Size = size;
-            m_atomicCounter = new AtomicCounter();
+            m_refCount = new AtomicCounter();
         }
 
         /// <summary>
@@ -233,7 +232,7 @@ namespace NetMQ
             Flags = MsgFlags.None;
             Data = data;
             Size = size;
-            m_atomicCounter = null;
+            m_refCount = null;
         }
 
         /// <summary>
@@ -260,10 +259,10 @@ namespace NetMQ
             if (MsgType == MsgType.Pool)
             {
                 // if not shared or reference counter drop to zero
-                if (!IsShared || m_atomicCounter.Decrement() == 0)
+                if (!IsShared || m_refCount.Decrement() == 0)
                     BufferPool.Return(Data);
 
-                m_atomicCounter = null;
+                m_refCount = null;
             }
 
             // Uninitialise the frame
@@ -288,11 +287,11 @@ namespace NetMQ
             {
                 if (IsShared)
                 {
-                    m_atomicCounter.Increase(amount);
+                    m_refCount.Increase(amount);
                 }
                 else
                 {
-                    m_atomicCounter.Set(amount);
+                    m_refCount.Set(amount);
                     Flags |= MsgFlags.Shared;
                 }
             }
@@ -315,9 +314,9 @@ namespace NetMQ
                 return;
             }
 
-            if (m_atomicCounter.Decrement(amount) == 0)
+            if (m_refCount.Decrement(amount) == 0)
             {
-                m_atomicCounter = null;
+                m_refCount = null;
 
                 BufferPool.Return(Data);
             }
@@ -399,12 +398,12 @@ namespace NetMQ
                 //  are turned into shared messages and reference count is set to 2.
                 if (IsShared)
                 {
-                    src.m_atomicCounter.Increase(1);
+                    src.m_refCount.Increase(1);
                 }
                 else
                 {
                     src.Flags |= MsgFlags.Shared;
-                    src.m_atomicCounter.Set(2);
+                    src.m_refCount.Set(2);
                 }
             }
 
