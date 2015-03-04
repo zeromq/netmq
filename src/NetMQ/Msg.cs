@@ -319,6 +319,8 @@ namespace NetMQ
                 m_refCount = null;
 
                 BufferPool.Return(Data);
+
+                // TODO shouldn't we set the type to uninitialised, or call clear, here? the object has a null refCount, but other methods may try to use it
             }
         }
 
