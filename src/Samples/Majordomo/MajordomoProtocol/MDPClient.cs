@@ -174,24 +174,25 @@ namespace MajordomoProtocol
         /// <remarks>
         ///     socket strips [client adr][e] from message
         ///     message -> [protocol header][service name][reply]
+        ///                [protocol header][service name][result code of service lookup]
         /// </remarks>
         private void ProcessReceiveReady (object sender, NetMQSocketEventArgs e)
         {
             // a message is available within the timeout period
             var reply = m_client.ReceiveMessage ();
 
-            Log (string.Format ("[CLIENT INFO] received the reply {0}", reply));
+            Log (string.Format ("\n[CLIENT INFO] received the reply {0}\n", reply));
 
             // in production code malformed messages should be handled smarter
-            if (reply.FrameCount < 3)
+            if (reply.FrameCount < 2)
                 throw new ApplicationException ("[CLIENT ERROR] received a malformed reply");
 
-            var header = reply.Pop ();          // [service name][reply]
+            var header = reply.Pop ();          // [service name][reply] OR [service name][return code]
 
             if (header.ConvertToString () != m_mdpClient)
                 throw new ApplicationException (string.Format ("[CLIENT INFO] MDP Version mismatch: {0}", header));
 
-            var service = reply.Pop ();         // [reply]
+            var service = reply.Pop ();         // [reply] OR [return code]
 
             if (service.ConvertToString () != m_serviceName)
                 throw new ApplicationException (string.Format ("[CLIENT INFO] answered by wrong service: {0}",

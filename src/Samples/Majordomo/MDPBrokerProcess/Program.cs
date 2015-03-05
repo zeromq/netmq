@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +8,7 @@ namespace MDPBrokerProcess
 {
     class Program
     {
-        private static bool _Verbose;
+        private static bool _verbose, _debug;
 
         private static void Main (string[] args)
         {
@@ -25,7 +24,10 @@ namespace MDPBrokerProcess
             Console.WriteLine ("MDP Broker - Majordomo Protocol V0.1\n");
             Console.WriteLine ("\tto stop processing use CTRL+C");
 
-            _Verbose = args.Length > 0 && args[0] == "-v";
+            _verbose = args.Length > 0 && args[0] == "-v";
+            _debug = args.Length == 2 && args[1] == "-d";
+
+            Console.WriteLine ("\nMessageLevel: Verbose = {0} and Debug = {1}", _verbose, _debug);
 
             // used to signal to stop the broker process
             var cts = new CancellationTokenSource ();
@@ -72,15 +74,16 @@ namespace MDPBrokerProcess
             }
 
         }
-
-
-
+        
         private static async Task RunBroker (CancellationTokenSource cts)
         {
             using (var broker = new MDPBroker ("tcp://*:5555"))
             {
-                if (_Verbose)
+                if (_verbose)
                     broker.LogInfoReady += (s, e) => Console.WriteLine (e.Info);
+
+                if (_verbose)
+                    broker.DebugInfoReady += (s, e) => Console.WriteLine (e.Info);
 
                 await broker.Run (cts.Token);
             }

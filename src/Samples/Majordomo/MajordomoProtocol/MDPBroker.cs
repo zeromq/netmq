@@ -19,6 +19,7 @@ namespace MajordomoProtocol
     ///     it registers any worker with its service
     ///     it routes requests from clients to waiting workers offering the service the client has requested
     ///     as soon as they become available
+    ///     also allows service discovery by clients via a special request 'mmi.service'
     /// 
     ///     Services can/must be requested with a request, a.k.a. data to process
     /// 
@@ -39,10 +40,12 @@ namespace MajordomoProtocol
     {
         // broker expects from
         //      CLIENT  ->  [sender adr][e][protocol header][service name][request]
+        //                  [sender adr][e][protocol header]['mmi.service'][service name]
         //      WORKER  ->  [sender adr][e][protocol header][mdp command][reply]
 
         // send from broker to
         //      CLIENT  ->  [CLIENT ADR][e][protocol header][SERVICENAME][DATA]
+        //                  [CLIENT ADR][e][protocol header][RETURN CODE]
         //      WORKER  ->  READY       [WORKER ADR][e][protocol header][mdp command][service name]
         //                  REPLY       [WORKER ADR][e][protocol header][mdp command][client adr][e][reply]
         //                  HEARTBEAT   [WORKER ADR][e][protocol header][mdp command]
@@ -202,7 +205,7 @@ namespace MajordomoProtocol
 
             using (var poller = new Poller ())
             {
-                Socket.ReceiveReady += ProcessReceiveMessage;
+                Socket.ReceiveReady += ProcessReceivedMessage;
                 // get timer for scheduling heartbeat
                 var timer = new NetMQTimer (HeartbeatInterval);
                 // send every 'HeartbeatInterval' a heartbeat to all not expired workers
@@ -223,7 +226,7 @@ namespace MajordomoProtocol
                 poller.RemoveTimer (timer);
                 poller.RemoveSocket (Socket);
                 // unregister event handler
-                Socket.ReceiveReady -= ProcessReceiveMessage;
+                Socket.ReceiveReady -= ProcessReceivedMessage;
             }
 
             m_isRunning = false;
@@ -246,7 +249,7 @@ namespace MajordomoProtocol
 
             using (var poller = new Poller ())
             {
-                Socket.ReceiveReady += ProcessReceiveMessage;
+                Socket.ReceiveReady += ProcessReceivedMessage;
                 // get timer for scheduling heartbeat
                 var timer = new NetMQTimer (HeartbeatInterval);
                 // send every 'HeartbeatInterval' a heartbeat to all not expired workers
@@ -267,7 +270,7 @@ namespace MajordomoProtocol
                 poller.RemoveTimer (timer);
                 poller.RemoveSocket (Socket);
                 // unregister event handler
-                Socket.ReceiveReady -= ProcessReceiveMessage;
+                Socket.ReceiveReady -= ProcessReceivedMessage;
             }
 
             m_isRunning = false;
@@ -291,7 +294,7 @@ namespace MajordomoProtocol
         ///     CLIENT  ->  [sender adr][e][protocol header][service name][request]
         ///     WORKER  ->  [sender adr][e][protocol header][mdp command][reply]
         /// </summary>
-        private void ProcessReceiveMessage (object sender, NetMQSocketEventArgs e)
+        private void ProcessReceivedMessage (object sender, NetMQSocketEventArgs e)
         {
             var msg = e.Socket.ReceiveMessage ();
 
@@ -405,14 +408,14 @@ namespace MajordomoProtocol
         /// <param name="message">the message received</param>
         public void ProcessClientMessage (NetMQFrame sender, NetMQMessage message)
         {
-            // we expect [SERVICENAME][DATA]
+            // should be
+            // REQUEST      [service name][request] OR 
+            // DISCOVER     ['mmi.service'][service to discover]
             if (message.FrameCount < 2)
                 throw new ArgumentException ("The message is malformed!");
 
-            var serviceFrame = message.Pop ();                 // [service name][request] OR ["mmi.service"][service name]
+            var serviceFrame = message.Pop ();                 // [request] OR [service to discover]
             var serviceName = serviceFrame.ConvertToString ();
-            var service = ServiceRequired (serviceName);
-
             var request = Wrap (sender, message);              // [CLIENT ADR][e][request] OR [service name]
 
             // if it is a "mmi.service" request, handle it locally
@@ -429,18 +432,22 @@ namespace MajordomoProtocol
                 {
                     var svc = m_services.Find (s => s.Name == name);
 
-                    returnCode = svc.DoWorkersExist () ? "200" : "400"; // [CLIENT ADR][e][service name]
+                    returnCode = svc.DoWorkersExist () ? "200" : "400";
                 }
                 // set the return code to be the last frame in the message
-                var rc = new NetMQFrame (returnCode);
-                request.RemoveFrame (message.Last);             // [CLIENT ADR][e]
-                request.Append (rc);                            // [CLIENT ADR][e][return code]
+                var rc = new NetMQFrame (returnCode);           // [return code]
+
+                request.RemoveFrame (message.Last);             // [CLIENT ADR][e] -> [service name]
+                request.Append (serviceName);                   // [CLIENT ADR][e] <- ['mmi.service']
+                request.Append (rc);                            // [CLIENT ADR][e]['mmi.service'] <- [return code]
+
                 // remove client return envelope and insert 
                 // protocol header and service name, 
                 // then rewrap envelope
-                var client = UnWrap (message);                  // [return code]
+                var client = UnWrap (request);                  // [return code]
                 request.Push (MDPClientHeader);                 // [protocol header][return code]
                 var reply = Wrap (client, request);             // [CLIENT ADR][e][protocol header][return code]
+
                 // send to back to CLIENT(!)
                 Socket.SendMessage (reply);
 
@@ -448,6 +455,9 @@ namespace MajordomoProtocol
             }
             else
             {
+                // get the requested service object
+                var service = ServiceRequired (serviceName);
+
                 // a standard REQUEST received
                 Log (string.Format ("[BROKER] Dispatching request -> {0}", request));
 
@@ -655,6 +665,8 @@ namespace MajordomoProtocol
 
         /// <summary>
         ///     returns the first frame and deletes the next frame if it is empty
+        /// 
+        ///     CHANGES message!
         /// </summary>
         private NetMQFrame UnWrap (NetMQMessage message)
         {

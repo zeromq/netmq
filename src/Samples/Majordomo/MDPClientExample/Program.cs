@@ -49,8 +49,6 @@ namespace MDPClientExample
                             runs = GetInt (args[1]);
             }
 
-            int count;
-
             runs = runs == -1 ? 10 : runs > max_runs ? max_runs : runs;
 
             var id = new[] { (byte) 'C', (byte) '1' };
@@ -71,6 +69,7 @@ namespace MDPClientExample
 
                     watch.Start ();
 
+                    int count;
                     for (count = 0; count < runs; count++)
                     {
                         var request = new NetMQMessage ();

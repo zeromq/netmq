@@ -12,7 +12,7 @@ namespace NetMQ
         private int m_messageSize;
         private int m_hash = 0;
 
-        public NetMQFrame(byte[] buffer)
+        public NetMQFrame (byte[] buffer)
         {
             if (buffer == null)
             {
@@ -23,23 +23,23 @@ namespace NetMQ
             MessageSize = buffer.Length;
         }
 
-        public NetMQFrame(string message)
-            : this(Encoding.ASCII.GetBytes(message))
+        public NetMQFrame (string message)
+            : this (Encoding.ASCII.GetBytes (message))
         {
 
         }
 
-        public NetMQFrame(string message, Encoding encoding)
-            : this(encoding.GetBytes(message))
+        public NetMQFrame (string message, Encoding encoding)
+            : this (encoding.GetBytes (message))
         {
 
         }
 
-        public NetMQFrame(int length)
+        public NetMQFrame (int length)
         {
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException("length", "A non-negative value is expected.");
+                throw new ArgumentOutOfRangeException ("length", "A non-negative value is expected.");
             }
 
             Buffer = new byte[length];
@@ -57,7 +57,7 @@ namespace NetMQ
             {
                 if (value < 0 || value > BufferSize)
                 {
-                    throw new ArgumentOutOfRangeException("value", "Expected non-negative value less than or equal to the buffer size.");
+                    throw new ArgumentOutOfRangeException ("value", "Expected non-negative value less than or equal to the buffer size.");
                 }
 
                 m_messageSize = value;
@@ -82,7 +82,7 @@ namespace NetMQ
         /// </summary>
         public static NetMQFrame Empty
         {
-            get { return new NetMQFrame(0); }
+            get { return new NetMQFrame (0); }
         }
 
 
@@ -92,46 +92,46 @@ namespace NetMQ
         /// <param name="buffer">The <see cref="byte"/> array to copy.</param>
         /// <returns>A <see cref="NetMQFrame"/> containing a copy of <paramref name="buffer"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
-        public static NetMQFrame Copy(byte[] buffer)
+        public static NetMQFrame Copy (byte[] buffer)
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException("buffer");
+                throw new ArgumentNullException ("buffer");
             }
 
-            var copy = new NetMQFrame(buffer.Length);
+            var copy = new NetMQFrame (buffer.Length);
 
-            System.Buffer.BlockCopy(buffer, 0, copy.Buffer, 0, buffer.Length);
+            System.Buffer.BlockCopy (buffer, 0, copy.Buffer, 0, buffer.Length);
 
             return copy;
         }
 
-        public string ConvertToString()
+        public string ConvertToString ()
         {
-            return Encoding.ASCII.GetString(Buffer, 0, this.MessageSize);
+            return Encoding.ASCII.GetString (Buffer, 0, this.MessageSize);
         }
 
-        public string ConvertToString(Encoding encoding)
+        public string ConvertToString (Encoding encoding)
         {
-            return encoding.GetString(Buffer, 0, this.MessageSize);
+            return encoding.GetString (Buffer, 0, this.MessageSize);
         }
 
         /// <summary>
         /// Convert the buffer to integer in network byte order (Big endian)
         /// </summary>
         /// <returns></returns>
-        public int ConvertToInt32()
+        public int ConvertToInt32 ()
         {
-            return NetworkOrderBitsConverter.ToInt32(Buffer);
+            return NetworkOrderBitsConverter.ToInt32 (Buffer);
         }
 
         /// <summary>
         /// Convert the buffer to long in network byte order (Big endian)
         /// </summary>
         /// <returns></returns>
-        public long ConvertToInt64()
+        public long ConvertToInt64 ()
         {
-            return NetworkOrderBitsConverter.ToInt64(Buffer);
+            return NetworkOrderBitsConverter.ToInt64 (Buffer);
         }
 
         /// <summary>
@@ -140,35 +140,35 @@ namespace NetMQ
         /// <param name="frame">The <see cref="NetMQFrame"/> to copy.</param>
         /// <returns>A <see cref="NetMQFrame"/> containing a copy of <paramref name="frame"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
-        public static NetMQFrame Copy(NetMQFrame frame)
+        public static NetMQFrame Copy (NetMQFrame frame)
         {
             if (frame == null)
             {
-                throw new ArgumentNullException("frame");
+                throw new ArgumentNullException ("frame");
             }
 
-            var copy = new NetMQFrame(new byte[frame.BufferSize]);
+            var copy = new NetMQFrame (new byte[frame.BufferSize]);
             copy.MessageSize = frame.MessageSize;
 
-            System.Buffer.BlockCopy(frame.Buffer, 0, copy.Buffer, 0, frame.BufferSize);
+            System.Buffer.BlockCopy (frame.Buffer, 0, copy.Buffer, 0, frame.BufferSize);
 
             return copy;
         }
 
-        public NetMQFrame Duplicate()
+        public NetMQFrame Duplicate ()
         {
-            return Copy(this);
+            return Copy (this);
         }
 
-        public bool Equals(byte[] other)
+        public bool Equals (byte[] other)
         {
             if (other == null)
-                return false;            
+                return false;
 
             if (other.Length != MessageSize)
                 return false;
 
-            if (ReferenceEquals(Buffer, other))
+            if (ReferenceEquals (Buffer, other))
                 return true;
 
             for (int i = 0; i < MessageSize; i++)
@@ -185,12 +185,12 @@ namespace NetMQ
         /// </summary>
         /// <param name="other">The <see cref="NetMQFrame"/> to compare with the current <see cref="NetMQFrame"/>.</param>
         /// <returns>true if the specified System.Object is equal to the current System.Object; otherwise, false.</returns>
-        public bool Equals(NetMQFrame other)
+        public bool Equals (NetMQFrame other)
         {
-            if(other== null)
+            if (ReferenceEquals (other, null))
                 return false;
 
-            if (ReferenceEquals(this, other))
+            if (ReferenceEquals (this, other))
                 return true;
 
             if (MessageSize > other.BufferSize || MessageSize != other.MessageSize)
@@ -209,17 +209,30 @@ namespace NetMQ
             return true;
         }
 
-        bool IEquatable<NetMQFrame>.Equals(NetMQFrame other)
+        public static bool operator == (NetMQFrame one, NetMQFrame other)
         {
-            return Equals(other);
-        }        
+            if (ReferenceEquals (one, null) && ReferenceEquals (other, null))
+                return true;
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as NetMQFrame);
+            return !ReferenceEquals (one, null) && one.Equals (other);
         }
 
-        public override int GetHashCode()
+        public static bool operator != (NetMQFrame one, NetMQFrame other)
+        {
+            return !(one == other);
+        }
+
+        bool IEquatable<NetMQFrame>.Equals (NetMQFrame other)
+        {
+            return Equals (other);
+        }
+
+        public override bool Equals (object obj)
+        {
+            return Equals (obj as NetMQFrame);
+        }
+
+        public override int GetHashCode ()
         {
             if (m_hash == 0)
             {
@@ -233,7 +246,7 @@ namespace NetMQ
         }
 
 
-        public byte[] ToByteArray(bool copy = false)
+        public byte[] ToByteArray (bool copy = false)
         {
             if (!copy || MessageSize == BufferSize)
             {
@@ -243,7 +256,7 @@ namespace NetMQ
             {
                 byte[] byteArray = new byte[MessageSize];
 
-                System.Buffer.BlockCopy(Buffer, 0, byteArray, 0, MessageSize);
+                System.Buffer.BlockCopy (Buffer, 0, byteArray, 0, MessageSize);
 
                 return byteArray;
             }
