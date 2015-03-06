@@ -5,7 +5,8 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     /// <summary>
-    /// This subclass of EventArgs contains a NetMQSocket, and ReceiveReady and SendReady flags to indicate whether ready to receive or send.
+    /// This subclass of EventArgs contains a NetMQSocket,
+    /// and IsReadyToReceive and IsReadyToSend flags to indicate whether ready to receive or send.
     /// </summary>
     public class NetMQSocketEventArgs : EventArgs
     {
@@ -24,8 +25,8 @@ namespace NetMQ
         /// <param name="events">a PollEvents value that indicates whether the socket is ready to send or receive without blocking</param>
         internal void Init(PollEvents events)
         {
-            ReceiveReady = events.HasFlag(PollEvents.PollIn);
-            SendReady = events.HasFlag(PollEvents.PollOut);
+            IsReadyToReceive = events.HasFlag(PollEvents.PollIn);
+            IsReadyToSend = events.HasFlag(PollEvents.PollOut);
         }
 
         [NotNull]
@@ -34,11 +35,11 @@ namespace NetMQ
         /// <summary>
         /// Get whether at least one message may be received by the socket without blocking.
         /// </summary>
-        public bool ReceiveReady { get; private set; }
+        public bool IsReadyToReceive { get; private set; }
 
         /// <summary>
         /// Get whether at least one message may be sent by the socket without blocking.
         /// </summary>
-        public bool SendReady { get; private set; }
+        public bool IsReadyToSend { get; private set; }
     }
 }
