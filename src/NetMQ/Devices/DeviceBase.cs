@@ -150,11 +150,15 @@ namespace NetMQ.Devices
         /// <summary>
         /// Invoked when a message has been received by the frontend socket.
         /// </summary>
+        /// <param name="sender">the object that raised the ReceiveReady event</param>
+        /// <param name="args">a NetMQSocketEventArgs that contains a Socket for receiving data from</param>
         protected abstract void FrontendHandler(object sender, NetMQSocketEventArgs args);
 
         /// <summary>
         /// Invoked when a message has been received by the backend socket.
         /// </summary>
+        /// <param name="sender">the object that raised the ReceiveReady event</param>
+        /// <param name="args">a NetMQSocketEventArgs that contains a Socket for receiving data from</param>
         protected virtual void BackendHandler(object sender, NetMQSocketEventArgs args) { }
     }
 }

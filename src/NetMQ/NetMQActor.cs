@@ -19,11 +19,18 @@ namespace NetMQ
     /// </summary>
     public class NetMQActorEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create a new NetMQActorEventArgs with the given NetMQActor.
+        /// </summary>
+        /// <param name="actor">the NetMQActor for this exception to reference</param>
         public NetMQActorEventArgs([NotNull] NetMQActor actor)
         {
             Actor = actor;
         }
 
+        /// <summary>
+        /// Get the NetMQActor that this exception references.
+        /// </summary>
         [NotNull]
         public NetMQActor Actor { get; private set; }
     }
@@ -39,6 +46,9 @@ namespace NetMQ
     /// </summary>
     public class NetMQActor : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
+        /// <summary>
+        /// This is just the literal string "endPipe".
+        /// </summary>
         public const string EndShimMessage = "endPipe";
 
         #region Action shim handlers
@@ -174,6 +184,11 @@ namespace NetMQ
             m_shim.Dispose();
         }
 
+        /// <summary>
+        /// Transmit the given Msg over this socket.
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="options"></param>
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Send(ref msg, options);
@@ -186,12 +201,18 @@ namespace NetMQ
 
         #region Events Handling
 
+        /// <summary>
+        /// This event occurs when at least one message may be received from the socket without blocking.
+        /// </summary>
         public event EventHandler<NetMQActorEventArgs> ReceiveReady
         {
             add { m_receiveEventDelegatorHelper.Event += value; }
             remove { m_receiveEventDelegatorHelper.Event -= value; }
         }
 
+        /// <summary>
+        /// This event occurs when a message is ready to be transmitted from the socket.
+        /// </summary>
         public event EventHandler<NetMQActorEventArgs> SendReady
         {
             add { m_sendEventDelegatorHelper.Event += value; }

@@ -25,10 +25,25 @@ using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
+    /// <summary>
+    /// A Dealer socket is a SocketBase that is used as the parent-class of the Req socket.
+    /// It provides for a pre-fetched Msg, and skips identity-messages.
+    /// </summary>
     internal class Dealer : SocketBase
     {
+        /// <summary>
+        /// A DealerSession is a SessionBase subclass that is contained within the Dealer class.
+        /// </summary>
         public class DealerSession : SessionBase
         {
+            /// <summary>
+            /// Create a new DealerSession (which is just a SessionBase).
+            /// </summary>
+            /// <param name="ioThread">the I/O-thread to associate this with</param>
+            /// <param name="connect"></param>
+            /// <param name="socket"></param>
+            /// <param name="options"></param>
+            /// <param name="addr"></param>
             public DealerSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
@@ -47,10 +62,13 @@ namespace NetMQ.zmq.Patterns
         /// </summary>
         private bool m_prefetched;
 
+        /// <summary>
+        /// The Msg that we have pre-fetched.
+        /// </summary>
         private Msg m_prefetchedMsg;
 
         /// <summary>
-        /// Holds the prefetched message.
+        /// Create a new Dealer socket that holds the prefetched message.
         /// </summary>
         public Dealer([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
@@ -67,6 +85,9 @@ namespace NetMQ.zmq.Patterns
             m_prefetchedMsg.InitEmpty();
         }
 
+        /// <summary>
+        /// Destroy this Dealer-socket and close out any pre-fetched Msg.
+        /// </summary>
         public override void Destroy()
         {
             base.Destroy();
@@ -74,6 +95,11 @@ namespace NetMQ.zmq.Patterns
             m_prefetchedMsg.Close();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -86,11 +112,26 @@ namespace NetMQ.zmq.Patterns
             return m_loadBalancer.Send(ref msg);
         }
 
+        /// <summary>
+        /// For a Dealer socket: If there's a pre-fetched message, snatch that.
+        /// Otherwise, dump any identity messages and get the first non-identity message,
+        /// or return false if there are no messages available.
+        /// </summary>
+        /// <param name="flags">this argument is not used</param>
+        /// <param name="msg">a Msg to receive the message into</param>
+        /// <returns>false if there were no messages to receive</returns>
         protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
         {
             return ReceiveInternal(ref msg);
         }
 
+        /// <summary>
+        /// If there's a pre-fetched message, snatch that.
+        /// Otherwise, dump any identity messages and get the first non-identity message,
+        /// or return false if there are no messages available.
+        /// </summary>
+        /// <param name="msg">a Msg to receive the message into</param>
+        /// <returns>false if there were no messages to receive</returns>
         private bool ReceiveInternal(ref Msg msg)
         {
             //  If there is a prefetched message, return it.
@@ -113,6 +154,7 @@ namespace NetMQ.zmq.Patterns
                     return false;
                 }
 
+                // Stop when we get any message that is not an Identity.
                 if (!msg.IsIdentity)
                     break;
             }
@@ -120,6 +162,11 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
+        /// <summary>
+        /// If there is a message available and one has not been pre-fetched yet,
+        /// preserve that message as our pre-fetched one.
+        /// </summary>
+        /// <returns></returns>
         protected override bool XHasIn()
         {
             //  We may already have a message pre-fetched.

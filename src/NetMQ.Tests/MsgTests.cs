@@ -18,7 +18,7 @@ namespace NetMQ.Tests
             var msg = new Msg();
 
             Assert.AreEqual(0, msg.Size);
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
+            Assert.AreEqual(MsgType.Uninitialized, msg.MsgType);
             Assert.AreEqual(MsgFlags.None, msg.Flags);
             Assert.IsNull(msg.Data);
             Assert.IsFalse(msg.HasMore);
@@ -105,7 +105,7 @@ namespace NetMQ.Tests
             
             msg.Close();
  
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
+            Assert.AreEqual(MsgType.Uninitialized, msg.MsgType);
             Assert.IsNull(msg.Data);
         }
 
@@ -126,7 +126,7 @@ namespace NetMQ.Tests
             
             msg.Close();
  
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
+            Assert.AreEqual(MsgType.Uninitialized, msg.MsgType);
             Assert.IsNull(msg.Data);
         }
 
@@ -148,7 +148,7 @@ namespace NetMQ.Tests
             
             msg.Close();
  
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
+            Assert.AreEqual(MsgType.Uninitialized, msg.MsgType);
             Assert.IsNull(msg.Data);
         }
 
@@ -186,7 +186,7 @@ namespace NetMQ.Tests
             Assert.AreEqual(1, pool.ReturnCallCount);
             Assert.AreSame(bytes, pool.ReturnBuffer[0]);
  
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
+            Assert.AreEqual(MsgType.Uninitialized, msg.MsgType);
             Assert.IsNull(msg.Data);
         }
 

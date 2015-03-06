@@ -9,6 +9,10 @@ namespace NetMQ.Sockets
     /// </summary>
     public class PushSocket : NetMQSocket
     {
+        /// <summary>
+        /// Create a new PushSocket based upon the given SocketBase.
+        /// </summary>
+        /// <param name="socketHandle">the SocketBase to create the new socket from</param>
         internal PushSocket(SocketBase socketHandle)
             : base(socketHandle)
         {

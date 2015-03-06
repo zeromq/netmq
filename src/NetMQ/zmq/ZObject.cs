@@ -31,7 +31,7 @@ namespace NetMQ.zmq
     internal abstract class ZObject
     {
         /// <summary>
-        /// This Context provides access to the global state.
+        /// This Ctx is the context that provides access to the global state.
         /// </summary>
         private readonly Ctx m_ctx;
 
@@ -40,12 +40,21 @@ namespace NetMQ.zmq
         /// </summary>
         private readonly int m_threadId;
 
+        /// <summary>
+        /// Create a new ZObject with the given context and thread-id.
+        /// </summary>
+        /// <param name="ctx">the context for the new ZObject to live within</param>
+        /// <param name="threadId">the integer thread-id for the new ZObject to be associated with</param>
         protected ZObject([NotNull] Ctx ctx, int threadId)
         {
             m_ctx = ctx;
             m_threadId = threadId;
         }
 
+        /// <summary>
+        /// Create a new ZObject that has the same context and thread-id as the given parent-ZObject.
+        /// </summary>
+        /// <param name="parent">another ZObject that provides the context and thread-id for this one</param>
         protected ZObject([NotNull] ZObject parent)
             : this(parent.m_ctx, parent.m_threadId)
         {}

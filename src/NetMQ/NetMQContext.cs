@@ -8,8 +8,8 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     /// <summary>
-    /// NetMQContext is the context class of the NetMQ message-queueing subsystem.
-    /// This contains all of the state-information for the message-queueing subsystem, and provides
+    /// NetMQContext is the context class of the NetMQ message-queuing subsystem.
+    /// This contains all of the state-information for the message-queuing subsystem, and provides
     /// methods for socket creation.
     /// You should (ordinarily) have only one context in your application process.
     /// </summary>

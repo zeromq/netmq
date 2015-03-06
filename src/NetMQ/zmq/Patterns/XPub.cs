@@ -26,6 +26,7 @@ using System.Text;
 using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
+
 namespace NetMQ.zmq.Patterns
 {
     internal class XPub : SocketBase
@@ -54,7 +55,7 @@ namespace NetMQ.zmq.Patterns
         private Msg m_welcomeMessage;
 
         /// <summary>
-        /// True if we are in the middle of sending a multipart message.
+        /// True if we are in the middle of sending a multi-part message.
         /// </summary>
         private bool m_more;
 
@@ -107,6 +108,11 @@ namespace NetMQ.zmq.Patterns
             m_pending = new Queue<byte[]>();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">if true - subscribe to all data on the pipe</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -117,7 +123,7 @@ namespace NetMQ.zmq.Patterns
             if (icanhasall)
                 m_subscriptions.Add(null, 0, 0, pipe);
 
-            // if welcome message was set
+            // if welcome message was set, write one to the pipe.
             if (m_welcomeMessage.Size > 0)
             {
                 var copy = new Msg();
@@ -256,7 +262,7 @@ namespace NetMQ.zmq.Patterns
         protected override void XTerminated(Pipe pipe)
         {
             //  Remove the pipe from the trie. If there are topics that nobody
-            //  is interested in anymore, send corresponding unsubscriptions
+            //  is interested in anymore, send corresponding un-subscriptions
             //  upstream.
 
 
@@ -269,7 +275,7 @@ namespace NetMQ.zmq.Patterns
         {
             bool msgMore = msg.HasMore;
 
-            //  For the first part of multipart message, find the matching pipes.
+            //  For the first part of multi-part message, find the matching pipes.
             if (!m_more)
                 m_subscriptions.Match(msg.Data, msg.Size,
                     s_markAsMatching, this);
@@ -278,7 +284,7 @@ namespace NetMQ.zmq.Patterns
             //  in the previous step.
             m_distribution.SendToMatching(ref msg);
 
-            //  If we are at the end of multipart message we can mark all the pipes
+            //  If we are at the end of multi-part message we can mark all the pipes
             //  as non-matching.
             if (!msgMore)
                 m_distribution.Unmatch();

@@ -38,7 +38,7 @@ namespace NetMQ.zmq.Patterns
         }
 
         /// <summary>
-        /// Fair queueing object for inbound pipes.
+        /// Fair queuing object for inbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
@@ -61,7 +61,7 @@ namespace NetMQ.zmq.Patterns
         private Msg m_message;
 
         /// <summary>
-        /// If true, part of a multipart message was already received, but
+        /// If true, part of a multi-part message was already received, but
         /// there are following parts still waiting.
         /// </summary>
         private bool m_more;
@@ -83,7 +83,7 @@ namespace NetMQ.zmq.Patterns
                 //  Send it to the pipe.
                 bool sent = pipe.Write(ref msg);
                 //  If we reached the SNDHWM, and thus cannot send the subscription, drop
-                //  the subscription message instead. This matches the behaviour of
+                //  the subscription message instead. This matches the behavior of
                 //  zmq_setsockopt(ZMQ_SUBSCRIBE, ...), which also drops subscriptions
                 //  when the SNDHWM is reached.
                 if (!sent)
@@ -113,6 +113,11 @@ namespace NetMQ.zmq.Patterns
             m_message.Close();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -207,7 +212,7 @@ namespace NetMQ.zmq.Patterns
             //  semantics.
             while (true)
             {
-                //  Get a message using fair queueing algorithm.
+                //  Get a message using fair queuing algorithm.
                 bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
 
                 //  If there's no message available, return immediately.
@@ -251,7 +256,7 @@ namespace NetMQ.zmq.Patterns
             //  stream of non-matching messages.
             while (true)
             {
-                //  Get a message using fair queueing algorithm.
+                //  Get a message using fair queuing algorithm.
                 bool isMessageAvailable = m_fairQueueing.Recv(ref m_message);
 
                 //  If there's no message available, return immediately.

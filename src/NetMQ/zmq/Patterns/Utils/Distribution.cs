@@ -54,7 +54,7 @@ namespace NetMQ.zmq.Patterns.Utils
         private int m_eligible;
 
         /// <summary>
-        /// True if last we are in the middle of a multipart message.
+        /// True if last we are in the middle of a multi-part message.
         /// </summary>
         private bool m_more;
 
@@ -173,13 +173,13 @@ namespace NetMQ.zmq.Patterns.Utils
         /// <param name="msg"></param>
         public void SendToMatching(ref Msg msg)
         {
-            //  Is this end of a multipart message?
+            //  Is this end of a multi-part message?
             bool hasMore = msg.HasMore;
 
             //  Push the message to matching pipes.
             Distribute(ref msg);
 
-            //  If multipart message is fully sent, activate all the eligible pipes.
+            //  If multi-part message is fully sent, activate all the eligible pipes.
             if (!hasMore)
                 m_active = m_eligible;
 

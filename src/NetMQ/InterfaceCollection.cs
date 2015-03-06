@@ -10,16 +10,29 @@ namespace NetMQ
 {
     /// <summary>
     /// class InterfaceItem provides the properties Address and BroadcastAddress (both are an IPAddress).
+    /// This serves to convey information for each of the network interfaces present on a host.
     /// </summary>
     public class InterfaceItem
     {
+        /// <summary>
+        /// Create a new InterfaceItem from the given address and broadcast-address.
+        /// </summary>
+        /// <param name="address">an IPAddress that will comprise the 'Address' of the new InterfaceItem</param>
+        /// <param name="broadcastAddress">an IPAddress that will comprise the 'BroadcastAddress' of the new InterfaceItem</param>
         public InterfaceItem([NotNull] IPAddress address, [NotNull] IPAddress broadcastAddress)
         {
             Address = address;
             BroadcastAddress = broadcastAddress;
         }
 
+        /// <summary>
+        /// Get the 'address' of this network interface, as an IPAddress.
+        /// </summary>
         [NotNull] public IPAddress Address { get; private set; }
+
+        /// <summary>
+        /// Get the 'broadcast-address' of this network interface, as an IPAddress.
+        /// </summary>
         [NotNull] public IPAddress BroadcastAddress { get; private set; }
     }
 
@@ -66,6 +79,11 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Return an IEnumerator over the InterfaceItems that this InterfaceCollection contains,
+        /// which are all of the network interfaces that were not running, nor loopback nor PPP interfaces.
+        /// </summary>
+        /// <returns>an IEnumerator over the InterfaceItems that this contains</returns>
         public IEnumerator<InterfaceItem> GetEnumerator()
         {
             return m_interfaceItems.GetEnumerator();

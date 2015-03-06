@@ -55,7 +55,7 @@ namespace NetMQ
         {}
 
         /// <summary>
-        /// Create a new NetMQFrame with a data-buffer pre-sised to the given length.
+        /// Create a new NetMQFrame with a data-buffer pre-sized to the given length.
         /// </summary>
         /// <param name="length">the number of bytes to allocate for the data-buffer</param>
         public NetMQFrame(int length)

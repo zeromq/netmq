@@ -25,6 +25,10 @@ namespace NetMQ
         public NetMQTimer Timer { get; private set; }
     }
 
+    /// <summary>
+    /// A NetMQTimer instance provides the state-information for a timer function,
+    /// which is periodically checked by a Poller or a NetMQBeacon.
+    /// </summary>
     public class NetMQTimer
     {
         private readonly NetMQTimerEventArgs m_timerEventArgs;
@@ -34,6 +38,9 @@ namespace NetMQ
         /// </summary>
         private int m_interval;
 
+        /// <summary>
+        /// This flag dictates whether this timer is currently enabled.
+        /// </summary>
         private bool m_enable;
 
         /// <summary>
@@ -47,7 +54,7 @@ namespace NetMQ
         /// <param name="interval">a TimeSpan that denotes the timer-interval</param>
         public NetMQTimer(TimeSpan interval)
             : this((int)interval.TotalMilliseconds)
-        {}
+        { }
 
         /// <summary>
         /// Create a new NetMQTimer with the given timer-interval in milliseconds.

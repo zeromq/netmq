@@ -256,6 +256,10 @@ namespace NetMQ
 
         private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
 
+        /// <summary>
+        /// Create a new NetMQBeacon, contained within the given context.
+        /// </summary>
+        /// <param name="context">the NetMQContext to contain this new socket</param>
         public NetMQBeacon([NotNull] NetMQContext context)
         {
             m_actor = NetMQActor.Create(context, new Shim());
@@ -275,6 +279,9 @@ namespace NetMQ
             get { return ((ISocketPollable)m_actor).Socket; }
         }
 
+        /// <summary>
+        /// This event occurs when at least one message may be received from the socket without blocking.
+        /// </summary>
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
         {
             add { m_receiveEventHelper.Event += value; }

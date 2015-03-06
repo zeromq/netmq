@@ -168,7 +168,7 @@ namespace NetMQ.zmq.Patterns.Utils
             if (m_count == 0)
                 return true;
 
-            //  If there's one subnode (optimisation).
+            //  If there's one subnode (optimization).
             if (m_count == 1)
             {
                 buffer[bufferSize] = (byte)m_minCharacter;
@@ -416,7 +416,7 @@ namespace NetMQ.zmq.Patterns.Utils
                     break;
 
                 byte c = data[index];
-                //  If there's one subnode (optimisation).
+                //  If there's one subnode (optimization).
                 if (current.m_count == 1)
                 {
                     if (c != current.m_minCharacter)

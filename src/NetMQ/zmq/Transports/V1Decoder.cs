@@ -116,9 +116,9 @@ namespace NetMQ.zmq.Transports
                     return false;
                 }
 
-                //  in_progress is initialised at this point so in theory we should
+                //  in_progress is initialized at this point so in theory we should
                 //  close it before calling zmq_msg_init_size, however, it's a 0-byte
-                //  message and thus we can treat it as uninitialised...
+                //  message and thus we can treat it as uninitialized...
                 if (m_maxMessageSize >= 0 && (long)(first - 1) > m_maxMessageSize)
                 {
                     DecodingError();
@@ -165,9 +165,9 @@ namespace NetMQ.zmq.Transports
             }
 
             int msgSize = (int)(payloadLength - 1);
-            //  in_progress is initialised at this point so in theory we should
+            //  in_progress is initialized at this point so in theory we should
             //  close it before calling init_size, however, it's a 0-byte
-            //  message and thus we can treat it as uninitialised...
+            //  message and thus we can treat it as uninitialized...
             m_inProgress.InitPool(msgSize);
 
             NextStep(m_tmpbuf, 1, FlagsReadyState);

@@ -10,7 +10,12 @@ namespace NetMQ
 {
     public class NetMQScheduler : TaskScheduler, IDisposable
     {
+        /// <summary>
+        /// True if we own m_poller (that is, it was created within the NetMQScheduler constructor
+        /// as opposed to being passed-in from the caller).
+        /// </summary>
         private readonly bool m_ownPoller;
+
         private readonly Poller m_poller;
 
         private static int s_schedulerCounter;
@@ -26,6 +31,11 @@ namespace NetMQ
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 
+        /// <summary>
+        /// Create a new NetMQScheduler object within the given context, and optionally using the given poller.
+        /// </summary>
+        /// <param name="context">the NetMQContext to create this NetMQScheduler within</param>
+        /// <param name="poller">(optional)the Poller for this Net to use</param>
         public NetMQScheduler([NotNull] NetMQContext context, [CanBeNull] Poller poller = null)
         {
             if (poller == null)

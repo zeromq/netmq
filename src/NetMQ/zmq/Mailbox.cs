@@ -50,7 +50,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
         /// is arbitrary number of threads sending. Given that ypipe requires
-        /// synchronised access on both of its endpoints, we have to synchronize
+        /// synchronized access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
         [NotNull] private readonly object m_sync;
@@ -143,7 +143,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
         /// is arbitrary number of threads sending. Given that ypipe requires
-        /// synchronised access on both of its endpoints, we have to synchronize
+        /// synchronized access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
         private readonly object m_sync;

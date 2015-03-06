@@ -61,7 +61,7 @@ namespace NetMQ.zmq.Patterns
         };
 
         /// <summary>
-        /// Fair queueing object for inbound pipes.
+        /// Fair queuing object for inbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
@@ -153,6 +153,11 @@ namespace NetMQ.zmq.Patterns
             m_prefetchedMsg.Close();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -379,7 +384,7 @@ namespace NetMQ.zmq.Patterns
             else
             {
                 //  We are at the beginning of a message.
-                //  Keep the message part we have in the prefetch buffer
+                //  Keep the message part we have in the pre-fetch buffer
                 //  and return the ID of the peer instead.
                 m_prefetchedMsg.Move(ref msg);
 

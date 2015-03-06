@@ -170,7 +170,7 @@ namespace NetMQ.zmq.Transports.Tcp
             try
             {
                 m_s.Connect(m_addr.Resolved.Address.Address, m_addr.Resolved.Address.Port);
-                m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgres);
+                m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgress);
             }
             catch (SocketException ex)
             {

@@ -20,17 +20,16 @@
 */
 
 using System;
-using System.Diagnostics;
 using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    /// <summary>Defines a set of flags applicable to a <see cref="Msg"/> instance.</summary>
+    /// <summary>Defines a set of flags applicable to a <see cref="Msg"/> instance: None (default), More, Identity, Shared</summary>
     [Flags]
     public enum MsgFlags : byte
     {
-        /// <summary>Indicates no flags are set.</summary>
+        /// <summary>Indicates no flags are set (the default).</summary>
         None = 0,
 
         /// <summary>Indicates that more frames of the same message follow.</summary>
@@ -43,15 +42,15 @@ namespace NetMQ
         Shared = 128,
     }
 
-    /// <summary>Enumeration of possible <see cref="Msg"/> types.</summary>
+    /// <summary>Enumeration of possible <see cref="Msg"/> types: Uninitialized, GC, Pool, Delimiter.</summary>
     public enum MsgType : byte
     {
         /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
-        [Obsolete("Use Uninitialised instead")]
+        [Obsolete("Use Uninitialized instead")]
         Invalid = 0,
 
-        /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
-        Uninitialised = 0,
+        /// <summary>The <see cref="Msg"/> has not yet been initialised (default value).</summary>
+        Uninitialized = 0,
 
         /// <summary>The <see cref="Msg"/> is empty.</summary>
         Empty = 101,
@@ -121,7 +120,7 @@ namespace NetMQ
         /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
         public bool IsInitialised
         {
-            get { return MsgType != MsgType.Uninitialised; }
+            get { return MsgType != MsgType.Uninitialized; }
         }
 
         #endregion
@@ -142,7 +141,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Whether this <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
+        /// Get whether the <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
         /// Only applies to pooled message types.
         /// </summary>
         public bool IsShared
@@ -182,7 +181,7 @@ namespace NetMQ
         /// Get the byte-array that represents the data payload of this <see cref="Msg"/>.
         /// </summary>
         /// <remarks>
-        /// This value will be <c>null</c> if <see cref="MsgType"/> is <see cref="NetMQ.MsgType.Uninitialised"/>,
+        /// This value will be <c>null</c> if <see cref="MsgType"/> is <see cref="NetMQ.MsgType.Uninitialized"/>,
         /// <see cref="NetMQ.MsgType.Empty"/> or <see cref="NetMQ.MsgType.Delimiter"/>.
         /// </remarks>
         public byte[] Data { get; private set; }
@@ -254,7 +253,7 @@ namespace NetMQ
         public void Close()
         {
             if (!IsInitialised)
-                throw new FaultException("Cannot close an uninitialised Msg.");
+                throw new FaultException("Cannot close an uninitialized Msg.");
 
             if (MsgType == MsgType.Pool)
             {
@@ -265,9 +264,9 @@ namespace NetMQ
                 m_refCount = null;
             }
 
-            // Uninitialise the frame
+            // Uninitialize the frame
             Data = null;
-            MsgType = MsgType.Uninitialised;
+            MsgType = MsgType.Uninitialized;
         }
 
         /// <summary>
@@ -373,8 +372,8 @@ namespace NetMQ
         /// <returns></returns>
         public byte this[int index]
         {
-            get { return Data[index];  }
-            set { Data[index] = value;  }
+            get { return Data[index]; }
+            set { Data[index] = value; }
         }
 
         /// <summary>

@@ -277,7 +277,7 @@ namespace NetMQ
 
     /// <summary>
     /// TerminatingException is a NetMQException that is used within SocketBase and Ctx to signal
-    /// that you're making the mistake of trying to do further work after terminating the message-queueing system.
+    /// that you're making the mistake of trying to do further work after terminating the message-queuing system.
     /// </summary>
     [Serializable]
     public class TerminatingException : NetMQException
@@ -302,7 +302,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// InvalidException is a NetMQException that is used within the message-queueing system to signal invalid value errors.
+    /// InvalidException is a NetMQException that is used within the message-queuing system to signal invalid value errors.
     /// </summary>
     [Serializable]
     public class InvalidException : NetMQException
@@ -336,7 +336,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// FaultException is a NetMQException that is used within within the message-queueing system to signal general fault conditions.
+    /// FaultException is a NetMQException that is used within within the message-queuing system to signal general fault conditions.
     /// </summary>
     [Serializable]
     public class FaultException : NetMQException
@@ -370,7 +370,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// ProtocolNotSupportedException is a NetMQException that is used within the message-queueing system to signal
+    /// ProtocolNotSupportedException is a NetMQException that is used within the message-queuing system to signal
     /// mistakes in properly utilizing the communications protocols.
     /// </summary>
     [Serializable]
@@ -405,7 +405,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// HostUnreachableException is an Exception that is used within within the message-queueing system
+    /// HostUnreachableException is an Exception that is used within within the message-queuing system
     /// to signal failures to communicate with a host.
     /// </summary>
     [Serializable]
@@ -440,7 +440,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// FiniteStateMachineException is an Exception that is used within the message-queueing system
+    /// FiniteStateMachineException is an Exception that is used within the message-queuing system
     /// to signal errors in the send/receive order with request/response sockets.
     /// </summary>
     [Serializable]

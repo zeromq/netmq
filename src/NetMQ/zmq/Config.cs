@@ -44,7 +44,7 @@ namespace NetMQ.zmq
         ///  socket will process 100 inbound messages before doing the poll.
         ///  If there are no unprocessed messages available, poll is done
         ///  immediately. Decreasing the value trades overall latency for more
-        ///  real-time behaviour (less latency peaks).
+        ///  real-time behavior (less latency peaks).
         /// </summary>
         public const int InboundPollRate = (100);
 

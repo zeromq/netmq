@@ -428,7 +428,7 @@ namespace NetMQ
         /// Poll as long as the given Func evaluates to true.
         /// </summary>
         /// <param name="condition">a Func that returns a boolean value, to evaluate on each iteration</param>
-        private void PollWhile([NotNull,InstantHandle] Func<bool> condition)
+        private void PollWhile([NotNull, InstantHandle] Func<bool> condition)
         {
             if (m_disposed)
             {
@@ -568,6 +568,13 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Signal this poller to stop, and return immediately if waitForCloseToComplete is false,
+        /// block until the poller has actually stopped if waitForCloseToComplete is true.
+        /// </summary>
+        /// <param name="waitForCloseToComplete">block until the poller has actually stopped</param>
+        /// <exception cref="ObjectDisposedException">if this poller has already been disposed</exception>
+        /// <exception cref="InvalidOperationException">if this poller has not been started</exception>
         private void Cancel(bool waitForCloseToComplete)
         {
             if (m_disposed)
