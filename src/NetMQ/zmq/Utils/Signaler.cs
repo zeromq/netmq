@@ -83,7 +83,7 @@ namespace NetMQ.zmq.Utils
             {}
         }
 
-        //  Creates a pair of filedescriptors that will be used
+        //  Creates a pair of file descriptors that will be used
         //  to pass the signals.
 
         [NotNull]

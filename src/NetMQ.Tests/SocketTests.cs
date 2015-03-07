@@ -470,7 +470,7 @@ namespace NetMQ.Tests
             {
                 string address1, address2;
 
-                // just making sure can bind on both adddresses
+                // just making sure can bind on both addresses
                 using (var client1 = context.CreateDealerSocket())
                 using (var client2 = context.CreateDealerSocket())
                 {

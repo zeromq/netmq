@@ -357,7 +357,7 @@ namespace NetMQ
             return ReceiveStringMessages(socket, Encoding.ASCII, expectedFrameCount);
         }
 
-        /// <summary>Receives a list of all frames of the next message, decoded as strings having the specifed <paramref name="encoding"/>.</summary>
+        /// <summary>Receives a list of all frames of the next message, decoded as strings having the specified <paramref name="encoding"/>.</summary>
         /// <remarks>Blocks until a message is received. The list may have one or more entries.</remarks>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="encoding">The encoding to use when converting a frame's bytes into a string.</param>

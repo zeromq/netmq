@@ -51,7 +51,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        /// Returns true if wokers are waiting and requests are pending and false otherwise
+        /// Returns true if workers are waiting and requests are pending and false otherwise
         /// </summary>
         public bool CanDispatchRequests()
         {
@@ -59,7 +59,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        /// Returns true if wokers exist and false otherwise.
+        /// Returns true if workers exist and false otherwise.
         /// </summary>
         public bool DoWorkersExist()
         {

@@ -62,7 +62,7 @@ namespace MajordomoProtocol
 
         private string m_endpoint;                              // the endpoint the broker binds to
         private int m_heartbeatLiveliness;                      // indicates the 'liveliness' of a worker
-        private TimeSpan m_heartbeatExpiry;                     // when a worker expiers -> set by HeartbeatLiveliness(!)
+        private TimeSpan m_heartbeatExpiry;                     // when a worker expires -> set by HeartbeatLiveliness(!)
         private readonly TimeSpan m_heartbeatInterval;          // the time interval between heartbeats
         private bool m_isBound;                                 // true if socket is bound to address
         private bool m_isRunning;                               // true if the broker is running
@@ -74,7 +74,7 @@ namespace MajordomoProtocol
         public NetMQSocket Socket { get; private set; }
 
         /// <summary>
-        ///     the interval at which the broker send hearbeats to workers
+        ///     the interval at which the broker send heartbeats to workers
         ///     initially set to 2.500 ms
         /// </summary>
         public TimeSpan HeartbeatInterval { get { return m_heartbeatInterval; } }
@@ -125,7 +125,7 @@ namespace MajordomoProtocol
             : this ()
         {
             if (string.IsNullOrWhiteSpace (endpoint))
-                throw new ArgumentNullException ("endpoint", "An 'endpint' were the broker binds to must be given!");
+                throw new ArgumentNullException ("endpoint", "An 'endpoint' were the broker binds to must be given!");
 
             m_heartbeatInterval = TimeSpan.FromMilliseconds (heartbeatInterval);
             m_endpoint = endpoint;
@@ -134,7 +134,7 @@ namespace MajordomoProtocol
         /// <summary>
         ///     broker binds his socket to this endpoint upon request
         /// </summary>
-        /// <exception cref="ApplicationException">The bind operation failed. Mostlikely because 'endpoint' is malformed!</exception>
+        /// <exception cref="ApplicationException">The bind operation failed. Most likely because 'endpoint' is malformed!</exception>
         /// <remarks>
         ///     broker uses the same endpoint to communicate with clients and workers(!)
         /// </remarks>
@@ -149,7 +149,7 @@ namespace MajordomoProtocol
             }
             catch (Exception e)
             {
-                var error = string.Format ("The bind operation failed. Mostlikely because 'endpoint' ({0}) is malformed!",
+                var error = string.Format ("The bind operation failed. Most likely because 'endpoint' ({0}) is malformed!",
                                            m_endpoint);
                 error += string.Format ("\nMessage: {0}", e.Message);
                 throw new ApplicationException (error);
@@ -451,7 +451,7 @@ namespace MajordomoProtocol
                 Log (string.Format ("[BROKER] Dispatching request -> {0}", request));
 
                 // send to a worker offering the requested service
-                // will add command, header and worker adr evenlope
+                // will add command, header and worker adr envelope
                 ServiceDispatch (service, request);             // [CLIENT ADR][e][request]
 
             }
@@ -472,7 +472,7 @@ namespace MajordomoProtocol
                 foreach (var worker in service.WaitingWorkers)
                 {
                     if (DateTime.UtcNow < worker.Expiry)
-                        // we found the first woker not expired in that service
+                        // we found the first worker not expired in that service
                         // any following worker will be younger -> we're done for the service
                         break;
 
@@ -508,7 +508,7 @@ namespace MajordomoProtocol
 
         /// <summary>
         ///     removes the worker from the known worker list and
-        ///     from the service it referes to if it exists and
+        ///     from the service it refers to if it exists and
         ///     potentially from the waiting list therein
         /// </summary>
         /// <param name="worker"></param>
@@ -569,7 +569,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     sends as much pending requests as thereare waiting workers 
+        ///     sends as much pending requests as there are waiting workers 
         ///     of the specified service by
         ///     a) add the request to the pending requests within this service
         ///        if there is a message

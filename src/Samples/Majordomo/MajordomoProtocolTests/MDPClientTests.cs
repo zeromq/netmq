@@ -51,7 +51,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 4 Frame mesage
+                    // we expect to receive a 4 Frame message
                     // [client adrR][e][mdp header][service][request]
                     if (msg.FrameCount != 5)
                         Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
@@ -196,7 +196,7 @@ namespace MajordomoTests
                 {
                     // return empty reply
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 4 Frame mesage
+                    // we expect to receive a 4 Frame message
                     // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
                     if (msg.FrameCount != 5)
                         Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
@@ -243,7 +243,7 @@ namespace MajordomoTests
                 {
                     // return empty reply
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 4 Frame mesage
+                    // we expect to receive a 4 Frame message
                     // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
                     if (msg.FrameCount != 5)
                         Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
@@ -252,7 +252,7 @@ namespace MajordomoTests
                     // [REQ ADR][EMPTY]["MDPC00"]["echo"]["REQUEST"]
                     var clientAddress = msg.Pop();
                     msg.Pop(); // forget empty frame
-                    msg.Pop(); // drop the MDP Versoin Frame
+                    msg.Pop(); // drop the MDP Version Frame
                     msg.Push("MDPC00"); // insert wrong MDP version
                     msg.Push(NetMQFrame.Empty);
                     msg.Push(clientAddress); // reinsert the client's address
@@ -297,7 +297,7 @@ namespace MajordomoTests
                 {
                     // return empty reply
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 4 Frame mesage
+                    // we expect to receive a 4 Frame message
                     // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
                     if (msg.FrameCount != 5)
                         Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);

@@ -52,7 +52,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 5 Frame mesage
+                    // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
                         Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
@@ -148,7 +148,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 5 Frame mesage
+                    // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
                         Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
@@ -205,7 +205,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 5 Frame mesage
+                    // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
                         Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);
@@ -264,7 +264,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 5 Frame mesage
+                    // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
                         return; // it is a HEARTBEAT
@@ -328,7 +328,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     var msg = e.Socket.ReceiveMessage();
-                    // we expect to receive a 5 Frame mesage
+                    // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
                         Assert.Fail("Message with wrong count of frames {0}", msg.FrameCount);

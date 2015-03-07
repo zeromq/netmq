@@ -44,8 +44,8 @@ namespace InterBrokerRouter
         ///                    [n] = nth peer address</param>
         /// <remarks>
         ///     since "inproc://" is not working in NetMQ we use "tcp://"
-        ///     for each broker we need 5 ports which for this exsample are
-        ///     assigned as follows (in true life it should be configureable whether 
+        ///     for each broker we need 5 ports which for this example are
+        ///     assigned as follows (in true life it should be configurable whether 
         ///     they are ports or tcp/ip addresses)
         /// 
         ///     this brokers address => local frontend binds to     tcp://127.0.0.1:5555
@@ -63,7 +63,7 @@ namespace InterBrokerRouter
         ///               this broker's cloud backend connects to                  :5576
         ///               this broker's state frontend connects to                 :5578
         /// 
-        ///     this scheme is fix in this exsample
+        ///     this scheme is fix in this example
         /// </remarks>
         public static void Main(string[] args)
         {
@@ -251,8 +251,8 @@ namespace InterBrokerRouter
 
                 // this socket is connected to all peers
                 // we receive either a REQ or a REPLY form a peer
-                // REQ [peer adr][empty][peer client adr][empty][mesage id] -> send to peer for processing
-                // REP [peer adr][empty][client adr][empty][mesage id] -> send to local client
+                // REQ [peer adr][empty][peer client adr][empty][message id] -> send to peer for processing
+                // REP [peer adr][empty][client adr][empty][message id] -> send to local client
                 cloudBackend.ReceiveReady += (s, e) =>
                 {
                     var msg = e.Socket.ReceiveMessage();
@@ -270,14 +270,14 @@ namespace InterBrokerRouter
                     // and a REQ otherwise
                     if (clients.Any(n => AreSame(n, msg.First)))
                     {
-                        // [client adr][empty][mesage id]
+                        // [client adr][empty][message id]
                         localFrontend.SendMessage(msg);
                     }
                     else
                     {
                         // add the peers address to the request
                         var request = Wrap(peerAdr, msg);
-                        // [peer adr][empty][peer client adr][empty][mesage id]
+                        // [peer adr][empty][peer client adr][empty][message id]
                         cloudFrontend.SendMessage(request);
                     }
                 };
