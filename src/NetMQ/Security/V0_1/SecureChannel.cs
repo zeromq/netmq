@@ -34,7 +34,7 @@ namespace NetMQ.Security.V0_1
         internal bool ChangeSuiteChangeArrived { get; private set; }
 
         /// <summary>
-        /// Get whether the SecurreChannel is ready to exchange content messages.
+        /// Get whether the SecureChannel is ready to exchange content messages.
         /// </summary>
         public bool SecureChannelReady { get; private set; }
 

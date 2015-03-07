@@ -72,7 +72,7 @@ namespace NetMQ.Security.V0_1
         /// <param name="connectionEnd">this specifies which end of the connection - Server or Client</param>
         public HandshakeLayer(SecureChannel secureChannel, ConnectionEnd connectionEnd)
         {
-            // SHA256 is a class that computes the SHA-256 (SHA stands for Standard Hasing Algorithm) of it's input.
+            // SHA256 is a class that computes the SHA-256 (SHA stands for Standard Hashing Algorithm) of it's input.
             m_localHash = SHA256.Create();
             m_remoteHash = SHA256.Create();
 
@@ -291,7 +291,7 @@ namespace NetMQ.Security.V0_1
 
             SecurityParameters.ServerRandom = serverHelloMessage.RandomNumber;
 
-            // in case their is no much the server will return this defaul
+            // in case there is no match the server will return this default
             serverHelloMessage.CipherSuite = CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA;
 
             foreach (var cipherSuite in cipherSuites)

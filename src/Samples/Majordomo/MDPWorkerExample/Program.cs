@@ -29,7 +29,7 @@ namespace MDPWorkerExample
                     if (verbose)
                         session.LogInfoReady += (s, e) => Console.WriteLine("{0}", e.Info);
 
-                    // there is no inital reply
+                    // there is no initial reply
                     NetMQMessage reply = null;
 
                     while (true)

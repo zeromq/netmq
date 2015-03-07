@@ -35,7 +35,7 @@ namespace MajordomoProtocol
         public TimeSpan HeartbeatDelay { get; set; }
 
         /// <summary>
-        ///     delay in milliseconds between reconnets
+        ///     delay in milliseconds between reconnects
         /// </summary>
         public TimeSpan ReconnectDelay { get; set; }
 
@@ -45,7 +45,7 @@ namespace MajordomoProtocol
         public event EventHandler<LogInfoEventArgs> LogInfoReady;
 
         /// <summary>
-        ///     create worker with standart parameter
+        ///     create worker with standard parameter
         ///     HeartbeatDelay == 2500 milliseconds
         ///     ReconnectDelay == 2500 milliseconds
         ///     ConnectionRetries == 3
@@ -62,7 +62,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     creates worker with standrat parameter and 
+        ///     creates worker with standard parameter and 
         ///     set the broker's address and the service name for the worker
         /// </summary>
         /// <param name="brokerAddress">the address the worker can connect to the broker at</param>
@@ -72,7 +72,7 @@ namespace MajordomoProtocol
         /// <exception cref="ArgumentNullException">The address of the broker must not be null, empty or whitespace!</exception>
         /// <exception cref="ArgumentNullException">The name of the service must not be null, empty or whitespace!</exception>
         /// <remarks>
-        ///     create worker with standart parameter
+        ///     create worker with standard parameter
         ///     HeartbeatDelay == 2500 milliseconds
         ///     ReconnectDelay == 2500 milliseconds
         ///     Verbose == false
@@ -100,7 +100,7 @@ namespace MajordomoProtocol
         ///     initially sends a READY message to the broker upon connection
         ///     and waits for a request to come
         /// </summary>
-        /// <param name="reply">teh reply to send</param>
+        /// <param name="reply">the reply to send</param>
         /// <returns>the request to process</returns>
         /// <remarks>
         ///     if it is the initial call to Receive - reply must be <c>null</c> in order to 
@@ -109,7 +109,7 @@ namespace MajordomoProtocol
         /// </remarks>
         public NetMQMessage Receive(NetMQMessage reply)
         {
-            // set the number of left rectries to connect
+            // set the number of left retries to connect
             m_retriesLeft = m_connectionRetries;
 
             if (!m_connected)
@@ -315,7 +315,7 @@ namespace MajordomoProtocol
             Send(MDPCommand.Ready, m_serviceName, null);
             // reset liveliness to active broker
             m_liveliness = _HEARTBEAT_LIVELINESS;
-            // set point in time for next heatbeat
+            // set point in time for next heartbeat
             m_heartbeatAt = DateTime.UtcNow + HeartbeatDelay;
         }
 

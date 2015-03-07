@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
-    // Note: you can have failures here if you excute these on a machine that has only one processor-core.
+    // Note: you can have failures here if you execute these on a machine that has only one processor-core.
 
     [TestFixture]
     public class PollerTests
