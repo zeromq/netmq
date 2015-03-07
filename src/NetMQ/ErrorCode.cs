@@ -239,7 +239,7 @@ namespace NetMQ
         ZMQ_HAUSNUMERO = BaseErrorNumber,
 
         /// <summary>
-        /// The provided scoket was invalid.
+        /// The provided socket was invalid.
         /// </summary>
         [Obsolete("Not in use")]
         ENOTSOCK = BaseErrorNumber + 9,
