@@ -113,7 +113,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDPWorkerExample", "Samples
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Titanic Pattern", "Titanic Pattern", "{ED1FF3FB-01D4-4315-A6D5-070C420F2908}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicBroker", "Samples\Titanic Pattern\TitanicBroker\TitanicBroker.csproj", "{F92E05F9-9177-4889-B192-23DFB49EC045}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicProtocol", "Samples\Titanic Pattern\TitanicBroker\TitanicProtocol.csproj", "{F92E05F9-9177-4889-B192-23DFB49EC045}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicClientExample", "Samples\Titanic Pattern\TitanicClientExample\TitanicClientExample.csproj", "{F516F643-D475-43FD-AEC7-B5CA8B997D22}"
 EndProject
