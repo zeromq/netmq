@@ -91,7 +91,7 @@ namespace NetMQ.zmq.Utils
         /// <remarks> If the queue is empty, it should be equal to <see cref="BackPos"/>. </remarks>
         public int FrontPos { get { return m_beginChunk.GlobalPosition[m_beginPositionInChunk]; } }
 
-        /// <summary> Gets the front element of the queue. If the queue is empty, behavior is undefined. </summary>
+        /// <summary> Gets the front element of the queue. If the queue is empty, behaviour is undefined. </summary>
         /// <value> The front element of the queue. </value>
         public T Front { get { return m_beginChunk.Values[m_beginPositionInChunk]; } }
 

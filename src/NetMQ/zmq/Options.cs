@@ -164,7 +164,7 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// If true, router socket accepts non-zmq tcp connections
-        /// The default value is false, except the Stream ctor initializes this to true.
+        /// The default value is false, except the Stream ctor initialises this to true.
         /// </summary>
         public bool RawSocket { get; set; }
 
@@ -353,7 +353,7 @@ namespace NetMQ.zmq
                     Backlog = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.Maxmsgsize:
+                case ZmqSocketOptions.MaxMessageSize:
                     MaxMessageSize = (long)optionValue;
                     break;
 
@@ -468,7 +468,7 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.Backlog:
                     return Backlog;
 
-                case ZmqSocketOptions.Maxmsgsize:
+                case ZmqSocketOptions.MaxMessageSize:
                     return MaxMessageSize;
 
                 case ZmqSocketOptions.MulticastHops:

@@ -27,7 +27,7 @@ namespace NetMQ.zmq.Patterns.Utils
 {
     /// <summary>
     /// This class manages a set of inbound pipes. On receive it performs fair
-    /// queuing so that senders gone berserk won't cause denial of
+    /// queueing so that senders gone berserk won't cause denial of
     /// service for decent senders.
     /// </summary>
     internal class FairQueueing
@@ -49,7 +49,7 @@ namespace NetMQ.zmq.Patterns.Utils
         private int m_current;
 
         /// <summary>
-        /// If true, part of a multi-part message was already received, but
+        /// If true, part of a multipart message was already received, but
         /// there are following parts still waiting in the current pipe.
         /// </summary>
         private bool m_more;
@@ -131,7 +131,7 @@ namespace NetMQ.zmq.Patterns.Utils
                     m_current = 0;
             }
 
-            //  No message is available. Initialize the output parameter
+            //  No message is available. Initialise the output parameter
             //  to be a 0-byte message.
             msg.InitEmpty();
             return false;
@@ -144,7 +144,7 @@ namespace NetMQ.zmq.Patterns.Utils
                 return true;
 
             //  Note that messing with current doesn't break the fairness of fair
-            //  queuing algorithm. If there are no messages available current will
+            //  queueing algorithm. If there are no messages available current will
             //  get back to its original value. Otherwise it'll point to the first
             //  pipe holding messages, skipping only pipes with no messages available.
             while (m_active > 0)

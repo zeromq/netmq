@@ -149,18 +149,26 @@ namespace NetMQ.zmq.Utils
             AdjustLoad(1);
         }
 
+        /// <summary>
+        /// Remove the given Socket from this Poller.
+        /// </summary>
+        /// <param name="handle">the System.Net.Sockets.Socket to remove</param>
         public void RemoveHandle([NotNull] Socket handle)
         {
             PollSet pollSet;
 
-            // if the socket was removed before being added there is no reason to mark retired, so just cancelling the socket and removing from add list 
+            // If the socket was removed before being added there is no reason to mark retired, so just cancelling the socket and removing from add list.
+
+            // If there is a Pollset with this socket within m_addList,
             if ((pollSet = m_addList.FirstOrDefault(p => p.Socket == handle)) != null)
             {
+                // Delete that Pollset from m_addList and cancel it.
                 m_addList.Remove(pollSet);
                 pollSet.Cancelled = true;
             }
-            else
+            else // this socket is not within any of the PollSets in m_addList.
             {
+                // Cancel that PollSet in our list m_handles that has this socket.
                 pollSet = m_handles.First(p => p.Socket == handle);
                 pollSet.Cancelled = true;
 
@@ -184,34 +192,34 @@ namespace NetMQ.zmq.Utils
             m_checkRead.Add(handle);
         }
 
-/*
-        /// <summary>
-        /// Remove the given Socket from the list to be checked for read-readiness at each poll iteration.
-        /// </summary>
-        /// <param name="handle">the Socket to remove</param>
-        public void ResetPollin(Socket handle)
-        {
-            m_checkRead.Remove(handle);
-        }
+        /*
+                /// <summary>
+                /// Remove the given Socket from the list to be checked for read-readiness at each poll iteration.
+                /// </summary>
+                /// <param name="handle">the Socket to remove</param>
+                public void ResetPollin(Socket handle)
+                {
+                    m_checkRead.Remove(handle);
+                }
 
-        /// <summary>
-        /// Add the given Socket to the list to be checked for write-readiness at each poll-iteration.
-        /// </summary>
-        /// <param name="handle">the Socket to add</param>
-        public void SetPollout(Socket handle)
-        {
-            m_checkWrite.Add(handle);
-        }
+                /// <summary>
+                /// Add the given Socket to the list to be checked for write-readiness at each poll-iteration.
+                /// </summary>
+                /// <param name="handle">the Socket to add</param>
+                public void SetPollout(Socket handle)
+                {
+                    m_checkWrite.Add(handle);
+                }
 
-        /// <summary>
-        /// Remove the given Socket from the list to be checked for write-readiness at each poll iteration.
-        /// </summary>
-        /// <param name="handle">the Socket to remove</param>
-        public void ResetPollout(Socket handle)
-        {
-            m_checkWrite.Remove(handle);
-        }
-*/
+                /// <summary>
+                /// Remove the given Socket from the list to be checked for write-readiness at each poll iteration.
+                /// </summary>
+                /// <param name="handle">the Socket to remove</param>
+                public void ResetPollout(Socket handle)
+                {
+                    m_checkWrite.Remove(handle);
+                }
+        */
 
         /// <summary>
         /// Begin running the polling-loop, on a background thread.

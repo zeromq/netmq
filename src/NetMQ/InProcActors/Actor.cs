@@ -88,7 +88,7 @@ namespace NetMQ.Actors
 
             try
             {
-                //Initialize the shim handler
+                //Initialise the shim handler
                 m_shim.Handler.Initialise(state);
             }
             catch (Exception)

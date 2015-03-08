@@ -113,7 +113,7 @@ namespace MajordomoProtocol
 
             while (retiesLeft > 0)
             {
-                // beaware of an exception if broker has not picked up the message at all
+                // beware of an exception if broker has not picked up the message at all
                 // because one can not send multiple times! it is strict REQ -> REP -> REQ ...
                 m_client.SendMessage(message);
 

@@ -291,7 +291,7 @@ namespace NetMQ.Security.V0_1
 
             SecurityParameters.ServerRandom = serverHelloMessage.RandomNumber;
 
-            // in case their is no much the server will return this default
+            // in case there is no match the server will return this default
             serverHelloMessage.CipherSuite = CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA;
 
             foreach (var cipherSuite in cipherSuites)

@@ -31,7 +31,7 @@ namespace MajordomoProtocol.Contracts
         ///     broker binds his socket to endpoint given at ctor
         ///     the broker must not have started operation
         /// </summary>
-        /// <exception cref="ApplicationException">The bind operation failed. Mostlikely because 'endpoint' is malformed!</exception>
+        /// <exception cref="ApplicationException">The bind operation failed. Most likely because 'endpoint' is malformed!</exception>
         /// <remarks>
         ///     broker uses the same endpoint to communicate with clients and workers(!)
         /// </remarks>

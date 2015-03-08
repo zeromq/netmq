@@ -61,7 +61,7 @@ namespace NetMQ.zmq.Patterns
         };
 
         /// <summary>
-        /// Fair queuing object for inbound pipes.
+        /// Fair queueing object for inbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
@@ -384,7 +384,7 @@ namespace NetMQ.zmq.Patterns
             else
             {
                 //  We are at the beginning of a message.
-                //  Keep the message part we have in the pre-fetch buffer
+                //  Keep the message part we have in the prefetch buffer
                 //  and return the ID of the peer instead.
                 m_prefetchedMsg.Move(ref msg);
 

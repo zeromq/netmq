@@ -27,7 +27,7 @@ namespace NetMQ.zmq
 {
     /// <summary>
     /// Base class for objects forming a part of ownership hierarchy.
-    /// It handles initialization and destruction of such objects.
+    /// It handles initialisation and destruction of such objects.
     /// </summary>
     internal abstract class Own : ZObject
     {

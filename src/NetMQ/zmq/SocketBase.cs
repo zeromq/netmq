@@ -74,7 +74,7 @@ namespace NetMQ.zmq
         // Monitor socket
         private SocketBase m_monitorSocket;
 
-        // Bit-mask of events being monitored
+        // Bitmask of events being monitored
         private SocketEvent m_monitorEvents;
 
         // The tcp port that was bound to, if any
@@ -126,7 +126,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Throw a TerminatingException if the message-queuing system has started terminating.
+        /// Throw a TerminatingException if the message-queueing system has started terminating.
         /// </summary>
         public void CheckContextTerminated()
         {
@@ -713,7 +713,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Transmit the given Msg across the message-queuing system.
+        /// Transmit the given Msg across the message-queueing system.
         /// If the msg fails to immediately send, then - if DontWait is specified and no SendTimeout was set
         /// then throw an AgainException.
         /// </summary>
@@ -956,11 +956,11 @@ namespace NetMQ.zmq
                 //  Get the CPU's tick counter. If 0, the counter is not available.								
                 long tsc = Clock.Rdtsc();
 
-                //  Optimized version of command processing - it doesn't have to check
+                //  Optimised version of command processing - it doesn't have to check
                 //  for incoming commands each time. It does so only if certain time
                 //  elapsed since last command processing. Command delay varies
                 //  depending on CPU speed: It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU
-                //  etc. The optimization makes sense only on platforms where getting
+                //  etc. The optimisation makes sense only on platforms where getting
                 //  a timestamp is a very cheap operation (tens of nanoseconds).
                 if (tsc != 0 && throttle)
                 {

@@ -38,7 +38,7 @@ namespace NetMQ.zmq.Patterns
 
         /// <summary>
         /// If true, we are starting to send/receive a message. The first part
-        /// of the message must be empty message part (back-trace stack bottom).
+        /// of the message must be empty message part (backtrace stack bottom).
         /// </summary>
         private bool m_messageBegins;
 

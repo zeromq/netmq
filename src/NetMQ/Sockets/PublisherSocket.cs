@@ -19,7 +19,7 @@ namespace NetMQ.Sockets
         }
 
         /// <summary>
-        /// Don't invoke this on a PublisherSockete - you'll just get a NotSupportedException.
+        /// Don't invoke this on a PublisherSocket - you'll just get a NotSupportedException.
         /// </summary>
         /// <param name="msg">the Msg object to put it in</param>
         /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>

@@ -81,7 +81,7 @@ namespace MajordomoTests
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
-                // initialize the worker - broker protocol
+                // initialise the worker - broker protocol
                 session.Receive(null);
 
                 poller.CancelAndJoin();
@@ -119,7 +119,7 @@ namespace MajordomoTests
                 session.ReconnectDelay = TimeSpan.FromMilliseconds(250);
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
-                // initialize the worker - broker protocol
+                // initialise the worker - broker protocol
                 session.Receive(null);
 
                 poller.CancelAndJoin();
@@ -301,7 +301,7 @@ namespace MajordomoTests
 
                 session.HeartbeatDelay = TimeSpan.FromMilliseconds(250);
                 session.ReconnectDelay = TimeSpan.FromMilliseconds(250);
-                // initialize the worker - broker protocol
+                // initialise the worker - broker protocol
                 session.Receive(null);
 
                 Assert.That(loggingMessages.Count(m => m.Contains("[WORKER ERROR] invalid command received")), Is.EqualTo(1));
@@ -433,7 +433,7 @@ namespace MajordomoTests
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
-                // initialize the worker - broker protocol
+                // initialise the worker - broker protocol
                 // and get initial request
                 var workerRequest = session.Receive(null);
                 // just echo the request

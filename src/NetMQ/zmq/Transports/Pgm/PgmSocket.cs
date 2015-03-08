@@ -27,7 +27,7 @@ namespace NetMQ.zmq.Transports.PGM
 
     /// <summary>
     /// A PgmSocket utilizes the Pragmatic General Multicast (PGM) multicast protocol, which is also referred to as "reliable multicast".
-    /// This is only supported on Windows when Microsoft Message Queuing (MSMQ) is installed.
+    /// This is only supported on Windows when Microsoft Message Queueing (MSMQ) is installed.
     /// See RFC 3208.
     /// </summary>
     internal sealed class PgmSocket

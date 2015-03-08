@@ -45,7 +45,7 @@ namespace NetMQ.zmq.Patterns.Utils
         private int m_current;
 
         /// <summary>
-        /// True if last we are in the middle of a multi-part message.
+        /// True if last we are in the middle of a multipart message.
         /// </summary>
         private bool m_more;
 
@@ -64,7 +64,7 @@ namespace NetMQ.zmq.Patterns.Utils
         {
             int index = m_pipes.IndexOf(pipe);
 
-            //  If we are in the middle of multi-part message and current pipe
+            //  If we are in the middle of multipart message and current pipe
             //  have disconnected, we have to drop the remainder of the message.
             if (index == m_current && m_more)
                 m_dropping = true;

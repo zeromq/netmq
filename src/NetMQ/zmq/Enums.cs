@@ -110,9 +110,25 @@ namespace NetMQ.zmq
         Events = 15,
         Type = 16,
         Linger = 17,
+
+        /// <summary>
+        /// The reconnect-interval.
+        /// </summary>
         ReconnectIvl = 18,
+
         Backlog = 19,
+
+        /// <summary>
+        /// The maximum reconnect-interval.
+        /// </summary>
         ReconnectIvlMax = 21,
+
+        /// <summary>
+        /// The upper limit to how many bytes a message may have.
+        /// </summary>
+        MaxMessageSize = 22,
+
+        [Obsolete("Use MaxMessageSize instead")]
         Maxmsgsize = 22,
 
         /// <summary>
@@ -131,8 +147,17 @@ namespace NetMQ.zmq
         ReceiveHighWatermark = 24,
 
         MulticastHops = 25,
+
+        /// <summary>
+        /// Specifies the amount of time after which a synchronous receive call will time out.
+        /// </summary>
         ReceiveTimeout = 27,
+
+        /// <summary>
+        /// Specifies the amount of time after which a synchronous send call will time out.
+        /// </summary>
         SendTimeout = 28,
+
         IPv4Only = 31,
         LastEndpoint = 32,
         RouterMandatory = 33,
@@ -148,6 +173,9 @@ namespace NetMQ.zmq
         XPublisherManual = 42,
         XPublisherWelcomeMessage = 43,
 
+        /// <summary>
+        /// Specifies the byte-order: big-endian, vs little-endian.
+        /// </summary>
         Endian = 1000,
 
         [Obsolete]
@@ -168,7 +196,7 @@ namespace NetMQ.zmq
     }
 
     /// <summary>
-    /// This flags enum-type provides a way to specify basic Receive behavior.
+    /// This flags enum-type provides a way to specify basic Receive behaviour.
     /// It may be None, or have the DontWait bit (indicating to wait for a message),
     /// or the SendMore bit, set.
     /// </summary>

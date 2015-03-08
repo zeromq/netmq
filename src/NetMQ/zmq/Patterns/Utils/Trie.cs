@@ -297,7 +297,7 @@ namespace NetMQ.zmq.Patterns.Utils
             if (m_count == 0)
                 return;
 
-            //  If there's one subnode (optimization).
+            //  If there's one subnode (optimisation).
             if (m_count == 1)
             {
                 buffer[bufferSize] = m_minCharacter;

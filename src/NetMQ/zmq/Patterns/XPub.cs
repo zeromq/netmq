@@ -55,7 +55,7 @@ namespace NetMQ.zmq.Patterns
         private Msg m_welcomeMessage;
 
         /// <summary>
-        /// True if we are in the middle of sending a multi-part message.
+        /// True if we are in the middle of sending a multipart message.
         /// </summary>
         private bool m_more;
 
@@ -275,7 +275,7 @@ namespace NetMQ.zmq.Patterns
         {
             bool msgMore = msg.HasMore;
 
-            //  For the first part of multi-part message, find the matching pipes.
+            //  For the first part of multipart message, find the matching pipes.
             if (!m_more)
                 m_subscriptions.Match(msg.Data, msg.Size,
                     s_markAsMatching, this);
@@ -284,7 +284,7 @@ namespace NetMQ.zmq.Patterns
             //  in the previous step.
             m_distribution.SendToMatching(ref msg);
 
-            //  If we are at the end of multi-part message we can mark all the pipes
+            //  If we are at the end of multipart message we can mark all the pipes
             //  as non-matching.
             if (!msgMore)
                 m_distribution.Unmatch();

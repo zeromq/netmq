@@ -25,7 +25,7 @@ namespace MajordomoProtocol.Contracts
         NetMQMessage Send(string serviceName, NetMQMessage request);
 
         /// <summary>
-        ///     broadcast logging info vai this event
+        ///     broadcast logging info via this event
         /// </summary>
         event EventHandler<LogInfoEventArgs> LogInfoReady;
     }
