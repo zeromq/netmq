@@ -25,8 +25,15 @@ namespace NetMQ
         public NetMQTimer Timer { get; private set; }
     }
 
+    /// <summary>
+    /// A NetMQTimer instance provides the state-information for a timer function,
+    /// which is periodically checked by a Poller or a NetMQBeacon.
+    /// </summary>
     public class NetMQTimer
     {
+        /// <summary>
+        /// A pre-constructed NetMQTimerEventArgs to use whenever raising the Elapsed event.
+        /// </summary>
         private readonly NetMQTimerEventArgs m_timerEventArgs;
 
         /// <summary>
@@ -34,6 +41,9 @@ namespace NetMQ
         /// </summary>
         private int m_interval;
 
+        /// <summary>
+        /// This flag dictates whether this timer is currently enabled.
+        /// </summary>
         private bool m_enable;
 
         /// <summary>
@@ -45,14 +55,20 @@ namespace NetMQ
         /// Create a new NetMQTimer with the timer-interval specified by the given TimeSpan.
         /// </summary>
         /// <param name="interval">a TimeSpan that denotes the timer-interval</param>
+        /// <remarks>
+        /// This sets the When property to an initial value of -1, to indicate it no future-time applies as yet.
+        /// </remarks>
         public NetMQTimer(TimeSpan interval)
             : this((int)interval.TotalMilliseconds)
-        {}
+        { }
 
         /// <summary>
         /// Create a new NetMQTimer with the given timer-interval in milliseconds.
         /// </summary>
         /// <param name="interval">an integer specifying the timer-interval in milliseconds</param>
+        /// <remarks>
+        /// This sets the When property to an initial value of -1, to indicate it no future-time applies as yet.
+        /// </remarks>
         public NetMQTimer(int interval)
         {
             m_interval = interval;
@@ -66,6 +82,9 @@ namespace NetMQ
         /// <summary>
         /// Get or set the timer-interval, in milliseconds.
         /// </summary>
+        /// <remarks>
+        /// When setting this, When is set to the future point in time from now at which the interval will expire (or -1 if not Enabled).
+        /// </remarks>
         public int Interval
         {
             get { return m_interval; }
@@ -80,6 +99,10 @@ namespace NetMQ
         /// <summary>
         /// Get or set whether this NetMQTimer is on.
         /// </summary>
+        /// <remarks>
+        /// When setting this to true, When is set to the future point in time from now at which the interval will expire.
+        /// When setting this to false, When is set to -1.
+        /// </remarks>
         public bool Enable
         {
             get { return m_enable; }
@@ -95,7 +118,8 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get or set the value of the low-precision timestamp that signals when the timer is to expire.
+        /// Get or set the value of the low-precision timestamp (a value in milliseconds) that signals when the timer is to expire,
+        /// or -1 if not applicable at this time.
         /// </summary>
         internal long When { get; set; }
 

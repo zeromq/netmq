@@ -55,7 +55,16 @@ namespace NetMQ
         /// </summary>
         private bool m_isStarted;
 
+        /// <summary>
+        /// When true, this indicates that there may be fresh socket-events to be polled-for.
+        /// This is set true whenever a EventsChanged event is received from any of the contained sockets.
+        /// </summary>
         private bool m_isDirty = true;
+
+        /// <summary>
+        /// This flag is used to mark this poller as disposed when the Dispose method is called,
+        /// to guard against further operations on this poller-object.
+        /// </summary>
         private bool m_disposed;
 
         private readonly Selector m_selector = new Selector();
@@ -75,6 +84,7 @@ namespace NetMQ
         /// Create a new Poller object with an array of sockets.
         /// </summary>
         /// <param name="sockets">an array of ISocketPollables to poll</param>
+        /// <exception cref="ArgumentNullException">sockets must not be null.</exception>
         public Poller([NotNull] [ItemNotNull] params ISocketPollable[] sockets)
             : this()
         {
@@ -93,6 +103,7 @@ namespace NetMQ
         /// Create a new Poller object with the given array of timers.
         /// </summary>
         /// <param name="timers">an array of NetMQTimers (must not be null) to be incorporated into this Poller</param>
+        /// <exception cref="ArgumentNullException">timers must not be null.</exception>
         public Poller([NotNull] [ItemNotNull] params NetMQTimer[] timers)
             : this()
         {
@@ -109,11 +120,19 @@ namespace NetMQ
         #endregion constructors
 
         #region Dispose
-
+        /// <summary>
+        /// Perform any freeing, releasing or resetting of contained resources.
+        /// If this poller is already started, signal the polling thread to stop - and block to wait for it.
+        /// </summary>
+        /// <remarks>
+        /// Calling this again after the first time, does nothing.
+        /// </remarks>
         public void Dispose()
         {
             if (!m_disposed)
             {
+                // If this poller is already started, signal the polling thread to stop
+                // and wait for it.
                 if (m_isStarted)
                     Cancel(true);
 
@@ -121,7 +140,6 @@ namespace NetMQ
                 m_isStoppedEvent.Close();
             }
         }
-
         #endregion
 
         #region public properties
@@ -149,6 +167,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the Socket to add</param>
         /// <param name="callback">the Action to add</param>
+        /// <exception cref="ArgumentNullException">socket and callback must not be null.</exception>
+        /// <exception cref="ArgumentException">The socket must not have already been added to this poller.</exception>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
         public void AddPollInSocket([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
@@ -180,6 +201,8 @@ namespace NetMQ
         /// Delete the given socket from this Poller's collection of socket/actions.
         /// </summary>
         /// <param name="socket">the Socket to remove</param>
+        /// <exception cref="ArgumentNullException">socket must not be null.</exception>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
         public void RemovePollInSocket([NotNull] Socket socket)
         {
             if (socket == null)
@@ -201,6 +224,9 @@ namespace NetMQ
         /// Add the given socket to this Poller's list.
         /// </summary>
         /// <param name="socket">the ISocketPollable to add to the list</param>
+        /// <exception cref="ArgumentNullException">socket must not be null.</exception>
+        /// <exception cref="ArgumentException">socket must not have already been added to this poller.</exception>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
         public void AddSocket([NotNull] ISocketPollable socket)
         {
             if (socket == null)
@@ -229,6 +255,8 @@ namespace NetMQ
         /// Delete the given socket from this Poller's list.
         /// </summary>
         /// <param name="socket">the ISocketPollable to remove from the list</param>
+        /// <exception cref="ArgumentNullException">socket must not be null.</exception>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
         public void RemoveSocket([NotNull] ISocketPollable socket)
         {
             if (socket == null)
@@ -251,6 +279,8 @@ namespace NetMQ
         /// Add the given timer to this Poller's list.
         /// </summary>
         /// <param name="timer">the NetMQTimer to add to the list</param>
+        /// <exception cref="ArgumentNullException">timer must not be null.</exception>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
         public void AddTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -270,6 +300,8 @@ namespace NetMQ
         /// Delete the given timer from this Poller's list.
         /// </summary>
         /// <param name="timer">the NetMQTimer to remove from the list</param>
+        /// <exception cref="ArgumentNullException">timer must not be null.</exception>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
         public void RemoveTimer([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -376,9 +408,12 @@ namespace NetMQ
         {
             m_pollSize = m_sockets.Count + m_pollinSockets.Count;
 
+            // Recreate the m_pollset and m_pollact arrays.
             m_pollset = new SelectItem[m_pollSize];
             m_pollact = new NetMQSocket[m_sockets.Count];
 
+            // For each socket in m_sockets,
+            // put a corresponding SelectItem into the m_pollset array and a reference to the socket itself into the m_pollact array.
             uint itemNbr = 0;
             foreach (var socket in m_sockets)
             {
@@ -393,42 +428,53 @@ namespace NetMQ
                 itemNbr++;
             }
 
+            // Mark this as NOT having any fresh events to attend to, as yet.
             m_isDirty = false;
         }
 
+        /// <summary>
+        /// Return the soonest timeout value of all the timers in the list, or zero to indicate any of them have already elapsed.
+        /// The timeout is in milliseconds from now.
+        /// </summary>
+        /// <returns>the number of milliseconds before the first timer expires, or zero if one already has</returns>
         private int TicklessTimer()
         {
-            //  Calculate tickless timer
+            // Calculate tickless timer,
+            // by adding the timeout to the current point-in-time.
             long tickless = Clock.NowMs() + PollTimeout;
 
+            // Find the When-value of the earliest timer..
             foreach (var timer in m_timers)
             {
-                //  Find earliest timer
+                // If it is enabled but no When is set yet,
                 if (timer.When == -1 && timer.Enable)
                 {
+                    // Set this timer's When to now plus it's Interval.
                     timer.When = timer.Interval + Clock.NowMs();
                 }
-
+                // If it has a When and that is earlier than the earliest found thus far,
                 if (timer.When != -1 && tickless > timer.When)
                 {
+                    // save that value.
                     tickless = timer.When;
                 }
             }
-
+            // Compute a timeout value - how many milliseconds from now that that earliest-timer will expire.
             var timeout = (int)(tickless - Clock.NowMs());
+            // Use zero to indicate it has already expired.
             if (timeout < 0)
             {
                 timeout = 0;
             }
-
+            // Return that timeout value.
             return timeout;
         }
 
         /// <summary>
         /// Poll as long as the given Func evaluates to true.
         /// </summary>
-        /// <param name="condition">a Func that returns a boolean value, to evaluate on each iteration</param>
-        private void PollWhile([NotNull,InstantHandle] Func<bool> condition)
+        /// <param name="condition">a Func that returns a boolean value, to evaluate on each poll-iteration to decide when to exit the loop</param>
+        private void PollWhile([NotNull, InstantHandle] Func<bool> condition)
         {
             if (m_disposed)
             {
@@ -460,6 +506,7 @@ namespace NetMQ
                     }
                 }
 
+                // Do this until the given Func evaluates to false...
                 while (condition())
                 {
                     if (m_isDirty)
@@ -568,6 +615,13 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Signal this poller to stop, and return immediately if waitForCloseToComplete is false,
+        /// block until the poller has actually stopped if waitForCloseToComplete is true.
+        /// </summary>
+        /// <param name="waitForCloseToComplete">block until the poller has actually stopped</param>
+        /// <exception cref="ObjectDisposedException">if this poller has already been disposed</exception>
+        /// <exception cref="InvalidOperationException">if this poller has not been started</exception>
         private void Cancel(bool waitForCloseToComplete)
         {
             if (m_disposed)

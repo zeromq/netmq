@@ -151,6 +151,9 @@ namespace NetMQ.zmq
         public const int TermTid = 0;
         public const int ReaperTid = 1;
 
+        /// <summary>
+        /// Create a new Ctx object with all default values and a mailbox named "terminator".
+        /// </summary>
         public Ctx()
         {
             m_disposed = false;
@@ -174,6 +177,10 @@ namespace NetMQ.zmq
             m_endpoints = new Dictionary<string, Endpoint>();
         }
 
+        /// <summary>
+        /// Dump all of this object's resources
+        /// by stopping and destroying all of it's threads, destroying the reaper, and closing the mailbox.
+        /// </summary>
         private void Destroy()
         {
             foreach (IOThread it in m_ioThreads)
@@ -196,6 +203,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Throw an ObjectDisposedException if this is already disposed.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">this Ctx object is already marked as disposed.</exception>
         public void CheckDisposed()
         {
             if (m_disposed)
@@ -268,6 +276,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="option">this determines which of the two properties to set</param>
         /// <param name="optionValue">the value to assign to that property</param>
+        /// <exception cref="InvalidException">option must be MaxSockets with optionValue >= 1, or IOThreads with optionValue >= 0.</exception>
         public void Set(ContextOption option, int optionValue)
         {
             if (option == ContextOption.MaxSockets && optionValue >= 1)
@@ -286,7 +295,7 @@ namespace NetMQ.zmq
             }
             else
             {
-                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets or IOThreads, and optionValue >= 1 or 0.", option, optionValue));
+                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets with optionValue >= 1, or IOThreads with optionValue >= 0.", option, optionValue));
             }
         }
 
@@ -294,6 +303,7 @@ namespace NetMQ.zmq
         /// Return either the max-sockets or the I/O-thread-count, depending upon which ContextOption is indicated.
         /// </summary>
         /// <param name="option">this determines which of the two properties to get</param>
+        /// <exception cref="InvalidException">option must be MaxSockets or IOThreads.</exception>
         public int Get(ContextOption option)
         {
             if (option == ContextOption.MaxSockets)
@@ -303,6 +313,13 @@ namespace NetMQ.zmq
             throw new InvalidException(String.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
         }
 
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        /// <exception cref="TerminatingException">Cannot create new socket while terminating.</exception>
+        /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
         [CanBeNull]
         public SocketBase CreateSocket(ZmqSocketType type)
         {
@@ -517,6 +534,12 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        /// <exception cref="EndpointNotFoundException">The given address was not found in the list of endpoints.</exception>
         [NotNull]
         public Endpoint FindEndpoint([NotNull] String addr)
         {

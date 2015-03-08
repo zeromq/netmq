@@ -25,6 +25,9 @@ using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns
 {
+    /// <summary>
+    /// A Req is a Dealer socket that serves as the Request in a Request/Response pattern.
+    /// </summary>
     internal sealed class Req : Dealer
     {
         /// <summary>
@@ -34,11 +37,17 @@ namespace NetMQ.zmq.Patterns
         private bool m_receivingReply;
 
         /// <summary>
-        /// If true, we are starting to send/recv a message. The first part
+        /// If true, we are starting to send/receive a message. The first part
         /// of the message must be empty message part (backtrace stack bottom).
         /// </summary>
         private bool m_messageBegins;
 
+        /// <summary>
+        /// Create a new Req (Request) socket with the given parent Ctx, thread and socket id.
+        /// </summary>
+        /// <param name="parent">the Ctx to contain this socket</param>
+        /// <param name="threadId">an integer thread-id for this socket to execute on</param>
+        /// <param name="socketId">the socket-id for this socket</param>
         public Req([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {

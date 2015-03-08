@@ -1,13 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 
+
 namespace NetMQ.zmq.Utils
 {
+    /// <summary>
+    /// Class ByteArrayEqualityComparer is an IEqualityComparer for byte-arrays,
+    /// and provides an Equals methods to compare two byte-arrays for equality in value
+    /// and GetHashCode.
+    /// </summary>
     internal sealed class ByteArrayEqualityComparer : IEqualityComparer<byte[]>
     {
         private const uint C1 = 0xcc9e2d51;
         private const uint C2 = 0x1b873593;
 
+        /// <summary>
+        /// Return true only if the two byte-arrays are equal in length and contain the same values.
+        /// </summary>
+        /// <param name="x">one of the two byte-arrays to compare</param>
+        /// <param name="y">the other byte-array to compare against</param>
+        /// <returns></returns>
         public bool Equals(byte[] x, byte[] y)
         {
             if (x.Length != y.Length)
@@ -26,6 +38,11 @@ namespace NetMQ.zmq.Utils
             return true;
         }
 
+        /// <summary>
+        /// Return a numeric hashcode of the given byte-array.
+        /// </summary>
+        /// <param name="data">the given byte-array to compute the hashcode of</param>
+        /// <returns>an integer that contains a hashcode computed over the byte-array</returns>
         public int GetHashCode(byte[] data)
         {
             unchecked

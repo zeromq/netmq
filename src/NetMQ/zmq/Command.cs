@@ -36,6 +36,12 @@ namespace NetMQ.zmq
         {
         }
 
+        /// <summary>
+        /// Create a new Command object for the given destination, type, and optional argument.
+        /// </summary>
+        /// <param name="destination">a ZObject that denotes the destination for this command</param>
+        /// <param name="type">the CommandType of the new command</param>
+        /// <param name="arg">an Object to comprise the argument for the command (optional)</param>
         public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null)
         {
             Destination = destination;
@@ -56,6 +62,10 @@ namespace NetMQ.zmq
         [CanBeNull]
         public Object Arg { get; private set; }
 
+        /// <summary>
+        /// Override of ToString, which returns a string in the form [ command-type, destination ].
+        /// </summary>
+        /// <returns>a string that denotes the command-type and destination</returns>
         public override String ToString()
         {
             return base.ToString() + "[" + CommandType + ", " + Destination + "]";

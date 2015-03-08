@@ -12,7 +12,7 @@ namespace NetMQ
         /// The message content is in the form of a byte-array that Msg contains.
         /// </summary>
         /// <param name="msg">the Msg struct that contains the data and the options for this transmission</param>
-        /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore bits</param>
+        /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore bits (or None)</param>
         void Send(ref Msg msg, SendReceiveOptions options);
     }
 }

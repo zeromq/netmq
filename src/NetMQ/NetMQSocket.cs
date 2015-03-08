@@ -104,13 +104,16 @@ namespace NetMQ
             get { return m_socketHandle; }
         }
 
+        /// <summary>
+        /// Get this socket.
+        /// </summary>
         NetMQSocket ISocketPollable.Socket
         {
             get { return this; }
         }
 
         /// <summary>
-        /// Bind the socket to an address
+        /// Bind the socket to the given address
         /// </summary>
         /// <param name="address">a string representing the address to bind this socket to</param>
         /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
@@ -367,8 +370,11 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// This is true if a message is waiting to be sent, false otherwise.
+        /// Get whether a message is waiting to be sent.
         /// </summary>
+        /// <remarks>
+        /// This is true if at least one message is waiting to be sent, false if there is none.
+        /// </remarks>
         public bool HasOut
         {
             get

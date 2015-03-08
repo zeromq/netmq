@@ -1,7 +1,13 @@
 ﻿using System;
 
+
 namespace NetMQ
 {
+    /// <summary>
+    /// EventDelegatorHelper is an internal utility-class that, for a given EventArgs type,
+    /// registers two Actions for it - one to execute when the first handler is added, and the other when the last handler is removed.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     internal class EventDelegatorHelper<T> where T : EventArgs
     {
         private readonly Action m_registerToEvent;
@@ -9,6 +15,11 @@ namespace NetMQ
         private EventHandler<T> m_event;
         private int m_counter;
 
+        /// <summary>
+        /// Create a new EventDelegatorHelper with the given Actions.
+        /// </summary>
+        /// <param name="registerToEvent">an Action to perform when the first handler is registered for the event</param>
+        /// <param name="unregisterFromEvent">an Action to perform when the last handler is unregistered from the event</param>
         public EventDelegatorHelper(Action registerToEvent, Action unregisterFromEvent)
         {
             m_registerToEvent = registerToEvent;

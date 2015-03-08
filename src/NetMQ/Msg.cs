@@ -20,17 +20,16 @@
 */
 
 using System;
-using System.Diagnostics;
 using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    /// <summary>Defines a set of flags applicable to a <see cref="Msg"/> instance.</summary>
+    /// <summary>Defines a set of flags applicable to a <see cref="Msg"/> instance: None (default), More, Identity, Shared</summary>
     [Flags]
     public enum MsgFlags : byte
     {
-        /// <summary>Indicates no flags are set.</summary>
+        /// <summary>Indicates no flags are set (the default).</summary>
         None = 0,
 
         /// <summary>Indicates that more frames of the same message follow.</summary>
@@ -43,14 +42,14 @@ namespace NetMQ
         Shared = 128,
     }
 
-    /// <summary>Enumeration of possible <see cref="Msg"/> types.</summary>
+    /// <summary>Enumeration of possible <see cref="Msg"/> types: Uninitialised, GC, Pool, Delimiter.</summary>
     public enum MsgType : byte
     {
         /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
         [Obsolete("Use Uninitialised instead")]
         Invalid = 0,
 
-        /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
+        /// <summary>The <see cref="Msg"/> has not yet been initialised (default value).</summary>
         Uninitialised = 0,
 
         /// <summary>The <see cref="Msg"/> is empty.</summary>
@@ -142,7 +141,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Whether this <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
+        /// Get whether the <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
         /// Only applies to pooled message types.
         /// </summary>
         public bool IsShared
@@ -209,7 +208,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Initialize this Msg to be of MsgType.Pool, with a data-buffer of the given number of bytes.
+        /// Initialise this Msg to be of MsgType.Pool, with a data-buffer of the given number of bytes.
         /// </summary>
         /// <param name="size">the number of bytes to allocate in the data-buffer</param>
         public void InitPool(int size)
@@ -222,7 +221,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Initialize this Msg to be of MsgType.GC with the given data-buffer value.
+        /// Initialise this Msg to be of MsgType.GC with the given data-buffer value.
         /// </summary>
         /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
         /// <param name="size">the number of bytes that are in the data byte-array</param>
@@ -373,8 +372,8 @@ namespace NetMQ
         /// <returns></returns>
         public byte this[int index]
         {
-            get { return Data[index];  }
-            set { Data[index] = value;  }
+            get { return Data[index]; }
+            set { Data[index] = value; }
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using System.ServiceModel.Channels;
 using System.Threading;
 using JetBrains.Annotations;
 
+
 namespace NetMQ
 {
     /// <summary>
@@ -34,21 +35,44 @@ namespace NetMQ
     {
         private readonly BufferManager m_bufferManager;
 
+        /// <summary>
+        /// Create a new BufferManagerBufferPool with the specified maximum buffer pool size
+        /// and a maximum size for each individual buffer in the pool.
+        /// </summary>
+        /// <param name="maxBufferPoolSize">the maximum size to allow for the buffer pool</param>
+        /// <param name="maxBufferSize">the maximum size to allow for each individual buffer in the pool</param>
+        /// <exception cref="InsufficientMemoryException">There was insufficient memory to create the requested buffer pool.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Either maxBufferPoolSize or maxBufferSize was less than zero.</exception>
         public BufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {
             m_bufferManager = BufferManager.CreateBufferManager(maxBufferPoolSize, maxBufferSize);
         }
 
+        /// <summary>
+        /// Return a byte-array buffer of at least the specified size from the pool.
+        /// </summary>
+        /// <param name="size">the size in bytes of the requested buffer</param>
+        /// <returns>a byte-array that is the requested size</returns>
+        /// <exception cref="ArgumentOutOfRangeException">size cannot be less than zero</exception>
         public byte[] Take(int size)
         {
             return m_bufferManager.TakeBuffer(size);
         }
 
+        /// <summary>
+        /// Return the given buffer to this manager pool.
+        /// </summary>
+        /// <param name="buffer">a reference to the buffer being returned</param>
+        /// <exception cref="ArgumentException">the Length of buffer does not match the pool's buffer length property</exception>
+        /// <exception cref="ArgumentNullException">the buffer reference cannot be null</exception>
         public void Return(byte[] buffer)
         {
             m_bufferManager.ReturnBuffer(buffer);
         }
 
+        /// <summary>
+        /// Release the buffers currently cached in this manager.
+        /// </summary>
         public void Dispose()
         {
             m_bufferManager.Clear();
@@ -62,16 +86,31 @@ namespace NetMQ
     /// </summary>
     public class GCBufferPool : IBufferPool
     {
+        /// <summary>
+        /// Return a newly-allocated byte-array buffer of at least the specified size from the pool.
+        /// </summary>
+        /// <param name="size">the size in bytes of the requested buffer</param>
+        /// <returns>a byte-array that is the requested size</returns>
+        /// <exception cref="OutOfMemoryException">there is not sufficient memory to allocate the requested memory</exception>
         public byte[] Take(int size)
         {
             return new byte[size];
         }
 
+        /// <summary>
+        /// The expectation of an actual buffer-manager is that this method returns the given buffer to the manager pool.
+        /// This particular implementation does nothing.
+        /// </summary>
+        /// <param name="buffer">a reference to the buffer being returned</param>
         public void Return(byte[] buffer)
-        {}
+        { }
 
+        /// <summary>
+        /// The expectation of an actual buffer-manager is that the Dispose method will release the buffers currently cached in this manager.
+        /// This particular implementation does nothing.
+        /// </summary>
         public void Dispose()
-        {}
+        { }
     }
 
     /// <summary>
@@ -94,16 +133,30 @@ namespace NetMQ
     {
         private static IBufferPool s_bufferPool = new GCBufferPool();
 
+        /// <summary>
+        /// Set BufferPool to use the <see cref="GCBufferPool"/> (which it does by default).
+        /// </summary>
         public static void SetGCBufferPool()
         {
             SetCustomBufferPool(new GCBufferPool());
         }
 
+        /// <summary>
+        /// Set BufferPool to use the <see cref="BufferManagerBufferPool"/> to manage the buffer-pool.
+        /// </summary>
+        /// <param name="maxBufferPoolSize">the maximum size to allow for the buffer pool</param>
+        /// <param name="maxBufferSize">the maximum size to allow for each individual buffer in the pool</param>
+        /// <exception cref="InsufficientMemoryException">There was insufficient memory to create the requested buffer pool.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Either maxBufferPoolSize or maxBufferSize was less than zero.</exception>
         public static void SetBufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {
             SetCustomBufferPool(new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
         }
 
+        /// <summary>
+        /// Set BufferPool to use the specified IBufferPool implementation to manage the buffer-pool.
+        /// </summary>
+        /// <param name="bufferPool">the implementation of <see cref="IBufferPool"/> to use</param>
         public static void SetCustomBufferPool([NotNull] IBufferPool bufferPool)
         {
             var prior = Interlocked.Exchange(ref s_bufferPool, bufferPool);

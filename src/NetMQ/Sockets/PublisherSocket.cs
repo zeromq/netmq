@@ -9,6 +9,10 @@ namespace NetMQ.Sockets
     /// </summary>
     public class PublisherSocket : NetMQSocket
     {
+        /// <summary>
+        /// Create a new PublisherSocket based upon the given SocketBase.
+        /// </summary>
+        /// <param name="socketHandle">the SocketBase to create the new socket from</param>
         internal PublisherSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
@@ -22,6 +26,6 @@ namespace NetMQ.Sockets
         public override void Receive(ref Msg msg, SendReceiveOptions options)
         {
             throw new NotSupportedException("Publisher doesn't support receiving");
-        }        
+        }
     }
 }

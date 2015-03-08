@@ -7,6 +7,10 @@ using NetMQ.zmq;
 
 namespace NetMQ.Actors
 {
+    /// <summary>
+    /// A NetMQActorEventArgs is an EventArgs that also provides an generically-typed Actor property.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     [Obsolete("Use non generic NetMQActor")]
     public class NetMQActorEventArgs<T> : EventArgs
     {
@@ -104,12 +108,18 @@ namespace NetMQ.Actors
             m_self.WaitForSignal();
         }
 
+        /// <summary>
+        /// This event occurs when at least one message may be received from the socket without blocking.
+        /// </summary>
         public event EventHandler<NetMQActorEventArgs<T>> ReceiveReady
         {
             add { m_receiveEventDelegatorHelper.Event += value; }
             remove { m_receiveEventDelegatorHelper.Event -= value; }
         }
 
+        /// <summary>
+        /// This event occurs when a message is ready to be transmitted from the socket.
+        /// </summary>
         public event EventHandler<NetMQActorEventArgs<T>> SendReady
         {
             add { m_sendEventDelegatorHelper.Event += value; }

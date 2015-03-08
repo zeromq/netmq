@@ -47,7 +47,8 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <summary>
         /// Underlying socket.
         /// </summary>
-        [CanBeNull] private AsyncSocket m_s;
+        [CanBeNull]
+        private AsyncSocket m_s;
 
         /// <summary>
         /// If true file descriptor is registered with the poller and 'handle'
@@ -170,7 +171,7 @@ namespace NetMQ.zmq.Transports.Tcp
             try
             {
                 m_s.Connect(m_addr.Resolved.Address.Address, m_addr.Resolved.Address.Port);
-                m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgres);
+                m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgress);
             }
             catch (SocketException ex)
             {
@@ -178,6 +179,12 @@ namespace NetMQ.zmq.Transports.Tcp
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="socketError"></param>
+        /// <param name="bytesTransferred"></param>
+        /// <exception cref="NetMQException">a non-recoverable socket error occurred.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             if (socketError != SocketError.Success)
@@ -272,7 +279,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 m_options.ReconnectIvlMax > m_options.ReconnectIvl)
             {
                 //  Calculate the next interval
-                m_currentReconnectIvl = m_currentReconnectIvl*2;
+                m_currentReconnectIvl = m_currentReconnectIvl * 2;
                 if (m_currentReconnectIvl >= m_options.ReconnectIvlMax)
                 {
                     m_currentReconnectIvl = m_options.ReconnectIvlMax;

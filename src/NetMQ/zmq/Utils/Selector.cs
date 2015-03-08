@@ -61,6 +61,7 @@ namespace NetMQ.zmq.Utils
         /// <param name="itemsCount"></param>
         /// <param name="timeout">a time-out period, in milliseconds</param>
         /// <returns></returns>
+        /// <exception cref="FaultException">items must not be null, or the internal call to Select failed</exception>
         public bool Select(SelectItem[] items, int itemsCount, int timeout)
         {
             if (items == null)

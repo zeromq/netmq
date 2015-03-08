@@ -118,8 +118,8 @@ namespace NetMQ
 
         public long MaxMsgSize
         {
-            get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Maxmsgsize); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Maxmsgsize, value); }
+            get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.MaxMessageSize); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.MaxMessageSize, value); }
         }
 
         /// <summary>

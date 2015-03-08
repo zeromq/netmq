@@ -8,6 +8,10 @@ namespace NetMQ.Sockets
     /// </summary>
     public class ResponseSocket : NetMQSocket
     {
+        /// <summary>
+        /// Create a new ResponseSocket based upon the given SocketBase.
+        /// </summary>
+        /// <param name="socketHandle">the SocketBase to create the new socket from</param>
         internal ResponseSocket(SocketBase socketHandle)
             : base(socketHandle)
         {

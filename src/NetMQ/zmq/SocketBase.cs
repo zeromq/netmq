@@ -101,13 +101,21 @@ namespace NetMQ.zmq
             m_mailbox = new Mailbox("socket-" + socketId);
         }
 
-        //  Concrete algorithms for the x- methods are to be defined by
+        //  Note: Concrete algorithms for the x- methods are to be defined by
         //  individual socket types.
+
+        /// <summary>
+        /// Abstract method for attaching a given pipe to this socket.
+        /// The concrete implementations are defined by the individual socket types.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">if true - subscribe to all data on the pipe</param>
         protected abstract void XAttachPipe([NotNull] Pipe pipe, bool icanhasall);
+
         protected abstract void XTerminated([NotNull] Pipe pipe);
 
         /// <summary>
-        /// Throw exception if socket is disposed
+        /// Throw an ObjectDisposedException if this socket is already disposed
         /// </summary>  
         public void CheckDisposed()
         {
@@ -128,7 +136,13 @@ namespace NetMQ.zmq
             }
         }
 
-        //  Create a socket of a specified type.
+        /// <summary>
+        /// Create a socket of a specified type.
+        /// </summary>
+        /// <param name="type">a ZmqSocketType specifying the type of socket to create</param>
+        /// <param name="parent">the parent context</param>
+        /// <param name="threadId">the thread for this new socket to run on</param>
+        /// <param name="socketId">an integer id for this socket</param>
         [NotNull]
         public static SocketBase Create(ZmqSocketType type, [NotNull] Ctx parent, int threadId, int socketId)
         {
@@ -164,6 +178,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
+        /// Destroy this socket - which means to stop monitoring the queue for messages.
         /// This simply calls StopMonitor, and then verifies that the destroyed-flag is set.
         /// </summary>
         public override void Destroy()
@@ -174,7 +189,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Returns the mailbox associated with this socket.
+        /// Return the Mailbox associated with this socket.
         /// </summary>
         [NotNull]
         public Mailbox Mailbox
@@ -183,7 +198,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Interrupt blocking call if the socket is stuck in one.
+        /// Interrupt a blocking call if the socket is stuck in one.
         /// This function can be called from a different thread!
         /// </summary>
         public void Stop()
@@ -196,7 +211,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Check whether transport protocol, as specified in connect or
+        /// Check whether the transport protocol, as specified in connect or
         /// bind, is available and compatible with the socket type.
         /// </summary>
         private void CheckProtocol([NotNull] string protocol)
@@ -234,8 +249,10 @@ namespace NetMQ.zmq
 
 
         /// <summary>
-        /// Register the pipe with this socket.
+        /// Register the given pipe with this socket.
         /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">if true - subscribe to all data on the pipe (optional - default is false)</param>
         private void AttachPipe([NotNull] Pipe pipe, bool icanhasall = false)
         {
             //  First, register the pipe so that we can terminate it later on.
@@ -806,7 +823,7 @@ namespace NetMQ.zmq
 
             //  If the message cannot be fetched immediately, there are two scenarios.
             //  For non-blocking recv, commands are processed in case there's an
-            //  activate_reader command already waiting int a command pipe.
+            //  activate_reader command already waiting in a command pipe.
             //  If it's not, return EAGAIN.
             bool isDontWaitSet = (flags & SendReceiveOptions.DontWait) > 0;
             if (isDontWaitSet || m_options.ReceiveTimeout == 0)
@@ -1016,7 +1033,9 @@ namespace NetMQ.zmq
         /// options for the particular socket type. If not so, overload this
         /// method.
         /// </summary>
-        protected virtual bool XSetSocketOption(ZmqSocketOptions option, [CanBeNull] Object optval)
+        /// <param name="option">a ZmqSocketOptions specifying which option to set</param>
+        /// <param name="optionValue">an Object that is the value to set the option to</param>
+        protected virtual bool XSetSocketOption(ZmqSocketOptions option, [CanBeNull] Object optionValue)
         {
             return false;
         }

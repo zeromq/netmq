@@ -12,13 +12,13 @@ namespace NetMQ
     /// </summary>
     public static class ReceivingSocketExtensions
     {
-        #region Receiving Byte Array
+        #region receiving byte-array data
 
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
         /// <param name="socket">the socket to use</param>
-        /// <param name="options">the send and receive options to use</param>
+        /// <param name="options">a SendReceiveOptions which can specify the DontWait or SendMore flags (or None)</param>
         /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
@@ -47,7 +47,7 @@ namespace NetMQ
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
         /// <param name="socket">the socket to use</param>
-        /// <param name="options">the send and receive options to use</param>
+        /// <param name="options">a SendReceiveOptions that can specify the DontWait or SendMore flags</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, SendReceiveOptions options)
@@ -138,20 +138,20 @@ namespace NetMQ
             return frames;
         }
 
-        #endregion
+        #endregion receiving byte-array data
 
-        #region Receiving Strings
+        #region receiving strings
 
         /// <summary>
-        /// reads an available message and extracts the data which is converted to a string
-        /// using the encoding and informs about the availability of more messages
+        /// Read an available message, extract the data which is converted to a string
+        /// using the specified Encoding, and inform of the availability of more messages via the hasMore parameter.
         /// </summary>
         /// <param name="socket">the socket to read from</param>
-        /// <param name="encoding">the encoding to use</param>
-        /// <param name="options">the send/receive options to use</param>
+        /// <param name="encoding">the Encoding to use</param>
+        /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
-        /// <returns>the string representation of the encoded data of the message</returns>
-        /// <exception cref="ArgumentNullException">is thrown if encoding is null</exception>
+        /// <returns>the message data encoded as a string</returns>
+        /// <exception cref="ArgumentNullException">encoding must not be null.</exception>
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options, out bool hasMore)
         {
@@ -175,13 +175,13 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// reads an available message and extracts the data which is converted to a string
-        /// using ASCII as encoding and informs about the availability of more messages
+        /// Read an available message, extract the data which is converted to a string
+        /// using the default Encoding.ASCII, and inform of the availability of more messages via the hasMore parameter.
         /// </summary>
         /// <param name="socket">the socket to read from</param>
-        /// <param name="options">the send/receive options to use</param>
+        /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
-        /// <returns>the ASCII string representation of the data of the message</returns>
+        /// <returns>the message data encoded as a string - using the ASCII-encoding</returns>
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
         {
@@ -189,12 +189,12 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// reads an available message and extracts the data which is converted to a string
-        /// using ASCII as encoding
+        /// Read an available message, and extract the data which is converted to a string
+        /// using ASCII as the Encoding.
         /// </summary>
         /// <param name="socket">the socket to read from</param>
-        /// <param name="options">the send/receive options to use</param>
-        /// <returns>the ASCII string representation of the data of the message</returns>
+        /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
+        /// <returns>the message data encoded a a string using the ASCII-encoding</returns>
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, SendReceiveOptions options)
         {
@@ -208,8 +208,8 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the socket to read from</param>
         /// <param name="encoding">the encoding to use</param>
-        /// <param name="options">the send/receive options to use</param>
-        /// <returns>the string representation of the encoded data of the message</returns>
+        /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
+        /// <returns>the message data encoded as a string</returns>
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options)
         {
@@ -379,9 +379,9 @@ namespace NetMQ
             return frames;
         }
 
-        #endregion
+        #endregion receiving strings
 
-        #region Receiving NetMQMessge
+        #region receiving a NetMQMessage
 
         /// <summary>
         /// non-blocking receive of a (multipart)message and stores it in the NetMQMessage object
@@ -434,12 +434,12 @@ namespace NetMQ
             return msg;
         }
 
-        #endregion
+        #endregion receiving a NetMQMessage
 
         #region Receiving Signals
 
         /// <summary>
-        /// Extension-method for IReceivingSocket: repeatedly call Rece on this socket, until we receive
+        /// Extension-method for IReceivingSocket: repeatedly call ReceiveMessage on this socket, until we receive
         /// a message with one 8-byte frame, which matches a specific pattern.
         /// </summary>
         /// <param name="socket">this socket to receive the messages from</param>
@@ -464,6 +464,8 @@ namespace NetMQ
 
         #endregion
 
+        #region obsolete methods
+
         [Obsolete("Use ReceiveMessages extension method instead")]
         [NotNull]
         [ItemNotNull]
@@ -479,5 +481,7 @@ namespace NetMQ
         {
             return socket.ReceiveStringMessages().ToList();
         }
+
+        #endregion obsolete methods
     }
 }

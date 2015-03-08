@@ -26,6 +26,7 @@ using System.Text;
 using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
+
 namespace NetMQ.zmq.Patterns
 {
     internal class XPub : SocketBase
@@ -107,6 +108,11 @@ namespace NetMQ.zmq.Patterns
             m_pending = new Queue<byte[]>();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">if true - subscribe to all data on the pipe</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -117,7 +123,7 @@ namespace NetMQ.zmq.Patterns
             if (icanhasall)
                 m_subscriptions.Add(null, 0, 0, pipe);
 
-            // if welcome message was set
+            // if welcome message was set, write one to the pipe.
             if (m_welcomeMessage.Size > 0)
             {
                 var copy = new Msg();
@@ -256,7 +262,7 @@ namespace NetMQ.zmq.Patterns
         protected override void XTerminated(Pipe pipe)
         {
             //  Remove the pipe from the trie. If there are topics that nobody
-            //  is interested in anymore, send corresponding unsubscriptions
+            //  is interested in anymore, send corresponding un-subscriptions
             //  upstream.
 
 

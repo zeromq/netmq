@@ -22,6 +22,7 @@
 using System;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ.zmq
 {
     internal class IOThread : ZObject, IMailboxEvent
@@ -30,12 +31,22 @@ namespace NetMQ.zmq
         /// I/O thread accesses incoming commands via this mailbox.
         /// </summary>
         private readonly IOThreadMailbox m_mailbox;
-        
-        //  I/O multiplexing is performed using a poller object.
+
+        /// <summary>
+        /// I/O multiplexing is performed using a poller object.
+        /// </summary>
         private readonly Proactor m_proactor;
 
+        /// <summary>
+        /// This gets set to "iothread-" plus the thread-id.
+        /// </summary>
         readonly String m_name;
 
+        /// <summary>
+        /// Create a new IOThread object within the given context (Ctx) and thread.
+        /// </summary>
+        /// <param name="ctx">the Ctx (context) for this thread to live within</param>
+        /// <param name="threadId">the integer thread-id for this new IOThread</param>
         public IOThread(Ctx ctx, int threadId)
             : base(ctx, threadId)
         {

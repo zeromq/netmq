@@ -44,6 +44,8 @@ namespace NetMQ.zmq.Utils
         /// such as a broken network cable, or that the remote host was shut down ungracefully.
         /// You must attempt to send or receive data to detect these kinds of errors.
         /// </remarks>
+        /// <exception cref="ArgumentNullException">none of the three lists of sockets may be null.</exception>
+        /// <exception cref="SocketException">an error occurred when attempting to access the socket.</exception>
         public static void Select([CanBeNull] IList checkRead, [CanBeNull] IList checkWrite, [CanBeNull] IList checkError, int microSeconds)
         {
 #if NET35
@@ -51,7 +53,7 @@ namespace NetMQ.zmq.Utils
             if (microSeconds == -1)
                 microSeconds = int.MaxValue;
 #endif
-            
+
             Socket.Select(checkRead, checkWrite, checkError, microSeconds);
         }
     }
