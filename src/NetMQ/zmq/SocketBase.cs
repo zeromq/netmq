@@ -84,15 +84,6 @@ namespace NetMQ.zmq
         protected SocketBase([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId)
         {
-            m_disposed = false;
-            m_ctxTerminated = false;
-            m_destroyed = false;
-            m_lastTsc = 0;
-            m_ticks = 0;
-            m_rcvMore = false;
-            m_monitorSocket = null;
-            m_monitorEvents = 0;
-
             m_options.SocketId = socketId;
 
             m_endpoints = new Dictionary<string, Own>();
