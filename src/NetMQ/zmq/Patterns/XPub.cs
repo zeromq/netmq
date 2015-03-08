@@ -271,7 +271,7 @@ namespace NetMQ.zmq.Patterns
             m_distribution.Terminated(pipe);
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             bool msgMore = msg.HasMore;
 
@@ -300,7 +300,7 @@ namespace NetMQ.zmq.Patterns
             return m_distribution.HasOut();
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             //  If there is at least one 
             if (m_pending.Count == 0)

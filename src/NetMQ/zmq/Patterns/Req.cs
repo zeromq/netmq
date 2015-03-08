@@ -56,7 +56,7 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Req;
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             //  If we've sent a request and we still haven't got the reply,
             //  we can't send another request.
@@ -73,7 +73,7 @@ namespace NetMQ.zmq.Patterns
                 var bottom = new Msg();
                 bottom.InitEmpty();
                 bottom.SetFlags(MsgFlags.More);
-                isMessageSent = base.XSend(ref bottom, 0);
+                isMessageSent = base.XSend(ref bottom);
 
                 if (!isMessageSent)
                     return false;
@@ -83,7 +83,7 @@ namespace NetMQ.zmq.Patterns
 
             bool more = msg.HasMore;
 
-            isMessageSent = base.XSend(ref msg, flags);
+            isMessageSent = base.XSend(ref msg);
 
             if (!isMessageSent)
                 return false;
@@ -98,7 +98,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             bool isMessageAvailable;
 
@@ -111,7 +111,7 @@ namespace NetMQ.zmq.Patterns
             //  First part of the reply should be the original request ID.
             if (m_messageBegins)
             {
-                isMessageAvailable = base.XRecv(flags, ref msg);
+                isMessageAvailable = base.XRecv(ref msg);
 
                 if (!isMessageAvailable)
                 {
@@ -122,7 +122,7 @@ namespace NetMQ.zmq.Patterns
                 {
                     while (true)
                     {
-                        isMessageAvailable = base.XRecv(flags, ref msg);
+                        isMessageAvailable = base.XRecv(ref msg);
                         Debug.Assert(isMessageAvailable);
                         if (!msg.HasMore)
                             break;
@@ -136,7 +136,7 @@ namespace NetMQ.zmq.Patterns
                 m_messageBegins = false;
             }
 
-            isMessageAvailable = base.XRecv(flags, ref msg);
+            isMessageAvailable = base.XRecv(ref msg);
             if (!isMessageAvailable)
                 return false;
 

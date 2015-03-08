@@ -152,7 +152,7 @@ namespace NetMQ.zmq.Patterns
             pipe.Flush();
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             byte[] data = msg.Data;
             int size = msg.Size;
@@ -194,7 +194,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             //  If there's already a message prepared by a previous call to zmq_poll,
             //  return it straight ahead.

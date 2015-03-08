@@ -72,7 +72,7 @@ namespace NetMQ.zmq.Patterns
             try
             {
                 //  Pass it further on in the stack.
-                bool isMessageSent = base.XSend(ref msg, 0);
+                bool isMessageSent = base.XSend(ref msg);
 
                 if (!isMessageSent)
                 {
@@ -88,7 +88,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             //  Overload the XSUB's send.
             throw new NotSupportedException("XSend not supported on Sub socket");

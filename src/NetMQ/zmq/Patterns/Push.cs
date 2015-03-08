@@ -68,7 +68,7 @@ namespace NetMQ.zmq.Patterns
             m_loadBalancer.Terminated(pipe);
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             return m_loadBalancer.Send(ref msg);
         }

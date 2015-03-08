@@ -738,7 +738,7 @@ namespace NetMQ.zmq
                 msg.SetFlags(MsgFlags.More);
 
             //  Try to send the message.
-            bool isMessageSent = XSend(ref msg, flags);
+            bool isMessageSent = XSend(ref msg);
 
             if (isMessageSent)
                 return;
@@ -774,7 +774,7 @@ namespace NetMQ.zmq
             {
                 ProcessCommands(timeout, false);
 
-                isMessageSent = XSend(ref msg, flags);
+                isMessageSent = XSend(ref msg);
                 
                 if (isMessageSent)
                     break;
@@ -798,7 +798,7 @@ namespace NetMQ.zmq
                 throw new FaultException("SocketBase.Recv passed an uninitialised Msg.");
 
             //  Get the message.
-            bool isMessageAvailable = XRecv(flags, ref msg);
+            bool isMessageAvailable = XRecv(ref msg);
 
             //  Once every inbound_poll_rate messages check for signals and process
             //  incoming commands. This happens only if we are not polling altogether
@@ -831,7 +831,7 @@ namespace NetMQ.zmq
                 ProcessCommands(0, false);
                 m_ticks = 0;
 
-                isMessageAvailable = XRecv(flags, ref msg);
+                isMessageAvailable = XRecv(ref msg);
                 if (!isMessageAvailable)
                 {
 #if DEBUG
@@ -870,7 +870,7 @@ namespace NetMQ.zmq
             {
                 ProcessCommands(block ? timeout : 0, false);
 
-                isMessageAvailable = XRecv(flags, ref msg);
+                isMessageAvailable = XRecv(ref msg);
                 if (isMessageAvailable)
                 {
                     m_ticks = 0;
@@ -1045,7 +1045,7 @@ namespace NetMQ.zmq
             return false;
         }
 
-        protected virtual bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected virtual bool XSend(ref Msg msg)
         {
             throw new NotSupportedException("Must Override");
         }
@@ -1055,7 +1055,7 @@ namespace NetMQ.zmq
             return false;
         }
 
-        protected virtual bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected virtual bool XRecv(ref Msg msg)
         {
             throw new NotSupportedException("Must Override");
         }

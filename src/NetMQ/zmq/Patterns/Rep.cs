@@ -53,7 +53,7 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Rep;
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             //  If we are in the middle of receiving a request, we cannot send reply.
             if (!m_sendingReply)
@@ -64,7 +64,7 @@ namespace NetMQ.zmq.Patterns
             bool more = msg.HasMore;
 
             //  Push message to the reply pipe.
-            bool isMessageSent = base.XSend(ref msg, flags);
+            bool isMessageSent = base.XSend(ref msg);
 
             if (!isMessageSent)
                 return false;
@@ -76,7 +76,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             bool isMessageAvailable;
 
@@ -90,7 +90,7 @@ namespace NetMQ.zmq.Patterns
             {
                 while (true)
                 {
-                    isMessageAvailable = base.XRecv(flags, ref msg);
+                    isMessageAvailable = base.XRecv(ref msg);
 
                     if (!isMessageAvailable)
                         return false;
@@ -101,7 +101,7 @@ namespace NetMQ.zmq.Patterns
                         bool bottom = (msg.Size == 0);
 
                         //  Push it to the reply pipe.
-                        isMessageAvailable = base.XSend(ref msg, flags);
+                        isMessageAvailable = base.XSend(ref msg);
                         
                         if (!isMessageAvailable)
                             return false;
@@ -120,7 +120,7 @@ namespace NetMQ.zmq.Patterns
             }
 
             //  Get next message part to return to the user.
-            isMessageAvailable = base.XRecv(flags, ref msg);
+            isMessageAvailable = base.XRecv(ref msg);
 
             if (!isMessageAvailable)
             {
