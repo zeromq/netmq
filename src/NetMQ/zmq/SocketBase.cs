@@ -44,40 +44,41 @@ namespace NetMQ.zmq
 
         private bool m_disposed;
 
-        //  If true, associated context was already terminated.
+        /// <summary>If true, associated context was already terminated.</summary>
         private bool m_ctxTerminated;
 
-        //  If true, object should have been already destroyed. However,
-        //  destruction is delayed while we unwind the stack to the point
-        //  where it doesn't intersect the object being destroyed.
+        /// <summary>
+        /// If true, object should have been already destroyed. However,
+        /// destruction is delayed while we unwind the stack to the point
+        /// where it doesn't intersect the object being destroyed.
+        /// </summary>
         private bool m_destroyed;
 
-        //  Socket's mailbox object.
+        /// <summary>Socket's mailbox object.</summary>
         [NotNull] private readonly Mailbox m_mailbox;
 
-        //  List of attached pipes.        
+        /// <summary>List of attached pipes.</summary>
         [NotNull] private readonly List<Pipe> m_pipes;
 
         //  Reaper's poller and handle of this socket within it.
         private Utils.Poller m_poller;
         private Socket m_handle;
 
-        //  Timestamp of when commands were processed the last time.
+        /// <summary>Timestamp of when commands were processed the last time.</summary>
         private long m_lastTsc;
 
-        //  Number of messages received since last command processing.
+        /// <summary>Number of messages received since last command processing.</summary>
         private int m_ticks;
 
-        //  True if the last message received had MORE flag set.
+        /// <summary>True if the last message received had MORE flag set.</summary>
         private bool m_rcvMore;
 
-        // Monitor socket
         private SocketBase m_monitorSocket;
 
-        // Bitmask of events being monitored
+        /// <summary>Bitmask of events being monitored.</summary>
         private SocketEvent m_monitorEvents;
 
-        // The tcp port that was bound to, if any
+        /// <summary>The tcp port that was bound to, if any.</summary>
         private int m_port;
 
         protected SocketBase([NotNull] Ctx parent, int threadId, int socketId)
