@@ -91,6 +91,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ3.5", "NetMQ\NetMQ3.5.csproj", "{FA712B74-D68A-4053-BB0F-A3ED1FBEABC1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ3.5.Tests", "NetMQ.Tests\NetMQ3.5.Tests.csproj", "{0DCC76AA-ED4A-4DB8-9BE7-28168FF8834C}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Majordomo Pattern", "Majordomo Pattern", "{813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}"
 	ProjectSection(SolutionItems) = preProject
 		Samples\Majordomo\StartMDPExample - Verbose.bat = Samples\Majordomo\StartMDPExample - Verbose.bat
