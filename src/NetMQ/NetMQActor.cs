@@ -137,7 +137,7 @@ namespace NetMQ
             m_shimThread.Start();
 
             //  Mandatory handshake for new actor so that constructor returns only
-            //  when actor has also initialized. This eliminates timing issues at
+            //  when actor has also initialised. This eliminates timing issues at
             //  application start up.
             m_self.WaitForSignal();
         }

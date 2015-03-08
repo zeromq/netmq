@@ -38,6 +38,12 @@ namespace NetMQ
         InProgress = 36,
 
         /// <summary>
+        /// The connection is still in progress.
+        /// </summary>
+        [Obsolete("Use InProgress")]
+        InProgres = 36,
+
+        /// <summary>
         /// The requested transport protocol is not supported.
         /// </summary>
         ProtocolNotSupported = 43,
@@ -98,7 +104,14 @@ namespace NetMQ
         /// </summary>
         NetworkUnreachable = BaseErrorNumber + 12,
 
+        /// <summary>
+        /// The connection-attempt has apparently been aborted.
+        /// </summary>
         ConnectionAborted = BaseErrorNumber + 13,
+
+        /// <summary>
+        /// The connection has apparently been reset.
+        /// </summary>
         ConnectionReset = BaseErrorNumber + 14,
 
         /// <summary>
@@ -171,7 +184,7 @@ namespace NetMQ
         /// <summary>
         /// The connection is still in progress.
         /// </summary>
-        [Obsolete("Use InProgres")]
+        [Obsolete("Use InProgress")]
         EINPROGRESS = 36,
 
         /// <summary>

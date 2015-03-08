@@ -5,9 +5,9 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     /// <summary>
-    /// A SocketOptions is simply a convenient way to accesss the options of a particular socket.
+    /// A SocketOptions is simply a convenient way to access the options of a particular socket.
     /// This class holds a reference to the socket, and it's properties provide a concise way
-    /// to access that socket's option values -- instead of calling GetSocketOption/SetSockeetOption.
+    /// to access that socket's option values -- instead of calling GetSocketOption/SetSocketOption.
     /// </summary>
     public class SocketOptions
     {
@@ -118,8 +118,8 @@ namespace NetMQ
 
         public long MaxMsgSize
         {
-            get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Maxmsgsize); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Maxmsgsize, value); }
+            get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.MaxMessageSize); }
+            set { m_socket.SetSocketOption(ZmqSocketOptions.MaxMessageSize, value); }
         }
 
         /// <summary>

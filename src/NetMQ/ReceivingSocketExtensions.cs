@@ -19,7 +19,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the socket to use</param>
         /// <param name="options">a SendReceiveOptions which can specify the DontWait or SendMore flags (or None)</param>
-        /// <param name="hasMore"><c>true</c> when more parts of a multi-part message are available</param>
+        /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
@@ -61,7 +61,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the socket to use</param>
         /// <param name="dontWait">non-blocking if <c>true</c> and blocking otherwise</param>
-        /// <param name="hasMore"><c>true</c> when more parts of a multi-part message are available</param>
+        /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, bool dontWait, out bool hasMore)
@@ -80,7 +80,7 @@ namespace NetMQ
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
         /// <param name="socket">the socket to use</param>
-        /// <param name="hasMore"><c>true</c> when more parts of a multi-part message are available</param>
+        /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
         /// <returns>a newly allocated array of bytes</returns>
         [NotNull]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, out bool hasMore)
@@ -151,7 +151,7 @@ namespace NetMQ
         /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the message data encoded as a string</returns>
-        /// <exception cref="ArgumentNullException">is thrown if encoding is null</exception>
+        /// <exception cref="ArgumentNullException">encoding must not be null.</exception>
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options, out bool hasMore)
         {
@@ -357,7 +357,7 @@ namespace NetMQ
             return ReceiveStringMessages(socket, Encoding.ASCII, expectedFrameCount);
         }
 
-        /// <summary>Receives a list of all frames of the next message, decoded as strings having the specifed <paramref name="encoding"/>.</summary>
+        /// <summary>Receives a list of all frames of the next message, decoded as strings having the specified <paramref name="encoding"/>.</summary>
         /// <remarks>Blocks until a message is received. The list may have one or more entries.</remarks>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="encoding">The encoding to use when converting a frame's bytes into a string.</param>
@@ -384,7 +384,7 @@ namespace NetMQ
         #region receiving a NetMQMessage
 
         /// <summary>
-        /// non-blocking receive of a (multi-part)message and stores it in the NetMQMessage object
+        /// non-blocking receive of a (multipart)message and stores it in the NetMQMessage object
         /// </summary>
         /// <param name="socket">the IReceivingSocket to receive bytes from</param>
         /// <param name="message">the NetMQMessage to receive the bytes into</param>
@@ -403,7 +403,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// non-blocking receive of a (multi-part)message
+        /// non-blocking receive of a (multipart)message
         /// </summary>
         /// <param name="socket">the socket to use</param>
         /// <param name="dontWait">non-blocking if <c>true</c> and blocking otherwise</param>
@@ -417,7 +417,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// receive of a (multi-part)message within a specified timespan
+        /// receive of a (multipart)message within a specified timespan
         /// </summary>
         /// <param name="socket">the socket to use</param>
         /// <param name="timeout">the timespan to wait for a message</param>

@@ -9,7 +9,7 @@ namespace NetMQ
 {
     #region Doc-stuff
     /// <summary>
-    /// This namespace encompasses the NetMQ message-queuing library
+    /// This namespace encompasses the NetMQ message-queueing library
     /// and attendant utility software.
     /// </summary>
     public static class NamespaceDoc
@@ -21,7 +21,7 @@ namespace NetMQ
 
     /// <summary>
     /// A NetMQMessage is basically a collection of NetMQFrames, and is the basic message-unit that is sent and received
-    /// across this message-queuing subsystem.
+    /// across this message-queueing subsystem.
     /// </summary>
     public class NetMQMessage : IEnumerable<NetMQFrame>
     {

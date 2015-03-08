@@ -42,15 +42,15 @@ namespace NetMQ
         Shared = 128,
     }
 
-    /// <summary>Enumeration of possible <see cref="Msg"/> types: Uninitialized, GC, Pool, Delimiter.</summary>
+    /// <summary>Enumeration of possible <see cref="Msg"/> types: Uninitialised, GC, Pool, Delimiter.</summary>
     public enum MsgType : byte
     {
         /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
-        [Obsolete("Use Uninitialized instead")]
+        [Obsolete("Use Uninitialised instead")]
         Invalid = 0,
 
         /// <summary>The <see cref="Msg"/> has not yet been initialised (default value).</summary>
-        Uninitialized = 0,
+        Uninitialised = 0,
 
         /// <summary>The <see cref="Msg"/> is empty.</summary>
         Empty = 101,
@@ -120,7 +120,7 @@ namespace NetMQ
         /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
         public bool IsInitialised
         {
-            get { return MsgType != MsgType.Uninitialized; }
+            get { return MsgType != MsgType.Uninitialised; }
         }
 
         #endregion
@@ -181,7 +181,7 @@ namespace NetMQ
         /// Get the byte-array that represents the data payload of this <see cref="Msg"/>.
         /// </summary>
         /// <remarks>
-        /// This value will be <c>null</c> if <see cref="MsgType"/> is <see cref="NetMQ.MsgType.Uninitialized"/>,
+        /// This value will be <c>null</c> if <see cref="MsgType"/> is <see cref="NetMQ.MsgType.Uninitialised"/>,
         /// <see cref="NetMQ.MsgType.Empty"/> or <see cref="NetMQ.MsgType.Delimiter"/>.
         /// </remarks>
         public byte[] Data { get; private set; }
@@ -208,7 +208,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Initialize this Msg to be of MsgType.Pool, with a data-buffer of the given number of bytes.
+        /// Initialise this Msg to be of MsgType.Pool, with a data-buffer of the given number of bytes.
         /// </summary>
         /// <param name="size">the number of bytes to allocate in the data-buffer</param>
         public void InitPool(int size)
@@ -221,7 +221,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Initialize this Msg to be of MsgType.GC with the given data-buffer value.
+        /// Initialise this Msg to be of MsgType.GC with the given data-buffer value.
         /// </summary>
         /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
         /// <param name="size">the number of bytes that are in the data byte-array</param>
@@ -253,7 +253,7 @@ namespace NetMQ
         public void Close()
         {
             if (!IsInitialised)
-                throw new FaultException("Cannot close an uninitialized Msg.");
+                throw new FaultException("Cannot close an uninitialised Msg.");
 
             if (MsgType == MsgType.Pool)
             {
@@ -264,9 +264,9 @@ namespace NetMQ
                 m_refCount = null;
             }
 
-            // Uninitialize the frame
+            // Uninitialise the frame
             Data = null;
-            MsgType = MsgType.Uninitialized;
+            MsgType = MsgType.Uninitialised;
         }
 
         /// <summary>

@@ -12,7 +12,7 @@ namespace NetMQ
     public class NetMQBeaconEventArgs : EventArgs
     {
         /// <summary>
-        /// Create a new NetMQBeaconEventArgs object containging the given NetMQBeacon.
+        /// Create a new NetMQBeaconEventArgs object containing the given NetMQBeacon.
         /// </summary>
         /// <param name="beacon">the NetMQBeacon object to hold a reference to</param>
         public NetMQBeaconEventArgs([NotNull] NetMQBeacon beacon)

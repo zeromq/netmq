@@ -20,7 +20,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Initialize the ReceiveReady and SendReady flags from the given PollEvents value.
+        /// Initialise the ReceiveReady and SendReady flags from the given PollEvents value.
         /// </summary>
         /// <param name="events">a PollEvents value that indicates whether the socket is ready to send or receive without blocking</param>
         internal void Init(PollEvents events)
@@ -41,5 +41,25 @@ namespace NetMQ
         /// Get whether at least one message may be sent by the socket without blocking.
         /// </summary>
         public bool IsReadyToSend { get; private set; }
+
+        /// <summary>
+        /// Get whether at least one message may be received by the socket without blocking.
+        /// </summary>
+        [Obsolete("Use IsReadyToReceive")]
+        public bool ReceiveReady
+        {
+            get { return IsReadyToReceive; }
+            private set { IsReadyToReceive = value; }
+        }
+
+         /// <summary>
+        /// Get whether at least one message may be sent by the socket without blocking.
+        /// </summary>
+        [Obsolete("Use IsReadyToSend")]
+        public bool SendReady
+        {
+            get { return IsReadyToSend; }
+            private set { IsReadyToSend = value; }
+        }
     }
 }
