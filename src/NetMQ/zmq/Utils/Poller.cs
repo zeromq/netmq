@@ -26,12 +26,13 @@ using System.Net.Sockets;
 using System.Threading;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Utils
 {
     internal class Poller : PollerBase
     {
         /// <summary>
-        /// A PollSet contains a Socket and an IPollEvents Handler
+        /// A PollSet contains a single Socket and an IPollEvents Handler
         /// that provides methods that signal when that socket is ready for reading or writing.
         /// </summary>
         private class PollSet
@@ -102,8 +103,19 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         private readonly String m_name;
 
+        /// <summary>
+        /// The set of Sockets to check for read-readiness.
+        /// </summary>
         private readonly HashSet<Socket> m_checkRead = new HashSet<Socket>();
+
+        /// <summary>
+        /// The set of Sockets to check for write-readiness.
+        /// </summary>
         private readonly HashSet<Socket> m_checkWrite = new HashSet<Socket>();
+
+        /// <summary>
+        /// The set of Sockets to check for any errors.
+        /// </summary>
         private readonly HashSet<Socket> m_checkError = new HashSet<Socket>();
 
         /// <summary>

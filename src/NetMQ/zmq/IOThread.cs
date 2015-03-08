@@ -37,8 +37,16 @@ namespace NetMQ.zmq
         /// </summary>
         private readonly Proactor m_proactor;
 
+        /// <summary>
+        /// This gets set to "iothread-" plus the thread-id.
+        /// </summary>
         readonly String m_name;
 
+        /// <summary>
+        /// Create a new IOThread object within the given context (Ctx) and thread.
+        /// </summary>
+        /// <param name="ctx">the Ctx (context) for this thread to live within</param>
+        /// <param name="threadId">the integer thread-id for this new IOThread</param>
         public IOThread(Ctx ctx, int threadId)
             : base(ctx, threadId)
         {

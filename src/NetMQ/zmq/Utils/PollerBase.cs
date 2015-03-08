@@ -24,10 +24,13 @@ using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Utils
 {
     /// <summary>
     /// This serves as the parent-class for Poller and Proactor.
+    /// It provides for managing a list of timers (ITimerEvents) - adding, cancelling, and executing them,
+    /// and a Load property.
     /// </summary>
     internal abstract class PollerBase
     {
@@ -60,10 +63,14 @@ namespace NetMQ.zmq.Utils
         }
 
         /// <summary>
-        /// This is a list of key/value pairs, sorted by timeout values, with each value being a list of TimerInfo objects.
+        /// This is a list of key/value pairs, with the keys being timeout numbers and the corresponding values being a list of TimerInfo objects.
+        /// It is sorted by the keys - which are timeout values. Thus, by walking down the list, you encounter the soonest timeouts first.
         /// </summary>
         private readonly SortedList<long, List<TimerInfo>> m_timers;
 
+        /// <summary>
+        /// Create a new PollerBase object - which simply creates an empty m_timers collection.
+        /// </summary>
         protected PollerBase()
         {
             m_timers = new SortedList<long, List<TimerInfo>>();
@@ -96,7 +103,7 @@ namespace NetMQ.zmq.Utils
 
         /// <summary>
         /// Add a TimerInfo to the internal list, to expire in the given number of milliseconds. Afterward the
-        /// expiration timer_event on sink_ object will be called with
+        /// expiration method TimerEvent on the sink object will be called with
         /// argument set to id.
         /// </summary>
         /// <param name="timeout">the timeout-period in milliseconds of the new timer</param>
@@ -118,9 +125,11 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         /// <param name="sink">the ITimerEvent that the timer was created with</param>
         /// <param name="id">the Id of the timer to cancel</param>
+        /// <remarks>
+        /// The complexity of this operation is O(n). We assume it is rarely used.
+        /// </remarks>
         public void CancelTimer([NotNull] ITimerEvent sink, int id)
         {
-            // Complexity of this operation is O(n). We assume it is rarely used.
             var foundTimers = new Dictionary<long, TimerInfo>();
 
             foreach (var pair in m_timers)
@@ -195,7 +204,7 @@ namespace NetMQ.zmq.Utils
                 // Trigger the timers.
                 foreach (var timer in timers)
                 {
-                    // Call it's TimerEvent method with this timer's id.
+                    // "Trigger" each timer by calling it's TimerEvent method with this timer's id.
                     timer.Sink.TimerEvent(timer.Id);
                 }
 
