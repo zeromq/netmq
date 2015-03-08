@@ -38,9 +38,9 @@ namespace NetMQ.zmq
 {
     internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        [NotNull] private readonly Dictionary<string, Own> m_endpoints;
+        [NotNull] private readonly Dictionary<String, Own> m_endpoints = new Dictionary<string, Own>();
 
-        [NotNull] private readonly Dictionary<string, Pipe> m_inprocs;
+        [NotNull] private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
 
         private bool m_disposed;
 
@@ -58,7 +58,7 @@ namespace NetMQ.zmq
         [NotNull] private readonly Mailbox m_mailbox;
 
         /// <summary>List of attached pipes.</summary>
-        [NotNull] private readonly List<Pipe> m_pipes;
+        [NotNull] private readonly List<Pipe> m_pipes = new List<Pipe>();
 
         //  Reaper's poller and handle of this socket within it.
         private Utils.Poller m_poller;
@@ -85,11 +85,6 @@ namespace NetMQ.zmq
             : base(parent, threadId)
         {
             m_options.SocketId = socketId;
-
-            m_endpoints = new Dictionary<string, Own>();
-            m_inprocs = new Dictionary<string, Pipe>();
-            m_pipes = new List<Pipe>();
-
             m_mailbox = new Mailbox("socket-" + socketId);
         }
 
