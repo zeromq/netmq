@@ -12,7 +12,7 @@ namespace NetMQ
     /// </summary>
     public static class ReceivingSocketExtensions
     {
-        #region receiving byte-array data
+        #region Receiving byte-array data
 
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
@@ -130,7 +130,7 @@ namespace NetMQ
             return frames;
         }
 
-        #endregion receiving byte-array data
+        #endregion
 
         #region receiving strings
 
@@ -361,9 +361,9 @@ namespace NetMQ
             return frames;
         }
 
-        #endregion receiving strings
+        #endregion
 
-        #region receiving a NetMQMessage
+        #region Receiving a NetMQMessage
 
         /// <summary>
         /// non-blocking receive of a (multipart)message and stores it in the NetMQMessage object
@@ -412,7 +412,7 @@ namespace NetMQ
                 : null;
         }
 
-        #endregion receiving a NetMQMessage
+        #endregion
 
         #region Receiving Signals
 
@@ -442,7 +442,7 @@ namespace NetMQ
 
         #endregion
 
-        #region obsolete methods
+        #region Obsolete methods
 
         [Obsolete("Use ReceiveMessages extension method instead")]
         [NotNull]
@@ -460,6 +460,6 @@ namespace NetMQ
             return socket.ReceiveStringMessages().ToList();
         }
 
-        #endregion obsolete methods
+        #endregion
     }
 }
