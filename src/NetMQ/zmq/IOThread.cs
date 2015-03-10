@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
 
@@ -46,7 +47,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="ctx">the Ctx (context) for this thread to live within</param>
         /// <param name="threadId">the integer thread-id for this new IOThread</param>
-        public IOThread(Ctx ctx, int threadId)
+        public IOThread([NotNull] Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
 
@@ -56,6 +57,7 @@ namespace NetMQ.zmq
             m_mailbox = new IOThreadMailbox(m_name, m_proactor, this);                        
         }
 
+        [NotNull]
         internal Proactor Proactor
         {
             get { return m_proactor; }
@@ -77,6 +79,7 @@ namespace NetMQ.zmq
             SendStop();
         }
 
+        [NotNull]
         public IMailbox Mailbox
         {
             get

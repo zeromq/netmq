@@ -54,14 +54,12 @@ namespace NetMQ.zmq
         /// </summary>
         [NotNull] private readonly object m_sync;
 
-        /// <summary>
-        /// mailbox name, for better debugging
-        /// </summary>
-        [CanBeNull] private readonly string m_name;
+        /// <summary>Mailbox name. Only used for debugging.</summary>
+        [NotNull] private readonly string m_name;
 
         private bool m_disposed;
 
-        public IOThreadMailbox([CanBeNull] string name, [NotNull] Proactor proactor, [NotNull] IMailboxEvent mailboxEvent)
+        public IOThreadMailbox([NotNull] string name, [NotNull] Proactor proactor, [NotNull] IMailboxEvent mailboxEvent)
         {
             m_proactor = proactor;
             m_mailboxEvent = mailboxEvent;
@@ -153,12 +151,10 @@ namespace NetMQ.zmq
         /// </summary>
         private bool m_active;
 
-        /// <summary>
-        /// mailbox name, for better debugging
-        /// </summary>
-        private readonly string m_name;
+        /// <summary>Mailbox name. Only used for debugging.</summary>
+        [NotNull] private readonly string m_name;
 
-        public Mailbox(string name)
+        public Mailbox([NotNull] string name)
         {
             m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
             m_sync = new object();

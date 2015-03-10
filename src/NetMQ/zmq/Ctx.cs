@@ -95,7 +95,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// The reaper thread.
         /// </summary>
-        private Reaper m_reaper;
+        [CanBeNull] private Reaper m_reaper;
 
         /// <summary>
         /// List of I/O threads.
@@ -110,7 +110,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Array of pointers to mailboxes for both application and I/O threads.
         /// </summary>
-        private IMailbox[] m_slots;
+        [CanBeNull] private IMailbox[] m_slots;
 
         /// <summary>
         /// Mailbox for zmq_term thread.
