@@ -48,14 +48,9 @@ namespace NetMQ.zmq.Utils
             public Chunk(int size, int globalIndex)
             {
                 Values = new T[size];
-                GlobalPosition = new int[size];
+                GlobalOffset = globalIndex;
                 Debug.Assert(Values != null);
                 Previous = Next = null;
-                for (int i = 0; i != Values.Length; i++)
-                {
-                    GlobalPosition[i] = globalIndex;
-                    globalIndex++;
-                }
             }
 
             [NotNull]
@@ -63,7 +58,7 @@ namespace NetMQ.zmq.Utils
 
             /// <summary>Contains global index positions of elements in the chunk.</summary>
             [NotNull]
-            public int[] GlobalPosition { get; private set; }
+            public int GlobalOffset { get; private set; }
 
             /// <summary>Optional link to the previous <see cref="Chunk"/>.</summary>
             [CanBeNull]
@@ -114,7 +109,7 @@ namespace NetMQ.zmq.Utils
         /// <summary>Gets the index of the front element of the queue.</summary>
         /// <value>The index of the front element of the queue.</value>
         /// <remarks>If the queue is empty, it should be equal to <see cref="BackPos"/>.</remarks>
-        public int FrontPos { get { return m_beginChunk.GlobalPosition[m_beginPositionInChunk]; } }
+        public int FrontPos { get { return m_beginChunk.GlobalOffset + m_beginPositionInChunk; } }
 
         /// <summary>Gets the front element of the queue. If the queue is empty, behaviour is undefined.</summary>
         /// <value>The front element of the queue.</value>
@@ -123,7 +118,7 @@ namespace NetMQ.zmq.Utils
         /// <summary>Gets the index of the back element of the queue.</summary>
         /// <value>The index of the back element of the queue.</value>
         /// <remarks>If the queue is empty, it should be equal to <see cref="FrontPos"/>.</remarks>
-        public int BackPos { get { return m_backChunk.GlobalPosition[m_backPositionInChunk]; } }
+        public int BackPos { get { return m_backChunk.GlobalOffset + m_backPositionInChunk; } }
 
         /// <summary>Retrieves the element at the front of the queue.</summary>
         /// <returns>The element taken from queue.</returns>
