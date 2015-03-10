@@ -42,7 +42,7 @@ namespace NetMQ
             private NetMQSocket m_pipe;
             private Socket m_udpSocket;
             private int m_udpPort;
-            
+
             private EndPoint m_broadcastAddress;
 
             private NetMQFrame m_transmit;
@@ -83,7 +83,7 @@ namespace NetMQ
                 {
                     var interfaceCollection = new InterfaceCollection();
 
-                    var interfaceAddress = !string.IsNullOrEmpty(interfaceName) 
+                    var interfaceAddress = !string.IsNullOrEmpty(interfaceName)
                         ? IPAddress.Parse(interfaceName)
                         : null;
 
@@ -132,7 +132,7 @@ namespace NetMQ
             }
 
             public void Run(PairSocket shim)
-            {             
+            {
                 m_pipe = shim;
 
                 shim.SignalOK();
@@ -144,7 +144,7 @@ namespace NetMQ
                 m_pingTimer.Enable = false;
 
                 m_poller = new Poller();
-                m_poller.AddSocket(m_pipe);                
+                m_poller.AddSocket(m_pipe);
                 m_poller.AddTimer(m_pingTimer);
 
                 m_poller.PollTillCancelled();
@@ -153,7 +153,7 @@ namespace NetMQ
                 if (m_udpSocket != null)
                 {
                     m_udpSocket.Close();
-                }                
+                }
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
@@ -208,7 +208,7 @@ namespace NetMQ
                     case PublishCommand:
                         m_transmit = message.Pop();
                         m_pingTimer.Interval = message.Pop().ConvertToInt32();
-                         
+
                         m_pingTimer.Enable = true;
 
                         SendUdpFrame(m_transmit);

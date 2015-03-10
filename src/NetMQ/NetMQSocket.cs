@@ -179,13 +179,13 @@ namespace NetMQ
         /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
         public void Close()
         {
-            if (!m_isClosed)
-            {
-                m_isClosed = true;
+            if (m_isClosed)
+                return;
 
-                m_socketHandle.CheckDisposed();
-                m_socketHandle.Close();
-            }
+            m_isClosed = true;
+
+            m_socketHandle.CheckDisposed();
+            m_socketHandle.Close();
         }
 
         /// <summary>
