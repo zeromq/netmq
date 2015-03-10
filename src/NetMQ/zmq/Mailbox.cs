@@ -54,8 +54,10 @@ namespace NetMQ.zmq
         /// </summary>
         [NotNull] private readonly object m_sync = new object();
 
+#if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
         [NotNull] private readonly string m_name;
+#endif
 
         private bool m_disposed;
 
@@ -72,7 +74,9 @@ namespace NetMQ.zmq
             bool ok = m_commandPipe.Read(ref cmd);
             Debug.Assert(!ok);
 
+#if DEBUG
             m_name = name;
+#endif
         }
 
         public void Send(Command command)
@@ -114,10 +118,12 @@ namespace NetMQ.zmq
             m_disposed = true;
         }
 
+#if DEBUG
         public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";
         }
+#endif
     }
 
     internal class Mailbox : IMailbox
@@ -146,8 +152,10 @@ namespace NetMQ.zmq
         /// </summary>
         private bool m_active;
 
+#if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
         [NotNull] private readonly string m_name;
+#endif
 
         public Mailbox([NotNull] string name)
         {
@@ -161,7 +169,9 @@ namespace NetMQ.zmq
             Debug.Assert(!ok);
             m_active = false;
 
+#if DEBUG
             m_name = name;
+#endif
         }
 
         [NotNull]
@@ -227,9 +237,11 @@ namespace NetMQ.zmq
             m_signaler.Close();
         }
 
+#if DEBUG
         public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";
         }
+#endif
     }
 }

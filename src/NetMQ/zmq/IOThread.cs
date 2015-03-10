@@ -37,10 +37,12 @@ namespace NetMQ.zmq
         /// </summary>
         private readonly Proactor m_proactor;
 
+#if DEBUG
         /// <summary>
         /// This gets set to "iothread-" plus the thread-id.
         /// </summary>
         private readonly string m_name;
+#endif
 
         /// <summary>
         /// Create a new IOThread object within the given context (Ctx) and thread.
@@ -50,10 +52,13 @@ namespace NetMQ.zmq
         public IOThread([NotNull] Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
-            m_name = "iothread-" + threadId;
-            m_proactor = new Proactor(m_name);            
+            var name = "iothread-" + threadId;
+            m_proactor = new Proactor(name);
+            m_mailbox = new IOThreadMailbox(name, m_proactor, this);
 
-            m_mailbox = new IOThreadMailbox(m_name, m_proactor, this);                        
+#if DEBUG
+            m_name = name;
+#endif
         }
 
         [NotNull]
@@ -107,5 +112,12 @@ namespace NetMQ.zmq
                 cmd.Destination.ProcessCommand(cmd);
             }
         }
+
+#if DEBUG
+        public override string ToString()
+        {
+            return base.ToString() + "[" + m_name + "]";
+        }
+#endif
     }
 }

@@ -52,7 +52,9 @@ namespace NetMQ.zmq
         /// </summary> 
         private int m_flushToIndex;
 
+#if DEBUG
         private string m_name;
+#endif
 
         /// <summary>
         /// The single point of contention between writer and reader thread.
@@ -64,7 +66,9 @@ namespace NetMQ.zmq
 
         public YPipe(int qsize, string name)
         {
+#if DEBUG
             m_name = name;
+#endif
             m_queue = new YQueue<T>(qsize);
             m_lastAllowedToReadIndex = m_flushFromIndex = m_readToIndex = m_flushToIndex = m_queue.BackPos;
         }
