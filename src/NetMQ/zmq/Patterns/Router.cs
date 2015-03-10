@@ -262,12 +262,16 @@ namespace NetMQ.zmq.Patterns
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
 
-                    byte[] identity = msg.Data;
+                    byte[] identity;
 
                     if (msg.Size != msg.Data.Length)
                     {
                         identity = new byte[msg.Size];
                         Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
+                    }
+                    else
+                    {
+                        identity = msg.Data;
                     }
 
                     Outpipe op;
