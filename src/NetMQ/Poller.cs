@@ -129,6 +129,15 @@ namespace NetMQ
         /// </remarks>
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             if (!m_disposed)
             {
                 // If this poller is already started, signal the polling thread to stop

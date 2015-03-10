@@ -240,6 +240,15 @@ namespace NetMQ
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             // send destroy message to pipe
             m_self.Options.SendTimeout = TimeSpan.Zero;
             try

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace NetMQ.Tests
@@ -40,6 +41,13 @@ namespace NetMQ.Tests
         }
 
         public void Dispose()
-        {}
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
     }
 }
