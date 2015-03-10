@@ -246,10 +246,11 @@ namespace NetMQ
         #endregion
 
         /// <summary>
-        /// Clear the Data and set the MsgType to Invalid.
+        /// Clear the <see cref="Data"/> and set the MsgType to Invalid.
         /// If this is not a shared-data Msg (MsgFlags.Shared is not set), or it is shared but the reference-counter has dropped to zero,
         /// then return the data back to the BufferPool.
         /// </summary>
+        /// <exception cref="FaultException">The object is not initialised.</exception>
         public void Close()
         {
             if (!IsInitialised)
