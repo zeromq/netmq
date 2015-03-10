@@ -39,6 +39,8 @@ namespace NetMQ.zmq
         public const int DefaultIOThreads = 1;
         public const int DefaultMaxSockets = 1024;
 
+        #region Nested class: Endpoint
+
         /// <summary>
         /// Information associated with inproc endpoint. Note that endpoint options
         /// are registered as well so that the peer can access them without a need
@@ -58,6 +60,8 @@ namespace NetMQ.zmq
             [NotNull]
             public Options Options { get; private set; }
         }
+
+        #endregion
 
         private bool m_disposed;
 
@@ -157,17 +161,14 @@ namespace NetMQ.zmq
         private void Destroy()
         {
             foreach (IOThread it in m_ioThreads)
-            {
                 it.Stop();
-            }
 
             foreach (IOThread it in m_ioThreads)
-            {
                 it.Destroy();
-            }
 
             if (m_reaper != null)
                 m_reaper.Destroy();
+
             m_termMailbox.Close();
 
             m_disposed = true;
@@ -178,9 +179,7 @@ namespace NetMQ.zmq
         public void CheckDisposed()
         {
             if (m_disposed)
-            {
                 throw new ObjectDisposedException(GetType().FullName);
-            }
         }
 
         /// <summary>
@@ -197,28 +196,24 @@ namespace NetMQ.zmq
 
             if (!m_starting)
             {
-
                 //  Check whether termination was already underway, but interrupted and now
                 //  restarted.
                 bool restarted = m_terminating;
                 m_terminating = true;
                 Monitor.Exit(m_slotSync);
 
-
                 //  First attempt to terminate the context.
                 if (!restarted)
                 {
-
                     //  First send stop command to sockets so that any blocking calls
                     //  can be interrupted. If there are no sockets we can ask reaper
                     //  thread to stop.
                     Monitor.Enter(m_slotSync);
                     try
                     {
-                        for (int i = 0; i != m_sockets.Count; i++)
-                        {
-                            m_sockets[i].Stop();
-                        }
+                        foreach (var socket in m_sockets)
+                            socket.Stop();
+
                         if (m_sockets.Count == 0)
                             m_reaper.Stop();
                     }
@@ -432,13 +427,14 @@ namespace NetMQ.zmq
 
             for (int i = 0; i != m_ioThreads.Count; i++)
             {
+                var ioThread = m_ioThreads[i];
+
                 if (affinity == 0 || (affinity & (1L << i)) > 0)
                 {
-                    int load = m_ioThreads[i].Load;
-                    if (selectedIOThread == null || load < minLoad)
+                    if (selectedIOThread == null || ioThread.Load < minLoad)
                     {
-                        minLoad = load;
-                        selectedIOThread = m_ioThreads[i];
+                        minLoad = ioThread.Load;
+                        selectedIOThread = ioThread;
                     }
                 }
             }
@@ -457,14 +453,10 @@ namespace NetMQ.zmq
             lock (m_endpointsSync)
             {
                 if (m_endpoints.ContainsKey(addr))
-                {
                     return false;
-                }
-                else
-                {
-                    m_endpoints[addr] = endpoint;
-                    return true;
-                }
+
+                m_endpoints[addr] = endpoint;
+                return true;
             }
         }
 
@@ -473,22 +465,15 @@ namespace NetMQ.zmq
             lock (m_endpointsSync)
             {
                 Endpoint endpoint;
-
-                if (m_endpoints.TryGetValue(addr, out endpoint))
-                {
-                    if (socket != endpoint.Socket)
-                    {
-                        return false;
-                    }
-
-                    m_endpoints.Remove(addr);
-
-                    return true;
-                }
-                else
-                {
+                
+                if (!m_endpoints.TryGetValue(addr, out endpoint))
                     return false;
-                }
+                
+                if (socket != endpoint.Socket)
+                    return false;
+
+                m_endpoints.Remove(addr);
+                return true;
             }
         }
 
@@ -496,12 +481,10 @@ namespace NetMQ.zmq
         {
             lock (m_endpointsSync)
             {
-                IList<string> removeList = (from e in m_endpoints where e.Value.Socket == socket select e.Key).ToList();
+                IList<string> removeList = m_endpoints.Where(e => e.Value.Socket == socket).Select(e => e.Key).ToList();
 
                 foreach (var item in removeList)
-                {
                     m_endpoints.Remove(item);
-                }
             }
         }
 
@@ -519,16 +502,12 @@ namespace NetMQ.zmq
             lock (m_endpointsSync)
             {
                 if (!m_endpoints.ContainsKey(addr))
-                {
                     throw new EndpointNotFoundException();
-                }
 
                 var endpoint = m_endpoints[addr];
 
                 if (endpoint == null)
-                {
                     throw new EndpointNotFoundException();
-                }
 
                 //  Increment the command sequence number of the peer so that it won't
                 //  get deallocated until "bind" command is issued by the caller.

@@ -50,7 +50,6 @@ namespace NetMQ.zmq
         public IOThread([NotNull] Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
-
             m_name = "iothread-" + threadId;
             m_proactor = new Proactor(m_name);            
 
@@ -82,10 +81,7 @@ namespace NetMQ.zmq
         [NotNull]
         public IMailbox Mailbox
         {
-            get
-            {
-                return m_mailbox;
-            }
+            get { return m_mailbox; }
         }
 
         public int Load

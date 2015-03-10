@@ -211,16 +211,17 @@ namespace NetMQ.zmq
             if (m_terminating)
                 return;
 
-            //  As for the root of the ownership tree, there's no-one to terminate it,
-            //  so it has to terminate itself.
             if (m_owner == null)
             {
+                // We are the root of the ownership tree.
+                // Terminate self directly.
                 ProcessTerm(m_options.Linger);
-                return;
             }
-
-            //  If I am an owned object, I'll ask my owner to terminate me.
-            SendTermReq(m_owner, this);
+            else
+            {
+                // When we have an owner, request them to terminate this object.
+                SendTermReq(m_owner, this);
+            }
         }
 
         /// <summary>
