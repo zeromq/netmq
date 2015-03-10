@@ -4,9 +4,9 @@ Message Structure
 So if you have come here after looking at some of the introductory material, you may have come across an example or two, maybe even a "hello world" example resembling:
 
     :::csharp
-    using (NetMQContext ctx = NetMQContext.Create())
-    using (var server = ctx.CreateResponseSocket())
-    using (var client = ctx.CreateRequestSocket())
+    using (var context = NetMQContext.Create())
+    using (var server = context.CreateResponseSocket())
+    using (var client = context.CreateRequestSocket())
     {
         server.Bind("tcp://127.0.0.1:5556");
         client.Connect("tcp://127.0.0.1:5556");

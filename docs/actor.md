@@ -33,7 +33,7 @@ A fairly common thing to do is have multiple threads running to speed things up,
 
 ![](Images/ActorTrad.png)
 
-To take this one step further, let''s see some code that may illustrate this further. Imagine we had this sort of data structure representing a very slim bank account:
+To take this one step further, let's see some code that may illustrate this further. Imagine we had this sort of data structure representing a very slim bank account:
 
     :::csharp
     public class Account
