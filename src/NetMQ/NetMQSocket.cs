@@ -237,8 +237,8 @@ namespace NetMQ
         /// <param name="timeout">the timeout period</param>
         /// <returns>
         /// PollEvents.None     -> no message available
-        /// PollEvents.PollIn   -> no message arrived
-        /// PollEvents.PollOut  -> no message to send
+        /// PollEvents.PollIn   -> at least one message has arrived
+        /// PollEvents.PollOut  -> at least one message is ready to send
         /// PollEvents.Error    -> an error has occurred
         /// or any combination thereof
         /// </returns>
@@ -274,7 +274,7 @@ namespace NetMQ
 
         /// <summary>
         /// Unless this socket is closed,
-        /// based upon the given PollEvents - raise the m_receiveReady event if PollIn is set,
+        /// based upon the given PollEvents - invoke the m_receiveReady event-handler if PollIn is set,
         /// and m_sendReady if PollOut is set.
         /// </summary>
         /// <param name="sender">what to use as the source of the events</param>
