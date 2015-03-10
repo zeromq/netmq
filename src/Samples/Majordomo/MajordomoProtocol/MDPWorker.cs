@@ -391,6 +391,15 @@ namespace MajordomoProtocol
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             if (!ReferenceEquals(m_worker, null))
                 m_worker.Dispose();
 

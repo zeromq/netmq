@@ -210,6 +210,15 @@ namespace NetMQ.Security.V0_1
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             if (m_handshakeLayer != null)
             {
                 m_handshakeLayer.Dispose();

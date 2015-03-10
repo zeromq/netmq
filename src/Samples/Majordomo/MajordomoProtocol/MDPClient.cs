@@ -223,6 +223,15 @@ namespace MajordomoProtocol
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             // m_client might not have been created yet!
             if (!ReferenceEquals(m_client, null))
                 m_client.Dispose();
