@@ -36,9 +36,9 @@ namespace NetMQ
         /// The default-constructor for NetMQMessage: create a new instance of NetMQMessage
         /// with an empty frame-stack.
         /// </summary>
-        public NetMQMessage()
+        public NetMQMessage(int expectedFrameCount = 4)
         {
-            m_frames = new List<NetMQFrame>();
+            m_frames = new List<NetMQFrame>(expectedFrameCount);
         }
 
         /// <summary>
