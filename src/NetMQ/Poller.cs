@@ -486,6 +486,8 @@ namespace NetMQ
         /// Poll as long as the given Func evaluates to true.
         /// </summary>
         /// <param name="condition">a Func that returns a boolean value, to evaluate on each poll-iteration to decide when to exit the loop</param>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
+        /// <exception cref="InvalidOperationException">This poller must not have already been started.</exception>
         private void PollWhile([NotNull, InstantHandle] Func<bool> condition)
         {
             if (m_disposed)

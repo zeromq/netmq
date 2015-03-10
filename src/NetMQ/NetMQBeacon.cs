@@ -194,6 +194,12 @@ namespace NetMQ
                 }
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="e"></param>
+            /// <exception cref="FaultException">The received message must contain a valid command.</exception>
             private void OnPipeReady(object sender, NetMQSocketEventArgs e)
             {
                 NetMQMessage message = m_pipe.ReceiveMultipartMessage();
@@ -227,7 +233,7 @@ namespace NetMQ
                         m_poller.Cancel();
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new FaultException(String.Format("NetMQBeacon.OnPipeReady({0}), the received message contains an invalid command: {1}", e, command));
                 }
             }
 

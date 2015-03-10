@@ -67,6 +67,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socketType">a ZmqSocketType indicating the type of socket to create</param>
         /// <returns>a new socket - a subclass of NetMQSocket</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The socketType must be a valid value.</exception>
         [NotNull]
         public NetMQSocket CreateSocket(ZmqSocketType socketType)
         {
@@ -99,7 +100,7 @@ namespace NetMQ
                 case ZmqSocketType.Stream:
                     return new StreamSocket(socketHandle);
                 default:
-                    throw new ArgumentOutOfRangeException("socketType");
+                    throw new ArgumentOutOfRangeException(paramName: "socketType", message: String.Format("socketType ({0}) is not a valid value.", socketType));
             }
         }
 
@@ -228,6 +229,8 @@ namespace NetMQ
         /// </summary>
         /// <param name="endpoint">a string denoting the endpoint to be monitored</param>
         /// <returns>the new NetMQMonitor</returns>
+        /// <exception cref="ArgumentNullException">endpoint must not be null.</exception>
+        /// <exception cref="ArgumentException">endpoint must not be an empty string.</exception>
         [NotNull]
         public NetMQMonitor CreateMonitorSocket([NotNull] string endpoint)
         {

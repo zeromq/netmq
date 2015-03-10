@@ -51,7 +51,7 @@ namespace NetMQ
         /// <summary>
         /// Start proxying messages between the front and back ends. Blocks, unless using an external <see cref="Poller"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException">The proxy has already been started.</exception>
+        /// <exception cref="InvalidOperationException">The proxy must not have already been started.</exception>
         public void Start()
         {
             if (Interlocked.CompareExchange(ref m_state, StateStarting, StateStopped) != StateStopped)
@@ -77,7 +77,7 @@ namespace NetMQ
         /// <summary>
         /// Stops the proxy, blocking until the underlying <see cref="Poller"/> has completed.
         /// </summary>
-        /// <exception cref="InvalidOperationException">The proxy has not been started.</exception>
+        /// <exception cref="InvalidOperationException">The proxy must have already been started.</exception>
         public void Stop()
         {
             if (Interlocked.CompareExchange(ref m_state, StateStopping, StateStarted) != StateStarted)

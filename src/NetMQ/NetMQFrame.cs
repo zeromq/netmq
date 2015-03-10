@@ -58,11 +58,12 @@ namespace NetMQ
         /// Create a new NetMQFrame with a data-buffer pre-sized to the given length.
         /// </summary>
         /// <param name="length">the number of bytes to allocate for the data-buffer</param>
+        /// <exception cref="ArgumentOutOfRangeException">length must be non-negative (zero or positive).</exception>
         public NetMQFrame(int length)
         {
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException("length", "A non-negative value is expected.");
+                throw new ArgumentOutOfRangeException(paramName: "length", message: String.Format("length is {0}. A non-negative value is expected.", length));
             }
 
             Buffer = new byte[length];
@@ -72,6 +73,7 @@ namespace NetMQ
         /// <summary>
         /// Get or set the size of the message data contained in the frame, which here represents the number of bytes.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">The value must be between zero and BufferSize.</exception>
         public int MessageSize
         {
             get { return m_messageSize; }
@@ -79,7 +81,7 @@ namespace NetMQ
             {
                 if (value < 0 || value > BufferSize)
                 {
-                    throw new ArgumentOutOfRangeException("value", "Expecting a non-negative value less than or equal to the buffer size.");
+                    throw new ArgumentOutOfRangeException(paramName: "value", message: String.Format("value is {0}. It must be between zero and BufferSize ({1}).", value, BufferSize));
                 }
 
                 m_messageSize = value;
@@ -121,7 +123,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="buffer">the byte-array to copy into the new NetMQFrame</param>
         /// <returns>a new <see cref="NetMQFrame"/> containing a copy of the supplied byte-array</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> must not be null.</exception>
         [NotNull]
         public static NetMQFrame Copy([NotNull] byte[] buffer)
         {
@@ -181,7 +183,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="frame">the <see cref="NetMQFrame"/> to copy</param>
         /// <returns>a <see cref="NetMQFrame"/> containing a copy of <paramref name="frame"/></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="frame"/> must not be null.</exception>
         [NotNull]
         public static NetMQFrame Copy([NotNull] NetMQFrame frame)
         {
