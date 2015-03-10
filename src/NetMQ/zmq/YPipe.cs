@@ -177,16 +177,18 @@ namespace NetMQ.zmq
         /// Reads an item from the pipe. Returns false if there is no value.
         /// available.
         /// </summary> 
-        public bool Read(ref T value)
+        public bool Read(out T value)
         {
             //  Try to prefetch a value.
             if (!CheckRead())
+            {
+                value = default(T);
                 return false;
+            }
 
             //  There was at least one value prefetched.
             //  Return it to the caller.
             value = m_queue.Pop();
-
             return true;
         }
 

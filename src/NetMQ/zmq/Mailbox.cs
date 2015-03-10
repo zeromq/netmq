@@ -69,9 +69,8 @@ namespace NetMQ.zmq
             //  Get the pipe into passive state. That way, if the users starts by
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
-            var cmd = new Command();
-
-            bool ok = m_commandPipe.Read(ref cmd);
+            Command cmd;
+            bool ok = m_commandPipe.Read(out cmd);
             Debug.Assert(!ok);
 
 #if DEBUG
@@ -97,11 +96,8 @@ namespace NetMQ.zmq
         [CanBeNull]
         public Command Recv()
         {            
-            Command cmd = null;
-
-            // bool ok =
-               m_commandPipe.Read(ref cmd);
-
+            Command cmd;
+            m_commandPipe.Read(out cmd);
             return cmd;
         }
 
@@ -163,10 +159,11 @@ namespace NetMQ.zmq
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
 
-            var cmd = new Command();
+            Command cmd;
+            bool ok = m_commandPipe.Read(out cmd);
 
-            bool ok = m_commandPipe.Read(ref cmd);
             Debug.Assert(!ok);
+
             m_active = false;
 
 #if DEBUG
@@ -201,12 +198,12 @@ namespace NetMQ.zmq
         [CanBeNull]
         public Command Recv(int timeout)
         {
-            Command cmd = null;
+            Command cmd;
             
             //  Try to get the command straight away.
             if (m_active)
             {
-                m_commandPipe.Read(ref cmd);
+                m_commandPipe.Read(out cmd);
                 
                 if (cmd != null)
                     return cmd;
@@ -226,7 +223,7 @@ namespace NetMQ.zmq
             m_active = true;
 
             //  Get a command.
-            bool ok = m_commandPipe.Read(ref cmd);
+            bool ok = m_commandPipe.Read(out cmd);
             Debug.Assert(ok);
 
             return cmd;
