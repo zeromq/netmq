@@ -467,7 +467,6 @@ namespace NetMQ.zmq.Patterns
             {
                 // Always assign identity for raw-socket
                 identity = new byte[5];
-                identity[0] = 0;
                 byte[] result = BitConverter.GetBytes(m_nextPeerId++);
                 Buffer.BlockCopy(result, 0, identity, 1, 4);
             }
@@ -487,7 +486,6 @@ namespace NetMQ.zmq.Patterns
                 {
                     //  Fall back on the auto-generation
                     identity = new byte[5];
-                    identity[0] = 0;
 
                     byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
