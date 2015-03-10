@@ -272,6 +272,11 @@ namespace NetMQ.zmq
             SendCommand(new Command(destination, CommandType.PipeTermAck));
         }
 
+        /// <summary>
+        /// For owned objects, asks the owner (<paramref name="destination"/>) to terminate <paramref name="obj"/>.
+        /// </summary>
+        /// <param name="destination"></param>
+        /// <param name="obj"></param>
         protected void SendTermReq([NotNull] Own destination, [NotNull] Own obj)
         {
             SendCommand(new Command(destination, CommandType.TermReq, obj));
@@ -370,11 +375,13 @@ namespace NetMQ.zmq
 
         protected virtual void ProcessReap([NotNull] SocketBase socket)
         {
+            // Overriden by Reaper
             throw new NotSupportedException();
         }
 
         protected virtual void ProcessReaped()
         {
+            // Overriden by Reaper
             throw new NotSupportedException();
         }
 

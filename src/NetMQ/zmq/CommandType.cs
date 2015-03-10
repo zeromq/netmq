@@ -1,8 +1,12 @@
 namespace NetMQ.zmq
 {
     /// <summary>
-    /// This enum-type denotes the action of a command - what it does.
+    /// Enumeration of possible <see cref="Command"/> types.
     /// </summary>
+    /// <remarks>
+    /// The value of <see cref="Command.CommandType"/> denotes what action
+    /// the command will perform.
+    /// </remarks>
     public enum CommandType
     {
         /// <summary>

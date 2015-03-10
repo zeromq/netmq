@@ -141,7 +141,7 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
-        /// is arbitrary number of threads sending. Given that ypipe requires
+        /// is an arbitrary number of threads sending. Given that <see cref="YPipe{T}"/> requires
         /// synchronised access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>

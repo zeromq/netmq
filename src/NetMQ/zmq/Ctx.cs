@@ -32,6 +32,7 @@ namespace NetMQ.zmq
     /// Objects of class Ctx are intended to encapsulate all of the global state
     /// associated with the NetMQ library.
     /// </summary>
+    /// <remarks>Internal analog of the public <see cref="NetMQContext"/> class.</remarks>
     internal sealed class Ctx
     {
         // Default for new contexts
@@ -43,7 +44,6 @@ namespace NetMQ.zmq
         /// are registered as well so that the peer can access them without a need
         /// for synchronisation, handshaking or similar.
         /// </summary>
-
         public class Endpoint
         {
             public Endpoint([NotNull] SocketBase socket, [NotNull] Options options)
@@ -177,8 +177,8 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Dump all of this object's resources
-        /// by stopping and destroying all of it's threads, destroying the reaper, and closing the mailbox.
+        /// Dump all of this object's resources by stopping and destroying all of it's threads,
+        /// destroying the reaper, and closing the mailbox.
         /// </summary>
         private void Destroy()
         {
@@ -199,10 +199,8 @@ namespace NetMQ.zmq
             m_disposed = true;
         }
 
-        /// <summary>
-        /// Throw an ObjectDisposedException if this is already disposed.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">this Ctx object is already marked as disposed.</exception>
+        /// <summary>Throws <see cref="ObjectDisposedException"/> if this is already disposed.</summary>
+        /// <exception cref="ObjectDisposedException">This object has already been disposed.</exception>
         public void CheckDisposed()
         {
             if (m_disposed)
@@ -446,7 +444,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Returns the I/O thread that is the least busy at the moment.
         /// Affinity specifies which I/O threads are eligible (0 = all).
-        /// Returns NULL if no I/O thread is available.
+        /// Returns <c>null</c> if no I/O thread is available.
         /// </summary>
         [CanBeNull]
         public IOThread ChooseIOThread(long affinity)
