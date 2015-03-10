@@ -173,10 +173,7 @@ namespace NetMQ
             m_socketHandle.TermEndpoint(address);
         }
 
-        /// <summary>
-        /// Close this socket. Do not call this if this socket has already been disposed.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose"/>.</summary>
         public void Close()
         {
             if (m_isClosed)
@@ -290,12 +287,12 @@ namespace NetMQ
             }
         }
 
-        /// <summary>
-        /// Get an available message over this socket.
-        /// </summary>
-        /// <param name="msg">the Msg object to put it in</param>
+        /// <summary>Receive the next message from this socket.</summary>
+        /// <remarks>Whether the request blocks or not is controlled by <paramref name="options"/>.</remarks>
+        /// <param name="msg">The Msg object to put it in</param>
         /// <param name="options">Either <see cref="SendReceiveOptions.None"/>, or <see cref="SendReceiveOptions.DontWait"/>.
         /// <see cref="SendReceiveOptions.SendMore"/> is ignored.</param>
+        /// <exception cref="AgainException">The receive operation timed out.</exception>
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {
             m_socketHandle.Recv(ref msg, options);
@@ -464,9 +461,7 @@ namespace NetMQ
             m_socketHandle.SetSocketOption(socketOptions, value);
         }
 
-        /// <summary>
-        /// Release this socket's resources (by simply closing it).
-        /// </summary>
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Close"/>.</summary>
         public void Dispose()
         {
             Dispose(true);
