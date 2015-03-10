@@ -66,18 +66,18 @@ namespace NetMQ.zmq
         /// we can notify the sockets when zmq_term() is called. The sockets
         /// will return ETERM then.
         /// </summary>
-        private readonly List<SocketBase> m_sockets;
+        private readonly List<SocketBase> m_sockets = new List<SocketBase>();
 
         /// <summary>
         /// List of unused thread slots.
         /// </summary>
-        private readonly Stack<int> m_emptySlots;
+        private readonly Stack<int> m_emptySlots = new Stack<int>();
 
         /// <summary>
         /// If true, zmq_init has been called but no socket has been created
         /// yet. Launching of I/O threads is delayed.
         /// </summary>
-        private volatile bool m_starting;
+        private volatile bool m_starting = true;
 
         /// <summary>
         /// If true, zmq_term was already called.
@@ -90,7 +90,7 @@ namespace NetMQ.zmq
         /// access to zombie sockets as such (as opposed to slots) and provides
         /// a memory barrier to ensure that all CPU cores see the same data.
         /// </summary>
-        private readonly object m_slotSync;
+        private readonly object m_slotSync = new object();
 
         /// <summary>
         /// The reaper thread.
@@ -100,7 +100,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// List of I/O threads.
         /// </summary>
-        private readonly List<IOThread> m_ioThreads;
+        private readonly List<IOThread> m_ioThreads = new List<IOThread>();
 
         /// <summary>
         /// Length of the mailbox-array.
@@ -115,17 +115,17 @@ namespace NetMQ.zmq
         /// <summary>
         /// Mailbox for zmq_term thread.
         /// </summary>
-        private readonly Mailbox m_termMailbox;
+        private readonly Mailbox m_termMailbox = new Mailbox("terminator");
 
         /// <summary>
         /// Dictionary containing the inproc endpoints within this context.
         /// </summary>
-        private readonly Dictionary<string, Endpoint> m_endpoints;
+        private readonly Dictionary<string, Endpoint> m_endpoints = new Dictionary<string, Endpoint>();
 
         /// <summary>
         /// This object provides synchronisation of access to the list of inproc endpoints.
         /// </summary>
-        private readonly object m_endpointsSync;
+        private readonly object m_endpointsSync = new object();
 
         /// <summary>
         /// The maximum socket ID.  CBL
@@ -135,46 +135,20 @@ namespace NetMQ.zmq
         /// <summary>
         /// The maximum number of sockets that can be opened at the same time.
         /// </summary>
-        private int m_maxSockets;
+        private int m_maxSockets = DefaultMaxSockets;
 
         /// <summary>
         /// The number of I/O threads to launch.
         /// </summary>
-        private int m_ioThreadCount;
+        private int m_ioThreadCount = DefaultIOThreads;
 
         /// <summary>
         /// This object is used to synchronize access to context options.
         /// </summary>
-        private readonly object m_optSync;
+        private readonly object m_optSync = new object();
 
         public const int TermTid = 0;
         public const int ReaperTid = 1;
-
-        /// <summary>
-        /// Create a new Ctx object with all default values and a mailbox named "terminator".
-        /// </summary>
-        public Ctx()
-        {
-            m_disposed = false;
-            m_starting = true;
-            m_terminating = false;
-            m_reaper = null;
-            m_slotCount = 0;
-            m_slots = null;
-            m_maxSockets = DefaultMaxSockets;
-            m_ioThreadCount = DefaultIOThreads;
-
-            m_slotSync = new object();
-            m_endpointsSync = new object();
-            m_optSync = new object();
-
-            m_termMailbox = new Mailbox("terminator");
-
-            m_emptySlots = new Stack<int>();
-            m_ioThreads = new List<IOThread>();
-            m_sockets = new List<SocketBase>();
-            m_endpoints = new Dictionary<string, Endpoint>();
-        }
 
         /// <summary>
         /// Dump all of this object's resources by stopping and destroying all of it's threads,

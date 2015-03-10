@@ -44,7 +44,7 @@ namespace NetMQ.zmq
 
         [NotNull] private readonly IMailboxEvent m_mailboxEvent;
 
-        [NotNull] private readonly YPipe<Command> m_commandPipe;
+        [NotNull] private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
@@ -52,7 +52,7 @@ namespace NetMQ.zmq
         /// synchronised access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
-        [NotNull] private readonly object m_sync;
+        [NotNull] private readonly object m_sync = new object();
 
         /// <summary>Mailbox name. Only used for debugging.</summary>
         [NotNull] private readonly string m_name;
@@ -64,9 +64,6 @@ namespace NetMQ.zmq
             m_proactor = proactor;
             m_mailboxEvent = mailboxEvent;
 
-            m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
-            m_sync = new object();
-
             //  Get the pipe into passive state. That way, if the users starts by
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
@@ -76,8 +73,6 @@ namespace NetMQ.zmq
             Debug.Assert(!ok);
 
             m_name = name;
-
-            m_disposed = false;
         }
 
         public void Send(Command command)
@@ -130,12 +125,12 @@ namespace NetMQ.zmq
         /// <summary>
         /// The pipe to store actual commands.
         /// </summary>
-        private readonly YPipe<Command> m_commandPipe;
+        private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 
         /// <summary>
         /// Signaler to pass signals from writer thread to reader thread.
         /// </summary>
-        private readonly Signaler m_signaler;
+        private readonly Signaler m_signaler = new Signaler();
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
@@ -143,7 +138,7 @@ namespace NetMQ.zmq
         /// synchronised access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
-        private readonly object m_sync;
+        private readonly object m_sync = new object();
 
         /// <summary>
         /// True if the underlying pipe is active, ie. when we are allowed to
@@ -156,10 +151,6 @@ namespace NetMQ.zmq
 
         public Mailbox([NotNull] string name)
         {
-            m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
-            m_sync = new object();
-            m_signaler = new Signaler();
-
             //  Get the pipe into passive state. That way, if the users starts by
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
