@@ -21,11 +21,27 @@
 
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
-    internal class YQueue<T>
+    /// <summary>A FIFO queue.</summary>
+    /// <remarks>
+    /// The class supports:
+    /// <list type="bullet">
+    /// <item>Push-front via <see cref="Push"/>.</item>
+    /// <item>Pop-back via <see cref="Pop"/>.</item>
+    /// <item>Pop-front via <see cref="Unpush"/>.</item>
+    /// </list>
+    /// As such it is only one operation short of being a double-ended queue (dequeue or deque).
+    /// <para/>
+    /// The internal implementation consists of a doubly-linked list of fixed-size arrays.
+    /// </remarks>
+    /// <typeparam name="T"></typeparam>
+    internal sealed class YQueue<T>
     {
+        #region Nested class: Chunk
+
         /// <summary>Individual memory chunk to hold N elements.</summary>
         private class Chunk
         {
@@ -42,17 +58,28 @@ namespace NetMQ.zmq.Utils
                 }
             }
 
+            [NotNull]
             public T[] Values { get; private set; }
-            /// <summary> Contains global index positions of elements in the chunk. </summary>
+
+            /// <summary>Contains global index positions of elements in the chunk.</summary>
+            [NotNull]
             public int[] GlobalPosition { get; private set; }
+
+            /// <summary>Optional link to the previous <see cref="Chunk"/>.</summary>
+            [CanBeNull]
             public Chunk Previous { get; set; }
+
+            /// <summary>Optional link to the next <see cref="Chunk"/>.</summary>
+            [CanBeNull]
             public Chunk Next { get; set; }
         }
 
-        //  Back position may point to invalid memory if the queue is empty,
-        //  while begin & end positions are always valid. Begin position is
-        //  accessed exclusively be queue reader (front/pop), while back and
-        //  end positions are accessed exclusively by queue writer (back/push).
+        #endregion
+
+        // Back position may point to invalid memory if the queue is empty,
+        // while begin & end positions are always valid. Begin position is
+        // accessed exclusively be queue reader (front/pop), while back and
+        // end positions are accessed exclusively by queue writer (back/push).
         private volatile Chunk m_beginChunk;
         private int m_beginPositionInChunk;
         private Chunk m_backChunk;
@@ -62,9 +89,9 @@ namespace NetMQ.zmq.Utils
         private Chunk m_spareChunk;
         private readonly int m_size;
 
-        //  People are likely to produce and consume at similar rates.  In
-        //  this scenario holding onto the most recently freed chunk saves
-        //  us from having to call malloc/free.
+        // People are likely to produce and consume at similar rates.  In
+        // this scenario holding onto the most recently freed chunk saves
+        // us from having to call malloc/free.
 
         private int m_nextGlobalIndex;
 
@@ -73,12 +100,9 @@ namespace NetMQ.zmq.Utils
             if (size < 2)
                 throw new ArgumentOutOfRangeException("size", "Size should be no less than 2");
 
-            this.m_size = size;
-            m_nextGlobalIndex = 0;
-            m_beginChunk = new Chunk(size, m_nextGlobalIndex);
-            m_nextGlobalIndex += size;
-            m_beginPositionInChunk = 0;
-            m_backPositionInChunk = 0;
+            m_size = size;
+            m_beginChunk = new Chunk(size, 0);
+            m_nextGlobalIndex = size;
             m_backChunk = m_beginChunk;
             m_spareChunk = m_beginChunk;
             m_endChunk = m_beginChunk;
@@ -116,7 +140,6 @@ namespace NetMQ.zmq.Utils
             return value;
         }
 
-
         /// <summary>Adds an element to the back end of the queue.</summary>
         /// <param name="val">The value to be pushed.</param>
         public void Push(ref T val)
@@ -146,11 +169,11 @@ namespace NetMQ.zmq.Utils
             m_endPosition = 0;
         }
 
-        /// <summary>Removes element from the back end of the queue. In other words it rollbacks last push to the queue.</summary>
-        /// <remarks>Caller is responsible for destroying the object being unpushed.
-        /// The caller must also guarantee that the queue isn't empty when unpush is called.
+        /// <summary>Removes element from the back end of the queue, rolling back the last call to <see cref="Push"/>.</summary>
+        /// <remarks>The caller must guarantee that the queue isn't empty when calling this method.
         /// It cannot be done automatically as the read side of the queue can be managed by different,
-        /// completely unsynchronized thread.</remarks>
+        /// completely unsynchronized threads.</remarks>
+        /// <returns>The last item passed to <see cref="Push"/>.</returns>
         public T Unpush()
         {
             // First, move 'back' one position backwards.
@@ -169,7 +192,9 @@ namespace NetMQ.zmq.Utils
             // would require free and atomic operation per chunk deallocated
             // instead of a simple free.
             if (m_endPosition > 0)
+            {
                 m_endPosition--;
+            }
             else
             {
                 m_endPosition = m_size - 1;
