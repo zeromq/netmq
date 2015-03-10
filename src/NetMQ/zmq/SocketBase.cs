@@ -787,7 +787,7 @@ namespace NetMQ.zmq
             //  Get the message.
             bool isMessageAvailable = XRecv(ref msg);
 
-            //  Once every inbound_poll_rate messages check for signals and process
+            //  Once every Config.InboundPollRate messages check for signals and process
             //  incoming commands. This happens only if we are not polling altogether
             //  because there are messages available all the time. If poll occurs,
             //  ticks is set to zero and thus we avoid this code.

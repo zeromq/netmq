@@ -18,14 +18,11 @@ namespace NetMQ.Sockets
         {
         }
 
-        /// <summary>
-        /// Don't invoke this on a PublisherSocket - you'll just get a NotSupportedException.
-        /// </summary>
-        /// <param name="msg">the Msg object to put it in</param>
-        /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
+        /// <summary><see cref="PublisherSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
+        /// <exception cref="NotSupportedException">Receive is not supported.</exception>
         public override void Receive(ref Msg msg, SendReceiveOptions options)
         {
-            throw new NotSupportedException("Publisher doesn't support receiving");
+            throw new NotSupportedException("PublisherSocket doesn't support receiving");
         }
     }
 }

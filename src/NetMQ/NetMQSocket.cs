@@ -294,7 +294,8 @@ namespace NetMQ
         /// Get an available message over this socket.
         /// </summary>
         /// <param name="msg">the Msg object to put it in</param>
-        /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
+        /// <param name="options">Either <see cref="SendReceiveOptions.None"/>, or <see cref="SendReceiveOptions.DontWait"/>.
+        /// <see cref="SendReceiveOptions.SendMore"/> is ignored.</param>
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {
             m_socketHandle.Recv(ref msg, options);
