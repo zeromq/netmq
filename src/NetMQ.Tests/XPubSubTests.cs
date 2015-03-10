@@ -88,10 +88,7 @@ namespace NetMQ.Tests
                 pub.Send("Hello");
 
                 bool more;
-
-                string m = sub.ReceiveString(out more);
-
-                Assert.AreEqual("Hello", m);
+                Assert.AreEqual("Hello", sub.ReceiveString(out more));
                 Assert.False(more);
             }
         }
