@@ -29,12 +29,7 @@ namespace NetMQ
 
             socket.Receive(ref msg, options);
 
-            var data = new byte[msg.Size];
-
-            if (msg.Size > 0)
-            {
-                Buffer.BlockCopy(msg.Data, 0, data, 0, msg.Size);
-            }
+            var data = msg.CloneData();
 
             hasMore = msg.HasMore;
 

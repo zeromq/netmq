@@ -427,5 +427,16 @@ namespace NetMQ
 
             src.InitEmpty();
         }
+
+        /// <summary>Returns a new array containing the first <see cref="Size"/> bytes of <see cref="Data"/>.</summary>
+        public byte[] CloneData()
+        {
+            var data = new byte[Size];
+
+            if (Size > 0)
+                Buffer.BlockCopy(Data, 0, data, 0, Size);
+
+            return data;
+        }
     }
 }

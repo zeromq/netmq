@@ -154,7 +154,7 @@ namespace NetMQ.zmq.Patterns
                     {
                         m_lastPipe = pipe;
 
-                        m_pending.Enqueue(GetBytesFromMsg(ref sub));
+                        m_pending.Enqueue(sub.CloneData());
                     }
                     else
                     {
@@ -167,12 +167,12 @@ namespace NetMQ.zmq.Patterns
                         //  If the subscription is not a duplicate, store it so that it can be
                         //  passed to used on next recv call.
                         if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
-                            m_pending.Enqueue(GetBytesFromMsg(ref sub));
+                            m_pending.Enqueue(sub.CloneData());
                     }
                 }
                 else // process message unrelated to sub/unsub
                 {
-                    m_pending.Enqueue(GetBytesFromMsg(ref sub));
+                    m_pending.Enqueue(sub.CloneData());
                 }
 
                 sub.Close();
@@ -321,14 +321,6 @@ namespace NetMQ.zmq.Patterns
         protected override bool XHasIn()
         {
             return m_pending.Count != 0;
-        }
-
-        private static byte[] GetBytesFromMsg(ref Msg msg)
-        {
-            var bytes = new byte[msg.Size];
-            Buffer.BlockCopy(msg.Data, 0, bytes, 0, msg.Size);
-
-            return bytes;
         }
     }
 }
