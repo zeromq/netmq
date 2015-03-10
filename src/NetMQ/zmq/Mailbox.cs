@@ -44,7 +44,7 @@ namespace NetMQ.zmq
 
         [NotNull] private readonly IMailboxEvent m_mailboxEvent;
 
-        [NotNull] private readonly YPipe<Command> m_cpipe;
+        [NotNull] private readonly YPipe<Command> m_commandPipe;
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
@@ -64,7 +64,7 @@ namespace NetMQ.zmq
             m_proactor = proactor;
             m_mailboxEvent = mailboxEvent;
 
-            m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
+            m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
             m_sync = new object();
 
             //  Get the pipe into passive state. That way, if the users starts by
@@ -72,7 +72,7 @@ namespace NetMQ.zmq
             //  new command is posted.
             var cmd = new Command();
 
-            bool ok = m_cpipe.Read(ref cmd);
+            bool ok = m_commandPipe.Read(ref cmd);
             Debug.Assert(!ok);
 
             m_name = name;
@@ -85,8 +85,8 @@ namespace NetMQ.zmq
             bool ok;
             lock (m_sync)
             {
-                m_cpipe.Write(ref command, false);
-                ok = m_cpipe.Flush();
+                m_commandPipe.Write(ref command, false);
+                ok = m_commandPipe.Flush();
             }
 
             if (!ok)
@@ -101,7 +101,7 @@ namespace NetMQ.zmq
             Command cmd = null;
 
             // bool ok =
-               m_cpipe.Read(ref cmd);
+               m_commandPipe.Read(ref cmd);
 
             return cmd;
         }
@@ -130,7 +130,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// The pipe to store actual commands.
         /// </summary>
-        private readonly YPipe<Command> m_cpipe;
+        private readonly YPipe<Command> m_commandPipe;
 
         /// <summary>
         /// Signaler to pass signals from writer thread to reader thread.
@@ -156,7 +156,7 @@ namespace NetMQ.zmq
 
         public Mailbox([NotNull] string name)
         {
-            m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
+            m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
             m_sync = new object();
             m_signaler = new Signaler();
 
@@ -166,7 +166,7 @@ namespace NetMQ.zmq
 
             var cmd = new Command();
 
-            bool ok = m_cpipe.Read(ref cmd);
+            bool ok = m_commandPipe.Read(ref cmd);
             Debug.Assert(!ok);
             m_active = false;
 
@@ -184,8 +184,8 @@ namespace NetMQ.zmq
             bool ok;
             lock (m_sync)
             {
-                m_cpipe.Write(ref cmd, false);
-                ok = m_cpipe.Flush();
+                m_commandPipe.Write(ref cmd, false);
+                ok = m_commandPipe.Flush();
             }
 
             //if (LOG.isDebugEnabled())
@@ -205,7 +205,7 @@ namespace NetMQ.zmq
             //  Try to get the command straight away.
             if (m_active)
             {
-                m_cpipe.Read(ref cmd);
+                m_commandPipe.Read(ref cmd);
                 
                 if (cmd != null)
                     return cmd;
@@ -225,7 +225,7 @@ namespace NetMQ.zmq
             m_active = true;
 
             //  Get a command.
-            bool ok = m_cpipe.Read(ref cmd);
+            bool ok = m_commandPipe.Read(ref cmd);
             Debug.Assert(ok);
 
             return cmd;
