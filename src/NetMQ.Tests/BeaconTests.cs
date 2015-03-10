@@ -7,6 +7,8 @@ namespace NetMQ.Tests
     [TestFixture]
     public class BeaconTests
     {
+        // TODO allow beacon publish period to be specified, in order to make these tests faster (or use a WaitHandle to allow signalling)
+
         [Test]
         public void SimplePublishSubscribe()
         {
