@@ -35,9 +35,8 @@ namespace NetMQ.zmq
     /// <remarks>Internal analog of the public <see cref="NetMQContext"/> class.</remarks>
     internal sealed class Ctx
     {
-        // Default for new contexts
-        public const int DefaultIOThreads = 1;
-        public const int DefaultMaxSockets = 1024;
+        private const int DefaultIOThreads = 1;
+        private const int DefaultMaxSockets = 1024;
 
         #region Nested class: Endpoint
 
