@@ -76,6 +76,8 @@ namespace NetMQ.zmq.Utils
 
         #endregion
 
+        private readonly int m_chunkSize;
+
         // Back position may point to invalid memory if the queue is empty,
         // while begin & end positions are always valid. Begin position is
         // accessed exclusively be queue reader (front/pop), while back and
@@ -87,7 +89,6 @@ namespace NetMQ.zmq.Utils
         private Chunk m_endChunk;
         private int m_endPosition;
         private Chunk m_spareChunk;
-        private readonly int m_size;
 
         // People are likely to produce and consume at similar rates.  In
         // this scenario holding onto the most recently freed chunk saves
@@ -95,14 +96,15 @@ namespace NetMQ.zmq.Utils
 
         private int m_nextGlobalIndex;
 
-        public YQueue(int size)
+        public YQueue(int chunkSize)
         {
-            if (size < 2)
-                throw new ArgumentOutOfRangeException("size", "Size should be no less than 2");
+            if (chunkSize < 2)
+                throw new ArgumentOutOfRangeException("chunkSize", "Size should be no less than 2");
 
-            m_size = size;
-            m_beginChunk = new Chunk(size, 0);
-            m_nextGlobalIndex = size;
+            m_chunkSize = chunkSize;
+
+            m_beginChunk = new Chunk(m_chunkSize, 0);
+            m_nextGlobalIndex = m_chunkSize;
             m_backChunk = m_beginChunk;
             m_spareChunk = m_beginChunk;
             m_endChunk = m_beginChunk;
@@ -131,7 +133,7 @@ namespace NetMQ.zmq.Utils
             m_beginChunk.Values[m_beginPositionInChunk] = default(T);
             
             m_beginPositionInChunk++;
-            if (m_beginPositionInChunk == m_size)
+            if (m_beginPositionInChunk == m_chunkSize)
             {
                 m_beginChunk = m_beginChunk.Next;
                 m_beginChunk.Previous = null;
@@ -149,7 +151,7 @@ namespace NetMQ.zmq.Utils
             m_backPositionInChunk = m_endPosition;
 
             m_endPosition++;
-            if (m_endPosition != m_size)
+            if (m_endPosition != m_chunkSize)
                 return;
 
             Chunk sc = m_spareChunk;
@@ -161,8 +163,8 @@ namespace NetMQ.zmq.Utils
             }
             else
             {
-                m_endChunk.Next = new Chunk(m_size, m_nextGlobalIndex);
-                m_nextGlobalIndex += m_size;
+                m_endChunk.Next = new Chunk(m_chunkSize, m_nextGlobalIndex);
+                m_nextGlobalIndex += m_chunkSize;
                 m_endChunk.Next.Previous = m_endChunk;
             }
             m_endChunk = m_endChunk.Next;
@@ -183,7 +185,7 @@ namespace NetMQ.zmq.Utils
             }
             else
             {
-                m_backPositionInChunk = m_size - 1;
+                m_backPositionInChunk = m_chunkSize - 1;
                 m_backChunk = m_backChunk.Previous;
             }
 
@@ -197,7 +199,7 @@ namespace NetMQ.zmq.Utils
             }
             else
             {
-                m_endPosition = m_size - 1;
+                m_endPosition = m_chunkSize - 1;
                 m_endChunk = m_endChunk.Previous;
                 m_endChunk.Next = null;
             }
