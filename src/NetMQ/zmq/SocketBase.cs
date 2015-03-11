@@ -45,7 +45,7 @@ namespace NetMQ.zmq
         private bool m_disposed;
 
         /// <summary>If true, associated context was already terminated.</summary>
-        private bool m_ctxTerminated;
+        private bool m_isStopped;
 
         /// <summary>
         /// If true, object should have been already destroyed. However,
@@ -117,10 +117,8 @@ namespace NetMQ.zmq
         /// </summary>
         public void CheckContextTerminated()
         {
-            if (m_ctxTerminated)
-            {
+            if (m_isStopped)
                 throw new TerminatingException(innerException: null, message: "CheckContextTerminated - yes, is terminated.");
-            }
         }
 
         /// <summary>
@@ -983,7 +981,7 @@ namespace NetMQ.zmq
             //  further attempt to use the socket will return ETERM. The user is still
             //  responsible for calling zmq_close on the socket though!
             StopMonitor();
-            m_ctxTerminated = true;
+            m_isStopped = true;
         }
 
         protected override void ProcessBind(Pipe pipe)
