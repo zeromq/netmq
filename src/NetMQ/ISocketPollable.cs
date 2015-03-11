@@ -3,12 +3,12 @@
 namespace NetMQ
 {
     /// <summary>
-    /// Interface ISocketPollable mandates a Socket-get ( NetMQSocket ) property.
+    /// Implementations provide a <see cref="NetMQSocket"/> via the <see cref="Socket"/> property.
     /// </summary>
     public interface ISocketPollable
     {
         /// <summary>
-        /// Get the NetMQSocket.
+        /// Gets a <see cref="NetMQSocket"/> instance.
         /// </summary>
         [NotNull]
         NetMQSocket Socket { get; }

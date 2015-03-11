@@ -410,10 +410,10 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Returns the I/O thread that is the least busy at the moment.
-        /// Affinity specifies which I/O threads are eligible (0 = all).
-        /// Returns <c>null</c> if no I/O thread is available.
+        /// Returns the <see cref="IOThread"/> that is the least busy at the moment.
         /// </summary>
+        /// <paramref name="affinity">Which threads are eligible (0 = all).</paramref>
+        /// <returns>The least busy thread, or <c>null</c> if none is available.</returns>
         [CanBeNull]
         public IOThread ChooseIOThread(long affinity)
         {

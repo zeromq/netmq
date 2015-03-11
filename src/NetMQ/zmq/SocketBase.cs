@@ -101,20 +101,18 @@ namespace NetMQ.zmq
 
         protected abstract void XTerminated([NotNull] Pipe pipe);
 
-        /// <summary>
-        /// Throw an ObjectDisposedException if this socket is already disposed
-        /// </summary>  
+        /// <summary>Throws <see cref="ObjectDisposedException"/> if this socket is already disposed.</summary>  
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
         public void CheckDisposed()
         {
             if (m_disposed)
-            {
                 throw new ObjectDisposedException(GetType().FullName);
-            }
         }
 
         /// <summary>
-        /// Throw a TerminatingException if the message-queueing system has started terminating.
+        /// Throws <see cref="TerminatingException"/> if the message-queueing system has started terminating.
         /// </summary>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public void CheckContextTerminated()
         {
             if (m_isStopped)
@@ -257,6 +255,7 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public void SetSocketOption(ZmqSocketOptions option, Object optval)
         {
             CheckContextTerminated();
@@ -270,6 +269,7 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public int GetSocketOption(ZmqSocketOptions option)
         {
             CheckContextTerminated();
@@ -300,6 +300,7 @@ namespace NetMQ.zmq
             return (int)GetSocketOptionX(option);
         }
 
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public Object GetSocketOptionX(ZmqSocketOptions option)
         {
             CheckContextTerminated();
@@ -337,6 +338,11 @@ namespace NetMQ.zmq
             return m_options.GetSocketOption(option);
         }
 
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
+        /// <exception cref="ArgumentException">The requested protocol is not supported.</exception>
+        /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener encountered an
+        /// error during initialisation.</exception>
         public void Bind([NotNull] string addr)
         {
             CheckContextTerminated();
@@ -458,19 +464,28 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>Binds the specified TCP <paramref name="addr"/> to an available port, assigned by the operating system.</summary>
+        /// <exception cref="ProtocolNotSupportedException"><paramref name="addr"/> uses a protocol other than TCP.</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
+        /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener errored during
+        /// initialisation.</exception>
         public int BindRandomPort([NotNull] string addr)
         {
             string address, protocol;
 
             DecodeAddress(addr, out address, out protocol);
 
-            if (!protocol.Equals(Address.TcpProtocol))
-                throw new ProtocolNotSupportedException(string.Format("In SocketBase.BindRandomPort({0}), protocol should be tcp.", addr));
+            if (protocol != Address.TcpProtocol)
+                throw new ProtocolNotSupportedException("Address must use the TCP protocol.");
 
             Bind(addr + ":0");
             return m_port;
         }
 
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="NetMQException">No IO thread was found.</exception>
+        /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
         public void Connect([NotNull] string addr)
         {
             CheckContextTerminated();
@@ -554,11 +569,11 @@ namespace NetMQ.zmq
             }
 
             //  Choose the I/O thread to run the session in.
-            IOThread ioThread = ChooseIOThread(m_options.Affinity);
+            var ioThread = ChooseIOThread(m_options.Affinity);
+
             if (ioThread == null)
-            {
-                throw NetMQException.Create("Empty IO Thread", ErrorCode.EmptyThread);
-            }
+                throw NetMQException.Create(ErrorCode.EmptyThread);
+            
             var paddr = new Address(protocol, address);
 
             //  Resolve address (if needed by the protocol)
@@ -624,7 +639,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Creates new endpoint ID and adds the endpoint to the map.
+        /// Takes ownership of <paramref name="endpoint"/> and registers it against <paramref name="addr"/>.
         /// </summary>
         private void AddEndpoint([NotNull] string addr, [NotNull] Own endpoint)
         {
@@ -633,15 +648,17 @@ namespace NetMQ.zmq
             m_endpoints[addr] = endpoint;
         }
 
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="addr"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="addr"/> is <c>null</c>.</exception>
         public void TermEndpoint([NotNull] string addr)
         {
             CheckContextTerminated();
 
             //  Check whether endpoint address passed to the function is valid.
             if (addr == null)
-            {
-                throw new InvalidException("TermEndpoint must not be called with a null addr.");
-            }
+                throw new ArgumentNullException("addr");
 
             //  Process pending commands, if any, since there could be pending unprocessed process_own()'s
             //  (from launch_child() for example) we're asked to terminate now.
@@ -697,6 +714,9 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="msg">the Msg to transmit</param>
         /// <param name="flags">a SendReceiveOptions: either don't specify DontWait, or set a timeout</param>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
+        /// <exception cref="AgainException">The send operation timed out.</exception>
         public void Send(ref Msg msg, SendReceiveOptions flags)
         {
             CheckContextTerminated();
@@ -920,10 +940,9 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Processes commands sent to this socket (if any). If timeout is -1,
-        /// returns only after at least one command was processed.
-        /// If throttle argument is true, commands are processed at most once
-        /// in a predefined time period.
+        /// Processes commands sent to this socket (if any).
+        /// If <paramref name="timeout"/> is <c>-1</c>, the call blocks until at least one command was processed.
+        /// If <paramref name="throttle"/> is <c>true</c>, commands are processed at most once in a predefined time period.
         /// </summary>
         private void ProcessCommands(int timeout, bool throttle)
         {
@@ -978,8 +997,8 @@ namespace NetMQ.zmq
         {
             //  Here, someone have called zmq_term while the socket was still alive.
             //  We'll remember the fact so that any blocking call is interrupted and any
-            //  further attempt to use the socket will return ETERM. The user is still
-            //  responsible for calling zmq_close on the socket though!
+            //  further attempt to use the socket will raise TerminatingException.
+            //  The user is still responsible for calling zmq_close on the socket though!
             StopMonitor();
             m_isStopped = true;
         }

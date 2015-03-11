@@ -279,7 +279,7 @@ namespace NetMQ
 
         public static bool operator ==(NetMQFrame one, NetMQFrame other)
         {
-            // NOTE use of ReferenceEquals here to avoid recurrance and stack overflow exception
+            // NOTE use of ReferenceEquals here to avoid recurrence and stack overflow exception
 
             if (ReferenceEquals(one, null) && ReferenceEquals(other, null))
                 return true;

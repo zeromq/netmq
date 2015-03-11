@@ -91,10 +91,11 @@ namespace NetMQ.zmq.Utils
 
         private int m_nextGlobalIndex;
 
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="chunkSize"/> should be no less than 2</exception>
         public YQueue(int chunkSize)
         {
             if (chunkSize < 2)
-                throw new ArgumentOutOfRangeException("chunkSize", "Size should be no less than 2");
+                throw new ArgumentOutOfRangeException("chunkSize", "Should be no less than 2");
 
             m_chunkSize = chunkSize;
 
