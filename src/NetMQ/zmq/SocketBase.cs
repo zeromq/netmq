@@ -387,84 +387,77 @@ namespace NetMQ.zmq
                 throw NetMQException.Create(ErrorCode.EmptyThread);
             }
 
-            if (protocol.Equals(Address.TcpProtocol))
+            switch (protocol)
             {
-                var listener = new TcpListener(ioThread, this, m_options);
-
-                try
+                case Address.TcpProtocol:
                 {
-                    listener.SetAddress(address);
-                    m_port = listener.Port;
+                    var listener = new TcpListener(ioThread, this, m_options);
 
-                    // Recreate the address string (localhost:1234) in case the port was system-assigned
-                    var host = address.Substring(0, address.IndexOf(':'));
-                    addr = "tcp://" + host + ":" + m_port;
+                    try
+                    {
+                        listener.SetAddress(address);
+                        m_port = listener.Port;
+
+                        // Recreate the address string (localhost:1234) in case the port was system-assigned
+                        var host = address.Substring(0, address.IndexOf(':'));
+                        addr = "tcp://" + host + ":" + m_port;
+                    }
+                    catch (NetMQException ex)
+                    {
+                        listener.Destroy();
+                        EventBindFailed(addr, ex.ErrorCode);
+                        throw;
+                    }
+
+                    m_options.LastEndpoint = listener.Address;
+                    AddEndpoint(addr, listener);
+                    break;
                 }
-                catch (NetMQException ex)
+                case Address.PgmProtocol:
+                case Address.EpgmProtocol:
                 {
-                    listener.Destroy();
-                    EventBindFailed(addr, ex.ErrorCode);
+                    var listener = new PgmListener(ioThread, this, m_options);
 
-                    throw;
+                    try
+                    {
+                        listener.Init(address);
+                    }
+                    catch (NetMQException ex)
+                    {
+                        listener.Destroy();
+                        EventBindFailed(addr, ex.ErrorCode);
+                        throw;
+                    }
+
+                    m_options.LastEndpoint = addr;
+                    AddEndpoint(addr, listener);
+                    break;
                 }
+                case Address.IpcProtocol:
+                {
+                    var listener = new IpcListener(ioThread, this, m_options);
 
-                // Save last endpoint URI
-                m_options.LastEndpoint = listener.Address;
+                    try
+                    {
+                        listener.SetAddress(address);
+                        m_port = listener.Port;
+                    }
+                    catch (NetMQException ex)
+                    {
+                        listener.Destroy();
+                        EventBindFailed(addr, ex.ErrorCode);
+                        throw;
+                    }
 
-                AddEndpoint(addr, listener);
-
-                return;
+                    m_options.LastEndpoint = listener.Address;
+                    AddEndpoint(addr, listener);
+                    break;
+                }
+                default:
+                {
+                    throw new ArgumentException(string.Format("Address {0} has unsupported protocol: {1}", addr, protocol), "addr");
+                }
             }
-
-            if (protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol))
-            {
-                var listener = new PgmListener(ioThread, this, m_options);
-
-                try
-                {
-                    listener.Init(address);
-                }
-                catch (NetMQException ex)
-                {
-                    listener.Destroy();
-                    EventBindFailed(addr, ex.ErrorCode);
-
-                    throw;
-                }
-
-                m_options.LastEndpoint = addr;
-
-                AddEndpoint(addr, listener);
-
-                return;
-            }
-
-            if (protocol.Equals(Address.IpcProtocol))
-            {
-                var listener = new IpcListener(ioThread, this, m_options);
-
-                try
-                {
-                    listener.SetAddress(address);
-                    m_port = listener.Port;
-                }
-                catch (NetMQException ex)
-                {
-                    listener.Destroy();
-                    EventBindFailed(addr, ex.ErrorCode);
-
-                    throw;
-                }
-
-                // Save last endpoint URI
-                m_options.LastEndpoint = listener.Address;
-
-                AddEndpoint(addr, listener);
-                return;
-            }
-
-            Debug.Assert(false);
-            throw new FaultException(string.Format("SocketBase.Bind({0}) failure.", addr));
         }
 
         public int BindRandomPort([NotNull] string addr)
