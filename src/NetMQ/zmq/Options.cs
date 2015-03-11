@@ -225,6 +225,7 @@ namespace NetMQ.zmq
         /// Get or set the timeout for receive operations for this socket.
         /// The default value is -1, which means no timeout.
         /// </summary>
+        [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
         public int ReceiveTimeout { get; set; }
 
         /// <summary>

@@ -20,7 +20,22 @@ namespace NetMQ.Sockets
 
         /// <summary><see cref="PushSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
         /// <exception cref="NotSupportedException">Receive is not supported.</exception>
+        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public override void Receive(ref Msg msg, SendReceiveOptions options)
+        {
+            throw new NotSupportedException("PushSocket doesn't support receiving");
+        }
+
+        /// <summary><see cref="PushSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
+        /// <exception cref="NotSupportedException">Receive is not supported.</exception>
+        public override void Receive(ref Msg msg)
+        {
+            throw new NotSupportedException("PushSocket doesn't support receiving");
+        }
+
+        /// <summary><see cref="PushSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
+        /// <exception cref="NotSupportedException">Receive is not supported.</exception>
+        public override bool TryReceive(ref Msg msg, TimeSpan timeout)
         {
             throw new NotSupportedException("PushSocket doesn't support receiving");
         }

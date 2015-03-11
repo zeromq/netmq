@@ -194,10 +194,26 @@ namespace NetMQ
             m_self.Send(ref msg, options);
         }
 
+        #region IReceivingSocket
+
+        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Receive(ref msg, options);
         }
+
+        public void Receive(ref Msg msg)
+        {
+            m_self.Receive(ref msg);
+        }
+
+        public bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            return m_self.TryReceive(ref msg, timeout);
+        }
+
+        #endregion
+
 
         #region Events Handling
 

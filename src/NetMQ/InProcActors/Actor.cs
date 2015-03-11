@@ -185,14 +185,32 @@ namespace NetMQ.Actors
             m_self.Dispose();
         }
 
+        #region IOutgoingSocket
+
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Send(ref msg, options);
         }
 
+        #endregion
+
+        #region IReceivingSocket
+
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Receive(ref msg, options);
         }
+
+        public void Receive(ref Msg msg)
+        {
+            m_self.Receive(ref msg);
+        }
+
+        public bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            return m_self.TryReceive(ref msg, timeout);
+        }
+
+        #endregion
     }
 }

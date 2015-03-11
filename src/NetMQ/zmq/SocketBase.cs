@@ -776,7 +776,33 @@ namespace NetMQ.zmq
             }
         }
 
-        public void Recv(ref Msg msg, SendReceiveOptions flags)
+        public bool TryRecv(ref Msg msg, TimeSpan timeout)
+        {
+            return Recv(ref msg, timeout);
+        }
+
+        public void Recv(ref Msg msg)
+        {
+            var res = Recv(ref msg, TimeSpan.MinValue);
+
+            Debug.Assert(res);
+        }
+
+        /// <summary>
+        /// Receives a frame into <paramref name="msg"/>.
+        /// </summary>
+        /// <remarks>
+        /// For <paramref name="timeout"/>, there are three categories of value:
+        /// <list type="bullet">
+        ///   <item><see cref="TimeSpan.Zero"/> - return <c>false</c> immediately if no message is available</item>
+        ///   <item>Positive - return <c>false</c> after the corresponding duration if no message has become available</item>
+        ///   <item>Negative - wait indefinitely, always returning <c>true</c></item>
+        /// </list>
+        /// </remarks>
+        /// <param name="msg">Where to read the received message.</param>
+        /// <param name="timeout">Controls whether the call blocks, and for how long.</param>
+        /// <returns><c>true</c> if a message was received, or <c>false</c> if the receive timed out.</returns>
+        private bool Recv(ref Msg msg, TimeSpan timeout)
         {
             CheckContextTerminated();
 
@@ -805,57 +831,38 @@ namespace NetMQ.zmq
             if (isMessageAvailable)
             {
                 ExtractFlags(ref msg);
-                return;
+                return true;
             }
 
             //  If the message cannot be fetched immediately, there are two scenarios.
             //  For non-blocking recv, commands are processed in case there's an
             //  activate_reader command already waiting in a command pipe.
-            //  If it's not, return EAGAIN.
-            bool isDontWaitSet = (flags & SendReceiveOptions.DontWait) > 0;
-            if (isDontWaitSet || m_options.ReceiveTimeout == 0)
+            //  If it's not, return false.
+            if (timeout == TimeSpan.Zero)
             {
                 ProcessCommands(0, false);
                 m_ticks = 0;
 
                 isMessageAvailable = XRecv(ref msg);
+                
                 if (!isMessageAvailable)
-                {
-#if DEBUG
-                    string xMsg;
-                    if (isDontWaitSet && m_options.ReceiveTimeout == 0)
-                    {
-                        xMsg = "SocketBase.Recv failed: No message is available, DontWait is set AND SendTimeout is 0.";
-                    }
-                    else if (isDontWaitSet)
-                    {
-                        xMsg = "SocketBase.Recv failed: No message is available, and DontWait is set.";
-                    }
-                    else
-                    {
-                        xMsg = "SocketBase.Recv failed: No message is available, and there is no ReceiveTimeout specified.";
-                    }
-                    throw new AgainException(innerException: null, message: xMsg);
-#else
-                    throw new AgainException(innerException: null, message: "SocketBase.Recv failed");
-#endif
-                }
+                    return false;
 
                 ExtractFlags(ref msg);
-                return;
+                return true;
             }
 
             //  Compute the time when the timeout should occur.
-            //  If the timeout is infinite, don't care. 
-            int timeout = m_options.ReceiveTimeout;
-            long end = timeout < 0 ? 0 : (Clock.NowMs() + timeout);
+            //  If the timeout is infinite (negative), don't care. 
+            int timeoutMillis = (int)timeout.TotalMilliseconds;
+            long end = timeoutMillis < 0 ? 0L : Clock.NowMs() + timeoutMillis;
 
             //  In blocking scenario, commands are processed over and over again until
             //  we are able to fetch a message.
-            bool block = (m_ticks != 0);
+            bool block = m_ticks != 0;
             while (true)
             {
-                ProcessCommands(block ? timeout : 0, false);
+                ProcessCommands(block ? timeoutMillis : 0, false);
 
                 isMessageAvailable = XRecv(ref msg);
                 if (isMessageAvailable)
@@ -865,17 +872,17 @@ namespace NetMQ.zmq
                 }
 
                 block = true;
-                if (timeout > 0)
+                if (timeoutMillis > 0)
                 {
-                    timeout = (int)(end - Clock.NowMs());
-                    if (timeout <= 0)
-                    {
-                        throw new AgainException(innerException: null, message: "SocketBase.Recv failed and timeout <= 0");
-                    }
+                    timeoutMillis = (int)(end - Clock.NowMs());
+
+                    if (timeoutMillis <= 0)
+                        return false;
                 }
             }
 
             ExtractFlags(ref msg);
+            return true;
         }
 
         public void Close()

@@ -152,6 +152,7 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOptions.MulticastHops, value); }
         }
 
+        [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
         public TimeSpan ReceiveTimeout
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.ReceiveTimeout); }

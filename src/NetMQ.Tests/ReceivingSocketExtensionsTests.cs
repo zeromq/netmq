@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -23,6 +24,16 @@ namespace NetMQ.Tests
 
             if (m_frames.Count != 0)
                 msg.SetFlags(MsgFlags.More);
+        }
+
+        public void Receive(ref Msg msg)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            throw new NotImplementedException();
         }
 
         public void PushFrame([NotNull] byte[] frame)

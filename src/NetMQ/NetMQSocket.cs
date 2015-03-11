@@ -185,6 +185,8 @@ namespace NetMQ
             m_socketHandle.Close();
         }
 
+        #region Polling
+
         /// <summary>
         /// Wait until a message is ready to be received from the socket.
         /// </summary>
@@ -287,17 +289,58 @@ namespace NetMQ
             }
         }
 
+        #endregion
+
+        #region Receiving messages
+
         /// <summary>Receive the next message from this socket.</summary>
         /// <remarks>Whether the request blocks or not is controlled by <paramref name="options"/>.</remarks>
         /// <param name="msg">The Msg object to put it in</param>
         /// <param name="options">Either <see cref="SendReceiveOptions.None"/>, or <see cref="SendReceiveOptions.DontWait"/>.
         /// <see cref="SendReceiveOptions.SendMore"/> is ignored.</param>
         /// <exception cref="AgainException">The receive operation timed out.</exception>
+        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
         {
-            m_socketHandle.Recv(ref msg, options);
-        }       
-          
+            // This legacy method adapts the newer nothrow API to the older AgainException one.
+
+            if ((options & SendReceiveOptions.DontWait) != 0)
+            {
+                // User specified DontWait, so use a zero timeout.
+                if (!m_socketHandle.TryRecv(ref msg, TimeSpan.Zero))
+                    throw new AgainException();
+            }
+            else
+            {
+                // User is expecting to wait, however we must still consider the socket's (obsolete) ReceiveTimeout.
+                if (!m_socketHandle.TryRecv(ref msg, Options.ReceiveTimeout))
+                    throw new AgainException();
+            }
+        }
+
+        /// <summary>Receive the next message from this socket, blocking indefinitely if necessary.</summary>
+        /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message
+        /// data should be placed.</param>
+        public virtual void Receive(ref Msg msg)
+        {
+            m_socketHandle.Recv(ref msg);
+        }
+
+        /// <summary>Attempt to receive a message for the specified amount of time.</summary>
+        /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message
+        /// data should be placed.</param>
+        /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
+        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
+        /// otherwise <c>false</c>.</returns>
+        public virtual bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            return m_socketHandle.TryRecv(ref msg, timeout);
+        }
+
+        #endregion
+
+        #region Sending messages
+
         /// <summary>
         /// Send a Msg over this socket.
         /// </summary>
@@ -307,6 +350,10 @@ namespace NetMQ
         {
             m_socketHandle.Send(ref msg, options);
         }
+
+        #endregion
+
+        #region Unsubscribe (obsolete)
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(string topic)
@@ -331,6 +378,8 @@ namespace NetMQ
         {
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
         }
+
+        #endregion
 
         /// <summary>
         /// Listen to the given endpoint for SocketEvent events.
@@ -382,6 +431,8 @@ namespace NetMQ
                 return pollEvents.HasFlag(PollEvents.PollOut);
             }
         }
+
+        #region Socket options
 
         /// <summary>
         /// Get the integer-value of the specified ZmqSocketOptions.
@@ -460,6 +511,8 @@ namespace NetMQ
 
             m_socketHandle.SetSocketOption(socketOptions, value);
         }
+
+        #endregion
 
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Close"/>.</summary>
         public void Dispose()

@@ -121,7 +121,7 @@ namespace NetMQ.zmq
             var msg = new Msg();
             msg.InitEmpty();
 
-            s.Recv(ref msg, SendReceiveOptions.None);
+            s.Recv(ref msg);
 
             int pos = 0;
             ByteArraySegment data = msg.Data;
