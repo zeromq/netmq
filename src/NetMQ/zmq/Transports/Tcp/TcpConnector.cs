@@ -22,8 +22,10 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text;
 using AsyncIO;
 using JetBrains.Annotations;
+
 
 namespace NetMQ.zmq.Transports.Tcp
 {
@@ -45,10 +47,10 @@ namespace NetMQ.zmq.Transports.Tcp
         private readonly Address m_address;
 
         /// <summary>
-        /// Underlying socket.
+        /// The underlying AsyncSocket.
         /// </summary>
         [CanBeNull]
-        private AsyncSocket m_s;
+        private AsyncSocket m_asyncSocket;
 
         /// <summary>
         /// If true file descriptor is registered with the poller and 'handle'
@@ -67,12 +69,12 @@ namespace NetMQ.zmq.Transports.Tcp
         private bool m_isTimerStarted;
 
         /// <summary>
-        /// Reference to the session we belong to.
+        /// A reference to the session we belong to.
         /// </summary>
         private readonly SessionBase m_session;
 
         /// <summary>
-        /// Current reconnect-interval, updated for back-off strategy
+        /// Current reconnect-interval. This gets updated for back-off strategy.
         /// </summary>
         private int m_currentReconnectInterval;
 
@@ -86,12 +88,20 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private readonly SocketBase m_socket;
 
-        public TcpConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
+        /// <summary>
+        /// Create a new TcpConnector object.
+        /// </summary>
+        /// <param name="ioThread">the I/O-thread for this TcpConnector to live on.</param>
+        /// <param name="session">the session that will contain this</param>
+        /// <param name="options">Options that define this new TcpC</param>
+        /// <param name="address">the Address for this Tcp to connect to</param>
+        /// <param name="delayedStart">this boolean flag dictates whether to wait before trying to connect</param>
+        public TcpConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address address, bool delayedStart)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
-            m_address = addr;
-            m_s = null;
+            m_address = address;
+            m_asyncSocket = null;
             m_isHandleValid = false;
             m_isDelayedStart = delayedStart;
             m_isTimerStarted = false;
@@ -110,9 +120,12 @@ namespace NetMQ.zmq.Transports.Tcp
         {
             Debug.Assert(!m_isTimerStarted);
             Debug.Assert(!m_isHandleValid);
-            Debug.Assert(m_s == null);
+            Debug.Assert(m_asyncSocket == null);
         }
 
+        /// <summary>
+        /// Begin connecting.  If a delayed-start was specified - then the reconnect-timer is set, otherwise this starts immediately.
+        /// </summary>
         protected override void ProcessPlug()
         {
             m_ioObject.SetHandler(this);
@@ -124,6 +137,11 @@ namespace NetMQ.zmq.Transports.Tcp
             }
         }
 
+        /// <summary>
+        /// Process a termination request.
+        /// This cancels the reconnect-timer, closes the AsyncSocket, and marks the socket-handle as invalid.
+        /// </summary>
+        /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
         protected override void ProcessTerm(int linger)
         {
             if (m_isTimerStarted)
@@ -134,11 +152,11 @@ namespace NetMQ.zmq.Transports.Tcp
 
             if (m_isHandleValid)
             {
-                m_ioObject.RemoveSocket(m_s);
+                m_ioObject.RemoveSocket(m_asyncSocket);
                 m_isHandleValid = false;
             }
 
-            if (m_s != null)
+            if (m_asyncSocket != null)
                 Close();
 
             base.ProcessTerm(linger);
@@ -149,7 +167,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
         /// <param name="bytesTransferred">the number of bytes that were transferred</param>
-        /// <exception cref="NotImplementedException">this operation is not supported on the TcpConnector class.</exception>
+        /// <exception cref="NotImplementedException">InCompleted must not be called on a TcpConnector.</exception>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
@@ -160,12 +178,12 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private void StartConnecting()
         {
-            Debug.Assert(m_s == null);
+            Debug.Assert(m_asyncSocket == null);
 
             //  Create the socket.
             try
             {
-                m_s = AsyncSocket.Create(m_address.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                m_asyncSocket = AsyncSocket.Create(m_address.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             }
             catch (SocketException)
             {
@@ -173,13 +191,13 @@ namespace NetMQ.zmq.Transports.Tcp
                 return;
             }
 
-            m_ioObject.AddSocket(m_s);
+            m_ioObject.AddSocket(m_asyncSocket);
             m_isHandleValid = true;
 
             //  Connect to the remote peer.
             try
             {
-                m_s.Connect(m_address.Resolved.Address.Address, m_address.Resolved.Address.Port);
+                m_asyncSocket.Connect(m_address.Resolved.Address.Address, m_address.Resolved.Address.Port);
                 m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgress);
             }
             catch (SocketException ex)
@@ -194,13 +212,14 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
         /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         /// <exception cref="NetMQException">A non-recoverable socket error occurred.</exception>
+        /// <exception cref="NetMQException">If the socketError is not Success then it must be a valid recoverable error.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
-            m_ioObject.RemoveSocket(m_s);
-            m_isHandleValid = false;
-
             if (socketError != SocketError.Success)
             {
+                m_ioObject.RemoveSocket(m_asyncSocket);
+                m_isHandleValid = false;
+
                 Close();
 
                 // Try again to connect after a time,
@@ -214,18 +233,32 @@ namespace NetMQ.zmq.Transports.Tcp
                 }
                 else
                 {
+#if DEBUG
+                    var sb = new StringBuilder("TcpConnector.OutCompleted(SocketError = ");
+                    sb.Append(socketError);
+                    sb.Append(", bytesTransferred = ");
+                    sb.Append(bytesTransferred).Append(") ");
+                    ErrorCode errorCode;
+                    if (!NetMQException.TryConvertSocketErrorToErrorCode(socketError, out errorCode))
+                    {
+                        sb.Append("(no equiv. ErrorCode).");
+                    }
+                    string xMsg = sb.ToString();
+                    throw NetMQException.Create(message: xMsg, errorCode: errorCode);
+#else
                     throw NetMQException.Create(socketError);
+#endif
                 }
             }
             else  // socketError is Success.
             {
-                m_s.NoDelay = true;
+                m_asyncSocket.NoDelay = true;
 
                 // As long as the TCP keep-alive option is not -1 (indicating no change),
                 if (m_options.TcpKeepalive != -1)
                 {
                     // Set the TCP keep-alive option values to the underlying socket.
-                    m_s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
+                    m_asyncSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
 
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
@@ -238,16 +271,16 @@ namespace NetMQ.zmq.Transports.Tcp
                         bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
                         bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
 
-                        m_s.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                        m_asyncSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
                     }
                 }
 
                 //  Create the engine object for this connection.
-                var engine = new StreamEngine(m_s, m_options, m_endpoint);
+                var engine = new StreamEngine(m_asyncSocket, m_options, m_endpoint);
 
-                m_socket.EventConnected(m_endpoint, m_s);
+                m_socket.EventConnected(m_endpoint, m_asyncSocket);
 
-                m_s = null;
+                m_asyncSocket = null;
 
                 //  Attach the engine to the corresponding session object.
                 SendAttach(m_session, engine);
@@ -308,12 +341,12 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private void Close()
         {
-            Debug.Assert(m_s != null);
+            Debug.Assert(m_asyncSocket != null);
             try
             {
-                m_s.Dispose();
-                m_socket.EventClosed(m_endpoint, m_s);
-                m_s = null;
+                m_asyncSocket.Dispose();
+                m_socket.EventClosed(m_endpoint, m_asyncSocket);
+                m_asyncSocket = null;
             }
             catch (SocketException ex)
             {
