@@ -18,7 +18,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Net;
 using JetBrains.Annotations;
 
@@ -59,10 +58,10 @@ namespace NetMQ.zmq
         /// </summary>
         public interface IZAddress
         {
-            void Resolve([NotNull] String name, bool ip4Only);
+            void Resolve([NotNull] string name, bool ip4Only);
             
             [CanBeNull] IPEndPoint Address { get; }
-            [NotNull] String Protocol { get; }
+            [NotNull] string Protocol { get; }
         }
 
         /// <summary>
@@ -70,7 +69,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="protocol">the protocol of this Address - as in tcp, ipc, pgm</param>
         /// <param name="address">a text representation of the address</param>
-        public Address([NotNull] String protocol, [NotNull] String address)
+        public Address([NotNull] string protocol, [NotNull] string address)
         {
             Protocol = protocol;
             AddressString = address;
@@ -103,7 +102,7 @@ namespace NetMQ.zmq
         }
 
 
-        public override String ToString()
+        public override string ToString()
         {
             if (Protocol.Equals(TcpProtocol))
             {
@@ -136,10 +135,10 @@ namespace NetMQ.zmq
         }
 
         [NotNull]
-        public String Protocol { get; private set; }
+        public string Protocol { get; private set; }
 
         [NotNull]
-        public String AddressString { get; private set; }
+        public string AddressString { get; private set; }
 
         [CanBeNull]
         public IZAddress Resolved { get; set; }

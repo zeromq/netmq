@@ -20,7 +20,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
 using JetBrains.Annotations;
 
@@ -238,7 +237,7 @@ namespace NetMQ.zmq
             if (m_inboundPipe.Probe().IsDelimiter)
             {
                 var msg = new Msg();
-                bool ok = m_inboundPipe.Read(ref msg);
+                bool ok = m_inboundPipe.Read(out msg);
                 Debug.Assert(ok);
                 Delimit();
                 return false;
@@ -256,7 +255,7 @@ namespace NetMQ.zmq
             if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
                 return false;
 
-            if (!m_inboundPipe.Read(ref msg))
+            if (!m_inboundPipe.Read(out msg))
             {
                 m_inActive = false;
                 return false;
@@ -374,7 +373,7 @@ namespace NetMQ.zmq
             Debug.Assert(m_outboundPipe != null);
             m_outboundPipe.Flush();
             var msg = new Msg();
-            while (m_outboundPipe.Read(ref msg))
+            while (m_outboundPipe.Read(out msg))
             {
                 msg.Close();
             }
@@ -458,7 +457,7 @@ namespace NetMQ.zmq
             //  hand because msg_t doesn't have automatic destructor. Then deallocate
             //  the ypipe itself.
             var msg = new Msg();
-            while (m_inboundPipe.Read(ref msg))
+            while (m_inboundPipe.Read(out msg))
             {
                 msg.Close();
             }
@@ -621,7 +620,7 @@ namespace NetMQ.zmq
         /// Override the ToString method to return a string denoting the type and the parent.
         /// </summary>
         /// <returns>a string containing this type and also the value of the parent-property</returns>
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + m_parent + "]";
         }

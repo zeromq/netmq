@@ -5,7 +5,7 @@ using System.Text;
 namespace NetMQ.zmq.Utils
 {
     /// <summary>
-    /// StringLib is a static class whose purpose is to provide miscellaneous String-related utility methods
+    /// StringLib is a static class whose purpose is to provide miscellaneous string-related utility methods
     /// and extension properties.
     /// </summary>
     public static class StringLib

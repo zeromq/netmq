@@ -101,7 +101,7 @@ namespace NetMQ.zmq.Utils
         /// <summary>
         /// This is the name associated with this Poller.
         /// </summary>
-        private readonly String m_name;
+        private readonly string m_name;
 
         /// <summary>
         /// The set of Sockets to check for read-readiness.
@@ -122,7 +122,7 @@ namespace NetMQ.zmq.Utils
         /// Create a new Poller object with the given name.
         /// </summary>
         /// <param name="name">a name to assign to this Poller</param>
-        public Poller([NotNull] String name)
+        public Poller([NotNull] string name)
         {
             m_name = name;
         }

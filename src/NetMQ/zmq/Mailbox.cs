@@ -19,7 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using JetBrains.Annotations;
@@ -45,7 +44,7 @@ namespace NetMQ.zmq
 
         [NotNull] private readonly IMailboxEvent m_mailboxEvent;
 
-        [NotNull] private readonly YPipe<Command> m_cpipe;
+        [NotNull] private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
@@ -53,34 +52,30 @@ namespace NetMQ.zmq
         /// synchronised access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
-        [NotNull] private readonly object m_sync;
+        [NotNull] private readonly object m_sync = new object();
 
-        /// <summary>
-        /// mailbox name, for better debugging
-        /// </summary>
-        [CanBeNull] private readonly String m_name;
+#if DEBUG
+        /// <summary>Mailbox name. Only used for debugging.</summary>
+        [NotNull] private readonly string m_name;
+#endif
 
         private bool m_disposed;
 
-        public IOThreadMailbox([CanBeNull] string name, [NotNull] Proactor proactor, [NotNull] IMailboxEvent mailboxEvent)
+        public IOThreadMailbox([NotNull] string name, [NotNull] Proactor proactor, [NotNull] IMailboxEvent mailboxEvent)
         {
             m_proactor = proactor;
             m_mailboxEvent = mailboxEvent;
 
-            m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
-            m_sync = new object();
-
             //  Get the pipe into passive state. That way, if the users starts by
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
-            var cmd = new Command();
-
-            bool ok = m_cpipe.Read(ref cmd);
+            Command cmd;
+            bool ok = m_commandPipe.Read(out cmd);
             Debug.Assert(!ok);
 
+#if DEBUG
             m_name = name;
-
-            m_disposed = false;
+#endif
         }
 
         public void Send(Command command)
@@ -88,8 +83,8 @@ namespace NetMQ.zmq
             bool ok;
             lock (m_sync)
             {
-                m_cpipe.Write(ref command, false);
-                ok = m_cpipe.Flush();
+                m_commandPipe.Write(ref command, false);
+                ok = m_commandPipe.Flush();
             }
 
             if (!ok)
@@ -101,11 +96,8 @@ namespace NetMQ.zmq
         [CanBeNull]
         public Command Recv()
         {            
-            Command cmd = null;
-
-            // bool ok =
-               m_cpipe.Read(ref cmd);
-
+            Command cmd;
+            m_commandPipe.Read(out cmd);
             return cmd;
         }
 
@@ -122,10 +114,12 @@ namespace NetMQ.zmq
             m_disposed = true;
         }
 
-        public override String ToString()
+#if DEBUG
+        public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";
         }
+#endif
     }
 
     internal class Mailbox : IMailbox
@@ -133,20 +127,20 @@ namespace NetMQ.zmq
         /// <summary>
         /// The pipe to store actual commands.
         /// </summary>
-        private readonly YPipe<Command> m_cpipe;
+        private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 
         /// <summary>
         /// Signaler to pass signals from writer thread to reader thread.
         /// </summary>
-        private readonly Signaler m_signaler;
+        private readonly Signaler m_signaler = new Signaler();
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
-        /// is arbitrary number of threads sending. Given that ypipe requires
+        /// is an arbitrary number of threads sending. Given that <see cref="YPipe{T}"/> requires
         /// synchronised access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
-        private readonly object m_sync;
+        private readonly object m_sync = new object();
 
         /// <summary>
         /// True if the underlying pipe is active, ie. when we are allowed to
@@ -154,28 +148,27 @@ namespace NetMQ.zmq
         /// </summary>
         private bool m_active;
 
-        /// <summary>
-        /// mailbox name, for better debugging
-        /// </summary>
-        private readonly String m_name;
+#if DEBUG
+        /// <summary>Mailbox name. Only used for debugging.</summary>
+        [NotNull] private readonly string m_name;
+#endif
 
-        public Mailbox(String name)
+        public Mailbox([NotNull] string name)
         {
-            m_cpipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
-            m_sync = new object();
-            m_signaler = new Signaler();
-
             //  Get the pipe into passive state. That way, if the users starts by
             //  polling on the associated file descriptor it will get woken up when
             //  new command is posted.
 
-            var cmd = new Command();
+            Command cmd;
+            bool ok = m_commandPipe.Read(out cmd);
 
-            bool ok = m_cpipe.Read(ref cmd);
             Debug.Assert(!ok);
+
             m_active = false;
 
+#if DEBUG
             m_name = name;
+#endif
         }
 
         [NotNull]
@@ -189,8 +182,8 @@ namespace NetMQ.zmq
             bool ok;
             lock (m_sync)
             {
-                m_cpipe.Write(ref cmd, false);
-                ok = m_cpipe.Flush();
+                m_commandPipe.Write(ref cmd, false);
+                ok = m_commandPipe.Flush();
             }
 
             //if (LOG.isDebugEnabled())
@@ -205,12 +198,12 @@ namespace NetMQ.zmq
         [CanBeNull]
         public Command Recv(int timeout)
         {
-            Command cmd = null;
+            Command cmd;
             
             //  Try to get the command straight away.
             if (m_active)
             {
-                m_cpipe.Read(ref cmd);
+                m_commandPipe.Read(out cmd);
                 
                 if (cmd != null)
                     return cmd;
@@ -230,7 +223,7 @@ namespace NetMQ.zmq
             m_active = true;
 
             //  Get a command.
-            bool ok = m_cpipe.Read(ref cmd);
+            bool ok = m_commandPipe.Read(out cmd);
             Debug.Assert(ok);
 
             return cmd;
@@ -241,9 +234,11 @@ namespace NetMQ.zmq
             m_signaler.Close();
         }
 
-        public override String ToString()
+#if DEBUG
+        public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";
         }
+#endif
     }
 }

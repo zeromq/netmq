@@ -40,7 +40,7 @@ namespace NetMQ.zmq.Transports.Tcp
             }
         }        
 
-        public TcpAddress(String addr)
+        public TcpAddress(string addr)
         {
             Resolve(addr, false);
         }
@@ -49,7 +49,7 @@ namespace NetMQ.zmq.Transports.Tcp
         {
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             if (Address == null)
             {
@@ -69,18 +69,18 @@ namespace NetMQ.zmq.Transports.Tcp
         }
 
 
-        public void Resolve(String name, bool ip4Only)
+        public void Resolve(string name, bool ip4Only)
         {
             //  Find the ':' at end that separates address from the port number.
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
-                throw new InvalidException(String.Format("TcpAddress.Resolve, delimiter ({0}) must be non-negative.", delimiter));
+                throw new InvalidException(string.Format("TcpAddress.Resolve, delimiter ({0}) must be non-negative.", delimiter));
             }
 
             //  Separate the address/port.
-            String addrStr = name.Substring(0, delimiter);
-            String portStr = name.Substring(delimiter + 1);
+            string addrStr = name.Substring(0, delimiter);
+            string portStr = name.Substring(delimiter + 1);
 
             //  Remove square brackets around the address, if any.
             if (addrStr.Length >= 2 && addrStr[0] == '[' &&
@@ -98,7 +98,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 port = Convert.ToInt32(portStr);
                 if (port == 0)
                 {
-                    throw new InvalidException(String.Format("TcpAddress.Resolve, port ({0}) must be a valid nonzero integer.", portStr));
+                    throw new InvalidException(string.Format("TcpAddress.Resolve, port ({0}) must be a valid nonzero integer.", portStr));
                 }
             }         
 
@@ -133,7 +133,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 
                 if (ipAddress == null)
                 {
-                    throw new InvalidException(String.Format("TcpAddress.Resolve, unable to find an IP address for {0}", name));
+                    throw new InvalidException(string.Format("TcpAddress.Resolve, unable to find an IP address for {0}", name));
                 }
             }
 
@@ -154,7 +154,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// Get the textual-representation of the communication protocol implied by this TcpAddress,
         /// which here is simply "tcp".
         /// </summary>
-        public String Protocol
+        public string Protocol
         {
             get { return zmq.Address.TcpProtocol; }
         }

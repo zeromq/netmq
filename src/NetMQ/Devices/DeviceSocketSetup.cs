@@ -131,7 +131,7 @@ namespace NetMQ.Devices
 
                 if (sck == null)
                 {
-                    string xMsg = String.Format("DeviceSocketSetup.Subscribe, this socket type {0} does not support Subscription.", s.GetType());
+                    string xMsg = string.Format("DeviceSocketSetup.Subscribe, this socket type {0} does not support Subscription.", s.GetType());
                     throw new InvalidException(xMsg);
                 }
 
@@ -153,7 +153,7 @@ namespace NetMQ.Devices
 
                 if (sck == null)
                 {
-                    string xMsg = String.Format("DeviceSocketSetup.Subscribe, this socket type {0} does not support Subscription.", s.GetType());
+                    string xMsg = string.Format("DeviceSocketSetup.Subscribe, this socket type {0} does not support Subscription.", s.GetType());
                     throw new ArgumentException(xMsg);
                 }
 

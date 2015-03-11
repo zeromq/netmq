@@ -68,7 +68,7 @@ namespace NetMQ.zmq.Patterns
             m_fairQueueing.Terminated(pipe);
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             return m_fairQueueing.Recv(ref msg);
         }

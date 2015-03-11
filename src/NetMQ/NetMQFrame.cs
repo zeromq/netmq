@@ -138,7 +138,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Return this frame's data-buffer converted into a String, using the default ASCII encoding.
+        /// Return this frame's data-buffer converted into a string, using the default ASCII encoding.
         /// </summary>
         /// <returns>the data buffer converted to a string</returns>
         [NotNull]
@@ -148,9 +148,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Return this frame's data-buffer converted into a String using the given encoding.
+        /// Return this frame's data-buffer converted into a string using the given encoding.
         /// </summary>
-        /// <param name="encoding">the Encoding to use to convert the internal byte-array buffer into a String</param>
+        /// <param name="encoding">the Encoding to use to convert the internal byte-array buffer into a string</param>
         /// <returns>the data buffer converted to a string</returns>
         [NotNull]
         public string ConvertToString([NotNull] Encoding encoding)

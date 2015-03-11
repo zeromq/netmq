@@ -38,66 +38,53 @@ namespace NetMQ.zmq
 {
     internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        [NotNull] private readonly Dictionary<String, Own> m_endpoints;
+        [NotNull] private readonly Dictionary<String, Own> m_endpoints = new Dictionary<string, Own>();
 
-        [NotNull] private readonly Dictionary<string, Pipe> m_inprocs;
+        [NotNull] private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
 
         private bool m_disposed;
 
-        //  If true, associated context was already terminated.
+        /// <summary>If true, associated context was already terminated.</summary>
         private bool m_ctxTerminated;
 
-        //  If true, object should have been already destroyed. However,
-        //  destruction is delayed while we unwind the stack to the point
-        //  where it doesn't intersect the object being destroyed.
+        /// <summary>
+        /// If true, object should have been already destroyed. However,
+        /// destruction is delayed while we unwind the stack to the point
+        /// where it doesn't intersect the object being destroyed.
+        /// </summary>
         private bool m_destroyed;
 
-        //  Socket's mailbox object.
+        /// <summary>Socket's mailbox object.</summary>
         [NotNull] private readonly Mailbox m_mailbox;
 
-        //  List of attached pipes.        
-        [NotNull] private readonly List<Pipe> m_pipes;
+        /// <summary>List of attached pipes.</summary>
+        [NotNull] private readonly List<Pipe> m_pipes = new List<Pipe>();
 
         //  Reaper's poller and handle of this socket within it.
         private Utils.Poller m_poller;
         private Socket m_handle;
 
-        //  Timestamp of when commands were processed the last time.
+        /// <summary>Timestamp of when commands were processed the last time.</summary>
         private long m_lastTsc;
 
-        //  Number of messages received since last command processing.
+        /// <summary>Number of messages received since last command processing.</summary>
         private int m_ticks;
 
-        //  True if the last message received had MORE flag set.
+        /// <summary>True if the last message received had MORE flag set.</summary>
         private bool m_rcvMore;
 
-        // Monitor socket
         private SocketBase m_monitorSocket;
 
-        // Bitmask of events being monitored
+        /// <summary>Bitmask of events being monitored.</summary>
         private SocketEvent m_monitorEvents;
 
-        // The tcp port that was bound to, if any
+        /// <summary>The tcp port that was bound to, if any.</summary>
         private int m_port;
 
         protected SocketBase([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId)
         {
-            m_disposed = false;
-            m_ctxTerminated = false;
-            m_destroyed = false;
-            m_lastTsc = 0;
-            m_ticks = 0;
-            m_rcvMore = false;
-            m_monitorSocket = null;
-            m_monitorEvents = 0;
-
             m_options.SocketId = socketId;
-
-            m_endpoints = new Dictionary<string, Own>();
-            m_inprocs = new Dictionary<string, Pipe>();
-            m_pipes = new List<Pipe>();
-
             m_mailbox = new Mailbox("socket-" + socketId);
         }
 
@@ -222,7 +209,7 @@ namespace NetMQ.zmq
                 !protocol.Equals(Address.PgmProtocol) && !protocol.Equals(Address.EpgmProtocol))
             {
 #if DEBUG
-                String xMsg = String.Format("SocketBase.CheckProtocol({0}), protocol is invalid.", protocol);
+                string xMsg = string.Format("SocketBase.CheckProtocol({0}), protocol is invalid.", protocol);
                 throw new ProtocolNotSupportedException(xMsg);
 #else
                 throw new ProtocolNotSupportedException();
@@ -237,7 +224,7 @@ namespace NetMQ.zmq
                 m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
             {
 #if DEBUG
-                String xMsg = String.Format("SocketBase.CheckProtocol({0}), socket type {1} and protocol do not match.", protocol, m_options.SocketType);
+                string xMsg = string.Format("SocketBase.CheckProtocol({0}), socket type {1} and protocol do not match.", protocol, m_options.SocketType);
                 throw new ProtocolNotSupportedException(xMsg);
 #else
                 throw new ProtocolNotSupportedException();
@@ -374,7 +361,7 @@ namespace NetMQ.zmq
 
                 if (!addressRegistered)
                 {
-                    string xMsg = String.Format("Cannot bind address ( {0} ) - already in use.", addr);
+                    string xMsg = string.Format("Cannot bind address ( {0} ) - already in use.", addr);
                     throw new AddressAlreadyInUseException(xMsg);
                 }
 
@@ -477,7 +464,7 @@ namespace NetMQ.zmq
             }
 
             Debug.Assert(false);
-            throw new FaultException(String.Format("SocketBase.Bind({0}) failure.", addr));
+            throw new FaultException(string.Format("SocketBase.Bind({0}) failure.", addr));
         }
 
         public int BindRandomPort([NotNull] string addr)
@@ -487,7 +474,7 @@ namespace NetMQ.zmq
             DecodeAddress(addr, out address, out protocol);
 
             if (!protocol.Equals(Address.TcpProtocol))
-                throw new ProtocolNotSupportedException(String.Format("In SocketBase.BindRandomPort({0}), protocol should be tcp.", addr));
+                throw new ProtocolNotSupportedException(string.Format("In SocketBase.BindRandomPort({0}), protocol should be tcp.", addr));
 
             Bind(addr + ":0");
             return m_port;
@@ -738,7 +725,7 @@ namespace NetMQ.zmq
                 msg.SetFlags(MsgFlags.More);
 
             //  Try to send the message.
-            bool isMessageSent = XSend(ref msg, flags);
+            bool isMessageSent = XSend(ref msg);
 
             if (isMessageSent)
                 return;
@@ -774,7 +761,7 @@ namespace NetMQ.zmq
             {
                 ProcessCommands(timeout, false);
 
-                isMessageSent = XSend(ref msg, flags);
+                isMessageSent = XSend(ref msg);
                 
                 if (isMessageSent)
                     break;
@@ -798,9 +785,9 @@ namespace NetMQ.zmq
                 throw new FaultException("SocketBase.Recv passed an uninitialised Msg.");
 
             //  Get the message.
-            bool isMessageAvailable = XRecv(flags, ref msg);
+            bool isMessageAvailable = XRecv(ref msg);
 
-            //  Once every inbound_poll_rate messages check for signals and process
+            //  Once every Config.InboundPollRate messages check for signals and process
             //  incoming commands. This happens only if we are not polling altogether
             //  because there are messages available all the time. If poll occurs,
             //  ticks is set to zero and thus we avoid this code.
@@ -831,7 +818,7 @@ namespace NetMQ.zmq
                 ProcessCommands(0, false);
                 m_ticks = 0;
 
-                isMessageAvailable = XRecv(flags, ref msg);
+                isMessageAvailable = XRecv(ref msg);
                 if (!isMessageAvailable)
                 {
 #if DEBUG
@@ -870,7 +857,7 @@ namespace NetMQ.zmq
             {
                 ProcessCommands(block ? timeout : 0, false);
 
-                isMessageAvailable = XRecv(flags, ref msg);
+                isMessageAvailable = XRecv(ref msg);
                 if (isMessageAvailable)
                 {
                     m_ticks = 0;
@@ -1045,7 +1032,7 @@ namespace NetMQ.zmq
             return false;
         }
 
-        protected virtual bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected virtual bool XSend(ref Msg msg)
         {
             throw new NotSupportedException("Must Override");
         }
@@ -1055,7 +1042,7 @@ namespace NetMQ.zmq
             return false;
         }
 
-        protected virtual bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected virtual bool XRecv(ref Msg msg)
         {
             throw new NotSupportedException("Must Override");
         }
@@ -1195,7 +1182,7 @@ namespace NetMQ.zmq
             // Event notification only supported over inproc://
             if (!protocol.Equals(Address.InProcProtocol))
             {
-                throw new ProtocolNotSupportedException(String.Format("In SocketBase.Monitor({0},), protocol must be inproc", addr));
+                throw new ProtocolNotSupportedException(string.Format("In SocketBase.Monitor({0},), protocol must be inproc", addr));
             }
 
             // Register events to monitor
@@ -1230,7 +1217,7 @@ namespace NetMQ.zmq
             }
         }
 
-        public void EventConnected([NotNull] String addr, [NotNull] AsyncSocket ch)
+        public void EventConnected([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Connected) == 0)
                 return;
@@ -1238,7 +1225,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Connected, addr, ch));
         }
 
-        public void EventConnectDelayed([NotNull] String addr, ErrorCode errno)
+        public void EventConnectDelayed([NotNull] string addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvent.ConnectDelayed) == 0)
                 return;
@@ -1246,7 +1233,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.ConnectDelayed, addr, errno));
         }
 
-        public void EventConnectRetried([NotNull] String addr, int interval)
+        public void EventConnectRetried([NotNull] string addr, int interval)
         {
             if ((m_monitorEvents & SocketEvent.ConnectRetried) == 0)
                 return;
@@ -1254,7 +1241,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.ConnectRetried, addr, interval));
         }
 
-        public void EventListening([NotNull] String addr, [NotNull] AsyncSocket ch)
+        public void EventListening([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Listening) == 0)
                 return;
@@ -1262,7 +1249,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Listening, addr, ch));
         }
 
-        public void EventBindFailed([NotNull] String addr, ErrorCode errno)
+        public void EventBindFailed([NotNull] string addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvent.BindFailed) == 0)
                 return;
@@ -1270,7 +1257,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.BindFailed, addr, errno));
         }
 
-        public void EventAccepted([NotNull] String addr, [NotNull] AsyncSocket ch)
+        public void EventAccepted([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Accepted) == 0)
                 return;
@@ -1278,7 +1265,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Accepted, addr, ch));
         }
 
-        public void EventAcceptFailed([NotNull] String addr, ErrorCode errno)
+        public void EventAcceptFailed([NotNull] string addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvent.AcceptFailed) == 0)
                 return;
@@ -1286,7 +1273,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.AcceptFailed, addr, errno));
         }
 
-        public void EventClosed([NotNull] String addr, [NotNull] AsyncSocket ch)
+        public void EventClosed([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Closed) == 0)
                 return;
@@ -1294,7 +1281,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.Closed, addr, ch));
         }
 
-        public void EventCloseFailed([NotNull] String addr, ErrorCode errno)
+        public void EventCloseFailed([NotNull] string addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvent.CloseFailed) == 0)
                 return;
@@ -1302,7 +1289,7 @@ namespace NetMQ.zmq
             MonitorEvent(new MonitorEvent(SocketEvent.CloseFailed, addr, errno));
         }
 
-        public void EventDisconnected([NotNull] String addr, [NotNull] AsyncSocket ch)
+        public void EventDisconnected([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Disconnected) == 0)
                 return;

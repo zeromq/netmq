@@ -12,7 +12,7 @@ namespace NetMQ.zmq
         private const int ValueChannel = 2;
 
         private readonly SocketEvent m_monitorEvent;
-        private readonly String m_addr;
+        private readonly string m_addr;
         [CanBeNull] private readonly Object m_arg;
         private readonly int m_flag;
 
@@ -26,19 +26,19 @@ namespace NetMQ.zmq
                 s_sizeOfIntPtr = 8;
         }
 
-        public MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, ErrorCode arg)
+        public MonitorEvent(SocketEvent monitorEvent, [NotNull] string addr, ErrorCode arg)
             : this(monitorEvent, addr, (int)arg)
         {}
 
-        public MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, int arg)
+        public MonitorEvent(SocketEvent monitorEvent, [NotNull] string addr, int arg)
             : this(monitorEvent, addr, (object)arg)
         {}
 
-        public MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, AsyncSocket arg)
+        public MonitorEvent(SocketEvent monitorEvent, [NotNull] string addr, AsyncSocket arg)
             : this(monitorEvent, addr, (object)arg)
         {}
 
-        private MonitorEvent(SocketEvent monitorEvent, [NotNull] String addr, [NotNull] Object arg)
+        private MonitorEvent(SocketEvent monitorEvent, [NotNull] string addr, [NotNull] Object arg)
         {
             m_monitorEvent = monitorEvent;
             m_addr = addr;

@@ -243,7 +243,7 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(outpipe != null);
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             //  If this is the first part of the message it's the ID of the
             //  peer to send the message to.
@@ -262,13 +262,9 @@ namespace NetMQ.zmq.Patterns
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
 
-                    byte[] identity = msg.Data;
-
-                    if (msg.Size != msg.Data.Length)
-                    {
-                        identity = new byte[msg.Size];
-                        Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
-                    }
+                    var identity = msg.Size == msg.Data.Length 
+                        ? msg.Data 
+                        : msg.CloneData();
 
                     Outpipe op;
 
@@ -343,7 +339,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             if (m_prefetched)
             {
@@ -471,7 +467,6 @@ namespace NetMQ.zmq.Patterns
             {
                 // Always assign identity for raw-socket
                 identity = new byte[5];
-                identity[0] = 0;
                 byte[] result = BitConverter.GetBytes(m_nextPeerId++);
                 Buffer.BlockCopy(result, 0, identity, 1, 4);
             }
@@ -491,7 +486,6 @@ namespace NetMQ.zmq.Patterns
                 {
                     //  Fall back on the auto-generation
                     identity = new byte[5];
-                    identity[0] = 0;
 
                     byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
@@ -501,8 +495,7 @@ namespace NetMQ.zmq.Patterns
                 }
                 else
                 {
-                    identity = new byte[msg.Size];
-                    Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
+                    identity = msg.CloneData();
 
                     //  Ignore peers with duplicate ID.
                     if (m_outpipes.ContainsKey(identity))

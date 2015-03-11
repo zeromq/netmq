@@ -26,25 +26,25 @@ using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 
-
 namespace NetMQ.zmq
 {
     /// <summary>
     /// Objects of class Ctx are intended to encapsulate all of the global state
     /// associated with the NetMQ library.
     /// </summary>
+    /// <remarks>Internal analog of the public <see cref="NetMQContext"/> class.</remarks>
     internal sealed class Ctx
     {
-        // Default for new contexts
-        public const int DefaultIOThreads = 1;
-        public const int DefaultMaxSockets = 1024;
+        private const int DefaultIOThreads = 1;
+        private const int DefaultMaxSockets = 1024;
+
+        #region Nested class: Endpoint
 
         /// <summary>
         /// Information associated with inproc endpoint. Note that endpoint options
         /// are registered as well so that the peer can access them without a need
         /// for synchronisation, handshaking or similar.
         /// </summary>
-
         public class Endpoint
         {
             public Endpoint([NotNull] SocketBase socket, [NotNull] Options options)
@@ -60,6 +60,8 @@ namespace NetMQ.zmq
             public Options Options { get; private set; }
         }
 
+        #endregion
+
         private bool m_disposed;
 
         /// <summary>
@@ -67,18 +69,18 @@ namespace NetMQ.zmq
         /// we can notify the sockets when zmq_term() is called. The sockets
         /// will return ETERM then.
         /// </summary>
-        private readonly List<SocketBase> m_sockets;
+        private readonly List<SocketBase> m_sockets = new List<SocketBase>();
 
         /// <summary>
         /// List of unused thread slots.
         /// </summary>
-        private readonly Stack<int> m_emptySlots;
+        private readonly Stack<int> m_emptySlots = new Stack<int>();
 
         /// <summary>
         /// If true, zmq_init has been called but no socket has been created
         /// yet. Launching of I/O threads is delayed.
         /// </summary>
-        private volatile bool m_starting;
+        private volatile bool m_starting = true;
 
         /// <summary>
         /// If true, zmq_term was already called.
@@ -91,17 +93,17 @@ namespace NetMQ.zmq
         /// access to zombie sockets as such (as opposed to slots) and provides
         /// a memory barrier to ensure that all CPU cores see the same data.
         /// </summary>
-        private readonly object m_slotSync;
+        private readonly object m_slotSync = new object();
 
         /// <summary>
         /// The reaper thread.
         /// </summary>
-        private Reaper m_reaper;
+        [CanBeNull] private Reaper m_reaper;
 
         /// <summary>
         /// List of I/O threads.
         /// </summary>
-        private readonly List<IOThread> m_ioThreads;
+        private readonly List<IOThread> m_ioThreads = new List<IOThread>();
 
         /// <summary>
         /// Length of the mailbox-array.
@@ -111,22 +113,22 @@ namespace NetMQ.zmq
         /// <summary>
         /// Array of pointers to mailboxes for both application and I/O threads.
         /// </summary>
-        private IMailbox[] m_slots;
+        [CanBeNull] private IMailbox[] m_slots;
 
         /// <summary>
         /// Mailbox for zmq_term thread.
         /// </summary>
-        private readonly Mailbox m_termMailbox;
+        private readonly Mailbox m_termMailbox = new Mailbox("terminator");
 
         /// <summary>
         /// Dictionary containing the inproc endpoints within this context.
         /// </summary>
-        private readonly Dictionary<string, Endpoint> m_endpoints;
+        private readonly Dictionary<string, Endpoint> m_endpoints = new Dictionary<string, Endpoint>();
 
         /// <summary>
         /// This object provides synchronisation of access to the list of inproc endpoints.
         /// </summary>
-        private readonly object m_endpointsSync;
+        private readonly object m_endpointsSync = new object();
 
         /// <summary>
         /// The maximum socket ID.  CBL
@@ -136,80 +138,47 @@ namespace NetMQ.zmq
         /// <summary>
         /// The maximum number of sockets that can be opened at the same time.
         /// </summary>
-        private int m_maxSockets;
+        private int m_maxSockets = DefaultMaxSockets;
 
         /// <summary>
         /// The number of I/O threads to launch.
         /// </summary>
-        private int m_ioThreadCount;
+        private int m_ioThreadCount = DefaultIOThreads;
 
         /// <summary>
         /// This object is used to synchronize access to context options.
         /// </summary>
-        private readonly object m_optSync;
+        private readonly object m_optSync = new object();
 
         public const int TermTid = 0;
         public const int ReaperTid = 1;
 
         /// <summary>
-        /// Create a new Ctx object with all default values and a mailbox named "terminator".
-        /// </summary>
-        public Ctx()
-        {
-            m_disposed = false;
-            m_starting = true;
-            m_terminating = false;
-            m_reaper = null;
-            m_slotCount = 0;
-            m_slots = null;
-            m_maxSockets = DefaultMaxSockets;
-            m_ioThreadCount = DefaultIOThreads;
-
-            m_slotSync = new object();
-            m_endpointsSync = new object();
-            m_optSync = new object();
-
-            m_termMailbox = new Mailbox("terminator");
-
-            m_emptySlots = new Stack<int>();
-            m_ioThreads = new List<IOThread>();
-            m_sockets = new List<SocketBase>();
-            m_endpoints = new Dictionary<string, Endpoint>();
-        }
-
-        /// <summary>
-        /// Dump all of this object's resources
-        /// by stopping and destroying all of it's threads, destroying the reaper, and closing the mailbox.
+        /// Dump all of this object's resources by stopping and destroying all of it's threads,
+        /// destroying the reaper, and closing the mailbox.
         /// </summary>
         private void Destroy()
         {
             foreach (IOThread it in m_ioThreads)
-            {
                 it.Stop();
-            }
 
             foreach (IOThread it in m_ioThreads)
-            {
                 it.Destroy();
-            }
 
             if (m_reaper != null)
                 m_reaper.Destroy();
+
             m_termMailbox.Close();
 
             m_disposed = true;
         }
 
-        /// <summary>
-        /// Throw an ObjectDisposedException if this is already disposed.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">this Ctx object is already marked as disposed.</exception>
+        /// <summary>Throws <see cref="ObjectDisposedException"/> if this is already disposed.</summary>
+        /// <exception cref="ObjectDisposedException">This object has already been disposed.</exception>
         public void CheckDisposed()
         {
             if (m_disposed)
-            {
                 throw new ObjectDisposedException(GetType().FullName);
-            }
         }
 
         /// <summary>
@@ -226,28 +195,24 @@ namespace NetMQ.zmq
 
             if (!m_starting)
             {
-
                 //  Check whether termination was already underway, but interrupted and now
                 //  restarted.
                 bool restarted = m_terminating;
                 m_terminating = true;
                 Monitor.Exit(m_slotSync);
 
-
                 //  First attempt to terminate the context.
                 if (!restarted)
                 {
-
                     //  First send stop command to sockets so that any blocking calls
                     //  can be interrupted. If there are no sockets we can ask reaper
                     //  thread to stop.
                     Monitor.Enter(m_slotSync);
                     try
                     {
-                        for (int i = 0; i != m_sockets.Count; i++)
-                        {
-                            m_sockets[i].Stop();
-                        }
+                        foreach (var socket in m_sockets)
+                            socket.Stop();
+
                         if (m_sockets.Count == 0)
                             m_reaper.Stop();
                     }
@@ -295,7 +260,7 @@ namespace NetMQ.zmq
             }
             else
             {
-                throw new InvalidException(String.Format("In Ctx.Set({0}, {1}), option must be MaxSockets with optionValue >= 1, or IOThreads with optionValue >= 0.", option, optionValue));
+                throw new InvalidException(string.Format("In Ctx.Set({0}, {1}), option must be MaxSockets with optionValue >= 1, or IOThreads with optionValue >= 0.", option, optionValue));
             }
         }
 
@@ -310,7 +275,7 @@ namespace NetMQ.zmq
                 return m_maxSockets;
             if (option == ContextOption.IOThreads)
                 return m_ioThreadCount;
-            throw new InvalidException(String.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
+            throw new InvalidException(string.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
         }
 
         /// <summary>
@@ -373,7 +338,7 @@ namespace NetMQ.zmq
                 //  Once zmq_term() was called, we can't create new sockets.
                 if (m_terminating)
                 {
-                    string xMsg = String.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
+                    string xMsg = string.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
                     throw new TerminatingException(innerException: null, message: xMsg);
                 }
 
@@ -381,7 +346,7 @@ namespace NetMQ.zmq
                 if (m_emptySlots.Count == 0)
                 {
 #if DEBUG
-                    string xMsg = String.Format("Ctx.CreateSocket({0}), max number of sockets {1} reached.", type, m_maxSockets);
+                    string xMsg = string.Format("Ctx.CreateSocket({0}), max number of sockets {1} reached.", type, m_maxSockets);
                     throw NetMQException.Create(xMsg, ErrorCode.TooManyOpenSockets);
 #else
                     throw NetMQException.Create(ErrorCode.TooManyOpenSockets);
@@ -447,7 +412,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Returns the I/O thread that is the least busy at the moment.
         /// Affinity specifies which I/O threads are eligible (0 = all).
-        /// Returns NULL if no I/O thread is available.
+        /// Returns <c>null</c> if no I/O thread is available.
         /// </summary>
         [CanBeNull]
         public IOThread ChooseIOThread(long affinity)
@@ -461,13 +426,14 @@ namespace NetMQ.zmq
 
             for (int i = 0; i != m_ioThreads.Count; i++)
             {
+                var ioThread = m_ioThreads[i];
+
                 if (affinity == 0 || (affinity & (1L << i)) > 0)
                 {
-                    int load = m_ioThreads[i].Load;
-                    if (selectedIOThread == null || load < minLoad)
+                    if (selectedIOThread == null || ioThread.Load < minLoad)
                     {
-                        minLoad = load;
-                        selectedIOThread = m_ioThreads[i];
+                        minLoad = ioThread.Load;
+                        selectedIOThread = ioThread;
                     }
                 }
             }
@@ -481,19 +447,15 @@ namespace NetMQ.zmq
         /// <param name="addr">the textual name to give this endpoint</param>
         /// <param name="endpoint">the Endpoint to remember</param>
         /// <returns>true if the given addr was NOT already registered</returns>
-        public bool RegisterEndpoint([NotNull] String addr, [NotNull] Endpoint endpoint)
+        public bool RegisterEndpoint([NotNull] string addr, [NotNull] Endpoint endpoint)
         {
             lock (m_endpointsSync)
             {
                 if (m_endpoints.ContainsKey(addr))
-                {
                     return false;
-                }
-                else
-                {
-                    m_endpoints[addr] = endpoint;
-                    return true;
-                }
+
+                m_endpoints[addr] = endpoint;
+                return true;
             }
         }
 
@@ -502,22 +464,15 @@ namespace NetMQ.zmq
             lock (m_endpointsSync)
             {
                 Endpoint endpoint;
-
-                if (m_endpoints.TryGetValue(addr, out endpoint))
-                {
-                    if (socket != endpoint.Socket)
-                    {
-                        return false;
-                    }
-
-                    m_endpoints.Remove(addr);
-
-                    return true;
-                }
-                else
-                {
+                
+                if (!m_endpoints.TryGetValue(addr, out endpoint))
                     return false;
-                }
+                
+                if (socket != endpoint.Socket)
+                    return false;
+
+                m_endpoints.Remove(addr);
+                return true;
             }
         }
 
@@ -525,12 +480,10 @@ namespace NetMQ.zmq
         {
             lock (m_endpointsSync)
             {
-                IList<string> removeList = (from e in m_endpoints where e.Value.Socket == socket select e.Key).ToList();
+                IList<string> removeList = m_endpoints.Where(e => e.Value.Socket == socket).Select(e => e.Key).ToList();
 
                 foreach (var item in removeList)
-                {
                     m_endpoints.Remove(item);
-                }
             }
         }
 
@@ -541,23 +494,19 @@ namespace NetMQ.zmq
         /// <returns></returns>
         /// <exception cref="EndpointNotFoundException">The given address was not found in the list of endpoints.</exception>
         [NotNull]
-        public Endpoint FindEndpoint([NotNull] String addr)
+        public Endpoint FindEndpoint([NotNull] string addr)
         {
             Debug.Assert(addr != null);
 
             lock (m_endpointsSync)
             {
                 if (!m_endpoints.ContainsKey(addr))
-                {
                     throw new EndpointNotFoundException();
-                }
 
                 var endpoint = m_endpoints[addr];
 
                 if (endpoint == null)
-                {
                     throw new EndpointNotFoundException();
-                }
 
                 //  Increment the command sequence number of the peer so that it won't
                 //  get deallocated until "bind" command is issued by the caller.

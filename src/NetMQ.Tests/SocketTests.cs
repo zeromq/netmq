@@ -40,8 +40,8 @@ namespace NetMQ.Tests
                 dealer.Options.Linger = TimeSpan.Zero;
                 dealer.Connect("tcp://127.0.0.1:" + port);
 
-                dealer.Send("1", true, false);
-                dealer.Send("2", true, false);
+                dealer.Send("1", dontWait: true, sendMore: false);
+                dealer.Send("2", dontWait: true, sendMore: false);
             }
         }
 

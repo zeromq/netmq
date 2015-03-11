@@ -181,7 +181,7 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(outpipe != null);
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             //  If this is the first part of the message it's the ID of the
             //  peer to send the message to.
@@ -197,15 +197,12 @@ namespace NetMQ.zmq.Patterns
                     //  Find the pipe associated with the identity stored in the prefix.
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
-                    byte[] identity = msg.Data;
 
-                    if (msg.Size != msg.Data.Length)
-                    {
-                        identity = new byte[msg.Size];
-                        Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
-                    }
+                    var identity = msg.Size == msg.Data.Length 
+                        ? msg.Data 
+                        : msg.CloneData();
+
                     Outpipe op;
-
                     if (m_outpipes.TryGetValue(identity, out op))
                     {
                         m_currentOut = op.Pipe;
@@ -261,7 +258,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             if (m_prefetched)
             {

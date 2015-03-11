@@ -36,9 +36,9 @@ namespace NetMQ
         /// The default-constructor for NetMQMessage: create a new instance of NetMQMessage
         /// with an empty frame-stack.
         /// </summary>
-        public NetMQMessage()
+        public NetMQMessage(int expectedFrameCount = 4)
         {
-            m_frames = new List<NetMQFrame>();
+            m_frames = new List<NetMQFrame>(expectedFrameCount);
         }
 
         /// <summary>
@@ -137,6 +137,7 @@ namespace NetMQ
 
         /// <summary>
         /// Add the given message (in this case a byte-array) to this NetMQMessage, at the highest-indexed position of the frame-stack.
+        /// Data is not copied.
         /// </summary>
         /// <param name="buffer">a byte-array containing the message to append onto the frame-stack of this NetMQMessage</param>
         public void Append([NotNull] byte[] buffer)

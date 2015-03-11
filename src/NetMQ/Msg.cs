@@ -246,10 +246,11 @@ namespace NetMQ
         #endregion
 
         /// <summary>
-        /// Clear the Data and set the MsgType to Invalid.
+        /// Clear the <see cref="Data"/> and set the MsgType to Invalid.
         /// If this is not a shared-data Msg (MsgFlags.Shared is not set), or it is shared but the reference-counter has dropped to zero,
         /// then return the data back to the BufferPool.
         /// </summary>
+        /// <exception cref="FaultException">The object is not initialised.</exception>
         public void Close()
         {
             if (!IsInitialised)
@@ -327,7 +328,7 @@ namespace NetMQ
         /// Override the Object ToString method to show the object-type, and values of the MsgType, Size, and Flags properties.
         /// </summary>
         /// <returns>a string that provides some detail about this Msg's state</returns>
-        public override String ToString()
+        public override string ToString()
         {
             return base.ToString() + "[" + MsgType + "," + Size + "," + Flags + "]";
         }
@@ -426,6 +427,17 @@ namespace NetMQ
             this = src;
 
             src.InitEmpty();
+        }
+
+        /// <summary>Returns a new array containing the first <see cref="Size"/> bytes of <see cref="Data"/>.</summary>
+        public byte[] CloneData()
+        {
+            var data = new byte[Size];
+
+            if (Size > 0)
+                Buffer.BlockCopy(Data, 0, data, 0, Size);
+
+            return data;
         }
     }
 }

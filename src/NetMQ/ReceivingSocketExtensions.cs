@@ -12,7 +12,7 @@ namespace NetMQ
     /// </summary>
     public static class ReceivingSocketExtensions
     {
-        #region receiving byte-array data
+        #region Receiving byte-array data
 
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
@@ -29,12 +29,7 @@ namespace NetMQ
 
             socket.Receive(ref msg, options);
 
-            var data = new byte[msg.Size];
-
-            if (msg.Size > 0)
-            {
-                Buffer.BlockCopy(msg.Data, 0, data, 0, msg.Size);
-            }
+            var data = msg.CloneData();
 
             hasMore = msg.HasMore;
 
@@ -66,14 +61,7 @@ namespace NetMQ
         [NotNull]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, bool dontWait, out bool hasMore)
         {
-            var options = SendReceiveOptions.None;
-
-            if (dontWait)
-            {
-                options |= SendReceiveOptions.DontWait;
-            }
-
-            return socket.Receive(options, out hasMore);
+            return socket.Receive(dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>
@@ -85,7 +73,7 @@ namespace NetMQ
         [NotNull]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, out bool hasMore)
         {
-            return socket.Receive(false, out hasMore);
+            return socket.Receive(SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>
@@ -100,10 +88,9 @@ namespace NetMQ
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            if (!result.HasFlag(PollEvents.PollIn))
-                return null;
-
-            return socket.Receive();
+            return result.HasFlag(PollEvents.PollIn) 
+                ? socket.Receive() 
+                : null;
         }
 
         /// <summary>
@@ -115,7 +102,7 @@ namespace NetMQ
         public static byte[] Receive([NotNull] this IReceivingSocket socket)
         {
             bool hasMore;
-            return socket.Receive(false, out hasMore);
+            return socket.Receive(SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>Receives a list of all frames of the next message, each as an array of bytes.</summary>
@@ -138,7 +125,7 @@ namespace NetMQ
             return frames;
         }
 
-        #endregion receiving byte-array data
+        #endregion
 
         #region receiving strings
 
@@ -165,8 +152,8 @@ namespace NetMQ
 
             hasMore = msg.HasMore;
 
-            string data = msg.Size > 0 
-                ? encoding.GetString(msg.Data, 0, msg.Size) 
+            string data = msg.Size > 0
+                ? encoding.GetString(msg.Data, 0, msg.Size)
                 : string.Empty;
 
             msg.Close();
@@ -199,7 +186,7 @@ namespace NetMQ
         public static string ReceiveString([NotNull] this IReceivingSocket socket, SendReceiveOptions options)
         {
             bool hasMore;
-            return socket.ReceiveString(options, out hasMore);
+            return socket.ReceiveString(Encoding.ASCII, options, out hasMore);
         }
 
         /// <summary>
@@ -228,7 +215,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, bool dontWait, out bool hasMore)
         {
-            return ReceiveString(socket, Encoding.ASCII, dontWait, out hasMore);
+            return ReceiveString(socket, Encoding.ASCII, dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>
@@ -243,14 +230,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, bool dontWait, out bool hasMore)
         {
-            var options = SendReceiveOptions.None;
-
-            if (dontWait)
-            {
-                options |= SendReceiveOptions.DontWait;
-            }
-
-            return socket.ReceiveString(encoding, options, out hasMore);
+            return socket.ReceiveString(encoding, dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>
@@ -263,7 +243,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, out bool hasMore)
         {
-            return socket.ReceiveString(false, out hasMore);
+            return socket.ReceiveString(Encoding.ASCII, SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>
@@ -277,7 +257,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, out bool hasMore)
         {
-            return socket.ReceiveString(encoding, false, out hasMore);
+            return socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>
@@ -291,7 +271,7 @@ namespace NetMQ
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding)
         {
             bool hasMore;
-            return socket.ReceiveString(encoding, false, out hasMore);
+            return socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>
@@ -304,7 +284,7 @@ namespace NetMQ
         public static string ReceiveString([NotNull] this IReceivingSocket socket)
         {
             bool hasMore;
-            return socket.ReceiveString(false, out hasMore);
+            return socket.ReceiveString(Encoding.ASCII, SendReceiveOptions.None, out hasMore);
         }
 
         /// <summary>
@@ -319,7 +299,7 @@ namespace NetMQ
         [CanBeNull]
         public static string ReceiveString([NotNull] this NetMQSocket socket, TimeSpan timeout)
         {
-            return ReceiveString(socket, Encoding.ASCII, timeout);
+            return socket.ReceiveString(Encoding.ASCII, timeout);
         }
 
         /// <summary>
@@ -337,11 +317,9 @@ namespace NetMQ
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            if (!result.HasFlag(PollEvents.PollIn))
-                return null;
-
-            var msg = socket.ReceiveString(encoding);
-            return msg;
+            return result.HasFlag(PollEvents.PollIn) 
+                ? socket.ReceiveString(encoding) 
+                : null;
         }
 
         /// <summary>Receives a list of all frames of the next message, decoded as ASCII strings.</summary>
@@ -371,17 +349,16 @@ namespace NetMQ
         {
             var frames = new List<string>(capacity: expectedFrameCount);
 
-            bool hasMore = true;
-
-            while (hasMore)
-                frames.Add(socket.ReceiveString(encoding, SendReceiveOptions.None, out hasMore));
+            var more = true;
+            while (more)
+                frames.Add(socket.ReceiveString(encoding, out more));
 
             return frames;
         }
 
-        #endregion receiving strings
+        #endregion
 
-        #region receiving a NetMQMessage
+        #region Receiving a NetMQMessage
 
         /// <summary>
         /// non-blocking receive of a (multipart)message and stores it in the NetMQMessage object
@@ -393,13 +370,9 @@ namespace NetMQ
         {
             message.Clear();
 
-            bool more = true;
-
+            var more = true;
             while (more)
-            {
-                byte[] buffer = socket.Receive(dontWait, out more);
-                message.Append(buffer);
-            }
+                message.Append(socket.Receive(dontWait, out more));
         }
 
         /// <summary>
@@ -412,7 +385,9 @@ namespace NetMQ
         public static NetMQMessage ReceiveMessage([NotNull] this IReceivingSocket socket, bool dontWait = false)
         {
             var message = new NetMQMessage();
-            socket.ReceiveMessage(message, dontWait);
+            var more = true;
+            while (more)
+                message.Append(socket.Receive(dontWait, out more));
             return message;
         }
 
@@ -427,14 +402,12 @@ namespace NetMQ
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            if (!result.HasFlag(PollEvents.PollIn))
-                return null;
-
-            var msg = socket.ReceiveMessage();
-            return msg;
+            return result.HasFlag(PollEvents.PollIn) 
+                ? socket.ReceiveMessage() 
+                : null;
         }
 
-        #endregion receiving a NetMQMessage
+        #endregion
 
         #region Receiving Signals
 
@@ -464,7 +437,7 @@ namespace NetMQ
 
         #endregion
 
-        #region obsolete methods
+        #region Obsolete methods
 
         [Obsolete("Use ReceiveMessages extension method instead")]
         [NotNull]
@@ -482,6 +455,6 @@ namespace NetMQ
             return socket.ReceiveStringMessages().ToList();
         }
 
-        #endregion obsolete methods
+        #endregion
     }
 }

@@ -154,7 +154,7 @@ namespace NetMQ.zmq.Patterns
                     {
                         m_lastPipe = pipe;
 
-                        m_pending.Enqueue(GetBytesFromMsg(ref sub));
+                        m_pending.Enqueue(sub.CloneData());
                     }
                     else
                     {
@@ -167,12 +167,12 @@ namespace NetMQ.zmq.Patterns
                         //  If the subscription is not a duplicate, store it so that it can be
                         //  passed to used on next recv call.
                         if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
-                            m_pending.Enqueue(GetBytesFromMsg(ref sub));
+                            m_pending.Enqueue(sub.CloneData());
                     }
                 }
                 else // process message unrelated to sub/unsub
                 {
-                    m_pending.Enqueue(GetBytesFromMsg(ref sub));
+                    m_pending.Enqueue(sub.CloneData());
                 }
 
                 sub.Close();
@@ -206,7 +206,7 @@ namespace NetMQ.zmq.Patterns
                 }
                 else
                 {
-                    subscription = Encoding.ASCII.GetBytes((String)optionValue);
+                    subscription = Encoding.ASCII.GetBytes((string)optionValue);
                 }
 
                 m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
@@ -222,7 +222,7 @@ namespace NetMQ.zmq.Patterns
                 }
                 else
                 {
-                    subscription = Encoding.ASCII.GetBytes((String)optionValue);
+                    subscription = Encoding.ASCII.GetBytes((string)optionValue);
                 }
 
                 m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
@@ -245,7 +245,7 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        throw new InvalidException(String.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
+                        throw new InvalidException(string.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
                     }
                 }
                 else
@@ -271,7 +271,7 @@ namespace NetMQ.zmq.Patterns
             m_distribution.Terminated(pipe);
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             bool msgMore = msg.HasMore;
 
@@ -300,7 +300,7 @@ namespace NetMQ.zmq.Patterns
             return m_distribution.HasOut();
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             //  If there is at least one 
             if (m_pending.Count == 0)
@@ -321,14 +321,6 @@ namespace NetMQ.zmq.Patterns
         protected override bool XHasIn()
         {
             return m_pending.Count != 0;
-        }
-
-        private static byte[] GetBytesFromMsg(ref Msg msg)
-        {
-            var bytes = new byte[msg.Size];
-            Buffer.BlockCopy(msg.Data, 0, bytes, 0, msg.Size);
-
-            return bytes;
         }
     }
 }

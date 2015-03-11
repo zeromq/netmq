@@ -18,7 +18,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using JetBrains.Annotations;
 using NetMQ.zmq.Transports.Tcp;
 
@@ -46,7 +45,7 @@ namespace NetMQ.zmq.Transports.Ipc
         /// <summary>
         /// Get the bound address for use with wildcards
         /// </summary>
-        public override String Address
+        public override string Address
         {
             get { return m_address.ToString(); }
         }

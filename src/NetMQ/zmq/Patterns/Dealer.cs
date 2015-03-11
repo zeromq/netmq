@@ -107,7 +107,7 @@ namespace NetMQ.zmq.Patterns
             m_loadBalancer.Attach(pipe);
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             return m_loadBalancer.Send(ref msg);
         }
@@ -117,10 +117,9 @@ namespace NetMQ.zmq.Patterns
         /// Otherwise, dump any identity messages and get the first non-identity message,
         /// or return false if there are no messages available.
         /// </summary>
-        /// <param name="flags">this argument is not used</param>
         /// <param name="msg">a Msg to receive the message into</param>
         /// <returns>false if there were no messages to receive</returns>
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             return ReceiveInternal(ref msg);
         }

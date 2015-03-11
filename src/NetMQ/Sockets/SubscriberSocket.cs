@@ -69,13 +69,13 @@ namespace NetMQ.Sockets
         /// </summary>
         public virtual void SubscribeToAnyTopic()
         {
-            Subscribe(String.Empty);
+            Subscribe(string.Empty);
         }
 
         /// <summary>
         /// Remove this socket's subscription to the given topic.
         /// </summary>
-        /// <param name="topic">a String denoting which the topic to stop receiving</param>
+        /// <param name="topic">a string denoting which the topic to stop receiving</param>
         public new virtual void Unsubscribe(string topic)
         {
             SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
@@ -84,7 +84,7 @@ namespace NetMQ.Sockets
         /// <summary>
         /// Remove this socket's subscription to the given topic.
         /// </summary>
-        /// <param name="topic">a String denoting which the topic to stop receiving</param>
+        /// <param name="topic">a string denoting which the topic to stop receiving</param>
         /// <param name="encoding">the Encoding to use when converting the topic string internally into a byte-array</param>
         public virtual void Unsubscribe(string topic, Encoding encoding)
         {

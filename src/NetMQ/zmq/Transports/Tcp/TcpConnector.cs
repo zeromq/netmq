@@ -79,7 +79,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <summary>
         /// String representation of endpoint to connect to
         /// </summary>
-        private readonly String m_endpoint;
+        private readonly string m_endpoint;
 
         /// <summary>
         /// Socket

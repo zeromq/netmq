@@ -80,11 +80,6 @@ namespace NetMQ.zmq
         protected Own([NotNull] Ctx parent, int threadId)
             : base(parent, threadId)
         {
-            m_terminating = false;
-            m_processedSeqnum = 0;
-            m_owner = null;
-            m_termAcks = 0;
-
             m_options = new Options();
         }
 
@@ -101,13 +96,9 @@ namespace NetMQ.zmq
             : base(ioThread)
         {
             m_options = options;
-            m_terminating = false;
-            m_processedSeqnum = 0;
-            m_owner = null;
-            m_termAcks = 0;
         }
 
-        abstract public void Destroy();
+        public abstract void Destroy();
 
         /// <summary>
         /// A place to hook in when physical destruction of the object is to be delayed.
@@ -220,16 +211,17 @@ namespace NetMQ.zmq
             if (m_terminating)
                 return;
 
-            //  As for the root of the ownership tree, there's no-one to terminate it,
-            //  so it has to terminate itself.
             if (m_owner == null)
             {
+                // We are the root of the ownership tree.
+                // Terminate self directly.
                 ProcessTerm(m_options.Linger);
-                return;
             }
-
-            //  If I am an owned object, I'll ask my owner to terminate me.
-            SendTermReq(m_owner, this);
+            else
+            {
+                // When we have an owner, request them to terminate this object.
+                SendTermReq(m_owner, this);
+            }
         }
 
         /// <summary>
