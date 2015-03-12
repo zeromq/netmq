@@ -32,7 +32,7 @@ namespace NetMQ.Tests.InProcActors.ExceptionShimExample
             {
                 try
                 {
-                    NetMQMessage msg = shim.ReceiveMessage();
+                    NetMQMessage msg = shim.ReceiveMultipartMessage();
 
                     string command = msg[0].ConvertToString();
 

@@ -67,8 +67,10 @@ namespace NetMQ.Tests
                 socket.Options.MulticastHops = 100;
                 Assert.AreEqual(100, socket.Options.MulticastHops);
 
+#pragma warning disable 618
                 socket.Options.ReceiveTimeout = TimeSpan.FromMilliseconds(100);
                 Assert.AreEqual(TimeSpan.FromMilliseconds(100), socket.Options.ReceiveTimeout);
+#pragma warning restore 618
 
                 socket.Options.SendTimeout = TimeSpan.FromMilliseconds(100);
                 Assert.AreEqual(TimeSpan.FromMilliseconds(100), socket.Options.SendTimeout);

@@ -17,7 +17,7 @@ namespace NetMQ.Tests
 
                 pushSocket.Send("hello");
 
-                Assert.AreEqual("hello", pullSocket.ReceiveString());
+                Assert.AreEqual("hello", pullSocket.ReceiveFrameString());
             }
         }
 
@@ -33,7 +33,7 @@ namespace NetMQ.Tests
 
                 pushSocket.Send(new byte[300]);
 
-                Assert.AreEqual(300, pullSocket.Receive().Length);
+                Assert.AreEqual(300, pullSocket.ReceiveFrameString().Length);
             }
         }
     }

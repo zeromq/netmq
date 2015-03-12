@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
+// ReSharper disable ExceptionNotDocumented
+
 namespace NetMQ.Tests
 {
     // Note: For these tests,
@@ -32,7 +34,7 @@ namespace NetMQ.Tests
                 pub.Send("Hi");
 
                 bool more;
-                Assert.AreEqual("Hi", sub.ReceiveString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
             }
         }
@@ -52,7 +54,7 @@ namespace NetMQ.Tests
                 pub.Send("Hi");
 
                 bool more;
-                Assert.AreEqual("Hi", sub.ReceiveString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
             }
         }
@@ -72,7 +74,7 @@ namespace NetMQ.Tests
                 pub.Send("Hi");
 
                 bool more;
-                Assert.AreEqual("Hi", sub.ReceiveString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
             }
         }
@@ -99,7 +101,7 @@ namespace NetMQ.Tests
                 pub.Send("Hi");
 
                 bool more;
-                Assert.AreEqual("Hi", sub.ReceiveString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
             }
         }
@@ -129,7 +131,7 @@ namespace NetMQ.Tests
                 pub.Send("Hi");
 
                 bool more;
-                Assert.AreEqual("Hi", sub.ReceiveString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
 
                 Assert.AreEqual(2, pub.Options.MulticastHops);
@@ -158,10 +160,10 @@ namespace NetMQ.Tests
                 pub.Send("Hi");
 
                 bool more;
-                Assert.AreEqual("Hi", sub.ReceiveString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
 
-                Assert.AreEqual("Hi", sub2.ReceiveString(out more));
+                Assert.AreEqual("Hi", sub2.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
             }
         }
@@ -183,17 +185,14 @@ namespace NetMQ.Tests
                 pub.Send("Hi");
 
                 bool more;
-                string message = sub.ReceiveString(out more);
 
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
-                Assert.AreEqual("Hi", message);
 
                 pub2.Send("Hi2");
 
-                message = sub.ReceiveString(out more);
-
+                Assert.AreEqual("Hi2", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
-                Assert.AreEqual("Hi2", message);
             }
         }
 
@@ -219,13 +218,8 @@ namespace NetMQ.Tests
                     while (count < 1000)
                     {
                         bool more;
-                        byte[] data = sub.Receive(out more);
-
+                        Assert.AreEqual(count, BitConverter.ToInt32(sub.ReceiveFrameBytes(out more), 0));
                         Assert.IsFalse(more);
-                        int num = BitConverter.ToInt32(data, 0);
-
-                        Assert.AreEqual(num, count);
-
                         count++;
                     }
                 }
@@ -276,7 +270,7 @@ namespace NetMQ.Tests
 
                 pub.Send(data);
 
-                byte[] message = sub.Receive();
+                byte[] message = sub.ReceiveFrameBytes();
 
                 Assert.AreEqual(3200, message.Length);
 

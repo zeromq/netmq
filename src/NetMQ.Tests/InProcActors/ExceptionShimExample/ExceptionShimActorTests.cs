@@ -16,7 +16,7 @@ namespace NetMQ.Tests.InProcActors.ExceptionShimExample
 
                 Assert.AreEqual(
                     "Error: Exception occurred Actors Shim threw an Exception",
-                    actor.ReceiveString());
+                    actor.ReceiveFrameString());
             }
         }
     }

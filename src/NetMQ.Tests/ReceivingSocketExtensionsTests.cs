@@ -67,7 +67,7 @@ namespace NetMQ.Tests
 
         #region Receive()
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveByteArraySingleFrame()
         {
             var expected = PushFrame("Hello");
@@ -81,7 +81,7 @@ namespace NetMQ.Tests
             Assert.AreNotSame(expected, actual);
         }
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveByteArrayMultiFrame()
         {
             var expected1 = PushFrame("Hello");
@@ -106,7 +106,7 @@ namespace NetMQ.Tests
 
         #region Receive(SendReceiveOptions)
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveByteArrayWithSendReceiveOptions()
         {
             var expected = PushFrame("Hello");
@@ -122,7 +122,7 @@ namespace NetMQ.Tests
 
         #region Receive(out hasMore)
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveByteArrayHasMoreSingleFrame()
         {
             var expected = PushFrame("Hello");
@@ -138,7 +138,7 @@ namespace NetMQ.Tests
             Assert.AreNotSame(expected, actual);
         }
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveByteArrayHasMoreMultiFrame()
         {
             var expected1 = PushFrame("Hello");
@@ -166,7 +166,7 @@ namespace NetMQ.Tests
 
         #region Receive(SendReceiveOptions, out hasMore)
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveByteArraySendReceiveOptionsHasMoreSingleFrame()
         {
             var expected = PushFrame("Hello");
@@ -182,7 +182,7 @@ namespace NetMQ.Tests
             Assert.AreNotSame(expected, actual);
         }
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveByteArraySendReceiveOptionsHasMoreMultiFrame()
         {
             var expected1 = PushFrame("Hello");
@@ -210,7 +210,7 @@ namespace NetMQ.Tests
 
         #region ReceiveMessages()
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveMessages()
         {
             var expected = PushFrame("Hello");
@@ -223,7 +223,7 @@ namespace NetMQ.Tests
             Assert.AreNotSame(expected, actual[0]);
         }
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveMessagesWithExpectedFrameCount()
         {
             var expected = PushFrame("Hello");
@@ -240,7 +240,7 @@ namespace NetMQ.Tests
 
         #region ReceiveStringMessages()
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveStringMessages()
         {
             const string expected = "Hello";
@@ -255,7 +255,7 @@ namespace NetMQ.Tests
             Assert.AreNotSame(expected, actual[0]);
         }
 
-        [Test]
+        [Test, Obsolete]
         public void ReceiveStringMessagesWithExpectedFrameCount()
         {
             const string expected = "Hello";

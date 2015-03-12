@@ -39,7 +39,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                     //Frame[1] : Account as JSON
                     //
                     //Result back to actor is a JSON message of the amended Account
-                    NetMQMessage msg = shim.ReceiveMessage();
+                    NetMQMessage msg = shim.ReceiveMultipartMessage();
 
                     string command = msg[0].ConvertToString();
 

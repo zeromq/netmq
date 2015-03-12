@@ -20,15 +20,11 @@ namespace NetMQ.Tests
 
                 req.Send("Hi");
 
-                bool more;
-
-                Assert.AreEqual("Hi", rep.ReceiveString(out more));
-                Assert.IsFalse(more);
+                CollectionAssert.AreEqual(new[] { "Hi" }, rep.ReceiveMultipartStrings());
 
                 rep.Send("Hi2");
 
-                Assert.AreEqual("Hi2", req.ReceiveString(out more));
-                Assert.IsFalse(more);
+                CollectionAssert.AreEqual(new[] { "Hi2" }, req.ReceiveMultipartStrings());
             }
         }
 
@@ -44,7 +40,7 @@ namespace NetMQ.Tests
 
                 req.Send("Hi");
 
-                rep.Receive();
+                rep.SkipFrame();
 
                 Assert.Throws<FiniteStateMachineException>(() => req.Send("Hi2"));
             }
@@ -60,7 +56,7 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://localhost");
                 req.Connect("tcp://localhost:" + port);
 
-                Assert.Throws<FiniteStateMachineException>(() => req.ReceiveString());
+                Assert.Throws<FiniteStateMachineException>(() => req.ReceiveFrameBytes());
             }
         }
 
@@ -90,21 +86,11 @@ namespace NetMQ.Tests
 
                 req.SendMore("Hello").Send("World");
 
-                bool more;
-
-                Assert.AreEqual("Hello", rep.ReceiveString(out more));
-                Assert.IsTrue(more);
-
-                Assert.AreEqual("World", rep.ReceiveString(out more));
-                Assert.IsFalse(more);
+                CollectionAssert.AreEqual(new[] { "Hello", "World" }, rep.ReceiveMultipartStrings());
 
                 rep.SendMore("Hello").Send("Back");
 
-                Assert.AreEqual("Hello", req.ReceiveString(out more));
-                Assert.IsTrue(more);
-
-                Assert.AreEqual("Back", req.ReceiveString(out more));
-                Assert.IsFalse(more);
+                CollectionAssert.AreEqual(new[] { "Hello", "Back" }, req.ReceiveMultipartStrings());
             }
         }
     }

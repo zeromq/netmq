@@ -93,7 +93,7 @@ namespace NetMQ.Tests
 
                 client.SendMessage(clientOutgoingMessage);
 
-                NetMQMessage serverIncomingMessage = server.ReceiveMessage();
+                NetMQMessage serverIncomingMessage = server.ReceiveMultipartMessage();
 
                 // number of frames should be one because first message should be identity of client
                 Assert.AreEqual(2, serverIncomingMessage.FrameCount);
@@ -107,8 +107,7 @@ namespace NetMQ.Tests
 
                 server.SendMessage(serverOutgoingMessage);
 
-                var incomingClientMessage = new NetMQMessage();
-                client.ReceiveMessage(incomingClientMessage);
+                var incomingClientMessage = client.ReceiveMultipartMessage();
 
                 Assert.AreEqual(1, incomingClientMessage.FrameCount);
                 Assert.AreEqual("World", incomingClientMessage[0].ConvertToString());
@@ -129,7 +128,7 @@ namespace NetMQ.Tests
 
                 req.Send(testmessage);
 
-                var msg = router.ReceiveMessage();
+                var msg = router.ReceiveMultipartMessage();
                 Assert.AreEqual(3, msg.FrameCount);
                 Assert.AreEqual(msg[2].ConvertToString(), testmessage);
             }

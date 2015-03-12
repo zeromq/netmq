@@ -18,7 +18,7 @@ namespace NetMQ.Tests.InProcActors.Echo
 
                 Assert.AreEqual(
                     string.Format("ECHO BACK : {0}", actorMessage),
-                    actor.ReceiveString());
+                    actor.ReceiveFrameString());
             }
         }
 
@@ -33,7 +33,7 @@ namespace NetMQ.Tests.InProcActors.Echo
                 actor.SendMore(command);
                 actor.Send(actorMessage);
 
-                Assert.AreEqual("Error: invalid message to actor", actor.ReceiveString());
+                Assert.AreEqual("Error: invalid message to actor", actor.ReceiveFrameString());
             }
         }
     }

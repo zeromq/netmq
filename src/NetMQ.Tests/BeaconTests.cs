@@ -2,6 +2,8 @@
 using System.Threading;
 using NUnit.Framework;
 
+// ReSharper disable ExceptionNotDocumented
+
 namespace NetMQ.Tests
 {
     [TestFixture]

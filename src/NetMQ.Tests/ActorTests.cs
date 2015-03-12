@@ -4,7 +4,7 @@ namespace NetMQ.Tests
 {
     [TestFixture]
     public class ActorTests
-    {        
+    {
         [Test]
         public void Simple()
         {
@@ -16,7 +16,7 @@ namespace NetMQ.Tests
 
                     while (true)
                     {
-                        NetMQMessage msg = shim.ReceiveMessage();
+                        NetMQMessage msg = shim.ReceiveMultipartMessage();
 
                         string command = msg[0].ConvertToString();
 
@@ -30,10 +30,9 @@ namespace NetMQ.Tests
 
                 using (var actor = NetMQActor.Create(context, shimAction))
                 {
-                    actor.SendMore("Hello");
-                    actor.Send("Hello");
-                    var result = actor.ReceiveString();
-                    Assert.AreEqual("World", result);
+                    actor.SendMore("Hello").Send("Hello");
+
+                    Assert.AreEqual("World", actor.ReceiveFrameString());
                 }
             }
         }

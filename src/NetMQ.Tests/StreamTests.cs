@@ -15,27 +15,24 @@ namespace NetMQ.Tests
                 var port = server.BindRandomPort("tcp://*");
                 client.Connect("tcp://127.0.0.1:" + port);
 
-                byte[] id = client.Options.Identity;
+                byte[] clientId = client.Options.Identity;
 
-                client.SendMore(id).Send("GET /\r\n");
-
-                id = server.Receive();
-
-                string message = server.ReceiveString();
-
-                Assert.AreEqual(message, "GET /\r\n");
+                const string request = "GET /\r\n";
 
                 const string response = "HTTP/1.0 200 OK\r\n" +
-                                        "Content-Type: text/plain\r\n" +
-                                        "\r\n" +
-                                        "Hello, World!";
+                        "Content-Type: text/plain\r\n" +
+                        "\r\n" +
+                        "Hello, World!";
 
-                server.SendMore(id).Send(response);
+                client.SendMore(clientId).Send(request);
 
-                client.Receive();
-                message = client.ReceiveString();
+                byte[] serverId = server.ReceiveFrameBytes();
+                Assert.AreEqual(request, server.ReceiveFrameString());
 
-                Assert.AreEqual(message, response);
+                server.SendMore(serverId).Send(response);
+
+                CollectionAssert.AreEqual(clientId, client.ReceiveFrameBytes());
+                Assert.AreEqual(response, client.ReceiveFrameString());
             }
         }
     }
