@@ -170,9 +170,7 @@ namespace InterBrokerRouter
                     Debug.Assert(string.IsNullOrWhiteSpace(capacity), "StateFrontend: message was empty!");
 
                     int couldCapacity;
-                    var convertionResult = int.TryParse(capacity, out couldCapacity);
-
-                    Debug.Assert(convertionResult, "StateFrontend: message did not contain a number!");
+                    Debug.Assert(int.TryParse(capacity, out couldCapacity), "StateFrontend: message did not contain a number!");
                 };
 
                 // get the status message and print it
