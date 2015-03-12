@@ -41,8 +41,7 @@ namespace InterBrokerRouter
             // a flag to signal that an answer has arrived
             bool messageAnswered = false;
             // we use a poller because we have a socket and a timer to monitor
-            var clientPoller = new Poller();
-
+            using (var clientPoller = new Poller())
             using (var context = NetMQContext.Create())
             using (var client = context.CreateRequestSocket())
             using (var monitor = context.CreatePushSocket())
@@ -143,13 +142,11 @@ namespace InterBrokerRouter
                         client.SendMessage(msg);
                     }
                 }
+
+                // stop poller if needed
+                if (clientPoller.IsStarted)
+                    clientPoller.CancelAndJoin();
             }
-
-            // stop poller if needed
-            if (clientPoller.IsStarted)
-                clientPoller.CancelAndJoin();
-
-            clientPoller.Dispose();
         }
     }
 }
