@@ -291,11 +291,11 @@ namespace NetMQ
                 frames.Clear();
 
             var msg = new Msg();
+            msg.InitEmpty();
 
             var more = true;
             while (more)
             {
-                msg.InitEmpty();
                 socket.Receive(ref msg);
                 frames.Add(msg.CloneData());
                 more = msg.HasMore;
@@ -354,7 +354,6 @@ namespace NetMQ
             // Rinse and repeat...
             while (msg.HasMore)
             {
-                msg.InitEmpty();
                 socket.Receive(ref msg);
                 frames.Add(msg.CloneData());
             }
@@ -987,7 +986,6 @@ namespace NetMQ
             // Rinse and repeat...
             while (msg.HasMore)
             {
-                msg.InitEmpty();
                 socket.Receive(ref msg);
                 frames.Add(encoding.GetString(msg.Data, 0, msg.Size));
             }
@@ -1072,11 +1070,12 @@ namespace NetMQ
         public static NetMQMessage ReceiveMultipartMessage([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
             var msg = new Msg();
+            msg.InitEmpty();
+
             var message = new NetMQMessage(expectedFrameCount);
 
             do
             {
-                msg.InitEmpty();
                 socket.Receive(ref msg);
                 message.Append(msg.CloneData());
             }
@@ -1140,7 +1139,6 @@ namespace NetMQ
             // Rinse and repeat...
             while (msg.HasMore)
             {
-                msg.InitEmpty();
                 socket.Receive(ref msg);
                 message.Append(new NetMQFrame(msg.CloneData()));
             }
@@ -1167,9 +1165,9 @@ namespace NetMQ
 
             var more = true;
             var msg = new Msg();
+            msg.InitEmpty();
             while (more)
             {
-                msg.InitEmpty();
                 socket.Receive(ref msg, dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None);
                 message.Append(msg.CloneData());
                 more = msg.HasMore;
