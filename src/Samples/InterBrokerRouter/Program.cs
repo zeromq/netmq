@@ -84,7 +84,7 @@ namespace InterBrokerRouter
                 s_keepRunning = false;
             };
 
-            // get randon generator for later use
+            // get random generator for later use
             var rnd = new Random();
             // get list for registering the clients
             var clients = new List<byte[]>(NbrClients);

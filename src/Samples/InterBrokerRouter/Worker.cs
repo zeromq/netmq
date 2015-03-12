@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace InterBrokerRouter
 {
@@ -10,14 +11,13 @@ namespace InterBrokerRouter
         private readonly byte m_id;
 
         /// <summary>
-        ///     the worker connects its REQ socket to the broker's backend ROUTER socket
-        ///     upon start up the worker sends a READY message to the broker
-        ///     the worker receives a message from the broker and simply returns it after
-        ///     printing it on screen
-        ///     it simulates the work by sleeping an arbitrary time but less than 2s
+        /// The worker connects its <see cref="RequestSocket"/> to the broker's backend <see cref="RouterSocket"/>.
+        /// Upon startup, the worker sends a READY message to the broker.
+        /// The worker receives a message from the broker and simply returns it after printing it on screen.
+        /// It simulates work by sleeping an arbitrary period of up to two seconds.
         /// </summary>
-        /// <param name="localBackEndAddress">the broker's backend address to connect to</param>
-        /// <param name="id">the id of the worker</param>
+        /// <param name="localBackEndAddress">The broker's backend address to connect to.</param>
+        /// <param name="id">The id of the worker.</param>
         public Worker(string localBackEndAddress, byte id)
         {
             m_localBackendAddress = localBackEndAddress;

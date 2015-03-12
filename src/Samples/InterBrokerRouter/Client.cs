@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace InterBrokerRouter
 {
@@ -13,15 +14,14 @@ namespace InterBrokerRouter
         private readonly byte m_id;
 
         /// <summary>
-        /// this client will connect its REQ socket to the frontend ROUTER socket of the broker and 
-        /// its PUSH socket to the the broker's PULL socket as monitor
-        /// it will send a messages and wait for max. 10s for an answer before it will
-        /// send an error message via monitor. 
-        /// if an answer is received it will send a success message via monitor as well
+        /// This client will connect its <see cref="RequestSocket"/> to the frontend <see cref="RouterSocket"/> of the broker and 
+        /// its <see cref="PushSocket"/> to the the broker's <see cref="PullSocket"/> as monitor.
+        /// It will send a messages and wait at most 10 seconds for an answer before sending an error message via monitor.
+        /// If an answer is received it will send a success message via monitor.
         /// </summary>
-        /// <param name="localFrontendAddress">the local frontend address of the broker</param>
-        /// <param name="monitorAddress">the monitor address of the broker</param>
-        /// <param name="id">the identity of the client</param>
+        /// <param name="localFrontendAddress">The local frontend address of the broker.</param>
+        /// <param name="monitorAddress">The monitor address of the broker.</param>
+        /// <param name="id">The identity of the client.</param>
         public Client(string localFrontendAddress, string monitorAddress, byte id)
         {
             m_monitorAddress = monitorAddress;
