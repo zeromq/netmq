@@ -112,8 +112,8 @@ namespace NetMQ.Tests
                 dealer1.Connect("tcp://127.0.0.1:" + port1);
                 dealer2.Connect("tcp://127.0.0.1:" + port2);
 
-                bool router1arrived = false;
-                bool router2arrived = false;
+                bool router1Arrived = false;
+                bool router2Arrived = false;
 
                 var signal1 = new ManualResetEvent(false);
                 var signal2 = new ManualResetEvent(false);
@@ -122,7 +122,7 @@ namespace NetMQ.Tests
                 {
                     router1.SkipFrame();
                     router1.SkipFrame();
-                    router1arrived = true;
+                    router1Arrived = true;
                     poller.AddSocket(router2);
                     signal1.Set();
                 };
@@ -131,7 +131,7 @@ namespace NetMQ.Tests
                 {
                     router2.SkipFrame();
                     router2.SkipFrame();
-                    router2arrived = true;
+                    router2Arrived = true;
                     signal2.Set();
                 };
 
@@ -144,8 +144,8 @@ namespace NetMQ.Tests
 
                 poller.CancelAndJoin();
 
-                Assert.IsTrue(router1arrived);
-                Assert.IsTrue(router2arrived);
+                Assert.IsTrue(router1Arrived);
+                Assert.IsTrue(router2Arrived);
             }
         }
 
@@ -169,9 +169,9 @@ namespace NetMQ.Tests
                 dealer2.Connect("tcp://127.0.0.1:" + port2);
                 dealer3.Connect("tcp://127.0.0.1:" + port3);
 
-                bool router1arrived = false;
-                bool router2arrived = false;
-                bool router3arrived = false;
+                bool router1Arrived = false;
+                bool router2Arrived = false;
+                bool router3Arrived = false;
 
                 var signal1 = new ManualResetEvent(false);
                 var signal2 = new ManualResetEvent(false);
@@ -179,7 +179,7 @@ namespace NetMQ.Tests
 
                 router1.ReceiveReady += (s, a) =>
                 {
-                    router1arrived = true;
+                    router1Arrived = true;
 
                     router1.SkipFrame();
                     router1.SkipFrame();
@@ -189,7 +189,7 @@ namespace NetMQ.Tests
 
                 router2.ReceiveReady += (s, a) =>
                 {
-                    router2arrived = true;
+                    router2Arrived = true;
                     router2.SkipFrame();
                     router2.SkipFrame();
                     poller.AddSocket(router3);
@@ -198,7 +198,7 @@ namespace NetMQ.Tests
 
                 router3.ReceiveReady += (s, a) =>
                 {
-                    router3arrived = true;
+                    router3Arrived = true;
                     router3.SkipFrame();
                     router3.SkipFrame();
                     signal3.Set();
@@ -215,9 +215,9 @@ namespace NetMQ.Tests
 
                 poller.CancelAndJoin();
 
-                Assert.IsTrue(router1arrived);
-                Assert.IsTrue(router2arrived);
-                Assert.IsTrue(router3arrived);
+                Assert.IsTrue(router1Arrived);
+                Assert.IsTrue(router2Arrived);
+                Assert.IsTrue(router3Arrived);
             }
         }
 
@@ -245,10 +245,10 @@ namespace NetMQ.Tests
                 dealer3.Connect("tcp://127.0.0.1:" + port3);
                 dealer4.Connect("tcp://127.0.0.1:" + port4);
 
-                int router1arrived = 0;
-                int router2arrived = 0;
-                bool router3arrived = false;
-                bool router4arrived = false;
+                int router1Arrived = 0;
+                int router2Arrived = 0;
+                bool router3Arrived = false;
+                bool router4Arrived = false;
 
                 var signal1 = new ManualResetEvent(false);
                 var signal2 = new ManualResetEvent(false);
@@ -257,20 +257,20 @@ namespace NetMQ.Tests
 
                 router1.ReceiveReady += (s, a) =>
                 {
-                    router1arrived++;
-                    router1.SkipFrame();
-                    router1.SkipFrame();
+                    router1Arrived++;
+                    router1.SkipFrame(); // identity
+                    router1.SkipFrame(); // message
                     poller.RemoveSocket(router1);
                     signal1.Set();
                 };
 
                 router2.ReceiveReady += (s, a) =>
                 {
-                    router2arrived++;
-                    router2.SkipFrame();
-                    router2.SkipFrame();
+                    router2Arrived++;
+                    router2.SkipFrame(); // identity
+                    router2.SkipFrame(); // message
 
-                    if (router2arrived == 1)
+                    if (router2Arrived == 1)
                     {
                         poller.AddSocket(router3);
                         poller.AddSocket(router4);
@@ -280,17 +280,17 @@ namespace NetMQ.Tests
 
                 router3.ReceiveReady += (s, a) =>
                 {
-                    router3.SkipFrame();
-                    router3.SkipFrame();
-                    router3arrived = true;
+                    router3.SkipFrame(); // identity
+                    router3.SkipFrame(); // message
+                    router3Arrived = true;
                     signal3.Set();
                 };
 
                 router4.ReceiveReady += (s, a) =>
                 {
-                    router4.SkipFrame();
-                    router4.SkipFrame();
-                    router4arrived = true;
+                    router4.SkipFrame(); // identity
+                    router4.SkipFrame(); // message
+                    router4Arrived = true;
                     signal4.Set();
                 };
 
@@ -314,10 +314,10 @@ namespace NetMQ.Tests
                 Assert.AreEqual("1", router1.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
 
-                Assert.AreEqual(1, router1arrived);
-                Assert.AreEqual(2, router2arrived);
-                Assert.IsTrue(router3arrived);
-                Assert.IsTrue(router4arrived);
+                Assert.AreEqual(1, router1Arrived);
+                Assert.AreEqual(2, router2Arrived);
+                Assert.IsTrue(router3Arrived);
+                Assert.IsTrue(router4Arrived);
             }
         }
 
