@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using NetMQ;
 
@@ -56,7 +57,7 @@ namespace Freelance.ModelOne.Server
 
             foreach (var ipAddress in ipEntry.AddressList)
             {
-                if (ipAddress.AddressFamily.ToString() == "InterNetwork")
+                if (ipAddress.AddressFamily == AddressFamily.InterNetwork)
                 {
                     return ipAddress.ToString();
                 }
