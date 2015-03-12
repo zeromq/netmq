@@ -6,7 +6,7 @@ namespace NetMQ.Tests
     public class NetworkOrderBitsConverterTests
     {
         [Test]
-        public void TestInt32()
+        public void TestInt64()
         {
             byte[] buffer =  NetworkOrderBitsConverter.GetBytes((long)1);
 
@@ -28,7 +28,7 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void TestInt64()
+        public void TestInt32()
         {
             byte[] buffer = NetworkOrderBitsConverter.GetBytes(1);
 
