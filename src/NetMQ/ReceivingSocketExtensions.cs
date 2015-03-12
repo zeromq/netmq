@@ -1109,5 +1109,83 @@ namespace NetMQ
         #endregion
 
         #endregion
+
+        #region Skipping a message
+
+        #region Blocking
+
+        /// <summary>
+        /// Makes a blocking receive on the next message, then throws it away.
+        /// </summary>
+        /// <param name="socket"></param>
+        public static void SkipFrame([NotNull] this IReceivingSocket socket)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+            socket.Receive(ref msg);
+        }
+
+        /// <summary>
+        /// Makes a blocking receive on the next message, then throws it away.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="more"></param>
+        public static void SkipFrame([NotNull] this IReceivingSocket socket, out bool more)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+            socket.Receive(ref msg);
+            more = msg.HasMore;
+        }
+
+        #endregion
+
+        #region Immediate
+
+        public static bool TrySkipFrame([NotNull] this IReceivingSocket socket)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+            return socket.TryReceive(ref msg, TimeSpan.Zero);
+        }
+
+        public static bool TrySkipFrame([NotNull] this IReceivingSocket socket, out bool more)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+            var result = socket.TryReceive(ref msg, TimeSpan.Zero);
+            more = msg.HasMore;
+            return result;
+        }
+
+        #endregion
+
+        #region Timeout
+
+        public static bool TrySkipFrame([NotNull] this IReceivingSocket socket, TimeSpan timeout)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+            return socket.TryReceive(ref msg, timeout);
+        }
+
+        public static bool TrySkipFrame([NotNull] this IReceivingSocket socket, TimeSpan timeout, out bool more)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+
+            if (!socket.TryReceive(ref msg, timeout))
+            {
+                more = false;
+                return false;
+            }
+
+            more = msg.HasMore;
+            return true;
+        }
+
+        #endregion
+
+        #endregion
     }
 }
