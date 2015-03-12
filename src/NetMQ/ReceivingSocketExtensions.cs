@@ -288,13 +288,12 @@ namespace NetMQ
             var msg = new Msg();
             msg.InitEmpty();
 
-            var more = true;
-            while (more)
+            do
             {
                 socket.Receive(ref msg);
                 frames.Add(msg.CloneData());
-                more = msg.HasMore;
             }
+            while (msg.HasMore);
 
             msg.Close();
         }
@@ -1165,15 +1164,16 @@ namespace NetMQ
         {
             message.Clear();
 
-            var more = true;
             var msg = new Msg();
             msg.InitEmpty();
-            while (more)
+
+            do
             {
                 socket.Receive(ref msg, dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None);
                 message.Append(msg.CloneData());
-                more = msg.HasMore;
             }
+            while (msg.HasMore);
+
             msg.Close();
         }
 
