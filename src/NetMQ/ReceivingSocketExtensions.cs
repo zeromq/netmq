@@ -392,9 +392,9 @@ namespace NetMQ
         [Obsolete("Use ReceiveMultipartBytes or TryReceiveMultipartBytes instead")]
         [NotNull]
         [ItemNotNull]
-        public static IList<byte[]> ReceiveAll([NotNull] this IReceivingSocket socket)
+        public static List<byte[]> ReceiveAll([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
-            return socket.ReceiveMessages().ToList();
+            return socket.ReceiveMessages(expectedFrameCount).ToList();
         }
 
         #endregion
