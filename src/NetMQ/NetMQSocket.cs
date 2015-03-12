@@ -408,6 +408,7 @@ namespace NetMQ
         /// <param name="events">The specific <see cref="SocketEvent"/> events to report on. Defaults to <see cref="SocketEvent.All"/> if ommitted.</param>
         /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException"><paramref name="endpoint"/> cannot be empty or whitespace.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
         public void Monitor([NotNull] string endpoint, SocketEvent events = SocketEvent.All)
         {
             if (endpoint == null)
@@ -423,6 +424,7 @@ namespace NetMQ
         /// <summary>
         /// Get whether a message is waiting to be picked up (<c>true</c> if there is, <c>false</c> if there is none).
         /// </summary>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public bool HasIn
         {
             get
@@ -439,6 +441,7 @@ namespace NetMQ
         /// <remarks>
         /// This is <c>true</c> if at least one message is waiting to be sent, <c>false</c> if there is none.
         /// </remarks>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public bool HasOut
         {
             get
@@ -457,6 +460,7 @@ namespace NetMQ
         /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
         /// <returns>an integer that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
         internal int GetSocketOption(ZmqSocketOptions socketOptions)
         {
             m_socketHandle.CheckDisposed();
@@ -470,6 +474,7 @@ namespace NetMQ
         /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
         /// <returns>an object of the given type, that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
         internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
         {
             m_socketHandle.CheckDisposed();
@@ -505,6 +510,7 @@ namespace NetMQ
         /// <param name="socketOptions">a ZmqSocketOptions that specifies what to set</param>
         /// <param name="value">an integer that is the value to set that option to</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
         internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
         {
             m_socketHandle.CheckDisposed();
@@ -529,6 +535,7 @@ namespace NetMQ
         /// <param name="socketOptions">a ZmqSocketOptions that specifies what to set</param>
         /// <param name="value">an object that is the value to set that option to</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
         internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
         {
             m_socketHandle.CheckDisposed();

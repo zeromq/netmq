@@ -73,8 +73,8 @@ namespace NetMQ
         /// <summary>
         /// Given a 64-bit integer, return it as a byte-array in Big-endian order.
         /// </summary>
-        /// <param name="value">the long value to convert from</param>
-        /// <returns>aa 8-byte array containing that long's bits</returns>
+        /// <param name="value">The <c>long</c> value to convert from.</param>
+        /// <returns>The network order presentation of <paramref name="value"/> as an 8-byte array.</returns>
         [NotNull]
         public static byte[] GetBytes(long value)
         {
