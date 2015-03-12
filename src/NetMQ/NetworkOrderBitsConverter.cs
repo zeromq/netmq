@@ -14,15 +14,14 @@ namespace NetMQ
         /// - return a 32-bit integer derived from the 4 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the integer from</param>
-        /// <param name="offset">a (zero-based) offset into that byte-array marking where to access it (optional - default is 0)</param>
         /// <returns></returns>
-        public static int ToInt32([NotNull] byte[] buffer, int offset = 0)
+        public static int ToInt32([NotNull] byte[] buffer)
         {
             return 
-                buffer[offset    ] << 24 |
-                buffer[offset + 1] << 16 | 
-                buffer[offset + 2] <<  8 | 
-                buffer[offset + 3];
+                buffer[0] << 24 |
+                buffer[1] << 16 | 
+                buffer[2] <<  8 | 
+                buffer[3];
         }
 
         /// <summary>
@@ -34,7 +33,7 @@ namespace NetMQ
         public static byte[] GetBytes(int value)
         {
             var buffer = new byte[4];
-            PutInt32(value, buffer, 0);
+            PutInt32(value, buffer);
 
             return buffer;
         }
@@ -45,13 +44,12 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the integer to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the integer's bytes into</param>
-        /// <param name="offset">a zero-based offset into that buffer marking where to start writing</param>
-        public static void PutInt32(int value, [NotNull] byte[] buffer, int offset)
+        public static void PutInt32(int value, [NotNull] byte[] buffer)
         {
-            buffer[offset    ] = (byte)(value >> 24);
-            buffer[offset + 1] = (byte)(value >> 16);
-            buffer[offset + 2] = (byte)(value >>  8);
-            buffer[offset + 3] = (byte) value;
+            buffer[0] = (byte)(value >> 24);
+            buffer[1] = (byte)(value >> 16);
+            buffer[2] = (byte)(value >>  8);
+            buffer[3] = (byte) value;
         }
 
         /// <summary>
@@ -59,19 +57,18 @@ namespace NetMQ
         /// - return a 64-bit integer derived from the 8 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the Int64 from</param>
-        /// <param name="offset">a (zero-based) offset into that byte-array marking where to access it (optional - default is 0)</param>
         /// <returns></returns>
-        public static long ToInt64([NotNull] byte[] buffer, int offset = 0)
+        public static long ToInt64([NotNull] byte[] buffer)
         {
             return
-                (long)buffer[offset    ] << 56 |
-                (long)buffer[offset + 1] << 48 |
-                (long)buffer[offset + 2] << 40 |
-                (long)buffer[offset + 3] << 32 |
-                (long)buffer[offset + 4] << 24 |
-                (long)buffer[offset + 5] << 16 |
-                (long)buffer[offset + 6] <<  8 |
-                (long)buffer[offset + 7];
+                (long)buffer[0] << 56 |
+                (long)buffer[1] << 48 |
+                (long)buffer[2] << 40 |
+                (long)buffer[3] << 32 |
+                (long)buffer[4] << 24 |
+                (long)buffer[5] << 16 |
+                (long)buffer[6] <<  8 |
+                (long)buffer[7];
         }
 
         /// <summary>
@@ -83,7 +80,7 @@ namespace NetMQ
         public static byte[] GetBytes(long value)
         {
             var buffer = new byte[8];
-            PutInt64(value, buffer, 0);
+            PutInt64(value, buffer);
 
             return buffer;
         }
@@ -94,17 +91,16 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the long value to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the long value's bytes into</param>
-        /// <param name="offset">a zero-based offset into that buffer marking where to start writing</param>
-        public static void PutInt64(long value, [NotNull] byte[] buffer, int offset)
+        public static void PutInt64(long value, [NotNull] byte[] buffer)
         {
-            buffer[offset    ] = (byte)(value >> 56);
-            buffer[offset + 1] = (byte)(value >> 48);
-            buffer[offset + 2] = (byte)(value >> 40);
-            buffer[offset + 3] = (byte)(value >> 32);
-            buffer[offset + 4] = (byte)(value >> 24);
-            buffer[offset + 5] = (byte)(value >> 16);
-            buffer[offset + 6] = (byte)(value >> 8);
-            buffer[offset + 7] = (byte)value;
+            buffer[0] = (byte)(value >> 56);
+            buffer[1] = (byte)(value >> 48);
+            buffer[2] = (byte)(value >> 40);
+            buffer[3] = (byte)(value >> 32);
+            buffer[4] = (byte)(value >> 24);
+            buffer[5] = (byte)(value >> 16);
+            buffer[6] = (byte)(value >> 8);
+            buffer[7] = (byte) value;
         }
     }
 }

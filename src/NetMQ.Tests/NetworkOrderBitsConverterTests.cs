@@ -24,7 +24,7 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt64(buffer));
 
-            NetworkOrderBitsConverter.PutInt64(num, buffer, 0);
+            NetworkOrderBitsConverter.PutInt64(num, buffer);
 
             CollectionAssert.AreEqual(bytes, buffer);
 
@@ -50,7 +50,7 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt32(buffer));
 
-            NetworkOrderBitsConverter.PutInt32(num, buffer, 0);
+            NetworkOrderBitsConverter.PutInt32(num, buffer);
 
             CollectionAssert.AreEqual(bytes, buffer);
 
@@ -66,7 +66,7 @@ namespace NetMQ.Tests
 //                const int loopCount = 1000*1000*100;
 //                var sw = Stopwatch.StartNew();
 //                for (var k = 0; k < loopCount; k++)
-//                    NetworkOrderBitsConverter.PutInt64(0x12345678ABCDEF12L, buffer, 0);
+//                    NetworkOrderBitsConverter.PutInt64(0x12345678ABCDEF12L, buffer);
 //                Console.Out.WriteLine("{0}", sw.Elapsed.TotalMilliseconds);
 //            }
 //        }
