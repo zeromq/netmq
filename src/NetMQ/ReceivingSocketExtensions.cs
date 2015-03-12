@@ -21,7 +21,7 @@ namespace NetMQ
         /// The <see cref="Encoding"/> used in string related methods that do
         /// not explicitly provide an encoding parameter.
         /// </summary>
-        private static readonly Encoding s_defaultEncoding = Encoding.UTF8;
+        public static readonly Encoding DefaultEncoding = Encoding.UTF8;
 
         #region Receiving a frame as a byte array
 
@@ -409,13 +409,13 @@ namespace NetMQ
         public static string ReceiveFrameString([NotNull] this IReceivingSocket socket)
         {
             bool more;
-            return socket.ReceiveFrameString(s_defaultEncoding, out more);
+            return socket.ReceiveFrameString(DefaultEncoding, out more);
         }
 
         [NotNull]
         public static string ReceiveFrameString([NotNull] this IReceivingSocket socket, out bool more)
         {
-            return socket.ReceiveFrameString(s_defaultEncoding, out more);
+            return socket.ReceiveFrameString(DefaultEncoding, out more);
         }
 
         [NotNull]
@@ -452,12 +452,12 @@ namespace NetMQ
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, out string frameString)
         {
             bool more;
-            return socket.TryReceiveFrameString(TimeSpan.Zero, s_defaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(TimeSpan.Zero, DefaultEncoding, out frameString, out more);
         }
 
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, out string frameString, out bool more)
         {
-            return socket.TryReceiveFrameString(TimeSpan.Zero, s_defaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(TimeSpan.Zero, DefaultEncoding, out frameString, out more);
         }
 
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, out string frameString)
@@ -478,12 +478,12 @@ namespace NetMQ
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, out string frameString)
         {
             bool more;
-            return socket.TryReceiveFrameString(timeout, s_defaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(timeout, DefaultEncoding, out frameString, out more);
         }
 
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, out string frameString, out bool more)
         {
-            return socket.TryReceiveFrameString(timeout, s_defaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(timeout, DefaultEncoding, out frameString, out more);
         }
 
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, [NotNull] Encoding encoding, out string frameString)
@@ -773,7 +773,7 @@ namespace NetMQ
         [NotNull]
         public static List<string> ReceiveMultipartStrings([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
-            return ReceiveMultipartStrings(socket, s_defaultEncoding, expectedFrameCount);
+            return ReceiveMultipartStrings(socket, DefaultEncoding, expectedFrameCount);
         }
 
         /// <summary></summary>
@@ -800,7 +800,7 @@ namespace NetMQ
         /// <param name="expectedFrameCount"></param>
         public static bool TryReceiveMultipartStrings([NotNull] this IReceivingSocket socket, [CanBeNull] ref List<string> frames, int expectedFrameCount = 4)
         {
-            return TryReceiveMultipartStrings(socket, s_defaultEncoding, ref frames, expectedFrameCount);
+            return TryReceiveMultipartStrings(socket, DefaultEncoding, ref frames, expectedFrameCount);
         }
 
         /// <summary></summary>
@@ -824,7 +824,7 @@ namespace NetMQ
         /// <param name="expectedFrameCount"></param>
         public static bool TryReceiveMultipartStrings([NotNull] this IReceivingSocket socket, TimeSpan timeout, [CanBeNull] ref List<string> frames, int expectedFrameCount = 4)
         {
-            return TryReceiveMultipartStrings(socket, timeout, s_defaultEncoding, ref frames, expectedFrameCount);
+            return TryReceiveMultipartStrings(socket, timeout, DefaultEncoding, ref frames, expectedFrameCount);
         }
 
         /// <summary></summary>
