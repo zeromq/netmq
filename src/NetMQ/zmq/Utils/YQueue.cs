@@ -50,7 +50,6 @@ namespace NetMQ.zmq.Utils
                 Values = new T[size];
                 GlobalOffset = globalIndex;
                 Debug.Assert(Values != null);
-                Previous = Next = null;
             }
 
             [NotNull]
