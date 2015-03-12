@@ -13,6 +13,8 @@ namespace ParanoidPirate.Queue
         /// </summary>
         private static void Main(string[] args)
         {
+            Console.Title = "NetMQ ParanoidPirate Queue";
+
             // serves as flag for exiting the program
             var exit = false;
             // catch CTRL+C as exit command

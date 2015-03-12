@@ -18,6 +18,8 @@ namespace ParanoidPirate.Worker
         /// </summary>
         private static void Main(string[] args)
         {
+            Console.Title = "NetMQ ParanoidPirate Worker";
+
             var verbose = args.Length > 0 && args[0] == "-v";
 
             var rnd = new Random();

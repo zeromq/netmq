@@ -17,6 +17,8 @@ namespace LazyPirate.Client
 
         private static void Main()
         {
+            Console.Title = "NetMQ LazyPirate Client";
+
             using (var context = NetMQContext.Create())
             {
                 RequestSocket client = CreateServerSocket(context);

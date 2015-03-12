@@ -16,6 +16,8 @@ namespace MultithreadedService
 
         private static void Main()
         {
+            Console.Title = "NetMQ Multi-threaded Service";
+
             using (var context = NetMQContext.Create())
             {
                 //var queue = new QueueDevice(context, "tcp://localhost:5555", "inproc://workers", DeviceMode.Threaded);

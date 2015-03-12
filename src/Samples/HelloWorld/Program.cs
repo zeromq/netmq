@@ -7,6 +7,8 @@ namespace HelloWorld
     {
         private static void Main()
         {
+            Console.Title = "NetMQ HelloWorld";
+
             using (var context = NetMQContext.Create())
             using (var server = context.CreateResponseSocket())
             using (var client = context.CreateRequestSocket())

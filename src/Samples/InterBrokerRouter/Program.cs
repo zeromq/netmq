@@ -67,6 +67,8 @@ namespace InterBrokerRouter
         /// </remarks>
         public static void Main(string[] args)
         {
+            Console.Title = "NetMQ Inter-Broker Router";
+
             const string baseAddress = "tcp://127.0.0.1:";
 
             if (args.Length < 2)

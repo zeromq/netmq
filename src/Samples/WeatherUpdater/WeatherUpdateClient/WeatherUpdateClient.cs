@@ -8,6 +8,8 @@ namespace WeatherUpdateClient
     {
         private static void Main()
         {
+            Console.Title = "NetMQ Weather Update Client";
+
             const int zipToSubscribeTo = 10001;
             const int iterations = 100;
 

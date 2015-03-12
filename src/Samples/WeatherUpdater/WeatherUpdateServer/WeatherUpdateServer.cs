@@ -7,6 +7,8 @@ namespace WeatherUpdateServer
     {
         private static void Main()
         {
+            Console.Title = "NetMQ Weather Update Server";
+
             bool stopRequested = false;
  
             // Wire up the CTRL+C handler

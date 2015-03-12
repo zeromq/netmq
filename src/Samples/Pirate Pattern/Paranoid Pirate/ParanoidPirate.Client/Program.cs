@@ -29,6 +29,8 @@ namespace ParanoidPirate.Client
         /// </summary>
         private static void Main(string[] args)
         {
+            Console.Title = "NetMQ ParanoidPirate Client";
+
             var verbose = args.Length > 0 && args[0] == "-v";
             var clientId = args.Length > 1 ? args[1] : "SoleClient";
 

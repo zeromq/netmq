@@ -9,6 +9,8 @@ namespace LazyPirate.Server
     {
         private static void Main()
         {
+            Console.Title = "NetMQ LazyPirate Server";
+
             const string serverEndpoint = "tcp://127.0.0.1:5555";
 
             var random = new Random();
