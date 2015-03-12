@@ -43,7 +43,7 @@ namespace NetMQ.zmq.Utils
         #region Nested class: Chunk
 
         /// <summary>Individual memory chunk to hold N elements.</summary>
-        private class Chunk
+        private sealed class Chunk
         {
             public Chunk(int size, int globalIndex)
             {
@@ -56,7 +56,6 @@ namespace NetMQ.zmq.Utils
             public T[] Values { get; private set; }
 
             /// <summary>Contains global index positions of elements in the chunk.</summary>
-            [NotNull]
             public int GlobalOffset { get; private set; }
 
             /// <summary>Optional link to the previous <see cref="Chunk"/>.</summary>
