@@ -49,7 +49,7 @@ namespace InterBrokerRouter
                 while (true)
                 {
                     // wait for a request - the REQ might be from a local client or a cloud request
-                    var request = worker.ReceiveMessage();
+                    var request = worker.ReceiveMultipartMessage();
 
                     if (request.FrameCount < 3)
                     {

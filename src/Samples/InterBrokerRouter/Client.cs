@@ -82,7 +82,7 @@ namespace InterBrokerRouter
                     // mark the arrival of an answer
                     messageAnswered = true;
                     // worker is supposed to answer with our request id
-                    var reply = e.Socket.ReceiveMessage();
+                    var reply = e.Socket.ReceiveMultipartMessage();
 
                     if (reply.FrameCount == 0)
                     {
