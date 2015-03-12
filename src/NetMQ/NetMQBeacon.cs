@@ -37,6 +37,8 @@ namespace NetMQ
         public const string SubscribeCommand = "SUBSCRIBE";
         public const string UnsubscribeCommand = "UNSUBSCRIBE";
 
+        #region Nested class: Shim
+
         private class Shim : IShimHandler
         {
             private NetMQSocket m_pipe;
@@ -252,6 +254,8 @@ namespace NetMQ
             }
         }
 
+        #endregion
+
         private readonly NetMQActor m_actor;
 
         private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
@@ -407,6 +411,17 @@ namespace NetMQ
             peerName = m_actor.ReceiveString();
 
             return m_actor.ReceiveString();
+        }
+
+        public bool TryReceiveString(TimeSpan timeout, out string peerName, out string message)
+        {
+            if (!m_actor.TryReceiveFrameString(timeout, out peerName))
+            {
+                message = null;
+                return false;
+            }
+
+            return m_actor.TryReceiveFrameString(timeout, out message);
         }
 
         [NotNull]
