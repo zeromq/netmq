@@ -58,9 +58,7 @@ namespace NetMQ
 
             more = msg.HasMore;
 
-            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
-
             return data;
         }
 
@@ -130,6 +128,7 @@ namespace NetMQ
 
             if (!socket.TryReceive(ref msg, timeout))
             {
+                msg.Close();
                 bytes = null;
                 more = false;
                 return false;
@@ -138,9 +137,7 @@ namespace NetMQ
             bytes = msg.CloneData();
             more = msg.HasMore;
 
-            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
-
             return true;
         }
 
@@ -227,9 +224,7 @@ namespace NetMQ
 
             hasMore = msg.HasMore;
 
-            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
-
             return data;
         }
 
@@ -301,7 +296,6 @@ namespace NetMQ
                 more = msg.HasMore;
             }
 
-            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
         }
 
@@ -340,7 +334,10 @@ namespace NetMQ
 
             // Try to read the first frame
             if (!socket.TryReceive(ref msg, timeout))
+            {
+                msg.Close();
                 return false;
+            }
 
             // We have one, so prepare the container
             if (frames == null)
@@ -358,6 +355,7 @@ namespace NetMQ
                 frames.Add(msg.CloneData());
             }
 
+            msg.Close();
             return true;
         }
 
@@ -470,9 +468,7 @@ namespace NetMQ
                 ? encoding.GetString(msg.Data, 0, msg.Size)
                 : string.Empty;
 
-            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
-
             return str;
         }
 
@@ -604,14 +600,13 @@ namespace NetMQ
                     ? encoding.GetString(msg.Data, 0, msg.Size)
                     : string.Empty;
 
-                // ReSharper disable once ExceptionNotDocumented
                 msg.Close();
-
                 return true;
             }
 
             frameString = null;
             more = false;
+            msg.Close();
             return false;
         }
 
@@ -649,9 +644,7 @@ namespace NetMQ
                 ? encoding.GetString(msg.Data, 0, msg.Size)
                 : string.Empty;
 
-            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
-
             return data;
         }
 
@@ -972,7 +965,10 @@ namespace NetMQ
 
             // Try to read the first frame
             if (!socket.TryReceive(ref msg, timeout))
+            {
+                msg.Close();
                 return false;
+            }
 
             // We have one, so prepare the container
             if (frames == null)
@@ -990,6 +986,7 @@ namespace NetMQ
                 frames.Add(encoding.GetString(msg.Data, 0, msg.Size));
             }
 
+            msg.Close();
             return true;
         }
 
@@ -1081,6 +1078,7 @@ namespace NetMQ
             }
             while (msg.HasMore);
 
+            msg.Close();
             return message;
         }
 
@@ -1125,7 +1123,10 @@ namespace NetMQ
 
             // Try to read the first frame
             if (!socket.TryReceive(ref msg, timeout))
+            {
+                msg.Close();
                 return false;
+            }
 
             // We have one, so prepare the container
             if (message == null)
@@ -1143,6 +1144,7 @@ namespace NetMQ
                 message.Append(new NetMQFrame(msg.CloneData()));
             }
 
+            msg.Close();
             return true;
         }
 
@@ -1172,7 +1174,6 @@ namespace NetMQ
                 message.Append(msg.CloneData());
                 more = msg.HasMore;
             }
-            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
         }
 
@@ -1249,7 +1250,10 @@ namespace NetMQ
                 var signalValue = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 if ((signalValue & 0x7FFFFFFFFFFFFF00L) == 0x7766554433221100L)
+                {
+                    msg.Close();
                     return (signalValue & 255) == 0;
+                }
             }
         }
 
@@ -1293,6 +1297,7 @@ namespace NetMQ
                 if (!socket.TryReceive(ref msg, timeout))
                 {
                     signal = false;
+                    msg.Close();
                     return false;
                 }
 
@@ -1311,6 +1316,7 @@ namespace NetMQ
                 if ((signalValue & 0x7FFFFFFFFFFFFF00L) == 0x7766554433221100L)
                 {
                     signal = (signalValue & 255) == 0;
+                    msg.Close();
                     return true;
                 }
             }
@@ -1367,6 +1373,7 @@ namespace NetMQ
             var msg = new Msg();
             msg.InitEmpty();
             socket.Receive(ref msg);
+            msg.Close();
         }
 
         /// <summary>
@@ -1381,6 +1388,7 @@ namespace NetMQ
             msg.InitEmpty();
             socket.Receive(ref msg);
             more = msg.HasMore;
+            msg.Close();
         }
 
         #endregion
@@ -1397,7 +1405,9 @@ namespace NetMQ
         {
             var msg = new Msg();
             msg.InitEmpty();
-            return socket.TryReceive(ref msg, TimeSpan.Zero);
+            var received = socket.TryReceive(ref msg, TimeSpan.Zero);
+            msg.Close();
+            return received;
         }
 
         /// <summary>
@@ -1414,6 +1424,7 @@ namespace NetMQ
             msg.InitEmpty();
             var result = socket.TryReceive(ref msg, TimeSpan.Zero);
             more = msg.HasMore;
+            msg.Close();
             return result;
         }
 
@@ -1432,7 +1443,9 @@ namespace NetMQ
         {
             var msg = new Msg();
             msg.InitEmpty();
-            return socket.TryReceive(ref msg, timeout);
+            var received = socket.TryReceive(ref msg, timeout);
+            msg.Close();
+            return received;
         }
 
         /// <summary>
@@ -1452,10 +1465,12 @@ namespace NetMQ
             if (!socket.TryReceive(ref msg, timeout))
             {
                 more = false;
+                msg.Close();
                 return false;
             }
 
             more = msg.HasMore;
+            msg.Close();
             return true;
         }
 
