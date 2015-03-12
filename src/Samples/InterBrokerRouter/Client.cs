@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using NetMQ;
 using NetMQ.Sockets;
 
@@ -111,9 +110,8 @@ namespace InterBrokerRouter
                 clientPoller.AddSocket(client);
                 clientPoller.AddTimer(timer);
 
-                // start poller in extra task in order to allow the continued processing
-                // clientPoller.Start() -> blocking call
-                var pollTask = Task.Factory.StartNew(clientPoller.PollTillCancelled);
+                // start poller in another thread to allow the continued processing
+                clientPoller.PollTillCancelledNonBlocking();
 
                 // if true the message has been answered
                 // the 0th message is always answered
