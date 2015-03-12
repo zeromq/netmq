@@ -39,6 +39,7 @@ namespace NetMQ
 
             more = msg.HasMore;
 
+            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
 
             return data;
@@ -84,6 +85,7 @@ namespace NetMQ
             bytes = msg.CloneData();
             more = msg.HasMore;
 
+            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
 
             return true;
@@ -96,8 +98,9 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">the socket to use</param>
-        /// <returns>a newly allocated array of bytes</returns>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <returns>The message's data as a newly allocated array of bytes.</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameBytes or TryReceiveFrameBytes instead.")]
         public static byte[] Receive([NotNull] this IReceivingSocket socket)
@@ -109,9 +112,10 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">the socket to use</param>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
         /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
-        /// <returns>a newly allocated array of bytes</returns>
+        /// <returns>The message's data as a newly allocated array of bytes.</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameBytes or TryReceiveFrameBytes instead.")]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, out bool hasMore)
@@ -122,10 +126,11 @@ namespace NetMQ
         /// <summary>
         /// potentially non-blocking get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">the socket to use</param>
-        /// <param name="dontWait">non-blocking if <c>true</c> and blocking otherwise</param>
-        /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
-        /// <returns>a newly allocated array of bytes</returns>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="dontWait">Non-blocking if <c>true</c>, otherwise blocking.</param>
+        /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available.</param>
+        /// <returns>The message's data as a newly allocated array of bytes.</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameBytes or TryReceiveFrameBytes instead.")]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, bool dontWait, out bool hasMore)
@@ -136,9 +141,10 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">the socket to use</param>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
         /// <param name="options">a SendReceiveOptions that can specify the DontWait or SendMore flags</param>
-        /// <returns>a newly allocated array of bytes</returns>
+        /// <returns>The message's data as a newly allocated array of bytes.</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameBytes or TryReceiveFrameBytes instead.")]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, SendReceiveOptions options)
@@ -150,10 +156,11 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">the socket to use</param>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
         /// <param name="options">a SendReceiveOptions which can specify the DontWait or SendMore flags (or None)</param>
         /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
-        /// <returns>a newly allocated array of bytes</returns>
+        /// <returns>The message's data as a newly allocated array of bytes.</returns>
+        /// <exception cref="AgainException">No message was available within the allowed timeout period. Try again.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameBytes or TryReceiveFrameBytes instead.")]
         public static byte[] Receive([NotNull] this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
@@ -167,18 +174,22 @@ namespace NetMQ
 
             hasMore = msg.HasMore;
 
+            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
 
             return data;
         }
 
         /// <summary>
-        /// get the data section of the available message as <c>byte[]</c> within a timespan
+        /// Receive the next message's data as a <see cref="T:byte[]"/>, or return <c>null</c> if no message arrives
+        /// within <paramref name="timeout"/>.
         /// </summary>
-        /// <param name="socket">the socket to use</param>
-        /// <param name="timeout">a timespan to wait for arriving messages</param>
-        /// <returns>a newly allocated array of bytes or <c>null</c> if no message arrived within the timeout period</returns>
-        /// <exception cref="InvalidCastException">if the socket not a NetMQSocket</exception>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="timeout">The length of time wait for an inbound message.</param>
+        /// <returns>The received message bytes, or <c>null</c> if no message arrived within <paramref name="timeout"/>.
+        /// </returns>
+        /// <exception cref="FaultException">The internal select operation failed.</exception>
+        /// <exception cref="TerminatingException"><paramref name="socket"/> has been stopped.</exception>
         [CanBeNull]
         [Obsolete("Use ReceiveFrameBytes or TryReceiveFrameBytes instead.")]
         public static byte[] Receive([NotNull] this NetMQSocket socket, TimeSpan timeout)
@@ -273,11 +284,12 @@ namespace NetMQ
         #region Obsolete
 
         /// <summary>Receives a list of all frames of the next message, each as an array of bytes.</summary>
-        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
         /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
         /// an extra allocation will occur, but the result will still be correct.</param>
         /// <returns>A list of all frames of the next message, each as an array of bytes.</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [Obsolete("Use ReceiveMultipartBytes or TryReceiveMultipartBytes instead")]
         [NotNull]
         [ItemNotNull]
@@ -293,6 +305,7 @@ namespace NetMQ
             return frames;
         }
 
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [Obsolete("Use ReceiveMultipartBytes or TryReceiveMultipartBytes instead")]
         [NotNull]
         [ItemNotNull]
@@ -343,6 +356,7 @@ namespace NetMQ
                 ? encoding.GetString(msg.Data, 0, msg.Size)
                 : string.Empty;
 
+            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
 
             return str;
@@ -408,6 +422,7 @@ namespace NetMQ
                     ? encoding.GetString(msg.Data, 0, msg.Size)
                     : string.Empty;
 
+                // ReSharper disable once ExceptionNotDocumented
                 msg.Close();
 
                 return true;
@@ -423,15 +438,17 @@ namespace NetMQ
         #region Obsolete
 
         /// <summary>
-        /// Read an available message, extract the data which is converted to a string
-        /// using the specified Encoding, and inform of the availability of more messages via the hasMore parameter.
+        /// Read an available message, extract the data which is converted to a string using <paramref name="encoding"/>,
+        /// and inform of the availability of more messages via <paramref name="hasMore"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="encoding">the Encoding to use</param>
         /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the message data encoded as a string</returns>
         /// <exception cref="ArgumentNullException">encoding must not be null.</exception>
+        /// <exception cref="AgainException">No message was available within the allowed timeout period. Try again.
+        /// </exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options, out bool hasMore)
@@ -450,19 +467,23 @@ namespace NetMQ
                 ? encoding.GetString(msg.Data, 0, msg.Size)
                 : string.Empty;
 
+            // ReSharper disable once ExceptionNotDocumented
             msg.Close();
 
             return data;
         }
 
         /// <summary>
-        /// Read an available message, extract the data which is converted to a string
-        /// using the default Encoding.ASCII, and inform of the availability of more messages via the hasMore parameter.
+        /// Read an available message, extract the data which is converted to a string using
+        /// <see cref="Encoding.ASCII"/>, and inform of the availability of more messages via
+        /// <paramref name="hasMore."/>
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the message data encoded as a string - using the ASCII-encoding</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore)
@@ -471,12 +492,14 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Read an available message, and extract the data which is converted to a string
-        /// using ASCII as the Encoding.
+        /// Read an available message, and extract the data which is converted to a string using
+        /// <see cref="Encoding.ASCII"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
         /// <returns>the message data encoded a a string using the ASCII-encoding</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, SendReceiveOptions options)
@@ -486,13 +509,15 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// reads an available message and extracts the data which is converted to a string
-        /// using ASCII as encoding
+        /// reads an available message and extracts the data which is converted to a string using
+        /// <paramref name="encoding"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="encoding">the encoding to use</param>
         /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
         /// <returns>the message data encoded as a string</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, SendReceiveOptions options)
@@ -502,13 +527,16 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// non-blocking reads an available message and extracts the data which is converted to a string
-        /// using ASCII as encoding and informs about the availability of more messages
+        /// non-blocking reads an available message and extracts the data which is converted to a string using
+        /// <see cref="Encoding.ASCII"/> as encoding and informs about the availability of more messages via
+        /// <paramref name="hasMore"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="dontWait">if true the method is non-blocking</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, bool dontWait, out bool hasMore)
@@ -517,14 +545,17 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// non-blocking reads an available message and extracts the data which is converted to a string
-        /// using ASCII as encoding and informs about the availability of more messages
+        /// non-blocking reads an available message and extracts the data which is converted to a string using
+        /// <paramref name="encoding"/> and informs about the availability of more messages via
+        /// <paramref name="hasMore"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="encoding">the encoding to use for the string representation</param>
         /// <param name="dontWait">if true the method is non-blocking</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, bool dontWait, out bool hasMore)
@@ -533,12 +564,15 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// reads an available message and extracts the data which is converted to a string
-        /// using ASCII as encoding and informs about the availability of more messages
+        /// reads an available message and extracts the data which is converted to a string using
+        /// <see cref="Encoding.ASCII"/> as encoding and informs about the availability of more messages via
+        /// <paramref name="hasMore"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, out bool hasMore)
@@ -547,13 +581,16 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// reads an available message and extracts the data which is converted to a string
-        /// using the encoding and informs about the availability of more messages
+        /// reads an available message and extracts the data which is converted to a string using
+        /// <paramref name="encoding"/> and informs about the availability of more messages via
+        /// <paramref name="hasMore"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="encoding">the encoding to use for the string representation</param>
         /// <param name="hasMore">true if more messages are available, false otherwise</param>
         /// <returns>the string representation of the encoded data of the message</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, out bool hasMore)
@@ -562,12 +599,14 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// reads an available message and extracts the data which is converted to a string
-        /// using encoding and informs about the availability of more messages
+        /// reads an available message and extracts the data which is converted to a string using
+        /// <paramref name="encoding"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="encoding">the encoding to use for the string representation</param>
         /// <returns>the string representation of the encoded data of the message</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding)
@@ -577,11 +616,13 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// reads an available message and extracts the data which is converted to a string
-        /// using encoding and informs about the availability of more messages
+        /// reads an available message and extracts the data which is converted to a string using
+        /// <see cref="Encoding.ASCII"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <returns>the ASCII string representation of the data of the message</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this IReceivingSocket socket)
@@ -591,14 +632,18 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// waits for a message to be read for a specified timespan
+        /// Receive a message if available within <paramref name="timeout"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
         /// <param name="timeout">the time span to wait for a message to receive</param>
         /// <returns>
-        /// the ASCII string representation of the data of the message or <c>null</c> if 
-        /// no message arrived with in the timespan
+        /// The <see cref="Encoding.ASCII"/> string representation of the data of the message or
+        /// <c>null</c> if no message arrives within <paramref name="timeout"/>.
         /// </returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
+        /// <exception cref="FaultException">The internal select operation failed.</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         [CanBeNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this NetMQSocket socket, TimeSpan timeout)
@@ -607,15 +652,19 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// waits for a message to be read for a specified timespan
+        /// Receive a message if available within <paramref name="timeout"/>.
         /// </summary>
-        /// <param name="socket">the socket to read from</param>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
         /// <param name="encoding">the encoding to use for the string representation</param>
         /// <param name="timeout">the time span to wait for a message to receive</param>
         /// <returns>
-        /// the string representation of the encoded data of the message or <c>null</c> if 
-        /// no message arrived with in the timespan
+        /// The string representation of the encoded data of the message or <c>null</c> if
+        /// no message arrived within <paramref name="timeout"/>.
         /// </returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
+        /// <exception cref="FaultException">The internal select operation failed.</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         [CanBeNull]
         [Obsolete("Use ReceiveFrameString or TryReceiveFrameString methods instead")]
         public static string ReceiveString([NotNull] this NetMQSocket socket, [NotNull] Encoding encoding, TimeSpan timeout)
@@ -735,11 +784,13 @@ namespace NetMQ
         #region Obsolete
 
         /// <summary>Receives a list of all frames of the next message, decoded as ASCII strings.</summary>
-        /// <param name="socket">The socket to receive from.</param>
-        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
-        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
-        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used to buffer
+        /// results. If the number of frames is known, set it here. If more frames arrive than expected, an extra
+        /// allocation will occur, but the result will still be correct.</param>
         /// <returns>A list of all frames of the next message, decoded as strings.</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [Obsolete("Use ReceiveMultipartStrings or TryReceiveMultipartStrings instead")]
         [NotNull]
         [ItemNotNull]
@@ -748,14 +799,17 @@ namespace NetMQ
             return ReceiveStringMessages(socket, Encoding.ASCII, expectedFrameCount);
         }
 
-        /// <summary>Receives a list of all frames of the next message, decoded as strings having the specified <paramref name="encoding"/>.</summary>
+        /// <summary>Receives a list of all frames of the next message, decoded as strings having the specified
+        /// <paramref name="encoding"/>.</summary>
         /// <remarks>Blocks until a message is received. The list may have one or more entries.</remarks>
-        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="encoding">The encoding to use when converting a frame's bytes into a string.</param>
-        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
-        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
-        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used to buffer
+        /// results. If the number of frames is known, set it here. If more frames arrive than expected, an extra
+        /// allocation will occur, but the result will still be correct.</param>
         /// <returns>A list of all frames of the next message, decoded as strings.</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [Obsolete("Use ReceiveMultipartStrings or TryReceiveMultipartStrings instead")]
         [NotNull]
         [ItemNotNull]
@@ -868,9 +922,11 @@ namespace NetMQ
         /// <summary>
         /// non-blocking receive of a (multipart)message and stores it in the <see cref="NetMQMessage"/> object
         /// </summary>
-        /// <param name="socket">the <see cref="IReceivingSocket"/> to receive bytes from</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="message">the NetMQMessage to receive the bytes into</param>
         /// <param name="dontWait">non-blocking if <c>true</c> and blocking otherwise</param>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [Obsolete("Use ReceiveMultipartMessage or TryReceiveMultipartMessage instead")]
         public static void ReceiveMessage([NotNull] this IReceivingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
         {
@@ -892,9 +948,11 @@ namespace NetMQ
         /// <summary>
         /// non-blocking receive of a (multipart)message
         /// </summary>
-        /// <param name="socket">the socket to use</param>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
         /// <param name="dontWait">non-blocking if <c>true</c> and blocking otherwise</param>
         /// <returns>the received message</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [Obsolete("Use ReceiveMultipartMessage or TryReceiveMultipartMessage instead")]
         [NotNull]
         public static NetMQMessage ReceiveMessage([NotNull] this IReceivingSocket socket, bool dontWait = false)
@@ -907,9 +965,13 @@ namespace NetMQ
         /// <summary>
         /// receive of a (multipart)message within a specified timespan
         /// </summary>
-        /// <param name="socket">the socket to use</param>
+        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
         /// <param name="timeout">the timespan to wait for a message</param>
         /// <returns>the received message or <c>null</c> if non arrived within the timeout period</returns>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException">The internal select operation failed.</exception>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [Obsolete("Use ReceiveMultipartMessage or TryReceiveMultipartMessage instead")]
         [CanBeNull]
         public static NetMQMessage ReceiveMessage([NotNull] this NetMQSocket socket, TimeSpan timeout)
@@ -1011,11 +1073,17 @@ namespace NetMQ
         #region Obsolete
 
         /// <summary>
-        /// Extension-method for IReceivingSocket: repeatedly call ReceiveMessage on this socket, until we receive
-        /// a message with one 8-byte frame, which matches a specific pattern.
+        /// Receives repeatedly until a valid signal message is seen, then returns the signal value.
         /// </summary>
-        /// <param name="socket">this socket to receive the messages from</param>
-        /// <returns>true if that one frame has no bits set other than in the lowest-order byte</returns>
+        /// <remarks>
+        /// Signal messages must contain a single frame or eight bytes, where the first eight bytes (excluding the first
+        /// bit) must equal exactly <c>0x77665544332211</c>.
+        /// </remarks>
+        /// <param name="socket">The <see cref="IReceivingSocket"/> to receive from.</param>
+        /// <returns>true if that one frame has no bits set other than in the lowest-order byte.</returns>
+        /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and
+        /// <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
+        [Obsolete("User ReceiveSignal or TryReceiveSignal instead")]
         public static bool WaitForSignal([NotNull] this IReceivingSocket socket)
         {
             while (true)
