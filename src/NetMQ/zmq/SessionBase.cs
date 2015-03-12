@@ -244,8 +244,15 @@ namespace NetMQ.zmq
         protected virtual void Reset()
         {
             //  Restore identity flags.
-            m_identitySent = false;
-            m_identityReceived = false;
+            if (m_options.RawSocket)
+            {
+                m_identitySent = true;
+                m_identityReceived = true;
+            } else
+            {
+                m_identitySent = false;
+                m_identityReceived = false;
+            }
         }
 
         public void Flush()
