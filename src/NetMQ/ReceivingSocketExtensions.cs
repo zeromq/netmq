@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -12,6 +12,9 @@ namespace NetMQ
     /// Provides extension methods for the <see cref="IReceivingSocket"/> interface,
     /// via which messages may be received in several ways.
     /// </summary>
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
     public static class ReceivingSocketExtensions
     {
         private static readonly Encoding s_defaultEncoding = Encoding.UTF8;
@@ -196,8 +199,9 @@ namespace NetMQ
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            return result.HasFlag(PollEvents.PollIn) 
-                ? socket.Receive() 
+            // ReSharper disable once ExceptionNotDocumented
+            return result.HasFlag(PollEvents.PollIn)
+                ? socket.Receive()
                 : null;
         }
 
