@@ -76,79 +76,6 @@ namespace NetMQ.zmq
             get { return m_ctx; }
         }
 
-        public void ProcessCommand([NotNull] Command cmd)
-        {
-            switch (cmd.CommandType)
-            {
-                case CommandType.ActivateRead:
-                    ProcessActivateRead();
-                    break;
-
-                case CommandType.ActivateWrite:
-                    ProcessActivateWrite((long)cmd.Arg);
-                    break;
-
-                case CommandType.Stop:
-                    ProcessStop();
-                    break;
-
-                case CommandType.Plug:
-                    ProcessPlug();
-                    ProcessSeqnum();
-                    break;
-
-                case CommandType.Own:
-                    ProcessOwn((Own)cmd.Arg);
-                    ProcessSeqnum();
-                    break;
-
-                case CommandType.Attach:
-                    ProcessAttach((IEngine)cmd.Arg);
-                    ProcessSeqnum();
-                    break;
-
-                case CommandType.Bind:
-                    ProcessBind((Pipe)cmd.Arg);
-                    ProcessSeqnum();
-                    break;
-
-                case CommandType.Hiccup:
-                    ProcessHiccup(cmd.Arg);
-                    break;
-
-                case CommandType.PipeTerm:
-                    ProcessPipeTerm();
-                    break;
-
-                case CommandType.PipeTermAck:
-                    ProcessPipeTermAck();
-                    break;
-
-                case CommandType.TermReq:
-                    ProcessTermReq((Own)cmd.Arg);
-                    break;
-
-                case CommandType.Term:
-                    ProcessTerm((int)cmd.Arg);
-                    break;
-
-                case CommandType.TermAck:
-                    ProcessTermAck();
-                    break;
-
-                case CommandType.Reap:
-                    ProcessReap((SocketBase)cmd.Arg);
-                    break;
-
-                case CommandType.Reaped:
-                    ProcessReaped();
-                    break;
-
-                default:
-                    throw new ArgumentException();
-            }
-        }
-
         protected bool RegisterEndpoint([NotNull] string addr, [NotNull] Ctx.Endpoint endpoint)
         {
             return m_ctx.RegisterEndpoint(addr, endpoint);
@@ -185,6 +112,8 @@ namespace NetMQ.zmq
         {
             return m_ctx.ChooseIOThread(affinity);
         }
+
+        #region Sending commands
 
         /// <summary>
         /// Send the Stop command.
@@ -308,6 +237,92 @@ namespace NetMQ.zmq
             m_ctx.SendCommand(Ctx.TermTid, new Command(null, CommandType.Done));
         }
 
+        /// <summary>
+        /// Send the given Command, on that commands Destination thread.
+        /// </summary>
+        /// <param name="cmd">the Command to send</param>
+        private void SendCommand([NotNull] Command cmd)
+        {
+            m_ctx.SendCommand(cmd.Destination.ThreadId, cmd);
+        }
+
+        #endregion
+
+        #region Command processing
+
+        public void ProcessCommand([NotNull] Command cmd)
+        {
+            switch (cmd.CommandType)
+            {
+                case CommandType.ActivateRead:
+                    ProcessActivateRead();
+                    break;
+
+                case CommandType.ActivateWrite:
+                    ProcessActivateWrite((long)cmd.Arg);
+                    break;
+
+                case CommandType.Stop:
+                    ProcessStop();
+                    break;
+
+                case CommandType.Plug:
+                    ProcessPlug();
+                    ProcessSeqnum();
+                    break;
+
+                case CommandType.Own:
+                    ProcessOwn((Own)cmd.Arg);
+                    ProcessSeqnum();
+                    break;
+
+                case CommandType.Attach:
+                    ProcessAttach((IEngine)cmd.Arg);
+                    ProcessSeqnum();
+                    break;
+
+                case CommandType.Bind:
+                    ProcessBind((Pipe)cmd.Arg);
+                    ProcessSeqnum();
+                    break;
+
+                case CommandType.Hiccup:
+                    ProcessHiccup(cmd.Arg);
+                    break;
+
+                case CommandType.PipeTerm:
+                    ProcessPipeTerm();
+                    break;
+
+                case CommandType.PipeTermAck:
+                    ProcessPipeTermAck();
+                    break;
+
+                case CommandType.TermReq:
+                    ProcessTermReq((Own)cmd.Arg);
+                    break;
+
+                case CommandType.Term:
+                    ProcessTerm((int)cmd.Arg);
+                    break;
+
+                case CommandType.TermAck:
+                    ProcessTermAck();
+                    break;
+
+                case CommandType.Reap:
+                    ProcessReap((SocketBase)cmd.Arg);
+                    break;
+
+                case CommandType.Reaped:
+                    ProcessReaped();
+                    break;
+
+                default:
+                    throw new ArgumentException();
+            }
+        }
+
         protected virtual void ProcessStop()
         {
             throw new NotSupportedException();
@@ -395,13 +410,6 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// Send the given Command, on that commands Destination thread.
-        /// </summary>
-        /// <param name="cmd">the Command to send</param>
-        private void SendCommand([NotNull] Command cmd)
-        {
-            m_ctx.SendCommand(cmd.Destination.ThreadId, cmd);
-        }
+        #endregion
     }
 }
