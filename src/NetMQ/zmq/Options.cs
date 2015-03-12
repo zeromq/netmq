@@ -47,7 +47,10 @@ namespace NetMQ.zmq
             MulticastHops = 1;
             Rate = 100;
             ReceiveHighWatermark = 1000;
+#pragma warning disable 618
+            // This is obsolete, but it is still used. Disable compiler warning.
             ReceiveTimeout = -1;
+#pragma warning restore 618
             ReconnectIvl = 100;
             RecoveryIvl = 10000;
             SendHighWatermark = 1000;
@@ -352,8 +355,11 @@ namespace NetMQ.zmq
                     MulticastHops = (int)optionValue;
                     break;
 
+// disable warning about obsolete values
+#pragma warning disable 618
                 case ZmqSocketOptions.ReceiveTimeout:
                     ReceiveTimeout = (int)optionValue;
+#pragma warning restore 618
                     break;
 
                 case ZmqSocketOptions.SendTimeout:
@@ -465,8 +471,10 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.MulticastHops:
                     return MulticastHops;
 
+#pragma warning disable 618
                 case ZmqSocketOptions.ReceiveTimeout:
                     return ReceiveTimeout;
+#pragma warning restore 618
 
                 case ZmqSocketOptions.SendTimeout:
                     return SendTimeout;

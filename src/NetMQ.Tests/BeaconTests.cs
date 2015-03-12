@@ -51,14 +51,10 @@ namespace NetMQ.Tests
                 speaker.Silence();
 
                 string peerName;
-                string message = listener.ReceiveString(out peerName);
+                Assert.AreEqual("Hello", listener.ReceiveString(out peerName));
 
-                Assert.AreEqual("Hello", message);
-
-                ISocketPollable socket = listener;
-                socket.Socket.Options.ReceiveTimeout = TimeSpan.FromSeconds(2);
-
-                Assert.Throws<AgainException>(() => { message = listener.ReceiveString(out peerName); });
+                string message;
+                Assert.IsFalse(listener.TryReceiveString(TimeSpan.FromSeconds(2), out peerName, out message));
             }
         }
 
@@ -77,17 +73,13 @@ namespace NetMQ.Tests
                 // this should send one broadcast message and stop
                 speaker.Publish("Hello");
 
-                string peerName;
-                string message = listener.ReceiveString(out peerName);
-
                 listener.Unsubscribe();
 
-                Assert.AreEqual("Hello", message);
+                string peerName;
+                Assert.AreEqual("Hello", listener.ReceiveString(out peerName));
 
-                ISocketPollable socket = listener;
-                socket.Socket.Options.ReceiveTimeout = TimeSpan.FromSeconds(2);
-
-                Assert.Throws<AgainException>(() => { message = listener.ReceiveString(out peerName); });
+                string message;
+                Assert.IsFalse(listener.TryReceiveString(TimeSpan.FromSeconds(2), out peerName, out message));
             }
         }
 
@@ -106,14 +98,9 @@ namespace NetMQ.Tests
                 // this should send one broadcast message and stop
                 speaker.Publish("Hello");
 
-                ISocketPollable socket = listener;
-                socket.Socket.Options.ReceiveTimeout = TimeSpan.FromSeconds(2);
-
-                Assert.Throws<AgainException>(() =>
-                {
-                    string peerName;
-                    listener.ReceiveString(out peerName);
-                });
+                string peerName;
+                string message;
+                Assert.IsFalse(listener.TryReceiveString(TimeSpan.FromSeconds(2), out peerName, out message));
             }
         }
 
@@ -213,7 +200,7 @@ namespace NetMQ.Tests
 
                 message = beacon2.ReceiveString(out peerName);
 
-                Assert.AreEqual("H1",message);
+                Assert.AreEqual("H1", message);
             }
         }
     }

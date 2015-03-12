@@ -196,7 +196,7 @@ namespace NetMQ
 
             private void OnPipeReady(object sender, NetMQSocketEventArgs e)
             {
-                NetMQMessage message = m_pipe.ReceiveMessage();
+                NetMQMessage message = m_pipe.ReceiveMultipartMessage();
 
                 string command = message.Pop().ConvertToString();
 
@@ -327,7 +327,7 @@ namespace NetMQ
 
             m_actor.SendMessage(message);
 
-            Hostname = m_actor.ReceiveString();
+            Hostname = m_actor.ReceiveFrameString();
         }
 
         /// <summary>
@@ -403,12 +403,18 @@ namespace NetMQ
             m_actor.Send(UnsubscribeCommand);
         }
 
+        /// <summary>
+        /// Blocks until a string is received. As the returning of this method is uncontrollable, it's
+        /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
+        /// </summary>
+        /// <param name="peerName"></param>
+        /// <returns></returns>
         [NotNull]
         public string ReceiveString(out string peerName)
         {
-            peerName = m_actor.ReceiveString();
+            peerName = m_actor.ReceiveFrameString();
 
-            return m_actor.ReceiveString();
+            return m_actor.ReceiveFrameString();
         }
 
         public bool TryReceiveString(TimeSpan timeout, out string peerName, out string message)
@@ -425,9 +431,9 @@ namespace NetMQ
         [NotNull]
         public byte[] Receive(out string peerName)
         {
-            peerName = m_actor.ReceiveString();
+            peerName = m_actor.ReceiveFrameString();
 
-            return m_actor.Receive();
+            return m_actor.ReceiveFrameBytes();
         }
 
         public void Dispose()

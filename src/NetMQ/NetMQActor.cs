@@ -139,7 +139,7 @@ namespace NetMQ
             //  Mandatory handshake for new actor so that constructor returns only
             //  when actor has also initialised. This eliminates timing issues at
             //  application start up.
-            m_self.WaitForSignal();
+            m_self.ReceiveSignal();
         }
 
         [NotNull]
@@ -273,7 +273,7 @@ namespace NetMQ
             try
             {
                 m_self.Send(EndShimMessage);
-                m_self.WaitForSignal();
+                m_self.ReceiveSignal();
             }
             catch (AgainException)
             {}

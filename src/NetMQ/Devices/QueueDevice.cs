@@ -55,7 +55,7 @@
 
             do
             {
-                var data = args.Socket.Receive(out more) ?? new byte[] { };
+                var data = args.Socket.ReceiveFrameBytes(out more);
 
                 if (more)
                     BackendSocket.SendMore(data);
@@ -76,7 +76,7 @@
 
             do
             {
-                var data = args.Socket.Receive(out more) ?? new byte[] { };
+                var data = args.Socket.ReceiveFrameBytes(out more);
 
                 if (more)
                     FrontendSocket.SendMore(data);
