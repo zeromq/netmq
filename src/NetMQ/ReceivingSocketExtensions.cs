@@ -877,8 +877,16 @@ namespace NetMQ
             message.Clear();
 
             var more = true;
+            var msg = new Msg();
             while (more)
-                message.Append(socket.Receive(dontWait, out more));
+            {
+                msg.InitEmpty();
+                socket.Receive(ref msg, dontWait ? SendReceiveOptions.DontWait : SendReceiveOptions.None);
+                message.Append(msg.CloneData());
+                more = msg.HasMore;
+            }
+            // ReSharper disable once ExceptionNotDocumented
+            msg.Close();
         }
 
         /// <summary>
@@ -892,9 +900,7 @@ namespace NetMQ
         public static NetMQMessage ReceiveMessage([NotNull] this IReceivingSocket socket, bool dontWait = false)
         {
             var message = new NetMQMessage();
-            var more = true;
-            while (more)
-                message.Append(socket.Receive(dontWait, out more));
+            socket.ReceiveMessage(message, dontWait);
             return message;
         }
 
