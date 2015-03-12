@@ -51,6 +51,7 @@
         /// <param name="args">a NetMQSocketEventArgs that contains a NetMqSocket for receiving data from</param>
         protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
         {
+            // TODO reuse a Msg instance here for performance
             bool more;
 
             do
@@ -72,6 +73,7 @@
         /// <param name="args">a NetMQSocketEventArgs that contains a Socket for receiving data from</param>
         protected override void BackendHandler(object sender, NetMQSocketEventArgs args)
         {
+            // TODO reuse a Msg instance here for performance
             bool more;
 
             do
