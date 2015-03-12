@@ -76,7 +76,7 @@ namespace LazyPirate.Client
 
         private static void ClientOnReceiveReady(object sender, NetMQSocketEventArgs netMqSocketEventArgs)
         {
-            var reply = netMqSocketEventArgs.Socket.Receive();
+            var reply = netMqSocketEventArgs.Socket.ReceiveFrameBytes();
             string strReply = Encoding.Unicode.GetString(reply);
 
             if (Int32.Parse(strReply) == s_sequence)

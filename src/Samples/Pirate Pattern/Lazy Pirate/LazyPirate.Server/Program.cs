@@ -23,7 +23,7 @@ namespace LazyPirate.Server
 
                 while (true)
                 {
-                    byte[] request = server.Receive();
+                    byte[] request = server.ReceiveFrameBytes();
                     cycles++;
 
                     if (cycles > 3 && random.Next(0, 10) == 0)
