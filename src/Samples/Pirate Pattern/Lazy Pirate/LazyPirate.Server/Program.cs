@@ -31,7 +31,7 @@ namespace LazyPirate.Server
                         Console.WriteLine("S: Simulating a crash");
                         Thread.Sleep(5000);
                     }
-                    else if (cycles < 3 && random.Next(0, 10) == 0)
+                    else if (cycles > 3 && random.Next(0, 10) == 0)
                     {
                         Console.WriteLine("S: Simulating CPU overload");
                         Thread.Sleep(1000);
