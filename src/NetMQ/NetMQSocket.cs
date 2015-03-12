@@ -264,14 +264,10 @@ namespace NetMQ
             var events = PollEvents.PollError;
 
             if (m_sendReady != null)
-            {
                 events |= PollEvents.PollOut;
-            }
 
             if (m_receiveReady != null)
-            {
                 events |= PollEvents.PollIn;
-            }
 
             return events;
         }
@@ -285,26 +281,26 @@ namespace NetMQ
         /// <param name="events">the given PollEvents that dictates when of the two events to raise</param>
         internal void InvokeEvents(object sender, PollEvents events)
         {
-            if (!m_isClosed)
+            if (m_isClosed)
+                return;
+
+            m_socketEventArgs.Init(events);
+
+            if (events.HasFlag(PollEvents.PollIn))
             {
-                m_socketEventArgs.Init(events);
-
-                if (events.HasFlag(PollEvents.PollIn))
+                var temp = m_receiveReady;
+                if (temp != null)
                 {
-                    var temp = m_receiveReady;
-                    if (temp != null)
-                    {
-                        temp(sender, m_socketEventArgs);
-                    }
+                    temp(sender, m_socketEventArgs);
                 }
+            }
 
-                if (events.HasFlag(PollEvents.PollOut))
+            if (events.HasFlag(PollEvents.PollOut))
+            {
+                var temp = m_sendReady;
+                if (temp != null)
                 {
-                    var temp = m_sendReady;
-                    if (temp != null)
-                    {
-                        temp(sender, m_socketEventArgs);
-                    }
+                    temp(sender, m_socketEventArgs);
                 }
             }
         }

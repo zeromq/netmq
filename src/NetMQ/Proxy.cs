@@ -130,9 +130,7 @@ namespace NetMQ
                 to.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
 
                 if (!more)
-                {
                     break;
-                }
             }
 
             copy.Close();

@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
     /// <summary>
     /// A SelectItem is a pairing of a (Socket or SocketBase) and a PollEvents value.
     /// </summary>
-    internal class SelectItem
+    internal sealed class SelectItem
     {
         public SelectItem(SocketBase socket, PollEvents @event)
         {
@@ -35,24 +37,13 @@ namespace NetMQ.zmq.Utils
     /// A Selector holds three lists of Sockets - for read, write, and error,
     /// and provides a Select method.
     /// </summary>
-    internal class Selector
+    internal sealed class Selector
     {
-        private readonly List<Socket> m_checkRead;
-        private readonly List<Socket> m_checkWrite;
-        private readonly List<Socket> m_checkError;
+        private readonly List<Socket> m_checkRead = new List<Socket>();
+        private readonly List<Socket> m_checkWrite = new List<Socket>();
+        private readonly List<Socket> m_checkError = new List<Socket>();
 
         /// <summary>
-        /// Create a new Selector object which holds three (empty) lists of Sockets.
-        /// </summary>
-        public Selector()
-        {
-            m_checkRead = new List<Socket>();
-            m_checkWrite = new List<Socket>();
-            m_checkError = new List<Socket>();
-        }
-
-        /// <summary>
-        /// 
         /// </summary>
         /// <param name="items">  (must not be null)</param>
         /// <param name="itemsCount"></param>
@@ -70,6 +61,7 @@ namespace NetMQ.zmq.Utils
             {
                 if (timeout == 0)
                     return false;
+
                 //TODO:  Do we really want to simply sleep and return, doing nothing during this interval?
                 Thread.Sleep(timeout);
                 return false;
@@ -97,9 +89,7 @@ namespace NetMQ.zmq.Utils
                     currentTimeoutMicroSeconds = (int)((timeout - stopwatch.ElapsedMilliseconds) * 1000);
 
                     if (currentTimeoutMicroSeconds < 0)
-                    {
                         currentTimeoutMicroSeconds = 0;
-                    }
                 }
 
                 m_checkRead.Clear();
@@ -113,21 +103,15 @@ namespace NetMQ.zmq.Utils
                     if (pollItem.Socket != null)
                     {
                         if (pollItem.Event != PollEvents.None && pollItem.Socket.Handle.Connected)
-                        {
                             m_checkRead.Add(pollItem.Socket.Handle);
-                        }
                     }
                     else
                     {
                         if ((pollItem.Event & PollEvents.PollIn) == PollEvents.PollIn)
-                        {
                             m_checkRead.Add(pollItem.FileDescriptor);
-                        }
 
                         if ((pollItem.Event & PollEvents.PollOut) == PollEvents.PollOut)
-                        {
                             m_checkWrite.Add(pollItem.FileDescriptor);
-                        }
                     }
                 }
 
@@ -173,38 +157,26 @@ namespace NetMQ.zmq.Utils
                     else
                     {
                         if (m_checkRead.Contains(selectItem.FileDescriptor))
-                        {
                             selectItem.ResultEvent |= PollEvents.PollIn;
-                        }
 
                         if (m_checkWrite.Contains(selectItem.FileDescriptor))
-                        {
                             selectItem.ResultEvent |= PollEvents.PollOut;
-                        }
                     }
 
                     if (selectItem.ResultEvent != PollEvents.None)
-                    {
                         numberOfEvents++;
-                    }
                 }
 
                 if (timeout == 0)
-                {
                     break;
-                }
 
                 if (numberOfEvents > 0)
-                {
                     break;
-                }
 
                 if (timeout < 0)
                 {
                     if (firstPass)
-                    {
                         firstPass = false;
-                    }
 
                     continue;
                 }
@@ -217,9 +189,7 @@ namespace NetMQ.zmq.Utils
                 }
 
                 if (stopwatch.ElapsedMilliseconds > timeout)
-                {
                     break;
-                }
             }
 
             return numberOfEvents > 0;

@@ -210,9 +210,7 @@ namespace NetMQ
                     case PublishCommand:
                         m_transmit = message.Pop();
                         m_pingTimer.Interval = message.Pop().ConvertToInt32();
-
                         m_pingTimer.Enable = true;
-
                         SendUdpFrame(m_transmit);
                         break;
                     case SilenceCommand:

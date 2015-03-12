@@ -299,16 +299,10 @@ namespace NetMQ.zmq
                     else if (optionValue is byte[])
                         val = (byte[])optionValue;
                     else
-                    {
-                        string xMsg = string.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue == null ? "null" : optionValue.ToString());
-                        throw new InvalidException(xMsg);
-                    }
+                        throw new InvalidException(string.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue == null ? "null" : optionValue.ToString()));
 
                     if (val.Length == 0 || val.Length > 255)
-                    {
-                        string xMsg = string.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length);
-                        throw new InvalidException(xMsg);
-                    }
+                        throw new InvalidException(string.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length));
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
                     IdentitySize = (byte)Identity.Length;
@@ -337,17 +331,13 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.ReconnectIvl:
                     ReconnectIvl = (int)optionValue;
                     if (ReconnectIvl < -1)
-                    {
                         throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", ReconnectIvl));
-                    }
                     break;
 
                 case ZmqSocketOptions.ReconnectIvlMax:
                     ReconnectIvlMax = (int)optionValue;
                     if (ReconnectIvlMax < 0)
-                    {
                         throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", ReconnectIvlMax));
-                    }
                     break;
 
                 case ZmqSocketOptions.Backlog:

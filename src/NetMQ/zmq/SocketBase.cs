@@ -385,11 +385,10 @@ namespace NetMQ.zmq
 
             //  Remaining transports require to be run in an I/O thread, so at this
             //  point we'll choose one.
-            IOThread ioThread = ChooseIOThread(m_options.Affinity);
+            var ioThread = ChooseIOThread(m_options.Affinity);
+
             if (ioThread == null)
-            {
                 throw NetMQException.Create(ErrorCode.EmptyThread);
-            }
 
             switch (protocol)
             {
@@ -403,8 +402,9 @@ namespace NetMQ.zmq
                         m_port = listener.Port;
 
                         // Recreate the address string (localhost:1234) in case the port was system-assigned
-                        var host = address.Substring(0, address.IndexOf(':'));
-                        addr = "tcp://" + host + ":" + m_port;
+                        addr = string.Format("tcp://{0}:{1}", 
+                            address.Substring(0, address.IndexOf(':')), 
+                            m_port);
                     }
                     catch (NetMQException ex)
                     {
@@ -510,16 +510,13 @@ namespace NetMQ.zmq
 
                 // The total HWM for an inproc connection should be the sum of
                 // the binder's HWM and the connector's HWM.
-                int sndhwm;
-                int rcvhwm;
-                if (m_options.SendHighWatermark == 0 || peer.Options.ReceiveHighWatermark == 0)
-                    sndhwm = 0;
-                else
-                    sndhwm = m_options.SendHighWatermark + peer.Options.ReceiveHighWatermark;
-                if (m_options.ReceiveHighWatermark == 0 || peer.Options.SendHighWatermark == 0)
-                    rcvhwm = 0;
-                else
-                    rcvhwm = m_options.ReceiveHighWatermark + peer.Options.SendHighWatermark;
+                var sndhwm = m_options.SendHighWatermark != 0 && peer.Options.ReceiveHighWatermark != 0 
+                    ? m_options.SendHighWatermark + peer.Options.ReceiveHighWatermark
+                    : 0;
+
+                var rcvhwm = m_options.ReceiveHighWatermark != 0 && peer.Options.SendHighWatermark != 0 
+                    ? m_options.ReceiveHighWatermark + peer.Options.SendHighWatermark
+                    : 0;
 
                 //  Create a bi-directional pipe to connect the peers.
                 ZObject[] parents = { this, peer.Socket };
@@ -580,8 +577,7 @@ namespace NetMQ.zmq
             if (protocol.Equals(Address.TcpProtocol))
             {
                 paddr.Resolved = (new TcpAddress());
-                paddr.Resolved.Resolve(
-                    address, m_options.IPv4Only);
+                paddr.Resolved.Resolve(address, m_options.IPv4Only);
             }
             else if (protocol.Equals(Address.IpcProtocol))
             {
@@ -673,37 +669,24 @@ namespace NetMQ.zmq
 
             if (protocol == Address.InProcProtocol)
             {
-                bool found = UnregisterEndpoint(addr, this);
+                if (UnregisterEndpoint(addr, this))
+                    return;
+                
+                Pipe pipe;
+                if (!m_inprocs.TryGetValue(addr, out pipe))
+                    throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
-                if (!found)
-                {
-                    Pipe pipe;
-
-                    if (m_inprocs.TryGetValue(addr, out pipe))
-                    {
-                        pipe.Terminate(true);
-                        m_inprocs.Remove(addr);
-                    }
-                    else
-                    {
-                        throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
-                    }
-                }
+                pipe.Terminate(true);
+                m_inprocs.Remove(addr);
             }
             else
             {
                 Own endpoint;
-
-                if (m_endpoints.TryGetValue(addr, out endpoint))
-                {
-                    TermChild(endpoint);
-
-                    m_endpoints.Remove(addr);
-                }
-                else
-                {
+                if (!m_endpoints.TryGetValue(addr, out endpoint))
                     throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
-                }
+
+                TermChild(endpoint);
+                m_endpoints.Remove(addr);
             }
         }
 
@@ -1234,6 +1217,8 @@ namespace NetMQ.zmq
             }
         }
 
+        #region Monitor events
+
         public void EventConnected([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvent.Connected) == 0)
@@ -1321,6 +1306,8 @@ namespace NetMQ.zmq
 
             monitorEvent.Write(m_monitorSocket);
         }
+
+        #endregion
 
         /// <summary>
         /// If there is a monitor-socket, close it and set monitor-events to 0.
