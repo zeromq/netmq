@@ -11,22 +11,20 @@ namespace HelloWorld
             using (var server = context.CreateResponseSocket())
             using (var client = context.CreateRequestSocket())
             {
-                server.Bind("tcp://127.0.0.1:5556");
-                client.Connect("tcp://127.0.0.1:5556");
+                server.Bind("tcp://localhost:5556");
+                client.Connect("tcp://localhost:5556");
 
                 client.Send("Hello");
 
-                Console.WriteLine("From Client: {0}", 
-                    server.ReceiveString());
+                Console.WriteLine("From Client: {0}", server.ReceiveFrameString());
 
                 server.Send("Hi Back");
 
-                Console.WriteLine("From Server: {0}", 
-                    client.ReceiveString());
+                Console.WriteLine("From Server: {0}", client.ReceiveFrameString());
 
-                        Console.WriteLine();
-                        Console.Write("Press any key to exit...");
-                        Console.ReadKey();
+                Console.WriteLine();
+                Console.Write("Press any key to exit...");
+                Console.ReadKey();
             }
         }
     }
