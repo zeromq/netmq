@@ -56,5 +56,19 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt32(buffer));
         }
+
+//        [Test]
+//        public void PutInt64Perf()
+//        {
+//            for (var j = 0; j < 10; j++)
+//            {
+//                var buffer = new byte[8];
+//                const int loopCount = 1000*1000*100;
+//                var sw = Stopwatch.StartNew();
+//                for (var k = 0; k < loopCount; k++)
+//                    NetworkOrderBitsConverter.PutInt64(0x12345678ABCDEF12L, buffer, 0);
+//                Console.Out.WriteLine("{0}", sw.Elapsed.TotalMilliseconds);
+//            }
+//        }
     }
 }
