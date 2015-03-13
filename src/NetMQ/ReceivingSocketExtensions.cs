@@ -17,12 +17,21 @@ namespace NetMQ
     [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
     public static class ReceivingSocketExtensions
     {
+        /// <summary>
+        /// The <see cref="Encoding"/> used in string related methods that do
+        /// not explicitly provide an encoding parameter.
+        /// </summary>
         private static readonly Encoding s_defaultEncoding = Encoding.UTF8;
 
         #region Receiving a frame as a byte array
 
         #region Blocking
 
+        /// <summary>
+        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <returns>The content of the received message frame.</returns>
         [NotNull]
         public static byte[] ReceiveFrameBytes([NotNull] this IReceivingSocket socket)
         {
@@ -30,6 +39,13 @@ namespace NetMQ
             return socket.ReceiveFrameBytes(out more);
         }
 
+        /// <summary>
+        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives.
+        /// Indicate whether further frames exist via <paramref name="more"/>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="more"><c>true</c> if another frame of the same message follows, otherwise <c>false</c>.</param>
+        /// <returns>The content of the received message frame.</returns>
         [NotNull]
         public static byte[] ReceiveFrameBytes([NotNull] this IReceivingSocket socket, out bool more)
         {
@@ -52,12 +68,28 @@ namespace NetMQ
 
         #region Immediate
 
+        /// <summary>
+        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// If no message is immediately available, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="bytes">The content of the received message frame, or <c>null</c> if no message was available.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameBytes([NotNull] this IReceivingSocket socket, out byte[] bytes)
         {
             bool more;
             return socket.TryReceiveFrameBytes(out bytes, out more);
         }
 
+        /// <summary>
+        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// If no message is immediately available, return <c>false</c>.
+        /// Indicate whether further frames exist via <paramref name="more"/>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="more"><c>true</c> if another frame of the same message follows, otherwise <c>false</c>.</param>
+        /// <param name="bytes">The content of the received message frame, or <c>null</c> if no message was available.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameBytes([NotNull] this IReceivingSocket socket, out byte[] bytes, out bool more)
         {
             return socket.TryReceiveFrameBytes(TimeSpan.Zero, out bytes, out more);
@@ -67,12 +99,30 @@ namespace NetMQ
 
         #region Timeout
 
+        /// <summary>
+        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
+        /// <param name="bytes">The content of the received message frame, or <c>null</c> if no message was available.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameBytes([NotNull] this IReceivingSocket socket, TimeSpan timeout, out byte[] bytes)
         {
             bool more;
             return socket.TryReceiveFrameBytes(timeout, out bytes, out more);
         }
 
+        /// <summary>
+        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
+        /// Indicate whether further frames exist via <paramref name="more"/>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="more"><c>true</c> if another frame of the same message follows, otherwise <c>false</c>.</param>
+        /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
+        /// <param name="bytes">The content of the received message frame, or <c>null</c> if no message was available.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameBytes([NotNull] this IReceivingSocket socket, TimeSpan timeout, out byte[] bytes, out bool more)
         {
             var msg = new Msg();
@@ -213,6 +263,12 @@ namespace NetMQ
 
         #region Blocking
 
+        /// <summary>
+        /// Receive all frames of the next message from <see cref="socket"/>, blocking until a message arrives.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="expectedFrameCount">Optional initial <see cref="List{T}.Capacity"/> for the returned <see cref="List{T}"/>.</param>
+        /// <returns>All frames of a multipart message as a list having one or more items.</returns>
         [NotNull]
         public static List<byte[]> ReceiveMultipartBytes([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
@@ -221,10 +277,18 @@ namespace NetMQ
             return frames;
         }
 
+        /// <summary>
+        /// Receive all frames of the next message from <see cref="socket"/>, blocking until a message arrives.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="frames">Reference to a list for return values. If <c>null</c> a new instance will be assigned, otherwise the provided list will be cleared and populated.</param>
+        /// <param name="expectedFrameCount">Optional initial <see cref="List{T}.Capacity"/> for the returned <see cref="List{T}"/>.</param>
         public static void ReceiveMultipartBytes([NotNull] this IReceivingSocket socket, ref List<byte[]> frames, int expectedFrameCount = 4)
         {
             if (frames == null)
                 frames = new List<byte[]>(expectedFrameCount);
+            else
+                frames.Clear();
 
             var msg = new Msg();
 
@@ -245,6 +309,13 @@ namespace NetMQ
 
         #region Immediate
 
+        /// <summary>
+        /// Attempt to receive all frames of the next message from <see cref="socket"/>.
+        /// If no message is immediately available, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="frames">Reference to a list for return values. If <c>null</c> a new instance will be assigned, otherwise the provided list will be cleared and populated.</param>
+        /// <param name="expectedFrameCount">Optional initial <see cref="List{T}.Capacity"/> for the returned <see cref="List{T}"/>.</param>
         public static bool TryReceiveMultipartBytes([NotNull] this IReceivingSocket socket, ref List<byte[]> frames, int expectedFrameCount = 4)
         {
             return socket.TryReceiveMultipartBytes(TimeSpan.Zero, ref frames, expectedFrameCount);
@@ -254,6 +325,14 @@ namespace NetMQ
 
         #region Timeout
 
+        /// <summary>
+        /// Attempt to receive all frames of the next message from <see cref="socket"/>.
+        /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
+        /// <param name="frames">Reference to a list for return values. If <c>null</c> a new instance will be assigned, otherwise the provided list will be cleared and populated.</param>
+        /// <param name="expectedFrameCount">Optional initial <see cref="List{T}.Capacity"/> for the returned <see cref="List{T}"/>.</param>
         public static bool TryReceiveMultipartBytes([NotNull] this IReceivingSocket socket, TimeSpan timeout, ref List<byte[]> frames, int expectedFrameCount = 4)
         {
             var msg = new Msg();
