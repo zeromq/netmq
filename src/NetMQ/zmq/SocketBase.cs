@@ -1168,6 +1168,9 @@ namespace NetMQ.zmq
             m_rcvMore = msg.HasMore;
         }
 
+        /// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="addr"/> is not supported.</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
         public void Monitor([CanBeNull] string addr, SocketEvent events)
         {
             CheckContextTerminated();

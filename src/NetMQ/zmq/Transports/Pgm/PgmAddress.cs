@@ -16,6 +16,7 @@ namespace NetMQ.zmq.Transports.PGM
         {
         }
 
+        /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
         public void Resolve(string name, bool ip4Only)
         {
             int delimiter = name.LastIndexOf(':');
