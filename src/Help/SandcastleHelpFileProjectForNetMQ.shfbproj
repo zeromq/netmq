@@ -49,10 +49,9 @@
     <VisibleItems>ExplicitInterfaceImplementations, InheritedMembers, InheritedFrameworkMembers, Protected</VisibleItems>
     <MissingTags>Summary, Parameter, Returns, AutoDocumentCtors, AutoDocumentDispose</MissingTags>
     <DocumentationSources>
-      <DocumentationSource sourceFile="NetMQ\NetMQ.csproj" />
-      <DocumentationSource sourceFile="NetMQ\bin\Debug\NetMQ.dll" />
-      <DocumentationSource sourceFile="NetMQ\bin\Debug\NetMQ.XML" />
-    </DocumentationSources>
+      <DocumentationSource sourceFile="..\NetMQ\NetMQ.csproj" />
+<DocumentationSource sourceFile="..\NetMQ\bin\Debug\NetMQ.dll" />
+<DocumentationSource sourceFile="..\NetMQ\bin\Debug\NetMQ.XML" /></DocumentationSources>
     <ApiFilter>
       <Filter entryType="Namespace" fullName="JetBrains.Annotations" isExposed="False" xmlns="" />
     </ApiFilter>
