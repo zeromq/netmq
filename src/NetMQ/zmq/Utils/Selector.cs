@@ -107,10 +107,10 @@ namespace NetMQ.zmq.Utils
                     }
                     else
                     {
-                        if ((pollItem.Event & PollEvents.PollIn) == PollEvents.PollIn)
+                        if (pollItem.Event.HasIn())
                             m_checkRead.Add(pollItem.FileDescriptor);
 
-                        if ((pollItem.Event & PollEvents.PollOut) == PollEvents.PollOut)
+                        if (pollItem.Event.HasOut())
                             m_checkWrite.Add(pollItem.FileDescriptor);
                     }
                 }
@@ -141,18 +141,13 @@ namespace NetMQ.zmq.Utils
 
                     if (selectItem.Socket != null)
                     {
-                        PollEvents events = (PollEvents)selectItem.Socket.GetSocketOption(ZmqSocketOptions.Events);
+                        var events = (PollEvents)selectItem.Socket.GetSocketOption(ZmqSocketOptions.Events);
 
-                        if ((selectItem.Event & PollEvents.PollIn) == PollEvents.PollIn && (events & PollEvents.PollIn) == PollEvents.PollIn)
-                        {
+                        if (selectItem.Event.HasIn() && events.HasIn())
                             selectItem.ResultEvent |= PollEvents.PollIn;
-                        }
 
-                        if ((selectItem.Event & PollEvents.PollOut) == PollEvents.PollOut &&
-                            (events & PollEvents.PollOut) == PollEvents.PollOut)
-                        {
+                        if (selectItem.Event.HasOut() && events.HasOut())
                             selectItem.ResultEvent |= PollEvents.PollOut;
-                        }
                     }
                     else
                     {

@@ -265,4 +265,17 @@ namespace NetMQ.zmq
         PollOut = 0x2,
         PollError = 0x4
     }
+
+    public static class PollEventsExtensions
+    {
+        public static bool HasIn(this PollEvents pollEvents)
+        {
+            return (pollEvents & PollEvents.PollIn) == PollEvents.PollIn;
+        }
+
+        public static bool HasOut(this PollEvents pollEvents)
+        {
+            return (pollEvents & PollEvents.PollOut) == PollEvents.PollOut;
+        }
+    }
 }
