@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 
 using MajordomoProtocol;
 using NetMQ;
-using NetMQ.zmq;
+
 using NUnit.Framework;
+
 using Poller = NetMQ.Poller;
 
 namespace MajordomoTests
@@ -68,7 +69,7 @@ namespace MajordomoTests
                                        };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew (() => poller.PollTillCancelled ());
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
@@ -77,7 +78,7 @@ namespace MajordomoTests
                 // correct call
                 var reply = session.Send ("echo", requestMessage);
 
-                poller.Stop ();
+                poller.CancelAndJoin ();
                 poller.RemoveSocket (broker);
 
                 Assert.That (reply.FrameCount, Is.EqualTo (1));

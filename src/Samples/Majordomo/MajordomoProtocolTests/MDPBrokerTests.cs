@@ -9,7 +9,7 @@ using MajordomoProtocol;
 using MajordomoProtocol.Contracts;
 
 using NetMQ;
-using NetMQ.zmq;
+
 using NUnit.Framework;
 
 namespace MajordomoTests
@@ -212,6 +212,7 @@ namespace MajordomoTests
         {
             const string _END_POINT = "tcp://localhost:5555";
             var log = new List<string> ();
+            var debugLog = new List<string> ();
 
             var idW01 = new[] { (byte) 'W', (byte) '1' };
             var idC01 = new[] { (byte) 'C', (byte) '1' };
@@ -227,14 +228,14 @@ namespace MajordomoTests
                 // collect all logging information from broker
                 broker.LogInfoReady += (s, e) => log.Add (e.Info);
                 // follow more details
-                //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
+                broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
                 broker.Run (cts.Token);
                 // wait a little for broker to get started
                 await Task.Delay (250);
                 // get the task for simulating the worker & start it
                 Task.Run (() => EchoWorker (echoWorker, _LONG_HEARTBEAT_INTERVAL), cts.Token);
-                // wait a little for worker to get started & registered
+                // wait a little for worker to get started & registered to avoid that client is too fast
                 await Task.Delay (250);
                 // get the task for simulating the client
                 var echoClientTask = new Task (() => EchoClient (echoClient, "echo"));
@@ -248,9 +249,9 @@ namespace MajordomoTests
                 Assert.That (log.Count, Is.EqualTo (7));
                 Assert.That (log.Count (s => s.Contains ("READY processed. Worker W1 added to service echo")), Is.EqualTo (1));
                 Assert.That (log.Count (s => s.Contains ("Received")), Is.EqualTo (3));
-                Assert.That (log[4], Is.EqualTo ("[BROKER] Dispatching request -> NetMQMessage[C1,,Helo World!]"));
+                Assert.That (log[4], Is.EqualTo ("[BROKER] Dispatching request -> NetMQMessage[C1,,Hello World!]"));
                 Assert.That (log[6],
-                             Is.EqualTo ("[BROKER] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Helo World!]"));
+                             Is.EqualTo ("[BROKER] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Hello World!]"));
             }
         }
 
@@ -514,6 +515,7 @@ namespace MajordomoTests
         {
             const string _END_POINT = "tcp://localhost:5555";
             var log = new List<string> ();
+            var debugLog = new List<string> ();
 
             var idW01 = new[] { (byte) 'W', (byte) '1' };
             var idW02 = new[] { (byte) 'W', (byte) '2' };
@@ -529,7 +531,7 @@ namespace MajordomoTests
                 // collect all logging information from broker
                 broker.LogInfoReady += (s, e) => log.Add (e.Info);
                 // follow more details
-                //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
+                broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
                 broker.Run (cts.Token);
                 // wait a little for broker to get started
@@ -553,8 +555,6 @@ namespace MajordomoTests
         {
             const string _END_POINT = "tcp://localhost:5555";
             var log = new List<string> ();
-
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
 
             const int _LONG_HEARTBEAT_INTERVAL = 10000;     // 10s heartbeat -> stay out of my testing for now
 
@@ -606,13 +606,13 @@ namespace MajordomoTests
         {
             var request = new NetMQMessage ();
             // set the request data
-            request.Push ("Helo World!");
+            request.Push ("Hello World!");
             // send the request to the service
             var reply = client.Send (serviceName, request);
 
             Assert.That (reply, Is.Not.Null, "[ECHO CLIENT] REPLY was <null>");
             Assert.That (reply.FrameCount, Is.EqualTo (1));
-            Assert.That (reply.First.ConvertToString (), Is.EqualTo ("Helo World!"));
+            Assert.That (reply.First.ConvertToString (), Is.EqualTo ("Hello World!"));
         }
 
         private void MultipleRequestWorker (IMDPWorker worker = null, string endpoint = null, int heartbeatinterval = 2500)
@@ -623,7 +623,6 @@ namespace MajordomoTests
             worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
 
             NetMQMessage reply = null;
-            var i = 0;
 
             while (true)
             {

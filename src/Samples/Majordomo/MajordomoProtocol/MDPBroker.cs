@@ -93,7 +93,7 @@ namespace MajordomoProtocol
             set
             {
                 m_heartbeatLiveliness = value;
-                m_heartbeatExpiry = TimeSpan.FromMilliseconds (HeartbeatInterval.TotalMilliseconds * HeartbeatLiveliness);
+                m_heartbeatExpiry = TimeSpan.FromMilliseconds (HeartbeatInterval.TotalMilliseconds * value);
             }
         }
 
@@ -116,7 +116,8 @@ namespace MajordomoProtocol
             Socket = m_ctx.CreateRouterSocket ();
             m_services = new List<Service> ();
             m_knownWorkers = new List<Worker> ();
-            HeartbeatLiveliness = 3;
+            m_heartbeatInterval = TimeSpan.FromMilliseconds (2500);
+            HeartbeatLiveliness = 3;                    // so m_heartbeatExpiry = value * m_heartbeatInterval = 7.500 ms
             m_isBound = false;
         }
 
@@ -125,13 +126,15 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="endpoint">a valid NetMQ endpoint for the broker</param>
         /// <param name="heartbeatInterval">the interval between heartbeats in milliseconds</param>
-        public MDPBroker (string endpoint, int heartbeatInterval = 2500)
+        public MDPBroker (string endpoint, int heartbeatInterval = 0)
             : this ()
         {
             if (string.IsNullOrWhiteSpace (endpoint))
                 throw new ArgumentNullException ("endpoint", "An 'endpint' were the broker binds to must be given!");
 
-            m_heartbeatInterval = TimeSpan.FromMilliseconds (heartbeatInterval);
+            if (heartbeatInterval > 0)
+                m_heartbeatInterval = TimeSpan.FromMilliseconds (heartbeatInterval);
+
             m_endpoint = endpoint;
         }
 
@@ -153,7 +156,7 @@ namespace MajordomoProtocol
             }
             catch (Exception e)
             {
-                var error = string.Format ("The bind operation failed. Mostlikely because 'endpoint' ({0}) is malformed!",
+                var error = string.Format ("The bind operation failed. Most likely because 'endpoint' ({0}) is malformed!",
                                            m_endpoint);
                 error += string.Format ("\nMessage: {0}", e.Message);
                 throw new ApplicationException (error);
@@ -485,17 +488,14 @@ namespace MajordomoProtocol
             lock (m_syncRoot)
             {
                 foreach (var service in m_services)
-                    lock (m_syncRoot)
+                    foreach (var worker in service.WaitingWorkers)
                     {
-                        foreach (var worker in service.WaitingWorkers)
-                        {
-                            if (DateTime.UtcNow < worker.Expiry)
-                                // we found the first woker not expired in that service
-                                // any following worker will be younger -> we're done for the service
-                                break;
+                        if (DateTime.UtcNow < worker.Expiry)
+                            // we found the first woker not expired in that service
+                            // any following worker will be younger -> we're done for the service
+                            break;
 
-                            RemoveWorker (worker);
-                        }
+                        RemoveWorker (worker);
                     }
             }
         }

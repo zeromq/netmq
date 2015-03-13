@@ -8,7 +8,7 @@ using MajordomoProtocol;
 using MajordomoProtocol.Contracts;
 
 using NetMQ;
-using NetMQ.zmq;
+
 using NUnit.Framework;
 
 namespace MajordomoTests
@@ -80,14 +80,14 @@ namespace MajordomoTests
                 };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew (() => poller.PollTillCancelled());
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
                 // initialize the worker - broker protocol
                 session.Receive (null);
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
 
                 Assert.That (loggingMessages.Count, Is.EqualTo (5));
@@ -115,7 +115,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) => e.Socket.ReceiveMessage ();
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew (() => poller.PollTillCancelled());
 
                 // speed up the test
                 session.HeartbeatDelay = TimeSpan.FromMilliseconds (250);
@@ -125,7 +125,7 @@ namespace MajordomoTests
                 // initialize the worker - broker protocol
                 session.Receive (null);
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
 
                 Assert.That (loggingMessages.Count (m => m.Contains ("retrying")), Is.EqualTo (3));
@@ -143,7 +143,7 @@ namespace MajordomoTests
             // setup the counter socket for communication
             using (var ctx = NetMQContext.Create ())
             using (var broker = ctx.CreateRouterSocket ())
-            using (var poller = new NetMQ.Poller ())
+            using (var poller = new Poller ())
             using (var session = new MDPWorker (host_address, "test"))
             {
                 broker.Bind (host_address);
@@ -176,7 +176,7 @@ namespace MajordomoTests
                                        };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew (() => poller.PollTillCancelled());
 
                 try
                 {
@@ -187,7 +187,7 @@ namespace MajordomoTests
                     Assert.That (ex.Message, Is.EqualTo ("Invalid protocol header received!"));
                 }
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
             }
         }
@@ -233,7 +233,7 @@ namespace MajordomoTests
                                        };
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew (() => poller.PollTillCancelled ());
 
                 try
                 {
@@ -244,7 +244,7 @@ namespace MajordomoTests
                     Assert.That (ex.Message, Is.EqualTo ("First frame must be an empty frame!"));
                 }
 
-                poller.Stop ();
+                poller.CancelAndJoin();
                 poller.RemoveSocket (broker);
             }
         }
@@ -300,7 +300,7 @@ namespace MajordomoTests
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
 
                 poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.Start ());
+                var t = Task.Factory.StartNew (() => poller.PollTillCancelled ());
 
                 session.HeartbeatDelay = TimeSpan.FromMilliseconds (250);
                 session.ReconnectDelay = TimeSpan.FromMilliseconds (250);

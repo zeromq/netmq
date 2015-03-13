@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading;
-using MajordomoProtocol.Contracts;
+
 using NetMQ;
+
+using MajordomoProtocol.Contracts;
 
 namespace MajordomoProtocol
 {
@@ -10,7 +12,7 @@ namespace MajordomoProtocol
         // Majordomo protocol header 
         private readonly string m_mdpWorker = MDPBroker.MDPWorkerHeader;
 
-        private const int _HEARTBEAT_LIVELINESS = 3;// indicates the remaining "live" for the worker
+        private const int _heartbeat_liveliness = 3;// indicates the remaining "live" for the worker
 
         private readonly NetMQContext m_ctx;
         private readonly string m_brokerAddress;    // the broker address to connect to
@@ -25,10 +27,10 @@ namespace MajordomoProtocol
         private NetMQMessage m_request;             // used to collect the request received from the ReceiveReady event handler
         private readonly int m_connectionRetries;   // the number of times the worker tries to connect to the broker before it abandons
         private int m_retriesLeft;                  // indicates the number of connection retries that are left
-        private byte[] m_identity;                  // if not null the identity of the worker socket
+        private readonly byte[] m_identity;         // if not null the identity of the worker socket
 
         /// <summary>
-        ///     sen a heartbeat every specified milliseconds
+        ///     send a heartbeat every specified milliseconds
         /// </summary>
         public TimeSpan HeartbeatDelay { get; set; }
 
@@ -217,7 +219,7 @@ namespace MajordomoProtocol
             // if something goes wrong we'll return 'null'
             m_request = null;
             // any message from broker is treated as heartbeat(!) since communication exists
-            m_liveliness = _HEARTBEAT_LIVELINESS;
+            m_liveliness = _heartbeat_liveliness;
             // check the expected message envelope and get the embedded MPD command
             var command = GetMDPCommand (request);
             // MDP command is one byte!
@@ -233,7 +235,7 @@ namespace MajordomoProtocol
                     break;
                 case MDPCommand.Heartbeat:
                     // reset the liveliness of the broker
-                    m_liveliness = _HEARTBEAT_LIVELINESS;
+                    m_liveliness = _heartbeat_liveliness;
                     break;
                 case MDPCommand.Disconnect:
                     // reconnect the worker
@@ -313,7 +315,7 @@ namespace MajordomoProtocol
             // send READY to broker since worker is connected
             Send (MDPCommand.Ready, m_serviceName, null);
             // reset liveliness to active broker
-            m_liveliness = _HEARTBEAT_LIVELINESS;
+            m_liveliness = _heartbeat_liveliness;
             // set point in time for next heatbeat
             m_heartbeatAt = DateTime.UtcNow + HeartbeatDelay;
         }
