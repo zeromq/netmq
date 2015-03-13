@@ -67,9 +67,9 @@ namespace MultithreadedService
                     Console.WriteLine("Client {0} received \"{1}\"", clientId, response);
                 }
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on ClientRoutine: {0}", exc.Message);
+                Console.WriteLine("Exception on ClientRoutine: {0}", ex.Message);
             }
         }
 
@@ -91,9 +91,9 @@ namespace MultithreadedService
                     }
                 }
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on WorkerRoutine: {0}", exc.Message);
+                Console.WriteLine("Exception on WorkerRoutine: {0}", ex.Message);
                 throw;
             }
         }
@@ -113,9 +113,9 @@ namespace MultithreadedService
 
                 rep.Send(response, response.Length, SendReceiveOptions.DontWait);
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on RepOnReceiveReady: {0}", exc.Message);
+                Console.WriteLine("Exception on RepOnReceiveReady: {0}", ex.Message);
                 throw;
             }
         }

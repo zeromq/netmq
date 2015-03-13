@@ -83,9 +83,9 @@ namespace SimplePirate.Queue
                         backend.SendMore(Encoding.Unicode.GetBytes(""));
                         backend.Send(request);
                     }
-                    catch (Exception exc)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Q: [FrontendOnReceiveReady] Dequeue exc: {0}", exc.ToString());
+                        Console.WriteLine("Q: [FrontendOnReceiveReady] Dequeue exception: {0}", ex.ToString());
                     }
                 };
 
