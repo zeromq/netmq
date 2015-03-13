@@ -73,9 +73,7 @@ namespace NetMQ
         {
             m_interval = interval;
             m_timerEventArgs = new NetMQTimerEventArgs(this);
-
             m_enable = true;
-
             When = -1;
         }
 
@@ -91,7 +89,6 @@ namespace NetMQ
             set
             {
                 m_interval = value;
-
                 When = Enable ? Clock.NowMs() + Interval : -1;
             }
         }
@@ -108,12 +105,11 @@ namespace NetMQ
             get { return m_enable; }
             set
             {
-                if (m_enable != value)
-                {
-                    m_enable = value;
+                if (m_enable == value)
+                    return;
 
-                    When = m_enable ? Clock.NowMs() + Interval : -1;
-                }
+                m_enable = value;
+                When = m_enable ? Clock.NowMs() + Interval : -1;
             }
         }
 
@@ -131,9 +127,7 @@ namespace NetMQ
         {
             var temp = Elapsed;
             if (temp != null)
-            {
                 temp(sender, m_timerEventArgs);
-            }
         }
     }
 }
