@@ -101,7 +101,7 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <returns>The message's data as a newly allocated array of bytes.</returns>
         /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
         [NotNull]
@@ -115,7 +115,7 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
         /// <returns>The message's data as a newly allocated array of bytes.</returns>
         /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
@@ -129,7 +129,7 @@ namespace NetMQ
         /// <summary>
         /// potentially non-blocking get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <param name="dontWait">Non-blocking if <c>true</c>, otherwise blocking.</param>
         /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available.</param>
         /// <returns>The message's data as a newly allocated array of bytes.</returns>
@@ -144,7 +144,7 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <param name="options">a SendReceiveOptions that can specify the DontWait or SendMore flags</param>
         /// <returns>The message's data as a newly allocated array of bytes.</returns>
         /// <exception cref="AgainException">If <paramref name="socket"/> is a <see cref="NetMQSocket"/> and <see cref="SocketOptions.ReceiveTimeout"/> elapsed.</exception>
@@ -159,7 +159,7 @@ namespace NetMQ
         /// <summary>
         /// get the data section of the available message as <c>byte[]</c>
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <param name="options">a SendReceiveOptions which can specify the DontWait or SendMore flags (or None)</param>
         /// <param name="hasMore"><c>true</c> when more parts of a multipart message are available</param>
         /// <returns>The message's data as a newly allocated array of bytes.</returns>
@@ -187,7 +187,7 @@ namespace NetMQ
         /// Receive the next message's data as a <see cref="T:byte[]"/>, or return <c>null</c> if no message arrives
         /// within <paramref name="timeout"/>.
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <param name="timeout">The length of time wait for an inbound message.</param>
         /// <returns>The received message bytes, or <c>null</c> if no message arrived within <paramref name="timeout"/>.
         /// </returns>
@@ -638,7 +638,7 @@ namespace NetMQ
         /// <summary>
         /// Receive a message if available within <paramref name="timeout"/>.
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <param name="timeout">the time span to wait for a message to receive</param>
         /// <returns>
         /// The <see cref="Encoding.ASCII"/> string representation of the data of the message or
@@ -658,7 +658,7 @@ namespace NetMQ
         /// <summary>
         /// Receive a message if available within <paramref name="timeout"/>.
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <param name="encoding">the encoding to use for the string representation</param>
         /// <param name="timeout">the time span to wait for a message to receive</param>
         /// <returns>
@@ -969,7 +969,7 @@ namespace NetMQ
         /// <summary>
         /// receive of a (multipart)message within a specified timespan
         /// </summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <param name="timeout">the timespan to wait for a message</param>
         /// <returns>the received message or <c>null</c> if non arrived within the timeout period</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
@@ -996,7 +996,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary></summary>
-        /// <param name="socket">The <see cref="NetMQSocket"/> to receive from.</param>
+        /// <param name="socket">The socket to receive from.</param>
         /// <returns><c>true</c> if the received signal was zero, otherwise <c>false</c>.</returns>
         public static bool ReceiveSignal([NotNull] this IReceivingSocket socket)
         {
