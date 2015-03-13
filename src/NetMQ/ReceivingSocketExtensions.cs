@@ -200,7 +200,7 @@ namespace NetMQ
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
             // ReSharper disable once ExceptionNotDocumented
-            return result.HasFlag(PollEvents.PollIn)
+            return result.HasIn()
                 ? socket.Receive()
                 : null;
         }
@@ -675,7 +675,7 @@ namespace NetMQ
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            return result.HasFlag(PollEvents.PollIn) 
+            return result.HasIn() 
                 ? socket.ReceiveString(encoding) 
                 : null;
         }
@@ -982,7 +982,7 @@ namespace NetMQ
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            return result.HasFlag(PollEvents.PollIn) 
+            return result.HasIn() 
                 ? socket.ReceiveMessage() 
                 : null;
         }

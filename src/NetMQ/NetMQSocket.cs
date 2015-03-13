@@ -286,22 +286,18 @@ namespace NetMQ
 
             m_socketEventArgs.Init(events);
 
-            if (events.HasFlag(PollEvents.PollIn))
+            if (events.HasIn())
             {
                 var temp = m_receiveReady;
                 if (temp != null)
-                {
                     temp(sender, m_socketEventArgs);
-                }
             }
 
-            if (events.HasFlag(PollEvents.PollOut))
+            if (events.HasOut())
             {
                 var temp = m_sendReady;
                 if (temp != null)
-                {
                     temp(sender, m_socketEventArgs);
-                }
             }
         }
 
@@ -427,12 +423,7 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public bool HasIn
         {
-            get
-            {
-                var pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
-
-                return pollEvents.HasFlag(PollEvents.PollIn);
-            }
+            get { return GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events).HasIn(); }
         }
 
         /// <summary>
@@ -444,12 +435,7 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public bool HasOut
         {
-            get
-            {
-                var pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
-
-                return pollEvents.HasFlag(PollEvents.PollOut);
-            }
+            get { return GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events).HasOut(); }
         }
 
         #region Socket options

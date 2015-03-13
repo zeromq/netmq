@@ -560,7 +560,7 @@ namespace NetMQ
                         {
                             NetMQSocket socket = m_pollact[itemNbr];
 
-                            if (item.ResultEvent.HasFlag(PollEvents.PollError))
+                            if (item.ResultEvent.HasError())
                             {
                                 socket.Errors++;
 
@@ -582,7 +582,7 @@ namespace NetMQ
                         }
                         else
                         {
-                            if (item.ResultEvent.HasFlag(PollEvents.PollError) || item.ResultEvent.HasFlag(PollEvents.PollIn))
+                            if (item.ResultEvent.HasError() || item.ResultEvent.HasIn())
                             {
                                 Action<Socket> action;
 

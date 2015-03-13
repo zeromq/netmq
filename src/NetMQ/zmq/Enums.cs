@@ -277,5 +277,10 @@ namespace NetMQ.zmq
         {
             return (pollEvents & PollEvents.PollOut) == PollEvents.PollOut;
         }
+
+        public static bool HasError(this PollEvents pollEvents)
+        {
+            return (pollEvents & PollEvents.PollError) == PollEvents.PollError;
+        }
     }
 }

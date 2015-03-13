@@ -52,7 +52,6 @@
     <Compile Include="Blob.cs" />
     <Compile Include="BufferPool.cs" />
     <Compile Include="DnsEndPoint.cs" />
-    <Compile Include="EnumHelper.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="EventDelegator.cs" />
     <Compile Include="InterfaceCollection.cs" />
