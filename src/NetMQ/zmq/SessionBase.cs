@@ -510,30 +510,26 @@ namespace NetMQ.zmq
 
             //  Create the connector object.
 
-            if (m_addr.Protocol.Equals(Address.TcpProtocol))
+            switch (m_addr.Protocol)
             {
-                var connector = new TcpConnector(ioThread, this, m_options, m_addr, wait);
-                //alloc_Debug.Assert(connector);
-                LaunchChild(connector);
-                return;
-            }
-
-            if (m_addr.Protocol.Equals(Address.IpcProtocol))
-            {
-                var connector = new IpcConnector(ioThread, this, m_options, m_addr, wait);
-                //alloc_Debug.Assert(connector);
-                LaunchChild(connector);
-                return;
-            }
-
-            if (m_addr.Protocol.Equals(Address.PgmProtocol) || m_addr.Protocol.Equals(Address.EpgmProtocol))
-            {
-                var pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
-                pgmSender.Init(m_addr.Resolved as PgmAddress);
-
-                SendAttach(this, pgmSender);
-
-                return;
+                case Address.TcpProtocol:
+                {
+                    LaunchChild(new TcpConnector(ioThread, this, m_options, m_addr, wait));
+                    return;
+                }
+                case Address.IpcProtocol:
+                {
+                    LaunchChild(new IpcConnector(ioThread, this, m_options, m_addr, wait));
+                    return;
+                }
+                case Address.PgmProtocol:
+                case Address.EpgmProtocol:
+                {
+                    var pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
+                    pgmSender.Init(m_addr.Resolved as PgmAddress);
+                    SendAttach(this, pgmSender);
+                    return;
+                }
             }
 
             Debug.Assert(false);

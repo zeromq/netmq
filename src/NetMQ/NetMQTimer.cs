@@ -108,7 +108,7 @@ namespace NetMQ
             get { return m_enable; }
             set
             {
-                if (!m_enable.Equals(value))
+                if (m_enable != value)
                 {
                     m_enable = value;
 

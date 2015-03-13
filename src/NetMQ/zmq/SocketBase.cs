@@ -199,35 +199,34 @@ namespace NetMQ.zmq
         /// </summary>
         private void CheckProtocol([NotNull] string protocol)
         {
-            //  First check out whether the protocol is something we are aware of.
-            if (!protocol.Equals(Address.InProcProtocol) &&
-                !protocol.Equals(Address.IpcProtocol) && !protocol.Equals(Address.TcpProtocol) &&
-                !protocol.Equals(Address.PgmProtocol) && !protocol.Equals(Address.EpgmProtocol))
+            switch (protocol)
             {
-#if DEBUG
-                string xMsg = string.Format("SocketBase.CheckProtocol({0}), protocol is invalid.", protocol);
-                throw new ProtocolNotSupportedException(xMsg);
-#else
-                throw new ProtocolNotSupportedException();
-#endif
+                case Address.InProcProtocol:
+                case Address.IpcProtocol:
+                case Address.TcpProtocol:
+                    // All is well
+                    break;
+                case Address.PgmProtocol:
+                case Address.EpgmProtocol:
+                    //  Check whether socket type and transport protocol match.
+                    //  Specifically, multicast protocols can't be combined with
+                    //  bi-directional messaging patterns (socket types).
+                    switch (m_options.SocketType)
+                    {
+                        case ZmqSocketType.Pub:
+                        case ZmqSocketType.Sub:
+                        case ZmqSocketType.Xpub:
+                        case ZmqSocketType.Xsub:
+                            // All is well
+                            break;
+                        default:
+                            throw new ProtocolNotSupportedException(
+                                "Multicast protocols are not supported by socket type: " + m_options.SocketType);
+                    }
+                    break;
+                default:
+                    throw new ProtocolNotSupportedException("Invalid protocol: " + protocol);
             }
-
-            //  Check whether socket type and transport protocol match.
-            //  Specifically, multicast protocols can't be combined with
-            //  bi-directional messaging patterns (socket types).
-            if ((protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol)) &&
-                m_options.SocketType != ZmqSocketType.Pub && m_options.SocketType != ZmqSocketType.Sub &&
-                m_options.SocketType != ZmqSocketType.Xpub && m_options.SocketType != ZmqSocketType.Xsub)
-            {
-#if DEBUG
-                string xMsg = string.Format("SocketBase.CheckProtocol({0}), socket type {1} and protocol do not match.", protocol, m_options.SocketType);
-                throw new ProtocolNotSupportedException(xMsg);
-#else
-                throw new ProtocolNotSupportedException();
-#endif
-            }
-
-            //  Protocol is available.
         }
 
 
@@ -357,30 +356,31 @@ namespace NetMQ.zmq
 
             CheckProtocol(protocol);
 
-            if (protocol.Equals(Address.InProcProtocol))
+            switch (protocol)
             {
-                var endpoint = new Ctx.Endpoint(this, m_options);
-
-                bool addressRegistered = RegisterEndpoint(addr, endpoint);
-
-                if (!addressRegistered)
+                case Address.InProcProtocol:
                 {
-                    string xMsg = string.Format("Cannot bind address ( {0} ) - already in use.", addr);
-                    throw new AddressAlreadyInUseException(xMsg);
+                    var endpoint = new Ctx.Endpoint(this, m_options);
+                    bool addressRegistered = RegisterEndpoint(addr, endpoint);
+
+                    if (!addressRegistered)
+                        throw new AddressAlreadyInUseException(string.Format("Cannot bind address ( {0} ) - already in use.", addr));
+
+                    m_options.LastEndpoint = addr;
+                    return;
                 }
-
-                // Save last endpoint URI
-                m_options.LastEndpoint = addr;
-
-                return;
-            }
-            if ((protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol)) && (
-                m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub))
-            {
-                //  For convenience's sake, bind can be used interchangeable with
-                //  connect for PGM and EPGM transports.
-                Connect(addr);
-                return;
+                case Address.PgmProtocol:
+                case Address.EpgmProtocol:
+                {
+                    if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
+                    {
+                        // For convenience's sake, bind can be used interchangeable with
+                        // connect for PGM and EPGM transports.
+                        Connect(addr);
+                        return;
+                    }
+                    break;
+                }
             }
 
             //  Remaining transports require to be run in an I/O thread, so at this
@@ -499,7 +499,7 @@ namespace NetMQ.zmq
 
             CheckProtocol(protocol);
 
-            if (protocol.Equals(Address.InProcProtocol))
+            if (protocol == Address.InProcProtocol)
             {
                 //  TODO: inproc connect is specific with respect to creating pipes
                 //  as there's no 'reconnect' functionality implemented. Once that
@@ -574,26 +574,32 @@ namespace NetMQ.zmq
             var paddr = new Address(protocol, address);
 
             //  Resolve address (if needed by the protocol)
-            if (protocol.Equals(Address.TcpProtocol))
+            switch (protocol)
             {
-                paddr.Resolved = (new TcpAddress());
-                paddr.Resolved.Resolve(address, m_options.IPv4Only);
-            }
-            else if (protocol.Equals(Address.IpcProtocol))
-            {
-                paddr.Resolved = (new IpcAddress());
-                paddr.Resolved.Resolve(address, true);
-            }
-            else if (protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol))
-            {
-                if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
+                case Address.TcpProtocol:
                 {
-                    Bind(addr);
-                    return;
+                    paddr.Resolved = (new TcpAddress());
+                    paddr.Resolved.Resolve(address, m_options.IPv4Only);
+                    break;
                 }
-
-                paddr.Resolved = new PgmAddress();
-                paddr.Resolved.Resolve(address, m_options.IPv4Only);
+                case Address.IpcProtocol:
+                {
+                    paddr.Resolved = (new IpcAddress());
+                    paddr.Resolved.Resolve(address, true);
+                    break;
+                }
+                case Address.PgmProtocol:
+                case Address.EpgmProtocol:
+                {
+                    if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
+                    {
+                        Bind(addr);
+                        return;
+                    }
+                    paddr.Resolved = new PgmAddress();
+                    paddr.Resolved.Resolve(address, m_options.IPv4Only);
+                    break;
+                }
             }
 
             //  Create session.
@@ -602,7 +608,7 @@ namespace NetMQ.zmq
 
             //  PGM does not support subscription forwarding; ask for all data to be
             //  sent to this pipe.
-            bool icanhasall = protocol.Equals(Address.PgmProtocol) || protocol.Equals(Address.EpgmProtocol);
+            bool icanhasall = protocol == Address.PgmProtocol || protocol == Address.EpgmProtocol;
 
             if (!m_options.DelayAttachOnConnect || icanhasall)
             {
@@ -1180,10 +1186,8 @@ namespace NetMQ.zmq
             CheckProtocol(protocol);
 
             // Event notification only supported over inproc://
-            if (!protocol.Equals(Address.InProcProtocol))
-            {
+            if (protocol != Address.InProcProtocol)
                 throw new ProtocolNotSupportedException(string.Format("In SocketBase.Monitor({0},), protocol must be inproc", addr));
-            }
 
             // Register events to monitor
             m_monitorEvents = events;

@@ -94,7 +94,7 @@ namespace ROUTERbrokerREQworkers
                     string workload = worker.ReceiveFrameString();
                     //Console.WriteLine("[W] Workload received: {0}", workload);
 
-                    if (workload.Equals("END"))
+                    if (workload == "END")
                     {
                         end = true;
                     }

@@ -64,7 +64,7 @@ namespace ROUTERbrokerDEALERworkers
                 {
                     string request = worker.ReceiveFrameString();
 
-                    if (request.Equals("END"))
+                    if (request == "END")
                     {
                         end = true;
                     }
@@ -94,7 +94,7 @@ namespace ROUTERbrokerDEALERworkers
                 {
                     string request = worker.ReceiveFrameString();
 
-                    if (request.Equals("END"))
+                    if (request == "END")
                     {
                         end = true;
                     }

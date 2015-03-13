@@ -89,7 +89,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
             int port;
             //  Allow 0 specifically, to detect invalid port error in atoi if not
-            if (portStr.Equals("*") || portStr.Equals("0"))
+            if (portStr == "*" || portStr == "0")
                 //  Resolve wildcard to 0 to allow auto-selection of port
                 port = 0;
             else
@@ -104,7 +104,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
             IPAddress ipAddress;
 
-            if (addrStr.Equals("*"))
+            if (addrStr == "*")
             {
                 if (ip4Only)
                 {

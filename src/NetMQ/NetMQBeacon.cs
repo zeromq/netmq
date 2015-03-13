@@ -76,7 +76,7 @@ namespace NetMQ
                 IPAddress bindTo = null;
                 IPAddress sendTo = null;
 
-                if (interfaceName.Equals("*"))
+                if (interfaceName == "*")
                 {
                     bindTo = IPAddress.Any;
                     sendTo = IPAddress.Broadcast;

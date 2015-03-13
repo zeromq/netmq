@@ -47,7 +47,7 @@ namespace NetMQ.zmq.Transports.PGM
 
             int port;
             //  Allow 0 specifically, to detect invalid port error in atoi if not
-            if (portStr.Equals("*") || portStr.Equals("0"))
+            if (portStr == "*" || portStr == "0")
             {
                 //  Resolve wildcard to 0 to allow autoselection of port
                 port = 0;
@@ -61,7 +61,7 @@ namespace NetMQ.zmq.Transports.PGM
                     throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), portStr ({2}) must denote a valid nonzero integer.", name, ip4Only, portStr));
             }
 
-            if (addrStr.Equals("*"))
+            if (addrStr == "*")
                 addrStr = "0.0.0.0";
 
             IPAddress ipAddress;
