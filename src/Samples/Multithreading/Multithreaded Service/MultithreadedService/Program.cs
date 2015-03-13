@@ -26,12 +26,8 @@ namespace MultithreadedService
                 var source = new CancellationTokenSource();
                 s_token = source.Token;
 
-                var workerThreads = new List<Task>();
                 for (int threadId = 0; threadId < 10; threadId++)
-                {
-                    NetMQContext ctx = context;
-                    workerThreads.Add(Task.Factory.StartNew(() => WorkerRoutine(new Worker(Guid.NewGuid(), ctx)), s_token));
-                }
+                    Task.Factory.StartNew(() => WorkerRoutine(new Worker(Guid.NewGuid(), context)), s_token);
 
                 queue.Start();
 
