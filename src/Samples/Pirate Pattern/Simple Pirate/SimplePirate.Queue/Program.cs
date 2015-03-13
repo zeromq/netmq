@@ -44,7 +44,7 @@ namespace SimplePirate.Queue
                     workerQueue.Enqueue(workerAddress);
 
                     // Second frame is empty
-                    e.Socket.ReceiveFrameBytes();
+                    e.Socket.SkipFrame();
 
                     // Third frame is READY or else a client reply address
                     byte[] clientAddress = e.Socket.ReceiveFrameBytes();
