@@ -64,9 +64,9 @@ namespace Freelance.ModelOne.Client
             }
         }
 
-        private static void ClientOnReceiveReady(object sender, NetMQSocketEventArgs e)
+        private static void ClientOnReceiveReady(object sender, NetMQSocketEventArgs args)
         {
-            Console.WriteLine("Server replied ({0})", e.Socket.ReceiveFrameString());
+            Console.WriteLine("Server replied ({0})", args.Socket.ReceiveFrameString());
         }
     }
 }

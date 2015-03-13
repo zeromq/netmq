@@ -31,13 +31,13 @@ namespace NetMQ.Tests
 
                 req.Connect("tcp://127.0.0.1:" + port);
 
-                rep.ReceiveReady += (s, a) =>
+                rep.ReceiveReady += (s, e) =>
                 {
                     bool more;
-                    Assert.AreEqual("Hello", a.Socket.ReceiveFrameString(out more));
+                    Assert.AreEqual("Hello", e.Socket.ReceiveFrameString(out more));
                     Assert.False(more);
 
-                    a.Socket.Send("World");
+                    e.Socket.Send("World");
                 };
 
                 poller.PollTillCancelledNonBlocking();
@@ -66,14 +66,14 @@ namespace NetMQ.Tests
             using (var repMonitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
             using (var reqMonitor = new NetMQMonitor(context, req, "inproc://req.inproc", SocketEvent.Connected))
             {
-                repMonitor.Accepted += (s, a) => acceptedEvent.Set();
-                repMonitor.Listening += (s, a) => listeningEvent.Set();
+                repMonitor.Accepted += (s, e) => acceptedEvent.Set();
+                repMonitor.Listening += (s, e) => listeningEvent.Set();
 
                 repMonitor.AttachToPoller(poller);
 
                 int port = rep.BindRandomPort("tcp://127.0.0.1");
 
-                reqMonitor.Connected += (s, a) => connectedEvent.Set();
+                reqMonitor.Connected += (s, e) => connectedEvent.Set();
 
                 reqMonitor.AttachToPoller(poller);
 
@@ -118,7 +118,7 @@ namespace NetMQ.Tests
                 var signal1 = new ManualResetEvent(false);
                 var signal2 = new ManualResetEvent(false);
 
-                router1.ReceiveReady += (s, a) =>
+                router1.ReceiveReady += (s, e) =>
                 {
                     router1.SkipFrame();
                     router1.SkipFrame();
@@ -127,7 +127,7 @@ namespace NetMQ.Tests
                     signal1.Set();
                 };
 
-                router2.ReceiveReady += (s, a) =>
+                router2.ReceiveReady += (s, e) =>
                 {
                     router2.SkipFrame();
                     router2.SkipFrame();
@@ -177,17 +177,16 @@ namespace NetMQ.Tests
                 var signal2 = new ManualResetEvent(false);
                 var signal3 = new ManualResetEvent(false);
 
-                router1.ReceiveReady += (s, a) =>
+                router1.ReceiveReady += (s, e) =>
                 {
                     router1Arrived = true;
-
                     router1.SkipFrame();
                     router1.SkipFrame();
                     poller.RemoveSocket(router1);
                     signal1.Set();
                 };
 
-                router2.ReceiveReady += (s, a) =>
+                router2.ReceiveReady += (s, e) =>
                 {
                     router2Arrived = true;
                     router2.SkipFrame();
@@ -196,7 +195,7 @@ namespace NetMQ.Tests
                     signal2.Set();
                 };
 
-                router3.ReceiveReady += (s, a) =>
+                router3.ReceiveReady += (s, e) =>
                 {
                     router3Arrived = true;
                     router3.SkipFrame();
@@ -255,7 +254,7 @@ namespace NetMQ.Tests
                 var signal3 = new ManualResetEvent(false);
                 var signal4 = new ManualResetEvent(false);
 
-                router1.ReceiveReady += (s, a) =>
+                router1.ReceiveReady += (s, e) =>
                 {
                     router1Arrived++;
                     router1.SkipFrame(); // identity
@@ -264,7 +263,7 @@ namespace NetMQ.Tests
                     signal1.Set();
                 };
 
-                router2.ReceiveReady += (s, a) =>
+                router2.ReceiveReady += (s, e) =>
                 {
                     router2Arrived++;
                     router2.SkipFrame(); // identity
@@ -278,7 +277,7 @@ namespace NetMQ.Tests
                     }
                 };
 
-                router3.ReceiveReady += (s, a) =>
+                router3.ReceiveReady += (s, e) =>
                 {
                     router3.SkipFrame(); // identity
                     router3.SkipFrame(); // message
@@ -286,7 +285,7 @@ namespace NetMQ.Tests
                     signal3.Set();
                 };
 
-                router4.ReceiveReady += (s, a) =>
+                router4.ReceiveReady += (s, e) =>
                 {
                     router4.SkipFrame(); // identity
                     router4.SkipFrame(); // message
@@ -344,44 +343,44 @@ namespace NetMQ.Tests
 
                 bool first = true;
 
-                router1.ReceiveReady += (s, a) =>
+                router1.ReceiveReady += (s, e) =>
                 {
                     if (!first)
                         Assert.Fail("This should not happen because we cancelled the socket");
                     first = false;
 
                     // identity
-                    a.Socket.SkipFrame();
+                    e.Socket.SkipFrame();
 
                     bool more;
-                    Assert.AreEqual("Hello", a.Socket.ReceiveFrameString(out more));
+                    Assert.AreEqual("Hello", e.Socket.ReceiveFrameString(out more));
                     Assert.False(more);
 
                     // cancelling the socket
-                    poller.RemoveSocket(a.Socket); // remove self
+                    poller.RemoveSocket(e.Socket); // remove self
                 };
 
-                router2.ReceiveReady += (s, a) =>
+                router2.ReceiveReady += (s, e) =>
                 {
                     // identity
-                    byte[] identity = a.Socket.ReceiveFrameBytes();
+                    byte[] identity = e.Socket.ReceiveFrameBytes();
 
                     // message
-                    a.Socket.SkipFrame();
+                    e.Socket.SkipFrame();
 
-                    a.Socket.SendMore(identity);
-                    a.Socket.Send("2");
+                    e.Socket.SendMore(identity);
+                    e.Socket.Send("2");
                 };
 
-                router3.ReceiveReady += (s, a) =>
+                router3.ReceiveReady += (s, e) =>
                 {
                     // identity
-                    byte[] identity = a.Socket.ReceiveFrameBytes();
+                    byte[] identity = e.Socket.ReceiveFrameBytes();
 
                     // message
-                    a.Socket.SkipFrame();
+                    e.Socket.SkipFrame();
 
-                    a.Socket.SendMore(identity).Send("3");
+                    e.Socket.SendMore(identity).Send("3");
                 };
 
                 Task pollerTask = Task.Factory.StartNew(poller.PollTillCancelled);
@@ -421,7 +420,7 @@ namespace NetMQ.Tests
 
                 bool messageArrived = false;
 
-                router.ReceiveReady += (s, a) =>
+                router.ReceiveReady += (s, e) =>
                 {
                     Assert.IsFalse(messageArrived);
                     router.SkipFrame();
@@ -484,7 +483,7 @@ namespace NetMQ.Tests
 
                 bool messageArrived = false;
 
-                router.ReceiveReady += (s, a) =>
+                router.ReceiveReady += (s, e) =>
                 {
                     router.SkipFrame();
                     router.SkipFrame();
@@ -589,7 +588,7 @@ namespace NetMQ.Tests
                 signal1.Set();
             };
 
-            timer2.Elapsed += (s, a) =>
+            timer2.Elapsed += (s, e) =>
             {
                 count2++;
                 signal2.Set();
@@ -635,7 +634,7 @@ namespace NetMQ.Tests
                 }
             };
 
-            timer2.Elapsed += (s, a) =>
+            timer2.Elapsed += (s, e) =>
             {
                 timer1.Enable = true;
                 timer2.Enable = false;

@@ -21,7 +21,7 @@ namespace SimplePirate.Worker
                 worker.Options.Identity = Encoding.Unicode.GetBytes(guid.ToString());
                 worker.Connect(ServerEndpoint);
 
-                worker.ReceiveReady += (sender, socket) =>
+                worker.ReceiveReady += (s, e) =>
                 {
                     //  Read and save all frames until we get an empty frame
                     //  In this example there is only 1 but it could be more

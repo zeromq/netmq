@@ -17,16 +17,16 @@ namespace ExtendedRequestReply
                 backend.Bind(BackendEndpoint);
 
                 // Handler for messages coming in to the frontend
-                frontend.ReceiveReady += (sender, e) =>
+                frontend.ReceiveReady += (s, e) =>
                 {
-                    var msg = frontend.ReceiveMultipartMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     backend.SendMessage(msg); // Relay this message to the backend
                 };
 
                 // Handler for messages coming in to the backend
-                backend.ReceiveReady += (sender, e) =>
+                backend.ReceiveReady += (s, e) =>
                 {
-                    var msg = backend.ReceiveMultipartMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     frontend.SendMessage(msg); // Relay this message to the frontend
                 };
 

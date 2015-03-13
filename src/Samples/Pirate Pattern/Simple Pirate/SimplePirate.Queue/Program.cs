@@ -35,27 +35,27 @@ namespace SimplePirate.Queue
                 var workerQueue = new Queue<byte[]>();
 
                 // Handle worker activity on backend
-                backend.ReceiveReady += (sender, socket) =>
+                backend.ReceiveReady += (s, e) =>
                 {
                     // Queue worker address for LRU routing
-                    byte[] workerAddress = socket.Socket.ReceiveFrameBytes();
+                    byte[] workerAddress = e.Socket.ReceiveFrameBytes();
 
                     // Use worker address for LRU routing
                     workerQueue.Enqueue(workerAddress);
 
                     // Second frame is empty
-                    socket.Socket.ReceiveFrameBytes();
+                    e.Socket.ReceiveFrameBytes();
 
                     // Third frame is READY or else a client reply address
-                    byte[] clientAddress = socket.Socket.ReceiveFrameBytes();
+                    byte[] clientAddress = e.Socket.ReceiveFrameBytes();
 
                     // If client reply, send rest back to frontend
                     // Forward message to client if it's not a READY
                     if (Encoding.Unicode.GetString(clientAddress) != LRUReady)
                     {
-                        socket.Socket.SkipFrame(); // empty
+                        e.Socket.SkipFrame(); // empty
 
-                        byte[] reply = socket.Socket.ReceiveFrameBytes();
+                        byte[] reply = e.Socket.ReceiveFrameBytes();
 
                         frontend.SendMore(clientAddress);
                         frontend.SendMore("");
@@ -63,16 +63,16 @@ namespace SimplePirate.Queue
                     }
                 };
 
-                frontend.ReceiveReady += (sender1, socket1) =>
+                frontend.ReceiveReady += (s, e) =>
                 {
                     // Now get next client request, route to next worker
                     // Dequeue and drop the next worker address
 
                     // Now get next client request, route to LRU worker
                     // Client request is [address][empty][request]
-                    byte[] clientAddr = socket1.Socket.ReceiveFrameBytes();
-                    socket1.Socket.SkipFrame(); // empty
-                    byte[] request = socket1.Socket.ReceiveFrameBytes();
+                    byte[] clientAddr = e.Socket.ReceiveFrameBytes();
+                    e.Socket.SkipFrame(); // empty
+                    byte[] request = e.Socket.ReceiveFrameBytes();
 
                     try
                     {
