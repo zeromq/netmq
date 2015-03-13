@@ -25,10 +25,10 @@ namespace remote_thr
 
                 for (int i = 0; i != messageCount; i++)
                 {
-                    var message = new Msg();
-                    message.InitPool(messageSize);
-                    push.Send(ref message, SendReceiveOptions.None);
-                    message.Close();
+                    var msg = new Msg();
+                    msg.InitPool(messageSize);
+                    push.Send(ref msg, SendReceiveOptions.None);
+                    msg.Close();
                 }
             }
 

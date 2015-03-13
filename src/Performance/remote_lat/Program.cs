@@ -24,27 +24,27 @@ namespace remote_lat
             {
                 req.Connect(connectTo);
 
-                var message = new Msg();
-                message.InitPool(messageSize);
+                var msg = new Msg();
+                msg.InitPool(messageSize);
 
                 var stopWatch = Stopwatch.StartNew();
 
                 for (int i = 0; i != roundtripCount; i++)
                 {
-                    req.Send(ref message, SendReceiveOptions.None);
+                    req.Send(ref msg, SendReceiveOptions.None);
 
-                    req.Receive(ref message);
+                    req.Receive(ref msg);
 
-                    if (message.Size != messageSize)
+                    if (msg.Size != messageSize)
                     {
-                        Console.WriteLine("message of incorrect size received. Received: {0} Expected: {1}", message.Size, messageSize);
+                        Console.WriteLine("message of incorrect size received. Received: {0} Expected: {1}", msg.Size, messageSize);
                         return -1;
                     }
                 }
 
                 stopWatch.Stop();
 
-                message.Close();
+                msg.Close();
 
                 double elapsedMicroseconds = stopWatch.ElapsedTicks*1000000L/Stopwatch.Frequency;
                 double latency = elapsedMicroseconds/(roundtripCount*2);

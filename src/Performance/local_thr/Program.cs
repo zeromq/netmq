@@ -23,18 +23,18 @@ namespace local_thr
             {
                 pullSocket.Bind(bindTo);
 
-                var message = new Msg();
-                message.InitEmpty();
+                var msg = new Msg();
+                msg.InitEmpty();
 
-                pullSocket.Receive(ref message);
+                pullSocket.Receive(ref msg);
 
                 var stopWatch = Stopwatch.StartNew();
                 for (int i = 0; i != messageCount - 1; i++)
                 {
-                    pullSocket.Receive(ref message);
-                    if (message.Size != messageSize)
+                    pullSocket.Receive(ref msg);
+                    if (msg.Size != messageSize)
                     {
-                        Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
+                        Console.WriteLine("message of incorrect size received. Received: " + msg.Size + " Expected: " + messageSize);
                         return -1;
                     }
                 }
@@ -43,7 +43,7 @@ namespace local_thr
                 if (millisecondsElapsed == 0)
                     millisecondsElapsed = 1;
 
-                message.Close();
+                msg.Close();
 
                 double messagesPerSecond = (double)messageCount/millisecondsElapsed*1000;
                 double megabits = messagesPerSecond*messageSize*8/1000000;
