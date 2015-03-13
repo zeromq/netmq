@@ -33,7 +33,7 @@ namespace remote_lat
                 {
                     req.Send(ref message, SendReceiveOptions.None);
 
-                    req.Receive(ref message, SendReceiveOptions.None);
+                    req.Receive(ref message);
 
                     if (message.Size != messageSize)
                     {

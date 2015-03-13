@@ -67,9 +67,8 @@ namespace MultithreadedService
                     Console.WriteLine("Client {0} sent \"{0} Hello\"", clientId);
                     req.Send(message, message.Length);
 
-                    bool hasMore;
-                    byte[] response = req.Receive(false, out hasMore);
-                    Console.WriteLine("Client {0} received \"{1}\"", clientId, Encoding.Unicode.GetString(response));
+                    var response = req.ReceiveFrameString(Encoding.Unicode);
+                    Console.WriteLine("Client {0} received \"{1}\"", clientId, response);
                 }
             }
             catch (Exception exc)
@@ -103,14 +102,13 @@ namespace MultithreadedService
             }
         }
 
-        private static void RepOnReceiveReady(object sender, NetMQSocketEventArgs socket)
+        private static void RepOnReceiveReady(object sender, NetMQSocketEventArgs args)
         {
             try
             {
-                NetMQSocket rep = socket.Socket;
+                NetMQSocket rep = args.Socket;
 
-                bool hasMore;
-                byte[] message = rep.Receive(SendReceiveOptions.DontWait, out hasMore);
+                byte[] message = rep.ReceiveFrameBytes();
 
                 //Thread.Sleep(1000); //  Simulate 'work'
 

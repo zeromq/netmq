@@ -21,7 +21,7 @@ namespace ExtendedRequestReply
                     client.SendMessage(msg);
                     Console.WriteLine("Sent Message {0}", msg.Last.ConvertToString());
 
-                    var response = client.ReceiveMessage();
+                    var response = client.ReceiveMultipartMessage();
                     Console.WriteLine("Received Message {0}", response.Last.ConvertToString());
                 }
 

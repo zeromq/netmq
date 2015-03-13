@@ -181,7 +181,7 @@ namespace MajordomoProtocol
         private void ProcessReceiveReady(object sender, NetMQSocketEventArgs e)
         {
             // a message is available within the timeout period
-            var reply = m_client.ReceiveMessage();
+            var reply = m_client.ReceiveMultipartMessage();
 
             Log(string.Format ("\n[CLIENT INFO] received the reply {0}\n", reply));
 

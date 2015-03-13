@@ -31,11 +31,11 @@ namespace ROUTERbrokerREQworkers
                 for (int taskNumber = 0; taskNumber < WorkersCount*10; taskNumber++)
                 {
                     //  LRU worker is next waiting in queue
-                    string address = client.ReceiveString();
+                    string address = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", address);
-                    string empty = client.ReceiveString();
+                    string empty = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", empty);
-                    string ready = client.ReceiveString();
+                    string ready = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", ready);
 
                     client.SendMore(address);
@@ -49,11 +49,11 @@ namespace ROUTERbrokerREQworkers
                 //  Now ask mamas to shut down and report their results
                 for (int taskNbr = 0; taskNbr < WorkersCount; taskNbr++)
                 {
-                    string address = client.ReceiveString();
+                    string address = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", address);
-                    string empty = client.ReceiveString();
+                    string empty = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", empty);
-                    string ready = client.ReceiveString();
+                    string ready = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", ready);
 
                     client.SendMore(address);
@@ -91,7 +91,7 @@ namespace ROUTERbrokerREQworkers
                     //Console.WriteLine("[W] Message sent: {0}", msg);
 
                     //  Get workload from router, until finished
-                    string workload = worker.ReceiveString();
+                    string workload = worker.ReceiveFrameString();
                     //Console.WriteLine("[W] Workload received: {0}", workload);
 
                     if (workload.Equals("END"))

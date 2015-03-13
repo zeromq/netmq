@@ -114,7 +114,7 @@ namespace ParanoidPirate.Client
         /// </summary>
         private static void OnClientReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            var reply = e.Socket.Receive();
+            var reply = e.Socket.ReceiveFrameBytes();
             var strReply = Encoding.Unicode.GetString(reply);
 
             if (Int32.Parse(strReply) == s_sequence)

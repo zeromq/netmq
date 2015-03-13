@@ -84,7 +84,7 @@ namespace SimplePirate.Client
 
         private static void ClientOnReceiveReady(object sender, NetMQSocketEventArgs socket)
         {
-            var reply = socket.Socket.Receive();
+            var reply = socket.Socket.ReceiveFrameBytes();
 
             if (Encoding.Unicode.GetString(reply) == (_strSequenceSent + " WORLD!"))
             {

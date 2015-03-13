@@ -50,7 +50,7 @@ namespace MajordomoTests
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 4 Frame message
                     // [client adrR][e][mdp header][service][request]
                     if (msg.FrameCount != 5)
@@ -157,7 +157,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     // just swallow message -> wrong service name
-                    e.Socket.ReceiveMessage();
+                    e.Socket.ReceiveMultipartMessage();
                 };
 
                 poller.AddSocket(broker);
@@ -195,7 +195,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     // return empty reply
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 4 Frame message
                     // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
                     if (msg.FrameCount != 5)
@@ -242,7 +242,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     // return empty reply
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 4 Frame message
                     // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
                     if (msg.FrameCount != 5)
@@ -296,7 +296,7 @@ namespace MajordomoTests
                 broker.ReceiveReady += (s, e) =>
                 {
                     // return empty reply
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 4 Frame message
                     // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
                     if (msg.FrameCount != 5)

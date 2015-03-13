@@ -38,24 +38,24 @@ namespace SimplePirate.Queue
                 backend.ReceiveReady += (sender, socket) =>
                 {
                     // Queue worker address for LRU routing
-                    byte[] workerAddress = socket.Socket.Receive();
+                    byte[] workerAddress = socket.Socket.ReceiveFrameBytes();
 
                     // Use worker address for LRU routing
                     workerQueue.Enqueue(workerAddress);
 
                     // Second frame is empty
-                    socket.Socket.Receive();
+                    socket.Socket.ReceiveFrameBytes();
 
                     // Third frame is READY or else a client reply address
-                    byte[] clientAddress = socket.Socket.Receive();
+                    byte[] clientAddress = socket.Socket.ReceiveFrameBytes();
 
                     // If client reply, send rest back to frontend
                     // Forward message to client if it's not a READY
                     if (Encoding.Unicode.GetString(clientAddress) != LRUReady)
                     {
-                        socket.Socket.Receive(); // empty
+                        socket.Socket.SkipFrame(); // empty
 
-                        byte[] reply = socket.Socket.Receive();
+                        byte[] reply = socket.Socket.ReceiveFrameBytes();
 
                         frontend.SendMore(clientAddress);
                         frontend.SendMore("");
@@ -70,9 +70,9 @@ namespace SimplePirate.Queue
 
                     // Now get next client request, route to LRU worker
                     // Client request is [address][empty][request]
-                    byte[] clientAddr = socket1.Socket.Receive();
-                    socket1.Socket.Receive(); // empty
-                    byte[] request = socket1.Socket.Receive();
+                    byte[] clientAddr = socket1.Socket.ReceiveFrameBytes();
+                    socket1.Socket.SkipFrame(); // empty
+                    byte[] request = socket1.Socket.ReceiveFrameBytes();
 
                     try
                     {

@@ -26,7 +26,7 @@ namespace WeatherUpdateClient
 
                 for (int i = 0; i < iterations; i++)
                 {
-                    string results = subscriber.ReceiveString();
+                    string results = subscriber.ReceiveFrameString();
                     Console.Write(".");
 
                     // "zip temp relh" ... "10001 84 23" -> ["10001", "84", "23"]

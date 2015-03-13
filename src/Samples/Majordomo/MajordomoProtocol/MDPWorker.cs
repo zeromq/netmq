@@ -210,7 +210,7 @@ namespace MajordomoProtocol
         protected virtual void ProcessReceiveReady(object sender, NetMQSocketEventArgs e)
         {
             // a request has arrived process it
-            var request = m_worker.ReceiveMessage();
+            var request = m_worker.ReceiveMultipartMessage();
 
             Log(string.Format("[WORKER] received {0}", request));
 

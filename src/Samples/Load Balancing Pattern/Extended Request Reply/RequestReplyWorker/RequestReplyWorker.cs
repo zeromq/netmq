@@ -17,7 +17,7 @@ namespace ExtendedRequestReply
 
                 while (true)
                 {
-                    var msg = worker.ReceiveMessage();
+                    var msg = worker.ReceiveMultipartMessage();
                     Console.WriteLine("Processing Message {0}", msg.Last.ConvertToString());
 
                     Thread.Sleep(500);

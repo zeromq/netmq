@@ -25,7 +25,7 @@ namespace Freelance.ModelOne.Server
                     while (true)
                     {
                         bool hasMore;
-                        string msg = response.ReceiveString(out hasMore);
+                        string msg = response.ReceiveFrameString(out hasMore);
                         if (string.IsNullOrEmpty(msg))
                         {
                             Console.WriteLine("No msg received.");

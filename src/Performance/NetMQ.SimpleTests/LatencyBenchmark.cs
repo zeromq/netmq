@@ -89,7 +89,7 @@ namespace NetMQ.SimpleTests
             for (int i = 0; i < Iterations; i++)
             {
                 socket.Send(msg);
-                socket.Receive(); // ignore response
+                socket.SkipFrame(); // ignore response
             }
 
             return watch.ElapsedTicks;
@@ -99,7 +99,7 @@ namespace NetMQ.SimpleTests
         {
             for (int i = 0; i < Iterations; i++)
             {
-                byte[] message = socket.Receive();
+                byte[] message = socket.ReceiveFrameBytes();
                 socket.Send(message);
             }
         }
@@ -132,7 +132,7 @@ namespace NetMQ.SimpleTests
             for (int i = 0; i < Iterations; i++)
             {
                 socket.Send(ref msg, SendReceiveOptions.None);
-                socket.Receive(ref msg, SendReceiveOptions.None);
+                socket.Receive(ref msg);
             }
 
             return watch.ElapsedTicks;
@@ -142,7 +142,7 @@ namespace NetMQ.SimpleTests
         {
             for (int i = 0; i < Iterations; i++)
             {
-                byte[] message = socket.Receive();
+                byte[] message = socket.ReceiveFrameBytes();
                 socket.Send(message);
             }
         }

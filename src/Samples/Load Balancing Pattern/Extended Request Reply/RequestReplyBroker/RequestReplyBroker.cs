@@ -19,14 +19,14 @@ namespace ExtendedRequestReply
                 // Handler for messages coming in to the frontend
                 frontend.ReceiveReady += (sender, e) =>
                 {
-                    var msg = frontend.ReceiveMessage();
+                    var msg = frontend.ReceiveMultipartMessage();
                     backend.SendMessage(msg); // Relay this message to the backend
                 };
 
                 // Handler for messages coming in to the backend
                 backend.ReceiveReady += (sender, e) =>
                 {
-                    var msg = backend.ReceiveMessage();
+                    var msg = backend.ReceiveMultipartMessage();
                     frontend.SendMessage(msg); // Relay this message to the frontend
                 };
 

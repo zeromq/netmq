@@ -41,7 +41,7 @@ namespace ParanoidPirate.Worker
                 // process message or heartbeat or crash
                 worker.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
 
                     // message is a NetMQMessage (!)
                     // - 3 part envelope + content -> request
