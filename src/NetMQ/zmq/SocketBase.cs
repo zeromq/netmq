@@ -1189,8 +1189,6 @@ namespace NetMQ.zmq
             m_monitorEvents = events;
 
             m_monitorSocket = Ctx.CreateSocket(ZmqSocketType.Pair);
-            if (m_monitorSocket == null)
-                throw new FaultException("In SocketBase.Monitor, Ctx.CreateSocket(ZmqSocketType.Pair) failed.");
 
             // Never block context termination on pending event messages
             const int linger = 0;

@@ -285,7 +285,7 @@ namespace NetMQ.zmq
         /// <returns></returns>
         /// <exception cref="TerminatingException">Cannot create new socket while terminating.</exception>
         /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
-        [CanBeNull]
+        [NotNull]
         public SocketBase CreateSocket(ZmqSocketType type)
         {
             lock (m_slotSync)
