@@ -330,14 +330,6 @@ namespace NetMQ
             }
         }
 
-        /// <summary>Receive the next message from this socket, blocking indefinitely if necessary.</summary>
-        /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message
-        /// data should be placed.</param>
-        public virtual void Receive(ref Msg msg)
-        {
-            m_socketHandle.Recv(ref msg);
-        }
-
         /// <summary>Attempt to receive a message for the specified amount of time.</summary>
         /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message
         /// data should be placed.</param>

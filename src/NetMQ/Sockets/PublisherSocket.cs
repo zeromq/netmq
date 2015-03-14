@@ -28,13 +28,6 @@ namespace NetMQ.Sockets
 
         /// <summary><see cref="PublisherSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
         /// <exception cref="NotSupportedException">Receive is not supported.</exception>
-        public override void Receive(ref Msg msg)
-        {
-            throw new NotSupportedException("PublisherSocket doesn't support receiving");
-        }
-
-        /// <summary><see cref="PublisherSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
-        /// <exception cref="NotSupportedException">Receive is not supported.</exception>
         public override bool TryReceive(ref Msg msg, TimeSpan timeout)
         {
             throw new NotSupportedException("PublisherSocket doesn't support receiving");

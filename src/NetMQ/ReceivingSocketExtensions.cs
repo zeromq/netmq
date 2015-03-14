@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,24 @@ namespace NetMQ
         /// not explicitly provide an encoding parameter.
         /// </summary>
         public static readonly Encoding DefaultEncoding = Encoding.UTF8;
+
+        /// <summary>Indicates an infinite timeout for receive operations.</summary>
+        public static readonly TimeSpan InfiniteTimeout = TimeSpan.FromTicks(-1);
+
+        /// <summary>
+        /// Block until the next message arrives, then make the message's data available via <paramref name="msg"/>.
+        /// </summary>
+        /// <remarks>
+        /// The call  blocks until the next message arrives, and cannot be interrupted. This a convenient and safe when
+        /// you know a message is available, such as for code within a <see cref="NetMQSocket.ReceiveReady"/> callback.
+        /// </remarks>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="msg">An object to receive the message's data into.</param>
+        public static void Receive(this IReceivingSocket socket, ref Msg msg)
+        {
+            var result = socket.TryReceive(ref msg, InfiniteTimeout);
+            Debug.Assert(result);
+        }
 
         #region Receiving a frame as a byte array
 

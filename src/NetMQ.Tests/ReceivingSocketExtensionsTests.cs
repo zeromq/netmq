@@ -26,11 +26,6 @@ namespace NetMQ.Tests
                 msg.SetFlags(MsgFlags.More);
         }
 
-        public void Receive(ref Msg msg)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool TryReceive(ref Msg msg, TimeSpan timeout)
         {
             throw new NotImplementedException();

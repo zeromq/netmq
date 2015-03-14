@@ -41,16 +41,6 @@ namespace NetMQ
         void Receive(ref Msg msg, SendReceiveOptions options);
         
         /// <summary>
-        /// Block until the next message arrives, then make the message's data available via <paramref name="msg"/>.
-        /// </summary>
-        /// <remarks>
-        /// The call  blocks until the next message arrives, and cannot be interrupted. This a convenient and safe when
-        /// you know a message is available, such as for code within a <see cref="NetMQSocket.ReceiveReady"/> callback.
-        /// </remarks>
-        /// <param name="msg">An object to receive the message's data into.</param>
-        void Receive(ref Msg msg);
-
-        /// <summary>
         /// Receive a message if one is available within <paramref name="timeout"/>.
         /// </summary>
         /// <param name="msg">An object to receive the message's data into.</param>
