@@ -332,15 +332,17 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOptions.ReconnectIvl:
-                    ReconnectIvl = (int)optionValue;
-                    if (ReconnectIvl < -1)
-                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", ReconnectIvl));
+                    var reconnectIvl = (int)optionValue;
+                    if (reconnectIvl < -1)
+                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", reconnectIvl));
+                    ReconnectIvl = reconnectIvl;
                     break;
 
                 case ZmqSocketOptions.ReconnectIvlMax:
-                    ReconnectIvlMax = (int)optionValue;
-                    if (ReconnectIvlMax < 0)
-                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", ReconnectIvlMax));
+                    var reconnectIvlMax = (int)optionValue;
+                    if (reconnectIvlMax < 0)
+                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", reconnectIvlMax));
+                    ReconnectIvlMax = reconnectIvlMax;
                     break;
 
                 case ZmqSocketOptions.Backlog:
@@ -371,11 +373,10 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOptions.TcpKeepalive:
-                    TcpKeepalive = (int)optionValue;
-                    if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
-                    {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", TcpKeepalive));
-                    }
+                    var tcpKeepalive = (int)optionValue;
+                    if (tcpKeepalive != -1 && tcpKeepalive != 0 && tcpKeepalive != 1)
+                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", tcpKeepalive));
+                    TcpKeepalive = tcpKeepalive;
                     break;
 
                 case ZmqSocketOptions.DelayAttachOnConnect:
@@ -391,7 +392,7 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOptions.TcpAcceptFilter:
-                    string filterStr = (string)optionValue;
+                    var filterStr = (string)optionValue;
                     if (filterStr == null)
                     {
                         TcpAcceptFilters.Clear();
@@ -402,7 +403,7 @@ namespace NetMQ.zmq
                     }
                     else
                     {
-                        TcpAddress.TcpAddressMask filter = new TcpAddress.TcpAddressMask();
+                        var filter = new TcpAddress.TcpAddressMask();
                         filter.Resolve(filterStr, IPv4Only);
                         TcpAcceptFilters.Add(filter);
                     }
