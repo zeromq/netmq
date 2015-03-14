@@ -25,7 +25,7 @@ namespace NetMQ.Sockets
         /// <param name="topic">a string specifying the Topic to subscribe to</param>
         public new virtual void Subscribe(string topic)
         {
-            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+            SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace NetMQ.Sockets
         /// <param name="topic">a byte-array specifying the Topic to subscribe to</param>
         public new virtual void Subscribe(byte[] topic)
         {
-            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+            SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace NetMQ.Sockets
         /// <param name="topic">a string specifying the Topic to unsubscribe from</param>
         public new virtual void Unsubscribe(string topic)
         {
-            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace NetMQ.Sockets
         /// <param name="topic">a byte-array specifying the Topic to unsubscribe from</param>
         public new virtual void Unsubscribe(byte[] topic)
         {
-            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace NetMQ.Sockets
         /// </summary>
         public void ClearWelcomeMessage()
         {
-            SetSocketOption(ZmqSocketOptions.XPublisherWelcomeMessage, null);
+            SetSocketOption(ZmqSocketOption.XPublisherWelcomeMessage, null);
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace NetMQ.Sockets
         /// <param name="welcomeMessage">a byte-array denoting the new value for the welcome-message</param>
         public void SetWelcomeMessage(byte[] welcomeMessage)
         {
-            SetSocketOption(ZmqSocketOptions.XPublisherWelcomeMessage, welcomeMessage);
+            SetSocketOption(ZmqSocketOption.XPublisherWelcomeMessage, welcomeMessage);
         }
     }
 }

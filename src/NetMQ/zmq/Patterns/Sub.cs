@@ -44,9 +44,9 @@ namespace NetMQ.zmq.Patterns
             m_options.Filter = true;
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optionValue)
+        protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
         {
-            if (option != ZmqSocketOptions.Subscribe && option != ZmqSocketOptions.Unsubscribe)
+            if (option != ZmqSocketOption.Subscribe && option != ZmqSocketOption.Unsubscribe)
             {
                 return false;
             }
@@ -63,9 +63,9 @@ namespace NetMQ.zmq.Patterns
             //  Create the subscription message.
             var msg = new Msg();
             msg.InitPool(val.Length + 1);
-            if (option == ZmqSocketOptions.Subscribe)
+            if (option == ZmqSocketOption.Subscribe)
                 msg.Put(1);
-            else if (option == ZmqSocketOptions.Unsubscribe)
+            else if (option == ZmqSocketOption.Unsubscribe)
                 msg.Put(0);
             msg.Put(val, 1, val.Length);
 

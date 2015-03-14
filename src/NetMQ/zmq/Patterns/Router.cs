@@ -170,9 +170,9 @@ namespace NetMQ.zmq.Patterns
         }
 
 
-        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected override bool XSetSocketOption(ZmqSocketOption option, Object optval)
         {
-            if (option == ZmqSocketOptions.RouterRawSocket)
+            if (option == ZmqSocketOption.RouterRawSocket)
             {
                 m_rawSocket = (bool)optval;
                 if (m_rawSocket)
@@ -184,7 +184,7 @@ namespace NetMQ.zmq.Patterns
                 return true;
             }
             
-            if (option == ZmqSocketOptions.RouterMandatory)
+            if (option == ZmqSocketOption.RouterMandatory)
             {
                 m_mandatory = (bool)optval;
                 return true;

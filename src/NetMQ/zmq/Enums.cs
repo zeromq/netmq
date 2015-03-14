@@ -82,7 +82,7 @@ namespace NetMQ.zmq
     /// <summary>
     /// This enum-type serves to identity a particular socket-option.
     /// </summary>
-    internal enum ZmqSocketOptions
+    internal enum ZmqSocketOption
     {
         /// <summary>
         /// The I/O-thread affinity. This is a 64-bit value used to specify  which threads from the I/O thread-pool
