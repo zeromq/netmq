@@ -1505,5 +1505,81 @@ namespace NetMQ
         #endregion
 
         #endregion
+
+        #region Skipping all frames of a multipart message
+
+        #region Blocking
+
+        /// <summary>
+        /// Receive all frames of the next message from <see cref="socket"/>, blocking until a message arrives, then ignore their contents.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        public static void SkipMultipartMessage([NotNull] this IReceivingSocket socket)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+            do
+            {
+                socket.Receive(ref msg);
+            }
+            while (msg.HasMore);
+            msg.Close();
+        }
+
+        #endregion
+
+        #region Immediate
+
+        /// <summary>
+        /// Attempt to receive all frames of the next message from <see cref="socket"/>, then ignore their contents.
+        /// If no message is immediately available, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <returns><c>true</c> if a frame was received and ignored, otherwise <c>false</c>.</returns>
+        public static bool TrySkipMultipartMessage([NotNull] this IReceivingSocket socket)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+            var received = socket.TryReceive(ref msg, TimeSpan.Zero);
+            msg.Close();
+            return received;
+        }
+
+        #endregion
+
+        #region Timeout
+
+        /// <summary>
+        /// Attempt to receive all frames of the next message from <see cref="socket"/>, then ignore their contents.
+        /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
+        /// <returns><c>true</c> if a frame was received and ignored, otherwise <c>false</c>.</returns>
+        public static bool TrySkipMultipartMessage([NotNull] this IReceivingSocket socket, TimeSpan timeout)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+
+            // Try to read the first frame
+            if (!socket.TryReceive(ref msg, timeout))
+            {
+                msg.Close();
+                return false;
+            }
+
+            // Rinse and repeat...
+            while (msg.HasMore)
+            {
+                socket.Receive(ref msg);
+            }
+
+            msg.Close();
+            return true;
+        }
+
+        #endregion
+
+        #endregion
     }
 }
