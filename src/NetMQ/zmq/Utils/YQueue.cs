@@ -43,21 +43,19 @@ namespace NetMQ.zmq.Utils
         #region Nested class: Chunk
 
         /// <summary>Individual memory chunk to hold N elements.</summary>
-        private class Chunk
+        private sealed class Chunk
         {
             public Chunk(int size, int globalIndex)
             {
                 Values = new T[size];
                 GlobalOffset = globalIndex;
                 Debug.Assert(Values != null);
-                Previous = Next = null;
             }
 
             [NotNull]
             public T[] Values { get; private set; }
 
             /// <summary>Contains global index positions of elements in the chunk.</summary>
-            [NotNull]
             public int GlobalOffset { get; private set; }
 
             /// <summary>Optional link to the previous <see cref="Chunk"/>.</summary>
@@ -91,10 +89,11 @@ namespace NetMQ.zmq.Utils
 
         private int m_nextGlobalIndex;
 
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="chunkSize"/> should be no less than 2</exception>
         public YQueue(int chunkSize)
         {
             if (chunkSize < 2)
-                throw new ArgumentOutOfRangeException("chunkSize", "Size should be no less than 2");
+                throw new ArgumentOutOfRangeException("chunkSize", "Should be no less than 2");
 
             m_chunkSize = chunkSize;
 

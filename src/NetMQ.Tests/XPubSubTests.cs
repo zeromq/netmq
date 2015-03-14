@@ -1,8 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
-using NetMQ.zmq;
 using NUnit.Framework;
+
+// ReSharper disable ExceptionNotDocumented
 
 namespace NetMQ.Tests
 {
@@ -23,7 +23,7 @@ namespace NetMQ.Tests
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
 
-                var msg = pub.Receive();
+                var msg = pub.ReceiveFrameBytes();
                 Assert.AreEqual(2, msg.Length);
                 Assert.AreEqual(1, msg[0]);
                 Assert.AreEqual('A', msg[1]);
@@ -33,14 +33,10 @@ namespace NetMQ.Tests
 
                 bool more;
 
-                string m = sub.ReceiveString(out more);
-
-                Assert.AreEqual("A", m);
+                Assert.AreEqual("A", sub.ReceiveFrameString(out more));
                 Assert.IsTrue(more);
 
-                string m2 = sub.ReceiveString(out more);
-
-                Assert.AreEqual("Hello", m2);
+                Assert.AreEqual("Hello", sub.ReceiveFrameString(out more));
                 Assert.False(more);
             }
         }
@@ -53,7 +49,6 @@ namespace NetMQ.Tests
             using (var sub = context.CreateXSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
-                sub.Options.ReceiveTimeout = TimeSpan.FromSeconds(2.0);
 
                 sub.Connect("tcp://127.0.0.1:" + port);
                 sub.Send("Message from subscriber");
@@ -61,12 +56,12 @@ namespace NetMQ.Tests
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
 
-                var txt = pub.ReceiveString();
+                var txt = pub.ReceiveFrameString();
                 Assert.AreEqual("Message from subscriber", txt);
 
                 sub.Send(new byte[] { });
 
-                var msg = pub.Receive();
+                var msg = pub.ReceiveFrameBytes();
                 Assert.True(msg.Length == 0);
             }
         }
@@ -88,12 +83,12 @@ namespace NetMQ.Tests
                 pub.Send("Hello");
 
                 bool more;
-                Assert.AreEqual("Hello", sub.ReceiveString(out more));
+                Assert.AreEqual("Hello", sub.ReceiveFrameString(out more));
                 Assert.False(more);
             }
         }
 
-        [Test, ExpectedException(typeof (AgainException))]
+        [Test]
         public void NotSubscribed()
         {
             using (var context = NetMQContext.Create())
@@ -108,9 +103,7 @@ namespace NetMQ.Tests
 
                 pub.Send("Hello");
 
-                bool more;
-
-                sub.ReceiveString(true, out more);
+                Assert.IsFalse(sub.TrySkipFrame());
             }
         }
 
@@ -171,13 +164,9 @@ namespace NetMQ.Tests
                 pub.SendMore("AB");
                 pub.Send("1");
 
-                string message = sub.ReceiveStringMessages().First();
+                Assert.AreEqual("AB", sub.ReceiveMultipartStrings().First(), "First subscriber is expected to receive the message");
 
-                Assert.AreEqual("AB", message, "First subscriber is expected to receive the message");
-
-                message = sub2.ReceiveStringMessages().First();
-
-                Assert.AreEqual("AB", message, "Second subscriber is expected to receive the message");
+                Assert.AreEqual("AB", sub2.ReceiveMultipartStrings().First(), "Second subscriber is expected to receive the message");
             }
         }
 
@@ -210,12 +199,12 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(500);
 
-                var msg = pub.ReceiveString();
+                var msg = pub.ReceiveFrameString();
                 Assert.AreEqual(2, msg.Length);
                 Assert.AreEqual(1, msg[0]);
                 Assert.AreEqual('A', msg[1]);
 
-                var msg2 = pub2.Receive();
+                var msg2 = pub2.ReceiveFrameBytes();
                 Assert.AreEqual(2, msg2.Length);
                 Assert.AreEqual(1, msg2[0]);
                 Assert.AreEqual('A', msg2[1]);
@@ -238,12 +227,12 @@ namespace NetMQ.Tests
                 // Comment out the verbose options and the next 8 lines and the test will 
                 // still pass, even with non-unique messages from subscribers (see the bottom of the test)
 
-                msg = pub.ReceiveString();
+                msg = pub.ReceiveFrameString();
                 Assert.AreEqual(2, msg.Length);
                 Assert.AreEqual(1, msg[0]);
                 Assert.AreEqual('A', msg[1]);
 
-                msg2 = pub2.Receive();
+                msg2 = pub2.ReceiveFrameBytes();
                 Assert.AreEqual(2, msg2.Length);
                 Assert.AreEqual(1, msg2[0]);
                 Assert.AreEqual('A', msg2[1]);
@@ -253,11 +242,9 @@ namespace NetMQ.Tests
                 pub.Send("Hello from the first publisher");
 
                 bool more;
-                string m = sub.ReceiveString(out more);
-                Assert.AreEqual("A", m);
+                Assert.AreEqual("A", sub.ReceiveFrameString(out more));
                 Assert.IsTrue(more);
-                string m2 = sub.ReceiveString(out more);
-                Assert.AreEqual("Hello from the first publisher", m2);
+                Assert.AreEqual("Hello from the first publisher", sub.ReceiveFrameString(out more));
                 Assert.False(more);
                 // this returns the result of the latest 
                 // connect - address2, not the source of the message
@@ -266,58 +253,45 @@ namespace NetMQ.Tests
                 //Assert.AreEqual(address, ep);
 
                 // same for sub2
-                m = sub2.ReceiveString(out more);
-                Assert.AreEqual("A", m);
+                Assert.AreEqual("A", sub2.ReceiveFrameString(out more));
                 Assert.IsTrue(more);
-                m2 = sub2.ReceiveString(out more);
-                Assert.AreEqual("Hello from the first publisher", m2);
+                Assert.AreEqual("Hello from the first publisher", sub2.ReceiveFrameString(out more));
                 Assert.False(more);
 
 
                 pub2.SendMore("A");
                 pub2.Send("Hello from the second publisher");
 
-                string m3 = sub.ReceiveString(out more);
-
-                Assert.AreEqual("A", m3);
+                Assert.AreEqual("A", sub.ReceiveFrameString(out more));
                 Assert.IsTrue(more);
 
-                string m4 = sub.ReceiveString(out more);
-
-                Assert.AreEqual("Hello from the second publisher", m4);
+                Assert.AreEqual("Hello from the second publisher", sub.ReceiveFrameString(out more));
                 Assert.False(more);
-                var ep = sub2.Options.LastEndpoint;
-                Assert.AreEqual("tcp://127.0.0.1:" + port2, ep);
+                Assert.AreEqual("tcp://127.0.0.1:" + port2, sub2.Options.LastEndpoint);
 
 
                 // same for sub2
-                m3 = sub2.ReceiveString(out more);
-                Assert.AreEqual("A", m3);
+                Assert.AreEqual("A", sub2.ReceiveFrameString(out more));
                 Assert.IsTrue(more);
-                m4 = sub2.ReceiveString(out more);
-                Assert.AreEqual("Hello from the second publisher", m4);
+                Assert.AreEqual("Hello from the second publisher", sub2.ReceiveFrameString(out more));
                 Assert.False(more);
 
                 // send both to address and address2
                 sub.Send("Message from subscriber");
                 sub2.Send("Message from subscriber 2");
 
-                var txt = pub.ReceiveString();
-                Assert.AreEqual("Message from subscriber", txt);
-                var txt2 = pub2.ReceiveString();
-                Assert.AreEqual("Message from subscriber", txt2);
+                Assert.AreEqual("Message from subscriber", pub.ReceiveFrameString());
+                Assert.AreEqual("Message from subscriber", pub2.ReceiveFrameString());
 
                 // Does not hang even though is the same as above, but the first byte is not 1 or 0.
                 // Won't hang even when messages are equal
-                txt = pub.ReceiveString();
-                Assert.AreEqual("Message from subscriber 2", txt);
-                txt2 = pub2.ReceiveString();
-                Assert.AreEqual("Message from subscriber 2", txt2);
+                Assert.AreEqual("Message from subscriber 2", pub.ReceiveFrameString());
+                Assert.AreEqual("Message from subscriber 2", pub2.ReceiveFrameString());
             }
         }
 
-        [Test, ExpectedException(typeof (AgainException))]
-        public void UnSubscribe()
+        [Test]
+        public void Unsubscribe()
         {
             using (var context = NetMQContext.Create())
             using (var pub = context.CreateXPublisherSocket())
@@ -335,14 +309,10 @@ namespace NetMQ.Tests
 
                 bool more;
 
-                string m = sub.ReceiveString(out more);
-
-                Assert.AreEqual("A", m);
+                Assert.AreEqual("A", sub.ReceiveFrameString(out more));
                 Assert.IsTrue(more);
 
-                string m2 = sub.ReceiveString(out more);
-
-                Assert.AreEqual("Hello", m2);
+                Assert.AreEqual("Hello", sub.ReceiveFrameString(out more));
                 Assert.False(more);
 
                 sub.Send(new byte[] { 0, (byte)'A' });
@@ -352,7 +322,8 @@ namespace NetMQ.Tests
                 pub.SendMore("A");
                 pub.Send("Hello");
 
-                sub.ReceiveString(true, out more);
+                string str;
+                Assert.IsFalse(sub.TryReceiveFrameString(out str));
             }
         }
 
@@ -369,7 +340,7 @@ namespace NetMQ.Tests
                 sub.Connect("inproc://manual");
 
                 sub.Send(new byte[] { 1, (byte)'A' });
-                var subscription = pub.Receive();
+                var subscription = pub.ReceiveFrameBytes();
 
                 Assert.AreEqual(subscription[1], (byte)'A');
 
@@ -377,9 +348,7 @@ namespace NetMQ.Tests
                 pub.Send("A");
                 pub.Send("B");
 
-                var topic = sub.ReceiveString();
-
-                Assert.AreEqual("B", topic);
+                Assert.AreEqual("B", sub.ReceiveFrameString());
             }
         }
 
@@ -396,17 +365,15 @@ namespace NetMQ.Tests
                 sub.Subscribe("W");
                 sub.Connect("inproc://welcome");
 
-                var subscription = pub.Receive();
+                var subscription = pub.ReceiveFrameBytes();
 
                 Assert.AreEqual(subscription[1], (byte)'W');
 
-                var welcomeMessage = sub.ReceiveString();
-
-                Assert.AreEqual("W", welcomeMessage);
+                Assert.AreEqual("W", sub.ReceiveFrameString());
             }
         }
 
-        [Test, ExpectedException(typeof(AgainException))]
+        [Test]
         public void ClearWelcomeMessage()
         {
             using (var context = NetMQContext.Create())
@@ -420,11 +387,11 @@ namespace NetMQ.Tests
                 sub.Subscribe("W");
                 sub.Connect("inproc://welcome");
 
-                var subscription = pub.Receive();
+                var subscription = pub.ReceiveFrameBytes();
 
                 Assert.AreEqual(subscription[1], (byte)'W');
 
-                sub.ReceiveString(SendReceiveOptions.DontWait);
+                Assert.IsFalse(sub.TrySkipFrame());
             }
         }
     }

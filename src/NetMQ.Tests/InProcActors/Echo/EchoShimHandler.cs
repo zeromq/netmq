@@ -37,7 +37,7 @@ namespace NetMQ.Tests.InProcActors.Echo
                     //
                     //Result back to actor is a simple echoing of the Payload, where
                     //the payload is prefixed with "ECHO BACK "
-                    NetMQMessage msg = shim.ReceiveMessage();
+                    NetMQMessage msg = shim.ReceiveMultipartMessage();
 
                     string command = msg[0].ConvertToString();
 

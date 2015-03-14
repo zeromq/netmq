@@ -117,8 +117,8 @@ namespace NetMQ
 
             while (true)
             {
-                from.Receive(ref msg, SendReceiveOptions.None);
-                bool more = from.Options.ReceiveMore;
+                from.Receive(ref msg);
+                var more = msg.HasMore;
 
                 if (control != null)
                 {
@@ -130,9 +130,7 @@ namespace NetMQ
                 to.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
 
                 if (!more)
-                {
                     break;
-                }
             }
 
             copy.Close();

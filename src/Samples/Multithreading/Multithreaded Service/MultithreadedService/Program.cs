@@ -16,6 +16,8 @@ namespace MultithreadedService
 
         private static void Main()
         {
+            Console.Title = "NetMQ Multi-threaded Service";
+
             using (var context = NetMQContext.Create())
             {
                 //var queue = new QueueDevice(context, "tcp://localhost:5555", "inproc://workers", DeviceMode.Threaded);
@@ -24,12 +26,8 @@ namespace MultithreadedService
                 var source = new CancellationTokenSource();
                 s_token = source.Token;
 
-                var workerThreads = new List<Task>();
                 for (int threadId = 0; threadId < 10; threadId++)
-                {
-                    NetMQContext ctx = context;
-                    workerThreads.Add(Task.Factory.StartNew(() => WorkerRoutine(new Worker(Guid.NewGuid(), ctx)), s_token));
-                }
+                    Task.Factory.StartNew(() => WorkerRoutine(new Worker(Guid.NewGuid(), context)), s_token);
 
                 queue.Start();
 
@@ -65,14 +63,13 @@ namespace MultithreadedService
                     Console.WriteLine("Client {0} sent \"{0} Hello\"", clientId);
                     req.Send(message, message.Length);
 
-                    bool hasMore;
-                    byte[] response = req.Receive(false, out hasMore);
-                    Console.WriteLine("Client {0} received \"{1}\"", clientId, Encoding.Unicode.GetString(response));
+                    var response = req.ReceiveFrameString(Encoding.Unicode);
+                    Console.WriteLine("Client {0} received \"{1}\"", clientId, response);
                 }
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on ClientRoutine: {0}", exc.Message);
+                Console.WriteLine("Exception on ClientRoutine: {0}", ex.Message);
             }
         }
 
@@ -94,21 +91,20 @@ namespace MultithreadedService
                     }
                 }
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on WorkerRoutine: {0}", exc.Message);
+                Console.WriteLine("Exception on WorkerRoutine: {0}", ex.Message);
                 throw;
             }
         }
 
-        private static void RepOnReceiveReady(object sender, NetMQSocketEventArgs socket)
+        private static void RepOnReceiveReady(object sender, NetMQSocketEventArgs args)
         {
             try
             {
-                NetMQSocket rep = socket.Socket;
+                NetMQSocket rep = args.Socket;
 
-                bool hasMore;
-                byte[] message = rep.Receive(SendReceiveOptions.DontWait, out hasMore);
+                byte[] message = rep.ReceiveFrameBytes();
 
                 //Thread.Sleep(1000); //  Simulate 'work'
 
@@ -117,9 +113,9 @@ namespace MultithreadedService
 
                 rep.Send(response, response.Length, SendReceiveOptions.DontWait);
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on RepOnReceiveReady: {0}", exc.Message);
+                Console.WriteLine("Exception on RepOnReceiveReady: {0}", ex.Message);
                 throw;
             }
         }

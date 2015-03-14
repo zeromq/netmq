@@ -28,7 +28,7 @@ namespace NetMQ.Tests
             using (var server = context.CreateRouterSocket())
             {
                 server.BindRandomPort("tcp://127.0.0.1");
-                server.ReceiveReady += (sender, e) =>
+                server.ReceiveReady += (s, e) =>
                 {
                     Assert.Fail("Should not receive");
                 };

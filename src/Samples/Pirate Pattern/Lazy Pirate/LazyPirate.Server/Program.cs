@@ -9,6 +9,8 @@ namespace LazyPirate.Server
     {
         private static void Main()
         {
+            Console.Title = "NetMQ LazyPirate Server";
+
             const string serverEndpoint = "tcp://127.0.0.1:5555";
 
             var random = new Random();
@@ -23,7 +25,7 @@ namespace LazyPirate.Server
 
                 while (true)
                 {
-                    byte[] request = server.Receive();
+                    byte[] request = server.ReceiveFrameBytes();
                     cycles++;
 
                     if (cycles > 3 && random.Next(0, 10) == 0)
@@ -31,7 +33,7 @@ namespace LazyPirate.Server
                         Console.WriteLine("S: Simulating a crash");
                         Thread.Sleep(5000);
                     }
-                    else if (cycles < 3 && random.Next(0, 10) == 0)
+                    else if (cycles > 3 && random.Next(0, 10) == 0)
                     {
                         Console.WriteLine("S: Simulating CPU overload");
                         Thread.Sleep(1000);

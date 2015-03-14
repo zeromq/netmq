@@ -33,11 +33,11 @@ namespace NetMQ.Tests
                 req.Connect("tcp://127.0.0.1:" + port);
                 req.Send("a");
 
-                rep.ReceiveString();
+                rep.SkipFrame();
 
                 rep.Send("b");
 
-                req.ReceiveString();
+                req.SkipFrame();
 
                 Thread.Sleep(200);
 
@@ -73,11 +73,11 @@ namespace NetMQ.Tests
                 req.Connect("tcp://127.0.0.1:" + port);
                 req.Send("a");
 
-                rep.ReceiveString();
+                rep.SkipFrame();
 
                 rep.Send("b");
 
-                req.ReceiveString();
+                req.SkipFrame();
 
                 Thread.Sleep(200);
 
@@ -115,9 +115,9 @@ namespace NetMQ.Tests
                     reqSocket.Connect("tcp://127.0.0.1:" + port);
 
                     reqSocket.Send("question");
-                    Assert.That(resSocket.ReceiveString(), Is.EqualTo("question"));
+                    Assert.That(resSocket.ReceiveFrameString(), Is.EqualTo("question"));
                     resSocket.Send("response");
-                    Assert.That(reqSocket.ReceiveString(), Is.EqualTo("response"));
+                    Assert.That(reqSocket.ReceiveFrameString(), Is.EqualTo("response"));
                 }
                 Thread.Sleep(100);
                 // Monitor.Dispose should complete

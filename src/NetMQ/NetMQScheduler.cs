@@ -93,7 +93,7 @@ namespace NetMQ
         private void OnMessage(object sender, NetMQSocketEventArgs e)
         {
             // remove the awake command from the queue
-            m_serverSocket.Receive();
+            m_serverSocket.ReceiveFrameBytes();
 
             Task task;
 

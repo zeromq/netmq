@@ -139,7 +139,7 @@ namespace NetMQ
             //  Mandatory handshake for new actor so that constructor returns only
             //  when actor has also initialised. This eliminates timing issues at
             //  application start up.
-            m_self.WaitForSignal();
+            m_self.ReceiveSignal();
         }
 
         [NotNull]
@@ -189,15 +189,30 @@ namespace NetMQ
         /// </summary>
         /// <param name="msg"></param>
         /// <param name="options"></param>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
+        /// <exception cref="AgainException">The send operation timed out.</exception>
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Send(ref msg, options);
         }
 
+        #region IReceivingSocket
+
+        /// <exception cref="AgainException">The receive operation timed out.</exception>
+        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Receive(ref msg, options);
         }
+
+        public bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            return m_self.TryReceive(ref msg, timeout);
+        }
+
+        #endregion
+
 
         #region Events Handling
 
@@ -254,7 +269,7 @@ namespace NetMQ
             try
             {
                 m_self.Send(EndShimMessage);
-                m_self.WaitForSignal();
+                m_self.ReceiveSignal();
             }
             catch (AgainException)
             {}

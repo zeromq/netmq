@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using NetMQ;
-using NetMQ.zmq;
 
 namespace local_thr
 {
@@ -24,18 +23,18 @@ namespace local_thr
             {
                 pullSocket.Bind(bindTo);
 
-                var message = new Msg();
-                message.InitEmpty();
+                var msg = new Msg();
+                msg.InitEmpty();
 
-                pullSocket.Receive(ref message, SendReceiveOptions.None);
+                pullSocket.Receive(ref msg);
 
                 var stopWatch = Stopwatch.StartNew();
                 for (int i = 0; i != messageCount - 1; i++)
                 {
-                    pullSocket.Receive(ref message, SendReceiveOptions.None);
-                    if (message.Size != messageSize)
+                    pullSocket.Receive(ref msg);
+                    if (msg.Size != messageSize)
                     {
-                        Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
+                        Console.WriteLine("message of incorrect size received. Received: " + msg.Size + " Expected: " + messageSize);
                         return -1;
                     }
                 }
@@ -44,7 +43,7 @@ namespace local_thr
                 if (millisecondsElapsed == 0)
                     millisecondsElapsed = 1;
 
-                message.Close();
+                msg.Close();
 
                 double messagesPerSecond = (double)messageCount/millisecondsElapsed*1000;
                 double megabits = messagesPerSecond*messageSize*8/1000000;
@@ -53,8 +52,6 @@ namespace local_thr
                 Console.WriteLine("message count: {0}", messageCount);
                 Console.WriteLine("mean throughput: {0:0.000} [msg/s]", messagesPerSecond);
                 Console.WriteLine("mean throughput: {0:0.000} [Mb/s]", megabits);
-
-                pullSocket.Close();
             }
 
             return 0;

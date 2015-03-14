@@ -2,12 +2,14 @@
 using System.Threading;
 using NUnit.Framework;
 
+// ReSharper disable ExceptionNotDocumented
+
 namespace NetMQ.Tests
 {
     [TestFixture]
     public class BeaconTests
     {
-        // TODO allow beacon publish period to be specified, in order to make these tests faster (or use a WaitHandle to allow signalling)
+        private static readonly TimeSpan s_publishInterval = TimeSpan.FromMilliseconds(100);
 
         [Test]
         public void SimplePublishSubscribe()
@@ -19,7 +21,7 @@ namespace NetMQ.Tests
                 speaker.Configure(9999);
                 Console.WriteLine(speaker.Hostname);
 
-                speaker.Publish("Hello");
+                speaker.Publish("Hello", s_publishInterval);
 
                 listener.Configure(9999);
                 listener.Subscribe("H");
@@ -46,19 +48,15 @@ namespace NetMQ.Tests
                 listener.Subscribe("H");
 
                 // this should send one broadcast message and stop
-                speaker.Publish("Hello");
+                speaker.Publish("Hello", s_publishInterval);
                 Thread.Sleep(10);
                 speaker.Silence();
 
                 string peerName;
-                string message = listener.ReceiveString(out peerName);
+                Assert.AreEqual("Hello", listener.ReceiveString(out peerName));
 
-                Assert.AreEqual("Hello", message);
-
-                ISocketPollable socket = listener;
-                socket.Socket.Options.ReceiveTimeout = TimeSpan.FromSeconds(2);
-
-                Assert.Throws<AgainException>(() => { message = listener.ReceiveString(out peerName); });
+                string message;
+                Assert.IsFalse(listener.TryReceiveString(TimeSpan.FromMilliseconds(300), out peerName, out message));
             }
         }
 
@@ -75,19 +73,15 @@ namespace NetMQ.Tests
                 listener.Subscribe("H");
 
                 // this should send one broadcast message and stop
-                speaker.Publish("Hello");
-
-                string peerName;
-                string message = listener.ReceiveString(out peerName);
+                speaker.Publish("Hello", s_publishInterval);
 
                 listener.Unsubscribe();
 
-                Assert.AreEqual("Hello", message);
+                string peerName;
+                Assert.AreEqual("Hello", listener.ReceiveString(out peerName));
 
-                ISocketPollable socket = listener;
-                socket.Socket.Options.ReceiveTimeout = TimeSpan.FromSeconds(2);
-
-                Assert.Throws<AgainException>(() => { message = listener.ReceiveString(out peerName); });
+                string message;
+                Assert.IsFalse(listener.TryReceiveString(TimeSpan.FromMilliseconds(300), out peerName, out message));
             }
         }
 
@@ -104,16 +98,11 @@ namespace NetMQ.Tests
                 listener.Subscribe("B");
 
                 // this should send one broadcast message and stop
-                speaker.Publish("Hello");
+                speaker.Publish("Hello", s_publishInterval);
 
-                ISocketPollable socket = listener;
-                socket.Socket.Options.ReceiveTimeout = TimeSpan.FromSeconds(2);
-
-                Assert.Throws<AgainException>(() =>
-                {
-                    string peerName;
-                    listener.ReceiveString(out peerName);
-                });
+                string peerName;
+                string message;
+                Assert.IsFalse(listener.TryReceiveString(TimeSpan.FromMilliseconds(300), out peerName, out message));
             }
         }
 
@@ -127,7 +116,7 @@ namespace NetMQ.Tests
                 speaker.Configure(9999);
                 Console.WriteLine(speaker.Hostname);
 
-                speaker.Publish("Hello");
+                speaker.Publish("Hello", s_publishInterval);
 
                 var manualResetEvent = new ManualResetEvent(false);
 
@@ -177,7 +166,7 @@ namespace NetMQ.Tests
                 speaker.Configure(9999);
                 Console.WriteLine(speaker.Hostname);
 
-                speaker.Publish("Hello");
+                speaker.Publish("Hello", s_publishInterval);
 
                 listener.Configure(9999);
                 listener.Subscribe("H");
@@ -199,11 +188,11 @@ namespace NetMQ.Tests
             using (var beacon2 = new NetMQBeacon(context))
             {
                 beacon1.Configure(9999);
-                beacon1.Publish("H1");
+                beacon1.Publish("H1", s_publishInterval);
                 beacon1.Subscribe("H");
 
                 beacon2.Configure(9999);
-                beacon2.Publish("H2");
+                beacon2.Publish("H2", s_publishInterval);
                 beacon2.Subscribe("H");
 
                 string peerName;
@@ -213,7 +202,7 @@ namespace NetMQ.Tests
 
                 message = beacon2.ReceiveString(out peerName);
 
-                Assert.AreEqual("H1",message);
+                Assert.AreEqual("H1", message);
             }
         }
     }

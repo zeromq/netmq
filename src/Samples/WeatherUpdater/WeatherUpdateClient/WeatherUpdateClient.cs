@@ -8,6 +8,8 @@ namespace WeatherUpdateClient
     {
         private static void Main()
         {
+            Console.Title = "NetMQ Weather Update Client";
+
             const int zipToSubscribeTo = 10001;
             const int iterations = 100;
 
@@ -24,7 +26,7 @@ namespace WeatherUpdateClient
 
                 for (int i = 0; i < iterations; i++)
                 {
-                    string results = subscriber.ReceiveString();
+                    string results = subscriber.ReceiveFrameString();
                     Console.Write(".");
 
                     // "zip temp relh" ... "10001 84 23" -> ["10001", "84", "23"]

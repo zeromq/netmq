@@ -51,7 +51,7 @@ namespace MajordomoTests
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
@@ -109,7 +109,7 @@ namespace MajordomoTests
             {
                 broker.Bind(hostAddress);
                 // we need to pick up any message in order to avoid errors but don't answer
-                broker.ReceiveReady += (s, e) => e.Socket.ReceiveMessage();
+                broker.ReceiveReady += (s, e) => e.Socket.ReceiveMultipartMessage();
 
                 poller.AddSocket(broker);
                 Task.Factory.StartNew(poller.PollTillCancelled);
@@ -147,7 +147,7 @@ namespace MajordomoTests
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
@@ -204,7 +204,7 @@ namespace MajordomoTests
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
@@ -263,7 +263,7 @@ namespace MajordomoTests
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
@@ -327,7 +327,7 @@ namespace MajordomoTests
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 5 Frame message
                     // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
                     if (msg.FrameCount != 5)
@@ -383,7 +383,7 @@ namespace MajordomoTests
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
                     if (msg[3].Buffer[0] == (byte)MDPCommand.Ready)
                     {
                         // this is a READY message and we

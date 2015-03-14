@@ -35,27 +35,27 @@ namespace SimplePirate.Queue
                 var workerQueue = new Queue<byte[]>();
 
                 // Handle worker activity on backend
-                backend.ReceiveReady += (sender, socket) =>
+                backend.ReceiveReady += (s, e) =>
                 {
                     // Queue worker address for LRU routing
-                    byte[] workerAddress = socket.Socket.Receive();
+                    byte[] workerAddress = e.Socket.ReceiveFrameBytes();
 
                     // Use worker address for LRU routing
                     workerQueue.Enqueue(workerAddress);
 
                     // Second frame is empty
-                    socket.Socket.Receive();
+                    e.Socket.SkipFrame();
 
                     // Third frame is READY or else a client reply address
-                    byte[] clientAddress = socket.Socket.Receive();
+                    byte[] clientAddress = e.Socket.ReceiveFrameBytes();
 
                     // If client reply, send rest back to frontend
                     // Forward message to client if it's not a READY
                     if (Encoding.Unicode.GetString(clientAddress) != LRUReady)
                     {
-                        socket.Socket.Receive(); // empty
+                        e.Socket.SkipFrame(); // empty
 
-                        byte[] reply = socket.Socket.Receive();
+                        byte[] reply = e.Socket.ReceiveFrameBytes();
 
                         frontend.SendMore(clientAddress);
                         frontend.SendMore("");
@@ -63,16 +63,16 @@ namespace SimplePirate.Queue
                     }
                 };
 
-                frontend.ReceiveReady += (sender1, socket1) =>
+                frontend.ReceiveReady += (s, e) =>
                 {
                     // Now get next client request, route to next worker
                     // Dequeue and drop the next worker address
 
                     // Now get next client request, route to LRU worker
                     // Client request is [address][empty][request]
-                    byte[] clientAddr = socket1.Socket.Receive();
-                    socket1.Socket.Receive(); // empty
-                    byte[] request = socket1.Socket.Receive();
+                    byte[] clientAddr = e.Socket.ReceiveFrameBytes();
+                    e.Socket.SkipFrame(); // empty
+                    byte[] request = e.Socket.ReceiveFrameBytes();
 
                     try
                     {
@@ -83,9 +83,9 @@ namespace SimplePirate.Queue
                         backend.SendMore(Encoding.Unicode.GetBytes(""));
                         backend.Send(request);
                     }
-                    catch (Exception exc)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Q: [FrontendOnReceiveReady] Dequeue exc: {0}", exc.ToString());
+                        Console.WriteLine("Q: [FrontendOnReceiveReady] Dequeue exception: {0}", ex.ToString());
                     }
                 };
 

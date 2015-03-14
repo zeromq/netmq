@@ -19,7 +19,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                 actor.SendMore(JsonConvert.SerializeObject(accountAction));
                 actor.Send(JsonConvert.SerializeObject(account));
 
-                var updatedAccount = JsonConvert.DeserializeObject<Account>(actor.ReceiveString());
+                var updatedAccount = JsonConvert.DeserializeObject<Account>(actor.ReceiveFrameString());
 
                 Assert.AreEqual(10.0m, updatedAccount.Balance);
             }

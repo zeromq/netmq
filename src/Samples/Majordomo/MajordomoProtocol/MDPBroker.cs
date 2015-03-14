@@ -295,7 +295,7 @@ namespace MajordomoProtocol
         /// </summary>
         private void ProcessReceivedMessage (object sender, NetMQSocketEventArgs e)
         {
-            var msg = e.Socket.ReceiveMessage ();
+            var msg = e.Socket.ReceiveMultipartMessage ();
 
             Log (string.Format ("[BROKER] Received {0}", msg));
 

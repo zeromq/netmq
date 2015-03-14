@@ -67,6 +67,8 @@ namespace InterBrokerRouter
         /// </remarks>
         public static void Main(string[] args)
         {
+            Console.Title = "NetMQ Inter-Broker Router";
+
             const string baseAddress = "tcp://127.0.0.1:";
 
             if (args.Length < 2)
@@ -84,7 +86,7 @@ namespace InterBrokerRouter
                 s_keepRunning = false;
             };
 
-            // get randon generator for later use
+            // get random generator for later use
             var rnd = new Random();
             // get list for registering the clients
             var clients = new List<byte[]>(NbrClients);
@@ -165,20 +167,18 @@ namespace InterBrokerRouter
                 stateFrontend.ReceiveReady += (s, e) =>
                 {
                     // the message should contain the available cloud capacity
-                    var capacity = e.Socket.ReceiveString();
+                    var capacity = e.Socket.ReceiveFrameString();
 
                     Debug.Assert(string.IsNullOrWhiteSpace(capacity), "StateFrontend: message was empty!");
 
                     int couldCapacity;
-                    var convertionResult = int.TryParse(capacity, out couldCapacity);
-
-                    Debug.Assert(convertionResult, "StateFrontend: message did not contain a number!");
+                    Debug.Assert(int.TryParse(capacity, out couldCapacity), "StateFrontend: message did not contain a number!");
                 };
 
                 // get the status message and print it
                 monitor.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveString();
+                    var msg = e.Socket.ReceiveFrameString();
 
                     Console.WriteLine("[MONITOR] {0}", msg);
                 };
@@ -188,7 +188,7 @@ namespace InterBrokerRouter
                 localFrontend.ReceiveReady += (s, e) =>
                 {
                     // [client adr][empty][message id]
-                    var request = e.Socket.ReceiveMessage();
+                    var request = e.Socket.ReceiveMultipartMessage();
                     // register the local client for later identification if not known
                     if (!clients.Any(n => AreSame(n, request[0])))
                         clients.Add(request[0].Buffer);
@@ -224,7 +224,7 @@ namespace InterBrokerRouter
                 {
                     // a worker can send "READY" or a request
                     // or an REPLAY
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
 
                     // just to make sure we received a proper message
                     Debug.Assert(msg != null && msg.FrameCount > 0, "[LocalBackend] message was empty or frame count == 0!");
@@ -255,7 +255,7 @@ namespace InterBrokerRouter
                 // REP [peer adr][empty][client adr][empty][message id] -> send to local client
                 cloudBackend.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
 
                     // just to make sure we received a message
                     Debug.Assert(msg != null && msg.FrameCount > 0, "[CloudBackend] message was empty or frame count == 0!");
@@ -288,7 +288,7 @@ namespace InterBrokerRouter
                 // REP [peer adr][empty][client adr][empty][data] -> send to local client
                 cloudFrontend.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
 
                     // just to make sure we received a message
                     Debug.Assert(msg != null && msg.FrameCount > 0, "[CloudFrontend] message was empty or frame count == 0!");

@@ -41,19 +41,19 @@ namespace NetMQ.Devices
             BackendSetup.Bind(backendBindAddress);
         }
 
-         /// <summary>
+        /// <summary>
         /// This Override of FrontendHandler receives data from the socket contained within args,
         /// and sends it to BackendSocket.
         /// </summary>
         /// <param name="sender">unused</param>
         /// <param name="args">a NetMQSocketEventArgs that contains a NetMqSocket for receiving data from</param>
-       protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
+        protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
         {
             bool more;
 
             do
             {
-                var data = args.Socket.Receive(out more);
+                var data = args.Socket.ReceiveFrameBytes(out more);
 
                 if (more)
                     BackendSocket.SendMore(data);

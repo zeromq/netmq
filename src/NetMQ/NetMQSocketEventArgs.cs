@@ -25,8 +25,8 @@ namespace NetMQ
         /// <param name="events">a PollEvents value that indicates whether the socket is ready to send or receive without blocking</param>
         internal void Init(PollEvents events)
         {
-            IsReadyToReceive = events.HasFlag(PollEvents.PollIn);
-            IsReadyToSend = events.HasFlag(PollEvents.PollOut);
+            IsReadyToReceive = events.HasIn();
+            IsReadyToSend = events.HasOut();
         }
 
         [NotNull]

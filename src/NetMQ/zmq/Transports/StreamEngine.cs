@@ -839,6 +839,7 @@ namespace NetMQ.zmq.Transports
             }
         }
 
+        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

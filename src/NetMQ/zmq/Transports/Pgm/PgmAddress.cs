@@ -7,6 +7,7 @@ namespace NetMQ.zmq.Transports.PGM
 {
     internal sealed class PgmAddress : Address.IZAddress
     {
+        /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
         public PgmAddress([NotNull] string network)
         {
             Resolve(network, true);
@@ -16,6 +17,7 @@ namespace NetMQ.zmq.Transports.PGM
         {
         }
 
+        /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
         public void Resolve(string name, bool ip4Only)
         {
             int delimiter = name.LastIndexOf(':');
@@ -47,9 +49,9 @@ namespace NetMQ.zmq.Transports.PGM
 
             int port;
             //  Allow 0 specifically, to detect invalid port error in atoi if not
-            if (portStr.Equals("*") || portStr.Equals("0"))
+            if (portStr == "*" || portStr == "0")
             {
-                //  Resolve wildcard to 0 to allow autoselection of port
+                //  Resolve wildcard to 0 to allow auto-selection of port
                 port = 0;
             }
             else
@@ -61,7 +63,7 @@ namespace NetMQ.zmq.Transports.PGM
                     throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), portStr ({2}) must denote a valid nonzero integer.", name, ip4Only, portStr));
             }
 
-            if (addrStr.Equals("*"))
+            if (addrStr == "*")
                 addrStr = "0.0.0.0";
 
             IPAddress ipAddress;
@@ -83,10 +85,9 @@ namespace NetMQ.zmq.Transports.PGM
 
             IPEndPoint endpoint = Address;
 
-            if (endpoint.AddressFamily == AddressFamily.InterNetworkV6)
-                return Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port;
-            else
-                return Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
+                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port 
+                : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
         public string Protocol

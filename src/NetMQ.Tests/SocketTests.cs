@@ -5,17 +5,18 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NetMQ.Sockets;
 using NetMQ.zmq;
 using NUnit.Framework;
+
+// ReSharper disable ExceptionNotDocumented
 
 namespace NetMQ.Tests
 {
     [TestFixture]
     public class SocketTests
     {
-        [Test, ExpectedException(typeof(AgainException))]
-        public void CheckRecvAgainException()
+        [Test, ExpectedException(typeof(AgainException)), Obsolete]
+        public void CheckReceiveAgainException()
         {
             using (var context = NetMQContext.Create())
             using (var router = context.CreateRouterSocket())
@@ -62,7 +63,7 @@ namespace NetMQ.Tests
 
                 pub.Send(msg);
 
-                byte[] msg2 = sub.Receive();
+                byte[] msg2 = sub.ReceiveFrameBytes();
 
                 Assert.AreEqual(300, msg2.Length);
             }
@@ -74,7 +75,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             {
                 var pubSync = new AutoResetEvent(false);
-                var msg = new byte[300];
+                var payload = new byte[300];
                 const int waitTime = 500;
 
                 var t1 = new Task(() =>
@@ -84,7 +85,7 @@ namespace NetMQ.Tests
                         pubSocket.Bind("tcp://127.0.0.1:12345");
                         pubSync.WaitOne();
                         Thread.Sleep(waitTime);
-                        pubSocket.Send(msg);
+                        pubSocket.Send(payload);
                         pubSync.WaitOne();
                     }
                 }, TaskCreationOptions.LongRunning);
@@ -98,14 +99,13 @@ namespace NetMQ.Tests
                         Thread.Sleep(100);
                         pubSync.Set();
 
-                        var msg2 = subSocket.ReceiveMessage(TimeSpan.FromMilliseconds(100));
-                        Assert.IsNull(msg2, "The first receive should be null!");
+                        NetMQMessage msg = null;
+                        Assert.IsFalse(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(100), ref msg));
 
-                        msg2 = subSocket.ReceiveMessage(TimeSpan.FromMilliseconds(waitTime));
-
-                        Assert.NotNull(msg2);
-                        Assert.AreEqual(1, msg2.FrameCount);
-                        Assert.AreEqual(300, msg2.First.MessageSize);
+                        Assert.IsTrue(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(waitTime), ref msg));
+                        Assert.NotNull(msg);
+                        Assert.AreEqual(1, msg.FrameCount);
+                        Assert.AreEqual(300, msg.First.MessageSize);
                         pubSync.Set();
                     }
                 }, TaskCreationOptions.LongRunning);
@@ -113,7 +113,7 @@ namespace NetMQ.Tests
                 t1.Start();
                 t2.Start();
 
-                Task.WaitAll(new[] { t1, t2 });
+                Task.WaitAll(t1, t2);
             }
         }
 
@@ -125,10 +125,11 @@ namespace NetMQ.Tests
             using (var sub = context.CreateSubscriberSocket())
             {
                 pub.Options.Endian = Endianness.Little;
-                var port = pub.BindRandomPort("tcp://127.0.0.1");
-
                 sub.Options.Endian = Endianness.Little;
+                
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
+
                 sub.Subscribe("");
 
                 Thread.Sleep(100);
@@ -137,7 +138,7 @@ namespace NetMQ.Tests
 
                 pub.Send(msg);
 
-                byte[] msg2 = sub.Receive();
+                byte[] msg2 = sub.ReceiveFrameBytes();
 
                 Assert.AreEqual(300, msg2.Length);
             }
@@ -162,20 +163,17 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
                 req.Connect("tcp://127.0.0.1:" + port);
 
+                bool more;
+
                 req.Send("1");
 
-                bool more;
-                string m = rep.ReceiveString(out more);
-
+                Assert.AreEqual("1", rep.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
-                Assert.AreEqual("1", m);
 
                 rep.Send("2");
 
-                string m2 = req.ReceiveString(out more);
-
+                Assert.AreEqual("2", req.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
-                Assert.AreEqual("2", m2);
 
                 Assert.IsTrue(req.Options.TcpKeepalive);
                 Assert.AreEqual(TimeSpan.FromSeconds(5), req.Options.TcpKeepaliveIdle);
@@ -208,13 +206,13 @@ namespace NetMQ.Tests
                 Thread.Sleep(1000);
 
                 pub.Send("");
-                sub.Receive();
+                sub.SkipFrame();
 
                 for (int i = 0; i < 100; i++)
                 {
                     pub.Send(largeMessage);
 
-                    byte[] recvMesage = sub.Receive();
+                    byte[] recvMesage = sub.ReceiveFrameBytes();
 
                     for (int j = 0; j < 12000; j++)
                     {
@@ -242,10 +240,10 @@ namespace NetMQ.Tests
                 int bytesSent = clientSocket.Send(clientMessage);
                 Assert.Greater(bytesSent, 0);
 
-                byte[] id = router.Receive();
-                byte[] message = router.Receive();
+                byte[] id = router.ReceiveFrameBytes();
+                byte[] message = router.ReceiveFrameBytes();
 
-                router.SendMore(id).SendMore(message); // SNDMORE option is ignored
+                router.SendMore(id).SendMore(message); // SendMore option is ignored
 
                 var buffer = new byte[16];
 
@@ -268,7 +266,7 @@ namespace NetMQ.Tests
 
                 randomDealer.Send("test");
 
-                Assert.AreEqual("test", connectingDealer.ReceiveString());
+                Assert.AreEqual("test", connectingDealer.ReceiveFrameString());
             }
         }
 
@@ -288,7 +286,7 @@ namespace NetMQ.Tests
 
                     localDealer.Send("test");
 
-                    Assert.AreEqual("test", connectingDealer.ReceiveString());
+                    Assert.AreEqual("test", connectingDealer.ReceiveFrameString());
                     Console.WriteLine(alias + " connected ");
                 }
             }
@@ -308,7 +306,7 @@ namespace NetMQ.Tests
 
                 connectingDealer.Send("test");
 
-                Assert.AreEqual("test", localDealer.ReceiveString());
+                Assert.AreEqual("test", localDealer.ReceiveFrameString());
             }
         }
 
@@ -327,7 +325,7 @@ namespace NetMQ.Tests
 
                 connectingDealer.Send("test");
 
-                Assert.AreEqual("test", localDealer.ReceiveString());
+                Assert.AreEqual("test", localDealer.ReceiveFrameString());
             }
         }
 
@@ -340,7 +338,7 @@ namespace NetMQ.Tests
             {
                 var port = server.BindRandomPort("tcp://*");
 
-                // no one sent a message so it should be fasle
+                // no one sent a message so it should be false
                 Assert.IsFalse(server.HasIn);
 
                 client.Connect("tcp://localhost:" + port);
@@ -359,8 +357,8 @@ namespace NetMQ.Tests
                 // the has in should indicate a message is ready
                 Assert.IsTrue(server.HasIn);
 
-                server.Receive(); // identity
-                string message = server.ReceiveString();
+                server.SkipFrame(); // identity
+                string message = server.ReceiveFrameString();
 
                 Assert.AreEqual(message, "1");
 
@@ -447,8 +445,8 @@ namespace NetMQ.Tests
                 client.Send("2");
 
                 // make sure client is connected to both servers 
-                server1.ReceiveString();
-                server2.ReceiveString();
+                server1.SkipFrame();
+                server2.SkipFrame();
 
                 // disconnect from server2, server 1 should receive all messages
                 client.Disconnect(address2);
@@ -457,8 +455,8 @@ namespace NetMQ.Tests
                 client.Send("1");
                 client.Send("2");
 
-                server1.ReceiveString();
-                server1.ReceiveString();
+                server1.SkipFrame();
+                server1.SkipFrame();
             }
         }
 
@@ -506,8 +504,8 @@ namespace NetMQ.Tests
                     client2.Send("2");
 
                     // the server receive from both
-                    server.ReceiveString();
-                    server.ReceiveString();
+                    server.SkipFrame();
+                    server.SkipFrame();
                 }
 
                 // unbind second address
@@ -528,7 +526,7 @@ namespace NetMQ.Tests
                         client2.Connect(address2);
 
                         client1.Send("1");
-                        server.ReceiveString();
+                        server.SkipFrame();
 
                         Assert.Throws<AgainException>(() =>
                         {
@@ -571,9 +569,13 @@ namespace NetMQ.Tests
 
                 for (var i = 0; i < 100; i++)
                 {
-                    var msg = "msg-" + i;
-                    pub.Send("msg-" + i);
-                    Assert.AreEqual(msg, sub.ReceiveString(TimeSpan.FromMilliseconds(100)));
+                    var sent = "msg-" + i;
+                    
+                    pub.Send(sent);
+
+                    string received;
+                    Assert.IsTrue(sub.TryReceiveFrameString(TimeSpan.FromMilliseconds(100), out received));
+                    Assert.AreEqual(sent, received);
                 }
 
                 pub.Close();

@@ -104,25 +104,13 @@ namespace NetMQ.zmq
 
         public override string ToString()
         {
-            if (Protocol.Equals(TcpProtocol))
+            if (Resolved != null)
             {
-                if (Resolved != null)
+                switch (Protocol)
                 {
-                    return Resolved.ToString();
-                }
-            }
-            else if (Protocol.Equals(IpcProtocol))
-            {
-                if (Resolved != null)
-                {
-                    return Resolved.ToString();
-                }
-            }
-            else if (Protocol.Equals(PgmProtocol))
-            {
-                if (Resolved != null)
-                {
-                    return Resolved.ToString();
+                    case TcpProtocol: return Resolved.ToString();
+                    case IpcProtocol: return Resolved.ToString();
+                    case PgmProtocol: return Resolved.ToString();
                 }
             }
 

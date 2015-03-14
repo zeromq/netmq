@@ -47,7 +47,10 @@ namespace NetMQ.zmq
             MulticastHops = 1;
             Rate = 100;
             ReceiveHighWatermark = 1000;
+#pragma warning disable 618
+            // This is obsolete, but it is still used. Disable compiler warning.
             ReceiveTimeout = -1;
+#pragma warning restore 618
             ReconnectIvl = 100;
             RecoveryIvl = 10000;
             SendHighWatermark = 1000;
@@ -225,6 +228,7 @@ namespace NetMQ.zmq
         /// Get or set the timeout for receive operations for this socket.
         /// The default value is -1, which means no timeout.
         /// </summary>
+        [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
         public int ReceiveTimeout { get; set; }
 
         /// <summary>
@@ -298,16 +302,10 @@ namespace NetMQ.zmq
                     else if (optionValue is byte[])
                         val = (byte[])optionValue;
                     else
-                    {
-                        string xMsg = string.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue == null ? "null" : optionValue.ToString());
-                        throw new InvalidException(xMsg);
-                    }
+                        throw new InvalidException(string.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue == null ? "null" : optionValue.ToString()));
 
                     if (val.Length == 0 || val.Length > 255)
-                    {
-                        string xMsg = string.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length);
-                        throw new InvalidException(xMsg);
-                    }
+                        throw new InvalidException(string.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length));
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
                     IdentitySize = (byte)Identity.Length;
@@ -334,19 +332,17 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOptions.ReconnectIvl:
-                    ReconnectIvl = (int)optionValue;
-                    if (ReconnectIvl < -1)
-                    {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", ReconnectIvl));
-                    }
+                    var reconnectIvl = (int)optionValue;
+                    if (reconnectIvl < -1)
+                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", reconnectIvl));
+                    ReconnectIvl = reconnectIvl;
                     break;
 
                 case ZmqSocketOptions.ReconnectIvlMax:
-                    ReconnectIvlMax = (int)optionValue;
-                    if (ReconnectIvlMax < 0)
-                    {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", ReconnectIvlMax));
-                    }
+                    var reconnectIvlMax = (int)optionValue;
+                    if (reconnectIvlMax < 0)
+                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", reconnectIvlMax));
+                    ReconnectIvlMax = reconnectIvlMax;
                     break;
 
                 case ZmqSocketOptions.Backlog:
@@ -361,8 +357,11 @@ namespace NetMQ.zmq
                     MulticastHops = (int)optionValue;
                     break;
 
+// disable warning about obsolete values
+#pragma warning disable 618
                 case ZmqSocketOptions.ReceiveTimeout:
                     ReceiveTimeout = (int)optionValue;
+#pragma warning restore 618
                     break;
 
                 case ZmqSocketOptions.SendTimeout:
@@ -374,11 +373,10 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOptions.TcpKeepalive:
-                    TcpKeepalive = (int)optionValue;
-                    if (TcpKeepalive != -1 && TcpKeepalive != 0 && TcpKeepalive != 1)
-                    {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", TcpKeepalive));
-                    }
+                    var tcpKeepalive = (int)optionValue;
+                    if (tcpKeepalive != -1 && tcpKeepalive != 0 && tcpKeepalive != 1)
+                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", tcpKeepalive));
+                    TcpKeepalive = tcpKeepalive;
                     break;
 
                 case ZmqSocketOptions.DelayAttachOnConnect:
@@ -394,18 +392,18 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOptions.TcpAcceptFilter:
-                    string filterStr = (string)optionValue;
+                    var filterStr = (string)optionValue;
                     if (filterStr == null)
                     {
                         TcpAcceptFilters.Clear();
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1) but must be 1..255", filterStr, filterStr.Length));
+                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1}) but must be 1..255", filterStr, filterStr.Length));
                     }
                     else
                     {
-                        TcpAddress.TcpAddressMask filter = new TcpAddress.TcpAddressMask();
+                        var filter = new TcpAddress.TcpAddressMask();
                         filter.Resolve(filterStr, IPv4Only);
                         TcpAcceptFilters.Add(filter);
                     }
@@ -474,8 +472,10 @@ namespace NetMQ.zmq
                 case ZmqSocketOptions.MulticastHops:
                     return MulticastHops;
 
+#pragma warning disable 618
                 case ZmqSocketOptions.ReceiveTimeout:
                     return ReceiveTimeout;
+#pragma warning restore 618
 
                 case ZmqSocketOptions.SendTimeout:
                     return SendTimeout;

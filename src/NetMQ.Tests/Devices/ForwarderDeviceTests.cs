@@ -30,7 +30,7 @@ namespace NetMQ.Tests.Devices
 
         protected override void DoWork(NetMQSocket socket)
         {
-            var received = socket.ReceiveStringMessages().ToList();
+            var received = socket.ReceiveMultipartStrings();
             Console.WriteLine("Worker received: ");
 
             for (var i = 0; i < received.Count; i++)

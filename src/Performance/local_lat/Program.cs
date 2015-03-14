@@ -23,22 +23,22 @@ namespace local_lat
             {
                 rep.Bind(bindTo);
 
-                var message = new Msg();
-                message.InitEmpty();
+                var msg = new Msg();
+                msg.InitEmpty();
 
                 for (int i = 0; i != roundtripCount; i++)
                 {
-                    rep.Receive(ref message, SendReceiveOptions.None);
-                    if (message.Size != messageSize)
+                    rep.Receive(ref msg);
+                    if (msg.Size != messageSize)
                     {
-                        Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
+                        Console.WriteLine("message of incorrect size received. Received: " + msg.Size + " Expected: " + messageSize);
                         return -1;
                     }
 
-                    rep.Send(ref message, SendReceiveOptions.None);
+                    rep.Send(ref msg, SendReceiveOptions.None);
                 }
 
-                message.Close();
+                msg.Close();
             }
 
             return 0;

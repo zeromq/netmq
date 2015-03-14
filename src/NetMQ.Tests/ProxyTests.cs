@@ -27,9 +27,9 @@ namespace NetMQ.Tests
                     server.Connect("inproc://backend");
 
                     client.Send("hello");
-                    Assert.AreEqual("hello", server.ReceiveString());
+                    Assert.AreEqual("hello", server.ReceiveFrameString());
                     server.Send("reply");
-                    Assert.AreEqual("reply", client.ReceiveString());
+                    Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
                 proxy.Stop();
@@ -61,18 +61,18 @@ namespace NetMQ.Tests
                     server.Connect("inproc://backend");
 
                     client.Send("hello");
-                    Assert.AreEqual("hello", server.ReceiveString());
+                    Assert.AreEqual("hello", server.ReceiveFrameString());
                     server.Send("reply");
-                    Assert.AreEqual("reply", client.ReceiveString());
+                    Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
-                Assert.IsNotNull(controlPull.Receive());     // receive identity
-                Assert.IsEmpty(controlPull.ReceiveString()); // pull terminator
-                Assert.AreEqual("hello", controlPull.ReceiveString());
+                Assert.IsNotNull(controlPull.ReceiveFrameBytes());     // receive identity
+                Assert.IsEmpty(controlPull.ReceiveFrameString()); // pull terminator
+                Assert.AreEqual("hello", controlPull.ReceiveFrameString());
 
-                Assert.IsNotNull(controlPull.Receive());     // receive identity
-                Assert.IsEmpty(controlPull.ReceiveString()); // pull terminator
-                Assert.AreEqual("reply", controlPull.ReceiveString());
+                Assert.IsNotNull(controlPull.ReceiveFrameBytes());     // receive identity
+                Assert.IsEmpty(controlPull.ReceiveFrameString()); // pull terminator
+                Assert.AreEqual("reply", controlPull.ReceiveFrameString());
 
                 proxy.Stop();
             }
@@ -98,9 +98,9 @@ namespace NetMQ.Tests
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
                     client.Send("hello");
-                    Assert.AreEqual("hello", server.ReceiveString());
+                    Assert.AreEqual("hello", server.ReceiveFrameString());
                     server.Send("reply");
-                    Assert.AreEqual("reply", client.ReceiveString());
+                    Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
                 Assert.Throws<InvalidOperationException>(proxy.Start);
@@ -133,9 +133,9 @@ namespace NetMQ.Tests
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
                     client.Send("hello");
-                    Assert.AreEqual("hello", server.ReceiveString());
+                    Assert.AreEqual("hello", server.ReceiveFrameString());
                     server.Send("reply");
-                    Assert.AreEqual("reply", client.ReceiveString());
+                    Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
                 proxy.Stop(); // blocks until stopped
@@ -150,9 +150,9 @@ namespace NetMQ.Tests
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
                     client.Send("hello");
-                    Assert.AreEqual("hello", server.ReceiveString());
+                    Assert.AreEqual("hello", server.ReceiveFrameString());
                     server.Send("reply");
-                    Assert.AreEqual("reply", client.ReceiveString());
+                    Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
                 proxy.Stop(); // blocks until stopped
@@ -179,9 +179,9 @@ namespace NetMQ.Tests
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
                     client.Send("hello");
-                    Assert.AreEqual("hello", server.ReceiveString());
+                    Assert.AreEqual("hello", server.ReceiveFrameString());
                     server.Send("reply");
-                    Assert.AreEqual("reply", client.ReceiveString());
+                    Assert.AreEqual("reply", client.ReceiveFrameString());
 
                     proxy.Stop(); // blocks until stopped
 
@@ -192,7 +192,7 @@ namespace NetMQ.Tests
                         client.Send("anyone there?");
 
                         // Should no longer receive any messages
-                        Assert.IsNull(server.ReceiveString(TimeSpan.FromMilliseconds(50)));
+                        Assert.IsFalse(server.TrySkipFrame(TimeSpan.FromMilliseconds(50)));
 
                         poller.CancelAndJoin();
                     }
@@ -224,9 +224,9 @@ namespace NetMQ.Tests
                     server.Connect("inproc://backend");
 
                     client.Send("hello");
-                    Assert.AreEqual("hello", server.ReceiveString());
+                    Assert.AreEqual("hello", server.ReceiveFrameString());
                     server.Send("reply");
-                    Assert.AreEqual("reply", client.ReceiveString());
+                    Assert.AreEqual("reply", client.ReceiveFrameString());
 
                     // Now stop the external poller
                     poller.CancelAndJoin();
@@ -234,7 +234,7 @@ namespace NetMQ.Tests
                     client.Send("anyone there?");
 
                     // Should no longer receive any messages
-                    Assert.IsNull(server.ReceiveString(TimeSpan.FromMilliseconds(50)));
+                    Assert.IsFalse(server.TrySkipFrame(TimeSpan.FromMilliseconds(50)));
                 }
             }
         }

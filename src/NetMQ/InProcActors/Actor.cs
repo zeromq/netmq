@@ -185,14 +185,31 @@ namespace NetMQ.Actors
             m_self.Dispose();
         }
 
+        #region IOutgoingSocket
+
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
+        /// <exception cref="AgainException">The send operation timed out.</exception>
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Send(ref msg, options);
         }
 
+        #endregion
+
+        #region IReceivingSocket
+
+        /// <exception cref="AgainException">The receive operation timed out.</exception>
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Receive(ref msg, options);
         }
+
+        public bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            return m_self.TryReceive(ref msg, timeout);
+        }
+
+        #endregion
     }
 }

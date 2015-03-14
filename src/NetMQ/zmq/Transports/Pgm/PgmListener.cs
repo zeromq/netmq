@@ -22,6 +22,8 @@ namespace NetMQ.zmq.Transports.PGM
             m_ioObject = new IOObject(ioThread);
         }
 
+        /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
+        /// <exception cref="NetMQException">Error establishing underlying socket.</exception>
         public void Init([NotNull] string network)
         {
             m_address = new PgmAddress(network);
@@ -128,11 +130,13 @@ namespace NetMQ.zmq.Transports.PGM
             m_handle.Accept(m_acceptedSocket.Handle);
         }
 
+        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
         }
 
+        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

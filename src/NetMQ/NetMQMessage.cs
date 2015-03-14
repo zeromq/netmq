@@ -30,7 +30,7 @@ namespace NetMQ
         /// </summary>
         private readonly List<NetMQFrame> m_frames;
 
-        #region constructors
+        #region Constructors
 
         /// <summary>
         /// The default-constructor for NetMQMessage: create a new instance of NetMQMessage
@@ -45,12 +45,11 @@ namespace NetMQ
         /// Create a new instance of a NetMQMessage that contains the given collection of NetMQFrames as its frame-stack.
         /// </summary>
         /// <param name="frames">a collection of NetMQFrames, to form the frame-stack</param>
+        /// <exception cref="ArgumentNullException">The value of 'frames' cannot be null. </exception>
         public NetMQMessage([NotNull] IEnumerable<NetMQFrame> frames)
         {
             if (frames == null)
-            {
                 throw new ArgumentNullException("frames");
-            }
 
             m_frames = new List<NetMQFrame>(frames);
         }
@@ -59,19 +58,18 @@ namespace NetMQ
         /// Create a new instance of a NetMQMessage that contains the given collection of byte-arrays as its frame-stack.
         /// </summary>
         /// <param name="buffers">a collection of byte-array buffers, to form the frame-stack</param>
+        /// <exception cref="ArgumentNullException">The value of 'buffers' cannot be null. </exception>
         public NetMQMessage([NotNull] IEnumerable<byte[]> buffers)
         {
             if (buffers == null)
-            {
                 throw new ArgumentNullException("buffers");
-            }
 
             m_frames = buffers.Select(buf => new NetMQFrame(buf)).ToList();
         }
 
-        #endregion constructors
+        #endregion
 
-        #region public properties
+        #region Properties
 
         /// <summary>
         /// Gets the first frame in the current message.
@@ -121,11 +119,10 @@ namespace NetMQ
             get { return m_frames[index]; }
         }
 
-        #endregion public properties
+        #endregion
 
-        #region public methods
+        #region Appending frames
 
-        #region append
         /// <summary>
         /// Add the given NetMQFrame to this NetMQMessage, at the highest-indexed position of the frame-stack.
         /// </summary>
@@ -180,9 +177,11 @@ namespace NetMQ
         {
             m_frames.Add(NetMQFrame.Empty);
         }
-        #endregion append
 
-        #region push
+        #endregion
+
+        #region Pushing frames
+
         /// <summary>
         /// Insert the given NetMQFrame into the lowest-indexed position of this NetMQMessage,
         /// pushing all of the other frames upward in index-position.
@@ -245,7 +244,8 @@ namespace NetMQ
         {
             m_frames.Insert(0, NetMQFrame.Empty);
         }
-        #endregion push
+
+        #endregion
 
         /// <summary>
         /// Remove and return the first frame.
@@ -315,7 +315,5 @@ namespace NetMQ
         }
 
         #endregion
-
-        #endregion public methods
     }
 }

@@ -206,7 +206,6 @@ Here is a listing of the available properties that you may set on a `NetMQSocket
 + `MulticastRecoveryInterval`
 + `ReceiveHighWaterMark`
 + `ReceiveMore`
-+ `ReceiveTimeout`
 + `ReceiveBuffer`
 + `ReconnectInterval`
 + `ReconnectIntervalMax`

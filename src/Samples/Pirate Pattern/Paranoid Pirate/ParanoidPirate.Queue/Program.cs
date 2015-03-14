@@ -13,6 +13,8 @@ namespace ParanoidPirate.Queue
         /// </summary>
         private static void Main(string[] args)
         {
+            Console.Title = "NetMQ ParanoidPirate Queue";
+
             // serves as flag for exiting the program
             var exit = false;
             // catch CTRL+C as exit command
@@ -43,7 +45,7 @@ namespace ParanoidPirate.Queue
                     if (workers.Available)
                     {
                         // get all message frames!
-                        var request = frontend.ReceiveMessage();
+                        var request = frontend.ReceiveMultipartMessage();
 
                         if (verbose)
                             Console.WriteLine("[QUEUE] received {0}", request);
@@ -63,7 +65,7 @@ namespace ParanoidPirate.Queue
                 // worker sends to this socket
                 backend.ReceiveReady += (s, e) =>
                 {
-                    var msg = e.Socket.ReceiveMessage();
+                    var msg = e.Socket.ReceiveMultipartMessage();
 
                     if (verbose)
                         Console.WriteLine("[QUEUE <- WORKER] received {0}", msg);

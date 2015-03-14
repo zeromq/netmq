@@ -88,6 +88,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
+        /// <exception cref="NotSupportedException">XSend not supported on Sub socket</exception>
         protected override bool XSend(ref Msg msg)
         {
             //  Overload the XSUB's send.
