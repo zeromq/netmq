@@ -60,23 +60,27 @@ namespace NetMQ.Tests
         [Test]
         public void TestInt16()
         {
-            byte[] buffer = NetworkOrderBitsConverter.GetBytes((short)1);
+            unchecked
+            {
+                RoundTripInt16(0x0102, 1, 2);
+                RoundTripInt16((short)0xFFEE, 0xFF, 0xEE);
+            }
+        }
 
-            Assert.AreEqual(buffer[1], 1);
-            Assert.AreEqual(0, buffer[0]);
+        private static void RoundTripInt16(short num, params byte[] bytes)
+        {
+            byte[] buffer = NetworkOrderBitsConverter.GetBytes(num);
 
-            short num = NetworkOrderBitsConverter.ToInt16(buffer);
+            Assert.AreEqual(2, buffer.Length);
+            CollectionAssert.AreEqual(bytes, buffer);
 
-            Assert.AreEqual(1, num);
+            Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt16(buffer));
 
-            NetworkOrderBitsConverter.PutInt16(256, buffer, 0);
+            NetworkOrderBitsConverter.PutInt16(num, buffer);
 
-            Assert.AreEqual(1, buffer[0]);
-            Assert.AreEqual(0, buffer[1]);
+            CollectionAssert.AreEqual(bytes, buffer);
 
-            num = NetworkOrderBitsConverter.ToInt16(buffer);
-
-            Assert.AreEqual(256, num);
+            Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt16(buffer));
         }
 
 //        [Test]

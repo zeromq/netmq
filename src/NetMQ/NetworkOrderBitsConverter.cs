@@ -14,11 +14,13 @@ namespace NetMQ
         /// - return a 16-bit integer derived from the 2 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the short from</param>
-        /// <param name="offset">a (zero-based) offset into that byte-array marking where to access it (optional - default is 0)</param>
         /// <returns></returns>
-        public static short ToInt16([NotNull] byte[] buffer, int offset = 0)
+        public static short ToInt16([NotNull] byte[] buffer)
         {
-            return (short)(((buffer[offset]) << 8) | (buffer[offset + 1]));
+            var i = buffer[0] << 8 |
+                    buffer[1];
+
+            return (short)i;
         }
 
         /// <summary>
@@ -30,7 +32,7 @@ namespace NetMQ
         public static byte[] GetBytes(short value)
         {
             var buffer = new byte[2];
-            PutInt16(value, buffer, 0);
+            PutInt16(value, buffer);
 
             return buffer;
         }
@@ -41,11 +43,10 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the short to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the short's bytes into</param>
-        /// <param name="offset">a zero-based offset into that buffer marking where to start writing</param>
-        public static void PutInt16(short value, [NotNull] byte[] buffer, int offset)
+        public static void PutInt16(short value, [NotNull] byte[] buffer)
         {
-            buffer[offset] = (byte)(((value) >> 8) & 0xff);
-            buffer[offset + 1] = (byte)(value & 0xff);
+            buffer[0] = (byte)(value >> 8);
+            buffer[1] = (byte) value;
         }
 
         /// <summary>
