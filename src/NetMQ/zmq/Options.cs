@@ -398,7 +398,7 @@ namespace NetMQ.zmq
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1) but must be 1..255", filterStr, filterStr.Length));
+                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1}) but must be 1..255", filterStr, filterStr.Length));
                     }
                     else
                     {
