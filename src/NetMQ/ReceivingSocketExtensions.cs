@@ -903,9 +903,18 @@ namespace NetMQ
         public static List<string> ReceiveMultipartStrings([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, int expectedFrameCount = 4)
         {
             var frames = new List<string>(expectedFrameCount);
-            var more = true;
-            while (more)
-                frames.Add(socket.ReceiveFrameString(encoding, out more));
+            
+            var msg = new Msg();
+            msg.InitEmpty();
+            
+            do
+            {
+                socket.Receive(ref msg);
+                frames.Add(encoding.GetString(msg.Data, 0, msg.Size));
+            }
+            while (msg.HasMore);
+
+            msg.Close();
             return frames;
         }
 
