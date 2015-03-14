@@ -98,13 +98,9 @@ namespace NetMQ.zmq
         Rate = 8,
         RecoveryIvl = 9,
         SendBuffer = 11,
-        [Obsolete("Use ReceiveBuffer instead")]
-        ReceivevBuffer = ReceiveBuffer,
         ReceiveBuffer = 12,
         ReceiveMore = 13,
 
-        [Obsolete("Use Handle")]
-        FD = 14,
         Handle = 14,
 
         Events = 15,
@@ -128,17 +124,11 @@ namespace NetMQ.zmq
         /// </summary>
         MaxMessageSize = 22,
 
-        [Obsolete("Use MaxMessageSize instead")]
-        Maxmsgsize = 22,
-
         /// <summary>
         /// The high-water mark for message transmission, which is the number of messages that are allowed to queue up
         /// before mitigative action is taken. The default value is 1000.
         /// </summary>
         SendHighWatermark = 23,
-
-        [Obsolete("Use ReceiveHighWatermark instead")]
-        ReceivevHighWatermark = ReceiveHighWatermark,
 
         /// <summary>
         /// The high-water mark for message reception, which is the number of messages that are allowed to queue up
@@ -163,8 +153,6 @@ namespace NetMQ.zmq
         LastEndpoint = 32,
         RouterMandatory = 33,
         TcpKeepalive = 34,
-        [Obsolete("Not supported and has no effect")]
-        TcpKeepaliveCnt = 35,
         TcpKeepaliveIdle = 36,
         TcpKeepaliveIntvl = 37,
         TcpAcceptFilter = 38,
@@ -177,13 +165,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
-        Endian = 1000,
-
-        [Obsolete]
-        FailUnroutable = RouterMandatory,
-
-        [Obsolete]
-        RouterBehavior = RouterMandatory
+        Endian = 1000
     }
 
     /// <summary>
