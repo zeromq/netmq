@@ -54,12 +54,12 @@ namespace NetMQ.zmq.Patterns.Utils
         /// Add key to the trie. Returns true if it's a new subscription
         /// rather than a duplicate.
         /// </summary>
-        public bool Add([NotNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
+        public bool Add([CanBeNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
         {
             return AddHelper(prefix, start, size, pipe);
         }
 
-        private bool AddHelper([NotNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
+        private bool AddHelper([CanBeNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
         {
             //  We are at the node corresponding to the prefix. We are done.
             if (size == 0)
@@ -72,6 +72,8 @@ namespace NetMQ.zmq.Patterns.Utils
                 m_pipes.Add(pipe);
                 return result;
             }
+
+            Debug.Assert(prefix != null);
 
             byte currentCharacter = prefix[start];
 
