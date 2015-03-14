@@ -57,6 +57,28 @@ namespace NetMQ.Tests
             Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt32(buffer));
         }
 
+        [Test]
+        public void TestInt16()
+        {
+            byte[] buffer = NetworkOrderBitsConverter.GetBytes((short)1);
+
+            Assert.AreEqual(buffer[1], 1);
+            Assert.AreEqual(0, buffer[0]);
+
+            short num = NetworkOrderBitsConverter.ToInt16(buffer);
+
+            Assert.AreEqual(1, num);
+
+            NetworkOrderBitsConverter.PutInt16(256, buffer, 0);
+
+            Assert.AreEqual(1, buffer[0]);
+            Assert.AreEqual(0, buffer[1]);
+
+            num = NetworkOrderBitsConverter.ToInt16(buffer);
+
+            Assert.AreEqual(256, num);
+        }
+
 //        [Test]
 //        public void PutInt64Perf()
 //        {
