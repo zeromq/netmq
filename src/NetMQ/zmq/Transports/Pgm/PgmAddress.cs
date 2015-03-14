@@ -51,7 +51,7 @@ namespace NetMQ.zmq.Transports.PGM
             //  Allow 0 specifically, to detect invalid port error in atoi if not
             if (portStr == "*" || portStr == "0")
             {
-                //  Resolve wildcard to 0 to allow autoselection of port
+                //  Resolve wildcard to 0 to allow auto-selection of port
                 port = 0;
             }
             else
@@ -85,10 +85,9 @@ namespace NetMQ.zmq.Transports.PGM
 
             IPEndPoint endpoint = Address;
 
-            if (endpoint.AddressFamily == AddressFamily.InterNetworkV6)
-                return Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port;
-            else
-                return Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
+                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port 
+                : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
         public string Protocol

@@ -62,9 +62,7 @@ namespace NetMQ.zmq.Patterns
             //  If we've sent a request and we still haven't got the reply,
             //  we can't send another request.
             if (m_receivingReply)
-            {
                 throw new FiniteStateMachineException("Req.XSend - cannot send another request");
-            }
 
             bool isMessageSent;
 
@@ -106,9 +104,7 @@ namespace NetMQ.zmq.Patterns
 
             //  If request wasn't send, we can't wait for reply.
             if (!m_receivingReply)
-            {
                 throw new FiniteStateMachineException("Req.XRecv - cannot receive another reply");
-            }
 
             //  First part of the reply should be the original request ID.
             if (m_messageBegins)
@@ -116,9 +112,7 @@ namespace NetMQ.zmq.Patterns
                 isMessageAvailable = base.XRecv(ref msg);
 
                 if (!isMessageAvailable)
-                {
                     return false;
-                }
 
                 if (!msg.HasMore || msg.Size != 0)
                 {
