@@ -39,39 +39,33 @@ namespace NetMQ.zmq.Patterns
         {
             m_options.SocketType = ZmqSocketType.Sub;
 
-            //  Switch filtering messages on (as opposed to XSUB which where the
-            //  filtering is off).
+            // Switch filtering messages on (as opposed to XSUB which where the filtering is off).
             m_options.Filter = true;
         }
 
         protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
         {
+            // Only subscribe/unsubscribe options are supported
             if (option != ZmqSocketOption.Subscribe && option != ZmqSocketOption.Unsubscribe)
-            {
                 return false;
-            }
 
-            byte[] val;
-
+            byte[] topic;
             if (optionValue is string)
-                val = Encoding.ASCII.GetBytes((string)optionValue);
+                topic = Encoding.ASCII.GetBytes((string)optionValue);
             else if (optionValue is byte[])
-                val = (byte[])optionValue;
+                topic = (byte[])optionValue;
             else
                 throw new InvalidException(string.Format("In Sub.XSetSocketOption({0},{1}), optionValue must be either a string or a byte-array.", option, (optionValue == null ? "null" : optionValue.ToString())));
 
-            //  Create the subscription message.
+            // Create the subscription message.
             var msg = new Msg();
-            msg.InitPool(val.Length + 1);
-            if (option == ZmqSocketOption.Subscribe)
-                msg.Put(1);
-            else if (option == ZmqSocketOption.Unsubscribe)
-                msg.Put(0);
-            msg.Put(val, 1, val.Length);
+            msg.InitPool(topic.Length + 1);
+            msg.Put(option == ZmqSocketOption.Subscribe ? (byte)1 : (byte)0);
+            msg.Put(topic, 1, topic.Length);
 
             try
             {
-                //  Pass it further on in the stack.
+                // Pass it further on in the stack.
                 bool isMessageSent = base.XSend(ref msg);
 
                 if (!isMessageSent)
@@ -91,13 +85,13 @@ namespace NetMQ.zmq.Patterns
         /// <exception cref="NotSupportedException">XSend not supported on Sub socket</exception>
         protected override bool XSend(ref Msg msg)
         {
-            //  Overload the XSUB's send.
+            // Overload the XSUB's send.
             throw new NotSupportedException("XSend not supported on Sub socket");
         }
 
         protected override bool XHasOut()
         {
-            //  Overload the XSUB's send.
+            // Overload the XSUB's send.
             return false;
         }
     }
