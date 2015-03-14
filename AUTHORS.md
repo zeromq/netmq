@@ -2,6 +2,7 @@ Contributors
 ===
 
 * Alexey Yakovlev &mdash; [@yallie](https://github.com/yallie)
+* Charlie Friedemann &mdash; [@charliebone](https://github.com/charliebone)
 * Christophe Juniet &mdash; [@cjuniet](https://github.com/cjuniet)
 * Dan de Zille &mdash; [@dandezille](https://github.com/dandezille)
 * Doron Somech &mdash; [@somdoron](https://github.com/somdoron)
