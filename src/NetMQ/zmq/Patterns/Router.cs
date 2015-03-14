@@ -243,6 +243,7 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(outpipe != null);
         }
 
+        /// <exception cref="HostUnreachableException">In Router.XSend</exception>
         protected override bool XSend(ref Msg msg)
         {
             //  If this is the first part of the message it's the ID of the

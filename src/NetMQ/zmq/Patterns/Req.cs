@@ -56,6 +56,7 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Req;
         }
 
+        /// <exception cref="FiniteStateMachineException">Cannot send while awaiting reply.</exception>
         protected override bool XSend(ref Msg msg)
         {
             //  If we've sent a request and we still haven't got the reply,
@@ -98,6 +99,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
+        /// <exception cref="FiniteStateMachineException">Expecting send, not receive.</exception>
         protected override bool XRecv(ref Msg msg)
         {
             bool isMessageAvailable;

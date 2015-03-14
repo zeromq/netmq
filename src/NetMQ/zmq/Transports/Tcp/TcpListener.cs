@@ -263,11 +263,13 @@ namespace NetMQ.zmq.Transports.Tcp
             get { return m_port; }
         }
 
+        /// <exception cref="NotSupportedException">Method is not implemented.</exception>
         void IProactorEvents.OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
         }
 
+        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

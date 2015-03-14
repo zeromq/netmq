@@ -187,6 +187,9 @@ namespace NetMQ.Actors
 
         #region IOutgoingSocket
 
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
+        /// <exception cref="AgainException">The send operation timed out.</exception>
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Send(ref msg, options);
@@ -196,6 +199,7 @@ namespace NetMQ.Actors
 
         #region IReceivingSocket
 
+        /// <exception cref="AgainException">The receive operation timed out.</exception>
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Receive(ref msg, options);

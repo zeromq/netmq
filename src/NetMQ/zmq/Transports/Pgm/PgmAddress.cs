@@ -7,6 +7,7 @@ namespace NetMQ.zmq.Transports.PGM
 {
     internal sealed class PgmAddress : Address.IZAddress
     {
+        /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
         public PgmAddress([NotNull] string network)
         {
             Resolve(network, true);

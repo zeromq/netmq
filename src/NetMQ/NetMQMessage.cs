@@ -45,6 +45,7 @@ namespace NetMQ
         /// Create a new instance of a NetMQMessage that contains the given collection of NetMQFrames as its frame-stack.
         /// </summary>
         /// <param name="frames">a collection of NetMQFrames, to form the frame-stack</param>
+        /// <exception cref="ArgumentNullException">The value of 'frames' cannot be null. </exception>
         public NetMQMessage([NotNull] IEnumerable<NetMQFrame> frames)
         {
             if (frames == null)
@@ -59,6 +60,7 @@ namespace NetMQ
         /// Create a new instance of a NetMQMessage that contains the given collection of byte-arrays as its frame-stack.
         /// </summary>
         /// <param name="buffers">a collection of byte-array buffers, to form the frame-stack</param>
+        /// <exception cref="ArgumentNullException">The value of 'buffers' cannot be null. </exception>
         public NetMQMessage([NotNull] IEnumerable<byte[]> buffers)
         {
             if (buffers == null)

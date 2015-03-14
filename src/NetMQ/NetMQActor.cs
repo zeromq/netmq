@@ -199,6 +199,7 @@ namespace NetMQ
 
         #region IReceivingSocket
 
+        /// <exception cref="AgainException">The receive operation timed out.</exception>
         [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
