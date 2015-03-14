@@ -11,6 +11,45 @@ namespace NetMQ
     {
         /// <summary>
         /// Given a byte-array assumed to be in Big-endian order, and an offset into it
+        /// - return a 16-bit integer derived from the 2 bytes starting at that offset.
+        /// </summary>
+        /// <param name="buffer">the byte-array to get the short from</param>
+        /// <param name="offset">a (zero-based) offset into that byte-array marking where to access it (optional - default is 0)</param>
+        /// <returns></returns>
+        public static short ToInt16([NotNull] byte[] buffer, int offset = 0)
+        {
+            return (short)(((buffer[offset]) << 8) | (buffer[offset + 1]));
+        }
+
+        /// <summary>
+        /// Given a 16-bit integer, return it as a byte-array in Big-endian order.
+        /// </summary>
+        /// <param name="value">the short to convert</param>
+        /// <returns>a 2-byte array containing that short's bits</returns>
+        [NotNull]
+        public static byte[] GetBytes(short value)
+        {
+            var buffer = new byte[2];
+            PutInt16(value, buffer, 0);
+
+            return buffer;
+        }
+
+        /// <summary>
+        /// Given a 16-bit integer, and a byte-array buffer and offset,
+        /// - write the 2 bytes of that integer into the buffer starting at that offset, in Big-endian order.
+        /// </summary>
+        /// <param name="value">the short to convert into bytes</param>
+        /// <param name="buffer">the byte-array to write the short's bytes into</param>
+        /// <param name="offset">a zero-based offset into that buffer marking where to start writing</param>
+        public static void PutInt16(short value, [NotNull] byte[] buffer, int offset)
+        {
+            buffer[offset] = (byte)(((value) >> 8) & 0xff);
+            buffer[offset + 1] = (byte)(value & 0xff);
+        }
+
+        /// <summary>
+        /// Given a byte-array assumed to be in Big-endian order, and an offset into it
         /// - return a 32-bit integer derived from the 4 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the integer from</param>
@@ -74,7 +113,7 @@ namespace NetMQ
         /// Given a 64-bit integer, return it as a byte-array in Big-endian order.
         /// </summary>
         /// <param name="value">the long value to convert from</param>
-        /// <returns>aa 8-byte array containing that long's bits</returns>
+        /// <returns>an 8-byte array containing that long's bits</returns>
         [NotNull]
         public static byte[] GetBytes(long value)
         {
