@@ -205,32 +205,32 @@ namespace NetMQ.zmq.Utils
         }
 
         /*
-                /// <summary>
-                /// Remove the given Socket from the list to be checked for read-readiness at each poll iteration.
-                /// </summary>
-                /// <param name="handle">the Socket to remove</param>
-                public void ResetPollin(Socket handle)
-                {
-                    m_checkRead.Remove(handle);
-                }
+        /// <summary>
+        /// Remove the given Socket from the list to be checked for read-readiness at each poll iteration.
+        /// </summary>
+        /// <param name="handle">the Socket to remove</param>
+        public void ResetPollin(Socket handle)
+        {
+            m_checkRead.Remove(handle);
+        }
 
-                /// <summary>
-                /// Add the given Socket to the list to be checked for write-readiness at each poll-iteration.
-                /// </summary>
-                /// <param name="handle">the Socket to add</param>
-                public void SetPollout(Socket handle)
-                {
-                    m_checkWrite.Add(handle);
-                }
+        /// <summary>
+        /// Add the given Socket to the list to be checked for write-readiness at each poll-iteration.
+        /// </summary>
+        /// <param name="handle">the Socket to add</param>
+        public void SetPollout(Socket handle)
+        {
+            m_checkWrite.Add(handle);
+        }
 
-                /// <summary>
-                /// Remove the given Socket from the list to be checked for write-readiness at each poll iteration.
-                /// </summary>
-                /// <param name="handle">the Socket to remove</param>
-                public void ResetPollout(Socket handle)
-                {
-                    m_checkWrite.Remove(handle);
-                }
+        /// <summary>
+        /// Remove the given Socket from the list to be checked for write-readiness at each poll iteration.
+        /// </summary>
+        /// <param name="handle">the Socket to remove</param>
+        public void ResetPollout(Socket handle)
+        {
+            m_checkWrite.Remove(handle);
+        }
         */
 
         /// <summary>
@@ -241,9 +241,7 @@ namespace NetMQ.zmq.Utils
         /// </remarks>
         public void Start()
         {
-            m_workerThread = new Thread(Loop);
-            m_workerThread.IsBackground = true;
-            m_workerThread.Name = m_name;
+            m_workerThread = new Thread(Loop) { IsBackground = true, Name = m_name };
             m_workerThread.Start();
             m_stopped = false;
         }
@@ -263,9 +261,9 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         private void Loop()
         {
-            List<Socket> readList = new List<Socket>();
-            List<Socket> writeList = new List<Socket>();
-            List<Socket> errorList = new List<Socket>();
+            var readList = new List<Socket>();
+            var writeList = new List<Socket>();
+            var errorList = new List<Socket>();
 
             while (!m_stopping)
             {
@@ -289,13 +287,11 @@ namespace NetMQ.zmq.Utils
                     continue;
                 }
 
-                // For every PollSet in our list..
+                // For every PollSet in our list.
                 foreach (var pollSet in m_handles)
                 {
                     if (pollSet.Cancelled)
-                    {
                         continue;
-                    }
 
                     // Invoke its handler's InEvent if it's in our error-list.
                     if (errorList.Contains(pollSet.Socket))
@@ -310,9 +306,7 @@ namespace NetMQ.zmq.Utils
                     }
 
                     if (pollSet.Cancelled)
-                    {
                         continue;
-                    }
 
                     // Invoke its handler's OutEvent if it's in our write-list.
                     if (writeList.Contains(pollSet.Socket))
@@ -327,9 +321,7 @@ namespace NetMQ.zmq.Utils
                     }
 
                     if (pollSet.Cancelled)
-                    {
                         continue;
-                    }
 
                     // Invoke its handler's InEvent if it's in our read-list.
                     if (readList.Contains(pollSet.Socket))
@@ -350,11 +342,9 @@ namespace NetMQ.zmq.Utils
 
                 if (m_retired)
                 {
-                    // Take any sockets that have been cancelled out of the list..
+                    // Take any sockets that have been cancelled out of the list.
                     foreach (var item in m_handles.Where(k => k.Cancelled).ToList())
-                    {
                         m_handles.Remove(item);
-                    }
 
                     m_retired = false;
                 }

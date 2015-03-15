@@ -118,8 +118,8 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(pipe != null);
             m_distribution.Attach(pipe);
 
-            //  If icanhasall_ is specified, the caller would like to subscribe
-            //  to all data on this pipe, implicitly.
+            // If icanhasall is specified, the caller would like to subscribe
+            // to all data on this pipe, implicitly.
             if (icanhasall)
                 m_subscriptions.Add(null, 0, 0, pipe);
 
