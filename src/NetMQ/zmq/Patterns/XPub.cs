@@ -158,11 +158,9 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        bool unique;
-                        if (data[0] == 0)
-                            unique = m_subscriptions.Remove(data, 1, size - 1, pipe);
-                        else
-                            unique = m_subscriptions.Add(data, 1, size - 1, pipe);
+                        var unique = data[0] == 0 
+                            ? m_subscriptions.Remove(data, 1, size - 1, pipe) 
+                            : m_subscriptions.Add(data, 1, size - 1, pipe);
 
                         //  If the subscription is not a duplicate, store it so that it can be
                         //  passed to used on next recv call.
@@ -189,72 +187,55 @@ namespace NetMQ.zmq.Patterns
             switch (option)
             {
                 case ZmqSocketOption.XpubVerbose:
+                {
                     m_verbose = (bool)optionValue;
                     return true;
+                }
                 case ZmqSocketOption.XPublisherManual:
+                {
                     m_manual = true;
                     return true;
+                }
                 case ZmqSocketOption.Subscribe:
+                {
                     if (m_manual && m_lastPipe != null)
                     {
-                        byte[] subscription;
-
-                        if (optionValue is byte[])
-                        {
-                            subscription = optionValue as byte[];
-                        }
-                        else
-                        {
-                            subscription = Encoding.ASCII.GetBytes((string)optionValue);
-                        }
-
+                        var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes((string)optionValue);
                         m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
                         return true;
                     }
                     break;
+                }
                 case ZmqSocketOption.Unsubscribe:
+                {
                     if (m_manual && m_lastPipe != null)
                     {
-                        byte[] subscription;
-
-                        if (optionValue is byte[])
-                        {
-                            subscription = optionValue as byte[];
-                        }
-                        else
-                        {
-                            subscription = Encoding.ASCII.GetBytes((string)optionValue);
-                        }
-
+                        var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes((string)optionValue);
                         m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
                         return true;
                     }
                     break;
+                }
                 case ZmqSocketOption.XPublisherWelcomeMessage:
+                {
                     m_welcomeMessage.Close();
 
                     if (optionValue != null)
                     {
-                        if (optionValue is byte[])
-                        {
-                            var value = (byte[])optionValue;
-
-                            var welcomeBytes = new byte[value.Length];
-                            value.CopyTo(welcomeBytes, 0);
-
-                            m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);
-                        }
-                        else
-                        {
+                        var bytes = optionValue as byte[];
+                        if (bytes == null)
                             throw new InvalidException(string.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
-                        }
+                        var welcomeBytes = new byte[bytes.Length];
+                        bytes.CopyTo(welcomeBytes, 0);
+                        m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);
                     }
                     else
                     {
                         m_welcomeMessage.InitEmpty();
                     }
-
+                    
                     return true;
+                }
             }
 
             return false;
@@ -265,7 +246,6 @@ namespace NetMQ.zmq.Patterns
             //  Remove the pipe from the trie. If there are topics that nobody
             //  is interested in anymore, send corresponding un-subscriptions
             //  upstream.
-
 
             m_subscriptions.RemoveHelper(pipe, s_sendUnsubscription, this);
 
@@ -278,8 +258,7 @@ namespace NetMQ.zmq.Patterns
 
             //  For the first part of multipart message, find the matching pipes.
             if (!m_more)
-                m_subscriptions.Match(msg.Data, msg.Size,
-                    s_markAsMatching, this);
+                m_subscriptions.Match(msg.Data, msg.Size, s_markAsMatching, this);
 
             //  Send the message to all the pipes that were marked as matching
             //  in the previous step.
@@ -295,7 +274,6 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-
         protected override bool XHasOut()
         {
             return m_distribution.HasOut();
@@ -305,9 +283,7 @@ namespace NetMQ.zmq.Patterns
         {
             //  If there is at least one 
             if (m_pending.Count == 0)
-            {
                 return false;
-            }
 
             msg.Close();
 

@@ -181,7 +181,7 @@ namespace NetMQ.zmq.Transports.Tcp
                     //  Create the engine object for this connection.
                     var engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);
 
-                    //  Choose I/O thread to run connecter in. Given that we are already
+                    //  Choose I/O thread to run connector in. Given that we are already
                     //  running in an I/O thread, there must be at least one available.
                     IOThread ioThread = ChooseIOThread(m_options.Affinity);
 
