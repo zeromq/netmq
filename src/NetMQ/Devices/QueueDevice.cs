@@ -1,4 +1,6 @@
-﻿namespace NetMQ.Devices
+﻿using NetMQ.zmq;
+
+namespace NetMQ.Devices
 {
     /// <summary>
     /// A shared queue that collects requests from a set of clients and distributes
@@ -19,8 +21,7 @@
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
-        public QueueDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress,
-            DeviceMode mode = DeviceMode.Threaded)
+        public QueueDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress, DeviceMode mode = DeviceMode.Threaded)
             : base(context.CreateRouterSocket(), context.CreateDealerSocket(), mode)
         {
             FrontendSetup.Bind(frontendBindAddress);
@@ -35,8 +36,7 @@
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
-        public QueueDevice(NetMQContext context, Poller poller, string frontendBindAddress, string backendBindAddress,
-            DeviceMode mode = DeviceMode.Threaded)
+        public QueueDevice(NetMQContext context, Poller poller, string frontendBindAddress, string backendBindAddress, DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreateRouterSocket(), context.CreateDealerSocket(), mode)
         {
             FrontendSetup.Bind(frontendBindAddress);
@@ -48,21 +48,10 @@
         /// and Sends it to BackendSocket.
         /// </summary>
         /// <param name="sender">unused</param>
-        /// <param name="args">a NetMQSocketEventArgs that contains a NetMqSocket for receiving data from</param>
+        /// <param name="args">a NetMQSocketEventArgs that contains a NetMQSocket for receiving data from</param>
         protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
         {
-            // TODO reuse a Msg instance here for performance
-            bool more;
-
-            do
-            {
-                var data = args.Socket.ReceiveFrameBytes(out more);
-
-                if (more)
-                    BackendSocket.SendMore(data);
-                else
-                    BackendSocket.Send(data);
-            } while (more);
+            ForwardTo(args, BackendSocket);
         }
 
         /// <summary>
@@ -73,18 +62,24 @@
         /// <param name="args">a NetMQSocketEventArgs that contains a Socket for receiving data from</param>
         protected override void BackendHandler(object sender, NetMQSocketEventArgs args)
         {
-            // TODO reuse a Msg instance here for performance
-            bool more;
+            ForwardTo(args, FrontendSocket);
+        }
 
+        private static void ForwardTo(NetMQSocketEventArgs args, IOutgoingSocket toSocket)
+        {
+            var msg = new Msg();
+            msg.InitEmpty();
+
+            bool more;
             do
             {
-                var data = args.Socket.ReceiveFrameBytes(out more);
+                args.Socket.Receive(ref msg);
+                more = msg.HasMore;
+                toSocket.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
+            }
+            while (more);
 
-                if (more)
-                    FrontendSocket.SendMore(data);
-                else
-                    FrontendSocket.Send(data);
-            } while (more);
+            msg.Close();
         }
     }
 }
