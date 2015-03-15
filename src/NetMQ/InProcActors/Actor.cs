@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NetMQ.InProcActors;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ.Actors
 {

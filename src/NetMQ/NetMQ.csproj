@@ -120,6 +120,10 @@
     <Compile Include="Sockets\XSubscriberSocket.cs" />
     <Compile Include="NetMQTimer.cs" />
     <Compile Include="zmq\Address.cs" />
+    <Compile Include="Endianness.cs" />
+    <Compile Include="SendReceiveOptions.cs" />
+    <Compile Include="SocketEvent.cs" />
+    <Compile Include="PollEvents.cs" />
     <Compile Include="zmq\Utils\AtomicCounter.cs" />
     <Compile Include="Blob.cs" />
     <Compile Include="BufferPool.cs" />
@@ -205,6 +209,7 @@
     <Compile Include="zmq\Utils\SocketUtility.cs" />
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\Utils\YQueue.cs" />
+    <Compile Include="ZmqSocketType.cs" />
     <Compile Include="zmq\ZObject.cs" />
     <None Include="packages.config" />
   </ItemGroup>

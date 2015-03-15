@@ -1,6 +1,4 @@
-﻿using NetMQ.zmq;
-
-namespace NetMQ
+﻿namespace NetMQ
 {
     /// <summary>
     /// Interface IOutgoingSocket mandates a Send( Msg, SendReceiveOptions ) method.

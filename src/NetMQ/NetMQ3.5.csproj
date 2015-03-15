@@ -52,6 +52,7 @@
     <Compile Include="Blob.cs" />
     <Compile Include="BufferPool.cs" />
     <Compile Include="DnsEndPoint.cs" />
+    <Compile Include="Endianness.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="EventDelegator.cs" />
     <Compile Include="InterfaceCollection.cs" />
@@ -71,7 +72,10 @@
     <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
     <Compile Include="Poller.cs" />
+    <Compile Include="PollEvents.cs" />
     <Compile Include="ReceivingSocketExtensions.cs" />
+    <Compile Include="SendReceiveOptions.cs" />
+    <Compile Include="SocketEvent.cs" />
     <Compile Include="Sockets\DealerSocket.cs" />
     <Compile Include="Monitoring\NetMQMonitor.cs" />
     <Compile Include="NetMQException.cs" />
@@ -90,6 +94,8 @@
     <Compile Include="Sockets\XPublisherSocket.cs" />
     <Compile Include="Sockets\XSubscriberSocket.cs" />
     <Compile Include="NetMQTimer.cs" />
+    <Compile Include="ZmqNamespacePlaceholder.cs" />
+    <Compile Include="ZmqSocketType.cs" />
     <Compile Include="zmq\Address.cs" />
     <Compile Include="zmq\Command.cs" />
     <Compile Include="zmq\CommandType.cs" />

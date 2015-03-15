@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Monitoring;
-using NetMQ.zmq;
 using NUnit.Framework;
 
 // ReSharper disable AccessToDisposedClosure

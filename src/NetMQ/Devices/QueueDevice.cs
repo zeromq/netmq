@@ -1,6 +1,4 @@
-﻿using NetMQ.zmq;
-
-namespace NetMQ.Devices
+﻿namespace NetMQ.Devices
 {
     /// <summary>
     /// A shared queue that collects requests from a set of clients and distributes

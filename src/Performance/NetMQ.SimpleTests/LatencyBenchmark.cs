@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Threading;
 using JetBrains.Annotations;
-using NetMQ.zmq;
 
 namespace NetMQ.SimpleTests
 {

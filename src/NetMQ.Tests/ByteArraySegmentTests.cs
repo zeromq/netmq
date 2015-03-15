@@ -1,5 +1,4 @@
-﻿using NetMQ.zmq;
-using NetMQ.zmq.Transports;
+﻿using NetMQ.zmq.Transports;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
