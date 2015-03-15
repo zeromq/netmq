@@ -39,6 +39,7 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Pub;
         }
 
+        /// <exception cref="NotSupportedException">Messages cannot be received from PUB socket</exception>
         protected override bool XRecv(ref Msg msg)
         {
             //  Messages cannot be received from PUB socket.
