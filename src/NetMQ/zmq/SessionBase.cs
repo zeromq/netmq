@@ -526,7 +526,7 @@ namespace NetMQ.zmq
                 case Address.EpgmProtocol:
                 {
                     var pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
-                    pgmSender.Init(m_addr.Resolved as PgmAddress);
+                    pgmSender.Init((PgmAddress)m_addr.Resolved);
                     SendAttach(this, pgmSender);
                     return;
                 }

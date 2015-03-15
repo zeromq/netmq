@@ -51,7 +51,7 @@ namespace NetMQ.zmq.Transports.PGM
         {
             m_pgmAddress = pgmAddress;
 
-            m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Publisher, m_addr.Resolved as PgmAddress);
+            m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Publisher, (PgmAddress)m_addr.Resolved);
             m_pgmSocket.Init();
 
             m_socket = m_pgmSocket.Handle;
