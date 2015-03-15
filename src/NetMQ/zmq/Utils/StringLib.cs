@@ -8,7 +8,7 @@ namespace NetMQ.zmq.Utils
     /// StringLib is a static class whose purpose is to provide miscellaneous string-related utility methods
     /// and extension properties.
     /// </summary>
-    public static class StringLib
+    internal static class StringLib
     {
         #region AsString (List<string>)
         /// <summary>
