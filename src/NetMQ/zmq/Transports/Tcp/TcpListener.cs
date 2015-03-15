@@ -152,16 +152,62 @@ namespace NetMQ.zmq.Transports.Tcp
 
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
-            if (socketError != SocketError.Success)
+            switch (socketError)
             {
-                if (socketError == SocketError.ConnectionReset || socketError == SocketError.NoBufferSpaceAvailable ||
-                    socketError == SocketError.TooManyOpenSockets)
+                case SocketError.Success:
+                {
+                    // TODO: check TcpFilters
+
+                    m_acceptedSocket.NoDelay = true;
+
+                    if (m_options.TcpKeepalive != -1)
+                    {
+                        m_acceptedSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
+
+                        if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
+                        {
+                            var bytes = new ByteArraySegment(new byte[12]);
+
+                            Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
+
+                            bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
+                            bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
+                            bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
+
+                            m_acceptedSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                        }
+                    }
+
+                    //  Create the engine object for this connection.
+                    var engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);
+
+                    //  Choose I/O thread to run connecter in. Given that we are already
+                    //  running in an I/O thread, there must be at least one available.
+                    IOThread ioThread = ChooseIOThread(m_options.Affinity);
+
+                    //  Create and launch a session object. 
+                    // TODO: send null in address parameter, is unneeded in this case
+                    SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
+                    session.IncSeqnum();
+                    LaunchChild(session);
+
+                    SendAttach(session, engine, false);
+
+                    m_socket.EventAccepted(m_endpoint, m_acceptedSocket);
+
+                    Accept();
+                    break;
+                }
+                case SocketError.ConnectionReset:
+                case SocketError.NoBufferSpaceAvailable:
+                case SocketError.TooManyOpenSockets:
                 {
                     m_socket.EventAcceptFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(socketError));
 
                     Accept();
+                    break;
                 }
-                else
+                default:
                 {
                     m_acceptedSocket.Dispose();
 
@@ -170,49 +216,6 @@ namespace NetMQ.zmq.Transports.Tcp
                     m_socket.EventAcceptFailed(m_endpoint, exception.ErrorCode);
                     throw exception;
                 }
-            }
-            else
-            {
-                // TODO: check TcpFilters
-
-                m_acceptedSocket.NoDelay = true;
-
-                if (m_options.TcpKeepalive != -1)
-                {
-                    m_acceptedSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
-
-                    if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
-                    {
-                        var bytes = new ByteArraySegment(new byte[12]);
-
-                        Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
-
-                        bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
-                        bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
-                        bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
-
-                        m_acceptedSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
-                    }
-                }
-
-                //  Create the engine object for this connection.
-                var engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);
-
-                //  Choose I/O thread to run connecter in. Given that we are already
-                //  running in an I/O thread, there must be at least one available.
-                IOThread ioThread = ChooseIOThread(m_options.Affinity);
-
-                //  Create and launch a session object. 
-                // TODO: send null in address parameter, is unneeded in this case
-                SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
-                session.IncSeqnum();
-                LaunchChild(session);
-
-                SendAttach(session, engine, false);
-
-                m_socket.EventAccepted(m_endpoint, m_acceptedSocket);
-
-                Accept();
             }
         }
 

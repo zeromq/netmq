@@ -172,22 +172,19 @@ namespace NetMQ.zmq.Patterns
 
         protected override bool XSetSocketOption(ZmqSocketOption option, object optval)
         {
-            if (option == ZmqSocketOption.RouterRawSocket)
+            switch (option)
             {
-                m_rawSocket = (bool)optval;
-                if (m_rawSocket)
-                {
-                    m_options.RecvIdentity = false;
-                    m_options.RawSocket = true;
-                }
-
-                return true;
-            }
-            
-            if (option == ZmqSocketOption.RouterMandatory)
-            {
-                m_mandatory = (bool)optval;
-                return true;
+                case ZmqSocketOption.RouterRawSocket:
+                    m_rawSocket = (bool)optval;
+                    if (m_rawSocket)
+                    {
+                        m_options.RecvIdentity = false;
+                        m_options.RawSocket = true;
+                    }
+                    return true;
+                case ZmqSocketOption.RouterMandatory:
+                    m_mandatory = (bool)optval;
+                    return true;
             }
 
             return false;

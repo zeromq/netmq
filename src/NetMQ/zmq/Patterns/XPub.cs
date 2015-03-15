@@ -186,74 +186,75 @@ namespace NetMQ.zmq.Patterns
 
         protected override bool XSetSocketOption(ZmqSocketOption option, object optionValue)
         {
-            if (option == ZmqSocketOption.XpubVerbose)
+            switch (option)
             {
-                m_verbose = (bool)optionValue;
-                return true;
-            }
-            else if (option == ZmqSocketOption.XPublisherManual)
-            {
-                m_manual = true;
-                return true;
-            }
-            else if (option == ZmqSocketOption.Subscribe && m_manual && m_lastPipe != null)
-            {
-                byte[] subscription;
-
-                if (optionValue is byte[])
-                {
-                    subscription = optionValue as byte[];
-                }
-                else
-                {
-                    subscription = Encoding.ASCII.GetBytes((string)optionValue);
-                }
-
-                m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
-                return true;
-            }
-            else if (option == ZmqSocketOption.Unsubscribe && m_manual && m_lastPipe != null)
-            {
-                byte[] subscription;
-
-                if (optionValue is byte[])
-                {
-                    subscription = optionValue as byte[];
-                }
-                else
-                {
-                    subscription = Encoding.ASCII.GetBytes((string)optionValue);
-                }
-
-                m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
-                return true;
-            }
-            else if (option == ZmqSocketOption.XPublisherWelcomeMessage)
-            {
-                m_welcomeMessage.Close();
-
-                if (optionValue != null)
-                {
-                    if (optionValue is byte[])
+                case ZmqSocketOption.XpubVerbose:
+                    m_verbose = (bool)optionValue;
+                    return true;
+                case ZmqSocketOption.XPublisherManual:
+                    m_manual = true;
+                    return true;
+                case ZmqSocketOption.Subscribe:
+                    if (m_manual && m_lastPipe != null)
                     {
-                        var value = (byte[])optionValue;
+                        byte[] subscription;
 
-                        var welcomeBytes = new byte[value.Length];
-                        value.CopyTo(welcomeBytes, 0);
+                        if (optionValue is byte[])
+                        {
+                            subscription = optionValue as byte[];
+                        }
+                        else
+                        {
+                            subscription = Encoding.ASCII.GetBytes((string)optionValue);
+                        }
 
-                        m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);
+                        m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
+                        return true;
+                    }
+                    break;
+                case ZmqSocketOption.Unsubscribe:
+                    if (m_manual && m_lastPipe != null)
+                    {
+                        byte[] subscription;
+
+                        if (optionValue is byte[])
+                        {
+                            subscription = optionValue as byte[];
+                        }
+                        else
+                        {
+                            subscription = Encoding.ASCII.GetBytes((string)optionValue);
+                        }
+
+                        m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
+                        return true;
+                    }
+                    break;
+                case ZmqSocketOption.XPublisherWelcomeMessage:
+                    m_welcomeMessage.Close();
+
+                    if (optionValue != null)
+                    {
+                        if (optionValue is byte[])
+                        {
+                            var value = (byte[])optionValue;
+
+                            var welcomeBytes = new byte[value.Length];
+                            value.CopyTo(welcomeBytes, 0);
+
+                            m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);
+                        }
+                        else
+                        {
+                            throw new InvalidException(string.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
+                        }
                     }
                     else
                     {
-                        throw new InvalidException(string.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
+                        m_welcomeMessage.InitEmpty();
                     }
-                }
-                else
-                {
-                    m_welcomeMessage.InitEmpty();
-                }
 
-                return true;
+                    return true;
             }
 
             return false;
