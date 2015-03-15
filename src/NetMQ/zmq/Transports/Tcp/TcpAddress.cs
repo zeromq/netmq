@@ -48,8 +48,8 @@ namespace NetMQ.zmq.Transports.Tcp
             var endpoint = Address;
 
             return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
-                ? Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port 
-                : Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
+                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port 
+                : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
         public void Resolve(string name, bool ip4Only)
