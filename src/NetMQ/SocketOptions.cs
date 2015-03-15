@@ -1,6 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ
 {

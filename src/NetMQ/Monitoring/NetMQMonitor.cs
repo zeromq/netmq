@@ -2,7 +2,7 @@
 using System.Threading;
 using AsyncIO;
 using JetBrains.Annotations;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ.Monitoring
 {

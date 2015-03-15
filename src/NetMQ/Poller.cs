@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using JetBrains.Annotations;
-using NetMQ.zmq.Utils;
+using NetMQ.Core.Utils;
 
 namespace NetMQ
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
-using NetMQ.zmq;
-using NetMQ.zmq.Utils;
+using NetMQ.Core;
+using NetMQ.Core.Utils;
 
 namespace NetMQ
 {

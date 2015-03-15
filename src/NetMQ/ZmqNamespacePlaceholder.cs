@@ -6,7 +6,7 @@
 namespace NetMQ.zmq
 {
     /// <summary>
-    /// All public types have been moved out of the <see cref="NetMQ.zmq"/> namespace. This class remains
+    /// All public types have been moved out of the <see cref="NetMQ.Core"/> namespace. This class remains
     /// to prevent compile errors when users still have <c>using NetMQ.zmq;</c> in their code.
     /// </summary>
     [Obsolete("Don't use this type!")]

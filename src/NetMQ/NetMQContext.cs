@@ -3,7 +3,7 @@ using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ
 {
