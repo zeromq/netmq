@@ -28,7 +28,7 @@ using JetBrains.Annotations;
 using NetMQ.Core.Patterns;
 using NetMQ.Core.Transports;
 using NetMQ.Core.Transports.Ipc;
-using NetMQ.Core.Transports.PGM;
+using NetMQ.Core.Transports.Pgm;
 using NetMQ.Core.Transports.Tcp;
 
 namespace NetMQ.Core

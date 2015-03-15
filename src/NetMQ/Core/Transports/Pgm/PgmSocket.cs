@@ -5,7 +5,7 @@ using System.Text;
 using AsyncIO;
 using JetBrains.Annotations;
 
-namespace NetMQ.Core.Transports.PGM
+namespace NetMQ.Core.Transports.Pgm
 {
     /// <summary>
     /// This enum-type denotes the type of Pragmatic General Multicast (PGM) socket.

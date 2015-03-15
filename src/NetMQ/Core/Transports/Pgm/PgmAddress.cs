@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using JetBrains.Annotations;
 
-namespace NetMQ.Core.Transports.PGM
+namespace NetMQ.Core.Transports.Pgm
 {
     internal sealed class PgmAddress : Address.IZAddress
     {

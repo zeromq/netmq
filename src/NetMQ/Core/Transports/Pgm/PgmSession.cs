@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using AsyncIO;
 using JetBrains.Annotations;
 
-namespace NetMQ.Core.Transports.PGM
+namespace NetMQ.Core.Transports.Pgm
 {
     internal sealed class PgmSession : IEngine, IProactorEvents
     {
