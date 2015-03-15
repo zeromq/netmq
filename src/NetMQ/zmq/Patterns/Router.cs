@@ -170,7 +170,7 @@ namespace NetMQ.zmq.Patterns
         }
 
 
-        protected override bool XSetSocketOption(ZmqSocketOption option, Object optval)
+        protected override bool XSetSocketOption(ZmqSocketOption option, object optval)
         {
             if (option == ZmqSocketOption.RouterRawSocket)
             {

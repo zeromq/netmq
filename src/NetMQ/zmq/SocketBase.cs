@@ -1028,7 +1028,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="option">a ZmqSocketOption specifying which option to set</param>
         /// <param name="optionValue">an Object that is the value to set the option to</param>
-        protected virtual bool XSetSocketOption(ZmqSocketOption option, [CanBeNull] Object optionValue)
+        protected virtual bool XSetSocketOption(ZmqSocketOption option, [CanBeNull] object optionValue)
         {
             return false;
         }

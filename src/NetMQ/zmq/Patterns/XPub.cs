@@ -184,7 +184,7 @@ namespace NetMQ.zmq.Patterns
             m_distribution.Activated(pipe);
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
+        protected override bool XSetSocketOption(ZmqSocketOption option, object optionValue)
         {
             if (option == ZmqSocketOption.XpubVerbose)
             {

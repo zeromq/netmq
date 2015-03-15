@@ -43,7 +43,7 @@ namespace NetMQ.zmq.Patterns
             m_options.Filter = true;
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
+        protected override bool XSetSocketOption(ZmqSocketOption option, object optionValue)
         {
             // Only subscribe/unsubscribe options are supported
             if (option != ZmqSocketOption.Subscribe && option != ZmqSocketOption.Unsubscribe)
