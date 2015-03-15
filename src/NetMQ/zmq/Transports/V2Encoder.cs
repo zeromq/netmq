@@ -9,24 +9,22 @@ namespace NetMQ.zmq.Transports
         private const int SizeReadyState = 0;
         private const int MessageReadyState = 1;
 
+        private readonly ByteArraySegment m_tmpbuf = new byte[9];
         private Msg m_inProgress;
-        private readonly ByteArraySegment m_tmpbuf;
 
         private IMsgSource m_msgSource;
 
-        public V2Encoder(int bufsize, IMsgSource session, Endianness endian)
-            : base(bufsize, endian)
+        public V2Encoder(int bufferSize, IMsgSource session, Endianness endian)
+            : base(bufferSize, endian)
         {
             m_inProgress = new Msg();
             m_inProgress.InitEmpty();
 
-            m_tmpbuf = new byte[9];
             m_msgSource = session;
 
             //  Write 0 bytes to the batch and go to message_ready state.
             NextStep(m_tmpbuf, 0, MessageReadyState, true);
         }
-
 
         public override void SetMsgSource(IMsgSource msgSource)
         {
@@ -49,11 +47,9 @@ namespace NetMQ.zmq.Transports
         private bool SizeReady()
         {
             //  Write message body into the buffer.
-            NextStep(m_inProgress.Data, m_inProgress.Size,
-                     MessageReadyState, !m_inProgress.HasMore);
+            NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState, !m_inProgress.HasMore);
             return true;
         }
-
 
         private bool MessageReady()
         {
@@ -94,7 +90,6 @@ namespace NetMQ.zmq.Transports
             if (size > 255)
             {
                 m_tmpbuf.PutLong(Endian, size, 1);
-
                 NextStep(m_tmpbuf, 9, SizeReadyState, false);
             }
             else

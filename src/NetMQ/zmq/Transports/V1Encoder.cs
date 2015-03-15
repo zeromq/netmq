@@ -27,20 +27,16 @@ namespace NetMQ.zmq.Transports
         private const int SizeReadyState = 0;
         private const int MessageReadyState = 1;
 
-
+        private readonly ByteArraySegment m_tmpbuf = new byte[10];
         private Msg m_inProgress;
-        private readonly ByteArraySegment m_tmpbuf;
 
         private IMsgSource m_msgSource;
 
-        public V1Encoder(int bufsize, Endianness endian)
-            : base(bufsize, endian)
+        public V1Encoder(int bufferSize, Endianness endian)
+            : base(bufferSize, endian)
         {
             m_inProgress = new Msg();
             m_inProgress.InitEmpty();
-
-            m_tmpbuf = new byte[10];
-
 
             //  Write 0 bytes to the batch and go to message_ready state.
             NextStep(m_tmpbuf, 0, MessageReadyState, true);
@@ -117,7 +113,6 @@ namespace NetMQ.zmq.Transports
                 m_tmpbuf[0] = 0xff;
                 m_tmpbuf.PutLong(Endian, size, 1);
                 m_tmpbuf[9] = (byte)(m_inProgress.Flags & MsgFlags.More);
-
                 NextStep(m_tmpbuf, 10, SizeReadyState, false);
             }
 

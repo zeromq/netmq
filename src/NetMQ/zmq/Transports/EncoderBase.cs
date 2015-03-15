@@ -27,7 +27,7 @@ namespace NetMQ.zmq.Transports
     internal abstract class EncoderBase : IEncoder
     {
         /// <summary>
-        /// Where to get the data to write from.    
+        /// Where to get the data to write from.
         /// </summary>
         private ByteArraySegment m_writePos;
 
@@ -44,15 +44,15 @@ namespace NetMQ.zmq.Transports
         /// <summary>
         /// The buffer for encoded data.
         /// </summary>
-        private readonly byte[] m_buf;
+        private readonly byte[] m_buffer;
 
-        private readonly int m_buffersize;
+        private readonly int m_bufferSize;
 
-        protected EncoderBase(int bufsize, Endianness endian)
+        protected EncoderBase(int bufferSize, Endianness endian)
         {
             Endian = endian;
-            m_buffersize = bufsize;
-            m_buf = new byte[bufsize];
+            m_bufferSize = bufferSize;
+            m_buffer = new byte[bufferSize];
         }
 
         public Endianness Endian { get; private set; }
@@ -73,8 +73,8 @@ namespace NetMQ.zmq.Transports
 
         public void GetData(ref ByteArraySegment data, ref int size, ref int offset)
         {
-            ByteArraySegment buffer = data ?? new ByteArraySegment(m_buf);
-            int bufferSize = data == null ? m_buffersize : size;
+            ByteArraySegment buffer = data ?? new ByteArraySegment(m_buffer);
+            int bufferSize = data == null ? m_bufferSize : size;
 
             int pos = 0;
 
@@ -136,11 +136,7 @@ namespace NetMQ.zmq.Transports
             size = pos;
         }
 
-        protected int State
-        {
-            get;
-            private set;
-        }
+        protected int State { get; private set; }
 
         abstract protected bool Next();
 
@@ -151,10 +147,8 @@ namespace NetMQ.zmq.Transports
         //        next_step(msg_.data(), msg_.size(), state_, beginning_);
         //}
 
-        protected void NextStep(ByteArraySegment writePos, int toWrite,
-                                 int state, bool beginning)
+        protected void NextStep(ByteArraySegment writePos, int toWrite, int state, bool beginning)
         {
-
             m_writePos = writePos;
             m_toWrite = toWrite;
             State = state;
@@ -171,6 +165,5 @@ namespace NetMQ.zmq.Transports
         //    next = next_;
         //    beginning = beginning_;
         //}
-
     }
 }
