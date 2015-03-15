@@ -255,7 +255,7 @@ namespace NetMQ.zmq
         }
 
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void SetSocketOption(ZmqSocketOptions option, Object optval)
+        public void SetSocketOption(ZmqSocketOption option, Object optval)
         {
             CheckContextTerminated();
 
@@ -269,15 +269,15 @@ namespace NetMQ.zmq
         }
 
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public int GetSocketOption(ZmqSocketOptions option)
+        public int GetSocketOption(ZmqSocketOption option)
         {
             CheckContextTerminated();
 
-            if (option == ZmqSocketOptions.ReceiveMore)
+            if (option == ZmqSocketOption.ReceiveMore)
             {
                 return m_rcvMore ? 1 : 0;
             }
-            if (option == ZmqSocketOptions.Events)
+            if (option == ZmqSocketOption.Events)
             {
                 try
                 {
@@ -300,21 +300,21 @@ namespace NetMQ.zmq
         }
 
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public Object GetSocketOptionX(ZmqSocketOptions option)
+        public Object GetSocketOptionX(ZmqSocketOption option)
         {
             CheckContextTerminated();
 
-            if (option == ZmqSocketOptions.ReceiveMore)
+            if (option == ZmqSocketOption.ReceiveMore)
             {
                 return m_rcvMore;
             }
 
-            if (option == ZmqSocketOptions.Handle)
+            if (option == ZmqSocketOption.Handle)
             {
                 return m_mailbox.Handle;
             }
 
-            if (option == ZmqSocketOptions.Events)
+            if (option == ZmqSocketOption.Events)
             {
                 try
                 {
@@ -1026,9 +1026,9 @@ namespace NetMQ.zmq
         /// options for the particular socket type. If not so, overload this
         /// method.
         /// </summary>
-        /// <param name="option">a ZmqSocketOptions specifying which option to set</param>
+        /// <param name="option">a ZmqSocketOption specifying which option to set</param>
         /// <param name="optionValue">an Object that is the value to set the option to</param>
-        protected virtual bool XSetSocketOption(ZmqSocketOptions option, [CanBeNull] Object optionValue)
+        protected virtual bool XSetSocketOption(ZmqSocketOption option, [CanBeNull] Object optionValue)
         {
             return false;
         }
@@ -1202,7 +1202,7 @@ namespace NetMQ.zmq
 
             try
             {
-                m_monitorSocket.SetSocketOption(ZmqSocketOptions.Linger, linger);
+                m_monitorSocket.SetSocketOption(ZmqSocketOption.Linger, linger);
             }
             catch (NetMQException)
             {

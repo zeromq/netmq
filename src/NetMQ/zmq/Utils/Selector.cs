@@ -141,7 +141,7 @@ namespace NetMQ.zmq.Utils
 
                     if (selectItem.Socket != null)
                     {
-                        var events = (PollEvents)selectItem.Socket.GetSocketOption(ZmqSocketOptions.Events);
+                        var events = (PollEvents)selectItem.Socket.GetSocketOption(ZmqSocketOption.Events);
 
                         if (selectItem.Event.HasIn() && events.HasIn())
                             selectItem.ResultEvent |= PollEvents.PollIn;

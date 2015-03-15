@@ -276,25 +276,25 @@ namespace NetMQ.zmq
         /// <summary>
         /// Assign the given optionValue to the specified option.
         /// </summary>
-        /// <param name="option">a ZmqSocketOptions that specifies what to set</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to set</param>
         /// <param name="optionValue">an Object that is the value to set that option to</param>
-        public void SetSocketOption(ZmqSocketOptions option, Object optionValue)
+        public void SetSocketOption(ZmqSocketOption option, Object optionValue)
         {
             switch (option)
             {
-                case ZmqSocketOptions.SendHighWatermark:
+                case ZmqSocketOption.SendHighWatermark:
                     SendHighWatermark = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.ReceiveHighWatermark:
+                case ZmqSocketOption.ReceiveHighWatermark:
                     ReceiveHighWatermark = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.Affinity:
+                case ZmqSocketOption.Affinity:
                     Affinity = (long)optionValue;
                     break;
 
-                case ZmqSocketOptions.Identity:
+                case ZmqSocketOption.Identity:
                     byte[] val;
 
                     if (optionValue is string)
@@ -311,87 +311,87 @@ namespace NetMQ.zmq
                     IdentitySize = (byte)Identity.Length;
                     break;
 
-                case ZmqSocketOptions.Rate:
+                case ZmqSocketOption.Rate:
                     Rate = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.RecoveryIvl:
+                case ZmqSocketOption.RecoveryIvl:
                     RecoveryIvl = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.SendBuffer:
+                case ZmqSocketOption.SendBuffer:
                     SendBuffer = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.ReceiveBuffer:
+                case ZmqSocketOption.ReceiveBuffer:
                     ReceiveBuffer = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.Linger:
+                case ZmqSocketOption.Linger:
                     Linger = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.ReconnectIvl:
+                case ZmqSocketOption.ReconnectIvl:
                     var reconnectIvl = (int)optionValue;
                     if (reconnectIvl < -1)
                         throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", reconnectIvl));
                     ReconnectIvl = reconnectIvl;
                     break;
 
-                case ZmqSocketOptions.ReconnectIvlMax:
+                case ZmqSocketOption.ReconnectIvlMax:
                     var reconnectIvlMax = (int)optionValue;
                     if (reconnectIvlMax < 0)
                         throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", reconnectIvlMax));
                     ReconnectIvlMax = reconnectIvlMax;
                     break;
 
-                case ZmqSocketOptions.Backlog:
+                case ZmqSocketOption.Backlog:
                     Backlog = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.MaxMessageSize:
+                case ZmqSocketOption.MaxMessageSize:
                     MaxMessageSize = (long)optionValue;
                     break;
 
-                case ZmqSocketOptions.MulticastHops:
+                case ZmqSocketOption.MulticastHops:
                     MulticastHops = (int)optionValue;
                     break;
 
 // disable warning about obsolete values
 #pragma warning disable 618
-                case ZmqSocketOptions.ReceiveTimeout:
+                case ZmqSocketOption.ReceiveTimeout:
                     ReceiveTimeout = (int)optionValue;
 #pragma warning restore 618
                     break;
 
-                case ZmqSocketOptions.SendTimeout:
+                case ZmqSocketOption.SendTimeout:
                     SendTimeout = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.IPv4Only:
+                case ZmqSocketOption.IPv4Only:
                     IPv4Only = (bool)optionValue;
                     break;
 
-                case ZmqSocketOptions.TcpKeepalive:
+                case ZmqSocketOption.TcpKeepalive:
                     var tcpKeepalive = (int)optionValue;
                     if (tcpKeepalive != -1 && tcpKeepalive != 0 && tcpKeepalive != 1)
                         throw new InvalidException(string.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", tcpKeepalive));
                     TcpKeepalive = tcpKeepalive;
                     break;
 
-                case ZmqSocketOptions.DelayAttachOnConnect:
+                case ZmqSocketOption.DelayAttachOnConnect:
                     DelayAttachOnConnect = (bool)optionValue;
                     break;
 
-                case ZmqSocketOptions.TcpKeepaliveIdle:
+                case ZmqSocketOption.TcpKeepaliveIdle:
                     TcpKeepaliveIdle = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.TcpKeepaliveIntvl:
+                case ZmqSocketOption.TcpKeepaliveIntvl:
                     TcpKeepaliveIntvl = (int)optionValue;
                     break;
 
-                case ZmqSocketOptions.TcpAcceptFilter:
+                case ZmqSocketOption.TcpAcceptFilter:
                     var filterStr = (string)optionValue;
                     if (filterStr == null)
                     {
@@ -409,100 +409,100 @@ namespace NetMQ.zmq
                     }
                     break;
 
-                case ZmqSocketOptions.Endian:
+                case ZmqSocketOption.Endian:
                     Endian = (Endianness)optionValue;
                     break;
 
                 default:
-                    throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOptions of " + option);
+                    throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOption of " + option);
             }
         }
 
         /// <summary>
         /// Get the value of the specified option.
         /// </summary>
-        /// <param name="option">a ZmqSocketOptions that specifies what to get</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
         /// <returns>an Object that is the value of that option</returns>
-        public Object GetSocketOption(ZmqSocketOptions option)
+        public Object GetSocketOption(ZmqSocketOption option)
         {
             switch (option)
             {
-                case ZmqSocketOptions.SendHighWatermark:
+                case ZmqSocketOption.SendHighWatermark:
                     return SendHighWatermark;
 
-                case ZmqSocketOptions.ReceiveHighWatermark:
+                case ZmqSocketOption.ReceiveHighWatermark:
                     return ReceiveHighWatermark;
 
-                case ZmqSocketOptions.Affinity:
+                case ZmqSocketOption.Affinity:
                     return Affinity;
 
-                case ZmqSocketOptions.Identity:
+                case ZmqSocketOption.Identity:
                     return Identity;
 
-                case ZmqSocketOptions.Rate:
+                case ZmqSocketOption.Rate:
                     return Rate;
 
-                case ZmqSocketOptions.RecoveryIvl:
+                case ZmqSocketOption.RecoveryIvl:
                     return RecoveryIvl;
 
-                case ZmqSocketOptions.SendBuffer:
+                case ZmqSocketOption.SendBuffer:
                     return SendBuffer;
 
-                case ZmqSocketOptions.ReceiveBuffer:
+                case ZmqSocketOption.ReceiveBuffer:
                     return ReceiveBuffer;
 
-                case ZmqSocketOptions.Type:
+                case ZmqSocketOption.Type:
                     return SocketType;
 
-                case ZmqSocketOptions.Linger:
+                case ZmqSocketOption.Linger:
                     return Linger;
 
-                case ZmqSocketOptions.ReconnectIvl:
+                case ZmqSocketOption.ReconnectIvl:
                     return ReconnectIvl;
 
-                case ZmqSocketOptions.ReconnectIvlMax:
+                case ZmqSocketOption.ReconnectIvlMax:
                     return ReconnectIvlMax;
 
-                case ZmqSocketOptions.Backlog:
+                case ZmqSocketOption.Backlog:
                     return Backlog;
 
-                case ZmqSocketOptions.MaxMessageSize:
+                case ZmqSocketOption.MaxMessageSize:
                     return MaxMessageSize;
 
-                case ZmqSocketOptions.MulticastHops:
+                case ZmqSocketOption.MulticastHops:
                     return MulticastHops;
 
 #pragma warning disable 618
-                case ZmqSocketOptions.ReceiveTimeout:
+                case ZmqSocketOption.ReceiveTimeout:
                     return ReceiveTimeout;
 #pragma warning restore 618
 
-                case ZmqSocketOptions.SendTimeout:
+                case ZmqSocketOption.SendTimeout:
                     return SendTimeout;
 
-                case ZmqSocketOptions.IPv4Only:
+                case ZmqSocketOption.IPv4Only:
                     return IPv4Only;
 
-                case ZmqSocketOptions.TcpKeepalive:
+                case ZmqSocketOption.TcpKeepalive:
                     return TcpKeepalive;
 
-                case ZmqSocketOptions.DelayAttachOnConnect:
+                case ZmqSocketOption.DelayAttachOnConnect:
                     return DelayAttachOnConnect;
 
-                case ZmqSocketOptions.TcpKeepaliveIdle:
+                case ZmqSocketOption.TcpKeepaliveIdle:
                     return TcpKeepaliveIdle;
 
-                case ZmqSocketOptions.TcpKeepaliveIntvl:
+                case ZmqSocketOption.TcpKeepaliveIntvl:
                     return TcpKeepaliveIntvl;
 
-                case ZmqSocketOptions.LastEndpoint:
+                case ZmqSocketOption.LastEndpoint:
                     return LastEndpoint;
 
-                case ZmqSocketOptions.Endian:
+                case ZmqSocketOption.Endian:
                     return Endian;
 
                 default:
-                    throw new InvalidException("GetSocketOption called with invalid ZmqSocketOptions of " + option);
+                    throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);
             }
         }
     }

@@ -27,7 +27,7 @@ namespace NetMQ.Sockets
         /// <param name="topic">this specifies what text-prefix to subscribe to, or may be an empty-string to specify ALL</param>
         public new virtual void Subscribe(string topic)
         {
-            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+            SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace NetMQ.Sockets
         /// <param name="topic">this specifies what byte-array prefix to subscribe to</param>
         public new virtual void Subscribe(byte[] topic)
         {
-            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+            SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace NetMQ.Sockets
         /// <param name="topic">a string denoting which the topic to stop receiving</param>
         public new virtual void Unsubscribe(string topic)
         {
-            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace NetMQ.Sockets
         /// <param name="topic">a byte-array denoting which the topic to stop receiving</param>
         public new virtual void Unsubscribe(byte[] topic)
         {
-            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
     }
 }

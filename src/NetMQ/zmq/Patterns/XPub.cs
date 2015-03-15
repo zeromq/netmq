@@ -184,19 +184,19 @@ namespace NetMQ.zmq.Patterns
             m_distribution.Activated(pipe);
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optionValue)
+        protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
         {
-            if (option == ZmqSocketOptions.XpubVerbose)
+            if (option == ZmqSocketOption.XpubVerbose)
             {
                 m_verbose = (bool)optionValue;
                 return true;
             }
-            else if (option == ZmqSocketOptions.XPublisherManual)
+            else if (option == ZmqSocketOption.XPublisherManual)
             {
                 m_manual = true;
                 return true;
             }
-            else if (option == ZmqSocketOptions.Subscribe && m_manual && m_lastPipe != null)
+            else if (option == ZmqSocketOption.Subscribe && m_manual && m_lastPipe != null)
             {
                 byte[] subscription;
 
@@ -212,7 +212,7 @@ namespace NetMQ.zmq.Patterns
                 m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
                 return true;
             }
-            else if (option == ZmqSocketOptions.Unsubscribe && m_manual && m_lastPipe != null)
+            else if (option == ZmqSocketOption.Unsubscribe && m_manual && m_lastPipe != null)
             {
                 byte[] subscription;
 
@@ -228,7 +228,7 @@ namespace NetMQ.zmq.Patterns
                 m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
                 return true;
             }
-            else if (option == ZmqSocketOptions.XPublisherWelcomeMessage)
+            else if (option == ZmqSocketOption.XPublisherWelcomeMessage)
             {
                 m_welcomeMessage.Close();
 

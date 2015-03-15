@@ -366,25 +366,25 @@ namespace NetMQ
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(string topic)
         {
-            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+            SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(byte[] topic)
         {
-            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+            SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(string topic)
         {
-            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(byte[] topic)
         {
-            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
         #endregion
@@ -418,7 +418,7 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public bool HasIn
         {
-            get { return GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events).HasIn(); }
+            get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasIn(); }
         }
 
         /// <summary>
@@ -430,98 +430,98 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public bool HasOut
         {
-            get { return GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events).HasOut(); }
+            get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasOut(); }
         }
 
         #region Socket options
 
         /// <summary>
-        /// Get the integer-value of the specified <see cref="ZmqSocketOptions"/>.
+        /// Get the integer-value of the specified <see cref="ZmqSocketOption"/>.
         /// </summary>
-        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
         /// <returns>an integer that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
-        internal int GetSocketOption(ZmqSocketOptions socketOptions)
+        internal int GetSocketOption(ZmqSocketOption option)
         {
             m_socketHandle.CheckDisposed();
 
-            return m_socketHandle.GetSocketOption(socketOptions);
+            return m_socketHandle.GetSocketOption(option);
         }
 
         /// <summary>
-        /// Get the (generically-typed) value of the specified <see cref="ZmqSocketOptions"/>.
+        /// Get the (generically-typed) value of the specified <see cref="ZmqSocketOption"/>.
         /// </summary>
-        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
         /// <returns>an object of the given type, that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
-        internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
+        internal T GetSocketOptionX<T>(ZmqSocketOption option)
         {
             m_socketHandle.CheckDisposed();
 
-            return (T)m_socketHandle.GetSocketOptionX(socketOptions);
+            return (T)m_socketHandle.GetSocketOptionX(option);
         }
 
         /// <summary>
-        /// Get the <see cref="TimeSpan"/> value of the specified ZmqSocketOptions.
+        /// Get the <see cref="TimeSpan"/> value of the specified ZmqSocketOption.
         /// </summary>
-        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
         /// <returns>a TimeSpan that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
+        internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOption option)
         {
-            return TimeSpan.FromMilliseconds(GetSocketOption(socketOptions));
+            return TimeSpan.FromMilliseconds(GetSocketOption(option));
         }
 
         /// <summary>
-        /// Get the 64-bit integer-value of the specified <see cref="ZmqSocketOptions"/>.
+        /// Get the 64-bit integer-value of the specified <see cref="ZmqSocketOption"/>.
         /// </summary>
-        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to get</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
         /// <returns>a long that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
+        internal long GetSocketOptionLong(ZmqSocketOption option)
         {
-            return GetSocketOptionX<long>(socketOptions);
+            return GetSocketOptionX<long>(option);
         }
 
         /// <summary>
-        /// Assign the given integer value to the specified <see cref="ZmqSocketOptions"/>.
+        /// Assign the given integer value to the specified <see cref="ZmqSocketOption"/>.
         /// </summary>
-        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to set</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to set</param>
         /// <param name="value">an integer that is the value to set that option to</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
-        internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
+        internal void SetSocketOption(ZmqSocketOption option, int value)
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.SetSocketOption(socketOptions, value);
+            m_socketHandle.SetSocketOption(option, value);
         }
 
         /// <summary>
-        /// Assign the given TimeSpan to the specified <see cref="ZmqSocketOptions"/>.
+        /// Assign the given TimeSpan to the specified <see cref="ZmqSocketOption"/>.
         /// </summary>
-        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to set</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to set</param>
         /// <param name="value">a TimeSpan that is the value to set that option to</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        internal void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
+        internal void SetSocketOptionTimeSpan(ZmqSocketOption option, TimeSpan value)
         {
-            SetSocketOption(socketOptions, (int)value.TotalMilliseconds);
+            SetSocketOption(option, (int)value.TotalMilliseconds);
         }
 
         /// <summary>
-        /// Assign the given Object value to the specified <see cref="ZmqSocketOptions"/>.
+        /// Assign the given Object value to the specified <see cref="ZmqSocketOption"/>.
         /// </summary>
-        /// <param name="socketOptions">a ZmqSocketOptions that specifies what to set</param>
+        /// <param name="option">a ZmqSocketOption that specifies what to set</param>
         /// <param name="value">an object that is the value to set that option to</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
-        internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
+        internal void SetSocketOption(ZmqSocketOption option, object value)
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.SetSocketOption(socketOptions, value);
+            m_socketHandle.SetSocketOption(option, value);
         }
 
         #endregion

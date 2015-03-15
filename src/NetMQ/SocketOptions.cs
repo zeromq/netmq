@@ -33,8 +33,8 @@ namespace NetMQ
         /// </summary>
         public long Affinity
         {
-            get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.Affinity); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Affinity, value); }
+            get { return m_socket.GetSocketOptionLong(ZmqSocketOption.Affinity); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.Affinity, value); }
         }
 
         [Obsolete("This property doesn't effect NetMQ anymore")]
@@ -47,27 +47,27 @@ namespace NetMQ
         public byte[] Identity
         {
             [CanBeNull]
-            get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOptions.Identity); }
+            get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.Identity); }
             [NotNull]
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Identity, value); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.Identity, value); }
         }
 
         public int MulticastRate
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.Rate); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Rate, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOption.Rate); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.Rate, value); }
         }
 
         public TimeSpan MulticastRecoveryInterval
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvl, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl, value); }
         }
 
         public int SendBuffer
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.SendBuffer); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.SendBuffer, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOption.SendBuffer); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.SendBuffer, value); }
         }
 
         [Obsolete("Use ReceiveBuffer instead")]
@@ -79,8 +79,8 @@ namespace NetMQ
 
         public int ReceiveBuffer
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceiveBuffer); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveBuffer, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveBuffer); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveBuffer, value); }
         }
 
         /// <summary>
@@ -89,37 +89,37 @@ namespace NetMQ
         /// <value><c>true</c> if receive more; otherwise, <c>false</c>.</value>
         public bool ReceiveMore
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.ReceiveMore); }
+            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.ReceiveMore); }
         }
 
         public TimeSpan Linger
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.Linger); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.Linger, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.Linger); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.Linger, value); }
         }
 
         public TimeSpan ReconnectInterval
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvl, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl, value); }
         }
 
         public TimeSpan ReconnectIntervalMax
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvlMax); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.ReconnectIvlMax, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvlMax); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvlMax, value); }
         }
 
         public int Backlog
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.Backlog); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Backlog, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOption.Backlog); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.Backlog, value); }
         }
 
         public long MaxMsgSize
         {
-            get { return m_socket.GetSocketOptionLong(ZmqSocketOptions.MaxMessageSize); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.MaxMessageSize, value); }
+            get { return m_socket.GetSocketOptionLong(ZmqSocketOption.MaxMessageSize); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.MaxMessageSize, value); }
         }
 
         /// <summary>
@@ -130,8 +130,8 @@ namespace NetMQ
         /// </summary>
         public int SendHighWatermark
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.SendHighWatermark); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.SendHighWatermark, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOption.SendHighWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.SendHighWatermark, value); }
         }
 
         /// <summary>
@@ -142,33 +142,33 @@ namespace NetMQ
         /// </summary>
         public int ReceiveHighWatermark
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.ReceiveHighWatermark); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.ReceiveHighWatermark, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveHighWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveHighWatermark, value); }
         }
 
         public int MulticastHops
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.MulticastHops); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.MulticastHops, value); }
+            get { return m_socket.GetSocketOption(ZmqSocketOption.MulticastHops); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.MulticastHops, value); }
         }
 
         [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
         public TimeSpan ReceiveTimeout
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.ReceiveTimeout); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.ReceiveTimeout, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReceiveTimeout); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReceiveTimeout, value); }
         }
 
         public TimeSpan SendTimeout
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.SendTimeout); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.SendTimeout, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout, value); }
         }
 
         public bool IPv4Only
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.IPv4Only); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.IPv4Only, value); }
+            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.IPv4Only); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.IPv4Only, value); }
         }
 
         [Obsolete("Use LastEndpoint instead")]
@@ -181,71 +181,71 @@ namespace NetMQ
         [CanBeNull]
         public string LastEndpoint
         {
-            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.LastEndpoint); }
+            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint); }
         }
 
         public bool RouterMandatory
         {
-            set { m_socket.SetSocketOption(ZmqSocketOptions.RouterMandatory, value); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.RouterMandatory, value); }
         }
 
         public bool TcpKeepalive
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOptions.TcpKeepalive) == 1; }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepalive, value ? 1 : 0); }
+            get { return m_socket.GetSocketOption(ZmqSocketOption.TcpKeepalive) == 1; }
+            set { m_socket.SetSocketOption(ZmqSocketOption.TcpKeepalive, value ? 1 : 0); }
         }
 
         [Obsolete("This option is not supported and has no effect")]
         public int TcpKeepaliveCnt
         {
-            set { /* m_socket.SetSocketOption(ZmqSocketOptions.TcpKeepaliveCnt, value); */ }
+            set { /* m_socket.SetSocketOption(ZmqSocketOption.TcpKeepaliveCnt, value); */ }
         }
 
         public TimeSpan TcpKeepaliveIdle
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.TcpKeepaliveIdle); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.TcpKeepaliveIdle, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIdle); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIdle, value); }
         }
 
         public TimeSpan TcpKeepaliveInterval
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.TcpKeepaliveIntvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.TcpKeepaliveIntvl, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl, value); }
         }
 
         [CanBeNull]
         public string TcpAcceptFilter
         {
             // TODO the logic here doesn't really suit a setter -- set values are appended to a list, and null clear that list
-            // get { return m_socket.GetSocketOptionX<string>(ZmqSocketOptions.TcpAcceptFilter); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.TcpAcceptFilter, value); }
+            // get { return m_socket.GetSocketOptionX<string>(ZmqSocketOption.TcpAcceptFilter); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.TcpAcceptFilter, value); }
         }
 
         public bool DelayAttachOnConnect
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOptions.DelayAttachOnConnect); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.DelayAttachOnConnect, value); }
+            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DelayAttachOnConnect); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.DelayAttachOnConnect, value); }
         }
 
         public bool XPubVerbose
         {
-            set { m_socket.SetSocketOption(ZmqSocketOptions.XpubVerbose, value); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.XpubVerbose, value); }
         }
 
         public bool RouterRawSocket
         {
-            set { m_socket.SetSocketOption(ZmqSocketOptions.RouterRawSocket, value); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.RouterRawSocket, value); }
         }
 
         public Endianness Endian
         {
-            get { return m_socket.GetSocketOptionX<Endianness>(ZmqSocketOptions.Endian); }
-            set { m_socket.SetSocketOption(ZmqSocketOptions.Endian, value); }
+            get { return m_socket.GetSocketOptionX<Endianness>(ZmqSocketOption.Endian); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.Endian, value); }
         }
 
         public bool ManualPublisher
         {
-            set { m_socket.SetSocketOption(ZmqSocketOptions.XPublisherManual, value); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherManual, value); }
         }
     }
 }
