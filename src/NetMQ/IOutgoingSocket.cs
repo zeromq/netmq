@@ -11,6 +11,7 @@
         /// </summary>
         /// <param name="msg">the Msg struct that contains the data and the options for this transmission</param>
         /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore bits (or None)</param>
+        /// <exception cref="AgainException">The send operation timed out.</exception>
         void Send(ref Msg msg, SendReceiveOptions options);
     }
 }
