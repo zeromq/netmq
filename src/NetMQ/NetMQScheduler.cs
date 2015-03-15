@@ -1,39 +1,43 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
+using NetMQ.zmq;
 
 namespace NetMQ
 {
     public class NetMQScheduler : TaskScheduler, IDisposable
     {
+        /// <summary>
+        /// True if we own m_poller (that is, it was created within the NetMQScheduler constructor
+        /// as opposed to being passed-in from the caller).
+        /// </summary>
         private readonly bool m_ownPoller;
+
         private readonly Poller m_poller;
 
-        private static int s_schedulerCounter = 0;
+        private static int s_schedulerCounter;
 
-        private readonly int m_schedulerId;
-        private readonly string m_address;
-
-        private readonly NetMQContext m_context;
         private readonly NetMQSocket m_serverSocket;
         private readonly NetMQSocket m_clientSocket;
 
-        private ThreadLocal<bool> m_schedulerThread;
+        private readonly ThreadLocal<bool> m_schedulerThread;
 
-        private ConcurrentQueue<Task> m_tasksQueue;
+        private readonly ConcurrentQueue<Task> m_tasksQueue;
 
-        private object m_syncObject;
+        private readonly object m_syncObject;
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 
-        public NetMQScheduler(NetMQContext context, Poller poller = null)
+        /// <summary>
+        /// Create a new NetMQScheduler object within the given context, and optionally using the given poller.
+        /// </summary>
+        /// <param name="context">the NetMQContext to create this NetMQScheduler within</param>
+        /// <param name="poller">(optional)the Poller for this Net to use</param>
+        public NetMQScheduler([NotNull] NetMQContext context, [CanBeNull] Poller poller = null)
         {
-            m_context = context;
             if (poller == null)
             {
                 m_ownPoller = true;
@@ -48,13 +52,13 @@ namespace NetMQ
             m_tasksQueue = new ConcurrentQueue<Task>();
             m_syncObject = new object();
 
-            m_schedulerId = Interlocked.Increment(ref s_schedulerCounter);
+            var schedulerId = Interlocked.Increment(ref s_schedulerCounter);
 
-            m_address = string.Format("{0}://scheduler-{1}", NetMQ.zmq.Address.InProcProtocol, m_schedulerId);
+            var address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, schedulerId);
 
             m_serverSocket = context.CreatePullSocket();
             m_serverSocket.Options.Linger = TimeSpan.Zero;
-            m_serverSocket.Bind(m_address);
+            m_serverSocket.Bind(address);
 
             m_currentMessageHandler = OnMessageFirstTime;
 
@@ -62,20 +66,20 @@ namespace NetMQ
 
             m_poller.AddSocket(m_serverSocket);
 
-            m_clientSocket = m_context.CreatePushSocket();
-            m_clientSocket.Connect(m_address);
+            m_clientSocket = context.CreatePushSocket();
+            m_clientSocket.Connect(address);
 
             m_schedulerThread = new ThreadLocal<bool>(() => false);
 
             if (m_ownPoller)
             {
-                m_poller.PollTillCancelledNonBlocking();                
+                m_poller.PollTillCancelledNonBlocking();
             }
         }
 
         private void OnMessageFirstTime(object sender, NetMQSocketEventArgs e)
         {
-            // set the current thread as the scheduler thread, this only happen the first time message arrived and important for the TryExecuteTaskInline
+            // set the current thread as the scheduler thread, this only happens the first time a message arrived and is important for the TryExecuteTaskInline
             m_schedulerThread.Value = true;
 
             // stop calling the OnMessageFirstTime and start calling OnMessage
@@ -89,7 +93,7 @@ namespace NetMQ
         private void OnMessage(object sender, NetMQSocketEventArgs e)
         {
             // remove the awake command from the queue
-            m_serverSocket.Receive();
+            m_serverSocket.ReceiveFrameBytes();
 
             Task task;
 
@@ -111,8 +115,23 @@ namespace NetMQ
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
+            if (!m_ownPoller && !m_poller.IsStarted)
+            {
+                DisposeSynced();
+                return;
+            }
+
             // disposing on the scheduler thread
-            Task task = new Task(DisposeSynced);
+            var task = new Task(DisposeSynced);
             task.Start(this);
             task.Wait();
 
@@ -120,7 +139,9 @@ namespace NetMQ
             if (m_ownPoller)
             {
                 m_poller.CancelAndJoin();
+                m_poller.Dispose();
             }
+            m_schedulerThread.Dispose();
         }
 
         private void DisposeSynced()

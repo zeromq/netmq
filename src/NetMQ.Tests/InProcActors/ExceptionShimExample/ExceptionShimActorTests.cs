@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.Actors;
-using NetMQ.Tests.InProcActors.Echo;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
-namespace NetMQ.Tests.InProcActors.ShimExceptionExample
+namespace NetMQ.Tests.InProcActors.ExceptionShimExample
 {
     [TestFixture]
     public class ExceptionShimActorTests
@@ -15,16 +9,14 @@ namespace NetMQ.Tests.InProcActors.ShimExceptionExample
         public void ShimExceptionTest()
         {
             using (var context = NetMQContext.Create())
+            using (var actor = NetMQActor.Create(context, new ExceptionShimHandler()))
             {
-                ExceptionShimHandler exceptionShimHandler = new ExceptionShimHandler();
-                using (Actor<object> actor = new Actor<object>(context, exceptionShimHandler, null))
-                {
-                    actor.SendMore("SOME_COMMAND");
-                    actor.Send("Whatever");
-                    var result = actor.ReceiveString();
-                    string expectedHandlerResult = "Error: Exception occurred Actors Shim threw an Exception";
-                    Assert.AreEqual(expectedHandlerResult, result);
-                }
+                actor.SendMore("SOME_COMMAND");
+                actor.Send("Whatever");
+
+                Assert.AreEqual(
+                    "Error: Exception occurred Actors Shim threw an Exception",
+                    actor.ReceiveFrameString());
             }
         }
     }

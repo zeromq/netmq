@@ -20,42 +20,48 @@
 
 using System;
 using System.Net.Sockets;
-using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq
 {
-    public class Reaper : ZObject, IPollEvents
+    internal class Reaper : ZObject, IPollEvents
     {
+        /// <summary>
+        /// Reaper thread accesses incoming commands via this mailbox.
+        /// </summary>
+        private readonly Mailbox m_mailbox;
 
-        //  Reaper thread accesses incoming commands via this mailbox.
-        private readonly Mailbox mailbox;
-
-        //  Handle associated with mailbox' file descriptor.
+        /// <summary>
+        /// This is a Socket, used as the handle associated with the mailbox's file descriptor.
+        /// </summary>
         private readonly Socket m_mailboxHandle;
 
-        //  I/O multiplexing is performed using a poller object.
+        /// <summary>
+        /// I/O multiplexing is performed using a poller object.
+        /// </summary>
         private readonly Utils.Poller m_poller;
 
-        //  Number of sockets being reaped at the moment.
+        /// <summary>
+        /// Number of sockets being reaped at the moment.
+        /// </summary>
         private int m_sockets;
 
-        //  If true, we were already asked to terminate.
+        /// <summary>
+        /// If true, we were already asked to terminate.
+        /// </summary>
         private volatile bool m_terminating;
-
-        private readonly String m_name;
 
         public Reaper(Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
-
             m_sockets = 0;
             m_terminating = false;
-            m_name = "reaper-" + threadId;
-            m_poller = new Utils.Poller(m_name);
+            
+            string name = "reaper-" + threadId;
+            m_poller = new Utils.Poller(name);
 
-            mailbox = new Mailbox(m_name);
+            m_mailbox = new Mailbox(name);
 
-            m_mailboxHandle = mailbox.Handle;
+            m_mailboxHandle = m_mailbox.Handle;
             m_poller.AddHandle(m_mailboxHandle, this);
             m_poller.SetPollin(m_mailboxHandle);
         }
@@ -63,18 +69,17 @@ namespace NetMQ.zmq
         public void Destroy()
         {
             m_poller.Destroy();
-            mailbox.Close();
+            m_mailbox.Close();
         }
 
         public Mailbox Mailbox
         {
-            get { return mailbox; }
+            get { return m_mailbox; }
         }
 
         public void Start()
         {
             m_poller.Start();
-
         }
 
         public void Stop()
@@ -85,19 +90,16 @@ namespace NetMQ.zmq
 
         public void InEvent()
         {
-
             while (true)
             {
-
                 //  Get the next command. If there is none, exit.
-                Command cmd = mailbox.Recv(0);
+                Command cmd = m_mailbox.Recv(0);
                 if (cmd == null)
                     break;
 
                 //  Process the command.
                 cmd.Destination.ProcessCommand(cmd);
             }
-
         }
 
         public void OutEvent()
@@ -110,8 +112,7 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
-        override
-            protected void ProcessStop()
+        protected override void ProcessStop()
         {
             m_terminating = true;
 
@@ -124,8 +125,7 @@ namespace NetMQ.zmq
             }
         }
 
-        override
-            protected void ProcessReap(SocketBase socket)
+        protected override void ProcessReap(SocketBase socket)
         {
             //  Add the socket to the poller.
             socket.StartReaping(m_poller);
@@ -133,10 +133,7 @@ namespace NetMQ.zmq
             ++m_sockets;
         }
 
-
-
-        override
-            protected void ProcessReaped()
+        protected override void ProcessReaped()
         {
             --m_sockets;
 
@@ -147,10 +144,7 @@ namespace NetMQ.zmq
                 SendDone();
                 m_poller.RemoveHandle(m_mailboxHandle);
                 m_poller.Stop();
-
             }
         }
-
-
     }
 }

@@ -30,6 +30,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <DocumentationFile>bin\Release\NetMQ.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -48,6 +49,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DnsEndPoint.cs" />
     <Compile Include="NetMQActor.cs" />
     <Compile Include="EventDelegator.cs" />
     <Compile Include="InProcActors\Actor.cs" />
@@ -122,6 +124,7 @@
     <Compile Include="Blob.cs" />
     <Compile Include="BufferPool.cs" />
     <Compile Include="zmq\Utils\ByteArrayEqualityComparer.cs" />
+    <Compile Include="zmq\Utils\StringLib.cs" />
     <Compile Include="zmq\Utils\Selector.cs" />
     <Compile Include="zmq\Transports\ByteArraySegment.cs" />
     <Compile Include="zmq\Utils\Clock.cs" />
@@ -147,10 +150,10 @@
     <Compile Include="zmq\IOObject.cs" />
     <Compile Include="zmq\IOThread.cs" />
     <Compile Include="zmq\Transports\Ipc\IpcAddress.cs" />
-    <Compile Include="zmq\Transports\Ipc\IpcConnecter.cs" />
+    <Compile Include="zmq\Transports\Ipc\IpcConnector.cs" />
     <Compile Include="zmq\Transports\Ipc\IpcListener.cs" />
     <Compile Include="zmq\IPollEvents.cs" />
-    <Compile Include="zmq\IProcatorEvents.cs" />
+    <Compile Include="zmq\IProactorEvents.cs" />
     <Compile Include="zmq\ITimerEvent.cs" />
     <Compile Include="zmq\IZmqMonitor.cs" />
     <Compile Include="zmq\Patterns\Utils\FairQueueing.cs" />
@@ -191,7 +194,7 @@
     <Compile Include="zmq\Transports\StreamEngine.cs" />
     <Compile Include="zmq\Patterns\Sub.cs" />
     <Compile Include="zmq\Transports\Tcp\TcpAddress.cs" />
-    <Compile Include="zmq\Transports\Tcp\TcpConnecter.cs" />
+    <Compile Include="zmq\Transports\Tcp\TcpConnector.cs" />
     <Compile Include="zmq\Transports\Tcp\TcpListener.cs" />
     <Compile Include="zmq\Patterns\Utils\Trie.cs" />
     <Compile Include="zmq\Transports\V2Decoder.cs" />

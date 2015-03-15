@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using NetMQ.zmq;
 using NetMQ.zmq.Transports;
 using NUnit.Framework;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
@@ -112,7 +108,7 @@ namespace NetMQ.Tests
         {
             ByteArraySegment byteArraySegment = new ByteArraySegment(new byte[2]);
 
-            byteArraySegment.PutUnsingedShort(Endianness.Little, 1, 0);
+            byteArraySegment.PutUnsignedShort(Endianness.Little, 1, 0);
 
             Assert.AreEqual(1, byteArraySegment[0]);
             Assert.AreEqual(0, byteArraySegment[1]);
@@ -121,7 +117,7 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(1, num);
 
-            byteArraySegment.PutUnsingedShort(Endianness.Little, 256, 0);
+            byteArraySegment.PutUnsignedShort(Endianness.Little, 256, 0);
 
             Assert.AreEqual(1, byteArraySegment[1]);
             Assert.AreEqual(0, byteArraySegment[0]);
@@ -136,7 +132,7 @@ namespace NetMQ.Tests
         {
             ByteArraySegment byteArraySegment = new ByteArraySegment(new byte[2]);
 
-            byteArraySegment.PutUnsingedShort(Endianness.Big, 1, 0);
+            byteArraySegment.PutUnsignedShort(Endianness.Big, 1, 0);
 
             Assert.AreEqual(1, byteArraySegment[1]);
             Assert.AreEqual(0, byteArraySegment[0]);
@@ -145,7 +141,7 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(1, num);
 
-            byteArraySegment.PutUnsingedShort(Endianness.Big, 256, 0);
+            byteArraySegment.PutUnsignedShort(Endianness.Big, 256, 0);
 
             Assert.AreEqual(1, byteArraySegment[0]);
             Assert.AreEqual(0, byteArraySegment[1]);

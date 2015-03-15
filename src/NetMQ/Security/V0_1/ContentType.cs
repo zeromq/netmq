@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace NetMQ.Security.V0_1
+﻿namespace NetMQ.Security.V0_1
 {
+    /// <summary>
+    /// This enum-type serves to identify the type of content -- that is,
+    /// whether it is a ChangeCipherSpec , a Handshake, or just ApplicationData.
+    /// </summary>
     public enum ContentType
     {
         ChangeCipherSpec = 20,

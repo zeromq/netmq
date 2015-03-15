@@ -4,24 +4,25 @@ using NetMQ;
 
 namespace ExtendedRequestReply
 {
-    class RequestReplyWorker
+    internal static class RequestReplyWorker
     {
-        private const string WORKER_ENDPOINT = "tcp://127.0.0.1:5560";
-        
-        static void Main(string[] args)
+        private const string WorkerEndpoint = "tcp://127.0.0.1:5560";
+
+        private static void Main()
         {
-            using (var ctx = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var worker = context.CreateResponseSocket())
             {
-                using (var worker = ctx.CreateResponseSocket())
+                worker.Connect(WorkerEndpoint);
+
+                while (true)
                 {
-                    worker.Connect(WORKER_ENDPOINT);
-                    while (true)
-                    {
-                        var msg = worker.ReceiveMessage();
-                        Console.WriteLine("Processing Message {0}", msg.Last.ConvertToString());
-                        Thread.Sleep(500);
-                        worker.Send(msg.Last.ConvertToString());
-                    }
+                    var msg = worker.ReceiveMultipartMessage();
+                    Console.WriteLine("Processing Message {0}", msg.Last.ConvertToString());
+
+                    Thread.Sleep(500);
+                    
+                    worker.Send(msg.Last.ConvertToString());
                 }
             }
         }

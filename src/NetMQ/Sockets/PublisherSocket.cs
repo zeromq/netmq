@@ -4,18 +4,33 @@ using NetMQ.zmq;
 namespace NetMQ.Sockets
 {
     /// <summary>
-    /// Publisher socket, is the pub in pubsub pattern. publish a message to all subscribers which subscribed for the topic
+    /// A PublisherSocket is a NetMQSocket intended to be used as the Pub in the PubSub pattern.
+    /// The intended usage is for publishing messages to all subscribers which are subscribed to a given topic.
     /// </summary>
     public class PublisherSocket : NetMQSocket
     {
-        public PublisherSocket(SocketBase socketHandle)
+        /// <summary>
+        /// Create a new PublisherSocket based upon the given SocketBase.
+        /// </summary>
+        /// <param name="socketHandle">the SocketBase to create the new socket from</param>
+        internal PublisherSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }
 
+        /// <summary><see cref="PublisherSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
+        /// <exception cref="NotSupportedException">Receive is not supported.</exception>
+        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public override void Receive(ref Msg msg, SendReceiveOptions options)
         {
-            throw new NotSupportedException("Publisher doesn't support receiving");
-        }        
+            throw new NotSupportedException("PublisherSocket doesn't support receiving");
+        }
+
+        /// <summary><see cref="PublisherSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
+        /// <exception cref="NotSupportedException">Receive is not supported.</exception>
+        public override bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            throw new NotSupportedException("PublisherSocket doesn't support receiving");
+        }
     }
 }

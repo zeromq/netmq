@@ -4,23 +4,24 @@ using NetMQ;
 
 namespace Freelance.ModelOne.Client
 {
-    class Program
+    internal static class Program
     {
-        private const int REQUEST_TIMEOUT = 1000; // ms
-        private const int MAX_RETRIES = 50;   // Before we abandon
+        private const int RequestTimeout = 1000; // ms
+        private const int MaxRetries = 50; // Before we abandon
 
-
-        static void Main(string[] args)
+        private static void Main()
         {
-            List<string> endpoints = new List<string>();
-            endpoints.Add("tcp://*** Add your first endpoint ***");
-            endpoints.Add("tcp://*** Add your second endpoint ***");
+            var endpoints = new List<string>
+            {
+                "tcp://*** Add your first endpoint ***", 
+                "tcp://*** Add your second endpoint ***"
+            };
 
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
             {
                 if (endpoints.Count == 1)
                 {
-                    for (int i = 0; i < MAX_RETRIES; i++)
+                    for (int i = 0; i < MaxRetries; i++)
                     {
                         if (TryRequest(context, endpoints[0], string.Format("Hello from endpoint {0}", endpoints[0])))
                             break;
@@ -28,9 +29,9 @@ namespace Freelance.ModelOne.Client
                 }
                 else if (endpoints.Count > 1)
                 {
-                    for (int i = 0; i < endpoints.Count; i++)
+                    foreach (string endpoint in endpoints)
                     {
-                        if (TryRequest(context, endpoints[i], string.Format("Hello from endpoint {0}", endpoints[i])))
+                        if (TryRequest(context, endpoint, string.Format("Hello from endpoint {0}", endpoint)))
                             break;
                     }
                 }
@@ -40,32 +41,32 @@ namespace Freelance.ModelOne.Client
                 }
             }
 
-            Console.WriteLine("Press ENTER to exit...");
-            Console.ReadLine();
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
 
         private static bool TryRequest(NetMQContext context, string endpoint, string requestString)
         {
             Console.WriteLine("Trying echo service at {0}", endpoint);
-            NetMQSocket client = context.CreateRequestSocket();
-            client.Options.Linger = TimeSpan.Zero;
-            client.Connect(endpoint);
-            client.Send(requestString);
-            client.ReceiveReady += ClientOnReceiveReady;
-            bool pollResult = client.Poll(TimeSpan.FromMilliseconds(REQUEST_TIMEOUT));
-            client.ReceiveReady -= ClientOnReceiveReady;
-            client.Disconnect(endpoint);
-            client.Dispose();
 
-            return pollResult;
+            using (var client = context.CreateRequestSocket())
+            {
+                client.Options.Linger = TimeSpan.Zero;
+
+                client.Connect(endpoint);
+                
+                client.Send(requestString);
+                client.ReceiveReady += ClientOnReceiveReady;
+                bool pollResult = client.Poll(TimeSpan.FromMilliseconds(RequestTimeout));
+                client.ReceiveReady -= ClientOnReceiveReady;
+                client.Disconnect(endpoint);
+                return pollResult;
+            }
         }
 
-        private static void ClientOnReceiveReady(object sender, NetMQSocketEventArgs e)
+        private static void ClientOnReceiveReady(object sender, NetMQSocketEventArgs args)
         {
-            bool hasMore = true;
-
-            var reply = e.Socket.ReceiveString(out hasMore);
-            Console.WriteLine("Server replied ({0})", reply);
+            Console.WriteLine("Server replied ({0})", args.Socket.ReceiveFrameString());
         }
     }
 }

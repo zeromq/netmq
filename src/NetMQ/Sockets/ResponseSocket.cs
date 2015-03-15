@@ -1,14 +1,18 @@
-﻿using System;
-using NetMQ.zmq;
+﻿using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
     /// <summary>
-    /// Response socket
+    /// A ResponseSocket is a NetMQSocket intended to be used as the Response part of the Request-Response pattern.
+    /// This is generally paired with a RequestSocket.
     /// </summary>
     public class ResponseSocket : NetMQSocket
     {
-        public ResponseSocket(SocketBase socketHandle)
+        /// <summary>
+        /// Create a new ResponseSocket based upon the given SocketBase.
+        /// </summary>
+        /// <param name="socketHandle">the SocketBase to create the new socket from</param>
+        internal ResponseSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

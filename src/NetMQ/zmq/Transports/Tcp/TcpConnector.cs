@@ -20,54 +20,73 @@
 */
 
 using System;
-using System.Net.Sockets;
 using System.Diagnostics;
-
-//  If 'delay' is true connecter first waits for a while, then starts
-//  connection process.
+using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpConnecter : Own, IProcatorEvents
+    /// <summary>
+    /// If 'delay' is true connector first waits for a while, then starts connection process.
+    /// </summary>
+    internal class TcpConnector : Own, IProactorEvents
     {
-
-        //private static Logger LOG = LoggerFactory.getLogger(TcpConnecter.class);
-
-        //  ID of the timer used to delay the reconnection.
+        /// <summary>
+        ///  ID of the timer used to delay the reconnection.
+        /// </summary>
         private const int ReconnectTimerId = 1;
 
         private readonly IOObject m_ioObject;
 
-        //  Address to connect to. Owned by session_base_t.
+        /// <summary>
+        ///  Address to connect to. Owned by session_base_t.
+        /// </summary>
         private readonly Address m_addr;
 
-        //  Underlying socket.
+        /// <summary>
+        /// Underlying socket.
+        /// </summary>
+        [CanBeNull]
         private AsyncSocket m_s;
 
-        //  If true file descriptor is registered with the poller and 'handle'
-        //  contains valid value.
+        /// <summary>
+        /// If true file descriptor is registered with the poller and 'handle'
+        /// contains valid value.
+        /// </summary>
         private bool m_handleValid;
 
-        //  If true, connecter is waiting a while before trying to connect.
+        /// <summary>
+        /// If true, connector is waiting a while before trying to connect.
+        /// </summary>
         private readonly bool m_delayedStart;
 
-        //  True iff a timer has been started.
+        /// <summary>
+        /// True if a timer has been started.
+        /// </summary>
         private bool m_timerStarted;
 
-        //  Reference to the session we belong to.
+        /// <summary>
+        /// Reference to the session we belong to.
+        /// </summary>
         private readonly SessionBase m_session;
 
-        //  Current reconnect ivl, updated for backoff strategy
+        /// <summary>
+        /// Current reconnect-interval, updated for back-off strategy
+        /// </summary>
         private int m_currentReconnectIvl;
 
-        // String representation of endpoint to connect to
-        private readonly String m_endpoint;
+        /// <summary>
+        /// String representation of endpoint to connect to
+        /// </summary>
+        private readonly string m_endpoint;
 
-        // Socket
+        /// <summary>
+        /// Socket
+        /// </summary>
         private readonly SocketBase m_socket;
 
-        public TcpConnecter(IOThread ioThread, SessionBase session, Options options, Address addr, bool delayedStart)
+        public TcpConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -127,7 +146,9 @@ namespace NetMQ.zmq.Transports.Tcp
             throw new NotImplementedException();
         }
 
-        //  Internal function to start the actual connection establishment.
+        /// <summary>
+        /// Internal function to start the actual connection establishment.
+        /// </summary>
         private void StartConnecting()
         {
             Debug.Assert(m_s == null);
@@ -150,7 +171,7 @@ namespace NetMQ.zmq.Transports.Tcp
             try
             {
                 m_s.Connect(m_addr.Resolved.Address.Address, m_addr.Resolved.Address.Port);
-                m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgres);
+                m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgress);
             }
             catch (SocketException ex)
             {
@@ -158,8 +179,14 @@ namespace NetMQ.zmq.Transports.Tcp
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="socketError"></param>
+        /// <param name="bytesTransferred"></param>
+        /// <exception cref="NetMQException">a non-recoverable socket error occurred.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
-        {            
+        {
             if (socketError != SocketError.Success)
             {
                 m_ioObject.RemoveSocket(m_s);
@@ -192,7 +219,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
-                        ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
+                        var bytes = new ByteArraySegment(new byte[12]);
 
                         Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
 
@@ -203,9 +230,9 @@ namespace NetMQ.zmq.Transports.Tcp
                         m_s.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
                     }
                 }
-                
+
                 //  Create the engine object for this connection.
-                StreamEngine engine = new StreamEngine(m_s, m_options, m_endpoint);
+                var engine = new StreamEngine(m_s, m_options, m_endpoint);
 
                 m_socket.EventConnected(m_endpoint, m_s);
 
@@ -214,7 +241,7 @@ namespace NetMQ.zmq.Transports.Tcp
                 //  Attach the engine to the corresponding session object.
                 SendAttach(m_session, engine);
 
-                //  Shut the connecter down.
+                //  Shut the connector down.
                 Terminate();
             }
         }
@@ -225,7 +252,9 @@ namespace NetMQ.zmq.Transports.Tcp
             StartConnecting();
         }
 
-        //  Internal function to add a reconnect timer
+        /// <summary>
+        /// Internal function to add a reconnect timer
+        /// </summary>
         private void AddReconnectTimer()
         {
             int rcIvl = GetNewReconnectIvl();
@@ -234,9 +263,11 @@ namespace NetMQ.zmq.Transports.Tcp
             m_timerStarted = true;
         }
 
-        //  Internal function to return a reconnect backoff delay.
-        //  Will modify the current_reconnect_ivl used for next call
-        //  Returns the currently used interval
+        /// <summary>
+        /// Internal function to return a reconnect back-off delay.
+        /// Will modify the current_reconnect_ivl used for next call
+        /// Returns the currently used interval
+        /// </summary>
         private int GetNewReconnectIvl()
         {
             //  The new interval is the current interval + random value.
@@ -245,9 +276,8 @@ namespace NetMQ.zmq.Transports.Tcp
             //  Only change the current reconnect interval  if the maximum reconnect
             //  interval was set and if it's larger than the reconnect interval.
             if (m_options.ReconnectIvlMax > 0 &&
-                    m_options.ReconnectIvlMax > m_options.ReconnectIvl)
+                m_options.ReconnectIvlMax > m_options.ReconnectIvl)
             {
-
                 //  Calculate the next interval
                 m_currentReconnectIvl = m_currentReconnectIvl * 2;
                 if (m_currentReconnectIvl >= m_options.ReconnectIvlMax)
@@ -258,7 +288,9 @@ namespace NetMQ.zmq.Transports.Tcp
             return thisInterval;
         }
 
-        //  Close the connecting socket.
+        /// <summary>
+        /// Close the connecting socket.
+        /// </summary>
         private void Close()
         {
             Debug.Assert(m_s != null);
@@ -272,7 +304,6 @@ namespace NetMQ.zmq.Transports.Tcp
             {
                 m_socket.EventCloseFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
             }
-
         }
     }
 }

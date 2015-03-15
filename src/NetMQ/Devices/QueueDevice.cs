@@ -1,8 +1,5 @@
-﻿using NetMQ.Sockets;
-
-namespace NetMQ.Devices
+﻿namespace NetMQ.Devices
 {
-
     /// <summary>
     /// A shared queue that collects requests from a set of clients and distributes
     /// these fairly among a set of services.
@@ -26,7 +23,6 @@ namespace NetMQ.Devices
             DeviceMode mode = DeviceMode.Threaded)
             : base(context.CreateRouterSocket(), context.CreateDealerSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
@@ -43,42 +39,51 @@ namespace NetMQ.Devices
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreateRouterSocket(), context.CreateDealerSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
 
+        /// <summary>
+        /// This override of FrontendHandler receives data from the socket contained within args,
+        /// and Sends it to BackendSocket.
+        /// </summary>
+        /// <param name="sender">unused</param>
+        /// <param name="args">a NetMQSocketEventArgs that contains a NetMqSocket for receiving data from</param>
         protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
         {
+            // TODO reuse a Msg instance here for performance
             bool more;
 
             do
             {
-                var data = args.Socket.Receive(out more) ?? new byte[] { };
+                var data = args.Socket.ReceiveFrameBytes(out more);
 
                 if (more)
                     BackendSocket.SendMore(data);
                 else
-                {
                     BackendSocket.Send(data);
-                }
             } while (more);
         }
 
+        /// <summary>
+        /// This override of BackendHandler receives data from the socket contained within args,
+        /// and Sends it to FrontendSocket.
+        /// </summary>
+        /// <param name="sender">unused</param>
+        /// <param name="args">a NetMQSocketEventArgs that contains a Socket for receiving data from</param>
         protected override void BackendHandler(object sender, NetMQSocketEventArgs args)
         {
+            // TODO reuse a Msg instance here for performance
             bool more;
 
             do
             {
-                var data = args.Socket.Receive(out more) ?? new byte[] { };
+                var data = args.Socket.ReceiveFrameBytes(out more);
 
                 if (more)
                     FrontendSocket.SendMore(data);
                 else
-                {
                     FrontendSocket.Send(data);
-                }
             } while (more);
         }
     }

@@ -22,37 +22,64 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
+
 
 namespace NetMQ.zmq.Utils
 {
-    abstract class PollerBase
+    /// <summary>
+    /// This serves as the parent-class for Poller and Proactor.
+    /// It provides for managing a list of timers (ITimerEvents) - adding, cancelling, and executing them,
+    /// and a Load property.
+    /// </summary>
+    internal abstract class PollerBase
     {
-
-        //  Load of the poller. Currently the number of file descriptors
-        //  registered.
+        /// <summary>
+        /// Load of the poller. Currently the number of file descriptors registered.
+        /// </summary>
         private int m_load;
 
+        /// <summary>
+        /// Instances of this class contain a ITimerEvent sink and an integer Id.
+        /// </summary>
         private class TimerInfo
         {
-            public TimerInfo(ITimerEvent sink, int id)
+            public TimerInfo([NotNull] ITimerEvent sink, int id)
             {
                 Sink = sink;
                 Id = id;
             }
 
+            /// <summary>
+            /// Get the ITimerEvent that serves as the event-sink.
+            /// </summary>
+            [NotNull]
             public ITimerEvent Sink { get; private set; }
+
+            /// <summary>
+            /// Get the integer Id of this TimerInfo.
+            /// </summary>
             public int Id { get; private set; }
         }
 
+        /// <summary>
+        /// This is a list of key/value pairs, with the keys being timeout numbers and the corresponding values being a list of TimerInfo objects.
+        /// It is sorted by the keys - which are timeout values. Thus, by walking down the list, you encounter the soonest timeouts first.
+        /// </summary>
         private readonly SortedList<long, List<TimerInfo>> m_timers;
 
+        /// <summary>
+        /// Create a new PollerBase object - which simply creates an empty m_timers collection.
+        /// </summary>
         protected PollerBase()
         {
             m_timers = new SortedList<long, List<TimerInfo>>();
         }
 
-        //  Returns load of the poller. Note that this function can be
-        //  invoked from a different thread!
+        /// <summary>
+        /// Get the load of this poller. Note that this function can be
+        /// invoked from a different thread!
+        /// </summary>
         public int Load
         {
             get
@@ -62,19 +89,30 @@ namespace NetMQ.zmq.Utils
             }
         }
 
-        //  Called by individual poller implementations to manage the load.
+        /// <summary>
+        /// Add the given amount to the load.
+        /// This is called by individual poller implementations to manage the load.
+        /// </summary>
+        /// <remarks>
+        /// This is thread-safe.
+        /// </remarks>
         protected void AdjustLoad(int amount)
         {
             Interlocked.Add(ref m_load, amount);
         }
 
-        //  Add a timeout to expire in timeout_ milliseconds. After the
-        //  expiration timer_event on sink_ object will be called with
-        //  argument set to id_.
-        public void AddTimer(long timeout, IProcatorEvents sink, int id)
+        /// <summary>
+        /// Add a TimerInfo to the internal list, to expire in the given number of milliseconds. Afterward the
+        /// expiration method TimerEvent on the sink object will be called with
+        /// argument set to id.
+        /// </summary>
+        /// <param name="timeout">the timeout-period in milliseconds of the new timer</param>
+        /// <param name="sink">the IProactorEvents to add for the sink of the new timer</param>
+        /// <param name="id">the Id to assign to the new TimerInfo</param>
+        public void AddTimer(long timeout, [NotNull] IProactorEvents sink, int id)
         {
             long expiration = Clock.NowMs() + timeout;
-            TimerInfo info = new TimerInfo(sink, id);
+            var info = new TimerInfo(sink, id);
 
             if (!m_timers.ContainsKey(expiration))
                 m_timers.Add(expiration, new List<TimerInfo>());
@@ -82,11 +120,16 @@ namespace NetMQ.zmq.Utils
             m_timers[expiration].Add(info);
         }
 
-        //  Cancel the timer created by sink_ object with ID equal to id_.
-        public void CancelTimer(ITimerEvent sink, int id)
+        /// <summary>
+        /// Cancel the timer that was created with the given sink object with the given Id.
+        /// </summary>
+        /// <param name="sink">the ITimerEvent that the timer was created with</param>
+        /// <param name="id">the Id of the timer to cancel</param>
+        /// <remarks>
+        /// The complexity of this operation is O(n). We assume it is rarely used.
+        /// </remarks>
+        public void CancelTimer([NotNull] ITimerEvent sink, int id)
         {
-
-            //  Complexity of this operation is O(n). We assume it is rarely used.
             var foundTimers = new Dictionary<long, TimerInfo>();
 
             foreach (var pair in m_timers)
@@ -119,25 +162,29 @@ namespace NetMQ.zmq.Utils
             }
             else
             {
-                //  Timer not found.
+                // Timer not found.
                 Debug.Assert(false);
             }
         }
 
-        //  Executes any timers that are due. Returns number of milliseconds
-        //  to wait to match the next timer or 0 meaning "no timers".
+        /// <summary>
+        /// Execute any timers that are due. Return the number of milliseconds
+        /// to wait to match the next timer or 0 meaning "no timers".
+        /// </summary>
+        /// <returns>the time to wait for the next timer, in milliseconds, or zero if there are no more timers</returns>
         protected int ExecuteTimers()
         {
-            //  Fast track.
+            // Immediately return 0 if there are no timers.
             if (!m_timers.Any())
                 return 0;
 
-            //  Get the current time.
+            // Get the current time.
             long current = Clock.NowMs();
 
-            //  Execute the timers that are already due.
-            var keys = m_timers.Keys;
+            // Execute the timers that are already due.
 
+            // Iterate through all of the timers..
+            var keys = m_timers.Keys;
             for (int i = 0; i < keys.Count; i++)
             {
                 var key = keys[i];
@@ -151,21 +198,23 @@ namespace NetMQ.zmq.Utils
                     return (int)(key - current);
                 }
 
+                // We DONT have to wait for this timeout-period, so get the list of timers that correspond to this key.
                 var timers = m_timers[key];
 
-                //  Trigger the timers.                
+                // Trigger the timers.
                 foreach (var timer in timers)
                 {
+                    // "Trigger" each timer by calling it's TimerEvent method with this timer's id.
                     timer.Sink.TimerEvent(timer.Id);
                 }
 
-                //  Remove it from the list of active timers.		
+                // Remove it from the list of active timers.		
                 timers.Clear();
                 m_timers.Remove(key);
                 i--;
             }
 
-            //  There are no more timers.
+            // There are no more timers.
             return 0;
         }
     }

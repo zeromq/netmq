@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading;
 using NUnit.Framework;
-using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
@@ -15,294 +10,200 @@ namespace NetMQ.Tests
         [Test]
         public void TopicPubSub()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("A");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Subscribe("A");
+                // let the subscriber connect to the publisher before sending a message
+                Thread.Sleep(500);
 
-                        // let the subscrbier connect to the publisher before sending a message
-                        Thread.Sleep(500);
+                pub.SendMore("A").Send("Hello");
 
-                        pub.SendMore("A");
-                        pub.Send("Hello");
-
-                        bool more;
-
-                        string m = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("A", m);
-                        Assert.IsTrue(more);
-
-                        string m2 = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello", m2);
-                        Assert.False(more);
-                    }
-                }
+                CollectionAssert.AreEqual(
+                    new[] {"A", "Hello"},
+                    sub.ReceiveMultipartStrings());
             }
         }
 
         [Test]
         public void SimplePubSub()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Subscribe("");
+                // let the subscriber connect to the publisher before sending a message
+                Thread.Sleep(500);
 
-                        // let the subscrbier connect to the publisher before sending a message
-                        Thread.Sleep(500);
+                // Send the topic only
+                pub.Send("A");
 
-                        pub.Send("Hello");
-
-                        bool more;
-
-                        string m = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello", m);
-                        Assert.False(more);
-                    }
-                }
+                CollectionAssert.AreEqual(
+                    new[] { "A" },
+                    sub.ReceiveMultipartStrings());
             }
         }
 
-        [Test, ExpectedException(typeof(AgainException))]
+        [Test]
         public void NotSubscribed()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:5002");
+                // let the subscriber connect to the publisher before sending a message
+                Thread.Sleep(500);
 
-                        // let the subscrbier connect to the publisher before sending a message
-                        Thread.Sleep(500);
+                pub.Send("Hello");
 
-                        pub.Send("Hello");
-
-                        bool more;
-
-                        string m = sub.ReceiveString(true, out more);
-                    }
-                }
+                Assert.IsFalse(sub.TrySkipFrame());
             }
         }
 
         /// <summary>
-        /// This test trying to reproduce bug #45 NetMQ.zmq.Utils.Realloc broken!
+        /// This test trying to reproduce issue #45 NetMQ.zmq.Utils.Realloc broken!
         /// </summary>
         [Test]
         public void MultipleSubscriptions()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("C");
+                sub.Subscribe("B");
+                sub.Subscribe("A");
+                sub.Subscribe("D");
+                sub.Subscribe("E");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Subscribe("C");
-                        sub.Subscribe("B");
-                        sub.Subscribe("A");
-                        sub.Subscribe("D");
-                        sub.Subscribe("E");
+                Thread.Sleep(500);
 
-                        Thread.Sleep(500);
+                sub.Unsubscribe("C");
+                sub.Unsubscribe("B");
+                sub.Unsubscribe("A");
+                sub.Unsubscribe("D");
+                sub.Unsubscribe("E");
 
-                        sub.Unsubscribe("C");
-                        sub.Unsubscribe("B");
-                        sub.Unsubscribe("A");
-                        sub.Unsubscribe("D");
-                        sub.Unsubscribe("E");
-
-                        Thread.Sleep(500);
-                    }
-                }
+                Thread.Sleep(500);
             }
         }
 
         [Test]
-        public void MultipleSubscribers()
+        public void MultipleSubscribersOnDifferentTopics()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub1 = context.CreateSubscriberSocket())
+            using (var sub2 = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    using (var sub2 = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Subscribe("A");
-                        sub.Subscribe("AB");
-                        sub.Subscribe("B");
-                        sub.Subscribe("C");
+                sub1.Connect("tcp://127.0.0.1:" + port);
+                sub2.Connect("tcp://127.0.0.1:" + port);
+                
+                sub1.Subscribe("1");
+                sub1.Subscribe("1&2");
 
-                        sub2.Connect("tcp://127.0.0.1:5002");
-                        sub2.Subscribe("A");
-                        sub2.Subscribe("AB");
-                        sub2.Subscribe("C");
+                sub2.Subscribe("2");
+                sub2.Subscribe("1&2");
 
-                        Thread.Sleep(500);
+                Thread.Sleep(500);
 
-                        pub.SendMore("AB");
-                        pub.Send("1");
+                pub.SendMore("1").Send("A");
 
-                        string message = sub.ReceiveStringMessages().First();
+                CollectionAssert.AreEqual(new[] { "1", "A" }, sub1.ReceiveMultipartStrings());
+                Assert.IsFalse(sub2.TrySkipFrame());
 
-                        Assert.AreEqual("AB", message, "First subscriber is expected to receive the message");
+                pub.SendMore("2").Send("B");
+            
+                Assert.IsFalse(sub1.TrySkipFrame());
+                CollectionAssert.AreEqual(new[] { "2", "B" }, sub2.ReceiveMultipartStrings());
 
-                        message = sub2.ReceiveStringMessages().First();
+                pub.SendMore("1&2").Send("C");
 
-                        Assert.AreEqual("AB", message, "Second subscriber is expected to receive the message");
-                    }
-                }
+                CollectionAssert.AreEqual(new[] { "1&2", "C" }, sub1.ReceiveMultipartStrings());
+                CollectionAssert.AreEqual(new[] { "1&2", "C" }, sub2.ReceiveMultipartStrings());
             }
         }
 
         [Test]
-        public void MultiplePublishers() {
-            using (NetMQContext contex = NetMQContext.Create()) {
-                using (var pub = contex.CreatePublisherSocket())
-                using (var pub2 = contex.CreatePublisherSocket()) {
-                    var address = "tcp://127.0.0.1:5002";
-                    var address2 = "tcp://127.0.0.1:5003";
-                    pub.Bind(address);
-                    pub2.Bind(address2);
+        public void MultiplePublishersAndSubscribersOnSameTopic()
+        {
+            using (var context = NetMQContext.Create())
+            using (var pub1 = context.CreatePublisherSocket())
+            using (var pub2 = context.CreatePublisherSocket())
+            using (var sub1 = context.CreateSubscriberSocket())
+            using (var sub2 = context.CreateSubscriberSocket())
+            {
+                int port1 = pub1.BindRandomPort("tcp://127.0.0.1");
+                int port2 = pub2.BindRandomPort("tcp://127.0.0.1");
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    using (var sub2 = contex.CreateSubscriberSocket()) {
+                sub1.Connect("tcp://127.0.0.1:" + port1);
+                sub1.Connect("tcp://127.0.0.1:" + port2);
 
-                        sub.Connect(address);
-                        sub.Connect(address2);
+                sub2.Connect("tcp://127.0.0.1:" + port1);
+                sub2.Connect("tcp://127.0.0.1:" + port2);
 
-                        sub2.Connect(address);
-                        sub2.Connect(address2);
+                // should subscribe to both
+                sub1.Subscribe("A");
+                sub2.Subscribe("A");
 
-                        // should subscribe to both
-                        sub.Subscribe("A");
-                        sub2.Subscribe("A");
+                Thread.Sleep(500);
 
-                        Thread.Sleep(500);
+                // Send from pub 1
+                pub1.SendMore("A").Send("Hello from the first publisher");
 
+                CollectionAssert.AreEqual(new[] { "A", "Hello from the first publisher" }, sub1.ReceiveMultipartStrings());
+                CollectionAssert.AreEqual(new[] { "A", "Hello from the first publisher" }, sub2.ReceiveMultipartStrings());
 
-                        pub.SendMore("A");
-                        pub.Send("Hello from the first publisher");
+                // Send from pub 2
+                pub2.SendMore("A").Send("Hello from the second publisher");
 
-                        bool more;
-                        string m = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("A", m);
-                        Assert.IsTrue(more);
-
-                        string m2 = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello from the first publisher", m2);
-                        Assert.False(more);
-
-                        pub2.SendMore("A");
-                        pub2.Send("Hello from the second publisher");
-
-                        string m3 = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("A", m3);
-                        Assert.IsTrue(more);
-
-                        string m4 = sub.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello from the second publisher", m4);
-                        Assert.False(more);
-
-
-                        // same for sub 2
-
-                        m = sub2.ReceiveString(out more);
-
-                        Assert.AreEqual("A", m);
-                        Assert.IsTrue(more);
-
-                        m2 = sub2.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello from the first publisher", m2);
-                        Assert.False(more);
-
-                        m3 = sub2.ReceiveString(out more);
-
-                        Assert.AreEqual("A", m3);
-                        Assert.IsTrue(more);
-
-                        m4 = sub2.ReceiveString(out more);
-
-                        Assert.AreEqual("Hello from the second publisher", m4);
-                        Assert.False(more);
-
-                    }
-                }
+                CollectionAssert.AreEqual(new[] { "A", "Hello from the second publisher" }, sub1.ReceiveMultipartStrings());
+                CollectionAssert.AreEqual(new[] { "A", "Hello from the second publisher" }, sub2.ReceiveMultipartStrings());
             }
         }
 
 
-        [Test, ExpectedException(typeof(AgainException))]
-        public void UnSubscribe()
+        [Test]
+        public void Unsubscribe()
         {
-            using (NetMQContext contex = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
             {
-                using (var pub = contex.CreatePublisherSocket())
-                {
-                    pub.Bind("tcp://127.0.0.1:5002");
+                int port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
 
-                    using (var sub = contex.CreateSubscriberSocket())
-                    {
-                        sub.Connect("tcp://127.0.0.1:5002");
-                        sub.Subscribe("A");
+                sub.Subscribe("A");
 
-                        // let the subscrbier connect to the publisher before sending a message
-                        Thread.Sleep(500);
+                // let the subscriber connect to the publisher before sending a message
+                Thread.Sleep(500);
 
-                        pub.SendMore("A");
-                        pub.Send("Hello");
+                pub.SendMore("A").Send("Hello");
 
-                        bool more;
+                CollectionAssert.AreEqual(new[] { "A", "Hello" }, sub.ReceiveMultipartStrings());
 
-                        string m = sub.ReceiveString(out more);
+                sub.Unsubscribe("A");
 
-                        Assert.AreEqual("A", m);
-                        Assert.IsTrue(more);
+                Thread.Sleep(500);
 
-                        string m2 = sub.ReceiveString(out more);
+                pub.SendMore("A").Send("Hello again");
 
-                        Assert.AreEqual("Hello", m2);
-                        Assert.False(more);
-
-                        sub.Unsubscribe("A");
-
-                        Thread.Sleep(500);
-
-                        pub.SendMore("A");
-                        pub.Send("Hello");
-
-                        string m3 = sub.ReceiveString(true, out more);
-                    }
-                }
+                Assert.IsFalse(sub.TrySkipFrame());
             }
         }
     }

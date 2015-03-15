@@ -1,14 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net.Sockets;
-using System.Text;
 
 namespace NetMQ.zmq
 {
-    public static class ErrorHelper
+    /// <summary>
+    /// Class ErrorHelper provides one static method - SocketErrorToErrorCode, for converting a SocketError to the equivalent ErrorCode.
+    /// </summary>
+    internal static class ErrorHelper
     {
+        /// <summary>
+        /// Return the ErrorCode that is the closest equivalent to the given SocketError.
+        /// </summary>
+        /// <param name="error">the SocketError to convert from</param>
+        /// <returns>an ErrorCode that corresponds to the given SocketError</returns>
         public static ErrorCode SocketErrorToErrorCode(SocketError error)
         {
             switch (error)

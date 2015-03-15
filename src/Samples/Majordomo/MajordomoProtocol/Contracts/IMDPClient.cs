@@ -22,10 +22,10 @@ namespace MajordomoProtocol.Contracts
         /// <param name="serviceName">the name of the service requested</param>
         /// <param name="request">the request message to process by service</param>
         /// <returns>the reply from service</returns>
-        NetMQMessage Send (string serviceName, NetMQMessage request);
+        NetMQMessage Send(string serviceName, NetMQMessage request);
 
         /// <summary>
-        ///     broadcast logging info vai this event
+        ///     broadcast logging info via this event
         /// </summary>
         event EventHandler<LogInfoEventArgs> LogInfoReady;
     }

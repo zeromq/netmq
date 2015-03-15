@@ -3,42 +3,78 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NetMQ.zmq;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
+    #region Doc-stuff
+    /// <summary>
+    /// This namespace encompasses the NetMQ message-queueing library
+    /// and attendant utility software.
+    /// </summary>
+    public static class NamespaceDoc
+    {
+        // This class exists only to provide a hook for adding summary documentation
+        // for the NetMQ namespace.
+    }
+    #endregion
+
+    /// <summary>
+    /// A NetMQMessage is basically a collection of NetMQFrames, and is the basic message-unit that is sent and received
+    /// across this message-queueing subsystem.
+    /// </summary>
     public class NetMQMessage : IEnumerable<NetMQFrame>
     {
-        private List<NetMQFrame> m_frames;
+        /// <summary>
+        /// This is the frame-stack that comprises the message-content of this message.
+        /// </summary>
+        private readonly List<NetMQFrame> m_frames;
 
-        public NetMQMessage()
+        #region Constructors
+
+        /// <summary>
+        /// The default-constructor for NetMQMessage: create a new instance of NetMQMessage
+        /// with an empty frame-stack.
+        /// </summary>
+        public NetMQMessage(int expectedFrameCount = 4)
         {
-            m_frames = new List<NetMQFrame>();
+            m_frames = new List<NetMQFrame>(expectedFrameCount);
         }
 
-        public NetMQMessage(IEnumerable<NetMQFrame> frames)
+        /// <summary>
+        /// Create a new instance of a NetMQMessage that contains the given collection of NetMQFrames as its frame-stack.
+        /// </summary>
+        /// <param name="frames">a collection of NetMQFrames, to form the frame-stack</param>
+        /// <exception cref="ArgumentNullException">The value of 'frames' cannot be null. </exception>
+        public NetMQMessage([NotNull] IEnumerable<NetMQFrame> frames)
         {
             if (frames == null)
-            {
                 throw new ArgumentNullException("frames");
-            }
 
             m_frames = new List<NetMQFrame>(frames);
         }
 
-        public NetMQMessage(IEnumerable<byte[]> buffers)
+        /// <summary>
+        /// Create a new instance of a NetMQMessage that contains the given collection of byte-arrays as its frame-stack.
+        /// </summary>
+        /// <param name="buffers">a collection of byte-array buffers, to form the frame-stack</param>
+        /// <exception cref="ArgumentNullException">The value of 'buffers' cannot be null. </exception>
+        public NetMQMessage([NotNull] IEnumerable<byte[]> buffers)
         {
             if (buffers == null)
-            {
                 throw new ArgumentNullException("buffers");
-            }
 
             m_frames = buffers.Select(buf => new NetMQFrame(buf)).ToList();
         }
 
+        #endregion
+
+        #region Properties
+
         /// <summary>
         /// Gets the first frame in the current message.
         /// </summary>
+        [NotNull]
         public NetMQFrame First
         {
             get { return m_frames[0]; }
@@ -47,6 +83,7 @@ namespace NetMQ
         /// <summary>
         /// Gets the last frame in the current message.
         /// </summary>
+        [NotNull]
         public NetMQFrame Last
         {
             get { return m_frames[m_frames.Count - 1]; }
@@ -76,33 +113,52 @@ namespace NetMQ
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/>is less than 0 -or- <paramref name="index"/> is equal to or greater than <see cref="FrameCount"/>.
         /// </exception>
+        [NotNull]
         public NetMQFrame this[int index]
         {
             get { return m_frames[index]; }
         }
 
-        public void Append(NetMQFrame frame)
+        #endregion
+
+        #region Appending frames
+
+        /// <summary>
+        /// Add the given NetMQFrame to this NetMQMessage, at the highest-indexed position of the frame-stack.
+        /// </summary>
+        /// <param name="frame">a NetMQFrame object comprising the frame to be appended onto the frame-stack</param>
+        public void Append([NotNull] NetMQFrame frame)
         {
             m_frames.Add(frame);
         }
 
-        public void Append(byte[] buffer)
+        /// <summary>
+        /// Add the given message (in this case a byte-array) to this NetMQMessage, at the highest-indexed position of the frame-stack.
+        /// Data is not copied.
+        /// </summary>
+        /// <param name="buffer">a byte-array containing the message to append onto the frame-stack of this NetMQMessage</param>
+        public void Append([NotNull] byte[] buffer)
         {
             m_frames.Add(new NetMQFrame(buffer));
         }
 
-        public void Append(string message)
+        /// <summary>
+        /// Add the given message - which gets converted into a NetMQFrame - onto
+        /// the highest-indexed position of the frame-stack of this NetMQMessage.
+        /// </summary>
+        /// <param name="message">a string containing the message to append onto the frame-stack of this NetMQMessage</param>
+        public void Append([NotNull] string message)
         {
             m_frames.Add(new NetMQFrame(message));
         }
 
-        public void Append(string message, Encoding encoding)
+        public void Append([NotNull] string message, [NotNull] Encoding encoding)
         {
             m_frames.Add(new NetMQFrame(message, encoding));
         }
 
         public void Append(int value)
-        {            
+        {
             Append(NetworkOrderBitsConverter.GetBytes(value));
         }
 
@@ -112,7 +168,7 @@ namespace NetMQ
         }
 
         [Obsolete("Use NetMQFrame instead of blobs")]
-        public void Append(Blob blob)
+        public void Append([NotNull] Blob blob)
         {
             Append(blob.Data);
         }
@@ -122,22 +178,45 @@ namespace NetMQ
             m_frames.Add(NetMQFrame.Empty);
         }
 
-        public void Push(NetMQFrame frame)
+        #endregion
+
+        #region Pushing frames
+
+        /// <summary>
+        /// Insert the given NetMQFrame into the lowest-indexed position of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// The concept is the same as pushing an element onto a stack.
+        /// </summary>
+        /// <param name="frame">a NetMQFrame object comprising the frame to be pushed onto the frame-stack</param>
+        public void Push([NotNull] NetMQFrame frame)
         {
             m_frames.Insert(0, frame);
         }
 
-        public void Push(byte[] buffer)
+        /// <summary>
+        /// Insert the given message (in this case a byte-array) into the lowest-indexed position of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// The concept is the same as pushing an element onto a stack.
+        /// </summary>
+        /// <param name="buffer">a byte-array containing the message to push onto the NetMQMessage</param>
+        public void Push([NotNull] byte[] buffer)
         {
             m_frames.Insert(0, new NetMQFrame(buffer));
         }
 
-        public void Push(string message)
+        /// <summary>
+        /// Insert the given message - which gets converted into a NetMQFrame - into
+        /// the lowest-indexed position of the frame-stack of this NetMQMessage,
+        /// pushing all of the other content upward in index-position.
+        /// The concept is the same as pushing an element onto a stack.
+        /// </summary>
+        /// <param name="message">a string containing the message to push onto the frame-stack of this NetMQMessage</param>
+        public void Push([NotNull] string message)
         {
             m_frames.Insert(0, new NetMQFrame(message));
         }
 
-        public void Push(string message, Encoding encoding)
+        public void Push([NotNull] string message, [NotNull] Encoding encoding)
         {
             m_frames.Insert(0, new NetMQFrame(message, encoding));
         }
@@ -153,15 +232,26 @@ namespace NetMQ
         }
 
         [Obsolete("Use NetMQFrame instead of blobs")]
-        public void Push(Blob blob)
+        public void Push([NotNull] Blob blob)
         {
             Push(blob.Data);
         }
 
         /// <summary>
-        /// Remove the first frame
+        /// Push an empty frame (a NetMQFrame.Empty) onto the frame-stack.
         /// </summary>
-        /// <returns></returns>
+        public void PushEmptyFrame()
+        {
+            m_frames.Insert(0, NetMQFrame.Empty);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Remove and return the first frame.
+        /// </summary>
+        /// <returns>the first frame, which was popped - which is the frame from the lowest-indexed position</returns>
+        [NotNull]
         public NetMQFrame Pop()
         {
             NetMQFrame frame = m_frames[0];
@@ -170,20 +260,25 @@ namespace NetMQ
             return frame;
         }
 
-        public void RemoveFrame(NetMQFrame frame)
+        /// <summary>
+        /// Delete the given frame from the frame-stack.
+        /// </summary>
+        /// <param name="frame">the frame to remove</param>
+        /// <returns><c>true</c> if removed, otherwise <c>false</c>.</returns>
+        public bool RemoveFrame([NotNull] NetMQFrame frame)
         {
-            m_frames.Remove(frame);
+            return m_frames.Remove(frame);
         }
 
-        public void PushEmptyFrame()
-        {
-            m_frames.Insert(0, NetMQFrame.Empty);
-        }
-
+        /// <summary>
+        /// Clear (empty) the frame-stack, so that it no longer contains any frames.
+        /// </summary>
         public void Clear()
         {
             m_frames.Clear();
         }
+
+        #region IEnumerable
 
         public IEnumerator<NetMQFrame> GetEnumerator()
         {
@@ -195,6 +290,10 @@ namespace NetMQ
             return GetEnumerator();
         }
 
+        #endregion
+
+        #region Formatting
+
         /// <summary>
         /// Returns a string showing the frame contents.
         /// </summary>
@@ -203,9 +302,9 @@ namespace NetMQ
         {
             if (m_frames.Count == 0)
                 return "NetMQMessage[<no frames>]";
-            StringBuilder sb = new StringBuilder("NetMQMessage[");
+            var sb = new StringBuilder("NetMQMessage[");
             bool first = true;
-            foreach (NetMQFrame f in m_frames)
+            foreach (var f in m_frames)
             {
                 if (!first)
                     sb.Append(",");
@@ -214,5 +313,7 @@ namespace NetMQ
             }
             return sb.Append("]").ToString();
         }
+
+        #endregion
     }
 }

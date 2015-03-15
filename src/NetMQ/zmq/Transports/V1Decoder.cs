@@ -30,13 +30,10 @@
 //  This class , the state machine that parses the incoming buffer.
 //  Derived class should implement individual state machine actions.
 
-using System;
-
 namespace NetMQ.zmq.Transports
 {
-    class V1Decoder : DecoderBase
+    internal class V1Decoder : DecoderBase
     {
-
         private const int OneByteSizeReadyState = 0;
         private const int EightByteSizeReadyState = 1;
         private const int FlagsReadyState = 2;
@@ -45,13 +42,24 @@ namespace NetMQ.zmq.Transports
         private readonly ByteArraySegment m_tmpbuf;
 
         private Msg m_inProgress;
-        private readonly long m_maxmsgsize;
+
+        /// <summary>
+        /// The maximum message-size. If this is -1 then there is no maximum.
+        /// </summary>
+        private readonly long m_maxMessageSize;
+
         private IMsgSink m_msgSink;
 
-        public V1Decoder(int bufsize, long maxmsgsize, Endianness endian)
+        /// <summary>
+        /// Create a new V1Decoder with the given buffer-size, maximum-message-size and Endian-ness.
+        /// </summary>
+        /// <param name="bufsize">the buffer-size to give the contained buffer</param>
+        /// <param name="maxMessageSize">the maximum message size. -1 indicates no limit.</param>
+        /// <param name="endian">the Endianness to specify for it - either Big or Little</param>
+        public V1Decoder(int bufsize, long maxMessageSize, Endianness endian)
             : base(bufsize, endian)
         {
-            m_maxmsgsize = maxmsgsize;
+            m_maxMessageSize = maxMessageSize;
             m_tmpbuf = new ByteArraySegment(new byte[8]);
 
             //  At the beginning, read one byte and go to one_byte_size_ready state.
@@ -61,7 +69,9 @@ namespace NetMQ.zmq.Transports
             m_inProgress.InitEmpty();
         }
 
-        //  Set the receiver of decoded messages.    
+        /// <summary>
+        /// Set the receiver of decoded messages.    
+        /// </summary>
         public override void SetMsgSink(IMsgSink msgSink)
         {
             m_msgSink = msgSink;
@@ -109,7 +119,7 @@ namespace NetMQ.zmq.Transports
                 //  in_progress is initialised at this point so in theory we should
                 //  close it before calling zmq_msg_init_size, however, it's a 0-byte
                 //  message and thus we can treat it as uninitialised...
-                if (m_maxmsgsize >= 0 && (long)(first - 1) > m_maxmsgsize)
+                if (m_maxMessageSize >= 0 && (long)(first - 1) > m_maxMessageSize)
                 {
                     DecodingError();
                     return false;
@@ -141,7 +151,7 @@ namespace NetMQ.zmq.Transports
             }
 
             //  Message size must not exceed the maximum allowed size.
-            if (m_maxmsgsize >= 0 && payloadLength - 1 > m_maxmsgsize)
+            if (m_maxMessageSize >= 0 && payloadLength - 1 > m_maxMessageSize)
             {
                 DecodingError();
                 return false;
@@ -155,15 +165,14 @@ namespace NetMQ.zmq.Transports
             }
 
             int msgSize = (int)(payloadLength - 1);
-            //  in_progress is initialized at this point so in theory we should
+            //  in_progress is initialised at this point so in theory we should
             //  close it before calling init_size, however, it's a 0-byte
-            //  message and thus we can treat it as uninitialized...
+            //  message and thus we can treat it as uninitialised...
             m_inProgress.InitPool(msgSize);
 
             NextStep(m_tmpbuf, 1, FlagsReadyState);
 
             return true;
-
         }
 
         private bool FlagsReady()
@@ -207,7 +216,6 @@ namespace NetMQ.zmq.Transports
                 DecodingError();
                 return false;
             }
-            
         }
     }
 }

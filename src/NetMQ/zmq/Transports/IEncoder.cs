@@ -1,15 +1,24 @@
+using JetBrains.Annotations;
+
 namespace NetMQ.zmq.Transports
 {
-    interface IEncoder
+    /// <summary>
+    /// Interface IEncoder mandates SetMsgSource and GetData methods.
+    /// </summary>
+    internal interface IEncoder
     {
-        //  Set message producer.
-        void SetMsgSource(IMsgSource msgSource);
+        /// <summary>
+        /// Set message producer.
+        /// </summary>
+        void SetMsgSource([NotNull] IMsgSource msgSource);
 
-        //  The function returns a batch of binary data. The data
-        //  are filled to a supplied buffer. If no buffer is supplied (data_
-        //  is nullL) encoder will provide buffer of its own.
-        void GetData(ref ByteArraySegment data, ref int size);
+        /// <summary>
+        /// Get a ByteArraySegment of binary data. The data
+        /// are filled to a supplied buffer. If no buffer is supplied (data is null)
+        /// encoder will provide buffer of its own.
+        /// </summary>
+        void GetData([NotNull] ref ByteArraySegment data, ref int size);
 
-        void GetData(ref ByteArraySegment data, ref int size, ref int offset);
+        void GetData([NotNull] ref ByteArraySegment data, ref int size, ref int offset);
     }
 }

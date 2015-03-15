@@ -1,37 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
-    class Proactor : PollerBase
+    internal class Proactor : PollerBase
     {
         private const int CompletionStatusArraySize = 100;
 
         private readonly string m_name;
-        private CompletionPort m_completionPort;
+        private readonly CompletionPort m_completionPort;
         private Thread m_worker;
         private bool m_stopping;
         private bool m_stopped;
 
-        private Dictionary<AsyncSocket, Item> m_sockets;
+        private readonly Dictionary<AsyncSocket, Item> m_sockets;
 
-        class Item
+        private class Item
         {
-            public Item(IProcatorEvents procatorEvents)
+            public Item([NotNull] IProactorEvents proactorEvents)
             {
-                ProcatorEvents = procatorEvents;
+                ProactorEvents = proactorEvents;
                 Cancelled = false;
             }
 
-            public IProcatorEvents ProcatorEvents { get; private set; }
+            [NotNull] 
+            public IProactorEvents ProactorEvents { get; private set; }
             public bool Cancelled { get; set; }
         }
 
-        public Proactor(string name)
+        public Proactor([NotNull] string name)
         {
             m_name = name;
             m_stopping = false;
@@ -39,12 +39,10 @@ namespace NetMQ.zmq.Utils
             m_completionPort = CompletionPort.Create();
             m_sockets = new Dictionary<AsyncSocket, Item>();
         }
-        
+
         public void Start()
         {
-            m_worker = new Thread(Loop);
-            m_worker.IsBackground = true;
-            m_worker.Name = m_name;
+            m_worker = new Thread(Loop) { IsBackground = true, Name = m_name };
             m_worker.Start();
         }
 
@@ -62,8 +60,7 @@ namespace NetMQ.zmq.Utils
                     m_worker.Join();
                 }
                 catch (Exception)
-                {
-                }
+                {}
 
                 m_stopped = true;
 
@@ -76,10 +73,10 @@ namespace NetMQ.zmq.Utils
             m_completionPort.Signal(mailbox);
         }
 
-        public void AddSocket(AsyncSocket socket, IProcatorEvents procatorEvents)
+        public void AddSocket(AsyncSocket socket, IProactorEvents proactorEvents)
         {
-            var item = new Item(procatorEvents);
-            m_sockets.Add(socket,item);
+            var item = new Item(proactorEvents);
+            m_sockets.Add(socket, item);
 
             m_completionPort.AssociateSocket(socket, item);
             AdjustLoad(1);
@@ -96,7 +93,7 @@ namespace NetMQ.zmq.Utils
 
         private void Loop()
         {
-            CompletionStatus[] completionStatuses = new CompletionStatus[CompletionStatusArraySize];
+            var completionStatuses = new CompletionStatus[CompletionStatusArraySize];
 
             while (!m_stopping)
             {
@@ -105,45 +102,46 @@ namespace NetMQ.zmq.Utils
 
                 int removed;
 
-                if (m_completionPort.GetMultipleQueuedCompletionStatus(timeout != 0 ? timeout : -1, completionStatuses, out removed))
-                {
-                    for (int i = 0; i < removed; i++)
-                    {
-                        if (completionStatuses[i].OperationType == OperationType.Signal)
-                        {
-                            IOThreadMailbox mailbox = (IOThreadMailbox)completionStatuses[i].State;
-                            mailbox.RaiseEvent();
-                        }
-                        // if the state is null we just ignore the completion status
-                        else if (completionStatuses[i].State != null)
-                        {
-                            Item item = (Item)completionStatuses[i].State;
+                if (!m_completionPort.GetMultipleQueuedCompletionStatus(timeout != 0 ? timeout : -1, completionStatuses, out removed))
+                    continue;
 
-                            if (!item.Cancelled)
+                for (int i = 0; i < removed; i++)
+                {
+                    if (completionStatuses[i].OperationType == OperationType.Signal)
+                    {
+                        var mailbox = (IOThreadMailbox)completionStatuses[i].State;
+                        mailbox.RaiseEvent();
+                    }
+                        // if the state is null we just ignore the completion status
+                    else if (completionStatuses[i].State != null)
+                    {
+                        var item = (Item)completionStatuses[i].State;
+
+                        if (!item.Cancelled)
+                        {
+                            try
                             {
-                                try
+                                switch (completionStatuses[i].OperationType)
                                 {
-                                    switch (completionStatuses[i].OperationType)
-                                    {
-                                        case OperationType.Accept:
-                                        case OperationType.Receive:
-                                            item.ProcatorEvents.InCompleted(completionStatuses[i].SocketError,
-                                                completionStatuses[i].BytesTransferred);
-                                            break;
-                                        case OperationType.Connect:
-                                        case OperationType.Disconnect:
-                                        case OperationType.Send:
-                                            item.ProcatorEvents.OutCompleted(completionStatuses[i].SocketError,
-                                                completionStatuses[i].BytesTransferred);
-                                            break;
-                                        default:
-                                            throw new ArgumentOutOfRangeException();
-                                    }
-                                }
-                                catch (TerminatingException)
-                                {
+                                    case OperationType.Accept:
+                                    case OperationType.Receive:
+                                        item.ProactorEvents.InCompleted(
+                                            completionStatuses[i].SocketError,
+                                            completionStatuses[i].BytesTransferred);
+                                        break;
+                                    case OperationType.Connect:
+                                    case OperationType.Disconnect:
+                                    case OperationType.Send:
+                                        item.ProactorEvents.OutCompleted(
+                                            completionStatuses[i].SocketError,
+                                            completionStatuses[i].BytesTransferred);
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException();
                                 }
                             }
+                            catch (TerminatingException)
+                            {}
                         }
                     }
                 }

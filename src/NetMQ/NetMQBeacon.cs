@@ -1,22 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
+using JetBrains.Annotations;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// A NetMQBeaconEventArgs is an EventArgs that provides a property that holds a NetMQBeacon.
+    /// </summary>
     public class NetMQBeaconEventArgs : EventArgs
     {
-        public NetMQBeaconEventArgs(NetMQBeacon beacon)
+        /// <summary>
+        /// Create a new NetMQBeaconEventArgs object containing the given NetMQBeacon.
+        /// </summary>
+        /// <param name="beacon">the NetMQBeacon object to hold a reference to</param>
+        public NetMQBeaconEventArgs([NotNull] NetMQBeacon beacon)
         {
             Beacon = beacon;
         }
 
+        /// <summary>
+        /// Get the NetMQBeacon object that this holds.
+        /// </summary>
+        [NotNull]
         public NetMQBeacon Beacon { get; private set; }
     }
 
@@ -30,12 +37,14 @@ namespace NetMQ
         public const string SubscribeCommand = "SUBSCRIBE";
         public const string UnsubscribeCommand = "UNSUBSCRIBE";
 
+        #region Nested class: Shim
+
         private class Shim : IShimHandler
         {
             private NetMQSocket m_pipe;
             private Socket m_udpSocket;
             private int m_udpPort;
-            
+
             private EndPoint m_broadcastAddress;
 
             private NetMQFrame m_transmit;
@@ -43,49 +52,42 @@ namespace NetMQ
             private NetMQTimer m_pingTimer;
             private Poller m_poller;
 
-            public Shim()
+            private void Configure([NotNull] string interfaceName, int port)
             {
-            }
-
-            private void Configure(string interfaceName, int port)
-            {
-                // incase the beacon was configured twice
+                // In case the beacon was configured twice
                 if (m_udpSocket != null)
                 {
                     m_poller.RemovePollInSocket(m_udpSocket);
-                    m_udpSocket.Close();                                    
+                    m_udpSocket.Close();
                 }
 
                 m_udpPort = port;
                 m_udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-                m_poller.AddPollInSocket(m_udpSocket, OnUdpReady);                
+                m_poller.AddPollInSocket(m_udpSocket, OnUdpReady);
 
-                //  Ask operating system for broadcast permissions on socket
+                // Ask operating system for broadcast permissions on socket
                 m_udpSocket.EnableBroadcast = true;
 
-                //  Allow multiple owners to bind to socket; incoming
-                //  messages will replicate to each owner
+                // Allow multiple owners to bind to socket; incoming
+                // messages will replicate to each owner
                 m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
                 IPAddress bindTo = null;
                 IPAddress sendTo = null;
 
-                if (interfaceName.Equals("*"))
+                if (interfaceName == "*")
                 {
                     bindTo = IPAddress.Any;
                     sendTo = IPAddress.Broadcast;
                 }
                 else
                 {
-                    InterfaceCollection interfaceCollection = new InterfaceCollection();
+                    var interfaceCollection = new InterfaceCollection();
 
-                    IPAddress interfaceAddress = null;
-
-                    if (!string.IsNullOrEmpty(interfaceName))
-                    {
-                        interfaceAddress = IPAddress.Parse(interfaceName);
-                    }
+                    var interfaceAddress = !string.IsNullOrEmpty(interfaceName)
+                        ? IPAddress.Parse(interfaceName)
+                        : null;
 
                     foreach (var @interface in interfaceCollection)
                     {
@@ -107,18 +109,20 @@ namespace NetMQ
 
                     try
                     {
-                        var host = Dns.GetHostEntry(bindTo);
-                        hostname = host != null ? host.HostName : "";
+                        if (!IPAddress.Any.Equals(bindTo) && !IPAddress.IPv6Any.Equals(bindTo))
+                        {
+                            var host = Dns.GetHostEntry(bindTo);
+                            hostname = host != null ? host.HostName : "";
+                        }
                     }
                     catch (Exception)
-                    {
-                    }
+                    {}
 
                     m_pipe.Send(hostname);
                 }
             }
 
-            private bool Compare(NetMQFrame a, NetMQFrame b, int size)
+            private static bool Compare([NotNull] NetMQFrame a, [NotNull] NetMQFrame b, int size)
             {
                 for (int i = 0; i < size; i++)
                 {
@@ -129,9 +133,8 @@ namespace NetMQ
                 return true;
             }
 
-
             public void Run(PairSocket shim)
-            {             
+            {
                 m_pipe = shim;
 
                 shim.SignalOK();
@@ -143,7 +146,7 @@ namespace NetMQ
                 m_pingTimer.Enable = false;
 
                 m_poller = new Poller();
-                m_poller.AddSocket(m_pipe);                
+                m_poller.AddSocket(m_pipe);
                 m_poller.AddTimer(m_pingTimer);
 
                 m_poller.PollTillCancelled();
@@ -152,7 +155,7 @@ namespace NetMQ
                 if (m_udpSocket != null)
                 {
                     m_udpSocket.Close();
-                }                
+                }
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
@@ -193,7 +196,7 @@ namespace NetMQ
 
             private void OnPipeReady(object sender, NetMQSocketEventArgs e)
             {
-                NetMQMessage message = m_pipe.ReceiveMessage();
+                NetMQMessage message = m_pipe.ReceiveMultipartMessage();
 
                 string command = message.Pop().ConvertToString();
 
@@ -207,9 +210,7 @@ namespace NetMQ
                     case PublishCommand:
                         m_transmit = message.Pop();
                         m_pingTimer.Interval = message.Pop().ConvertToInt32();
-                         
                         m_pingTimer.Enable = true;
-
                         SendUdpFrame(m_transmit);
                         break;
                     case SilenceCommand:
@@ -223,7 +224,7 @@ namespace NetMQ
                         m_filter = null;
                         break;
                     case NetMQActor.EndShimMessage:
-                        m_poller.Stop(false);
+                        m_poller.Cancel();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -237,7 +238,7 @@ namespace NetMQ
 
             private NetMQFrame ReceiveUdpFrame(out string peerName)
             {
-                byte[] buffer = new byte[UdpFrameMax];
+                var buffer = new byte[UdpFrameMax];
                 EndPoint peer = new IPEndPoint(IPAddress.Any, 0);
 
                 int bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
@@ -251,17 +252,22 @@ namespace NetMQ
             }
         }
 
-        private Shim m_shim;
-        private NetMQActor m_actor;
+        #endregion
 
-        private EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
+        private readonly NetMQActor m_actor;
 
-        public NetMQBeacon(NetMQContext context)
+        private readonly EventDelegatorHelper<NetMQBeaconEventArgs> m_receiveEventHelper;
+
+        /// <summary>
+        /// Create a new NetMQBeacon, contained within the given context.
+        /// </summary>
+        /// <param name="context">the NetMQContext to contain this new socket</param>
+        public NetMQBeacon([NotNull] NetMQContext context)
         {
-            m_shim = new Shim();
-            m_actor = NetMQActor.Create(context, m_shim);
+            m_actor = NetMQActor.Create(context, new Shim());
 
-            m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(() => m_actor.ReceiveReady += OnReceiveReady,
+            m_receiveEventHelper = new EventDelegatorHelper<NetMQBeaconEventArgs>(
+                () => m_actor.ReceiveReady += OnReceiveReady,
                 () => m_actor.ReceiveReady -= OnReceiveReady);
         }
 
@@ -272,19 +278,16 @@ namespace NetMQ
 
         NetMQSocket ISocketPollable.Socket
         {
-            get { return (m_actor as ISocketPollable).Socket; }
+            get { return ((ISocketPollable)m_actor).Socket; }
         }
 
+        /// <summary>
+        /// This event occurs when at least one message may be received from the socket without blocking.
+        /// </summary>
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
         {
-            add
-            {
-                m_receiveEventHelper.Event += value;
-            }
-            remove
-            {
-                m_receiveEventHelper.Event -= value;
-            }
+            add { m_receiveEventHelper.Event += value; }
+            remove { m_receiveEventHelper.Event -= value; }
         }
 
         private void OnReceiveReady(object sender, NetMQActorEventArgs args)
@@ -315,16 +318,16 @@ namespace NetMQ
         /// </summary>
         /// <param name="interfaceName">One of the ip address of the interface</param>
         /// <param name="port">Port to bind to</param>
-        public void Configure(string interfaceName, int port)
+        public void Configure([NotNull] string interfaceName, int port)
         {
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(ConfigureCommand);
             message.Append(interfaceName);
             message.Append(port);
 
             m_actor.SendMessage(message);
 
-            Hostname = m_actor.ReceiveString();
+            Hostname = m_actor.ReceiveFrameString();
         }
 
         /// <summary>
@@ -332,9 +335,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish(string transmit, TimeSpan interval)
+        public void Publish([NotNull] string transmit, TimeSpan interval)
         {
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(PublishCommand);
             message.Append(transmit);
             message.Append((int)interval.TotalMilliseconds);
@@ -347,9 +350,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish(byte[] transmit, TimeSpan interval)
+        public void Publish([NotNull] byte[] transmit, TimeSpan interval)
         {
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(PublishCommand);
             message.Append(transmit);
             message.Append((int)interval.TotalMilliseconds);
@@ -361,7 +364,7 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>        
-        public void Publish(string transmit)
+        public void Publish([NotNull] string transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
         }
@@ -370,7 +373,7 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>        
-        public void Publish(byte[] transmit)
+        public void Publish([NotNull] byte[] transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
         }
@@ -387,7 +390,7 @@ namespace NetMQ
         /// Subscribe to beacon messages, will replace last subscribe call
         /// </summary>
         /// <param name="filter">Beacon will be filtered by this</param>
-        public void Subscribe(string filter)
+        public void Subscribe([NotNull] string filter)
         {
             m_actor.SendMore(SubscribeCommand).Send(filter);
         }
@@ -400,22 +403,50 @@ namespace NetMQ
             m_actor.Send(UnsubscribeCommand);
         }
 
+        /// <summary>
+        /// Blocks until a string is received. As the returning of this method is uncontrollable, it's
+        /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
+        /// </summary>
+        /// <param name="peerName"></param>
+        /// <returns></returns>
+        [NotNull]
         public string ReceiveString(out string peerName)
         {
-            peerName = m_actor.ReceiveString();
+            peerName = m_actor.ReceiveFrameString();
 
-            return m_actor.ReceiveString();
+            return m_actor.ReceiveFrameString();
         }
 
+        public bool TryReceiveString(TimeSpan timeout, out string peerName, out string message)
+        {
+            if (!m_actor.TryReceiveFrameString(timeout, out peerName))
+            {
+                message = null;
+                return false;
+            }
+
+            return m_actor.TryReceiveFrameString(timeout, out message);
+        }
+
+        [NotNull]
         public byte[] Receive(out string peerName)
         {
-            peerName = m_actor.ReceiveString();
+            peerName = m_actor.ReceiveFrameString();
 
-            return m_actor.Receive();
+            return m_actor.ReceiveFrameBytes();
         }
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             m_actor.Dispose();
         }
     }

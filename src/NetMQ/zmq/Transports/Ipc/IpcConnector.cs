@@ -18,19 +18,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using JetBrains.Annotations;
 using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    public class IpcConnecter : TcpConnecter
+    /// <summary>
+    /// IpcConnecter is a subclass of TcpConnector, which provides absolutely nothing beyond what TcpConnector does.
+    /// </summary>
+    internal sealed class IpcConnector : TcpConnector
     {
-
-        public IpcConnecter(IOThread ioThread,
-                             SessionBase session, Options options,
-                             Address addr, bool wait)
+        public IpcConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool wait)
             : base(ioThread, session, options, addr, wait)
-        {
-
-        }
+        {}
     }
 }

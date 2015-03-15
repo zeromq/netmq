@@ -20,32 +20,38 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Pull : SocketBase
+    internal sealed class Pull : SocketBase
     {
         public class PullSession : SessionBase
         {
-            public PullSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options,
-                               Address addr) : base(ioThread, connect, socket, options, addr)
-            {
-
-            }
+            public PullSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {}
         }
 
-        //  Fair queueing object for inbound pipes.
+        /// <summary>
+        /// Fair queueing object for inbound pipes.
+        /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        public Pull(Ctx parent, int threadId, int socketId) : base(parent, threadId, socketId)
+        public Pull([NotNull] Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pull;
 
             m_fairQueueing = new FairQueueing();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -62,7 +68,7 @@ namespace NetMQ.zmq.Patterns
             m_fairQueueing.Terminated(pipe);
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             return m_fairQueueing.Recv(ref msg);
         }

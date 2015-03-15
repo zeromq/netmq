@@ -1,13 +1,12 @@
 namespace NetMQ.Devices
 {
     /// <summary>
-    /// Represents a ZeroMQ device, which connects a frontend socket to a backend socket.
+    /// Interface IDevice represents a ZeroMQ device which connects a frontend socket to a backend socket.
     /// </summary>
     public interface IDevice
     {
-
         /// <summary>
-        /// Gets whether the device is currently running.
+        /// Get whether the device is currently running.
         /// </summary>
         bool IsRunning { get; }
 

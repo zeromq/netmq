@@ -22,44 +22,45 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns.Utils
 {
-    class LoadBalancer
+    internal class LoadBalancer
     {
-        //  List of outbound pipes.
-        private readonly List<Pipe> m_pipes;
+        /// <summary>
+        /// List of outbound pipes.
+        /// </summary>
+        private readonly List<Pipe> m_pipes = new List<Pipe>();
 
-        //  Number of active pipes. All the active pipes are located at the
-        //  beginning of the pipes array.
+        /// <summary>
+        /// Number of active pipes. All the active pipes are located at the
+        /// beginning of the pipes array.
+        /// </summary>
         private int m_active;
 
-        //  Points to the last pipe that the most recent message was sent to.
+        /// <summary>
+        /// Points to the last pipe that the most recent message was sent to.
+        /// </summary>
         private int m_current;
 
-        //  True if last we are in the middle of a multipart message.
+        /// <summary>
+        /// True if last we are in the middle of a multipart message.
+        /// </summary>
         private bool m_more;
 
-        //  True if we are dropping current message.
+        /// <summary>
+        /// True if we are dropping current message.
+        /// </summary>
         private bool m_dropping;
 
-        public LoadBalancer()
-        {
-            m_active = 0;
-            m_current = 0;
-            m_more = false;
-            m_dropping = false;
-
-            m_pipes = new List<Pipe>();
-        }
-
-        public void Attach(Pipe pipe)
+        public void Attach([NotNull] Pipe pipe)
         {
             m_pipes.Add(pipe);
             Activated(pipe);
         }
 
-        public void Terminated(Pipe pipe)
+        public void Terminated([NotNull] Pipe pipe)
         {
             int index = m_pipes.IndexOf(pipe);
 
@@ -78,17 +79,16 @@ namespace NetMQ.zmq.Patterns.Utils
                     m_current = 0;
             }
             m_pipes.Remove(pipe);
-
         }
 
-        public void Activated(Pipe pipe)
+        public void Activated([NotNull] Pipe pipe)
         {
             //  Move the pipe to the list of active pipes.
             m_pipes.Swap(m_pipes.IndexOf(pipe), m_active);
             m_active++;
         }
 
-        public bool Send(ref Msg msg, SendReceiveOptions flags)
+        public bool Send(ref Msg msg)
         {
             //  Drop the message if required. If we are at the end of the message
             //  switch back to non-dropping mode.
@@ -121,7 +121,7 @@ namespace NetMQ.zmq.Patterns.Utils
                 return false;
             }
 
-            //  If it's part of the message we can fluch it downstream and
+            //  If it's part of the message we can flush it downstream and
             //  continue round-robinning (load balance).
             m_more = msg.HasMore;
             if (!m_more)

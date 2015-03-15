@@ -23,75 +23,92 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Stream : SocketBase
+    internal sealed class Stream : SocketBase
     {
+        private static readonly Random s_random = new Random();
+
         public class StreamSession : SessionBase
         {
-            public StreamSession(IOThread ioThread, bool connect,
-                                 SocketBase socket, Options options,
-                                 Address addr)
+            public StreamSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-
-            }
+            {}
         }
 
-        class Outpipe
+        private class Outpipe
         {
-            public Outpipe(Pipe pipe, bool active)
+            public Outpipe([NotNull] Pipe pipe, bool active)
             {
                 Pipe = pipe;
                 Active = active;
             }
 
+            [NotNull]
             public Pipe Pipe { get; private set; }
-            public bool Active;
-        };
 
-        //  Fair queueing object for inbound pipes.
+            public bool Active;
+        }
+
+        /// <summary>
+        /// Fair queueing object for inbound pipes.
+        /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        //  True iff there is a message held in the pre-fetch buffer.
+        /// <summary>
+        /// True if there is a message held in the pre-fetch buffer.
+        /// </summary>
         private bool m_prefetched;
 
-        //  If true, the receiver got the message part with
-        //  the peer's identity.
+        /// <summary>
+        /// If true, the receiver got the message part with
+        /// the peer's identity.
+        /// </summary>
         private bool m_identitySent;
 
-        //  Holds the prefetched identity.
+        /// <summary>
+        /// Holds the prefetched identity.
+        /// </summary>
         private Msg m_prefetchedId;
 
-        //  Holds the prefetched message.
-        private Msg m_prefetchedMsg;                
+        /// <summary>
+        /// Holds the prefetched message.
+        /// </summary>
+        private Msg m_prefetchedMsg;
 
-        //  Outbound pipes indexed by the peer IDs.
+        /// <summary>
+        /// Outbound pipes indexed by the peer IDs.
+        /// </summary>
         private readonly Dictionary<byte[], Outpipe> m_outpipes;
 
-        //  The pipe we are currently writing to.
+        /// <summary>
+        /// The pipe we are currently writing to.
+        /// </summary>
         private Pipe m_currentOut;
 
-        //  If true, more outgoing message parts are expected.
+        /// <summary>
+        /// If true, more outgoing message parts are expected.
+        /// </summary>
         private bool m_moreOut;
 
-        //  Peer ID are generated. It's a simple increment and wrap-over
-        //  algorithm. This value is the next ID to use (if not used already).
-        private int m_nextPeerId;        
+        /// <summary>
+        /// Peer ID are generated. It's a simple increment and wrap-over
+        /// algorithm. This value is the next ID to use (if not used already).
+        /// </summary>
+        private int m_nextPeerId;
 
-        public Stream(Ctx parent, int threadId, int socketId)
+        public Stream([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_prefetched = false;
             m_identitySent = false;
             m_currentOut = null;
             m_moreOut = false;
-            m_nextPeerId = new Random().Next();
+            m_nextPeerId = s_random.Next();
 
             m_options.SocketType = ZmqSocketType.Stream;
 
@@ -114,6 +131,11 @@ namespace NetMQ.zmq.Patterns
             m_prefetchedMsg.Close();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -126,7 +148,7 @@ namespace NetMQ.zmq.Patterns
         {
             Outpipe old;
 
-            m_outpipes.TryGetValue(pipe.Identity, out  old);
+            m_outpipes.TryGetValue(pipe.Identity, out old);
             m_outpipes.Remove(pipe.Identity);
 
             Debug.Assert(old != null);
@@ -159,8 +181,8 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(outpipe != null);
         }
 
-
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        /// <exception cref="HostUnreachableException">In Stream.XSend</exception>
+        protected override bool XSend(ref Msg msg)
         {
             //  If this is the first part of the message it's the ID of the
             //  peer to send the message to.
@@ -176,15 +198,12 @@ namespace NetMQ.zmq.Patterns
                     //  Find the pipe associated with the identity stored in the prefix.
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
-                    byte[] identity = msg.Data;
 
-                    if (msg.Size != msg.Data.Length)
-                    {
-                        identity = new byte[msg.Size];
-                        Buffer.BlockCopy(msg.Data, 0, identity, 0, msg.Size);
-                    }
+                    var identity = msg.Size == msg.Data.Length 
+                        ? msg.Data 
+                        : msg.CloneData();
+
                     Outpipe op;
-
                     if (m_outpipes.TryGetValue(identity, out op))
                     {
                         m_currentOut = op.Pipe;
@@ -197,7 +216,7 @@ namespace NetMQ.zmq.Patterns
                     }
                     else
                     {
-                        throw new HostUnreachableException();
+                        throw new HostUnreachableException("In Stream.XSend");
                     }
                 }
 
@@ -233,9 +252,6 @@ namespace NetMQ.zmq.Patterns
 
                 m_currentOut = null;
             }
-            else
-            {
-            }
 
             //  Detach the message from the data buffer.
             msg.InitEmpty();
@@ -243,7 +259,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             if (m_prefetched)
             {
@@ -261,22 +277,22 @@ namespace NetMQ.zmq.Patterns
                 return true;
             }
 
-            Pipe[] pipe = new Pipe[1];
+            var pipe = new Pipe[1];
 
             bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
             {
                 return false;
-            }            
+            }
 
             Debug.Assert(pipe[0] != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
 
             //  We have received a frame with TCP data.
-            //  Rather than sendig this frame, we keep it in prefetched
+            //  Rather than sending this frame, we keep it in prefetched
             //  buffer and send a frame with peer's ID.
-            byte[] identity = pipe[0].Identity;            
+            byte[] identity = pipe[0].Identity;
             msg.InitPool(identity.Length);
             msg.Put(identity, 0, identity.Length);
             msg.SetFlags(MsgFlags.More);
@@ -295,14 +311,14 @@ namespace NetMQ.zmq.Patterns
 
             //  Try to read the next message.
             //  The message, if read, is kept in the pre-fetch buffer.
-            Pipe[] pipe = new Pipe[1];
+            var pipe = new Pipe[1];
 
             bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
 
             if (!isMessageAvailable)
             {
                 return false;
-            }            
+            }
 
             Debug.Assert(pipe[0] != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
@@ -322,29 +338,27 @@ namespace NetMQ.zmq.Patterns
         protected override bool XHasOut()
         {
             //  In theory, STREAM socket is always ready for writing. Whether actual
-            //  attempt to write succeeds depends on whitch pipe the message is going
+            //  attempt to write succeeds depends on which pipe the message is going
             //  to be routed to.
             return true;
         }
 
-        private void IdentifyPeer(Pipe pipe)
+        private void IdentifyPeer([NotNull] Pipe pipe)
         {
-            byte[] identity;
-
             // Always assign identity for raw-socket
-            identity = new byte[5];
-            identity[0] = 0;
+            var identity = new byte[5];
 
             byte[] result = BitConverter.GetBytes(m_nextPeerId++);
 
             Buffer.BlockCopy(result, 0, identity, 1, 4);
-            
+
             m_options.Identity = identity;
             m_options.IdentitySize = (byte)identity.Length;
 
             pipe.Identity = identity;
+
             //  Add the record into output pipes lookup table
-            Outpipe outpipe = new Outpipe(pipe, true);
+            var outpipe = new Outpipe(pipe, true);
             m_outpipes.Add(identity, outpipe);
         }
     }

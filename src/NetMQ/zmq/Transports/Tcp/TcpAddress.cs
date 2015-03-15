@@ -26,7 +26,11 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpAddress : Address.IZAddress
+    /// <summary>
+    /// A TcpAddress implements IZAddress, and contains an IPEndPoint (the Address property)
+    /// and a Protocol property.
+    /// </summary>
+    internal class TcpAddress : Address.IZAddress
     {
         public class TcpAddressMask : TcpAddress
         {
@@ -34,117 +38,90 @@ namespace NetMQ.zmq.Transports.Tcp
             {
                 return Address.Equals(addr);
             }
-        }        
-
-        public TcpAddress(String addr)
-        {
-            Resolve(addr, false);
-        }
-        public TcpAddress()
-        {
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             if (Address == null)
-            {
                 return string.Empty;
-            }
 
-            IPEndPoint endpoint = Address;
+            var endpoint = Address;
 
-            if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-            {
-                return Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port;
-            }
-            else
-            {
-                return Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
-            }
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
+                ? Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port 
+                : Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
         }
 
-
-        public void Resolve(String name, bool ip4Only)
+        public void Resolve(string name, bool ip4Only)
         {
             //  Find the ':' at end that separates address from the port number.
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
-            {
-                throw new InvalidException();
-            }
+                throw new InvalidException(string.Format("TcpAddress.Resolve, delimiter ({0}) must be non-negative.", delimiter));
 
             //  Separate the address/port.
-            String addrStr = name.Substring(0, delimiter);
-            String portStr = name.Substring(delimiter + 1);
+            string addrStr = name.Substring(0, delimiter);
+            string portStr = name.Substring(delimiter + 1);
 
             //  Remove square brackets around the address, if any.
-            if (addrStr.Length >= 2 && addrStr[0] == '[' &&
-                addrStr[addrStr.Length - 1] == ']')
+            if (addrStr.Length >= 2 && addrStr[0] == '[' && addrStr[addrStr.Length - 1] == ']')
                 addrStr = addrStr.Substring(1, addrStr.Length - 2);
 
             int port;
             //  Allow 0 specifically, to detect invalid port error in atoi if not
-            if (portStr.Equals("*") || portStr.Equals("0"))
-                //  Resolve wildcard to 0 to allow autoselection of port
+            if (portStr == "*" || portStr == "0")
+            {
+                //  Resolve wildcard to 0 to allow auto-selection of port
                 port = 0;
+            }
             else
             {
                 //  Parse the port number (0 is not a valid port).
                 port = Convert.ToInt32(portStr);
                 if (port == 0)
                 {
-                    throw new InvalidException();
+                    throw new InvalidException(string.Format("TcpAddress.Resolve, port ({0}) must be a valid nonzero integer.", portStr));
                 }
-            }         
+            }
 
             IPAddress ipAddress;
 
-            if (addrStr.Equals("*"))
+            if (addrStr == "*")
             {
-                if (ip4Only)
-                {
-                    ipAddress = IPAddress.Any;
-                }
-                else
-                {
-                    ipAddress = IPAddress.IPv6Any;
-                }
+                ipAddress = ip4Only 
+                    ? IPAddress.Any 
+                    : IPAddress.IPv6Any;
             }            
             else if (!IPAddress.TryParse(addrStr, out ipAddress))
             {
                 var availableAddresses = Dns.GetHostEntry(addrStr).AddressList;
 
-                if (ip4Only)
-                {
-                    ipAddress = 
-                        availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
-                }
-                else
-                {
-                    ipAddress = Dns.GetHostEntry(addrStr).AddressList.FirstOrDefault(
-                        ip => ip.AddressFamily == AddressFamily.InterNetwork || 
-                            ip.AddressFamily == AddressFamily.InterNetworkV6);
-                }
-                
+                ipAddress = ip4Only 
+                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork) 
+                    : Dns.GetHostEntry(addrStr).AddressList.FirstOrDefault(
+                        ip => ip.AddressFamily == AddressFamily.InterNetwork ||
+                              ip.AddressFamily == AddressFamily.InterNetworkV6);
+
                 if (ipAddress == null)
-                {
-                    throw new InvalidException(string.Format("Unable to find an IP address for {0}", name));
-                }
+                    throw new InvalidException(string.Format("TcpAddress.Resolve, unable to find an IP address for {0}", name));
             }
 
             Address = new IPEndPoint(ipAddress, port);             
         }
 
-        public IPEndPoint Address
-        {
-            get;
-            private set;
-        }
+        /// <summary>
+        /// Get the Address implementation - which here is an IPEndPoint,
+        /// which contains Address, AddressFamily, and Port properties.
+        /// </summary>
+        public IPEndPoint Address { get; private set; }
 
-        public String Protocol
+        /// <summary>
+        /// Get the textual-representation of the communication protocol implied by this TcpAddress,
+        /// which here is simply "tcp".
+        /// </summary>
+        public string Protocol
         {
-            get { return NetMQ.zmq.Address.TcpProtocol; }
+            get { return zmq.Address.TcpProtocol; }
         }
-
     }
 }

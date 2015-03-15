@@ -65,20 +65,20 @@ namespace MajordomoProtocol
 
         private string m_endpoint;                              // the endpoint the broker binds to
         private int m_heartbeatLiveliness;                      // indicates the 'liveliness' of a worker
-        private TimeSpan m_heartbeatExpiry;                     // when a worker expiers -> set by HeartbeatLiveliness(!)
-        private TimeSpan m_heartbeatInterval;                   // the time interval between heartbeats
+        private TimeSpan m_heartbeatExpiry;                     // when a worker expires -> set by HeartbeatLiveliness(!)
+        private readonly TimeSpan m_heartbeatInterval;          // the time interval between heartbeats
         private bool m_isBound;                                 // true if socket is bound to address
         private bool m_isRunning;                               // true if the broker is running
 
         private readonly object m_syncRoot = new object ();     // used as synchronization object for Purge ()
 
         /// <summary>
-        ///     the socket for communicating with clients & workers
+        ///     the socket for communicating with clients and workers
         /// </summary>
         public NetMQSocket Socket { get; private set; }
 
         /// <summary>
-        ///     the interval at which the broker send hearbeats to workers
+        ///     the interval at which the broker send heartbeats to workers
         ///     initially set to 2.500 ms
         /// </summary>
         public TimeSpan HeartbeatInterval { get { return m_heartbeatInterval; } }
@@ -130,7 +130,7 @@ namespace MajordomoProtocol
             : this ()
         {
             if (string.IsNullOrWhiteSpace (endpoint))
-                throw new ArgumentNullException ("endpoint", "An 'endpint' were the broker binds to must be given!");
+                throw new ArgumentNullException ("endpoint", "An 'endpoint' were the broker binds to must be given!");
 
             if (heartbeatInterval > 0)
                 m_heartbeatInterval = TimeSpan.FromMilliseconds (heartbeatInterval);
@@ -141,7 +141,7 @@ namespace MajordomoProtocol
         /// <summary>
         ///     broker binds his socket to this endpoint upon request
         /// </summary>
-        /// <exception cref="ApplicationException">The bind operation failed. Mostlikely because 'endpoint' is malformed!</exception>
+        /// <exception cref="ApplicationException">The bind operation failed. Most likely because 'endpoint' is malformed!</exception>
         /// <remarks>
         ///     broker uses the same endpoint to communicate with clients and workers(!)
         /// </remarks>
@@ -221,7 +221,7 @@ namespace MajordomoProtocol
 
                 // start the poller and wait for the return, which will happen once token is 
                 // signalling Cancel(!)
-                await Task.Factory.StartNew (poller.Start, token);
+                await Task.Factory.StartNew (poller.PollTillCancelled, token);
 
                 Log ("[BROKER] ... Stopped!");
 
@@ -265,7 +265,7 @@ namespace MajordomoProtocol
 
                 // start the poller and wait for the return, which will happen once token is 
                 // signalling Cancel(!)
-                Task.Factory.StartNew (poller.Start, token).Wait ();
+                Task.Factory.StartNew (poller.PollTillCancelled, token).Wait ();
 
                 Log ("[BROKER] ... Stopped!");
 
@@ -299,7 +299,7 @@ namespace MajordomoProtocol
         /// </summary>
         private void ProcessReceivedMessage (object sender, NetMQSocketEventArgs e)
         {
-            var msg = e.Socket.ReceiveMessage ();
+            var msg = e.Socket.ReceiveMultipartMessage ();
 
             Log (string.Format ("[BROKER] Received {0}", msg));
 
@@ -465,7 +465,7 @@ namespace MajordomoProtocol
                 Log (string.Format ("[BROKER] Dispatching request -> {0}", request));
 
                 // send to a worker offering the requested service
-                // will add command, header and worker adr evenlope
+                // will add command, header and worker adr envelope
                 ServiceDispatch (service, request);             // [CLIENT ADR][e][request]
             }
         }
@@ -488,6 +488,10 @@ namespace MajordomoProtocol
             lock (m_syncRoot)
             {
                 foreach (var service in m_services)
+<<<<<<< HEAD
+=======
+                {
+>>>>>>> remotes/upstream/master
                     foreach (var worker in service.WaitingWorkers)
                     {
                         if (DateTime.UtcNow < worker.Expiry)
@@ -497,6 +501,10 @@ namespace MajordomoProtocol
 
                         RemoveWorker (worker);
                     }
+<<<<<<< HEAD
+=======
+                }
+>>>>>>> remotes/upstream/master
             }
         }
 
@@ -528,7 +536,7 @@ namespace MajordomoProtocol
 
         /// <summary>
         ///     removes the worker from the known worker list and
-        ///     from the service it referes to if it exists and
+        ///     from the service it refers to if it exists and
         ///     potentially from the waiting list therein
         /// </summary>
         /// <param name="worker"></param>
@@ -589,7 +597,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     sends as much pending requests as thereare waiting workers 
+        ///     sends as much pending requests as there are waiting workers 
         ///     of the specified service by
         ///     a) add the request to the pending requests within this service
         ///        if there is a message

@@ -1,8 +1,10 @@
-// Encoder for 0MQ framing protocol. Converts messages into data stream.
 
 namespace NetMQ.zmq.Transports
 {
-    class V2Encoder : EncoderBase
+    /// <summary>
+    /// Encoder for 0MQ framing protocol. Converts messages into data stream.
+    /// </summary>
+    internal class V2Encoder : EncoderBase
     {
         private const int SizeReadyState = 0;
         private const int MessageReadyState = 1;
@@ -102,6 +104,5 @@ namespace NetMQ.zmq.Transports
             }
             return true;
         }
-
     }
 }

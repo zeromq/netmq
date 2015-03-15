@@ -1,81 +1,107 @@
-Receiving / Sending
-=====
+If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/introduction/) page you would have already seen an example of `ReceiveString()` and `SendString()`, but NetMQ allows us to send and receive more than just strings.
 
-If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/introduction/) page you would have
-already seen an example of <code>ReceiveString()</code> and <code>SendString()</code>, but NetMQ allows us to send more than just strings.
+In fact there are quite a few options available to you. Lets go through some of these options, shall we?
 
-In fact there are quite a few options available to you. Lets go through some of these options shall we
-
-
+---
 
 ## Receiving
 
-A <code>NetMQSocket</code> (which all the socket types inherit from) has a single <code>public virtual void Receive(ref Msg msg, SendReceiveOptions options)</code> method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for <code>IReceivingSocket</code>.
+`IReceivingSocket` (which all the socket types inherit from) has two methods:
 
-These extension methods are shown below, one of these should give you what you want, but if it doesn't
-you simply need to write an extra extension method to suit your needs
+    :::csharp
+    void Receive(ref Msg msg);
 
+    bool TryReceive(ref Msg msg, TimeSpan timeout);
 
-    public static class ReceivingSocketExtensions
-    {
-        public static byte[] Receive(this IReceivingSocket socket);
-        public static byte[] Receive(this IReceivingSocket socket, out bool hasMore);
-        public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options);
-        public static byte[] Receive(this IReceivingSocket socket, bool dontWait, out bool hasMore);
-        public static byte[] Receive(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore);
-        public static NetMQMessage ReceiveMessage(this IReceivingSocket socket, bool dontWait = false);
-        public static NetMQMessage ReceiveMessage(this NetMQSocket socket, TimeSpan timeout);
-        public static void ReceiveMessage(this IReceivingSocket socket, NetMQMessage message, bool dontWait = false);
-        public static IEnumerable<byte[]> ReceiveMessages(this IReceivingSocket socket);
-        public static string ReceiveString(this IReceivingSocket socket);
-        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding);
-        public static string ReceiveString(this IReceivingSocket socket, out bool hasMore);
-        public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options);
-        public static string ReceiveString(this NetMQSocket socket, TimeSpan timeout);
-        public static string ReceiveString(this IReceivingSocket socket, bool dontWait, out bool hasMore);
-        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, out bool hasMore);
-        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options);
-        public static string ReceiveString(this IReceivingSocket socket, SendReceiveOptions options, out bool hasMore);
-        public static string ReceiveString(this NetMQSocket socket, Encoding encoding, TimeSpan timeout);
-        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, bool dontWait, out bool hasMore);
-        public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options, out bool hasMore);
-        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket);
-        public static IEnumerable<string> ReceiveStringMessages(this IReceivingSocket socket, Encoding encoding);
-        ....
-        ....
-    }
+The first blocks indefinitely until a message arrives, and the second allows control over a timeout (which may be zero).
 
+These methods offer great performance by reusing a `Msg` object. However much of the time you want a more convenient method to receive a `string`, `byte[]` and so on. NetMQ has many convenient methods provided as extension methods of `IReceivingSocket` in the `ReceivingSocketExtensions` class:
+
+    :::csharp
+    // Receiving byte[]
+    byte[] ReceiveFrameBytes()
+    byte[] ReceiveFrameBytes(out bool more)
+    bool TryReceiveFrameBytes(out byte[] bytes)
+    bool TryReceiveFrameBytes(out byte[] bytes, out bool more)
+    bool TryReceiveFrameBytes(TimeSpan timeout, out byte[] bytes)
+    bool TryReceiveFrameBytes(TimeSpan timeout, out byte[] bytes, out bool more)
+    List<byte[]> ReceiveMultipartBytes()
+    void ReceiveMultipartBytes(ref List<byte[]> frames)
+    bool TryReceiveMultipartBytes(ref List<byte[]> frames)
+    bool TryReceiveMultipartBytes(TimeSpan timeout, ref List<byte[]> frames)
+
+    // Receiving strings
+    string ReceiveFrameString()
+    string ReceiveFrameString(out bool more)
+    string ReceiveFrameString(Encoding encoding)
+    string ReceiveFrameString(Encoding encoding, out bool more)
+    bool TryReceiveFrameString(out string frameString)
+    bool TryReceiveFrameString(out string frameString, out bool more)
+    bool TryReceiveFrameString(Encoding encoding, out string frameString)
+    bool TryReceiveFrameString(Encoding encoding, out string frameString, out bool more)
+    bool TryReceiveFrameString(TimeSpan timeout, out string frameString)
+    bool TryReceiveFrameString(TimeSpan timeout, out string frameString, out bool more)
+    bool TryReceiveFrameString(TimeSpan timeout, Encoding encoding, out string frameString)
+    bool TryReceiveFrameString(TimeSpan timeout, Encoding encoding, out string frameString, out bool more)
+    List<string> ReceiveMultipartStrings()
+    List<string> ReceiveMultipartStrings(Encoding encoding)
+    bool TryReceiveMultipartStrings(ref List<string> frames)
+    bool TryReceiveMultipartStrings(Encoding encoding, ref List<string> frames)
+    bool TryReceiveMultipartStrings(TimeSpan timeout, ref List<string> frames)
+    bool TryReceiveMultipartStrings(TimeSpan timeout, Encoding encoding, ref List<string> frames)
+
+    // Receiving NetMQMessage
+    NetMQMessage ReceiveMultipartMessage()
+    bool TryReceiveMultipartMessage(ref NetMQMessage message)
+    bool TryReceiveMultipartMessage(TimeSpan timeout, ref NetMQMessage message)
+
+    // Receiving signals
+    bool ReceiveSignal()
+    bool TryReceiveSignal(out bool signal)
+    bool TryReceiveSignal(TimeSpan timeout, out bool signal)
+
+    // Skipping frames
+    void SkipFrame()
+    void SkipFrame(out bool more)
+    bool TrySkipFrame()
+    bool TrySkipFrame(out bool more)
+    bool TrySkipFrame(TimeSpan timeout)
+    bool TrySkipFrame(TimeSpan timeout, out bool more)
+
+(Note the `this IReceivingSocket socket` argument is omitted from all of the above for readability.)
+
+These extension methods should meet most needs, but if they don't it's simple enough to write your own.
 
 Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own
 
-
-    public static string ReceiveString(this IReceivingSocket socket, Encoding encoding, SendReceiveOptions options, out bool hasMore)
+    :::csharp
+    public static string ReceiveFrameString(this IReceivingSocket socket, Encoding encoding, out bool more)
     {
-        Msg msg = new Msg();
+        var msg = new Msg();
         msg.InitEmpty();
-        socket.Receive(ref msg, options);
-        hasMore = msg.HasMore;
-        string data = string.Empty;
-        if (msg.Size > 0)
-        {
-            data = encoding.GetString(msg.Data, 0, msg.Size);
-        }
+        socket.Receive(ref msg);
+        more = msg.HasMore;
+        var str = msg.Size > 0
+            ? encoding.GetString(msg.Data, 0, msg.Size)
+            : string.Empty;
         msg.Close();
-        return data;
+        return str;
     }
 
-
+---
 
 ## Sending
 
-A <code>NetMQSocket</code> (which all the socket types inherit from) has a single <code>public virtual void Send(ref Msg msg, SendReceiveOptions options)</code> method. But you will likely not actually use this
-method. What you will end up using is one the extra extension methods that is available for <code>IOutgoingSocket</code>. 
+A `NetMQSocket` (which all the socket types inherit from) has a single send method:
 
-These extension methods are shown below, one of these should give you what you want, but if it doesn't
-you simply need to write an extra extension method to suit your needs
+    :::csharp
+    public virtual void Send(ref Msg msg, SendReceiveOptions options)
 
+But you will likely not actually use this method. Often it's more convenient to use one of the many extension methods for `IOutgoingSocket`.
 
+These extension methods are shown below, one of these should give you what you want, but if it doesn't you simply need to write an extra extension method to suit your needs.
+
+    :::csharp
     public static class OutgoingSocketExtensions
     {
         public static void Send(this IOutgoingSocket socket, byte[] data);
@@ -93,19 +119,20 @@ you simply need to write an extra extension method to suit your needs
         ....
     }
 
+Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own:
 
-Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own
-
-
-    public static void Send(this IOutgoingSocket socket, string message, Encoding encoding, SendReceiveOptions options)
+    :::csharp
+    public static void Send(this IOutgoingSocket socket, string message,
+                            Encoding encoding, SendReceiveOptions options)
     {
-        Msg msg = new Msg();
+        var msg = new Msg();
         msg.InitPool(encoding.GetByteCount(message));
         encoding.GetBytes(message, 0, message.Length, msg.Data, 0);
         socket.Send(ref msg, options);
         msg.Close();
     }
 
+---
 
 ## Further Reading
 

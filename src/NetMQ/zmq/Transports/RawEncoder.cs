@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+﻿using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports
 {
-    class RawEncoder : EncoderBase
+    internal class RawEncoder : EncoderBase
     {
         IMsgSource m_msgSource;
         Msg m_inProgress;
@@ -14,8 +10,7 @@ namespace NetMQ.zmq.Transports
         private const int RawMessageSizeReadyState = 1;
         private const int RawMessageReadyState = 2;
 
-
-        public RawEncoder(int bufferSize, IMsgSource msgSource, Endianness endianness) :
+        public RawEncoder(int bufferSize, [NotNull] IMsgSource msgSource, Endianness endianness) :
             base(bufferSize, endianness)
         {
             m_msgSource = msgSource;
@@ -44,15 +39,14 @@ namespace NetMQ.zmq.Transports
             }
         }
 
-        bool RawMessageSizeReady()
+        private bool RawMessageSizeReady()
         {
             //  Write message body into the buffer.
-            NextStep(m_inProgress.Data, m_inProgress.Size,
-                RawMessageReadyState, !m_inProgress.Flags.HasFlag(MsgFlags.More));
+            NextStep(m_inProgress.Data, m_inProgress.Size, RawMessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 
-        bool RawMessageReady()
+        private bool RawMessageReady()
         {
             //  Destroy content of the old message.
             m_inProgress.Close();
@@ -62,19 +56,15 @@ namespace NetMQ.zmq.Transports
             //  unsuccessful write will cause retry on the next state machine
             //  invocation.
             if (m_msgSource == null)
-            {
                 return false;
-            }
 
             bool result = m_msgSource.PullMsg(ref m_inProgress);
 
             if (!result)
             {
                 m_inProgress.InitEmpty();
-
                 return false;
             }
-
 
             m_inProgress.ResetFlags(MsgFlags.Shared | MsgFlags.More | MsgFlags.Identity);
 

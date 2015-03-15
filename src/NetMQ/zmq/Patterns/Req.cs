@@ -20,22 +20,35 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Req : Dealer
+    /// <summary>
+    /// A Req is a Dealer socket that serves as the Request in a Request/Response pattern.
+    /// </summary>
+    internal sealed class Req : Dealer
     {
-        //  If true, request was already sent and reply wasn't received yet or
-        //  was raceived partially.
+        /// <summary>
+        /// If true, request was already sent and reply wasn't received yet or
+        /// was received partially.
+        /// </summary>
         private bool m_receivingReply;
 
-        //  If true, we are starting to send/recv a message. The first part
-        //  of the message must be empty message part (backtrace stack bottom).
+        /// <summary>
+        /// If true, we are starting to send/receive a message. The first part
+        /// of the message must be empty message part (backtrace stack bottom).
+        /// </summary>
         private bool m_messageBegins;
 
-        public Req(Ctx parent, int threadId, int socketId)
+        /// <summary>
+        /// Create a new Req (Request) socket with the given parent Ctx, thread and socket id.
+        /// </summary>
+        /// <param name="parent">the Ctx to contain this socket</param>
+        /// <param name="threadId">an integer thread-id for this socket to execute on</param>
+        /// <param name="socketId">the socket-id for this socket</param>
+        public Req([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_receivingReply = false;
@@ -43,43 +56,39 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Req;
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        /// <exception cref="FiniteStateMachineException">Cannot send while awaiting reply.</exception>
+        protected override bool XSend(ref Msg msg)
         {
             //  If we've sent a request and we still haven't got the reply,
             //  we can't send another request.
             if (m_receivingReply)
-            {
-                throw new FiniteStateMachineException("Cannot send another request");                
-            }
+                throw new FiniteStateMachineException("Req.XSend - cannot send another request");
 
             bool isMessageSent;
 
             //  First part of the request is the request identity.
             if (m_messageBegins)
             {
-                Msg bottom = new Msg();
+                var bottom = new Msg();
                 bottom.InitEmpty();
                 bottom.SetFlags(MsgFlags.More);
-                isMessageSent = base.XSend(ref bottom, 0);
+                isMessageSent = base.XSend(ref bottom);
 
                 if (!isMessageSent)
-                {
                     return false;
-                }
 
                 m_messageBegins = false;
             }
 
             bool more = msg.HasMore;
 
-            isMessageSent = base.XSend(ref msg, flags);
+            isMessageSent = base.XSend(ref msg);
 
             if (!isMessageSent)
-            {
                 return false;
-            }
+
             //  If the request was fully sent, flip the FSM into reply-receiving state.
-            else if (!more)
+            if (!more)
             {
                 m_receivingReply = true;
                 m_messageBegins = true;
@@ -88,31 +97,28 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        /// <exception cref="FiniteStateMachineException">Expecting send, not receive.</exception>
+        protected override bool XRecv(ref Msg msg)
         {
             bool isMessageAvailable;
-            
+
             //  If request wasn't send, we can't wait for reply.
             if (!m_receivingReply)
-            {
-                throw new FiniteStateMachineException("Cannot receive another reply"); 
-            }
+                throw new FiniteStateMachineException("Req.XRecv - cannot receive another reply");
 
             //  First part of the reply should be the original request ID.
             if (m_messageBegins)
             {
-                isMessageAvailable = base.XRecv(flags, ref msg);
+                isMessageAvailable = base.XRecv(ref msg);
 
                 if (!isMessageAvailable)
-                {
                     return false;
-                }               
-                
+
                 if (!msg.HasMore || msg.Size != 0)
                 {
                     while (true)
                     {
-                        isMessageAvailable = base.XRecv(flags, ref msg);
+                        isMessageAvailable = base.XRecv(ref msg);
                         Debug.Assert(isMessageAvailable);
                         if (!msg.HasMore)
                             break;
@@ -126,11 +132,9 @@ namespace NetMQ.zmq.Patterns
                 m_messageBegins = false;
             }
 
-            isMessageAvailable = base.XRecv(flags, ref msg);
+            isMessageAvailable = base.XRecv(ref msg);
             if (!isMessageAvailable)
-            {
                 return false;
-            }            
 
             //  If the reply is fully received, flip the FSM into request-sending state.
             if (!msg.HasMore)
@@ -143,7 +147,7 @@ namespace NetMQ.zmq.Patterns
         }
 
         protected override bool XHasIn()
-        {            
+        {
             if (!m_receivingReply)
                 return false;
 
@@ -158,20 +162,18 @@ namespace NetMQ.zmq.Patterns
             return base.XHasOut();
         }
 
-        public class ReqSession : Dealer.DealerSession
+        public class ReqSession : DealerSession
         {
-            enum State
+            private enum State
             {
                 Identity,
                 Bottom,
                 Body
-            };
+            }
 
-            State m_state;
+            private State m_state;
 
-            public ReqSession(IOThread ioThread, bool connect,
-                                                SocketBase socket, Options options,
-                                                Address addr)
+            public ReqSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
                 m_state = State.Identity;
@@ -179,6 +181,8 @@ namespace NetMQ.zmq.Patterns
 
             public override bool PushMsg(ref Msg msg)
             {
+                // TODO the flags checks here don't check specific bits -- should they use HasMore instead? does this work with shared Msg objects?
+
                 switch (m_state)
                 {
                     case State.Bottom:
@@ -190,25 +194,23 @@ namespace NetMQ.zmq.Patterns
                         break;
                     case State.Body:
                         if (msg.Flags == MsgFlags.More)
-                        {
                             return base.PushMsg(ref msg);
-                        }
-                        else if (msg.Flags == 0)
+                        if (msg.Flags == MsgFlags.None)
                         {
                             m_state = State.Bottom;
                             return base.PushMsg(ref msg);
                         }
                         break;
                     case State.Identity:
-                        if (msg.Flags == 0)
+                        if (msg.Flags == MsgFlags.None)
                         {
                             m_state = State.Bottom;
                             return base.PushMsg(ref msg);
                         }
-                        break;                    
+                        break;
                 }
 
-                throw new FaultException();
+                throw new FaultException("Req.PushMsg default failure.");
             }
 
             protected override void Reset()

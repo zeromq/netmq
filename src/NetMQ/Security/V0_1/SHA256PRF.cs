@@ -1,11 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace NetMQ.Security.V0_1
 {
+    /// <summary>
+    /// The IPRF interface specifies the method Get(byte[], string, byte[], int).
+    /// PRF stands for Pseudo-Random number generating Function.
+    /// </summary>
     public interface IPRF : IDisposable
     {
         byte[] Get(byte[] secret, string label, byte[] seed, int bytes);
@@ -73,7 +75,12 @@ namespace NetMQ.Security.V0_1
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
+        protected virtual void Dispose(bool disposing)
+        {
         }
     }
 }

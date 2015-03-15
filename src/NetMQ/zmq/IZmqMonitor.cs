@@ -23,10 +23,11 @@ using System;
 
 namespace NetMQ.zmq
 {
-    public interface IZmqMonitor
+    /// <summary>
+    /// Interface IZmqMonitor mandates a Monitor( SocketBase, int, Object[] ) method.
+    /// </summary>
+    internal interface IZmqMonitor
     {
-
         void Monitor(SocketBase socket, int monitorEvent, Object[] args);
-
     }
 }

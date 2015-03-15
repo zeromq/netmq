@@ -22,9 +22,8 @@
 
 namespace NetMQ.zmq.Transports
 {
-    class V1Encoder : EncoderBase
+    internal class V1Encoder : EncoderBase
     {
-
         private const int SizeReadyState = 0;
         private const int MessageReadyState = 1;
 
@@ -65,14 +64,12 @@ namespace NetMQ.zmq.Transports
             }
         }
 
-
         private bool SizeReady()
         {
             //  Write message body into the buffer.
             NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState, !m_inProgress.HasMore);
             return true;
         }
-
 
         private bool MessageReady()
         {
@@ -91,7 +88,7 @@ namespace NetMQ.zmq.Transports
                 m_inProgress.InitEmpty();
                 return false;
             }
-                
+
             bool messagedPulled = m_msgSource.PullMsg(ref m_inProgress);
             if (!messagedPulled)
             {
@@ -126,6 +123,5 @@ namespace NetMQ.zmq.Transports
 
             return true;
         }
-
     }
 }

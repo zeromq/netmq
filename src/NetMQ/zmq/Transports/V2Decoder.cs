@@ -1,8 +1,6 @@
-using System;
-
 namespace NetMQ.zmq.Transports
 {
-    class V2Decoder : DecoderBase
+    internal class V2Decoder : DecoderBase
     {
         private const int OneByteSizeReadyState = 0;
         private const int EightByteSizeReadyState = 1;
@@ -30,7 +28,9 @@ namespace NetMQ.zmq.Transports
             m_inProgress.InitEmpty();
         }
 
-        //  Set the receiver of decoded messages.
+        /// <summary>
+        /// Set the receiver of decoded messages.
+        /// </summary>
         public override void SetMsgSink(IMsgSink msgSink)
         {
             m_msgSink = msgSink;
@@ -53,8 +53,6 @@ namespace NetMQ.zmq.Transports
                     return false;
             }
         }
-
-
 
         private bool OneByteSizeReady()
         {

@@ -1,11 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace NetMQ.Security.V0_1
 {
+    /// <summary>
+    /// The RecordLayer class represents the "Record Layer" within the SSL/TLS protocol layers.
+    /// This is underneath the Handshake Layer, and above the Transport Layer.
+    /// </summary>
+    /// <remarks>
+    /// See http://technet.microsoft.com/en-us/library/cc781476(v=ws.10).aspx
+    /// </remarks>
     class RecordLayer : IDisposable
     {
         private const string KeyExpansion = "key expansion";
@@ -24,8 +29,12 @@ namespace NetMQ.Security.V0_1
 
         private ulong m_leftWindow = 0;
         private ulong m_rightWindow = WindowSize - 1;
-        private bool[] m_windowMap = new bool[WindowSize];
+        private readonly bool[] m_windowMap = new bool[WindowSize];
 
+        /// <summary>
+        /// Create a new RecordLayer object with the given protocol-version.
+        /// </summary>
+        /// <param name="protocolVersion">a 2-element byte-array that denotes the version of this protocol</param>
         public RecordLayer(byte[] protocolVersion)
         {
             m_protocolVersion = protocolVersion;
@@ -192,6 +201,12 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// Create and return an Initialization Vector (IV) using a given sequence-number and encryptor.
+        /// </summary>
+        /// <param name="encryptor"></param>
+        /// <param name="seqNumBytes"></param>
+        /// <returns></returns>
         private byte[] GenerateIV(ICryptoTransform encryptor, byte[] seqNumBytes)
         {
             // generating an IV by encrypting the sequence number with the random IV and encrypting symmetric key 
@@ -204,6 +219,8 @@ namespace NetMQ.Security.V0_1
                 iv[i] = padding;
             }
 
+            // Compute the hash value for the region of the input byte-array (iv), starting at index 0,
+            // and copy the resulting hash value back into the same byte-array.
             encryptor.TransformBlock(iv, 0, iv.Length, iv, 0);
             return iv;
         }

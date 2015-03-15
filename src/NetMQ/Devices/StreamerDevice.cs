@@ -1,6 +1,3 @@
-using System;
-using NetMQ.Sockets;
-
 namespace NetMQ.Devices
 {
     /// <summary>
@@ -13,7 +10,6 @@ namespace NetMQ.Devices
     /// </remarks>
     public class StreamerDevice : DeviceBase
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
         /// </summary>
@@ -25,7 +21,6 @@ namespace NetMQ.Devices
                               DeviceMode mode = DeviceMode.Threaded)
             : base(context.CreatePullSocket(), context.CreatePushSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
@@ -42,25 +37,28 @@ namespace NetMQ.Devices
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreatePullSocket(), context.CreatePushSocket(), mode)
         {
-
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
 
+        /// <summary>
+        /// This Override of FrontendHandler receives data from the socket contained within args,
+        /// and sends it to BackendSocket.
+        /// </summary>
+        /// <param name="sender">unused</param>
+        /// <param name="args">a NetMQSocketEventArgs that contains a NetMqSocket for receiving data from</param>
         protected override void FrontendHandler(object sender, NetMQSocketEventArgs args)
         {
             bool more;
 
             do
             {
-                var data = args.Socket.Receive(out more);
+                var data = args.Socket.ReceiveFrameBytes(out more);
 
                 if (more)
                     BackendSocket.SendMore(data);
                 else
-                {
                     BackendSocket.Send(data);
-                }
             } while (more);
         }
     }

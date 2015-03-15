@@ -20,33 +20,33 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns
 {
-    public class Pair : SocketBase
+    internal sealed class Pair : SocketBase
     {
-
         public class PairSession : SessionBase
         {
-            public PairSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options,
-                               Address addr)
+            public PairSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-
-            }
+            {}
         }
 
         private Pipe m_pipe;
 
-        public Pair(Ctx parent, int threadId, int socketId)
+        public Pair([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pair;
         }
 
-        override
-            protected void XAttachPipe(Pipe pipe, bool icanhasall)
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">not used</param>
+        protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
 
@@ -58,37 +58,31 @@ namespace NetMQ.zmq.Patterns
                 pipe.Terminate(false);
         }
 
-        override
-            protected void XTerminated(Pipe pipe)
+        protected override void XTerminated(Pipe pipe)
         {
             if (pipe == m_pipe)
                 m_pipe = null;
         }
 
-        override
-            protected void XReadActivated(Pipe pipe)
+        protected override void XReadActivated(Pipe pipe)
         {
             //  There's just one pipe. No lists of active and inactive pipes.
             //  There's nothing to do here.
         }
 
 
-        override
-            protected void XWriteActivated(Pipe pipe)
+        protected override void XWriteActivated(Pipe pipe)
         {
             //  There's just one pipe. No lists of active and inactive pipes.
             //  There's nothing to do here.
         }
 
-        override
-            protected bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             if (m_pipe == null || !m_pipe.Write(ref msg))
-            {
                 return false;
-            }
 
-            if ((flags & SendReceiveOptions.SendMore) == 0)
+            if (!msg.HasMore)
                 m_pipe.Flush();
 
             //  Detach the original message from the data buffer.
@@ -97,37 +91,28 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        override protected bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             //  Deallocate old content of the message.
-
             msg.Close();
+
             if (m_pipe == null || !m_pipe.Read(ref msg))
             {
                 msg.InitEmpty();
                 return false;
             }
+
             return true;
         }
 
-
-        override
-            protected bool XHasIn()
+        protected override bool XHasIn()
         {
-            if (m_pipe == null)
-                return false;
-
-            return m_pipe.CheckRead();
+            return m_pipe != null && m_pipe.CheckRead();
         }
 
-        override
-            protected bool XHasOut()
+        protected override bool XHasOut()
         {
-            if (m_pipe == null)
-                return false;
-
-            return m_pipe.CheckWrite();
+            return m_pipe != null && m_pipe.CheckWrite();
         }
-
     }
 }

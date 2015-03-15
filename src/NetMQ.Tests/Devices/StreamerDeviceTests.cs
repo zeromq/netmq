@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using NUnit.Framework;
 using NetMQ.Devices;
 using NetMQ.Sockets;
+using NUnit.Framework;
 
 namespace NetMQ.Tests.Devices
 {
@@ -16,7 +16,7 @@ namespace NetMQ.Tests.Devices
 
         protected override void DoWork(NetMQSocket socket)
         {
-            var received = socket.ReceiveStringMessages().ToList();
+            var received = socket.ReceiveMultipartStrings();
             Console.WriteLine("Pulled: ");
 
             for (var i = 0; i < received.Count; i++)

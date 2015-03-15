@@ -1,17 +1,18 @@
 ﻿using System;
-using System.Threading;
 using NetMQ;
 
 namespace WeatherUpdateServer
 {
-    internal class WeatherUpdateServer
+    internal static class WeatherUpdateServer
     {
-        readonly static ManualResetEvent _terminateEvent = new ManualResetEvent(false);
-
-        private static void Main(string[] args)
+        private static void Main()
         {
-            // wire up the CTRL+C handler
-            Console.CancelKeyPress += Console_CancelKeyPress;
+            Console.Title = "NetMQ Weather Update Server";
+
+            bool stopRequested = false;
+ 
+            // Wire up the CTRL+C handler
+            Console.CancelKeyPress += (sender, e) => stopRequested = true;
 
             Console.WriteLine("Publishing weather updates...");
 
@@ -22,7 +23,7 @@ namespace WeatherUpdateServer
 
                 var rng = new Random();
 
-                while (_terminateEvent.WaitOne(0) == false)
+                while (!stopRequested)
                 {
                     int zipcode = rng.Next(0, 99999);
                     int temperature = rng.Next(-80, 135);
@@ -31,11 +32,6 @@ namespace WeatherUpdateServer
                     publisher.Send(string.Format("{0} {1} {2}", zipcode, temperature, relhumidity));
                 }
             }
-        }
-
-        static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
-        {
-            _terminateEvent.Set();
         }
     }
 }

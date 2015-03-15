@@ -19,34 +19,49 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
-using System.Diagnostics;
-using System.Net.Sockets;
+using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
+
 
 namespace NetMQ.zmq
 {
-    public class IOThread : ZObject, IMailboxEvent
+    internal class IOThread : ZObject, IMailboxEvent
     {
-
-        //  I/O thread accesses incoming commands via this mailbox.
+        /// <summary>
+        /// I/O thread accesses incoming commands via this mailbox.
+        /// </summary>
         private readonly IOThreadMailbox m_mailbox;
-        
-        //  I/O multiplexing is performed using a poller object.
+
+        /// <summary>
+        /// I/O multiplexing is performed using a poller object.
+        /// </summary>
         private readonly Proactor m_proactor;
 
-        readonly String m_name;
+#if DEBUG
+        /// <summary>
+        /// This gets set to "iothread-" plus the thread-id.
+        /// </summary>
+        private readonly string m_name;
+#endif
 
-        public IOThread(Ctx ctx, int threadId)
+        /// <summary>
+        /// Create a new IOThread object within the given context (Ctx) and thread.
+        /// </summary>
+        /// <param name="ctx">the Ctx (context) for this thread to live within</param>
+        /// <param name="threadId">the integer thread-id for this new IOThread</param>
+        public IOThread([NotNull] Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
+            var name = "iothread-" + threadId;
+            m_proactor = new Proactor(name);
+            m_mailbox = new IOThreadMailbox(name, m_proactor, this);
 
-            m_name = "iothread-" + threadId;
-            m_proactor = new Proactor(m_name);            
-
-            m_mailbox = new IOThreadMailbox(m_name, m_proactor, this);                        
+#if DEBUG
+            m_name = name;
+#endif
         }
 
+        [NotNull]
         internal Proactor Proactor
         {
             get { return m_proactor; }
@@ -62,17 +77,16 @@ namespace NetMQ.zmq
             m_proactor.Destroy();
             m_mailbox.Close();
         }
+
         public void Stop()
         {
             SendStop();
         }
 
+        [NotNull]
         public IMailbox Mailbox
         {
-            get
-            {
-                return m_mailbox;
-            }
+            get { return m_mailbox; }
         }
 
         public int Load
@@ -98,5 +112,12 @@ namespace NetMQ.zmq
                 cmd.Destination.ProcessCommand(cmd);
             }
         }
+
+#if DEBUG
+        public override string ToString()
+        {
+            return base.ToString() + "[" + m_name + "]";
+        }
+#endif
     }
 }

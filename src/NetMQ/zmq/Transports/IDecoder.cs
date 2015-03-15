@@ -1,12 +1,14 @@
+using JetBrains.Annotations;
+
 namespace NetMQ.zmq.Transports
 {
-    interface IDecoder
+    internal interface IDecoder
     {
-        void SetMsgSink(IMsgSink msgSink);
+        void SetMsgSink([NotNull] IMsgSink msgSink);
 
-        void GetBuffer(ref ByteArraySegment data, ref int size);
+        void GetBuffer(out ByteArraySegment data, out int size);
 
-        int ProcessBuffer(ByteArraySegment data, int size);
+        int ProcessBuffer([NotNull] ByteArraySegment data, int size);
 
         bool MessageReadySize(int msgSize);
 

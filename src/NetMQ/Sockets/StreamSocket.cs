@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NetMQ.zmq;
+﻿using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
     public class StreamSocket : NetMQSocket
     {
-        public StreamSocket(SocketBase socketHandle)
+        /// <summary>
+        /// Create a new StreamSocket based upon the given SocketBase.
+        /// </summary>
+        /// <param name="socketHandle">the SocketBase to create the new socket from</param>
+        internal StreamSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }
-
     }
 }

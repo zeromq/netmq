@@ -55,11 +55,11 @@ namespace MajordomoProtocol.Contracts
         ///     broker binds his socket to endpoint given at ctor
         ///     the broker must not have started operation
         /// </summary>
-        /// <exception cref="ApplicationException">The bind operation failed. Mostlikely because 'endpoint' is malformed!</exception>
+        /// <exception cref="ApplicationException">The bind operation failed. Most likely because 'endpoint' is malformed!</exception>
         /// <remarks>
         ///     broker uses the same endpoint to communicate with clients and workers(!)
         /// </remarks>
-        void Bind ();
+        void Bind();
 
         /// <summary>
         ///     broker binds to the specified endpoint, if already bound will unbind and
@@ -68,7 +68,7 @@ namespace MajordomoProtocol.Contracts
         /// </summary>
         /// <param name="endpoint">new endpoint to bind to</param>
         /// <exception cref="InvalidOperationException">Can not change binding while operating!</exception>
-        void Bind (string endpoint);
+        void Bind(string endpoint);
 
         /// <summary>
         ///     starts a broker on a previously or automatically bound socket/port and
@@ -76,6 +76,6 @@ namespace MajordomoProtocol.Contracts
         /// </summary>
         /// <param name="token">used to signal the broker to abandon</param>
         /// <exception cref="InvalidOperationException">Can not change binding while operating!</exception>
-        Task Run (CancellationToken token);
+        Task Run(CancellationToken token);
     }
 }

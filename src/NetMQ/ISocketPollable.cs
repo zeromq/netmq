@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Deployment.Internal;
-using System.Linq;
-using System.Text;
-using NetMQ.zmq;
+﻿using JetBrains.Annotations;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// Implementations provide a <see cref="NetMQSocket"/> via the <see cref="Socket"/> property.
+    /// </summary>
     public interface ISocketPollable
     {
-        NetMQSocket Socket { get; }        
+        /// <summary>
+        /// Gets a <see cref="NetMQSocket"/> instance.
+        /// </summary>
+        [NotNull]
+        NetMQSocket Socket { get; }
     }
 }

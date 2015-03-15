@@ -1,35 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+using JetBrains.Annotations;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
 namespace NetMQ
 {
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket,ISocketPollable, IDisposable
+    /// <summary>
+    /// Abstract base class for NetMQ's different socket types.
+    /// </summary>
+    /// <remarks>
+    /// Various options are available in this base class, though their affect can vary by socket type.
+    /// </remarks>
+    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
-        readonly SocketBase m_socketHandle;
-        private bool m_isClosed = false;
-        private NetMQSocketEventArgs m_socketEventArgs;
+        private readonly SocketBase m_socketHandle;
+        private bool m_isClosed;
+        private readonly NetMQSocketEventArgs m_socketEventArgs;
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
 
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
 
-        private Selector m_selector;
+        private readonly Selector m_selector;
 
-        protected NetMQSocket(SocketBase socketHandle)
+        /// <summary>
+        /// Create a new NetMQSocket with the given <see cref="SocketBase"/>.
+        /// </summary>
+        /// <param name="socketHandle">a SocketBase object to assign to the new socket</param>
+        internal NetMQSocket([NotNull] SocketBase socketHandle)
         {
             m_selector = new Selector();
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
-            m_socketEventArgs = new NetMQSocketEventArgs(this);            
+            m_socketEventArgs = new NetMQSocketEventArgs(this);
         }
 
         /// <summary>
-        /// Occurs when at least one message may be received from the socket without blocking.
+        /// This event occurs when at least one message may be received from the socket without blocking.
         /// </summary>
+        /// <remarks>
+        /// This event is raised when a <see cref="NetMQSocket"/> is added to a running <see cref="Poller"/>.
+        /// </remarks>
         public event EventHandler<NetMQSocketEventArgs> ReceiveReady
         {
             add
@@ -45,8 +56,11 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Occurs when at least one message may be sent via the socket without blocking.
+        /// This event occurs when at least one message may be sent via the socket without blocking.
         /// </summary>
+        /// <remarks>
+        /// This event is raised when a <see cref="NetMQSocket"/> is added to a running <see cref="Poller"/>.
+        /// </remarks>
         public event EventHandler<NetMQSocketEventArgs> SendReady
         {
             add
@@ -61,13 +75,19 @@ namespace NetMQ
             }
         }
 
-        [Obsolete]
-        public bool IgnoreErrors { get; set; }
-
+        /// <summary>
+        /// Fires when either the <see cref="SendReady"/> or <see cref="ReceiveReady"/> event is set.
+        /// </summary>
         internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
 
+        /// <summary>
+        /// Get or set an integer that represents the number of errors that have accumulated.
+        /// </summary>
         internal int Errors { get; set; }
-        
+
+        /// <summary>
+        /// Raise the <see cref="EventsChanged"/> event.
+        /// </summary>
         private void InvokeEventsChanged()
         {
             var temp = EventsChanged;
@@ -80,16 +100,16 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Set the options of the socket
+        /// Get the <see cref="SocketOptions"/> of this socket.
         /// </summary>
         public SocketOptions Options { get; private set; }
 
+        /// <summary>
+        /// Get the underlying <see cref="SocketBase"/>.
+        /// </summary>
         internal SocketBase SocketHandle
         {
-            get
-            {
-                return m_socketHandle;
-            }
+            get { return m_socketHandle; }
         }
 
         NetMQSocket ISocketPollable.Socket
@@ -98,60 +118,59 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Bind the socket to an address
+        /// Bind the socket to <paramref name="address"/>.
         /// </summary>
-        /// <param name="address">The address of the socket</param>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Bind(string address)
+        /// <param name="address">a string representing the address to bind this socket to</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
+        /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener encountered an
+        /// error during initialisation.</exception>
+        public void Bind([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.Bind(address);            
+            m_socketHandle.Bind(address);
         }
 
-        /// <summary>
-        /// Bind the socket to a random free port
-        /// </summary>
-        /// <param name="address">The address of the socket, omit the port</param>
-        /// <returns>Chosen port number</returns>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public int BindRandomPort(string address)
+        /// <summary>Binds the specified TCP <paramref name="address"/> to an available port, assigned by the operating system.</summary>
+        /// <returns>the chosen port-number</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
+        /// <exception cref="ProtocolNotSupportedException"><paramref name="address"/> uses a protocol other than TCP.</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
+        /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener errored during
+        /// initialisation.</exception>
+        public int BindRandomPort([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
-            
+
             return m_socketHandle.BindRandomPort(address);
         }
 
         /// <summary>
-        /// Connect the socket to an address
+        /// Connect the socket to <paramref name="address"/>.
         /// </summary>
-        /// <param name="address">Address to connect to</param>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is  is disposed</exception>
-        public void Connect(string address)
+        /// <param name="address">a string denoting the address to connect this socket to</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="NetMQException">No IO thread was found.</exception>
+        /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
+        public void Connect([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.Connect(address);            
+            m_socketHandle.Connect(address);
         }
 
         /// <summary>
-        /// Disconnect the socket from specific address
+        /// Disconnect this socket from <paramref name="address"/>.
         /// </summary>
-        /// <param name="address">The address to disconnect from</param>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Disconnect(string address)
-        {
-            m_socketHandle.CheckDisposed();
-
-            m_socketHandle.TermEndpoint(address);
-        }
-
-        /// <summary>
-        /// Unbind the socket from specific address
-        /// </summary>
-        /// <param name="address">The address to unbind from</param>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
-        public void Unbind(string address)
+        /// <param name="address">a string denoting the address to disconnect from</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
+        public void Disconnect([NotNull] string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -159,32 +178,47 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Close the socket
+        /// Unbind this socket from <paramref name="address"/>.
         /// </summary>
-        /// <exception cref="ObjectDisposedException">thrown if the socket is disposed</exception>
+        /// <param name="address">a string denoting the address to unbind from</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
+        public void Unbind([NotNull] string address)
+        {
+            m_socketHandle.CheckDisposed();
+
+            m_socketHandle.TermEndpoint(address);
+        }
+
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose"/>.</summary>
         public void Close()
         {
-            if (!m_isClosed)
-            {
-                m_isClosed = true;
+            if (m_isClosed)
+                return;
 
-                m_socketHandle.CheckDisposed();
-                m_socketHandle.Close();                
-            }
+            m_isClosed = true;
+
+            m_socketHandle.CheckDisposed();
+            m_socketHandle.Close();
         }
 
-        /// <summary> Wait until message is ready to be received from the socket. </summary>
+        #region Polling
+
+        /// <summary>
+        /// Wait until a message is ready to be received from the socket.
+        /// </summary>
         public void Poll()
         {
             Poll(TimeSpan.FromMilliseconds(-1));
         }
 
         /// <summary>
-        /// Wait until message is ready to be received/sent from the socket or until timeout is reached
-        /// if message(s) is(are) available the ReceiveReady/SendReady event is fired
+        /// Wait until a message is ready to be received/sent from this socket or until timeout is reached.
+        /// If a message is available, the ReceiveReady/SendReady event is fired.
         /// </summary>
-        /// <param name="timeout"></param>
-        /// <returns>true if a message was available within the timeout and false otherwise</returns>
+        /// <param name="timeout">a TimeSpan that represents the timeout-period</param>
+        /// <returns>true if a message was available within the timeout, false otherwise</returns>
         public bool Poll(TimeSpan timeout)
         {
             PollEvents events = GetPollEvents();
@@ -197,7 +231,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// polls the socket for an event as specified to happen within a given timeout period
+        /// Poll this socket, which means wait for an event to happen within the given timeout period.
         /// </summary>
         /// <param name="pollEvents">the poll event(s) to listen for</param>
         /// <param name="timeout">the timeout period</param>
@@ -205,110 +239,173 @@ namespace NetMQ
         /// PollEvents.None     -> no message available
         /// PollEvents.PollIn   -> no message arrived
         /// PollEvents.PollOut  -> no message to send
-        /// PollEvents.Error    -> an error has occured
+        /// PollEvents.Error    -> an error has occurred
         /// or any combination thereof
         /// </returns>
+        /// <exception cref="FaultException">The internal select operation failed.</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
         {
-            SelectItem[] items = new[] {new SelectItem(SocketHandle, pollEvents),};
+            SelectItem[] items = { new SelectItem(SocketHandle, pollEvents) };
 
-            m_selector.Select(items, 1, (int) timeout.TotalMilliseconds);
+            m_selector.Select(items, 1, (int)timeout.TotalMilliseconds);
             return items[0].ResultEvent;
         }
 
+        /// <summary>
+        /// Return a <see cref="PollEvents"/> value that indicates which bit-flags have a corresponding listener,
+        /// with PollError always set,
+        /// and PollOut set based upon m_sendReady
+        /// and PollIn set based upon m_receiveReady.
+        /// </summary>
+        /// <returns>a PollEvents value that denotes which events have a listener</returns>
         internal PollEvents GetPollEvents()
         {
-            PollEvents events = PollEvents.PollError;
+            var events = PollEvents.PollError;
 
             if (m_sendReady != null)
-            {
                 events |= PollEvents.PollOut;
-            }
 
             if (m_receiveReady != null)
-            {
                 events |= PollEvents.PollIn;
-            }
 
             return events;
         }
 
+        /// <summary>
+        /// Unless this socket is closed,
+        /// based upon the given PollEvents - raise the m_receiveReady event if PollIn is set,
+        /// and m_sendReady if PollOut is set.
+        /// </summary>
+        /// <param name="sender">what to use as the source of the events</param>
+        /// <param name="events">the given PollEvents that dictates when of the two events to raise</param>
         internal void InvokeEvents(object sender, PollEvents events)
         {
-            if (!m_isClosed)
+            if (m_isClosed)
+                return;
+
+            m_socketEventArgs.Init(events);
+
+            if (events.HasIn())
             {
-                m_socketEventArgs.Init(events);
+                var temp = m_receiveReady;
+                if (temp != null)
+                    temp(sender, m_socketEventArgs);
+            }
 
-                if (events.HasFlag(PollEvents.PollIn))
-                {
-                    var temp = m_receiveReady;
-                    if (temp != null)
-                    {
-                        temp(sender, m_socketEventArgs);
-                    }
-                }
-
-                if (events.HasFlag(PollEvents.PollOut))
-                {
-                    var temp = m_sendReady;
-                    if (temp != null)
-                    {
-                        temp(sender, m_socketEventArgs);
-                    }
-                }
+            if (events.HasOut())
+            {
+                var temp = m_sendReady;
+                if (temp != null)
+                    temp(sender, m_socketEventArgs);
             }
         }
 
-        /// <summary>
-        /// get an available message
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="options"></param>
+        #endregion
+
+        #region Receiving messages
+
+        /// <summary>Receive the next message from this socket.</summary>
+        /// <remarks>Whether the request blocks or not is controlled by <paramref name="options"/>.</remarks>
+        /// <param name="msg">The Msg object to put it in</param>
+        /// <param name="options">Either <see cref="SendReceiveOptions.None"/>, or <see cref="SendReceiveOptions.DontWait"/>.
+        /// <see cref="SendReceiveOptions.SendMore"/> is ignored.</param>
+        /// <exception cref="AgainException">The receive operation timed out.</exception>
+        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public virtual void Receive(ref Msg msg, SendReceiveOptions options)
-        {                        
-            m_socketHandle.Recv(ref msg, options);                        
-        }       
-                    
+        {
+            // This legacy method adapts the newer nothrow API to the older AgainException one.
+
+            if ((options & SendReceiveOptions.DontWait) != 0)
+            {
+                // User specified DontWait, so use a zero timeout.
+                if (!m_socketHandle.TryRecv(ref msg, TimeSpan.Zero))
+                    throw new AgainException();
+            }
+            else
+            {
+                // User is expecting to wait, however we must still consider the socket's (obsolete) ReceiveTimeout.
+                if (!m_socketHandle.TryRecv(ref msg, Options.ReceiveTimeout))
+                    throw new AgainException();
+            }
+        }
+
+        /// <summary>Attempt to receive a message for the specified amount of time.</summary>
+        /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message
+        /// data should be placed.</param>
+        /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
+        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
+        /// otherwise <c>false</c>.</returns>
+        public virtual bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            return m_socketHandle.TryRecv(ref msg, timeout);
+        }
+
+        #endregion
+
+        #region Sending messages
+
+        /// <summary>
+        /// Send the given Msg out upon this socket.
+        /// The message content is in the form of a byte-array that Msg contains.
+        /// </summary>
+        /// <param name="msg">the Msg struct that contains the data and the options for this transmission</param>
+        /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore bits (or None)</param>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
+        /// <exception cref="AgainException">The send operation timed out.</exception>
         public virtual void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_socketHandle.Send(ref msg, options);
         }
 
+        #endregion
+
+        #region Unsubscribe (obsolete)
+
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(string topic)
         {
-            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+            SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(byte[] topic)
         {
-            SetSocketOption(ZmqSocketOptions.Subscribe, topic);
+            SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(string topic)
         {
-            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(byte[] topic)
         {
-            SetSocketOption(ZmqSocketOptions.Unsubscribe, topic);
+            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
-        public void Monitor(string endpoint, SocketEvent events = SocketEvent.All)
+        #endregion
+
+        /// <summary>
+        /// Listen to the given endpoint for SocketEvent events.
+        /// </summary>
+        /// <param name="endpoint">A string denoting the endpoint to monitor</param>
+        /// <param name="events">The specific <see cref="SocketEvent"/> events to report on. Defaults to <see cref="SocketEvent.All"/> if ommitted.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="endpoint"/> cannot be empty or whitespace.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
+        /// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="endpoint"/> is not supported.</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
+        public void Monitor([NotNull] string endpoint, SocketEvent events = SocketEvent.All)
         {
             if (endpoint == null)
-            {
                 throw new ArgumentNullException("endpoint");
-            }
-
-            if (endpoint == string.Empty)
-            {
-                throw new ArgumentException("Unable to publish socket events to an empty endpoint.", "endpoint");
-            }
+            if (string.IsNullOrEmpty(endpoint))
+                throw new ArgumentException("Cannot be empty.", "endpoint");
 
             m_socketHandle.CheckDisposed();
 
@@ -316,76 +413,131 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// true if a message is waiting to be picked up, false otherwise
+        /// Get whether a message is waiting to be picked up (<c>true</c> if there is, <c>false</c> if there is none).
         /// </summary>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public bool HasIn
         {
-            get
-            {
-                PollEvents pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
-
-                return pollEvents.HasFlag(PollEvents.PollIn);
-            }
+            get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasIn(); }
         }
 
         /// <summary>
-        /// true if a message is waiting to be sent, false otherwise
+        /// Get whether a message is waiting to be sent.
         /// </summary>
+        /// <remarks>
+        /// This is <c>true</c> if at least one message is waiting to be sent, <c>false</c> if there is none.
+        /// </remarks>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public bool HasOut
         {
-            get
-            {
-                PollEvents pollEvents = GetSocketOptionX<PollEvents>(ZmqSocketOptions.Events);
-
-                return pollEvents.HasFlag(PollEvents.PollOut);
-            }
+            get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasOut(); }
         }
 
-        internal int GetSocketOption(ZmqSocketOptions socketOptions)
+        #region Socket options
+
+        /// <summary>
+        /// Get the integer-value of the specified <see cref="ZmqSocketOption"/>.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
+        /// <returns>an integer that is the value of that option</returns>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
+        internal int GetSocketOption(ZmqSocketOption option)
         {
             m_socketHandle.CheckDisposed();
 
-            return m_socketHandle.GetSocketOption(socketOptions);
+            return m_socketHandle.GetSocketOption(option);
         }
 
-        internal T GetSocketOptionX<T>(ZmqSocketOptions socketOptions)
+        /// <summary>
+        /// Get the (generically-typed) value of the specified <see cref="ZmqSocketOption"/>.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
+        /// <returns>an object of the given type, that is the value of that option</returns>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
+        internal T GetSocketOptionX<T>(ZmqSocketOption option)
         {
             m_socketHandle.CheckDisposed();
 
-            return (T)m_socketHandle.GetSocketOptionX(socketOptions);
+            return (T)m_socketHandle.GetSocketOptionX(option);
         }
 
-        internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOptions socketOptions)
+        /// <summary>
+        /// Get the <see cref="TimeSpan"/> value of the specified ZmqSocketOption.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
+        /// <returns>a TimeSpan that is the value of that option</returns>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        internal TimeSpan GetSocketOptionTimeSpan(ZmqSocketOption option)
         {
-            return TimeSpan.FromMilliseconds(GetSocketOption(socketOptions));
+            return TimeSpan.FromMilliseconds(GetSocketOption(option));
         }
 
-        internal long GetSocketOptionLong(ZmqSocketOptions socketOptions)
+        /// <summary>
+        /// Get the 64-bit integer-value of the specified <see cref="ZmqSocketOption"/>.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOption that specifies what to get</param>
+        /// <returns>a long that is the value of that option</returns>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        internal long GetSocketOptionLong(ZmqSocketOption option)
         {
-            return GetSocketOptionX<long>(socketOptions);
+            return GetSocketOptionX<long>(option);
         }
-     
-        internal void SetSocketOption(ZmqSocketOptions socketOptions, int value)
+
+        /// <summary>
+        /// Assign the given integer value to the specified <see cref="ZmqSocketOption"/>.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOption that specifies what to set</param>
+        /// <param name="value">an integer that is the value to set that option to</param>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
+        internal void SetSocketOption(ZmqSocketOption option, int value)
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.SetSocketOption(socketOptions, value);
+            m_socketHandle.SetSocketOption(option, value);
         }
 
-        internal void SetSocketOptionTimeSpan(ZmqSocketOptions socketOptions, TimeSpan value)
+        /// <summary>
+        /// Assign the given TimeSpan to the specified <see cref="ZmqSocketOption"/>.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOption that specifies what to set</param>
+        /// <param name="value">a TimeSpan that is the value to set that option to</param>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        internal void SetSocketOptionTimeSpan(ZmqSocketOption option, TimeSpan value)
         {
-            SetSocketOption(socketOptions, (int)value.TotalMilliseconds);
+            SetSocketOption(option, (int)value.TotalMilliseconds);
         }
 
-        internal void SetSocketOption(ZmqSocketOptions socketOptions, object value)
+        /// <summary>
+        /// Assign the given Object value to the specified <see cref="ZmqSocketOption"/>.
+        /// </summary>
+        /// <param name="option">a ZmqSocketOption that specifies what to set</param>
+        /// <param name="value">an object that is the value to set that option to</param>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
+        internal void SetSocketOption(ZmqSocketOption option, object value)
         {
             m_socketHandle.CheckDisposed();
 
-            m_socketHandle.SetSocketOption(socketOptions, value);
+            m_socketHandle.SetSocketOption(option, value);
         }
 
+        #endregion
+
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Close"/>.</summary>
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             Close();
         }
     }

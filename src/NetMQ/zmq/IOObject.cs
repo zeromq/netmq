@@ -20,43 +20,56 @@
 */
 
 using System.Diagnostics;
-
-//  Simple base class for objects that live in I/O threads.
-//  It makes communication with the poller object easier and
-//  makes defining unneeded event handlers unnecessary.
 using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq
 {
-    public class IOObject : IProcatorEvents
+    /// <summary>
+    /// Simple base class for objects that live in I/O threads.
+    /// It makes communication with the poller object easier and
+    /// makes defining unneeded event handlers unnecessary.
+    /// </summary>
+    internal class IOObject : IProactorEvents
     {
+        [CanBeNull]
         private IOThread m_ioThread;
-        private IProcatorEvents m_handler;
+        [CanBeNull]
+        private IProactorEvents m_handler;
 
-        public IOObject(IOThread ioThread)
-        {            
-            if (ioThread != null)
-            {
-                Plug(ioThread);
-            }
-        }
-
-        //  When migrating an object from one I/O thread to another, first
-        //  unplug it, then migrate it, then plug it to the new thread.
-
-        public void Plug()
+        /// <summary>
+        /// Create a new IOObject object and plug it into the given IOThread.
+        /// </summary>
+        /// <param name="ioThread">the IOThread to plug this new IOObject into.</param>
+        public IOObject([CanBeNull] IOThread ioThread)
         {
-            Plug(null);
+            if (ioThread != null)
+                Plug(ioThread);
         }
 
-        public void Plug(IOThread ioThread)
+        /// <summary>
+        /// "Plug in" this IOObject to the given IOThread, - ie associate this with the specified IOThread.
+        /// </summary>
+        /// <param name="ioThread">the IOThread for this object to live in</param>
+        /// <remarks>
+        /// When migrating an object from one I/O thread to another, first
+        /// unplug it, then migrate it, then plug it to the new thread.
+        /// </remarks>
+        public void Plug([NotNull] IOThread ioThread)
         {
             Debug.Assert(ioThread != null);
 
-            m_ioThread = ioThread;                        
+            m_ioThread = ioThread;
         }
 
+        /// <summary>
+        /// "Un-Plug" this IOObject from it's current IOThread, and set it's handler to null.
+        /// </summary>
+        /// <remarks>
+        /// When migrating an object from one I/O thread to another, first
+        /// unplug it, then migrate it, then plug it to the new thread.
+        /// </remarks>
         public void Unplug()
         {
             Debug.Assert(m_ioThread != null);
@@ -67,15 +80,15 @@ namespace NetMQ.zmq
             m_handler = null;
         }
 
-        public void AddSocket(AsyncSocket socket)
+        public void AddSocket([NotNull] AsyncSocket socket)
         {
             m_ioThread.Proactor.AddSocket(socket, this);
         }
 
-        public void RemoveSocket(AsyncSocket socket)
+        public void RemoveSocket([NotNull] AsyncSocket socket)
         {
             m_ioThread.Proactor.RemoveSocket(socket);
-        }        
+        }
 
         public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
@@ -98,9 +111,9 @@ namespace NetMQ.zmq
             m_ioThread.Proactor.AddTimer(timeout, this, id);
         }
 
-        public void SetHandler(IProcatorEvents handler)
+        public void SetHandler([NotNull] IProactorEvents handler)
         {
-            this.m_handler = handler;
+            m_handler = handler;
         }
 
         public void CancelTimer(int id)

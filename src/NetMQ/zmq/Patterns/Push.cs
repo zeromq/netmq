@@ -20,32 +20,38 @@
 */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Push : SocketBase
+    internal sealed class Push : SocketBase
     {
         public class PushSession : SessionBase
         {
-            public PushSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options,
-                               Address addr)
+            public PushSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-            }
+            {}
         }
 
-        //  Load balancer managing the outbound pipes.
+        /// <summary>
+        /// Load balancer managing the outbound pipes.
+        /// </summary>
         private readonly LoadBalancer m_loadBalancer;
 
-        public Push(Ctx parent, int threadId, int socketId) : base(parent, threadId, socketId)
+        public Push([NotNull] Ctx parent, int threadId, int socketId)
+            : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Push;
 
             m_loadBalancer = new LoadBalancer();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -62,9 +68,9 @@ namespace NetMQ.zmq.Patterns
             m_loadBalancer.Terminated(pipe);
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
-            return m_loadBalancer.Send(ref msg, flags);
+            return m_loadBalancer.Send(ref msg);
         }
 
         protected override bool XHasOut()

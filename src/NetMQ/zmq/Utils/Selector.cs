@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Sockets;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
-    class SelectItem
+    /// <summary>
+    /// A SelectItem is a pairing of a (Socket or SocketBase) and a PollEvents value.
+    /// </summary>
+    internal sealed class SelectItem
     {
         public SelectItem(SocketBase socket, PollEvents @event)
         {
@@ -23,7 +24,8 @@ namespace NetMQ.zmq.Utils
             Event = @event;
         }
 
-        public Socket FileDescriptor { get;private set; } 
+        public Socket FileDescriptor { get; private set; }
+
         public SocketBase Socket { get; private set; }
 
         public PollEvents Event { get; private set; }
@@ -31,36 +33,43 @@ namespace NetMQ.zmq.Utils
         public PollEvents ResultEvent { get; set; }
     }
 
-    class Selector
+    /// <summary>
+    /// A Selector holds three lists of Sockets - for read, write, and error,
+    /// and provides a Select method.
+    /// </summary>
+    internal sealed class Selector
     {
-        private List<Socket> m_checkRead;
-        private List<Socket> m_checkWrite;
-        private List<Socket> m_checkError;                       
+        private readonly List<Socket> m_checkRead = new List<Socket>();
+        private readonly List<Socket> m_checkWrite = new List<Socket>();
+        private readonly List<Socket> m_checkError = new List<Socket>();
 
-        public Selector()
-        {
-            m_checkRead = new List<Socket>();
-            m_checkWrite= new List<Socket>();
-            m_checkError = new List<Socket>();
-        }
-
-        public bool Select(SelectItem[] items, int itemsCount, int timeout)
+        /// <summary>
+        /// </summary>
+        /// <param name="items">  (must not be null)</param>
+        /// <param name="itemsCount"></param>
+        /// <param name="timeout">a time-out period, in milliseconds</param>
+        /// <returns></returns>
+        /// <exception cref="FaultException">The internal select operation failed.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="items"/> is <c>null</c>.</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        public bool Select([NotNull] SelectItem[] items, int itemsCount, int timeout)
         {
             if (items == null)
-            {
-                throw new FaultException();
-            }
+                throw new ArgumentNullException("items");
+
             if (itemsCount == 0)
             {
                 if (timeout == 0)
                     return false;
+
+                //TODO:  Do we really want to simply sleep and return, doing nothing during this interval?
                 Thread.Sleep(timeout);
                 return false;
             }
 
             bool firstPass = true;
             int numberOfEvents = 0;
-                              
+
             Stopwatch stopwatch = null;
 
             while (true)
@@ -80,48 +89,48 @@ namespace NetMQ.zmq.Utils
                     currentTimeoutMicroSeconds = (int)((timeout - stopwatch.ElapsedMilliseconds) * 1000);
 
                     if (currentTimeoutMicroSeconds < 0)
-                    {
                         currentTimeoutMicroSeconds = 0;
-                    }
                 }
 
                 m_checkRead.Clear();
                 m_checkWrite.Clear();
                 m_checkError.Clear();
 
-                  for (int i = 0; i < itemsCount; i++)
+                for (int i = 0; i < itemsCount; i++)
+                {
+                    var pollItem = items[i];
+
+                    if (pollItem.Socket != null)
                     {
-                        var pollItem = items[i];
+                        if (pollItem.Event != PollEvents.None && pollItem.Socket.Handle.Connected)
+                            m_checkRead.Add(pollItem.Socket.Handle);
+                    }
+                    else
+                    {
+                        if (pollItem.Event.HasIn())
+                            m_checkRead.Add(pollItem.FileDescriptor);
 
-                        if (pollItem.Socket != null)
-                        {
-                            if (pollItem.Event != PollEvents.None && pollItem.Socket.Handle.Connected)
-                            {
-                                m_checkRead.Add(pollItem.Socket.Handle);
-                            }
-                        }
-                        else
-                        {
-                            if ((pollItem.Event & PollEvents.PollIn) == PollEvents.PollIn)
-                            {
-                                m_checkRead.Add(pollItem.FileDescriptor);
-                            }
-
-                            if ((pollItem.Event & PollEvents.PollOut) == PollEvents.PollOut)
-                            {
-                                m_checkWrite.Add(pollItem.FileDescriptor);
-                            }                   
-                        }
-                    }    
-                
+                        if (pollItem.Event.HasOut())
+                            m_checkWrite.Add(pollItem.FileDescriptor);
+                    }
+                }
 
                 try
                 {
                     SocketUtility.Select(m_checkRead, m_checkWrite, m_checkError, currentTimeoutMicroSeconds);
                 }
-                catch (SocketException)
+                catch (SocketException x)
                 {
-                    throw new FaultException();
+#if DEBUG
+                    string textOfListRead = StringLib.AsString(m_checkRead);
+                    string textOfListWrite = StringLib.AsString(m_checkWrite);
+                    string textOfListError = StringLib.AsString(m_checkError);
+                    string xMsg = string.Format("In Selector.Select, Socket.Select({0}, {1}, {2}, {3}) threw a SocketException: {4}", textOfListRead, textOfListWrite, textOfListError, currentTimeoutMicroSeconds, x.Message);
+                    Debug.WriteLine(xMsg);
+                    throw new FaultException(innerException: x, message: xMsg);
+#else
+                    throw new FaultException(innerException: x, message: "Within SocketUtility.Select");
+#endif
                 }
 
                 for (int i = 0; i < itemsCount; i++)
@@ -132,54 +141,37 @@ namespace NetMQ.zmq.Utils
 
                     if (selectItem.Socket != null)
                     {
-                        PollEvents events = (PollEvents)selectItem.Socket.GetSocketOption(ZmqSocketOptions.Events);
+                        var events = (PollEvents)selectItem.Socket.GetSocketOption(ZmqSocketOption.Events);
 
-                        if ((selectItem.Event & PollEvents.PollIn) == PollEvents.PollIn && (events & PollEvents.PollIn) == PollEvents.PollIn)
-                        {
+                        if (selectItem.Event.HasIn() && events.HasIn())
                             selectItem.ResultEvent |= PollEvents.PollIn;
-                        }
 
-                        if ((selectItem.Event & PollEvents.PollOut) == PollEvents.PollOut &&
-                            (events & PollEvents.PollOut) == PollEvents.PollOut)
-                        {
+                        if (selectItem.Event.HasOut() && events.HasOut())
                             selectItem.ResultEvent |= PollEvents.PollOut;
-                        }
                     }
                     else
                     {
                         if (m_checkRead.Contains(selectItem.FileDescriptor))
-                        {
                             selectItem.ResultEvent |= PollEvents.PollIn;
-                        }
 
                         if (m_checkWrite.Contains(selectItem.FileDescriptor))
-                        {
                             selectItem.ResultEvent |= PollEvents.PollOut;
-                        }
                     }
 
                     if (selectItem.ResultEvent != PollEvents.None)
-                    {
                         numberOfEvents++;
-                    }
-                }               
+                }
 
                 if (timeout == 0)
-                {
                     break;
-                }
 
                 if (numberOfEvents > 0)
-                {
                     break;
-                }
 
                 if (timeout < 0)
                 {
                     if (firstPass)
-                    {
                         firstPass = false;
-                    }
 
                     continue;
                 }
@@ -192,9 +184,7 @@ namespace NetMQ.zmq.Utils
                 }
 
                 if (stopwatch.ElapsedMilliseconds > timeout)
-                {
                     break;
-                }
             }
 
             return numberOfEvents > 0;

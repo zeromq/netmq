@@ -1,14 +1,17 @@
-﻿using System;
-using NetMQ.zmq;
+﻿using NetMQ.zmq;
 
 namespace NetMQ.Sockets
 {
     /// <summary>
-    /// Pair socket, usually used to synchronize two threads, only one socket on each side
+    /// A PairSocket is a NetMQSocket, usually used to synchronize two threads - using only one socket on each side.
     /// </summary>
     public class PairSocket : NetMQSocket
     {
-        public PairSocket(SocketBase socketHandle)
+        /// <summary>
+        /// Create a new PairSocket based upon the given SocketBase.
+        /// </summary>
+        /// <param name="socketHandle">the SocketBase to create the new socket from</param>
+        internal PairSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
         }

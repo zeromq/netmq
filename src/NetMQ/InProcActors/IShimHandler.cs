@@ -1,21 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+using JetBrains.Annotations;
 using NetMQ.Sockets;
 
-namespace NetMQ.Actors
+namespace NetMQ.InProcActors
 {
     /// <summary>
     /// Simple interface that all shims should implement. 
-    /// T is the initial state that the <c>Actor</c> will provide
+    /// T is the initial state that the <c>Actor</c> will provide.
+    /// This interface specifies the methods Initialize and RunPipeline.
     /// </summary>
     [Obsolete("Use non generic NetMQActor and IShimHandler")]
-    public interface IShimHandler<T>
+    public interface IShimHandler<in T>
     {
+        /// <summary>
+        /// Initialize the shim to the given state - which is of type T.
+        /// </summary>
+        /// <param name="state">an object of type T to specify the initial state</param>
         void Initialise(T state);
 
-        void RunPipeline(PairSocket shim);
+        void RunPipeline([NotNull] PairSocket shim);
     }
 }

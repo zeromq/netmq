@@ -1,29 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    class PgmListener : Own, IProcatorEvents
+    internal class PgmListener : Own, IProactorEvents
     {
-        private PgmSocket m_pgmSocket;
-
-        private readonly SocketBase m_socket;
-
+        [NotNull] private readonly SocketBase m_socket;
+        [NotNull] private readonly IOObject m_ioObject;
         private AsyncSocket m_handle;
-
+        private PgmSocket m_pgmSocket;
         private PgmSocket m_acceptedSocket;
-
-        private readonly IOObject m_ioObject;
-
         private PgmAddress m_address;
 
-        public PgmListener(IOThread ioThread, SocketBase socket, Options options)
+        public PgmListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, options)
         {
             m_socket = socket;
@@ -31,7 +22,9 @@ namespace NetMQ.zmq.Transports.PGM
             m_ioObject = new IOObject(ioThread);
         }
 
-        public void Init(string network)
+        /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
+        /// <exception cref="NetMQException">Error establishing underlying socket.</exception>
+        public void Init([NotNull] string network)
         {
             m_address = new PgmAddress(network);
 
@@ -57,9 +50,7 @@ namespace NetMQ.zmq.Transports.PGM
         }
 
         public override void Destroy()
-        {
-
-        }
+        {}
 
         protected override void ProcessPlug()
         {
@@ -93,9 +84,10 @@ namespace NetMQ.zmq.Transports.PGM
                 m_socket.EventCloseFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
             }
             catch (NetMQException ex)
-            {             
+            {
                 m_socket.EventCloseFailed(m_address.ToString(), ex.ErrorCode);
             }
+
             m_handle = null;
         }
 
@@ -115,7 +107,7 @@ namespace NetMQ.zmq.Transports.PGM
             {
                 m_acceptedSocket.InitOptions();
 
-                PgmSession pgmSession = new PgmSession(m_acceptedSocket, m_options);
+                var pgmSession = new PgmSession(m_acceptedSocket, m_options);
 
                 IOThread ioThread = ChooseIOThread(m_options.Affinity);
 
@@ -138,11 +130,13 @@ namespace NetMQ.zmq.Transports.PGM
             m_handle.Accept(m_acceptedSocket.Handle);
         }
 
+        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
         }
 
+        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

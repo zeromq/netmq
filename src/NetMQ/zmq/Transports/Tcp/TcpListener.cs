@@ -20,43 +20,56 @@
 */
 
 using System;
-using System.Net;
-using System.Net.Sockets;
 using System.Diagnostics;
-using System.Security;
-using System.Runtime.InteropServices;
+using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.Tcp
 {
-    public class TcpListener : Own, IProcatorEvents
+    internal class TcpListener : Own, IProactorEvents
     {
-        private const SocketOptionName IPv6Only = (SocketOptionName) 27;
+        private const SocketOptionName IPv6Only = (SocketOptionName)27;
 
-        //  Address to listen on.
-        private readonly TcpAddress m_address;
-
-        //  Underlying socket.
-        private AsyncSocket m_handle;
-
-        // socket being accepted
-        private AsyncSocket m_acceptedSocket;
-
-        //  Socket the listerner belongs to.
-        private readonly SocketBase m_socket;
-
-        // String representation of endpoint to bind to
-        private String m_endpoint;
-
+        [NotNull]
         private readonly IOObject m_ioObject;
 
-        // The port that was bound on
+        /// <summary>
+        /// Address to listen on.
+        /// </summary>
+        [NotNull]
+        private readonly TcpAddress m_address;
+
+        /// <summary>
+        /// Underlying socket.
+        /// </summary>
+        [CanBeNull]
+        private AsyncSocket m_handle;
+
+        /// <summary>
+        /// socket being accepted
+        /// </summary>
+        private AsyncSocket m_acceptedSocket;
+
+        /// <summary>
+        /// Socket the listener belongs to.
+        /// </summary>
+        [NotNull]
+        private readonly SocketBase m_socket;
+
+        /// <summary>
+        /// String representation of endpoint to bind to
+        /// </summary>
+        private string m_endpoint;
+
+        /// <summary>
+        /// The port that was bound on
+        /// </summary>
         private int m_port;
 
-        public TcpListener(IOThread ioThread, SocketBase socket, Options options) :
-            base(ioThread, options)
+        public TcpListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
+            : base(ioThread, options)
         {
-
             m_ioObject = new IOObject(ioThread);
             m_address = new TcpAddress();
             m_handle = null;
@@ -67,7 +80,6 @@ namespace NetMQ.zmq.Transports.Tcp
         {
             Debug.Assert(m_handle == null);
         }
-
 
         protected override void ProcessPlug()
         {
@@ -85,15 +97,19 @@ namespace NetMQ.zmq.Transports.Tcp
             base.ProcessTerm(linger);
         }
 
-        //  Set address to listen on. return the used port
-        public virtual void SetAddress(String addr)
+        /// <summary>
+        /// Set address to listen on. return the used port
+        /// </summary>
+        /// <param name="addr"></param>
+        public virtual void SetAddress([NotNull] string addr)
         {
             m_address.Resolve(addr, m_options.IPv4Only);
 
-            m_endpoint = m_address.ToString();
             try
             {
                 m_handle = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                
+                Debug.Assert(m_handle != null);
 
                 if (!m_options.IPv4Only && m_address.Address.AddressFamily == AddressFamily.InterNetworkV6)
                 {
@@ -111,15 +127,19 @@ namespace NetMQ.zmq.Transports.Tcp
                 m_handle.Bind(m_address.Address);
                 m_handle.Listen(m_options.Backlog);
 
+                // Copy the port number after binding in case we requested a system-allocated port number (TCP port zero)
+                m_address.Address.Port = m_handle.LocalEndPoint.Port;
+                m_endpoint = m_address.ToString();
+
                 m_socket.EventListening(m_endpoint, m_handle);
 
-                m_port = m_handle.LocalEndPoint.Port;                               
+                m_port = m_handle.LocalEndPoint.Port;
             }
             catch (SocketException ex)
             {
                 Close();
                 throw NetMQException.Create(ex);
-            }            
+            }
         }
 
         private void Accept()
@@ -127,7 +147,7 @@ namespace NetMQ.zmq.Transports.Tcp
             m_acceptedSocket = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             // start accepting socket async
-            m_handle.Accept(m_acceptedSocket);            
+            m_handle.Accept(m_acceptedSocket);
         }
 
         public void InCompleted(SocketError socketError, int bytesTransferred)
@@ -163,7 +183,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
-                        ByteArraySegment bytes = new ByteArraySegment(new byte[12]);
+                        var bytes = new ByteArraySegment(new byte[12]);
 
                         Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
 
@@ -176,14 +196,14 @@ namespace NetMQ.zmq.Transports.Tcp
                 }
 
                 //  Create the engine object for this connection.
-                StreamEngine engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);
+                var engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);
 
                 //  Choose I/O thread to run connecter in. Given that we are already
                 //  running in an I/O thread, there must be at least one available.
                 IOThread ioThread = ChooseIOThread(m_options.Affinity);
 
                 //  Create and launch a session object. 
-                // TODO: send null in address parameter, is unneed in this case
+                // TODO: send null in address parameter, is unneeded in this case
                 SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
                 session.IncSeqnum();
                 LaunchChild(session);
@@ -196,7 +216,9 @@ namespace NetMQ.zmq.Transports.Tcp
             }
         }
 
-        //  Close the listening socket.
+        /// <summary>
+        /// Close the listening socket.
+        /// </summary>
         private void Close()
         {
             if (m_handle == null)
@@ -227,22 +249,27 @@ namespace NetMQ.zmq.Transports.Tcp
             m_handle = null;
         }
 
-        public virtual String Address
+        /// <summary>
+        /// Get the bound address for use with wildcards
+        /// </summary>
+        [NotNull]
+        public virtual string Address
         {
             get { return m_address.ToString(); }
-        }        
+        }
 
         public virtual int Port
         {
             get { return m_port; }
         }
 
-        void IProcatorEvents.OutCompleted(SocketError socketError, int bytesTransferred)
+        /// <exception cref="NotSupportedException">Method is not implemented.</exception>
+        void IProactorEvents.OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
         }
 
-
+        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
-using NetMQ.Sockets;
-using NetMQ.zmq;
+﻿using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -12,146 +6,91 @@ namespace NetMQ.Tests
     public class ReqRepTests
     {
         [Test]
-        [TestCase("tcp://localhost:5001")]
-        [TestCase("tcp://127.0.0.1:5001")]
-        [TestCase("tcp://unknownhostname:5001", ExpectedException = typeof(System.Net.Sockets.SocketException))]
+        [TestCase("tcp://localhost")]
+        [TestCase("tcp://127.0.0.1")]
+        [TestCase("tcp://unknownhostname", ExpectedException = typeof(System.Net.Sockets.SocketException))]
         public void SimpleReqRep(string address)
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var req = context.CreateRequestSocket())
             {
-                using (var rep = ctx.CreateResponseSocket())
-                {
-                    rep.Bind(address);
+                var port = rep.BindRandomPort(address);
+                req.Connect(address + ":" + port);
 
-                    using (var req = ctx.CreateRequestSocket())
-                    {
-                        req.Connect(address);
+                req.Send("Hi");
 
-                        req.Send("Hi");
+                CollectionAssert.AreEqual(new[] { "Hi" }, rep.ReceiveMultipartStrings());
 
-                        bool more;
+                rep.Send("Hi2");
 
-                        string requestString = rep.ReceiveString(out more);
-
-                        Assert.AreEqual("Hi", requestString);
-                        Assert.IsFalse(more);
-
-                        rep.Send("Hi2");
-
-                        string responseString = req.ReceiveString(out more);
-
-                        Assert.AreEqual("Hi2", responseString);
-                        Assert.IsFalse(more);
-                    }
-                }
+                CollectionAssert.AreEqual(new[] { "Hi2" }, req.ReceiveMultipartStrings());
             }
         }
 
         [Test]
         public void SendingTwoRequestsInaRow()
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var req = context.CreateRequestSocket())
             {
-                using (var rep = ctx.CreateResponseSocket())
-                {
-                    rep.Bind("tcp://localhost:5002");
+                var port = rep.BindRandomPort("tcp://localhost");
+                req.Connect("tcp://localhost:" + port);
 
-                    using (var req = ctx.CreateRequestSocket())
-                    {
-                        req.Connect("tcp://localhost:5002");
+                req.Send("Hi");
 
-                        req.Send("Hi");
+                rep.SkipFrame();
 
-                        bool more;
-                        rep.Receive(out more);
-
-                        var ex = Assert.Throws<FiniteStateMachineException>(() => req.Send("Hi2"));                        
-                    }
-                }
+                Assert.Throws<FiniteStateMachineException>(() => req.Send("Hi2"));
             }
         }
 
         [Test]
         public void ReceiveBeforeSending()
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var req = context.CreateRequestSocket())
             {
-                using (var rep = ctx.CreateResponseSocket())
-                {
-                    rep.Bind("tcp://localhost:5001");
+                var port = rep.BindRandomPort("tcp://localhost");
+                req.Connect("tcp://localhost:" + port);
 
-
-                    using (var req = ctx.CreateRequestSocket())
-                    {
-                        req.Connect("tcp://localhost:5001");
-
-                        bool more;
-
-                        var ex = Assert.Throws<FiniteStateMachineException>(() => req.ReceiveString(out more));                        
-                    }
-                }
+                Assert.Throws<FiniteStateMachineException>(() => req.ReceiveFrameBytes());
             }
         }
 
         [Test]
         public void SendMessageInResponeBeforeReceiving()
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var req = context.CreateRequestSocket())
             {
-                using (var rep = ctx.CreateResponseSocket())
-                {
-                    rep.Bind("tcp://localhost:5001");
+                var port = rep.BindRandomPort("tcp://localhost");
+                req.Connect("tcp://localhost:" + port);
 
-                    using (var req = ctx.CreateRequestSocket())
-                    {
-                        req.Connect("tcp://localhost:5001");
-
-                        var ex = Assert.Throws<FiniteStateMachineException>(() => rep.Send("1"));                        
-                    }
-                }
+                Assert.Throws<FiniteStateMachineException>(() => rep.Send("1"));
             }
         }
 
         [Test]
-        public void SendMultiplartMessage()
+        public void SendMultipartMessage()
         {
-            using (NetMQContext ctx = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var req = context.CreateRequestSocket())
             {
-                using (var rep = ctx.CreateResponseSocket())
-                {
-                    rep.Bind("tcp://localhost:5001");
+                var port = rep.BindRandomPort("tcp://localhost");
+                req.Connect("tcp://localhost:" + port);
 
-                    using (var req = ctx.CreateRequestSocket())
-                    {
-                        req.Connect("tcp://localhost:5001");
+                req.SendMore("Hello").Send("World");
 
-                        req.SendMore("Hello").Send("World");
+                CollectionAssert.AreEqual(new[] { "Hello", "World" }, rep.ReceiveMultipartStrings());
 
-                        bool more;
+                rep.SendMore("Hello").Send("Back");
 
-                        string m1 = rep.ReceiveString(out more);
-
-                        Assert.IsTrue(more);
-                        Assert.AreEqual("Hello", m1);
-
-                        string m2 = rep.ReceiveString(out more);
-
-                        Assert.IsFalse(more);
-                        Assert.AreEqual("World", m2);
-
-                        rep.SendMore("Hello").Send("Back");
-
-                        string m3 = req.ReceiveString(out more);
-
-                        Assert.IsTrue(more);
-                        Assert.AreEqual("Hello", m3);
-
-                        string m4 = req.ReceiveString(out more);
-
-                        Assert.IsFalse(more);
-                        Assert.AreEqual("Back", m4);
-                    }
-                }
+                CollectionAssert.AreEqual(new[] { "Hello", "Back" }, req.ReceiveMultipartStrings());
             }
         }
     }

@@ -1,44 +1,59 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
+using JetBrains.Annotations;
 using NetMQ.Sockets;
 using NetMQ.zmq;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// An IShimHandler provides a Run(PairSocket) method.
+    /// </summary>
     public interface IShimHandler
     {
-        void Run(PairSocket shim);
+        void Run([NotNull] PairSocket shim);
     }
 
+    /// <summary>
+    /// This is an EventArgs that provides an Actor property.
+    /// </summary>
     public class NetMQActorEventArgs : EventArgs
     {
-        public NetMQActorEventArgs(NetMQActor actor)
+        /// <summary>
+        /// Create a new NetMQActorEventArgs with the given NetMQActor.
+        /// </summary>
+        /// <param name="actor">the NetMQActor for this exception to reference</param>
+        public NetMQActorEventArgs([NotNull] NetMQActor actor)
         {
             Actor = actor;
         }
 
+        /// <summary>
+        /// Get the NetMQActor that this exception references.
+        /// </summary>
+        [NotNull]
         public NetMQActor Actor { get; private set; }
     }
 
     public delegate void ShimAction(PairSocket shim);
 
-    public delegate void ShimAction<T>(PairSocket shim, T state);
+    public delegate void ShimAction<in T>(PairSocket shim, T state);
 
     /// <summary>
-    /// The Actor represents one end of a two way pipe between 2 PairSocket(s). Where
+    /// The Actor represents one end of a two-way pipe between 2 PairSocket(s). Where
     /// the actor may be passed messages, that are sent to the other end of the pipe
     /// which called the "shim"
     /// </summary>
     public class NetMQActor : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
+        /// <summary>
+        /// This is just the literal string "endPipe".
+        /// </summary>
         public const string EndShimMessage = "endPipe";
 
         #region Action shim handlers
 
-        class ActionShimHandler<T> : IShimHandler
+        private class ActionShimHandler<T> : IShimHandler
         {
             private readonly ShimAction<T> m_action;
             private readonly T m_state;
@@ -49,13 +64,13 @@ namespace NetMQ
                 m_state = state;
             }
 
-            public void Run(PairSocket shim)
+            public void Run([NotNull] PairSocket shim)
             {
                 m_action(shim, m_state);
             }
         }
 
-        class ActionShimHandler : IShimHandler
+        private class ActionShimHandler : IShimHandler
         {
             private readonly ShimAction m_action;
 
@@ -64,7 +79,7 @@ namespace NetMQ
                 m_action = action;
             }
 
-            public void Run(PairSocket shim)
+            public void Run([NotNull] PairSocket shim)
             {
                 m_action(shim);
             }
@@ -74,31 +89,34 @@ namespace NetMQ
 
         private readonly PairSocket m_self;
         private readonly PairSocket m_shim;
-        
-        private Thread m_shimThread;        
-        private IShimHandler m_shimHandler;
 
-        private EventDelegatorHelper<NetMQActorEventArgs> m_receiveEventDelegatorHelper;
-        private EventDelegatorHelper<NetMQActorEventArgs> m_sendEventDelegatorHelper;
+        private readonly Thread m_shimThread;
+        private readonly IShimHandler m_shimHandler;
+
+        private readonly EventDelegatorHelper<NetMQActorEventArgs> m_receiveEventDelegatorHelper;
+        private readonly EventDelegatorHelper<NetMQActorEventArgs> m_sendEventDelegatorHelper;
 
         #region Creating Actor
 
-        private NetMQActor(NetMQContext context, IShimHandler shimHandler)
+        private NetMQActor([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
         {
             m_shimHandler = shimHandler;
 
             m_self = context.CreatePairSocket();
             m_shim = context.CreatePairSocket();
 
-            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(() => m_self.ReceiveReady += OnReceive,
+            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(
+                () => m_self.ReceiveReady += OnReceive,
                 () => m_self.ReceiveReady += OnReceive);
-            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(() => m_self.SendReady += OnReceive,
+
+            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(
+                () => m_self.SendReady += OnReceive,
                 () => m_self.SendReady += OnSend);
 
-            Random random = new Random();
+            var random = new Random();
 
             //now binding and connect pipe ends
-            string endPoint = string.Empty;
+            string endPoint;
             while (true)
             {
                 try
@@ -109,7 +127,7 @@ namespace NetMQ
                 }
                 catch (AddressAlreadyInUseException)
                 {
-                    // In case address already in use we continue searching for an adderess
+                    // In case address already in use we continue searching for an address
                 }
             }
 
@@ -119,38 +137,39 @@ namespace NetMQ
             m_shimThread.Start();
 
             //  Mandatory handshake for new actor so that constructor returns only
-            //  when actor has also initialized. This eliminates timing issues at
+            //  when actor has also initialised. This eliminates timing issues at
             //  application start up.
-            m_self.WaitForSignal();
+            m_self.ReceiveSignal();
         }
 
-        public static NetMQActor Create(NetMQContext context, IShimHandler shimHandler)
+        [NotNull]
+        public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
         {
             return new NetMQActor(context, shimHandler);
         }
 
-        public static NetMQActor Create<T>(NetMQContext context, ShimAction<T> action, T state)
+        [NotNull]
+        public static NetMQActor Create<T>([NotNull] NetMQContext context, [NotNull] ShimAction<T> action, T state)
         {
             return new NetMQActor(context, new ActionShimHandler<T>(action, state));
         }
 
-        public static NetMQActor Create(NetMQContext context, ShimAction action)
+        [NotNull]
+        public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] ShimAction action)
         {
             return new NetMQActor(context, new ActionShimHandler(action));
         }
 
         #endregion
-  
-        void RunShim()
+
+        private void RunShim()
         {
             try
             {
                 m_shimHandler.Run(m_shim);
             }
             catch (TerminatingException)
-            {
-
-            }        
+            {}
 
             //  Do not block, if the other end of the pipe is already deleted
             m_shim.Options.SendTimeout = TimeSpan.Zero;
@@ -160,30 +179,55 @@ namespace NetMQ
                 m_shim.SignalOK();
             }
             catch (AgainException)
-            {
-            }
+            {}
 
             m_shim.Dispose();
         }
 
+        /// <summary>
+        /// Transmit the given Msg over this socket.
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="options"></param>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
+        /// <exception cref="AgainException">The send operation timed out.</exception>
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Send(ref msg, options);
         }
 
+        #region IReceivingSocket
+
+        /// <exception cref="AgainException">The receive operation timed out.</exception>
+        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Receive(ref msg, options);
         }
 
+        public bool TryReceive(ref Msg msg, TimeSpan timeout)
+        {
+            return m_self.TryReceive(ref msg, timeout);
+        }
+
+        #endregion
+
+
         #region Events Handling
 
+        /// <summary>
+        /// This event occurs when at least one message may be received from the socket without blocking.
+        /// </summary>
         public event EventHandler<NetMQActorEventArgs> ReceiveReady
         {
             add { m_receiveEventDelegatorHelper.Event += value; }
             remove { m_receiveEventDelegatorHelper.Event -= value; }
         }
 
+        /// <summary>
+        /// This event occurs when a message is ready to be transmitted from the socket.
+        /// </summary>
         public event EventHandler<NetMQActorEventArgs> SendReady
         {
             add { m_sendEventDelegatorHelper.Event += value; }
@@ -209,11 +253,6 @@ namespace NetMQ
 
         #region Disposing
 
-        ~NetMQActor()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
@@ -222,23 +261,21 @@ namespace NetMQ
 
         protected virtual void Dispose(bool disposing)
         {
-            // release other disposable objects
-            if (disposing)
+            if (!disposing)
+                return;
+
+            // send destroy message to pipe
+            m_self.Options.SendTimeout = TimeSpan.Zero;
+            try
             {
-                // send destroy message to pipe
-                m_self.Options.SendTimeout = TimeSpan.Zero;
-                try
-                {
-                    m_self.Send(EndShimMessage);
-                    m_self.WaitForSignal();
-                }
-                catch (AgainException ex)
-                {
-
-                }
-
-                m_self.Dispose();
+                m_self.Send(EndShimMessage);
+                m_self.ReceiveSignal();
             }
+            catch (AgainException)
+            {}
+
+            m_shimThread.Join();
+            m_self.Dispose();
         }
 
         #endregion

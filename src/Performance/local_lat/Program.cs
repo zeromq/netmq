@@ -4,9 +4,9 @@ using NetMQ.zmq;
 
 namespace local_lat
 {
-    class Program
+    internal static class Program
     {
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             if (args.Length != 3)
             {
@@ -18,28 +18,28 @@ namespace local_lat
             int messageSize = int.Parse(args[1]);
             int roundtripCount = int.Parse(args[2]);
 
-            var context = NetMQContext.Create();
-            var repSocket = context.CreateResponseSocket();
-            repSocket.Bind(bindTo);
-
-            Msg message = new Msg();
-            message.InitEmpty();
-
-            for (int i = 0; i != roundtripCount; i++)
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
             {
-                repSocket.Receive(ref message, SendReceiveOptions.None);
-                if (message.Size != messageSize)
+                rep.Bind(bindTo);
+
+                var msg = new Msg();
+                msg.InitEmpty();
+
+                for (int i = 0; i != roundtripCount; i++)
                 {
-                    Console.WriteLine("message of incorrect size received. Received: " + message.Size + " Expected: " + messageSize);
-                    return -1;
+                    rep.Receive(ref msg);
+                    if (msg.Size != messageSize)
+                    {
+                        Console.WriteLine("message of incorrect size received. Received: " + msg.Size + " Expected: " + messageSize);
+                        return -1;
+                    }
+
+                    rep.Send(ref msg, SendReceiveOptions.None);
                 }
 
-                repSocket.Send(ref message, SendReceiveOptions.None);
+                msg.Close();
             }
-
-            message.Close();
-            repSocket.Close();
-            context.Terminate();
 
             return 0;
         }

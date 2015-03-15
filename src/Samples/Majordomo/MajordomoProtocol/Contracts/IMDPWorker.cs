@@ -13,7 +13,7 @@ namespace MajordomoProtocol.Contracts
         TimeSpan HeartbeatDelay { get; set; }
 
         /// <summary>
-        ///     delay in milliseconds between reconnets
+        ///     delay in milliseconds between reconnects
         /// </summary>
         TimeSpan ReconnectDelay { get; set; }
 
@@ -32,6 +32,6 @@ namespace MajordomoProtocol.Contracts
         ///      pass a <c>null</c> reply in order to initiate the REQ-REP
         ///      ping-pong
         /// </remarks>
-        NetMQMessage Receive (NetMQMessage reply);
+        NetMQMessage Receive(NetMQMessage reply);
     }
 }

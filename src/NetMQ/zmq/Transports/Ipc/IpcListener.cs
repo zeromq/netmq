@@ -18,42 +18,47 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
+using JetBrains.Annotations;
 using NetMQ.zmq.Transports.Tcp;
 
 namespace NetMQ.zmq.Transports.Ipc
 {
-    public class IpcListener : TcpListener
+    /// <summary>
+    /// An IpcListener is a TcpListener that also has an Address property and a SetAddress method.
+    /// </summary>
+    internal sealed class IpcListener : TcpListener
     {
-
         private readonly IpcAddress m_address;
 
-        public IpcListener(IOThread ioThread, SocketBase socket, Options options)
+        /// <summary>
+        /// Create a new IpcListener with the given IOThread, socket, and Options.
+        /// </summary>
+        /// <param name="ioThread"></param>
+        /// <param name="socket">the SocketBase to listen to</param>
+        /// <param name="options">an Options value that dictates the settings for this IpcListener</param>
+        public IpcListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, socket, options)
         {
             m_address = new IpcAddress();
         }
 
-        // Get the bound address for use with wildcards
-        public override String Address
+        /// <summary>
+        /// Get the bound address for use with wildcards
+        /// </summary>
+        public override string Address
         {
-            get
-            {
-                return m_address.ToString();
-            }
+            get { return m_address.ToString(); }
         }
 
-
-        //  Set address to listen on.
-        public override void SetAddress(String addr)
+        /// <summary>
+        /// Set address to listen on.
+        /// </summary>
+        /// <param name="addr">a string denoting the address to listen to</param>
+        public override void SetAddress(string addr)
         {
             m_address.Resolve(addr, false);
 
-            String fake = m_address.Address.Address + ":" + m_address.Address.Port;
-            base.SetAddress(fake);
+            base.SetAddress(m_address.Address.Address + ":" + m_address.Address.Port);
         }
-
-
-
     }
 }

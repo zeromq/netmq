@@ -1,29 +1,36 @@
-﻿namespace NetMQ.SimpleTests
+﻿using System;
+
+namespace NetMQ.SimpleTests
 {
-    using System;
-
-    internal class Program
+    internal static class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
-            RunTests(
-                new HelloWorld(),
-                new LatencyBenchmark(),
-                new ThroughputBenchmark());
+            // TODO include inproc variations
+            // TODO print system specs, as possible
 
-            Console.WriteLine("Finished running tests.");
-            Console.ReadLine();
-        }
-
-        private static void RunTests(params ITest[] tests)
-        {
-            foreach (ITest test in tests)
+            ITest[] tests =
             {
-                Console.WriteLine("Running test {0}...", test.TestName);
+                new LatencyBenchmark(),
+                new LatencyBenchmarkReusingMsg(),
+                new ThroughputBenchmark(),
+                new ThroughputBenchmarkReusingMsg()
+            };
+
+            Console.WriteLine();
+
+            foreach (var test in tests)
+            {
+                Console.WriteLine("======== {0}", test.TestName);
                 Console.WriteLine();
                 test.RunTest();
                 Console.WriteLine();
             }
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.Write("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }

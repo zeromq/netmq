@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -13,37 +8,31 @@ namespace NetMQ.Tests
         [Test]
         public void StreamToStream()
         {
-            using (NetMQContext context = NetMQContext.Create())
+            using (var context = NetMQContext.Create())
+            using (var server = context.CreateStreamSocket())
+            using (var client = context.CreateStreamSocket())
             {
-                using (var server = context.CreateStreamSocket())
-                {
-                    server.Bind("tcp://*:5557");
+                var port = server.BindRandomPort("tcp://*");
+                client.Connect("tcp://127.0.0.1:" + port);
 
-                    using (var client = context.CreateStreamSocket())
-                    {
-                        client.Connect("tcp://127.0.0.1:5557");
+                byte[] clientId = client.Options.Identity;
 
-                        byte[] id = client.Options.Identity;
+                const string request = "GET /\r\n";
 
-                        client.SendMore(id).Send("GET /\r\n");
+                const string response = "HTTP/1.0 200 OK\r\n" +
+                        "Content-Type: text/plain\r\n" +
+                        "\r\n" +
+                        "Hello, World!";
 
-                        id = server.Receive();
+                client.SendMore(clientId).Send(request);
 
-                        string message = server.ReceiveString();
+                byte[] serverId = server.ReceiveFrameBytes();
+                Assert.AreEqual(request, server.ReceiveFrameString());
 
-                        Assert.AreEqual(message, "GET /\r\n");
+                server.SendMore(serverId).Send(response);
 
-                        string response = "HTTP/1.0 200 OK\r\n" +
-                                          "Content-Type: text/plain\r\n\r\n" + "Hello, World!";
-
-                        server.SendMore(id).Send(response);
-
-                        id = client.Receive();
-                        message = client.ReceiveString();
-
-                        Assert.AreEqual(message, response);
-                    }
-                }
+                CollectionAssert.AreEqual(clientId, client.ReceiveFrameBytes());
+                Assert.AreEqual(response, client.ReceiveFrameString());
             }
         }
     }

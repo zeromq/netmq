@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using NUnit.Framework;
 using NetMQ.Security;
 using NetMQ.Security.V0_1;
+using NUnit.Framework;
 
 namespace NetMQ.Tests.Security
 {
@@ -235,7 +231,7 @@ namespace NetMQ.Tests.Security
 
             cipherMessage.RemoveFrame(cipherMessage.Last);
 
-            // appending new framew with length different then block size
+            // appending new frame with length different then block size
             cipherMessage.Append("Hello");
 
             NetMQSecurityException exception = Assert.Throws<NetMQSecurityException>(() => m_clientSecureChannel.DecryptApplicationMessage(cipherMessage));
@@ -265,7 +261,7 @@ namespace NetMQ.Tests.Security
 
             NetMQMessage cipherMessage = m_serverSecureChannel.EncryptApplicationMessage(plainMessage);
 
-            // make a copy of the message becauase the method alter the current message
+            // make a copy of the message because the method alter the current message
             NetMQMessage cipherMessageCopy = new NetMQMessage(cipherMessage);
 
             m_clientSecureChannel.DecryptApplicationMessage(cipherMessage);

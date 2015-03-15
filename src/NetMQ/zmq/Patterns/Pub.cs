@@ -20,32 +20,26 @@
 */
 
 using System;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Pub : XPub
+    internal sealed class Pub : XPub
     {
-
-        public class PubSession : XPub.XPubSession
+        public class PubSession : XPubSession
         {
-
-            public PubSession(IOThread ioThread, bool connect,
-                              SocketBase socket, Options options, Address addr)
+            public PubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-
-            }
-
+            {}
         }
 
-        public Pub(Ctx parent, int threadId, int socketId)
+        public Pub([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-
             m_options.SocketType = ZmqSocketType.Pub;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             //  Messages cannot be received from PUB socket.
             throw new NotSupportedException("Messages cannot be received from PUB socket");
@@ -55,6 +49,5 @@ namespace NetMQ.zmq.Patterns
         {
             return false;
         }
-
     }
 }

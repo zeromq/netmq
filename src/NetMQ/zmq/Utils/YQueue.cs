@@ -21,38 +21,60 @@
 
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
-    public class YQueue<T>
+    /// <summary>A FIFO queue.</summary>
+    /// <remarks>
+    /// The class supports:
+    /// <list type="bullet">
+    /// <item>Push-front via <see cref="Push"/>.</item>
+    /// <item>Pop-back via <see cref="Pop"/>.</item>
+    /// <item>Pop-front via <see cref="Unpush"/>.</item>
+    /// </list>
+    /// As such it is only one operation short of being a double-ended queue (dequeue or deque).
+    /// <para/>
+    /// The internal implementation consists of a doubly-linked list of fixed-size arrays.
+    /// </remarks>
+    /// <typeparam name="T"></typeparam>
+    internal sealed class YQueue<T>
     {
-        /// <summary> Individual memory chunk to hold N elements. </summary>
-        private class Chunk
+        #region Nested class: Chunk
+
+        /// <summary>Individual memory chunk to hold N elements.</summary>
+        private sealed class Chunk
         {
             public Chunk(int size, int globalIndex)
             {
                 Values = new T[size];
-                GlobalPosition = new int[size];
+                GlobalOffset = globalIndex;
                 Debug.Assert(Values != null);
-                Previous = Next = null;
-                for (int i = 0; i != Values.Length; i++)
-                {
-                    GlobalPosition[i] = globalIndex;
-                    globalIndex++;
-                }
             }
 
+            [NotNull]
             public T[] Values { get; private set; }
-            /// <summary> Contains global index positions of elements in the chunk. </summary>
-            public int[] GlobalPosition { get; private set; }
+
+            /// <summary>Contains global index positions of elements in the chunk.</summary>
+            public int GlobalOffset { get; private set; }
+
+            /// <summary>Optional link to the previous <see cref="Chunk"/>.</summary>
+            [CanBeNull]
             public Chunk Previous { get; set; }
+
+            /// <summary>Optional link to the next <see cref="Chunk"/>.</summary>
+            [CanBeNull]
             public Chunk Next { get; set; }
         }
 
-        //  Back position may point to invalid memory if the queue is empty,
-        //  while begin & end positions are always valid. Begin position is
-        //  accessed exclusively be queue reader (front/pop), while back and
-        //  end positions are accessed exclusively by queue writer (back/push).
+        #endregion
+
+        private readonly int m_chunkSize;
+
+        // Back position may point to invalid memory if the queue is empty,
+        // while begin & end positions are always valid. Begin position is
+        // accessed exclusively be queue reader (front/pop), while back and
+        // end positions are accessed exclusively by queue writer (back/push).
         private volatile Chunk m_beginChunk;
         private int m_beginPositionInChunk;
         private Chunk m_backChunk;
@@ -60,55 +82,52 @@ namespace NetMQ.zmq.Utils
         private Chunk m_endChunk;
         private int m_endPosition;
         private Chunk m_spareChunk;
-        private readonly int m_size;
 
-        //  People are likely to produce and consume at similar rates.  In
-        //  this scenario holding onto the most recently freed chunk saves
-        //  us from having to call malloc/free.
+        // People are likely to produce and consume at similar rates.  In
+        // this scenario holding onto the most recently freed chunk saves
+        // us from having to call malloc/free.
 
         private int m_nextGlobalIndex;
 
-
-        public YQueue(int size)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="chunkSize"/> should be no less than 2</exception>
+        public YQueue(int chunkSize)
         {
-            if (size < 2)
-                throw new ArgumentOutOfRangeException("size", "Size should be no less than 2");
+            if (chunkSize < 2)
+                throw new ArgumentOutOfRangeException("chunkSize", "Should be no less than 2");
 
-            this.m_size = size;
-            m_nextGlobalIndex = 0;
-            m_beginChunk = new Chunk(size, m_nextGlobalIndex);
-            m_nextGlobalIndex += size;
-            m_beginPositionInChunk = 0;
-            m_backPositionInChunk = 0;
+            m_chunkSize = chunkSize;
+
+            m_beginChunk = new Chunk(m_chunkSize, 0);
+            m_nextGlobalIndex = m_chunkSize;
             m_backChunk = m_beginChunk;
             m_spareChunk = m_beginChunk;
             m_endChunk = m_beginChunk;
             m_endPosition = 1;
         }
 
-        /// <summary> Gets the index of the front element of the queue. </summary>
-        /// <value> The index of the front element of the queue. </value>
-        /// <remarks> If the queue is empty, it should be equal to <see cref="BackPos"/>. </remarks>
-        public int FrontPos { get { return m_beginChunk.GlobalPosition[m_beginPositionInChunk]; } }
+        /// <summary>Gets the index of the front element of the queue.</summary>
+        /// <value>The index of the front element of the queue.</value>
+        /// <remarks>If the queue is empty, it should be equal to <see cref="BackPos"/>.</remarks>
+        public int FrontPos { get { return m_beginChunk.GlobalOffset + m_beginPositionInChunk; } }
 
-        /// <summary> Gets the front element of the queue. If the queue is empty, behaviour is undefined. </summary>
-        /// <value> The front element of the queue. </value>
+        /// <summary>Gets the front element of the queue. If the queue is empty, behaviour is undefined.</summary>
+        /// <value>The front element of the queue.</value>
         public T Front { get { return m_beginChunk.Values[m_beginPositionInChunk]; } }
 
-        /// <summary> Gets the index of the back element of the queue. </summary>
-        /// <value> The index of the back element of the queue. </value>
-        /// <remarks> If the queue is empty, it should be equal to <see cref="FrontPos"/>. </remarks>
-        public int BackPos { get { return m_backChunk.GlobalPosition[m_backPositionInChunk]; } }
+        /// <summary>Gets the index of the back element of the queue.</summary>
+        /// <value>The index of the back element of the queue.</value>
+        /// <remarks>If the queue is empty, it should be equal to <see cref="FrontPos"/>.</remarks>
+        public int BackPos { get { return m_backChunk.GlobalOffset + m_backPositionInChunk; } }
 
-        /// <summary> Retrieves the element at the front of the queue. </summary>
-        /// <returns> The element taken from queue. </returns>
+        /// <summary>Retrieves the element at the front of the queue.</summary>
+        /// <returns>The element taken from queue.</returns>
         public T Pop()
         {
             T value = m_beginChunk.Values[m_beginPositionInChunk];
             m_beginChunk.Values[m_beginPositionInChunk] = default(T);
             
             m_beginPositionInChunk++;
-            if (m_beginPositionInChunk == m_size)
+            if (m_beginPositionInChunk == m_chunkSize)
             {
                 m_beginChunk = m_beginChunk.Next;
                 m_beginChunk.Previous = null;
@@ -117,8 +136,7 @@ namespace NetMQ.zmq.Utils
             return value;
         }
 
-
-        /// <summary> Adds an element to the back end of the queue. </summary>
+        /// <summary>Adds an element to the back end of the queue.</summary>
         /// <param name="val">The value to be pushed.</param>
         public void Push(ref T val)
         {
@@ -127,7 +145,7 @@ namespace NetMQ.zmq.Utils
             m_backPositionInChunk = m_endPosition;
 
             m_endPosition++;
-            if (m_endPosition != m_size)
+            if (m_endPosition != m_chunkSize)
                 return;
 
             Chunk sc = m_spareChunk;
@@ -139,46 +157,50 @@ namespace NetMQ.zmq.Utils
             }
             else
             {
-                m_endChunk.Next = new Chunk(m_size, m_nextGlobalIndex);
-                m_nextGlobalIndex += m_size;
+                m_endChunk.Next = new Chunk(m_chunkSize, m_nextGlobalIndex);
+                m_nextGlobalIndex += m_chunkSize;
                 m_endChunk.Next.Previous = m_endChunk;
             }
             m_endChunk = m_endChunk.Next;
             m_endPosition = 0;
         }
 
-        /// <summary> Removes element from the back end of the queue. In other words it rollbacks last push to the queue. </summary>
-        /// <remarks> Caller is responsible for destroying the object being unpushed. 
-        /// The caller must also guarantee that the queue isn't empty when unpush is called. 
-        /// It cannot be done automatically as the read side of the queue can be managed by different, 
-        /// completely unsynchronized thread.</remarks>
+        /// <summary>Removes element from the back end of the queue, rolling back the last call to <see cref="Push"/>.</summary>
+        /// <remarks>The caller must guarantee that the queue isn't empty when calling this method.
+        /// It cannot be done automatically as the read side of the queue can be managed by different,
+        /// completely unsynchronized threads.</remarks>
+        /// <returns>The last item passed to <see cref="Push"/>.</returns>
         public T Unpush()
         {
-            //  First, move 'back' one position backwards.
+            // First, move 'back' one position backwards.
             if (m_backPositionInChunk > 0)
+            {
                 m_backPositionInChunk--;
+            }
             else
             {
-                m_backPositionInChunk = m_size - 1;
+                m_backPositionInChunk = m_chunkSize - 1;
                 m_backChunk = m_backChunk.Previous;
             }
 
-            //  Now, move 'end' position backwards. Note that obsolete end chunk
-            //  is not used as a spare chunk. The analysis shows that doing so
-            //  would require free and atomic operation per chunk deallocated
-            //  instead of a simple free.
+            // Now, move 'end' position backwards. Note that obsolete end chunk
+            // is not used as a spare chunk. The analysis shows that doing so
+            // would require free and atomic operation per chunk deallocated
+            // instead of a simple free.
             if (m_endPosition > 0)
+            {
                 m_endPosition--;
+            }
             else
             {
-                m_endPosition = m_size - 1;
+                m_endPosition = m_chunkSize - 1;
                 m_endChunk = m_endChunk.Previous;
                 m_endChunk.Next = null;
             }
 
-            //capturing and removing the unpushed value from chunk.
+            // Capturing and removing the unpushed value from chunk.
             T value = m_backChunk.Values[m_backPositionInChunk];
-            m_backChunk.Values[m_backPositionInChunk] = default (T);
+            m_backChunk.Values[m_backPositionInChunk] = default(T);
             
             return value;
         }

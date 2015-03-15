@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿#if NET35
 using System.Net;
-using System.Text;
-using NetMQ.zmq;
 
 namespace NetMQ
 {
-    class DnsEndPoint : EndPoint
+    /// <summary>
+    /// Placeholder for System.Net.DnsEndPoint, introduced in .NET 4.0.
+    /// This code is enabled for .NET 3.5 builds only, allowing compilation.
+    /// </summary>
+    internal class DnsEndPoint : EndPoint
     {
         public string Host { get; set; }
         public int Port { get; set; }
     }
 }
+#endif

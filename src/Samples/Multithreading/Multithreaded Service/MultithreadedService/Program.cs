@@ -3,37 +3,35 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NetMQ;
 using NetMQ.Devices;
 using NetMQ.Sockets;
 using NetMQ.zmq;
-using NetMQ;
 
 namespace MultithreadedService
 {
-    class Program
+    internal static class Program
     {
-        private static CancellationToken token;
+        private static CancellationToken s_token;
 
-        static void Main(string[] args)
+        private static void Main()
         {
+            Console.Title = "NetMQ Multi-threaded Service";
+
             using (var context = NetMQContext.Create())
             {
                 //var queue = new QueueDevice(context, "tcp://localhost:5555", "inproc://workers", DeviceMode.Threaded);
                 var queue = new QueueDevice(context, "tcp://localhost:5555", "tcp://localhost:5556", DeviceMode.Threaded);
 
-                CancellationTokenSource source = new CancellationTokenSource();
-                token = source.Token;
+                var source = new CancellationTokenSource();
+                s_token = source.Token;
 
-                List<Task> workerThreads = new List<Task>();
                 for (int threadId = 0; threadId < 10; threadId++)
-                {
-                    NetMQContext ctx = context;
-                    workerThreads.Add(Task.Factory.StartNew(() => WorkerRoutine(new Worker(Guid.NewGuid(), ctx)), token));
-                }
+                    Task.Factory.StartNew(() => WorkerRoutine(new Worker(Guid.NewGuid(), context)), s_token);
 
                 queue.Start();
 
-                List<Task> clientThreads = new List<Task>();
+                var clientThreads = new List<Task>();
                 for (int threadId = 0; threadId < 1000; threadId++)
                 {
                     int id = threadId;
@@ -55,26 +53,23 @@ namespace MultithreadedService
         {
             try
             {
-                using (NetMQContext context = NetMQContext.Create())
+                using (var context = NetMQContext.Create())
+                using (var req = context.CreateRequestSocket())
                 {
-                    using (RequestSocket req = context.CreateRequestSocket())
-                    {
-                        req.Connect("tcp://localhost:5555");
+                    req.Connect("tcp://localhost:5555");
 
-                        byte[] message = Encoding.Unicode.GetBytes(string.Format("{0} Hello", clientId));
+                    byte[] message = Encoding.Unicode.GetBytes(string.Format("{0} Hello", clientId));
 
-                        Console.WriteLine("Client {0} sent \"{0} Hello\"", clientId);
-                        req.Send(message, message.Length);
+                    Console.WriteLine("Client {0} sent \"{0} Hello\"", clientId);
+                    req.Send(message, message.Length);
 
-                        bool hasMore;
-                        byte[] response = req.Receive(false, out hasMore);
-                        Console.WriteLine("Client {0} received \"{1}\"", clientId, Encoding.Unicode.GetString(response));
-                    }
+                    var response = req.ReceiveFrameString(Encoding.Unicode);
+                    Console.WriteLine("Client {0} received \"{1}\"", clientId, response);
                 }
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on ClientRoutine: {0}", exc.Message);
+                Console.WriteLine("Exception on ClientRoutine: {0}", ex.Message);
             }
         }
 
@@ -82,7 +77,7 @@ namespace MultithreadedService
         {
             try
             {
-                Worker thisWorkerContext = (Worker)workerContext;
+                var thisWorkerContext = (Worker)workerContext;
 
                 using (ResponseSocket rep = thisWorkerContext.Context.CreateResponseSocket())
                 {
@@ -90,27 +85,26 @@ namespace MultithreadedService
                     rep.Connect("tcp://localhost:5556");
                     //rep.Connect("inproc://workers");
                     rep.ReceiveReady += RepOnReceiveReady;
-                    while (!token.IsCancellationRequested)
+                    while (!s_token.IsCancellationRequested)
                     {
                         rep.Poll(TimeSpan.FromMilliseconds(100));
                     }
                 }
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on WorkerRoutine: {0}", exc.Message);
+                Console.WriteLine("Exception on WorkerRoutine: {0}", ex.Message);
                 throw;
             }
         }
 
-        private static void RepOnReceiveReady(object sender, NetMQSocketEventArgs socket)
+        private static void RepOnReceiveReady(object sender, NetMQSocketEventArgs args)
         {
             try
             {
-                NetMQSocket rep = socket.Socket;
+                NetMQSocket rep = args.Socket;
 
-                bool hasMore;
-                byte[] message = rep.Receive(SendReceiveOptions.DontWait, out hasMore);
+                byte[] message = rep.ReceiveFrameBytes();
 
                 //Thread.Sleep(1000); //  Simulate 'work'
 
@@ -119,9 +113,9 @@ namespace MultithreadedService
 
                 rep.Send(response, response.Length, SendReceiveOptions.DontWait);
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Exception on RepOnReceiveReady: {0}", exc.Message);
+                Console.WriteLine("Exception on RepOnReceiveReady: {0}", ex.Message);
                 throw;
             }
         }

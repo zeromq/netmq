@@ -21,24 +21,20 @@
 
 using System;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Patterns
 {
-    class Sub : XSub
+    internal sealed class Sub : XSub
     {
-        public class SubSession : XSub.XSubSession
+        public class SubSession : XSubSession
         {
-
-            public SubSession(IOThread ioThread, bool connect,
-                              SocketBase socket, Options options, Address addr)
+            public SubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {
-
-            }
-
+            {}
         }
 
-        public Sub(Ctx parent, int threadId, int socketId)
+        public Sub([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Sub;
@@ -48,39 +44,40 @@ namespace NetMQ.zmq.Patterns
             m_options.Filter = true;
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOptions option, Object optval)
+        protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
         {
-            if (option != ZmqSocketOptions.Subscribe && option != ZmqSocketOptions.Unsubscribe)
+            if (option != ZmqSocketOption.Subscribe && option != ZmqSocketOption.Unsubscribe)
             {
                 return false;
             }
 
             byte[] val;
 
-            if (optval is String)
-                val = Encoding.ASCII.GetBytes((String)optval);
-            else if (optval is byte[])
-                val = (byte[])optval;
+            if (optionValue is string)
+                val = Encoding.ASCII.GetBytes((string)optionValue);
+            else if (optionValue is byte[])
+                val = (byte[])optionValue;
             else
-                throw new InvalidException();
+                throw new InvalidException(string.Format("In Sub.XSetSocketOption({0},{1}), optionValue must be either a string or a byte-array.", option, (optionValue == null ? "null" : optionValue.ToString())));
 
             //  Create the subscription message.
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitPool(val.Length + 1);
-            if (option == ZmqSocketOptions.Subscribe)
-                msg.Put((byte)1);
-            else if (option == ZmqSocketOptions.Unsubscribe)
-                msg.Put((byte)0);
+            if (option == ZmqSocketOption.Subscribe)
+                msg.Put(1);
+            else if (option == ZmqSocketOption.Unsubscribe)
+                msg.Put(0);
             msg.Put(val, 1, val.Length);
 
             try
             {
                 //  Pass it further on in the stack.
-                bool isMessageSent = base.XSend(ref msg, 0);
+                bool isMessageSent = base.XSend(ref msg);
 
                 if (!isMessageSent)
                 {
-                    throw new AgainException();
+                    string xMsg = string.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
+                    throw new AgainException(innerException: null, message: xMsg);
                 }
             }
             finally
@@ -91,10 +88,11 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        /// <exception cref="NotSupportedException">XSend not supported on Sub socket</exception>
+        protected override bool XSend(ref Msg msg)
         {
             //  Overload the XSUB's send.
-            throw new NotSupportedException("Send not supported on sub socket");
+            throw new NotSupportedException("XSend not supported on Sub socket");
         }
 
         protected override bool XHasOut()

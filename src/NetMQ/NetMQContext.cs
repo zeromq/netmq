@@ -1,75 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
+using JetBrains.Annotations;
+using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NetMQ.zmq;
-using NetMQ.Monitoring;
 
 namespace NetMQ
 {
     /// <summary>
-    /// Context class of the NetMQ, you should have only one context in your application
+    /// NetMQContext is the context class of the NetMQ message-queueing subsystem.
+    /// This contains all of the state-information for the message-queueing subsystem, and provides
+    /// methods for socket creation.
+    /// You should (ordinarily) have only one context in your application process.
     /// </summary>
     public class NetMQContext : IDisposable
     {
-        readonly Ctx m_ctx;
-        private int m_isClosed = 0;
+        private readonly Ctx m_ctx;
+        private int m_isClosed;
 
-
-        private NetMQContext(Ctx ctx)
+        private NetMQContext([NotNull] Ctx ctx)
         {
             m_ctx = ctx;
         }
 
         /// <summary>
-        /// Create a new context
+        /// Create and return a new context.
         /// </summary>
-        /// <returns>The new context</returns>
+        /// <returns>the new NetMQContext</returns>
+        [NotNull]
         public static NetMQContext Create()
         {
             return new NetMQContext(new Ctx());
         }
 
         /// <summary>
-        /// Number of IO Threads in the context, default is 1, 1 is good for most cases
+        /// Get or set the number of IO Threads in the context, default is 1.
+        /// 1 is good for most cases.
         /// </summary>
         public int ThreadPoolSize
         {
-            get
-            {
-                m_ctx.CheckDisposed();
-
-                return m_ctx.Get(ContextOption.IOThreads);                 
-            }
-            set
-            {
-                m_ctx.CheckDisposed();
-
-                m_ctx.Set(ContextOption.IOThreads, value);                               
-            }
+            get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.IOThreads); }
+            set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.IOThreads, value); }
         }
 
         /// <summary>
-        /// Maximum number of sockets
+        /// Get or set the maximum number of sockets.
         /// </summary>
         public int MaxSockets
         {
-            get
-            {
-                m_ctx.CheckDisposed();
-
-                return m_ctx.Get(ContextOption.MaxSockets);
-            }
-            set
-            {
-                m_ctx.CheckDisposed();
-
-                m_ctx.Set(ContextOption.MaxSockets, value);
-            }
+            get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.MaxSockets); }
+            set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.MaxSockets, value); }
         }
 
+        #region Socket Creation
+
+        [CanBeNull]
         private SocketBase CreateHandle(ZmqSocketType socketType)
         {
             m_ctx.CheckDisposed();
@@ -77,6 +62,12 @@ namespace NetMQ
             return m_ctx.CreateSocket(socketType);
         }
 
+        /// <summary>
+        /// Create and return a new socket of the given socketType.
+        /// </summary>
+        /// <param name="socketType">a ZmqSocketType indicating the type of socket to create</param>
+        /// <returns>a new socket - a subclass of NetMQSocket</returns>
+        [NotNull]
         public NetMQSocket CreateSocket(ZmqSocketType socketType)
         {
             var socketHandle = CreateHandle(socketType);
@@ -113,134 +104,132 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create request socket
+        /// Create and return a new request-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new RequestSocket</returns>
+        [NotNull]
         public RequestSocket CreateRequestSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Req);
-
-            return new RequestSocket(socketHandle);
+            return new RequestSocket(CreateHandle(ZmqSocketType.Req));
         }
 
         /// <summary>
-        /// Create response socket
+        /// Create and return a new response-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new ResponseSocket</returns>
+        [NotNull]
         public ResponseSocket CreateResponseSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Rep);
-
-            return new ResponseSocket(socketHandle);
+            return new ResponseSocket(CreateHandle(ZmqSocketType.Rep));
         }
 
         /// <summary>
-        /// Create dealer socket
+        /// Create and return a new dealer-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new DealerSocket</returns>
+        [NotNull]
         public DealerSocket CreateDealerSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Dealer);
-
-            return new DealerSocket(socketHandle);
+            return new DealerSocket(CreateHandle(ZmqSocketType.Dealer));
         }
 
         /// <summary>
-        /// Create router socket
+        /// Create and return a new router-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new RouterSocket</returns>
+        [NotNull]
         public RouterSocket CreateRouterSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Router);
-
-            return new RouterSocket(socketHandle);
+            return new RouterSocket(CreateHandle(ZmqSocketType.Router));
         }
 
         /// <summary>
-        /// Create xpublisher socket
+        /// Create and return a new xpublisher-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new XPublisherSocket</returns>
+        [NotNull]
         public XPublisherSocket CreateXPublisherSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Xpub);
-
-            return new XPublisherSocket(socketHandle);
+            return new XPublisherSocket(CreateHandle(ZmqSocketType.Xpub));
         }
 
         /// <summary>
-        /// Create pair socket
+        /// Create and return a new pair-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new PairSocket</returns>
+        [NotNull]
         public PairSocket CreatePairSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Pair);
-
-            return new PairSocket(socketHandle);
+            return new PairSocket(CreateHandle(ZmqSocketType.Pair));
         }
 
         /// <summary>
-        /// Create push socket
+        /// Create and return a new push-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new PushSocket</returns>
+        [NotNull]
         public PushSocket CreatePushSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Push);
-
-            return new PushSocket(socketHandle);
+            return new PushSocket(CreateHandle(ZmqSocketType.Push));
         }
 
         /// <summary>
-        /// Create publisher socket
+        /// Create and return a new publisher-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new PublisherSocket</returns>
+        [NotNull]
         public PublisherSocket CreatePublisherSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Pub);
-
-            return new PublisherSocket(socketHandle);
+            return new PublisherSocket(CreateHandle(ZmqSocketType.Pub));
         }
 
         /// <summary>
-        /// Create pull socket
+        /// Create and return a new pull-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new PullSocket</returns>
+        [NotNull]
         public PullSocket CreatePullSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Pull);
-
-            return new PullSocket(socketHandle);
+            return new PullSocket(CreateHandle(ZmqSocketType.Pull));
         }
 
         /// <summary>
-        /// Create subscriber socket
+        /// Create and return a new subscriber-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new SubscriberSocket</returns>
+        [NotNull]
         public SubscriberSocket CreateSubscriberSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Sub);
-
-            return new SubscriberSocket(socketHandle);
+            return new SubscriberSocket(CreateHandle(ZmqSocketType.Sub));
         }
 
         /// <summary>
-        /// Create xsub socket
+        /// Create and return a new xsubscriber-socket.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the new XSubscriberSocket</returns>
+        [NotNull]
         public XSubscriberSocket CreateXSubscriberSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Xsub);
-
-            return new XSubscriberSocket(socketHandle);
+            return new XSubscriberSocket(CreateHandle(ZmqSocketType.Xsub));
         }
 
+        /// <summary>
+        /// Create and return a new stream-socket.
+        /// </summary>
+        /// <returns>the new StreamSocket</returns>
+        [NotNull]
         public StreamSocket CreateStreamSocket()
         {
-            var socketHandle = CreateHandle(ZmqSocketType.Stream);
-
-            return new StreamSocket(socketHandle);
+            return new StreamSocket(CreateHandle(ZmqSocketType.Stream));
         }
 
-        public NetMQMonitor CreateMonitorSocket(string endpoint)
+        /// <summary>
+        /// Create and return a new monitor-socket that monitors the given endpoint.
+        /// </summary>
+        /// <param name="endpoint">a string denoting the endpoint to be monitored</param>
+        /// <returns>the new NetMQMonitor</returns>
+        [NotNull]
+        public NetMQMonitor CreateMonitorSocket([NotNull] string endpoint)
         {
             if (endpoint == null)
             {
@@ -255,21 +244,38 @@ namespace NetMQ
             return new NetMQMonitor(CreatePairSocket(), endpoint);
         }
 
+        #endregion
+
         /// <summary>
-        /// Close the context
+        /// Close (terminate) this context.
         /// </summary>
+        /// <remarks>
+        /// May be safely called even if already terminated.
+        /// This must not be called on a context that is already closed otherwise an ObjectDisposedException is thrown.
+        /// </remarks>
         public void Terminate()
         {
-            if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) == 0)
-            {
-                m_ctx.CheckDisposed();
+            if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) != 0)
+                return;
 
-                m_ctx.Terminate();                
-            }
+            m_ctx.CheckDisposed();
+            m_ctx.Terminate();
         }
 
+        /// <summary>
+        /// Close (or terminate) this context.
+        /// </summary>
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             Terminate();
         }
     }

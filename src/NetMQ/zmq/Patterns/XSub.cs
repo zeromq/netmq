@@ -19,54 +19,65 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System.Configuration;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
 namespace NetMQ.zmq.Patterns
 {
-    class XSub : SocketBase
+    internal class XSub : SocketBase
     {
+        /// <summary>
+        /// An XSubSession is a subclass of SessionBase that provides nothing more.
+        /// </summary>
         public class XSubSession : SessionBase
         {
-
-            public XSubSession(IOThread ioThread, bool connect,
-                               SocketBase socket, Options options, Address addr) :
-                base(ioThread, connect, socket, options, addr)
-            {
-            }
-
+            public XSubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+                : base(ioThread, connect, socket, options, addr)
+            {}
         }
 
-        //  Fair queueing object for inbound pipes.
+        /// <summary>
+        /// Fair queueing object for inbound pipes.
+        /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        //  Object for distributing the subscriptions upstream.
+        /// <summary>
+        /// Object for distributing the subscriptions upstream.
+        /// </summary>
         private readonly Distribution m_distribution;
 
-        //  The repository of subscriptions.
+        /// <summary>
+        /// The repository of subscriptions.
+        /// </summary>
         private readonly Trie m_subscriptions;
 
-        //  If true, 'message' contains a matching message to return on the
-        //  next recv call.
+        /// <summary>
+        /// If true, 'message' contains a matching message to return on the
+        /// next recv call.
+        /// </summary>
         private bool m_hasMessage;
+
         private Msg m_message;
 
-        //  If true, part of a multipart message was already received, but
-        //  there are following parts still waiting.
+        /// <summary>
+        /// If true, part of a multipart message was already received, but
+        /// there are following parts still waiting.
+        /// </summary>
         private bool m_more;
+
         private static readonly Trie.TrieDelegate s_sendSubscription;
 
         static XSub()
         {
             s_sendSubscription = (data, size, arg) =>
             {
-                Pipe pipe = (Pipe)arg;
+                var pipe = (Pipe)arg;
 
-                //  Create the subsctription message.
-                Msg msg = new Msg();
+                //  Create the subscription message.
+                var msg = new Msg();
                 msg.InitPool(size + 1);
-                msg.Put((byte)1);
+                msg.Put(1);
                 msg.Put(data, 1, size);
 
                 //  Send it to the pipe.
@@ -80,10 +91,9 @@ namespace NetMQ.zmq.Patterns
             };
         }
 
-        public XSub(Ctx parent, int threadId, int socketId)
+        public XSub([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-
             m_options.SocketType = ZmqSocketType.Xsub;
             m_hasMessage = false;
             m_more = false;
@@ -103,6 +113,11 @@ namespace NetMQ.zmq.Patterns
             m_message.Close();
         }
 
+        /// <summary>
+        /// Register the pipe with this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
+        /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
@@ -137,32 +152,32 @@ namespace NetMQ.zmq.Patterns
             pipe.Flush();
         }
 
-        protected override bool XSend(ref Msg msg, SendReceiveOptions flags)
+        protected override bool XSend(ref Msg msg)
         {
             byte[] data = msg.Data;
             int size = msg.Size;
-            
+
             if (size > 0 && data[0] == 1)
             {
                 // Process the subscription.
-                if (m_subscriptions.Add(data, 1, size-1))
+                if (m_subscriptions.Add(data, 1, size - 1))
                 {
-                    m_distribution.SendToAll(ref msg, flags);
+                    m_distribution.SendToAll(ref msg);
                     return true;
-                }               
+                }
             }
             else if (size > 0 && data[0] == 0)
             {
-                if (m_subscriptions.Remove(data, 1,size-1))
+                if (m_subscriptions.Remove(data, 1, size - 1))
                 {
-                    m_distribution.SendToAll(ref msg, flags);
+                    m_distribution.SendToAll(ref msg);
                     return true;
                 }
             }
             else
             {
                 // upstream message unrelated to sub/unsub
-                m_distribution.SendToAll(ref msg, flags);
+                m_distribution.SendToAll(ref msg);
 
                 return true;
             }
@@ -179,7 +194,7 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        protected override bool XRecv(SendReceiveOptions flags, ref Msg msg)
+        protected override bool XRecv(ref Msg msg)
         {
             //  If there's already a message prepared by a previous call to zmq_poll,
             //  return it straight ahead.
@@ -197,7 +212,6 @@ namespace NetMQ.zmq.Patterns
             //  semantics.
             while (true)
             {
-
                 //  Get a message using fair queueing algorithm.
                 bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
 
@@ -242,7 +256,6 @@ namespace NetMQ.zmq.Patterns
             //  stream of non-matching messages.
             while (true)
             {
-
                 //  Get a message using fair queueing algorithm.
                 bool isMessageAvailable = m_fairQueueing.Recv(ref m_message);
 

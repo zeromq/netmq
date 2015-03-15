@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Net;
+using System.Net.Sockets;
 using AsyncIO;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    class PgmSender : IOObject, IEngine, IProcatorEvents
+    internal sealed class PgmSender : IOObject, IEngine, IProactorEvents
     {
         private readonly Options m_options;
         private readonly Address m_addr;
-        private V1Encoder m_encoder;
+        private readonly V1Encoder m_encoder;
 
         private AsyncSocket m_socket;
         private PgmSocket m_pgmSocket;
@@ -23,7 +21,7 @@ namespace NetMQ.zmq.Transports.PGM
 
         private int m_writeSize;
 
-        enum State
+        private enum State
         {
             Idle,
             Connecting,
@@ -35,7 +33,7 @@ namespace NetMQ.zmq.Transports.PGM
         private State m_state;
         private PgmAddress m_pgmAddress;
 
-        public PgmSender(IOThread ioThread, Options options, Address addr)
+        public PgmSender([NotNull] IOThread ioThread, [NotNull] Options options, [NotNull] Address addr)
             : base(ioThread)
         {
             m_options = options;
@@ -49,7 +47,7 @@ namespace NetMQ.zmq.Transports.PGM
             m_state = State.Idle;
         }
 
-        public void Init(PgmAddress pgmAddress)
+        public void Init([NotNull] PgmAddress pgmAddress)
         {
             m_pgmAddress = pgmAddress;
 
@@ -58,22 +56,22 @@ namespace NetMQ.zmq.Transports.PGM
 
             m_socket = m_pgmSocket.Handle;
 
-            IPEndPoint localEndpoint = new IPEndPoint(IPAddress.Any, 0);
+            var localEndpoint = new IPEndPoint(IPAddress.Any, 0);
 
             m_socket.Bind(localEndpoint);
 
             m_pgmSocket.InitOptions();
 
             m_outBufferSize = Config.PgmMaxTPDU;
-            m_outBuffer = new ByteArraySegment(new byte[m_outBufferSize]);            
+            m_outBuffer = new ByteArraySegment(new byte[m_outBufferSize]);
         }
 
         public void Plug(IOThread ioThread, SessionBase session)
         {
-            m_encoder.SetMsgSource(session);            
-            
+            m_encoder.SetMsgSource(session);
+
             // get the first message from the session because we don't want to send identities
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitEmpty();
 
             bool ok = session.PullMsg(ref msg);
@@ -86,7 +84,7 @@ namespace NetMQ.zmq.Transports.PGM
             AddSocket(m_socket);
 
             m_state = State.Connecting;
-            m_socket.Connect(m_pgmAddress.Address);            
+            m_socket.Connect(m_pgmAddress.Address);
         }
 
         public void Terminate()
@@ -95,7 +93,6 @@ namespace NetMQ.zmq.Transports.PGM
             m_encoder.SetMsgSource(null);
         }
 
-
         public void ActivateOut()
         {
             if (m_state == State.ActiveSendingIdle)
@@ -103,7 +100,7 @@ namespace NetMQ.zmq.Transports.PGM
                 m_state = State.Active;
                 m_writeSize = 0;
                 BeginSending();
-            }            
+            }
         }
 
         public void ActivateIn()
@@ -147,7 +144,7 @@ namespace NetMQ.zmq.Transports.PGM
             else
             {
                 Debug.Assert(false);
-            }           
+            }
         }
 
         private void BeginSending()
@@ -158,14 +155,14 @@ namespace NetMQ.zmq.Transports.PGM
                 //  First two bytes (sizeof uint16_t) are used to store message 
                 //  offset in following steps. Note that by passing our buffer to
                 //  the get data function we prevent it from returning its own buffer.
-                ByteArraySegment bf = new ByteArraySegment(m_outBuffer, sizeof(ushort));
+                var bf = new ByteArraySegment(m_outBuffer, sizeof(ushort));
                 int bfsz = m_outBufferSize - sizeof(ushort);
                 int offset = -1;
                 m_encoder.GetData(ref bf, ref bfsz, ref offset);
 
                 //  If there are no data to write stop polling for output.
                 if (bfsz == 0)
-                {   
+                {
                     m_state = State.ActiveSendingIdle;
                     return;
                 }
@@ -173,17 +170,17 @@ namespace NetMQ.zmq.Transports.PGM
                 //  Put offset information in the buffer.
                 m_writeSize = bfsz + sizeof(ushort);
 
-                m_outBuffer.PutUnsingedShort(m_options.Endian, offset == -1 ? (ushort)0xffff : (ushort)offset, 0);
+                m_outBuffer.PutUnsignedShort(m_options.Endian, offset == -1 ? (ushort)0xffff : (ushort)offset, 0);
             }
 
             try
             {
-                m_socket.Send((byte[])m_outBuffer, m_outBuffer.Offset, m_writeSize, SocketFlags.None);           
+                m_socket.Send((byte[])m_outBuffer, m_outBuffer.Offset, m_writeSize, SocketFlags.None);
             }
             catch (SocketException ex)
             {
                 NetMQException.Create(ex.SocketErrorCode);
-            }                      
+            }
         }
 
         public override void InCompleted(SocketError socketError, int bytesTransferred)
@@ -195,6 +192,5 @@ namespace NetMQ.zmq.Transports.PGM
         {
             throw new NotImplementedException();
         }
-
     }
 }

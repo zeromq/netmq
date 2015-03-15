@@ -20,50 +20,55 @@
 */
 
 using System;
+using JetBrains.Annotations;
 
-//  This structure defines the commands that can be sent between threads.
 namespace NetMQ.zmq
 {
-    public class Command
+    /// <summary>
+    /// This class defines the commands that can be sent between threads.
+    /// </summary>
+    internal sealed class Command
     {
-
-        //  Object to process the command.		
-
+        /// <summary>
+        /// Default constructor - create the Command object for processing commands.
+        /// </summary>
         public Command()
         {
         }
 
-        public Command(ZObject destination, CommandType type)
-            : this(destination, type, null)
+        /// <summary>
+        /// Create a new Command object for the given destination, type, and optional argument.
+        /// </summary>
+        /// <param name="destination">a ZObject that denotes the destination for this command</param>
+        /// <param name="type">the CommandType of the new command</param>
+        /// <param name="arg">an Object to comprise the argument for the command (optional)</param>
+        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null)
         {
-
+            Destination = destination;
+            CommandType = type;
+            Arg = arg;
         }
 
-        public Command(ZObject destination, CommandType type, Object arg)
-        {
-            this.Destination = destination;
-            this.CommandType = type;
-            this.Arg = arg;
-        }
+        /// <summary>The destination to which the command should be applied.</summary>
+        [CanBeNull]
+        public ZObject Destination { get; private set; }
 
-        public ZObject Destination
-        {
-            get;
-            private set;
-        }
+        /// <summary>The type of this command.</summary>
+        public CommandType CommandType { get; private set; }
 
-        public CommandType CommandType
-        {
-            get;
-            private set;
-        }
-
+        /// <summary>
+        /// Get the argument to this command.
+        /// </summary>
+        [CanBeNull]
         public Object Arg { get; private set; }
 
-        public override String ToString()
+        /// <summary>
+        /// Override of ToString, which returns a string in the form [ command-type, destination ].
+        /// </summary>
+        /// <returns>a string that denotes the command-type and destination</returns>
+        public override string ToString()
         {
             return base.ToString() + "[" + CommandType + ", " + Destination + "]";
         }
-
     }
 }

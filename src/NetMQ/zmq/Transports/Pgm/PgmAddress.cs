@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
+using System.Net.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Transports.PGM
 {
-    public class PgmAddress : Address.IZAddress
+    internal sealed class PgmAddress : Address.IZAddress
     {
-        private string m_network;
-
-        public PgmAddress(string network)
+        /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
+        public PgmAddress([NotNull] string network)
         {
             Resolve(network, true);
         }
@@ -19,19 +17,18 @@ namespace NetMQ.zmq.Transports.PGM
         {
         }
 
+        /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
         public void Resolve(string name, bool ip4Only)
         {
-            m_network = name;
-
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
-                throw new InvalidException();
+                throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), delimiter ({2}) must be non-negative.", name, ip4Only, delimiter));
             }
 
             //  Separate the address/port.
-            String addrStr = name.Substring(0, delimiter);
-            String portStr = name.Substring(delimiter + 1);
+            string addrStr = name.Substring(0, delimiter);
+            string portStr = name.Substring(delimiter + 1);
 
             if (addrStr.Contains(";"))
             {
@@ -47,70 +44,55 @@ namespace NetMQ.zmq.Transports.PGM
             }
 
             //  Remove square brackets around the address, if any.
-            if (addrStr.Length >= 2 && addrStr[0] == '[' &&
-                    addrStr[addrStr.Length - 1] == ']')
+            if (addrStr.Length >= 2 && addrStr[0] == '[' && addrStr[addrStr.Length - 1] == ']')
                 addrStr = addrStr.Substring(1, addrStr.Length - 2);
 
             int port;
             //  Allow 0 specifically, to detect invalid port error in atoi if not
-            if (portStr.Equals("*") || portStr.Equals("0"))
-                //  Resolve wildcard to 0 to allow autoselection of port
+            if (portStr == "*" || portStr == "0")
+            {
+                //  Resolve wildcard to 0 to allow auto-selection of port
                 port = 0;
+            }
             else
             {
                 //  Parse the port number (0 is not a valid port).
                 port = Convert.ToInt32(portStr);
+                
                 if (port == 0)
-                {
-                    throw new InvalidException();
-                }
+                    throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), portStr ({2}) must denote a valid nonzero integer.", name, ip4Only, portStr));
             }
 
-            IPEndPoint addrNet = null;
-
-            if (addrStr.Equals("*"))
-            {
+            if (addrStr == "*")
                 addrStr = "0.0.0.0";
-            }
 
             IPAddress ipAddress;
-
             if (!IPAddress.TryParse(addrStr, out ipAddress))
-            {
-                throw new InvalidException();
-            }
+                throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), addrStr ({2}) must be a valid IPAddress.", name, ip4Only, addrStr));
 
-            addrNet = new IPEndPoint(ipAddress, port);
-
-            Address = addrNet;
+            Address = new IPEndPoint(ipAddress, port);
         }
 
+        [CanBeNull]
         public IPAddress InterfaceAddress { get; private set; }
 
-        public IPEndPoint Address { get; set; }
+        public IPEndPoint Address { get; private set; }
 
-        public override String ToString()
+        public override string ToString()
         {
             if (Address == null)
-            {
                 return string.Empty;
-            }
 
             IPEndPoint endpoint = Address;
 
-            if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-            {
-                return Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port;
-            }
-            else
-            {
-                return Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
-            }
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
+                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port 
+                : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
-        public String Protocol
+        public string Protocol
         {
-            get { return NetMQ.zmq.Address.PgmProtocol; }
+            get { return zmq.Address.PgmProtocol; }
         }
     }
 }
