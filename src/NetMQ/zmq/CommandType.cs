@@ -7,7 +7,7 @@ namespace NetMQ.zmq
     /// The value of <see cref="Command.CommandType"/> denotes what action
     /// the command will perform.
     /// </remarks>
-    public enum CommandType
+    internal enum CommandType
     {
         /// <summary>
         /// Sent to I/O thread to let it know that it should
