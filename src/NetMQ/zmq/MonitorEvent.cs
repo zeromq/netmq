@@ -64,11 +64,6 @@ namespace NetMQ.zmq
             get { return m_arg; }
         }
 
-        public int Flag
-        {
-            get { return m_flag; }
-        }
-
         public SocketEvent Event
         {
             get { return m_monitorEvent; }
