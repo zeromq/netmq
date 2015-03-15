@@ -48,14 +48,11 @@ namespace NetMQ.zmq.Transports
 
         private readonly int m_buffersize;
 
-        private bool m_error;
-
         protected EncoderBase(int bufsize, Endianness endian)
         {
             Endian = endian;
             m_buffersize = bufsize;
             m_buf = new byte[bufsize];
-            m_error = false;
         }
 
         public Endianness Endian { get; private set; }
@@ -143,16 +140,6 @@ namespace NetMQ.zmq.Transports
         {
             get;
             private set;
-        }
-
-        protected void EncodingError()
-        {
-            m_error = true;
-        }
-
-        public bool IsError()
-        {
-            return m_error;
         }
 
         abstract protected bool Next();
