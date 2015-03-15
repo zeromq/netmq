@@ -100,8 +100,8 @@
     <Compile Include="zmq\Command.cs" />
     <Compile Include="zmq\CommandType.cs" />
     <Compile Include="zmq\Config.cs" />
+    <Compile Include="zmq\ContextOption.cs" />
     <Compile Include="zmq\Ctx.cs" />
-    <Compile Include="zmq\Enums.cs" />
     <Compile Include="zmq\ErrorHelper.cs" />
     <Compile Include="zmq\IMsgSink.cs" />
     <Compile Include="zmq\IMsgSource.cs" />
@@ -178,6 +178,7 @@
     <Compile Include="zmq\Utils\StringLib.cs" />
     <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="zmq\YPipe.cs" />
+    <Compile Include="zmq\ZmqSocketOption.cs" />
     <Compile Include="zmq\ZObject.cs" />
     <None Include="packages.NetMQ3.5.config" />
   </ItemGroup>

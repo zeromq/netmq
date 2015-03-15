@@ -119,6 +119,7 @@
     <Compile Include="Sockets\XPublisherSocket.cs" />
     <Compile Include="Sockets\XSubscriberSocket.cs" />
     <Compile Include="NetMQTimer.cs" />
+    <Compile Include="ZmqNamespacePlaceholder.cs" />
     <Compile Include="zmq\Address.cs" />
     <Compile Include="Endianness.cs" />
     <Compile Include="SendReceiveOptions.cs" />
@@ -143,7 +144,7 @@
     <Compile Include="zmq\Patterns\Utils\Distribution.cs" />
     <Compile Include="zmq\Transports\V1Encoder.cs" />
     <Compile Include="zmq\Transports\EncoderBase.cs" />
-    <Compile Include="zmq\Enums.cs" />
+    <Compile Include="zmq\ContextOption.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="zmq\ErrorHelper.cs" />
     <Compile Include="zmq\Transports\IDecoder.cs" />
@@ -210,6 +211,7 @@
     <Compile Include="zmq\YPipe.cs" />
     <Compile Include="zmq\Utils\YQueue.cs" />
     <Compile Include="ZmqSocketType.cs" />
+    <Compile Include="zmq\ZmqSocketOption.cs" />
     <Compile Include="zmq\ZObject.cs" />
     <None Include="packages.config" />
   </ItemGroup>
