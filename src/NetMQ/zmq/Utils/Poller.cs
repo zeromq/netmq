@@ -108,10 +108,10 @@ namespace NetMQ.zmq.Utils
         /// </summary>
         private readonly HashSet<Socket> m_checkRead = new HashSet<Socket>();
 
-        /// <summary>
-        /// The set of Sockets to check for write-readiness.
-        /// </summary>
-        private readonly HashSet<Socket> m_checkWrite = new HashSet<Socket>();
+//        /// <summary>
+//        /// The set of Sockets to check for write-readiness.
+//        /// </summary>
+//        private readonly HashSet<Socket> m_checkWrite = new HashSet<Socket>();
 
         /// <summary>
         /// The set of Sockets to check for any errors.
@@ -189,7 +189,7 @@ namespace NetMQ.zmq.Utils
 
             m_checkError.Remove(handle);
             m_checkRead.Remove(handle);
-            m_checkWrite.Remove(handle);
+//            m_checkWrite.Remove(handle);
 
             //  Decrease the load metric of the thread.
             AdjustLoad(-1);
@@ -262,7 +262,7 @@ namespace NetMQ.zmq.Utils
         private void Loop()
         {
             var readList = new List<Socket>();
-            var writeList = new List<Socket>();
+//            var writeList = new List<Socket>();
             var errorList = new List<Socket>();
 
             while (!m_stopping)
@@ -275,12 +275,12 @@ namespace NetMQ.zmq.Utils
                 int timeout = ExecuteTimers();
 
                 readList.AddRange(m_checkRead.ToArray());
-                writeList.AddRange(m_checkWrite.ToArray());
+//                writeList.AddRange(m_checkWrite.ToArray());
                 errorList.AddRange(m_checkError.ToArray());
 
                 try
                 {
-                    SocketUtility.Select(readList, writeList, errorList, timeout != 0 ? timeout * 1000 : -1);
+                    SocketUtility.Select(readList, /*writeList*/null, errorList, timeout != 0 ? timeout * 1000 : -1);
                 }
                 catch (SocketException)
                 {
@@ -308,20 +308,20 @@ namespace NetMQ.zmq.Utils
                     if (pollSet.Cancelled)
                         continue;
 
-                    // Invoke its handler's OutEvent if it's in our write-list.
-                    if (writeList.Contains(pollSet.Socket))
-                    {
-                        try
-                        {
-                            pollSet.Handler.OutEvent();
-                        }
-                        catch (TerminatingException)
-                        {
-                        }
-                    }
-
-                    if (pollSet.Cancelled)
-                        continue;
+//                    // Invoke its handler's OutEvent if it's in our write-list.
+//                    if (writeList.Contains(pollSet.Socket))
+//                    {
+//                        try
+//                        {
+//                            pollSet.Handler.OutEvent();
+//                        }
+//                        catch (TerminatingException)
+//                        {
+//                        }
+//                    }
+//
+//                    if (pollSet.Cancelled)
+//                        continue;
 
                     // Invoke its handler's InEvent if it's in our read-list.
                     if (readList.Contains(pollSet.Socket))
@@ -337,7 +337,7 @@ namespace NetMQ.zmq.Utils
                 }
 
                 errorList.Clear();
-                writeList.Clear();
+//                writeList.Clear();
                 readList.Clear();
 
                 if (m_retired)
