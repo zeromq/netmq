@@ -212,7 +212,6 @@ namespace NetMQ
 
         #endregion
 
-
         #region Events Handling
 
         /// <summary>
