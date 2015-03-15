@@ -167,12 +167,12 @@ namespace NetMQ.zmq.Utils
         /// <param name="handle">the System.Net.Sockets.Socket to remove</param>
         public void RemoveHandle([NotNull] Socket handle)
         {
-            PollSet pollSet;
+            PollSet pollSet = m_addList.FirstOrDefault(p => p.Socket == handle);
 
             // If the socket was removed before being added there is no reason to mark retired, so just cancelling the socket and removing from add list.
 
             // If there is a Pollset with this socket within m_addList,
-            if ((pollSet = m_addList.FirstOrDefault(p => p.Socket == handle)) != null)
+            if (pollSet != null)
             {
                 // Delete that Pollset from m_addList and cancel it.
                 m_addList.Remove(pollSet);
