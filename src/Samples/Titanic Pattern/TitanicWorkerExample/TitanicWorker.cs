@@ -7,7 +7,7 @@ namespace TitanicWorkerExample
     class TitanicWorker
     {
         /// <summary>
-        ///     usage:  MDPWorkerExample [-v]
+        ///     usage:  TitanicWorkerExample [-v]
         /// 
         ///     implements a MDPWorker API usage
         /// </summary>
