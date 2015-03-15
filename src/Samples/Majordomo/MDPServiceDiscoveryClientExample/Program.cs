@@ -37,11 +37,7 @@ namespace MDPServiceDiscoveryClientExample
                 // send the request to service discovery
                 var reply = session.Send (service_discovery, request);
 
-<<<<<<< HEAD
-                if (!ReferenceEquals (reply, null) && !reply.IsEmpty)
-=======
                 if (reply != null && !reply.IsEmpty)
->>>>>>> remotes/upstream/master
                 {
                     var answer = reply.First.ConvertToString ();
 

@@ -6,10 +6,6 @@ using System.Threading.Tasks;
 using MajordomoProtocol;
 using MajordomoProtocol.Contracts;
 using NetMQ;
-<<<<<<< HEAD
-
-=======
->>>>>>> remotes/upstream/master
 using NUnit.Framework;
 
 namespace MajordomoTests
@@ -80,24 +76,6 @@ namespace MajordomoTests
                     e.Socket.SendMessage(reply);
                 };
 
-<<<<<<< HEAD
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.PollTillCancelled());
-
-                // set the event handler to receive the logging messages
-                session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
-                // initialize the worker - broker protocol
-                session.Receive (null);
-
-                poller.CancelAndJoin();
-                poller.RemoveSocket (broker);
-
-                Assert.That (loggingMessages.Count, Is.EqualTo (5));
-                Assert.That (loggingMessages[0], Is.EqualTo ("[WORKER] connected to broker at tcp://localhost:5557"));
-                Assert.That (loggingMessages[1].Contains ("[WORKER] sending"), Is.True);
-                Assert.That (loggingMessages[2].Contains ("[WORKER] received"));
-                Assert.That (loggingMessages[4].Contains ("abandoning"));
-=======
                 poller.AddSocket(broker);
                 Task.Factory.StartNew(poller.PollTillCancelled);
 
@@ -114,7 +92,6 @@ namespace MajordomoTests
                 Assert.That(loggingMessages[1].Contains("[WORKER] sending"), Is.True);
                 Assert.That(loggingMessages[2].Contains("[WORKER] received"));
                 Assert.That(loggingMessages[4].Contains("abandoning"));
->>>>>>> remotes/upstream/master
             }
         }
 
@@ -134,13 +111,8 @@ namespace MajordomoTests
                 // we need to pick up any message in order to avoid errors but don't answer
                 broker.ReceiveReady += (s, e) => e.Socket.ReceiveMultipartMessage();
 
-<<<<<<< HEAD
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.PollTillCancelled());
-=======
                 poller.AddSocket(broker);
                 Task.Factory.StartNew(poller.PollTillCancelled);
->>>>>>> remotes/upstream/master
 
                 // speed up the test
                 session.HeartbeatDelay = TimeSpan.FromMilliseconds(250);
@@ -151,11 +123,7 @@ namespace MajordomoTests
                 session.Receive(null);
 
                 poller.CancelAndJoin();
-<<<<<<< HEAD
-                poller.RemoveSocket (broker);
-=======
                 poller.RemoveSocket(broker);
->>>>>>> remotes/upstream/master
 
                 Assert.That(loggingMessages.Count(m => m.Contains("retrying")), Is.EqualTo(3));
                 // 3 times retrying and 1 time initial connecting
@@ -170,51 +138,15 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-<<<<<<< HEAD
-            using (var ctx = NetMQContext.Create ())
-            using (var broker = ctx.CreateRouterSocket ())
-            using (var poller = new Poller ())
-            using (var session = new MDPWorker (host_address, "test"))
-=======
+
             using (var context = NetMQContext.Create())
             using (var broker = context.CreateRouterSocket())
             using (var poller = new Poller())
             using (var session = new MDPWorker(hostAddress, "test"))
->>>>>>> remotes/upstream/master
             {
                 broker.Bind(hostAddress);
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
-<<<<<<< HEAD
-                                       {
-                                           var msg = e.Socket.ReceiveMessage ();
-                                           // we expect to receive a 5 Frame mesage
-                                           // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
-                                           if (msg.FrameCount != 5)
-                                               Assert.Fail ("Message with wrong count of frames {0}", msg.FrameCount);
-                                           // make sure the frames are as expected
-                                           Assert.That (msg[1], Is.EqualTo (NetMQFrame.Empty));
-                                           Assert.That (msg[2].ConvertToString (), Is.EqualTo ("MDPW01"));
-                                           Assert.That (msg[3].BufferSize, Is.EqualTo (1));
-                                           Assert.That (msg[3].Buffer[0], Is.EqualTo ((byte) MDPCommand.Ready));
-                                           Assert.That (msg[4].ConvertToString (), Is.EqualTo ("test"));
-
-                                           // tell worker to stop gracefully
-                                           var reply = new NetMQMessage ();
-                                           reply.Push (new[] { (byte) MDPCommand.Kill });
-                                           // push MDP Version
-                                           reply.Push ("MDPW00");
-                                           // push separator
-                                           reply.Push (NetMQFrame.Empty);
-                                           // push worker address
-                                           reply.Push (msg[0]);
-                                           // send reply which is a request for the worker
-                                           e.Socket.SendMessage (reply);
-                                       };
-
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.PollTillCancelled());
-=======
                 {
                     var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 5 Frame message
@@ -243,7 +175,6 @@ namespace MajordomoTests
 
                 poller.AddSocket(broker);
                 Task.Factory.StartNew(poller.PollTillCancelled);
->>>>>>> remotes/upstream/master
 
                 try
                 {
@@ -255,11 +186,7 @@ namespace MajordomoTests
                 }
 
                 poller.CancelAndJoin();
-<<<<<<< HEAD
-                poller.RemoveSocket (broker);
-=======
                 poller.RemoveSocket(broker);
->>>>>>> remotes/upstream/master
             }
         }
 
@@ -277,36 +204,6 @@ namespace MajordomoTests
                 broker.Bind(hostAddress);
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
-<<<<<<< HEAD
-                                       {
-                                           var msg = e.Socket.ReceiveMessage ();
-                                           // we expect to receive a 5 Frame mesage
-                                           // [WORKER ADR][EMPTY]["MDPW01"]["READY"]["test"]
-                                           if (msg.FrameCount != 5)
-                                               Assert.Fail ("Message with wrong count of frames {0}", msg.FrameCount);
-                                           // make sure the frames are as expected
-                                           Assert.That (msg[1], Is.EqualTo (NetMQFrame.Empty));
-                                           Assert.That (msg[2].ConvertToString (), Is.EqualTo ("MDPW01"));
-                                           Assert.That (msg[3].BufferSize, Is.EqualTo (1));
-                                           Assert.That (msg[3].Buffer[0], Is.EqualTo ((byte) MDPCommand.Ready));
-                                           Assert.That (msg[4].ConvertToString (), Is.EqualTo ("test"));
-
-                                           // tell worker to stop gracefully
-                                           var reply = new NetMQMessage ();
-                                           reply.Push (new[] { (byte) MDPCommand.Kill });
-                                           // push MDP Version
-                                           reply.Push ("MDPW01");
-                                           // push separator
-                                           reply.Push ("Should be empty");
-                                           // push worker address
-                                           reply.Push (msg[0]);
-                                           // send reply which is a request for the worker
-                                           e.Socket.SendMessage (reply);
-                                       };
-
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.PollTillCancelled ());
-=======
                 {
                     var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 5 Frame message
@@ -335,7 +232,6 @@ namespace MajordomoTests
 
                 poller.AddSocket(broker);
                 Task.Factory.StartNew(poller.PollTillCancelled);
->>>>>>> remotes/upstream/master
 
                 try
                 {
@@ -347,11 +243,7 @@ namespace MajordomoTests
                 }
 
                 poller.CancelAndJoin();
-<<<<<<< HEAD
-                poller.RemoveSocket (broker);
-=======
                 poller.RemoveSocket(broker);
->>>>>>> remotes/upstream/master
             }
         }
 
@@ -405,13 +297,8 @@ namespace MajordomoTests
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
 
-<<<<<<< HEAD
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.PollTillCancelled ());
-=======
                 poller.AddSocket(broker);
                 Task.Factory.StartNew(poller.PollTillCancelled);
->>>>>>> remotes/upstream/master
 
                 session.HeartbeatDelay = TimeSpan.FromMilliseconds(250);
                 session.ReconnectDelay = TimeSpan.FromMilliseconds(250);

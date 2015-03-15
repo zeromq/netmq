@@ -3,14 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MajordomoProtocol;
 using NetMQ;
-<<<<<<< HEAD
-
 using NUnit.Framework;
-
-using Poller = NetMQ.Poller;
-=======
-using NUnit.Framework;
->>>>>>> remotes/upstream/master
 
 namespace MajordomoTests
 {
@@ -56,25 +49,7 @@ namespace MajordomoTests
                 broker.Bind(hostAddress);
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
-<<<<<<< HEAD
-                                       {
-                                           var msg = e.Socket.ReceiveMessage ();
-                                           // we expect to receive a 4 Frame mesage
-                                           // [client adrR][e][mdp header][service][request]
-                                           if (msg.FrameCount != 5)
-                                               Assert.Fail ("Message with wrong count of frames {0}", msg.FrameCount);
-                                           // REQUEST socket will strip the his address + empty frame
-                                           // ROUTER has to add the address prelude in order to identify the correct socket(!)
-                                           // [client adr][e][mdp header][service][reply]
-                                           var request = msg.Last.ConvertToString ();       // get the request string
-                                           msg.RemoveFrame (msg.Last);                      // remove the request frame
-                                           msg.Append (new NetMQFrame (request + " OK"));   // append the reply frame
-                                           e.Socket.SendMessage (msg);
-                                       };
 
-                poller.AddSocket (broker);
-                var t = Task.Factory.StartNew (() => poller.PollTillCancelled ());
-=======
                 {
                     var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 4 Frame message
@@ -92,8 +67,6 @@ namespace MajordomoTests
 
                 poller.AddSocket(broker);
                 Task.Factory.StartNew(poller.PollTillCancelled);
->>>>>>> remotes/upstream/master
-
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
                 // well formed message
@@ -101,13 +74,8 @@ namespace MajordomoTests
                 // correct call
                 var reply = session.Send("echo", requestMessage);
 
-<<<<<<< HEAD
-                poller.CancelAndJoin ();
-                poller.RemoveSocket (broker);
-=======
                 poller.CancelAndJoin();
                 poller.RemoveSocket(broker);
->>>>>>> remotes/upstream/master
 
                 Assert.That(reply.FrameCount, Is.EqualTo(1));
                 Assert.That(reply.First.ConvertToString(), Is.EqualTo("REQUEST OK"));

@@ -181,15 +181,6 @@ namespace MajordomoProtocol
             // a message is available within the timeout period
             var reply = m_client.ReceiveMultipartMessage();
 
-<<<<<<< HEAD
-            Log (string.Format ("\n[CLIENT INFO] received the reply {0}\n", reply));
-
-            // in production code malformed messages should be handled smarter
-            if (reply.FrameCount < 2)
-                throw new ApplicationException ("[CLIENT ERROR] received a malformed reply");
-
-            var header = reply.Pop ();          // [service name][reply] OR [service name][return code]
-=======
             Log(string.Format ("\n[CLIENT INFO] received the reply {0}\n", reply));
 
             // in production code malformed messages should be handled smarter
@@ -197,16 +188,11 @@ namespace MajordomoProtocol
                 throw new ApplicationException("[CLIENT ERROR] received a malformed reply");
 
             var header = reply.Pop(); // [service name][reply] OR [service name][return code]
->>>>>>> remotes/upstream/master
 
             if (header.ConvertToString() != m_mdpClient)
                 throw new ApplicationException(string.Format("[CLIENT INFO] MDP Version mismatch: {0}", header));
 
-<<<<<<< HEAD
-            var service = reply.Pop ();         // [reply] OR [return code]
-=======
             var service = reply.Pop(); // [reply] OR [return code]
->>>>>>> remotes/upstream/master
 
             if (service.ConvertToString() != m_serviceName)
                 throw new ApplicationException(string.Format("[CLIENT INFO] answered by wrong service: {0}",

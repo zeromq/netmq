@@ -488,10 +488,7 @@ namespace MajordomoProtocol
             lock (m_syncRoot)
             {
                 foreach (var service in m_services)
-<<<<<<< HEAD
-=======
                 {
->>>>>>> remotes/upstream/master
                     foreach (var worker in service.WaitingWorkers)
                     {
                         if (DateTime.UtcNow < worker.Expiry)
@@ -501,10 +498,7 @@ namespace MajordomoProtocol
 
                         RemoveWorker (worker);
                     }
-<<<<<<< HEAD
-=======
                 }
->>>>>>> remotes/upstream/master
             }
         }
 

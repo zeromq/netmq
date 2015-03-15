@@ -15,9 +15,6 @@ namespace NetMQ
         /// </summary>
         private int m_messageSize;
 
-<<<<<<< HEAD
-        public NetMQFrame (byte[] buffer)
-=======
         /// <summary>
         /// This holds the computed hash-code for this object.
         /// </summary>
@@ -28,7 +25,6 @@ namespace NetMQ
         /// </summary>
         /// <param name="buffer">a byte-array to hold as the frame's data</param>
         public NetMQFrame([CanBeNull] byte[] buffer)
->>>>>>> remotes/upstream/master
         {
             if (buffer == null)
             {
@@ -39,21 +35,6 @@ namespace NetMQ
             MessageSize = buffer.Length;
         }
 
-<<<<<<< HEAD
-        public NetMQFrame (string message)
-            : this (Encoding.ASCII.GetBytes (message))
-        {
-
-        }
-
-        public NetMQFrame (string message, Encoding encoding)
-            : this (encoding.GetBytes (message))
-        {
-
-        }
-
-        public NetMQFrame (int length)
-=======
         /// <summary>
         /// Create a new NetMQFrame containing the given string-message,
         /// using the default ASCII encoding.
@@ -78,7 +59,6 @@ namespace NetMQ
         /// </summary>
         /// <param name="length">the number of bytes to allocate for the data-buffer</param>
         public NetMQFrame(int length)
->>>>>>> remotes/upstream/master
         {
             if (length < 0)
             {
@@ -99,11 +79,7 @@ namespace NetMQ
             {
                 if (value < 0 || value > BufferSize)
                 {
-<<<<<<< HEAD
                     throw new ArgumentOutOfRangeException ("value", "Expected non-negative value less than or equal to the buffer size.");
-=======
-                    throw new ArgumentOutOfRangeException("value", "Expecting a non-negative value less than or equal to the buffer size.");
->>>>>>> remotes/upstream/master
                 }
 
                 m_messageSize = value;
@@ -146,12 +122,8 @@ namespace NetMQ
         /// <param name="buffer">the byte-array to copy into the new NetMQFrame</param>
         /// <returns>a new <see cref="NetMQFrame"/> containing a copy of the supplied byte-array</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
-<<<<<<< HEAD
-        public static NetMQFrame Copy (byte[] buffer)
-=======
         [NotNull]
         public static NetMQFrame Copy([NotNull] byte[] buffer)
->>>>>>> remotes/upstream/master
         {
             if (buffer == null)
             {
@@ -165,16 +137,6 @@ namespace NetMQ
             return copy;
         }
 
-<<<<<<< HEAD
-        public string ConvertToString ()
-        {
-            return Encoding.ASCII.GetString (Buffer, 0, this.MessageSize);
-        }
-
-        public string ConvertToString (Encoding encoding)
-        {
-            return encoding.GetString (Buffer, 0, this.MessageSize);
-=======
         /// <summary>
         /// Return this frame's data-buffer converted into a string, using the default ASCII encoding.
         /// </summary>
@@ -194,7 +156,6 @@ namespace NetMQ
         public string ConvertToString([NotNull] Encoding encoding)
         {
             return encoding.GetString(Buffer, 0, MessageSize);
->>>>>>> remotes/upstream/master
         }
 
         /// <summary>
@@ -221,12 +182,9 @@ namespace NetMQ
         /// <param name="frame">the <see cref="NetMQFrame"/> to copy</param>
         /// <returns>a <see cref="NetMQFrame"/> containing a copy of <paramref name="frame"/></returns>
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
-<<<<<<< HEAD
-        public static NetMQFrame Copy (NetMQFrame frame)
-=======
+
         [NotNull]
         public static NetMQFrame Copy([NotNull] NetMQFrame frame)
->>>>>>> remotes/upstream/master
         {
             if (frame == null)
             {
@@ -241,30 +199,22 @@ namespace NetMQ
             return copy;
         }
 
-<<<<<<< HEAD
-        public NetMQFrame Duplicate ()
-=======
         /// <summary>
         /// Create a deep-copy of this NetMQFrame and return it.
         /// </summary>
         /// <returns>a new NetMQFrame containing a copy of this one's buffer data</returns>
         [NotNull]
         public NetMQFrame Duplicate()
->>>>>>> remotes/upstream/master
         {
             return Copy (this);
         }
 
-<<<<<<< HEAD
-        public bool Equals (byte[] other)
-=======
         /// <summary>
         /// Return true if the buffer of this NetMQFrame is equal to the given byte-array.
         /// </summary>
         /// <param name="other">a byte-array buffer to compare this frame against</param>
         /// <returns></returns>
         public bool Equals([CanBeNull] byte[] other)
->>>>>>> remotes/upstream/master
         {
             if (other == null)
                 return false;
@@ -287,19 +237,11 @@ namespace NetMQ
         /// <summary>
         /// Determine whether the specified <see cref="NetMQFrame"/> is equal to the current <see cref="NetMQFrame"/>.
         /// </summary>
-<<<<<<< HEAD
-        /// <param name="other">The <see cref="NetMQFrame"/> to compare with the current <see cref="NetMQFrame"/>.</param>
-        /// <returns>true if the specified System.Object is equal to the current System.Object; otherwise, false.</returns>
-        public bool Equals (NetMQFrame other)
-        {
-            if (ReferenceEquals (other, null))
-=======
         /// <param name="other">the <see cref="NetMQFrame"/> to compare with the current <see cref="NetMQFrame"/>.</param>
         /// <returns>true if the specified NetMQFrame is equal to this one; otherwise, false</returns>
         public bool Equals([CanBeNull] NetMQFrame other)
         {
             if (other == null)
->>>>>>> remotes/upstream/master
                 return false;
 
             if (ReferenceEquals (this, other))
@@ -321,44 +263,23 @@ namespace NetMQ
             return true;
         }
 
-        public static bool operator == (NetMQFrame one, NetMQFrame other)
-        {
-            if (ReferenceEquals (one, null) && ReferenceEquals (other, null))
-                return true;
-
-            return !ReferenceEquals (one, null) && one.Equals (other);
-        }
-
-        public static bool operator != (NetMQFrame one, NetMQFrame other)
-        {
-<<<<<<< HEAD
-            return !(one == other);
-        }
-
+        
         bool IEquatable<NetMQFrame>.Equals (NetMQFrame other)
         {
             return Equals (other);
         }
 
-        public override bool Equals (object obj)
-=======
-            return Equals(other);
-        }
-
+        
         /// <summary>
         /// Return true if the given Object is a NetMQFrame which has a Buffer that is identical to that of this one.
         /// </summary>
         /// <param name="obj">the Object to compare this to</param>
         /// <returns>true only if the given Object is a NetMQFrame equal to this one</returns>
         public override bool Equals(object obj)
->>>>>>> remotes/upstream/master
         {
             return Equals (obj as NetMQFrame);
         }
 
-<<<<<<< HEAD
-        public override int GetHashCode ()
-=======
         public static bool operator ==(NetMQFrame one, NetMQFrame other)
         {
             // NOTE use of ReferenceEquals here to avoid recurrence and stack overflow exception
@@ -380,7 +301,6 @@ namespace NetMQ
         /// </summary>
         /// <returns>an integer that represents the computed hash-code</returns>
         public override int GetHashCode()
->>>>>>> remotes/upstream/master
         {
             if (m_hash == 0)
             {
@@ -393,10 +313,6 @@ namespace NetMQ
             return m_hash;
         }
 
-<<<<<<< HEAD
-
-        public byte[] ToByteArray (bool copy = false)
-=======
         /// <summary>
         /// Return an array of bytes that carries the content of this NetMQFrames Buffer.
         /// </summary>
@@ -404,18 +320,13 @@ namespace NetMQ
         /// <returns>the Buffer as a byte-array, either newly-allocated or else (if copy is false) simply a reference to the actual Buffer</returns>
         [NotNull]
         public byte[] ToByteArray(bool copy = false)
->>>>>>> remotes/upstream/master
         {
             if (!copy || MessageSize == BufferSize)
             {
                 return Buffer;
             }
 
-<<<<<<< HEAD
-                System.Buffer.BlockCopy (Buffer, 0, byteArray, 0, MessageSize);
-=======
             var byteArray = new byte[MessageSize];
->>>>>>> remotes/upstream/master
 
             System.Buffer.BlockCopy(Buffer, 0, byteArray, 0, MessageSize);
 

@@ -40,9 +40,6 @@ namespace MDPClientExample
                 else if (args.Length == 2)
                     verbose = args[0] == "-v" || args[1] == "-v";
 
-<<<<<<< HEAD
-            runs = runs == -1 ? 10 : runs > max_runs ? max_runs : runs;
-=======
                 if (args[0].Contains("-r") || args.Length > 1)
                 {
                     if (args[0].Contains("-r"))
@@ -53,7 +50,6 @@ namespace MDPClientExample
             }
 
             runs = runs == -1 ? 10 : runs > maxRuns ? maxRuns : runs;
->>>>>>> remotes/upstream/master
 
             var id = new[] { (byte)'C', (byte)'1' };
 
@@ -74,12 +70,7 @@ namespace MDPClientExample
 
                     watch.Start();
 
-<<<<<<< HEAD
-                    int count;
-                    for (count = 0; count < runs; count++)
-=======
                     for (int count = 0; count < runs; count++)
->>>>>>> remotes/upstream/master
                     {
                         var request = new NetMQMessage();
                         // set the request data

@@ -127,22 +127,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicCommons", "Samples\T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6AB1E02C-7800-4934-AA7A-4161459E1278}"
 	ProjectSection(SolutionItems) = preProject
+		..\.gitattributes = ..\.gitattributes
+		..\.gitignore = ..\.gitignore
 		..\COPYING.LESSER = ..\COPYING.LESSER
 		..\mkdocs.yml = ..\mkdocs.yml
 		..\README.md = ..\README.md
-		..\.gitattributes = ..\.gitattributes
-		..\.gitignore = ..\.gitignore
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D7A0-489E-9530-0F972DAE1167}"
 	ProjectSection(SolutionItems) = preProject
-		..\mkdocs.yml = ..\mkdocs.yml
 		..\docs\actor.md = ..\docs\actor.md
 		..\docs\beacon.md = ..\docs\beacon.md
 		..\docs\devices.md = ..\docs\devices.md
 		..\docs\index.md = ..\docs\index.md
 		..\docs\introduction.md = ..\docs\introduction.md
 		..\docs\message.md = ..\docs\message.md
+		..\mkdocs.yml = ..\mkdocs.yml
 		..\docs\poller.md = ..\docs\poller.md
 		..\docs\pub-sub.md = ..\docs\pub-sub.md
 		..\docs\push-pull.md = ..\docs\push-pull.md
@@ -154,8 +154,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D
 		..\docs\transports.md = ..\docs\transports.md
 		..\docs\xpub-xsub.md = ..\docs\xpub-xsub.md
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDPServiceDiscoveryClientExample", "Samples\Majordomo\MDPServiceDiscoveryClientExample\MDPServiceDiscoveryClientExample.csproj", "{9D3ECC09-8001-4282-8F46-414C3FFBE4A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -665,8 +663,6 @@ Global
 		{37B320C0-9E44-44EF-B89A-E671DBA4986B} = {C6CA5118-649F-4389-A36E-70F7600FB99B}
 		{5B8F7740-EFD5-46B9-8A96-2E1F47385295} = {C6CA5118-649F-4389-A36E-70F7600FB99B}
 		{CCC09B86-B0E6-47B4-B05A-8F10F2135F6C} = {0D41951D-83C3-45B0-B319-A424EBF530E2}
-		{173B7FFF-F0CB-4D7F-B3A9-B2F2DBCCFFFE} = {1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}
-		{7AB16EE9-4A79-4BFB-8C0B-D1A076E34896} = {5A526E6B-083E-419A-A2BD-A0C807E6FA0E}
 		{CE56606F-1893-48CD-B367-77BCD0D4252F} = {CCC09B86-B0E6-47B4-B05A-8F10F2135F6C}
 		{0A5BC1E9-BB65-40BC-83CA-7F68D528ECB4} = {CE56606F-1893-48CD-B367-77BCD0D4252F}
 		{99E7E475-C96D-45EB-92D3-D25D6E89693A} = {CE56606F-1893-48CD-B367-77BCD0D4252F}
@@ -696,6 +692,7 @@ Global
 		{80428E64-7589-4EDB-8F4D-8FAB437AC4D8} = {2F50B134-3874-455B-A897-E41DCA849779}
 		{528CE4CE-BB2E-432E-86BB-8199A97379A5} = {2F50B134-3874-455B-A897-E41DCA849779}
 		{813D3184-CAE9-4EA5-AD8F-CF0B5E890E79} = {0D41951D-83C3-45B0-B319-A424EBF530E2}
+		{173B7FFF-F0CB-4D7F-B3A9-B2F2DBCCFFFE} = {1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}
 		{BA3B66DE-85AB-44F0-890B-E598C777880D} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 		{A16EBCCB-A575-4BA5-813D-C8AD925D5A59} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 		{B2233737-D928-4C46-9FD0-3B7AD6BD23BB} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
@@ -707,6 +704,5 @@ Global
 		{32B1FA88-2A00-41C9-AF28-1EB9F8BB51F3} = {ED1FF3FB-01D4-4315-A6D5-070C420F2908}
 		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 		{15327854-4753-4B80-AE20-1D34A94F5771} = {ED1FF3FB-01D4-4315-A6D5-070C420F2908}
-		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 	EndGlobalSection
 EndGlobal
