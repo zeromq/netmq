@@ -1,6 +1,5 @@
 ﻿using JetBrains.Annotations;
 
-
 namespace NetMQ
 {
     /// <summary>

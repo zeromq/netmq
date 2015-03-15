@@ -22,7 +22,6 @@
 using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
-
 namespace NetMQ.zmq
 {
     internal class IOThread : ZObject, IMailboxEvent

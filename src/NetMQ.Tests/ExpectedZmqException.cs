@@ -1,7 +1,9 @@
 ﻿
+using NUnit.Framework;
+
 namespace NetMQ.Tests
 {
-    public class ExpectedZmqException : NUnit.Framework.ExpectedExceptionAttribute
+    public class ExpectedZmqException : ExpectedExceptionAttribute
     {
         public override bool Match(object obj)
         {

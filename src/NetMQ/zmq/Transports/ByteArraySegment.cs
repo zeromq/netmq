@@ -2,7 +2,6 @@
 using System.Text;
 using JetBrains.Annotations;
 
-
 namespace NetMQ.zmq.Transports
 {
     /// <summary>

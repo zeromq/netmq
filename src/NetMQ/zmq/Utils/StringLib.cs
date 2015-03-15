@@ -21,7 +21,7 @@ namespace NetMQ.zmq.Utils
         /// This is intended just for debugging purposes, as when adding detailed information to the Message of an
         /// exception when an error occurs. In DEBUG mode more detail is provided.
         /// </remarks>
-        public static string AsString(List<System.Net.Sockets.Socket> list)
+        public static string AsString(List<Socket> list)
         {
             var sb = new StringBuilder();
             if (list == null)
@@ -73,7 +73,7 @@ namespace NetMQ.zmq.Utils
         /// This is intended just for debugging purposes, as when adding detailed information to the Message of an
         /// exception when an error occurs. In DEBUG mode more detail is provided.
         /// </remarks>
-        public static string AsString(this System.Net.Sockets.Socket socket)
+        public static string AsString(this Socket socket)
         {
             var sb = new StringBuilder();
             if (socket == null)

@@ -26,7 +26,6 @@ using System.Text;
 using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 
-
 namespace NetMQ.zmq.Patterns
 {
     internal class XPub : SocketBase

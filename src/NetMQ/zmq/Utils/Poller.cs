@@ -26,7 +26,6 @@ using System.Net.Sockets;
 using System.Threading;
 using JetBrains.Annotations;
 
-
 namespace NetMQ.zmq.Utils
 {
     internal class Poller : PollerBase

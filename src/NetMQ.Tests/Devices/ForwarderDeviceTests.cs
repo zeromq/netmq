@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using NetMQ.Devices;
 using NetMQ.Sockets;
 using NUnit.Framework;
