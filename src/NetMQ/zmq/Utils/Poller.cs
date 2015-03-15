@@ -199,7 +199,7 @@ namespace NetMQ.zmq.Utils
         /// Add the given Socket to the list to be checked for read-readiness at each poll-iteration.
         /// </summary>
         /// <param name="handle">the Socket to add</param>
-        public void SetPollin(Socket handle)
+        public void SetPollIn(Socket handle)
         {
             m_checkRead.Add(handle);
         }
@@ -209,7 +209,7 @@ namespace NetMQ.zmq.Utils
         /// Remove the given Socket from the list to be checked for read-readiness at each poll iteration.
         /// </summary>
         /// <param name="handle">the Socket to remove</param>
-        public void ResetPollin(Socket handle)
+        public void ResetPollIn(Socket handle)
         {
             m_checkRead.Remove(handle);
         }

@@ -920,7 +920,7 @@ namespace NetMQ.zmq
             m_poller = poller;
             m_handle = m_mailbox.Handle;
             m_poller.AddHandle(m_handle, this);
-            m_poller.SetPollin(m_handle);
+            m_poller.SetPollIn(m_handle);
 
             //  Initialise the termination and check whether it can be deallocated
             //  immediately.

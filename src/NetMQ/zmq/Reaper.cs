@@ -63,7 +63,7 @@ namespace NetMQ.zmq
 
             m_mailboxHandle = m_mailbox.Handle;
             m_poller.AddHandle(m_mailboxHandle, this);
-            m_poller.SetPollin(m_mailboxHandle);
+            m_poller.SetPollIn(m_mailboxHandle);
         }
 
         public void Destroy()
