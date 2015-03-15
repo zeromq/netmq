@@ -30,13 +30,6 @@ namespace NetMQ.zmq
     internal sealed class Command
     {
         /// <summary>
-        /// Default constructor - create the Command object for processing commands.
-        /// </summary>
-        public Command()
-        {
-        }
-
-        /// <summary>
         /// Create a new Command object for the given destination, type, and optional argument.
         /// </summary>
         /// <param name="destination">a ZObject that denotes the destination for this command</param>
