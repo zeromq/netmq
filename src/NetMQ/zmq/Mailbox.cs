@@ -24,6 +24,7 @@ using System.Net.Sockets;
 using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ.zmq
 {
     internal interface IMailbox
@@ -40,11 +41,14 @@ namespace NetMQ.zmq
 
     internal class IOThreadMailbox : IMailbox
     {
-        [NotNull] private readonly Proactor m_proactor;
+        [NotNull]
+        private readonly Proactor m_proactor;
 
-        [NotNull] private readonly IMailboxEvent m_mailboxEvent;
+        [NotNull]
+        private readonly IMailboxEvent m_mailboxEvent;
 
-        [NotNull] private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
+        [NotNull]
+        private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
@@ -52,11 +56,13 @@ namespace NetMQ.zmq
         /// synchronised access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
-        [NotNull] private readonly object m_sync = new object();
+        [NotNull]
+        private readonly object m_sync = new object();
 
 #if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
-        [NotNull] private readonly string m_name;
+        [NotNull]
+        private readonly string m_name;
 #endif
 
         private bool m_disposed;
@@ -95,7 +101,7 @@ namespace NetMQ.zmq
 
         [CanBeNull]
         public Command Recv()
-        {            
+        {
             Command cmd;
             m_commandPipe.Read(out cmd);
             return cmd;
@@ -150,9 +156,14 @@ namespace NetMQ.zmq
 
 #if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
-        [NotNull] private readonly string m_name;
+        [NotNull]
+        private readonly string m_name;
 #endif
 
+        /// <summary>
+        /// Create a new Mailbox with the given name.
+        /// </summary>
+        /// <param name="name">the name to give this new Mailbox</param>
         public Mailbox([NotNull] string name)
         {
             //  Get the pipe into passive state. That way, if the users starts by
@@ -171,6 +182,9 @@ namespace NetMQ.zmq
 #endif
         }
 
+        /// <summary>
+        /// Get the socket-handle contained by the Signaler.
+        /// </summary>
         [NotNull]
         public Socket Handle
         {
@@ -208,12 +222,12 @@ namespace NetMQ.zmq
         public Command Recv(int timeout)
         {
             Command cmd;
-            
+
             //  Try to get the command straight away.
             if (m_active)
             {
                 m_commandPipe.Read(out cmd);
-                
+
                 if (cmd != null)
                     return cmd;
 
@@ -238,12 +252,19 @@ namespace NetMQ.zmq
             return cmd;
         }
 
+        /// <summary>
+        /// Close the contained Signaler.
+        /// </summary>
         public void Close()
         {
             m_signaler.Close();
         }
 
 #if DEBUG
+        /// <summary>
+        /// Override ToString to provide the type-name, plus the Mailbox name within brackets.
+        /// </summary>
+        /// <returns>a string of the form Mailbox[name]</returns>
         public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";

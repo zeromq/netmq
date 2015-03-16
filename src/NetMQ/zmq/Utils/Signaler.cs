@@ -18,20 +18,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Utils
 {
-    internal sealed class Signaler
+    internal sealed class Signaler : IDisposable
     {
         //  Underlying write & read file descriptor.
-        [NotNull] private readonly Socket m_writeSocket;
-        [NotNull] private readonly Socket m_readSocket;
-        [NotNull] private readonly byte[] m_dummy;
-        [NotNull] private readonly byte[] m_receiveDummy;
+        [NotNull]
+        private readonly Socket m_writeSocket;
+        [NotNull]
+        private readonly Socket m_readSocket;
+        [NotNull]
+        private readonly byte[] m_dummy;
+        [NotNull]
+        private readonly byte[] m_receiveDummy;
 
         public Signaler()
         {
@@ -59,6 +65,9 @@ namespace NetMQ.zmq.Utils
             m_readSocket.Blocking = false;
         }
 
+        /// <summary>
+        /// Close the read and write sockets.
+        /// </summary>
         public void Close()
         {
             try
@@ -66,21 +75,23 @@ namespace NetMQ.zmq.Utils
                 m_writeSocket.LingerState = new LingerOption(true, 0);
             }
             catch (SocketException)
-            {}
+            {
+            }
 
             try
             {
                 m_writeSocket.Close();
             }
             catch (SocketException)
-            {}
-
+            {
+            }
             try
             {
                 m_readSocket.Close();
             }
             catch (SocketException)
-            {}
+            {
+            }
         }
 
         //  Creates a pair of file descriptors that will be used
@@ -102,7 +113,7 @@ namespace NetMQ.zmq.Utils
         public bool WaitEvent(int timeout)
         {
             if (m_readSocket.Connected)
-                return m_readSocket.Poll(timeout*1000, SelectMode.SelectRead);
+                return m_readSocket.Poll(timeout * 1000, SelectMode.SelectRead);
 
             return false;
         }
@@ -114,5 +125,39 @@ namespace NetMQ.zmq.Utils
             Debug.Assert(received == 1);
             Debug.Assert(m_receiveDummy[0] == 0);
         }
+
+        #region IDisposable
+
+        private bool m_hasBeenDisposed;
+
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool isDisposingManagedResources)
+        {
+            if (!m_hasBeenDisposed)
+            {
+                if (isDisposingManagedResources)
+                {
+                    // Do not allow for exceptions to bubble out of this Dispose method.
+                    try
+                    {
+                        this.Close();
+                    }
+                    catch (Exception x)
+                    {
+                        Debug.WriteLine(String.Format("{0} in Signaler.Dispose(true): {1}", x.GetType(), x.Message));
+                    }
+                }
+                m_hasBeenDisposed = true;
+            }
+        }
+        #endregion
     }
 }

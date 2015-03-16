@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.zmq;
+
 
 namespace NetMQ
 {
@@ -16,7 +18,7 @@ namespace NetMQ
     /// <para/>
     /// Users of this class must call <see cref="Stop"/> when messages should no longer be proxied.
     /// </remarks>
-    public class Proxy
+    public sealed class Proxy : IDisposable
     {
         [NotNull] private readonly NetMQSocket m_frontend;
         [NotNull] private readonly NetMQSocket m_backend;
@@ -136,5 +138,50 @@ namespace NetMQ
             copy.Close();
             msg.Close();
         }
+
+        #region IDisposable
+
+        private bool m_hasBeenDisposed;
+
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool isDisposingManagedResources)
+        {
+            if (!m_hasBeenDisposed)
+            {
+                if (isDisposingManagedResources)
+                {
+                    if (m_poller != null)
+                    {
+                        // Do not allow for exceptions to bubble out of this Dispose method.
+                        try
+                        {
+                            if (m_state == StateStarted)
+                            {
+                                this.Stop();
+                            }
+                            m_poller.Dispose();
+                        }
+                        catch (Exception x)
+                        {
+                            Debug.WriteLine(String.Format("{0} in Proxy.Dispose(true): {1}", x.GetType(), x.Message));
+                        }
+                    }
+                }
+                else
+                {
+                    m_poller = null;
+                }
+                m_hasBeenDisposed = true;
+            }
+        }
+        #endregion
     }
 }

@@ -37,7 +37,7 @@ using TcpListener = NetMQ.zmq.Transports.Tcp.TcpListener;
 
 namespace NetMQ.zmq
 {
-    internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
+    internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents, IDisposable
     {
         [NotNull]
         private readonly Dictionary<String, Own> m_endpoints = new Dictionary<string, Own>();
@@ -97,6 +97,12 @@ namespace NetMQ.zmq
         /// </summary>
         private int m_port;
 
+        /// <summary>
+        /// Create a new SocketBase within the given Ctx, with the specified thread-id and socket-id.
+        /// </summary>
+        /// <param name="parent">the Ctx context that this socket will live within</param>
+        /// <param name="threadId">the id of the thread upon which this socket will execute</param>
+        /// <param name="socketId">the integer id for the new socket</param>
         protected SocketBase([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId)
         {
@@ -310,7 +316,18 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// Return the integer-value of the specified option.
+        /// </summary>
+        /// <param name="option">which option to get</param>
+        /// <returns>the value of the specified option, or -1 if error</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <remarks>
+        /// If the ReceiveMore option is specified, then 1 is returned if it is true, 0 if it is false.
+        /// If the Events option is specified, then process any outstanding commands, and return -1 if that throws a TerminatingException.
+        ///     then return an integer that is the bitwise-OR of the PollEvents.PollOut and PollEvents.PollIn flags.
+        /// Otherwise, cast the specified option value to an integer and return it.
+        /// </remarks>
         public int GetSocketOption(ZmqSocketOption option)
         {
             CheckContextTerminated();
@@ -341,7 +358,17 @@ namespace NetMQ.zmq
             return (int)GetSocketOptionX(option);
         }
 
-        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <summary>
+        /// Return the value of the specified option as an Object.
+        /// </summary>
+        /// <param name="option">which option to get</param>
+        /// <returns>the value of the option</returns>
+        /// <exception cref="TerminatingException">The socket has already been stopped.</exception>
+        /// <remarks>
+        /// If teh Handle option is specified, then return the handle of the contained mailbox.
+        /// If the Events option is specified, then process any outstanding commands, and return -1 if that throws a TerminatingException.
+        ///     then return a PollEvents that is the bitwise-OR of the PollEvents.PollOut and PollEvents.PollIn flags.
+        /// </remarks>
         public Object GetSocketOptionX(ZmqSocketOption option)
         {
             CheckContextTerminated();
@@ -1074,6 +1101,9 @@ namespace NetMQ.zmq
             CheckContextTerminated();
         }
 
+        /// <summary>
+        /// Process a termination command on this socket, by stopping monitoring and marking this as terminated.
+        /// </summary>
         protected override void ProcessStop()
         {
             //  Here, someone have called zmq_term while the socket was still alive.
@@ -1084,6 +1114,10 @@ namespace NetMQ.zmq
             m_isStopped = true;
         }
 
+        /// <summary>
+        /// Process a Bind command by attaching the given Pipe.
+        /// </summary>
+        /// <param name="pipe">the Pipe to attach</param>
         protected override void ProcessBind(Pipe pipe)
         {
             AttachPipe(pipe);
@@ -1129,6 +1163,11 @@ namespace NetMQ.zmq
             return false;
         }
 
+        /// <summary>
+        /// This gets called when outgoing messages are ready to be sent out.
+        /// On SocketBase, this does nothing and simply returns false.
+        /// </summary>
+        /// <returns>this method on SocketBase only returns false</returns>
         protected virtual bool XHasOut()
         {
             return false;
@@ -1139,6 +1178,11 @@ namespace NetMQ.zmq
             throw new NotSupportedException("Must Override");
         }
 
+        /// <summary>
+        /// This gets called when incoming messages are ready to be received.
+        /// On SocketBase, this does nothing and simply returns false.
+        /// </summary>
+        /// <returns>this method on SocketBase only returns false</returns>
         protected virtual bool XHasIn()
         {
             return false;
@@ -1164,6 +1208,10 @@ namespace NetMQ.zmq
             throw new NotSupportedException("Must override");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="TerminatingException">the context must not already be terminating</exception>
         public virtual void InEvent()
         {
             //  This function is invoked only once the socket is running in the context
@@ -1491,5 +1539,40 @@ namespace NetMQ.zmq
                     return "UNKNOWN";
             }
         }
+
+        #region IDisposable
+
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposingManagedResources)
+        {
+            if (!m_disposed)
+            {
+                if (isDisposingManagedResources)
+                {
+                    // Do not allow for exceptions to bubble out of this Dispose method.
+                    try
+                    {
+                        Close();
+                        ProcessDestroy();
+                        CheckDestroy();
+                        m_mailbox.Dispose();
+                    }
+                    catch (Exception x)
+                    {
+                        Debug.WriteLine(String.Format("{0} in SocketBase.Dispose(true): {1}", x.GetType(), x.Message));
+                    }
+                }
+                m_disposed = true;
+            }
+        }
+        #endregion
     }
 }

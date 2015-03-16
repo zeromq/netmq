@@ -19,7 +19,9 @@
 */
 
 using System;
+using System.Diagnostics;
 using System.Net.Sockets;
+
 
 namespace NetMQ.zmq
 {
@@ -28,7 +30,7 @@ namespace NetMQ.zmq
     /// The Reaper is dedicated toward handling socket shutdown asynchronously and cleanly.
     /// By passing this task off to the Reaper, the message-queueing subsystem can terminate immediately.
     /// </summary>
-    internal class Reaper : ZObject, IPollEvents
+    internal class Reaper : ZObject, IPollEvents, IDisposable
     {
         /// <summary>
         /// Reaper thread accesses incoming commands via this mailbox.
@@ -67,7 +69,7 @@ namespace NetMQ.zmq
         {
             m_sockets = 0;
             m_isTerminating = false;
-            
+
             string name = "reaper-" + threadId;
             m_poller = new Utils.Poller(name);
 
@@ -83,8 +85,10 @@ namespace NetMQ.zmq
         /// </summary>
         public void Destroy()
         {
-            m_poller.Destroy();
-            m_mailbox.Close();
+            if (m_poller != null)
+                m_poller.Destroy();
+            if (m_mailbox != null)
+                m_mailbox.Close();
         }
 
         /// <summary>
@@ -112,6 +116,10 @@ namespace NetMQ.zmq
                 SendStop();
         }
 
+        /// <summary>
+        /// Handle input-ready events, by receiving and processing any commands
+        /// that are waiting in the mailbox.
+        /// </summary>
         public void InEvent()
         {
             while (true)
@@ -191,5 +199,47 @@ namespace NetMQ.zmq
                 m_poller.Stop();
             }
         }
+
+        #region IDisposable
+
+        private bool m_hasBeenDisposed;
+
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool isDisposingManagedResources)
+        {
+            if (!m_hasBeenDisposed)
+            {
+                if (isDisposingManagedResources)
+                {
+                    // Do not allow for exceptions to bubble out of this Dispose method.
+                    try
+                    {
+                        this.Destroy();
+                        if (m_mailbox != null)
+                        {
+                            m_mailbox.Dispose();
+                        }
+                        if (m_mailboxHandle != null)
+                        {
+                            m_mailboxHandle.Close();
+                        }
+                    }
+                    catch (Exception x)
+                    {
+                        Debug.WriteLine(String.Format("{0} in Reaper.Dispose(true): {1}", x.GetType(), x.Message));
+                    }
+                }
+                m_hasBeenDisposed = true;
+            }
+        }
+        #endregion
     }
 }

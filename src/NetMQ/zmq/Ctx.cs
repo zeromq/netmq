@@ -210,7 +210,8 @@ namespace NetMQ.zmq
             if (m_reaper != null)
                 m_reaper.Destroy();
 
-            m_termMailbox.Close();
+            if (m_termMailbox != null)
+                m_termMailbox.Close();
 
             m_disposed = true;
         }
@@ -586,5 +587,45 @@ namespace NetMQ.zmq
                 return endpoint;
             }
         }
+
+        #region IDisposable
+
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool isDisposingManagedResources)
+        {
+            if (!m_disposed)
+            {
+                if (isDisposingManagedResources)
+                {
+                    // Do not allow for exceptions to bubble out of this Dispose method.
+                    try
+                    {
+                        this.Destroy();
+                        if (m_reaper != null)
+                        {
+                            m_reaper.Dispose();
+                        }
+                        //if (m_termMailbox != null)
+                        //{
+                        //    m_termMailbox.Dispose();
+                        //}
+                    }
+                    catch (Exception x)
+                    {
+                        Debug.WriteLine(String.Format("{0} in Ctx.Dispose(true): {1}", x.GetType(), x.Message));
+                    }
+                }
+                m_disposed = true;
+            }
+        }
+        #endregion
     }
 }

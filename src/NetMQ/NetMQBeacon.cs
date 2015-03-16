@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using JetBrains.Annotations;
 using NetMQ.Sockets;
+
 
 namespace NetMQ
 {
@@ -264,6 +266,53 @@ namespace NetMQ
 
                 return frame;
             }
+
+            #region IDisposable
+
+            private bool m_hasBeenDisposed;
+
+            /// <summary>
+            /// Release any contained resources.
+            /// </summary>
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            protected virtual void Dispose(bool isDisposingManagedResources)
+            {
+                if (!m_hasBeenDisposed)
+                {
+                    if (isDisposingManagedResources)
+                    {
+                        // Do not allow for exceptions to bubble out of this Dispose method.
+                        try
+                        {
+                            if (m_udpSocket != null)
+                            {
+                                m_udpSocket.Shutdown(SocketShutdown.Both);
+                                m_udpSocket.Close();
+                            }
+                            if (m_poller != null)
+                            {
+                                m_poller.Dispose();
+                            }
+                        }
+                        catch (Exception x)
+                        {
+                            Debug.WriteLine(String.Format("{0} in Shim.Dispose(true): {1}", x.GetType(), x.Message));
+                        }
+                    }
+                    else
+                    {
+                        m_udpSocket = null;
+                        m_poller = null;
+                    }
+                    m_hasBeenDisposed = true;
+                }
+            }
+            #endregion
         }
 
         #endregion
@@ -453,6 +502,10 @@ namespace NetMQ
             return m_actor.ReceiveFrameBytes();
         }
 
+        #region IDisposable
+
+        private bool m_hasBeenDisposed;
+
         /// <summary>
         /// Dispose of the contained actor.
         /// </summary>
@@ -462,12 +515,20 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool isDisposingManagedResources)
         {
-            if (!disposing)
-                return;
-
-            m_actor.Dispose();
+            if (!m_hasBeenDisposed)
+            {
+                if (isDisposingManagedResources)
+                {
+                    if (m_actor != null)
+                    {
+                        m_actor.Dispose();
+                    }
+                }
+                m_hasBeenDisposed = true;
+            }
         }
+        #endregion
     }
 }
