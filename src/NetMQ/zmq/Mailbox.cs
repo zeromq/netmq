@@ -177,6 +177,10 @@ namespace NetMQ.zmq
             get { return m_signaler.Handle; }
         }
 
+        /// <summary>
+        /// Send the given Command out accross the command-pipe.
+        /// </summary>
+        /// <param name="cmd">the Command to send</param>
         public void Send(Command cmd)
         {
             bool ok;
@@ -195,6 +199,11 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// Receive and return a Command from the command-pipe.
+        /// </summary>
+        /// <param name="timeout">how long to wait for a command (in milliseconds) before returning</param>
+        /// <returns>the Command that was received</returns>
         [CanBeNull]
         public Command Recv(int timeout)
         {

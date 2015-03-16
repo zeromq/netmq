@@ -301,9 +301,9 @@ namespace NetMQ.Security.V0_1
         /// <param name="contentType">This identifies the type of content: ChangeCipherSpec, Handshake, or ApplicationData.</param>
         /// <param name="cipherMessage">the message to decrypt</param>
         /// <returns>a new NetMQMessage with the contents decrypted</returns>
-        /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.InvalidFramesCount: Cipher message should have at least 2 frames, iv and sequence number.</exception>
-        /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.ReplayAttack: Message already handled or very old message, might be under replay attack.</exception>
-        /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.EncryptedFramesMissing: Frames were removed from the encrypted message.</exception>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: Cipher message must have at least 2 frames, iv and sequence number.</exception>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.ReplayAttack"/>: Message already handled or very old message, might be under replay attack.</exception>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.EncryptedFramesMissing"/>: Frames were removed from the encrypted message.</exception>
         public NetMQMessage DecryptMessage(ContentType contentType, NetMQMessage cipherMessage)
         {
             if (SecurityParameters.BulkCipherAlgorithm == BulkCipherAlgorithm.Null &&
@@ -314,7 +314,7 @@ namespace NetMQ.Security.V0_1
 
             if (cipherMessage.FrameCount < 2)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "cipher message should have at least 2 frames, iv and sequence number");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, String.Format("Cipher message has a FrameCount of {0}; Must have at least 2 frames: IV and sequence-number.", cipherMessage.FrameCount));
             }
 
             NetMQFrame ivFrame = cipherMessage.Pop();
@@ -348,7 +348,7 @@ namespace NetMQ.Security.V0_1
 
                 if (frameCount != cipherMessage.FrameCount)
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.EncryptedFramesMissing, "Frames were removed from the encrypted message");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.EncryptedFramesMissing, String.Format("frameCount is {0}, should equal cipherMessage.FrameCount which is {1}. Frames were removed from the encrypted message", frameCount, cipherMessage.FrameCount));
                 }
 
                 frameIndex++;
@@ -370,12 +370,21 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="decryptor"></param>
+        /// <param name="cipherBytes"></param>
+        /// <param name="plainBytes"></param>
+        /// <param name="mac"></param>
+        /// <param name="padding"></param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.EncryptedFrameInvalidLength"/>: The block size must be valid.</exception>
         private void DecryptBytes(ICryptoTransform decryptor, byte[] cipherBytes,
-          out byte[] plainBytes, out byte[] mac, out byte[] padding)
+                                  out byte[] plainBytes, out byte[] mac, out byte[] padding)
         {
             if (cipherBytes.Length % decryptor.InputBlockSize != 0)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.EncryptedFrameInvalidLength, "Invalid block size for cipher bytes");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.EncryptedFrameInvalidLength, String.Format("Invalid block size for cipherBytes. cipherBytes.Length is {0}, and decryptor.InputBlockSize is {1}.", cipherBytes.Length, decryptor.InputBlockSize));
             }
 
             byte[] frameBytes = new byte[cipherBytes.Length];
@@ -431,7 +440,7 @@ namespace NetMQ.Security.V0_1
         /// <param name="plainBytes"></param>
         /// <param name="mac"></param>
         /// <param name="padding"></param>
-        /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.MACNotMatched: MAC does not match message.</exception>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.MACNotMatched"/>: MAC does not match message.</exception>
         public void ValidateBytes(ContentType contentType, ulong seqNum, int frameIndex,
                                   byte[] plainBytes, byte[] mac, byte[] padding)
         {
@@ -459,7 +468,7 @@ namespace NetMQ.Security.V0_1
                     if (padding[i] != padding.Length - 1)
                     {
                         // TODO: Which is really the correct error-code here?
-                        throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "Padding is incorrect");
+                        throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, String.Format("Padding is incorrect: i is {0}, padding[i] is {1}, padding.Length is {2}", i, padding[i], padding.Length));
                     }
                 }
             }

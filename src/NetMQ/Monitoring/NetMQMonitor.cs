@@ -113,6 +113,12 @@ namespace NetMQ.Monitoring
         /// </summary>
         public TimeSpan Timeout { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="socketEventArgs"></param>
+        /// <exception cref="InvalidException">The monitoring socket must produce a valid MonitorEvent.</exception>
         internal void Handle(object sender, NetMQSocketEventArgs socketEventArgs)
         {
             MonitorEvent monitorEvent = MonitorEvent.Read(MonitoringSocket.SocketHandle);
@@ -150,7 +156,7 @@ namespace NetMQ.Monitoring
                     InvokeEvent(Disconnected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg));
                     break;
                 default:
-                    throw new Exception("unknown event " + monitorEvent.Event.ToString());
+                    throw new InvalidException("unknown event " + monitorEvent.Event.ToString());
             }
         }
 
@@ -202,6 +208,7 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Start monitor the socket, the method doesn't start a new thread and will block until the monitor poll is stopped
         /// </summary>
+        /// <exception cref="InvalidOperationException">The Monitor must not have already started nor attached to a poller.</exception>
         public void Start()
         {
             // in case the sockets is created in another thread
@@ -235,6 +242,7 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Stop the socket monitoring
         /// </summary>
+        /// <exception cref="InvalidOperationException">If this monitor is attached to a poller you must detach it first and not use the stop method.</exception>
         public void Stop()
         {
             if (m_attachedPoller != null)
@@ -246,6 +254,9 @@ namespace NetMQ.Monitoring
             m_isStoppedEvent.WaitOne();
         }
 
+        /// <summary>
+        /// Release and dispose of any contained resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);

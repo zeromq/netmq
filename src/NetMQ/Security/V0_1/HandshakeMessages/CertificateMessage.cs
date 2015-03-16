@@ -23,27 +23,28 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
         /// </summary>
         public X509Certificate2 Certificate { get; set; }
 
-       /// <summary>
+        /// <summary>
         /// Remove the two frames from the given NetMQMessage, interpreting them thusly:
         /// 1. a byte with the HandshakeType,
         /// 2. a byte-array containing the X.509 digital certificate.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 2 frames</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must be 1.</exception>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);
 
             if (message.FrameCount != 1)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, string.Format("Malformed message; FrameCount ({0}) should be 1.", message.FrameCount));
             }
 
             NetMQFrame certificateFrame = message.Pop();
 
-            byte[] certificteBytes = certificateFrame.ToByteArray();
+            byte[] certificateBytes = certificateFrame.ToByteArray();
 
             Certificate = new X509Certificate2();
-            Certificate.Import(certificteBytes);
+            Certificate.Import(certificateBytes);
         }
 
         /// <summary>

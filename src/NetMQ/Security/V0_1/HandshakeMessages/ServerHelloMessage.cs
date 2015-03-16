@@ -1,4 +1,6 @@
-﻿namespace NetMQ.Security.V0_1.HandshakeMessages
+﻿using System;
+
+namespace NetMQ.Security.V0_1.HandshakeMessages
 {
     /// <summary>
     /// The ServerHelloMessage is a HandshakeMessage with a <see cref="HandshakeType"/>of ServerHello.
@@ -33,13 +35,14 @@
         /// 3. a 2-byte array with the <see cref="CipherSuite"/> in the 2nd byte.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 3 frames</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must be 2.</exception>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);
 
             if (message.FrameCount != 2)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, String.Format("Malformed message. FrameCount ({0}) must be 2.", message.FrameCount));
             }
 
             // Get the random number

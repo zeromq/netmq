@@ -57,7 +57,7 @@ namespace NetMQ.zmq
         /// <param name="parent">another ZObject that provides the context and thread-id for this one</param>
         protected ZObject([NotNull] ZObject parent)
             : this(parent.m_ctx, parent.m_threadId)
-        {}
+        { }
 
         /// <summary>
         /// Get the id of the thread that this object belongs to.
@@ -76,14 +76,14 @@ namespace NetMQ.zmq
             get { return m_ctx; }
         }
 
-        protected bool RegisterEndpoint([NotNull] string addr, [NotNull] Ctx.Endpoint endpoint)
+        protected bool RegisterEndpoint([NotNull] string address, [NotNull] Ctx.Endpoint endpoint)
         {
-            return m_ctx.RegisterEndpoint(addr, endpoint);
+            return m_ctx.RegisterEndpoint(address, endpoint);
         }
 
-        protected bool UnregisterEndpoint([NotNull] string addr, [NotNull] SocketBase socket)
+        protected bool UnregisterEndpoint([NotNull] string address, [NotNull] SocketBase socket)
         {
-            return m_ctx.UnregisterEndpoint(addr, socket);
+            return m_ctx.UnregisterEndpoint(address, socket);
         }
 
         protected void UnregisterEndpoints([NotNull] SocketBase socket)
@@ -92,9 +92,9 @@ namespace NetMQ.zmq
         }
 
         [NotNull]
-        protected Ctx.Endpoint FindEndpoint([NotNull] string addr)
+        protected Ctx.Endpoint FindEndpoint([NotNull] string address)
         {
-            return m_ctx.FindEndpoint(addr);
+            return m_ctx.FindEndpoint(address);
         }
 
         protected void DestroySocket([NotNull] SocketBase socket)

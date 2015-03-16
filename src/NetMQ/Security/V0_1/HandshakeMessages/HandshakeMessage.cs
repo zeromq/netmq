@@ -65,11 +65,12 @@
         /// Remove the first frame from the given NetMQMessage.
         /// </summary>
         /// <param name="message">a NetMQMessage - which needs to have at least one frame</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must not be 0.</exception>
         public virtual void SetFromNetMQMessage(NetMQMessage message)
         {
             if (message.FrameCount == 0)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message. FrameCount must not be 0.");
             }
 
             // remove the handshake type column

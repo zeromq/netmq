@@ -1,4 +1,7 @@
-﻿namespace NetMQ.Security.V0_1.HandshakeMessages
+﻿using System;
+
+
+namespace NetMQ.Security.V0_1.HandshakeMessages
 {
     /// <summary>
     /// The FinishedMessage is a HandshakeMessage with a HandshakeType of Finished.
@@ -6,7 +9,7 @@
     /// </summary>
     class FinishedMessage : HandshakeMessage
     {
-       /// <summary>
+        /// <summary>
         /// The number of bytes within the verification-data (which is a byte-array). This value is 12.
         /// </summary>
         public const int VerifyDataLength = 12;
@@ -31,13 +34,14 @@
         /// 2. a byte-array containing the verification data - used to verify the integrity of the content.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 2 frames</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must be 1.</exception>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);
 
             if (message.FrameCount != 1)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, String.Format("Malformed message. FrameCount ({0}) should be 1.", message.FrameCount));
             }
 
             NetMQFrame verifyDataFrame = message.Pop();

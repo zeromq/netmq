@@ -332,7 +332,9 @@ namespace NetMQ.zmq
         /// </summary>
         SendMore = 2,
 
-        // Deprecated aliases
+        /// <summary>
+        /// (Deprecated) This flag specifies NOT to block waiting for a message to arrive.
+        /// </summary>
         [Obsolete("Use DontWait instead")]
         NoBlock = DontWait
     }
