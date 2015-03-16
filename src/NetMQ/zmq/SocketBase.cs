@@ -1090,6 +1090,10 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// In subclasses of SocketBase this is overridden, to handle the expiration of a timer.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer</param>
         public virtual void TimerEvent(int id)
         {
             throw new NotSupportedException();

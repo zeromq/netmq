@@ -67,6 +67,12 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private int m_port;
 
+        /// <summary>
+        /// Create a new TcpListener on the given IOThread and socket.
+        /// </summary>
+        /// <param name="ioThread">the IOThread for this to live within</param>
+        /// <param name="socket">a SocketBase to listen on</param>
+        /// <param name="options">socket-related Options</param>
         public TcpListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, options)
         {
@@ -76,6 +82,9 @@ namespace NetMQ.zmq.Transports.Tcp
             m_socket = socket;
         }
 
+        /// <summary>
+        /// Release any contained resources (here - does nothing).
+        /// </summary>
         public override void Destroy()
         {
             Debug.Assert(m_handle == null);
@@ -150,6 +159,12 @@ namespace NetMQ.zmq.Transports.Tcp
             m_handle.Accept(m_acceptedSocket);
         }
 
+        /// <summary>
+        /// This is called when socket input has been completed.
+        /// </summary>
+        /// <param name="socketError">This indicates the status of the input operation - whether Success or some error.</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NetMQException">A non-recoverable socket-error occurred.</exception>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             if (socketError != SocketError.Success)
@@ -258,17 +273,29 @@ namespace NetMQ.zmq.Transports.Tcp
             get { return m_address.ToString(); }
         }
 
+        /// <summary>
+        /// Get the port-number to listen on.
+        /// </summary>
         public virtual int Port
         {
             get { return m_port; }
         }
 
+        /// <summary>
+        /// This method would be called when a message Send operation has been completed - except in this case it simply throws a NotImplementedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         /// <exception cref="NotSupportedException">Method is not implemented.</exception>
         void IProactorEvents.OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// This would be called when a timer expires, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer (not used here)</param>
         /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void TimerEvent(int id)
         {

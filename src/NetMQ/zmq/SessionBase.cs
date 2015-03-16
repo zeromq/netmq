@@ -445,7 +445,9 @@ namespace NetMQ.zmq
             m_pipe.CheckRead();
         }
 
-        //  Call this function to move on with the delayed process_term.
+        /// <summary>
+        /// Call this function to move on with the delayed process_term.
+        /// </summary>
         private void ProceedWithTerm()
         {
             //  The pending phase have just ended.
@@ -455,6 +457,10 @@ namespace NetMQ.zmq
             base.ProcessTerm(0);
         }
 
+        /// <summary>
+        /// This is called when the timer expires.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer</param>
         public void TimerEvent(int id)
         {
             //  Linger period expired. We can proceed with termination even though
@@ -535,16 +541,32 @@ namespace NetMQ.zmq
             Debug.Assert(false);
         }
 
+        /// <summary>
+        /// Override the ToString method to also show the socket-id. 
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return base.ToString() + "[" + m_options.SocketId + "]";
         }
 
+        /// <summary>
+        /// This method would be called when a message receive operation has been completed, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotSupportedException">This operation is not supported on the SessionBase class.</exception>
         public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// This method would be called when a message Send operation has been completed, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotSupportedException">This operation is not supported on the SessionBase class.</exception>
         public virtual void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();

@@ -80,27 +80,48 @@ namespace NetMQ.zmq
             m_handler = null;
         }
 
+        /// <summary>
+        /// Add the given socket to the Proactor.
+        /// </summary>
+        /// <param name="socket">the AsyncSocket to add</param>
         public void AddSocket([NotNull] AsyncSocket socket)
         {
             m_ioThread.Proactor.AddSocket(socket, this);
         }
 
+        /// <summary>
+        /// Remove the given socket from the Proactor.
+        /// </summary>
+        /// <param name="socket">the AsyncSocket to remove</param>
         public void RemoveSocket([NotNull] AsyncSocket socket)
         {
             m_ioThread.Proactor.RemoveSocket(socket);
         }
 
+        /// <summary>
+        /// This method is called when a message receive operation has been completed. This forwards it on to the handler's InCompleted method.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
             m_handler.InCompleted(socketError, bytesTransferred);
         }
 
+        /// <summary>
+        /// This method is called when a message Send operation has been completed. This forwards it on to the handler's OutCompleted method.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public virtual void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             m_handler.OutCompleted(socketError, bytesTransferred);
         }
 
-
+        /// <summary>
+        /// This is called when the timer expires.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer</param>
         public virtual void TimerEvent(int id)
         {
             m_handler.TimerEvent(id);

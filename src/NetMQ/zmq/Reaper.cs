@@ -107,6 +107,10 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// This would be called when a timer expires - however in this event NotSupportedException would be thrown.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer</param>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

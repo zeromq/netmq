@@ -33,16 +33,16 @@ namespace NetMQ.zmq.Transports.Tcp
     internal class TcpConnector : Own, IProactorEvents
     {
         /// <summary>
-        ///  ID of the timer used to delay the reconnection.
+        /// ID of the timer used to delay the reconnection. Value is 1.
         /// </summary>
         private const int ReconnectTimerId = 1;
 
         private readonly IOObject m_ioObject;
 
         /// <summary>
-        ///  Address to connect to. Owned by session_base_t.
+        /// Address to connect to. Owned by session_base_t.
         /// </summary>
-        private readonly Address m_addr;
+        private readonly Address m_address;
 
         /// <summary>
         /// Underlying socket.
@@ -54,17 +54,17 @@ namespace NetMQ.zmq.Transports.Tcp
         /// If true file descriptor is registered with the poller and 'handle'
         /// contains valid value.
         /// </summary>
-        private bool m_handleValid;
+        private bool m_isHandleValid;
 
         /// <summary>
         /// If true, connector is waiting a while before trying to connect.
         /// </summary>
-        private readonly bool m_delayedStart;
+        private readonly bool m_isDelayedStart;
 
         /// <summary>
         /// True if a timer has been started.
         /// </summary>
-        private bool m_timerStarted;
+        private bool m_isTimerStarted;
 
         /// <summary>
         /// Reference to the session we belong to.
@@ -74,7 +74,7 @@ namespace NetMQ.zmq.Transports.Tcp
         /// <summary>
         /// Current reconnect-interval, updated for back-off strategy
         /// </summary>
-        private int m_currentReconnectIvl;
+        private int m_currentReconnectInterval;
 
         /// <summary>
         /// String representation of endpoint to connect to
@@ -90,30 +90,33 @@ namespace NetMQ.zmq.Transports.Tcp
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
-            m_addr = addr;
+            m_address = addr;
             m_s = null;
-            m_handleValid = false;
-            m_delayedStart = delayedStart;
-            m_timerStarted = false;
+            m_isHandleValid = false;
+            m_isDelayedStart = delayedStart;
+            m_isTimerStarted = false;
             m_session = session;
-            m_currentReconnectIvl = m_options.ReconnectIvl;
+            m_currentReconnectInterval = m_options.ReconnectIvl;
 
-            Debug.Assert(m_addr != null);
-            m_endpoint = m_addr.ToString();
+            Debug.Assert(m_address != null);
+            m_endpoint = m_address.ToString();
             m_socket = session.Socket;
         }
 
+        /// <summary>
+        /// This does nothing.
+        /// </summary>
         public override void Destroy()
         {
-            Debug.Assert(!m_timerStarted);
-            Debug.Assert(!m_handleValid);
+            Debug.Assert(!m_isTimerStarted);
+            Debug.Assert(!m_isHandleValid);
             Debug.Assert(m_s == null);
         }
 
         protected override void ProcessPlug()
         {
             m_ioObject.SetHandler(this);
-            if (m_delayedStart)
+            if (m_isDelayedStart)
                 AddReconnectTimer();
             else
             {
@@ -123,16 +126,16 @@ namespace NetMQ.zmq.Transports.Tcp
 
         protected override void ProcessTerm(int linger)
         {
-            if (m_timerStarted)
+            if (m_isTimerStarted)
             {
                 m_ioObject.CancelTimer(ReconnectTimerId);
-                m_timerStarted = false;
+                m_isTimerStarted = false;
             }
 
-            if (m_handleValid)
+            if (m_isHandleValid)
             {
                 m_ioObject.RemoveSocket(m_s);
-                m_handleValid = false;
+                m_isHandleValid = false;
             }
 
             if (m_s != null)
@@ -141,6 +144,12 @@ namespace NetMQ.zmq.Transports.Tcp
             base.ProcessTerm(linger);
         }
 
+        /// <summary>
+        /// This method would be called when a message receive operation has been completed, although here it only throws a NotImplementedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotImplementedException">this operation is not supported on the TcpConnector class.</exception>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
@@ -156,7 +165,7 @@ namespace NetMQ.zmq.Transports.Tcp
             //  Create the socket.
             try
             {
-                m_s = AsyncSocket.Create(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                m_s = AsyncSocket.Create(m_address.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             }
             catch (SocketException)
             {
@@ -165,12 +174,12 @@ namespace NetMQ.zmq.Transports.Tcp
             }
 
             m_ioObject.AddSocket(m_s);
-            m_handleValid = true;
+            m_isHandleValid = true;
 
             //  Connect to the remote peer.
             try
             {
-                m_s.Connect(m_addr.Resolved.Address.Address, m_addr.Resolved.Address.Port);
+                m_s.Connect(m_address.Resolved.Address.Address, m_address.Resolved.Address.Port);
                 m_socket.EventConnectDelayed(m_endpoint, ErrorCode.InProgress);
             }
             catch (SocketException ex)
@@ -180,20 +189,22 @@ namespace NetMQ.zmq.Transports.Tcp
         }
 
         /// <summary>
-        /// 
+        /// This method is called when a message Send operation has been completed.
         /// </summary>
-        /// <param name="socketError"></param>
-        /// <param name="bytesTransferred"></param>
-        /// <exception cref="NetMQException">a non-recoverable socket error occurred.</exception>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NetMQException">A non-recoverable socket error occurred.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
+            m_ioObject.RemoveSocket(m_s);
+            m_isHandleValid = false;
+
             if (socketError != SocketError.Success)
             {
-                m_ioObject.RemoveSocket(m_s);
-                m_handleValid = false;
-
                 Close();
 
+                // Try again to connect after a time,
+                // as long as the error is one of these..
                 if (socketError == SocketError.ConnectionRefused || socketError == SocketError.TimedOut ||
                     socketError == SocketError.ConnectionAborted ||
                     socketError == SocketError.HostUnreachable || socketError == SocketError.NetworkUnreachable ||
@@ -206,19 +217,19 @@ namespace NetMQ.zmq.Transports.Tcp
                     throw NetMQException.Create(socketError);
                 }
             }
-            else
+            else  // socketError is Success.
             {
-                m_ioObject.RemoveSocket(m_s);
-                m_handleValid = false;
-
                 m_s.NoDelay = true;
 
+                // As long as the TCP keep-alive option is not -1 (indicating no change),
                 if (m_options.TcpKeepalive != -1)
                 {
+                    // Set the TCP keep-alive option values to the underlying socket.
                     m_s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
 
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
+                        // Write the TCP keep-alive options to a byte-array, to feed to the IOControl method..
                         var bytes = new ByteArraySegment(new byte[12]);
 
                         Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
@@ -246,9 +257,13 @@ namespace NetMQ.zmq.Transports.Tcp
             }
         }
 
+        /// <summary>
+        /// This is called when the timer expires - to start trying to connect.
+        /// </summary>
+        /// <param name="id">The timer-id. This is not used.</param>
         public void TimerEvent(int id)
         {
-            m_timerStarted = false;
+            m_isTimerStarted = false;
             StartConnecting();
         }
 
@@ -260,7 +275,7 @@ namespace NetMQ.zmq.Transports.Tcp
             int rcIvl = GetNewReconnectIvl();
             m_ioObject.AddTimer(rcIvl, ReconnectTimerId);
             m_socket.EventConnectRetried(m_endpoint, rcIvl);
-            m_timerStarted = true;
+            m_isTimerStarted = true;
         }
 
         /// <summary>
@@ -271,7 +286,7 @@ namespace NetMQ.zmq.Transports.Tcp
         private int GetNewReconnectIvl()
         {
             //  The new interval is the current interval + random value.
-            int thisInterval = m_currentReconnectIvl + new Random().Next(0, m_options.ReconnectIvl);
+            int thisInterval = m_currentReconnectInterval + new Random().Next(0, m_options.ReconnectIvl);
 
             //  Only change the current reconnect interval  if the maximum reconnect
             //  interval was set and if it's larger than the reconnect interval.
@@ -279,10 +294,10 @@ namespace NetMQ.zmq.Transports.Tcp
                 m_options.ReconnectIvlMax > m_options.ReconnectIvl)
             {
                 //  Calculate the next interval
-                m_currentReconnectIvl = m_currentReconnectIvl * 2;
-                if (m_currentReconnectIvl >= m_options.ReconnectIvlMax)
+                m_currentReconnectInterval = m_currentReconnectInterval * 2;
+                if (m_currentReconnectInterval >= m_options.ReconnectIvlMax)
                 {
-                    m_currentReconnectIvl = m_options.ReconnectIvlMax;
+                    m_currentReconnectInterval = m_options.ReconnectIvlMax;
                 }
             }
             return thisInterval;

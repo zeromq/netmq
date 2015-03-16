@@ -91,7 +91,11 @@ namespace NetMQ.zmq.Transports.PGM
             m_handle = null;
         }
 
-
+        /// <summary>
+        /// This method is called when a message receive operation has been completed.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             if (socketError != SocketError.Success)
@@ -130,12 +134,21 @@ namespace NetMQ.zmq.Transports.PGM
             m_handle.Accept(m_acceptedSocket.Handle);
         }
 
-        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
+        /// <summary>
+        /// This method would be called when a message Send operation has been completed, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotSupportedException">This operation is not supported on the PgmListener class.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// This would be called when the a expires, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer (not used here)</param>
         /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void TimerEvent(int id)
         {
