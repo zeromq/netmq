@@ -33,14 +33,31 @@ namespace NetMQ.zmq.Transports.Tcp
     /// </summary>
     internal class TcpAddress : Address.IZAddress
     {
+        /// <summary>
+        /// A TcpAddressMask is used to match addresses.
+        /// This is simply a TcpAddress that adds one method: MatchAddress(IPEndPoint address),
+        /// which checks whether it's Address property is equal to a given IPEndPoint.
+        /// </summary>
         public class TcpAddressMask : TcpAddress
         {
-            public bool MatchAddress(IPEndPoint addr)
+            /// <summary>
+            /// Return true if the given IPEndPoint is equal to this object's Address.
+            /// </summary>
+            /// <param name="address">the IPEndPoint to compare against the Address</param>
+            /// <returns>true if the Address is equal to this given IPEndPoint</returns>
+            public bool MatchAddress(IPEndPoint address)
             {
-                return Address.Equals(addr);
+                if (address == null || this.Address == null)
+                    return false;
+                return Address.Equals(address);
             }
         }
 
+        /// <summary>
+        /// Override ToString to provide a detailed description of this object's state
+        /// in the form:  Protocol://[AddressFamily]:Port
+        /// </summary>
+        /// <returns>a string in the form Protocol://[AddressFamily]:Port</returns>
         public override string ToString()
         {
             if (Address == null)
@@ -53,7 +70,11 @@ namespace NetMQ.zmq.Transports.Tcp
                 : Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
         }
 
-        /// <param name="name">the address to resolve</param>
+        /// <summary>
+        /// Given a string that should identify an endpoint-address, resolve it to an actual IP address
+        /// and set the Address property to a valid corresponding value.
+        /// </summary>
+        /// <param name="name">the endpoint-address to resolve</param>
         /// <param name="ip4Only">whether the address must be only-IPv4</param>
         /// <exception cref="InvalidException">The name must contain the colon delimiter.</exception>
         /// <exception cref="InvalidException">The specified port must be a valid nonzero integer.</exception>
@@ -73,6 +94,7 @@ namespace NetMQ.zmq.Transports.Tcp
             if (addrStr.Length >= 2 && addrStr[0] == '[' && addrStr[addrStr.Length - 1] == ']')
                 addrStr = addrStr.Substring(1, addrStr.Length - 2);
 
+            // Get the port-number (or zero for auto-selection of a port).
             int port;
             //  Allow 0 specifically, to detect invalid port error in atoi if not
             if (portStr == "*" || portStr == "0")
@@ -92,6 +114,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
             IPAddress ipAddress;
 
+            // Interpret * as Any.
             if (addrStr == "*")
             {
                 ipAddress = ip4Only
@@ -109,7 +132,7 @@ namespace NetMQ.zmq.Transports.Tcp
                               ip.AddressFamily == AddressFamily.InterNetworkV6);
 
                 if (ipAddress == null)
-                    throw new InvalidException(string.Format("TcpAddress.Resolve, unable to find an IP address for {0}", name));
+                    throw new InvalidException(string.Format("TcpAddress.Resolve({0}, {1}), unable to find IP address. addrStr is {2}", name, ip4Only, addrStr));
             }
 
             Address = new IPEndPoint(ipAddress, port);
@@ -123,7 +146,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
         /// <summary>
         /// Get the textual-representation of the communication protocol implied by this TcpAddress,
-        /// which here is simply "tcp".
+        /// which for this class (TcpAddress) is simply "tcp".
         /// </summary>
         public string Protocol
         {
