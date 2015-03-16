@@ -34,7 +34,15 @@ namespace NetMQ
         public const string ConfigureCommand = "CONFIGURE";
         public const string PublishCommand = "PUBLISH";
         public const string SilenceCommand = "SILENCE";
+
+        /// <summary>
+        /// Command to subscribe a socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
         public const string SubscribeCommand = "SUBSCRIBE";
+
+        /// <summary>
+        /// Command to un-subscribe a socket from messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
         public const string UnsubscribeCommand = "UNSUBSCRIBE";
 
         #region Nested class: Shim

@@ -245,9 +245,12 @@ namespace NetMQ.zmq
         public ZmqSocketType SocketType { get; set; }
 
         /// <summary>
-        /// Get the TCP accept() filters,
-        /// this being a list of TcpAddressMasks.
+        /// Get the list of accept-filters, which denote the addresses that a socket may accept.
+        /// Each filter in this list is a TcpAddressMask that provides a MatchAddress method.
         /// </summary>
+        /// <remarks>
+        /// Presently this is not used inside of NetMQ.
+        /// </remarks>
         public List<TcpAddress.TcpAddressMask> TcpAcceptFilters { get; private set; }
 
         /// <summary>
@@ -394,6 +397,8 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOption.TcpAcceptFilter:
+                    // TODO: Apparently this is not used at all within NetMQ.
+                    //       Is it intended to?  If not - then why have this code at all?  jh
                     var filterStr = (string)optionValue;
                     if (filterStr == null)
                     {

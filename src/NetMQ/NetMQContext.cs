@@ -8,11 +8,23 @@ using NetMQ.zmq;
 namespace NetMQ
 {
     /// <summary>
-    /// NetMQContext is the context class of the NetMQ message-queueing subsystem.
+    /// <c>NetMQContext</c> is the context class of the NetMQ message-queueing subsystem.
     /// This contains all of the state-information for the message-queueing subsystem, and provides
     /// methods for socket creation.
     /// You should (ordinarily) have only one context in your application process.
     /// </summary>
+    /// <remarks>
+    /// The NetMQContext is used to create all sockets. Thus, to use NetMQ you should start by calling <c>NetMQContext.Create()</c>
+    /// to create an instance. NetMQContext is an <c>IDisposable</c> so you can use it within a using block:
+    /// <code>
+    /// using (var context = NetMQContext.Create())
+    /// {
+    ///     // Put your code in here. Exit this block to dispose the context
+    ///     // only when communication is no longer required.
+    /// }
+    /// </code>
+    /// You should create and use exactly one context in your process.
+    /// </remarks>
     public class NetMQContext : IDisposable
     {
         private readonly Ctx m_ctx;
@@ -54,6 +66,11 @@ namespace NetMQ
 
         #region Socket Creation
 
+        /// <summary>
+        /// Create a socket of the given type within this context.
+        /// </summary>
+        /// <param name="socketType">a ZmqSocketType denoting which type of socket to create</param>
+        /// <returns>a new socket of the given type</returns>
         [CanBeNull]
         private SocketBase CreateHandle(ZmqSocketType socketType)
         {

@@ -8,12 +8,12 @@ namespace NetMQ.Devices
     /// This device is part of the publish-subscribe pattern. The frontend speaks to publishers
     /// and the backend speaks to subscribers.
     /// In order to use the <see cref="ForwarderDevice"/> please make sure you subscribe the FrontendSocket 
-    /// using the <see cref="ForwarderDevice.FrontendSetup"/>.
+    /// using the <see cref="DeviceBase.FrontendSetup"/>.
     /// </remarks>
-    /// <example>
+    /// <code>
     /// var device = new ForwarderDevice(ctx, "inproc://frontend", "inproc://backend");
     /// device.FrontendSetup.Subscribe("topic");
-    /// </example>
+    /// </code>
     public class ForwarderDevice : DeviceBase
     {
         /// <summary>

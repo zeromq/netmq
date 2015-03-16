@@ -367,6 +367,11 @@ namespace NetMQ
         /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
         /// </summary>
         /// <param name="topic">a string denoting the topic to subscribe to</param>
+        /// <remarks>
+        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
+        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(string topic)
         {
@@ -377,6 +382,11 @@ namespace NetMQ
         /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
         /// </summary>
         /// <param name="topic">a byte-array denoting the topic to subscribe to</param>
+        /// <remarks>
+        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
+        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(byte[] topic)
         {
@@ -387,6 +397,11 @@ namespace NetMQ
         /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
         /// </summary>
         /// <param name="topic">a string denoting the topic to unsubscribe from</param>
+        /// <remarks>
+        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
+        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(string topic)
         {
@@ -397,6 +412,11 @@ namespace NetMQ
         /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
         /// </summary>
         /// <param name="topic">a byte-array denoting the topic to unsubscribe from</param>
+        /// <remarks>
+        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
+        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(byte[] topic)
         {

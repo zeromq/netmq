@@ -352,11 +352,19 @@ namespace NetMQ
 
         #region IEnumerable
 
+        /// <summary>
+        /// Return an enumerator over the frames contained within this message.
+        /// </summary>
+        /// <returns>an IEnumerator over the frames in this message</returns>
         public IEnumerator<NetMQFrame> GetEnumerator()
         {
             return m_frames.GetEnumerator();
         }
 
+        /// <summary>
+        /// Return an enumerator over the frames contained within this message.
+        /// </summary>
+        /// <returns>an IEnumerator over the frames in this message</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();

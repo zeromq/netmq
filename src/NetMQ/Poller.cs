@@ -7,8 +7,13 @@ using JetBrains.Annotations;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ
 {
+    /// <summary>
+    /// The Poller class provides for managing a set of one or more sockets and being alerted when one of them has a message
+    /// ready.
+    /// </summary>
     public class Poller : IDisposable
     {
         /// <summary>

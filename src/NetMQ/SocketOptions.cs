@@ -342,6 +342,16 @@ namespace NetMQ
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl, value); }
         }
 
+        /// <summary>
+        /// Set the list of accept-filters, which denote the addresses that a socket may accept.
+        /// Setting this to null clears the filter.
+        /// </summary>
+        /// <remarks>
+        /// This applies to IPv4 addresses only.
+        /// The value you assign to this must be of length 1..255.
+        /// Currently this is not used.
+        /// </remarks>
+        /// <exception cref="InvalidException">The filter-string must have a length of 1 to 255.</exception>
         [CanBeNull]
         public string TcpAcceptFilter
         {

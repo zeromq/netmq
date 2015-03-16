@@ -1,5 +1,6 @@
 ﻿using System;
 
+
 namespace NetMQ.zmq
 {
     /// <summary>
@@ -85,20 +86,44 @@ namespace NetMQ.zmq
     internal enum ZmqSocketOption
     {
         /// <summary>
-        /// The I/O-thread affinity. This is a 64-bit value used to specify  which threads from the I/O thread-pool
-        /// associated with the socket's context shall handle newly-created connections.
+        /// The I/O-thread affinity.
         /// 0 means no affinity, meaning that work shall be distributed fairly among all I/O threads.
         /// For non-zero values, the lowest bit corresponds to thread 1, second lowest bit to thread 2, and so on.
         /// </summary>
+        /// <remarks>
+        /// The I/O-thread <c>Affinity</c> is a 64-bit value used to specify which threads from the I/O thread-pool
+        /// associated with the socket's context shall handle newly-created connections.
+        /// 0 means no affinity, meaning that work shall be distributed fairly among all I/O threads.
+        /// For non-zero values, the lowest bit corresponds to thread 1, second lowest bit to thread 2, and so on.
+        /// </remarks>
         Affinity = 4,
 
         /// <summary>
         /// The unique identity of the socket, from a message-queueing router's perspective.
-        /// This is at most 255 bytes long.
         /// </summary>
+        /// <remarks>
+        /// This is at most 255 bytes long.
+        /// </remarks>
         Identity = 5,
 
+        /// <summary>
+        /// Setting this option subscribes a socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <remarks>
+        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
+        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         Subscribe = 6,
+
+        /// <summary>
+        /// Set this option to un-subscribe a socket from a given topic. Only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <remarks>
+        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
+        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         Unsubscribe = 7,
 
         /// <summary>
@@ -108,9 +133,12 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// The recovery-interval, in milliseconds, for multicast transports using the specified socket.
+        /// Default is 10,000 ms (10 seconds).
+        /// </summary>
+        /// <remarks>
         /// This option determines the maximum time that a receiver can be absent from a multicast group
         /// before unrecoverable data loss will occur. Default is 10,000 ms (10 seconds).
-        /// </summary>
+        /// </remarks>
         RecoveryIvl = 9,
 
         /// <summary>
@@ -158,10 +186,13 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// The initial reconnection interval for the specified socket.
-        /// This is the period to wait between attempts to reconnect disconnected peers
-        /// when using connection-oriented transports.
         /// -1 means no reconnection.
         /// </summary>
+        /// <remarks>
+        /// This is the period to wait between attempts to reconnect disconnected peers
+        /// when using connection-oriented transports.
+        /// A value of -1 means no reconnection.
+        /// </remarks>
         ReconnectIvl = 18,
 
         /// <summary>
@@ -173,17 +204,24 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// The maximum reconnection interval for the specified socket.
-        /// On each reconnect attempt, the previous interval shall be doubled
-        /// until this maximum period is reached.
         /// The default value of zero means no exponential backoff is performed.
         /// </summary>
+        /// <remarks>
+        /// This option value denotes the maximum reconnection interval for a socket.
+        /// It is used when a connection drops and NetMQ attempts to reconnect.
+        /// On each attempt to reconnect, the previous interval is doubled
+        /// until this maximum period is reached.
+        /// The default value of zero means no exponential backoff is performed.
+        /// </remarks>
         ReconnectIvlMax = 21,
 
         /// <summary>
         /// The upper limit to to the size for inbound messages.
-        /// If a peer sends a message larger than this it is disconnected.
         /// -1 (the default value) means no limit.
         /// </summary>
+        /// <remarks>
+        /// If a peer sends a message larger than this it is disconnected.
+        /// </remarks>
         MaxMessageSize = 22,
 
         /// <summary>
@@ -221,9 +259,11 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// This indicates the underlying native socket type.
+        /// </summary>
+        /// <remarks>
         /// An IPv4 socket will only use IPv4, while an IPv6 socket lets applications
         /// connect to and accept connections from both IPv4 and IPv6 hosts.
-        /// </summary>
+        /// </remarks>
         IPv4Only = 31,
 
         /// <summary>
@@ -247,10 +287,12 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// The keep-alive time - the duration between two keepalive transmissions in idle condition.
+        /// </summary>
+        /// <remarks>
         /// The TCP keepalive period is required by socket implementers to be configurable and by default is
         /// set to no less than 2 hours.
         /// In 0MQ, -1 (the default value) means to just leave it to the OS default.
-        /// </summary>
+        /// </remarks>
         TcpKeepaliveIdle = 36,
 
         /// <summary>
@@ -265,16 +307,25 @@ namespace NetMQ.zmq
         /// </remarks>
         TcpKeepaliveIntvl = 37,
 
+        /// <summary>
+        /// The list of accept-filters, which denote the addresses that a socket may accept.
+        /// Setting this to null clears the filter.
+        /// </summary>
+        /// <remarks>
+        /// This applies to IPv4 addresses only.
+        /// </remarks>
         TcpAcceptFilter = 38,
 
         /// <summary>
         /// The attach-on-connect value.
+        /// Default is false.
+        /// </summary>
+        /// <remarks>
         /// If set to 1, will delay the attachment of a pipe on connect until
         /// the underlying connection has completed. This will cause the socket
         /// to block if there are no other connections, but will prevent queues
         /// from filling on pipes awaiting connection.
-        /// Default is false.
-        /// </summary>
+        /// </remarks>
         DelayAttachOnConnect = 39,
 
         XpubVerbose = 40,
