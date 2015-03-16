@@ -26,6 +26,11 @@ namespace NetMQ.zmq.Transports
             m_msgSource = msgSource;
         }
 
+        /// <summary>
+        /// Depending upon the current State, return true if the raw-message size, or the raw-message itself, is ready.
+        /// TODO: That comment sucks.
+        /// </summary>
+        /// <returns></returns>
         protected override bool Next()
         {
             switch (State)

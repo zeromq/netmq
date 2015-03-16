@@ -730,6 +730,11 @@ namespace NetMQ.zmq.Transports
             }
         }
 
+        /// <summary>
+        /// This method is be called when a message receive operation has been completed.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             FeedAction(Action.InCompleted, socketError, bytesTransferred);
@@ -740,6 +745,11 @@ namespace NetMQ.zmq.Transports
             FeedAction(Action.ActivateIn, SocketError.Success, 0);
         }
 
+        /// <summary>
+        /// This method is called when a message Send operation has been completed.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             FeedAction(Action.OutCompleted, socketError, bytesTransferred);
@@ -839,6 +849,10 @@ namespace NetMQ.zmq.Transports
             }
         }
 
+        /// <summary>
+        /// This would be called when a timer expires, although here it only throws NotSupportedException.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer (not used here)</param>
         /// <exception cref="NotSupportedException">Operation is not supported.</exception>
         public void TimerEvent(int id)
         {
