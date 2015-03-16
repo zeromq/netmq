@@ -2,6 +2,7 @@ using System;
 using System.Net.Sockets;
 using JetBrains.Annotations;
 
+
 namespace NetMQ
 {
     /// <summary>
@@ -48,77 +49,15 @@ namespace NetMQ
         public static NetMQException Create(SocketError error, [CanBeNull] Exception innerException = null)
         {
             ErrorCode errorCode;
-
-            switch (error)
+            if (TryConvertSocketErrorToErrorCode(error, out errorCode))
             {
-                case SocketError.AccessDenied:
-                    errorCode = ErrorCode.AccessDenied;
-                    break;
-                case SocketError.Fault:
-                    errorCode = ErrorCode.Fault;
-                    break;
-                case SocketError.InvalidArgument:
-                    errorCode = ErrorCode.Invalid;
-                    break;
-                case SocketError.TooManyOpenSockets:
-                    errorCode = ErrorCode.TooManyOpenSockets;
-                    break;
-                case SocketError.InProgress:
-                    errorCode = ErrorCode.TryAgain;
-                    break;
-                case SocketError.MessageSize:
-                    errorCode = ErrorCode.MessageSize;
-                    break;
-                case SocketError.ProtocolNotSupported:
-                    errorCode = ErrorCode.ProtocolNotSupported;
-                    break;
-                case SocketError.AddressFamilyNotSupported:
-                    errorCode = ErrorCode.AddressFamilyNotSupported;
-                    break;
-                case SocketError.AddressNotAvailable:
-                    errorCode = ErrorCode.AddressNotAvailable;
-                    break;
-                case SocketError.NetworkDown:
-                    errorCode = ErrorCode.NetworkDown;
-                    break;
-                case SocketError.NetworkUnreachable:
-                    errorCode = ErrorCode.NetworkUnreachable;
-                    break;
-                case SocketError.NetworkReset:
-                    errorCode = ErrorCode.NetworkReset;
-                    break;
-                case SocketError.ConnectionAborted:
-                    errorCode = ErrorCode.ConnectionAborted;
-                    break;
-                case SocketError.ConnectionReset:
-                    errorCode = ErrorCode.ConnectionReset;
-                    break;
-                case SocketError.NoBufferSpaceAvailable:
-                    errorCode = ErrorCode.NoBufferSpaceAvailable;
-                    break;
-                case SocketError.NotConnected:
-                    errorCode = ErrorCode.NotConnected;
-                    break;
-                case SocketError.TimedOut:
-                    errorCode = ErrorCode.TimedOut;
-                    break;
-                case SocketError.ConnectionRefused:
-                    errorCode = ErrorCode.ConnectionRefused;
-                    break;
-                case SocketError.HostUnreachable:
-                    errorCode = ErrorCode.HostUnreachable;
-                    break;
-                default:
-                    errorCode = 0; // to indicate no valid SocketError.
-#if DEBUG
-                    string s = string.Format("(And within NetMQException.Create: Unanticipated error-code: {0})", error.ToString());
-                    return Create(errorCode: errorCode, message: s, innerException: innerException);
-#else
-                    break;
-#endif
+                return Create(errorCode, innerException);
             }
-
-            return Create(errorCode, innerException);
+            else
+            {
+                string xMsg = String.Format("(And within NetMQException.Create: Unanticipated SocketError: {0})", error);
+                return Create(errorCode: 0, message: xMsg, innerException: innerException);
+            }
         }
 
         /// <summary>
@@ -189,6 +128,80 @@ namespace NetMQ
                 default:
                     return new NetMQException(innerException, message, errorCode);
             }
+        }
+
+        /// <summary>
+        /// Given a SocketError, attempt to assign the equivalent ErrorCode value to the given errorCode output argument.
+        /// </summary>
+        /// <param name="socketError">the SocketError to find an ErrorCode for</param>
+        /// <param name="errorCode">the ErrorCode out parameter that the value gets written to</param>
+        /// <returns>true if a good equivalent is found</returns>
+        public static bool TryConvertSocketErrorToErrorCode(SocketError socketError, out ErrorCode errorCode)
+        {
+            switch (socketError)
+            {
+                case SocketError.AccessDenied:
+                    errorCode = ErrorCode.AccessDenied;
+                    break;
+                case SocketError.Fault:
+                    errorCode = ErrorCode.Fault;
+                    break;
+                case SocketError.InvalidArgument:
+                    errorCode = ErrorCode.Invalid;
+                    break;
+                case SocketError.TooManyOpenSockets:
+                    errorCode = ErrorCode.TooManyOpenSockets;
+                    break;
+                case SocketError.InProgress:
+                    errorCode = ErrorCode.TryAgain;
+                    break;
+                case SocketError.MessageSize:
+                    errorCode = ErrorCode.MessageSize;
+                    break;
+                case SocketError.ProtocolNotSupported:
+                    errorCode = ErrorCode.ProtocolNotSupported;
+                    break;
+                case SocketError.AddressFamilyNotSupported:
+                    errorCode = ErrorCode.AddressFamilyNotSupported;
+                    break;
+                case SocketError.AddressNotAvailable:
+                    errorCode = ErrorCode.AddressNotAvailable;
+                    break;
+                case SocketError.NetworkDown:
+                    errorCode = ErrorCode.NetworkDown;
+                    break;
+                case SocketError.NetworkUnreachable:
+                    errorCode = ErrorCode.NetworkUnreachable;
+                    break;
+                case SocketError.NetworkReset:
+                    errorCode = ErrorCode.NetworkReset;
+                    break;
+                case SocketError.ConnectionAborted:
+                    errorCode = ErrorCode.ConnectionAborted;
+                    break;
+                case SocketError.ConnectionReset:
+                    errorCode = ErrorCode.ConnectionReset;
+                    break;
+                case SocketError.NoBufferSpaceAvailable:
+                    errorCode = ErrorCode.NoBufferSpaceAvailable;
+                    break;
+                case SocketError.NotConnected:
+                    errorCode = ErrorCode.NotConnected;
+                    break;
+                case SocketError.TimedOut:
+                    errorCode = ErrorCode.TimedOut;
+                    break;
+                case SocketError.ConnectionRefused:
+                    errorCode = ErrorCode.ConnectionRefused;
+                    break;
+                case SocketError.HostUnreachable:
+                    errorCode = ErrorCode.HostUnreachable;
+                    break;
+                default:
+                    errorCode = 0; // to indicate no valid SocketError.
+                    return false;
+            }
+            return true;
         }
     }
 
