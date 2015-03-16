@@ -23,6 +23,11 @@ using System.Net.Sockets;
 
 namespace NetMQ.zmq
 {
+    /// <summary>
+    /// Class Reaper is a ZObject and implements IPollEvents.
+    /// The Reaper is dedicated toward handling socket shutdown asynchronously and cleanly.
+    /// By passing this task off to the Reaper, the message-queueing subsystem can terminate immediately.
+    /// </summary>
     internal class Reaper : ZObject, IPollEvents
     {
         /// <summary>
@@ -42,19 +47,26 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// Number of sockets being reaped at the moment.
+        /// These are the reason for having a reaper: to take over the task of terminating these sockets.
         /// </summary>
         private int m_sockets;
 
         /// <summary>
         /// If true, we were already asked to terminate.
         /// </summary>
-        private volatile bool m_terminating;
+        private volatile bool m_isTerminating;
 
+        /// <summary>
+        /// Create a new Reaper with the given thread-id.
+        /// This will have a new Poller with the name "reaper-" + thread-id, and a Mailbox of that same name.
+        /// </summary>
+        /// <param name="ctx">the Ctx for this to be in</param>
+        /// <param name="threadId">an integer id to give to the thread this will live on</param>
         public Reaper(Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
             m_sockets = 0;
-            m_terminating = false;
+            m_isTerminating = false;
             
             string name = "reaper-" + threadId;
             m_poller = new Utils.Poller(name);
@@ -66,25 +78,37 @@ namespace NetMQ.zmq
             m_poller.SetPollin(m_mailboxHandle);
         }
 
+        /// <summary>
+        /// Release any contained resources - by destroying the poller and closing the mailbox.
+        /// </summary>
         public void Destroy()
         {
             m_poller.Destroy();
             m_mailbox.Close();
         }
 
+        /// <summary>
+        /// Get the Mailbox that this Reaper uses for communication with the rest of the message-queueing subsystem.
+        /// </summary>
         public Mailbox Mailbox
         {
             get { return m_mailbox; }
         }
 
+        /// <summary>
+        /// Start the contained Poller to begin polling.
+        /// </summary>
         public void Start()
         {
             m_poller.Start();
         }
 
+        /// <summary>
+        /// Issue the Stop command to this Reaper object.
+        /// </summary>
         public void Stop()
         {
-            if (!m_terminating)
+            if (!m_isTerminating)
                 SendStop();
         }
 
@@ -102,6 +126,9 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// This method normally is for handling output-ready events, which don't apply here.
+        /// </summary>
         public void OutEvent()
         {
             throw new NotSupportedException();
@@ -116,9 +143,13 @@ namespace NetMQ.zmq
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Respond to the Stop command by signaling the polling-loop to terminate,
+        /// and if there're no sockets left to reap - stop the poller.
+        /// </summary>
         protected override void ProcessStop()
         {
-            m_terminating = true;
+            m_isTerminating = true;
 
             //  If there are no sockets being reaped finish immediately.
             if (m_sockets == 0)
@@ -129,6 +160,10 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// Add the given socket to the list to be reaped (terminated).
+        /// </summary>
+        /// <param name="socket">the socket to add to the list for termination</param>
         protected override void ProcessReap(SocketBase socket)
         {
             //  Add the socket to the poller.
@@ -137,13 +172,17 @@ namespace NetMQ.zmq
             ++m_sockets;
         }
 
+        /// <summary>
+        /// Respond to having one of the sockets that are marked for reaping, - finished being reaped,
+        /// and if there are none left - send the Done command and stop the poller.
+        /// </summary>
         protected override void ProcessReaped()
         {
             --m_sockets;
 
             //  If reaped was already asked to terminate and there are no more sockets,
             //  finish immediately.
-            if (m_sockets == 0 && m_terminating)
+            if (m_sockets == 0 && m_isTerminating)
             {
                 SendDone();
                 m_poller.RemoveHandle(m_mailboxHandle);

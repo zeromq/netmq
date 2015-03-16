@@ -277,6 +277,12 @@ namespace NetMQ
             return Equals(obj as NetMQFrame);
         }
 
+        /// <summary>
+        /// Return true if this one and the other NetMQFrame are equal, or both are null.
+        /// </summary>
+        /// <param name="one">one frame to compare against the other</param>
+        /// <param name="other">the other frame to compare</param>
+        /// <returns>true if both frames are equal</returns>
         public static bool operator ==(NetMQFrame one, NetMQFrame other)
         {
             // NOTE use of ReferenceEquals here to avoid recurrence and stack overflow exception
@@ -287,6 +293,12 @@ namespace NetMQ
             return !ReferenceEquals(one, null) && one.Equals(other);
         }
 
+        /// <summary>
+        /// Return true if this one and the other NetMQFrame NOT are equal.
+        /// </summary>
+        /// <param name="one">one frame to compare against the other</param>
+        /// <param name="other">the other frame to compare</param>
+        /// <returns>false if both frames are equal</returns>
         public static bool operator !=(NetMQFrame one, NetMQFrame other)
         {
             return !(one == other);

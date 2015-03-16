@@ -363,24 +363,40 @@ namespace NetMQ
 
         #region Unsubscribe (obsolete)
 
+        /// <summary>
+        /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a string denoting the topic to subscribe to</param>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
+        /// <summary>
+        /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a byte-array denoting the topic to subscribe to</param>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
+        /// <summary>
+        /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a string denoting the topic to unsubscribe from</param>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
+        /// <summary>
+        /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a byte-array denoting the topic to unsubscribe from</param>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(byte[] topic)
         {

@@ -231,6 +231,9 @@ namespace NetMQ.zmq
             SendCommand(new Command(m_ctx.GetReaper(), CommandType.Reaped));
         }
 
+        /// <summary>
+        /// Send a Done command to the Ctx itself (null destination).
+        /// </summary>
         protected void SendDone()
         {
             // Use m_ctx.SendCommand directly as we have a null destination

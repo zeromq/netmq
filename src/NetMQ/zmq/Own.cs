@@ -31,6 +31,9 @@ namespace NetMQ.zmq
     /// </summary>
     internal abstract class Own : ZObject
     {
+        /// <summary>
+        /// The Options of this Own.
+        /// </summary>
         [NotNull]
         protected readonly Options m_options;
 
@@ -108,6 +111,10 @@ namespace NetMQ.zmq
             Destroy();
         }
 
+        /// <summary>
+        /// Set the owner of *this* Own object, to be the given owner.
+        /// </summary>
+        /// <param name="owner">the Own object to be our new owner</param>
         private void SetOwner([NotNull] Own owner)
         {
             Debug.Assert(m_owner == null);
@@ -138,7 +145,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Launch the supplied object and become its owner.
         /// </summary>
-        /// <param name="obj">The object to be launched.</param>
+        /// <param name="obj">the Own object to take ownership of and launched</param>
         protected void LaunchChild([NotNull] Own obj)
         {
             //  Specify the owner of the object.
@@ -154,12 +161,17 @@ namespace NetMQ.zmq
         /// <summary>
         /// Terminate owned object.
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">the Own object to terminate</param>
         protected void TermChild([NotNull] Own obj)
         {
             ProcessTermReq(obj);
         }
 
+        /// <summary>
+        /// Process a termination-request for the given Own obj,
+        /// removing it from the listed of owned things.
+        /// </summary>
+        /// <param name="obj">the Own object to remove and terminate</param>
         protected override void ProcessTermReq(Own obj)
         {
             //  When shutting down we can ignore termination requests from owned
@@ -182,7 +194,14 @@ namespace NetMQ.zmq
             SendTerm(obj, m_options.Linger);
         }
 
-
+        /// <summary>
+        /// Add the given Own object to the list of owned things.
+        /// </summary>
+        /// <param name="obj">the Own object to add to our list</param>
+        /// <remarks>
+        /// If *this* Own is already terminating, then send a request to the given Own obj
+        /// to terminate itself.
+        /// </remarks>
         protected override void ProcessOwn(Own obj)
         {
             //  If the object is already being shut down, new owned objects are
@@ -225,12 +244,12 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Returns true if the object is in process of termination.
+        /// Returns true if this object itself is in process of termination.
         /// </summary>
         protected bool IsTerminating { get { return m_terminating; } }
 
         /// <summary>
-        /// Runs the termination process.
+        /// Send termination requests to all of the owned objects, and then runs the termination process.
         /// </summary>
         /// <param name="linger">the linger time, in milliseconds</param>
         /// <remarks>
@@ -283,6 +302,10 @@ namespace NetMQ.zmq
             UnregisterTermAck();
         }
 
+        /// <summary>
+        /// If terminating, and we've already worked through the Seq-nums that were sent,
+        /// then send a termination-ack to the owner (if there is one) and destroy itself.
+        /// </summary>
         private void CheckTermAcks()
         {
             if (m_terminating &&

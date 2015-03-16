@@ -370,6 +370,9 @@ namespace NetMQ
             thread.Start();
         }
 
+        /// <summary>
+        /// Poll till Cancel or CancelAndJoin is called. This is a blocking method.
+        /// </summary>
         [Obsolete("Use PollTillCancelled instead")]
         public void Start()
         {
