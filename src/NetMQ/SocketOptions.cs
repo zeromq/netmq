@@ -44,6 +44,10 @@ namespace NetMQ
             set { }
         }
 
+        /// <summary>
+        /// Get or set unique identity of the socket, from a message-queueing router's perspective.
+        /// This is a byte-array of at most 255 bytes.
+        /// </summary>
         public byte[] Identity
         {
             [CanBeNull]
@@ -52,24 +56,39 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.Identity, value); }
         }
 
+        /// <summary>
+        /// Get or set the maximum send or receive data rate for multicast transports on the specified socket.
+        /// </summary>
         public int MulticastRate
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.Rate); }
             set { m_socket.SetSocketOption(ZmqSocketOption.Rate, value); }
         }
 
+        /// <summary>
+        /// Get or set the recovery-interval for multicast transports using the specified socket.
+        /// This option determines the maximum time that a receiver can be absent from a multicast group
+        /// before unrecoverable data loss will occur. Default is 10,000 ms (10 seconds).
+        /// </summary>
         public TimeSpan MulticastRecoveryInterval
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.RecoveryIvl); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.RecoveryIvl, value); }
         }
 
+        /// <summary>
+        /// Get or set the size of the transmit buffer for the specified socket.
+        /// </summary>
         public int SendBuffer
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.SendBuffer); }
             set { m_socket.SetSocketOption(ZmqSocketOption.SendBuffer, value); }
         }
 
+        /// <summary>
+        /// Get or set the size of the receive buffer for the specified socket.
+        /// A value of zero means that the OS default is in effect.
+        /// </summary>
         [Obsolete("Use ReceiveBuffer instead")]
         public int ReceivevBuffer
         {
@@ -77,6 +96,10 @@ namespace NetMQ
             set { ReceiveBuffer = value; }
         }
 
+        /// <summary>
+        /// Get or set the size of the receive buffer for the specified socket.
+        /// A value of zero means that the OS default is in effect.
+        /// </summary>
         public int ReceiveBuffer
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveBuffer); }
@@ -92,30 +115,79 @@ namespace NetMQ
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.ReceiveMore); }
         }
 
+        /// <summary>
+        /// Get or set the linger period for the specified socket,
+        /// which determines how long pending messages which have yet to be sent to a peer
+        /// shall linger in memory after a socket is closed.
+        /// </summary>
+        /// <remarks>
+        /// This also affects the termination of the socket's context.
+        /// -1: The default value of -1 specifies an infinite linger period. Pending messages shall not be discarded after the socket is closed;
+        /// attempting to terminate the socket's context shall block until all pending messages have been sent to a peer.
+        /// 0: Specifies no linger period. Pending messages shall be discarded immediately when the socket is closed.
+        /// Positive values specify an upper bound for the linger period. Pending messages shall not be discarded after the socket is closed;
+        /// attempting to terminate the socket's context shall block until either all pending messages have been sent to a peer,
+        /// or the linger period expires, after which any pending messages shall be discarded.
+        /// </remarks>
         public TimeSpan Linger
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.Linger); }
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.Linger, value); }
         }
 
+        /// <summary>
+        /// Get or set the initial reconnection interval for the specified socket.
+        /// This is the period to wait between attempts to reconnect disconnected peers
+        /// when using connection-oriented transports. The default is 100 ms.
+        /// -1 means no reconnection.
+        /// </summary>
+        /// <remarks>
+        /// With ZeroMQ, the reconnection interval may be randomized to prevent reconnection storms
+        /// in topologies with a large number of peers per socket.
+        /// </remarks>
         public TimeSpan ReconnectInterval
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl); }
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl, value); }
         }
 
+        /// <summary>
+        /// Get or set the maximum reconnection interval for the specified socket.
+        /// This is the maximum period to shall wait between attempts
+        /// to reconnect. On each reconnect attempt, the previous interval shall be doubled
+        /// until this maximum period is reached.
+        /// The default value of zero means no exponential backoff is performed.
+        /// </summary>
+        /// <remarks>
+        /// This is the maximum period NetMQ shall wait between attempts
+        /// to reconnect. On each reconnect attempt, the previous interval shall be doubled
+        /// until this maximum period is reached.
+        /// This allows for an exponential backoff strategy.
+        /// The default value of zero means no exponential backoff is performed
+        /// and reconnect interval calculations are only based on ReconnectIvl.
+        /// </remarks>
         public TimeSpan ReconnectIntervalMax
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvlMax); }
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvlMax, value); }
         }
 
+        /// <summary>
+        /// Get or set the maximum length of the queue of outstanding peer connections
+        /// for the specified socket. This only applies to connection-oriented transports.
+        /// Default is 100.
+        /// </summary>
         public int Backlog
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.Backlog); }
             set { m_socket.SetSocketOption(ZmqSocketOption.Backlog, value); }
         }
 
+        /// <summary>
+        /// Get or set the upper limit to to the size for inbound messages.
+        /// If a peer sends a message larger than this it is disconnected.
+        /// The default value is -1, which means no limit.
+        /// </summary>
         public long MaxMsgSize
         {
             get { return m_socket.GetSocketOptionLong(ZmqSocketOption.MaxMessageSize); }
@@ -146,12 +218,20 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveHighWatermark, value); }
         }
 
+        /// <summary>
+        /// Get or set the time-to-live (maximum number of hops) that outbound multicast packets
+        /// are allowed to propagate.
+        /// The default value of 1 means that the multicast packets don't leave the local network.
+        /// </summary>
         public int MulticastHops
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.MulticastHops); }
             set { m_socket.SetSocketOption(ZmqSocketOption.MulticastHops, value); }
         }
 
+        /// <summary>
+        /// Get or set the amount of time after which a synchronous receive call will time out.
+        /// </summary>
         [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
         public TimeSpan ReceiveTimeout
         {
@@ -159,12 +239,22 @@ namespace NetMQ
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReceiveTimeout, value); }
         }
 
+        /// <summary>
+        /// Specifies the amount of time after which a synchronous send call will time out.
+        /// A value of 0 means Send will return immediately, with a EAGAIN error if the message cannot be sent.
+        /// A value of -1 means to block until the message is sent.
+        /// TODO: May need to update this explanation.
+        /// </summary>
         public TimeSpan SendTimeout
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout); }
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout, value); }
         }
 
+        /// <summary>
+        /// Get or set whether the underlying socket is for IPv4 only (not IPv6),
+        /// as opposed to one that allows connections with either IPv4 or IPv6.
+        /// </summary>
         public bool IPv4Only
         {
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.IPv4Only); }
@@ -178,6 +268,14 @@ namespace NetMQ
             get { return LastEndpoint; }
         }
 
+        /// <summary>
+        /// Get or set the last endpoint bound for TCP and IPC transports.
+        /// The returned value will be a string in the form of a ZMQ DSN.
+        /// </summary>
+        /// <remarks>
+        /// If the TCP host is ANY, indicated by a *, then the returned address
+        /// will be 0.0.0.0 (for IPv4).
+        /// </remarks>
         [CanBeNull]
         public string LastEndpoint
         {
@@ -189,10 +287,24 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.RouterMandatory, value); }
         }
 
+        /// <summary>
+        /// Get or set whether to use TCP keepalive.
+        /// </summary>
+        /// <remarks>
+        /// When Keepalive is enabled, then your socket will periodically send an empty keepalive probe packet
+        /// with the ACK flag on. The remote endpoint does not need to support keepalive at all, just TCP/IP.
+        /// If you receive a reply to your keepalive probe, you can assume that the connection is still up and running.
+        /// This procedure is useful because if the other peers lose their connection (for example, by rebooting)
+        /// you will notice that the connection is broken, even if you don't have traffic on it.
+        /// If the keepalive probes are not replied to by your peer, you can assert that the connection
+        /// cannot be considered valid and then take the corrective action.
+        /// </remarks>
         public bool TcpKeepalive
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.TcpKeepalive) == 1; }
             set { m_socket.SetSocketOption(ZmqSocketOption.TcpKeepalive, value ? 1 : 0); }
+            // TODO: What about the value -1, which means use the OS default?  jh
+            // See  http://api.zeromq.org/3-2:zmq-getsockopt
         }
 
         [Obsolete("This option is not supported and has no effect")]
@@ -201,12 +313,29 @@ namespace NetMQ
             set { /* m_socket.SetSocketOption(ZmqSocketOption.TcpKeepaliveCnt, value); */ }
         }
 
+        /// <summary>
+        /// Get or set the keep-alive time - the duration between two keepalive transmissions in idle condition.
+        /// The TCP keepalive period is required by socket implementers to be configurable and by default is
+        /// set to no less than 2 hours.
+        /// </summary>
         public TimeSpan TcpKeepaliveIdle
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIdle); }
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIdle, value); }
+            // TODO: What about the value -1, which means use the OS default?  jh
+            // See  http://api.zeromq.org/3-2:zmq-getsockopt
         }
 
+        /// <summary>
+        /// Get or set the TCP keep-alive interval - the duration between two keepalive transmission if no response was received to a previous keepalive probe.
+        /// </summary>
+        /// <remarks>
+        /// By default a keepalive packet is sent every 2 hours or 7,200,000 milliseconds
+        /// (TODO: Check these comments concerning default values!  jh)
+        /// if no other data have been carried over the TCP connection.
+        /// If there is no response to a keepalive, it is repeated once every KeepAliveInterval seconds.
+        /// The default is one second.
+        /// </remarks>
         public TimeSpan TcpKeepaliveInterval
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl); }
@@ -221,6 +350,14 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.TcpAcceptFilter, value); }
         }
 
+        /// <summary>
+        /// Get or set the attach-on-connect value.
+        /// If set to true, this will delay the attachment of a pipe on connect until
+        /// the underlying connection has completed. This will cause the socket
+        /// to block if there are no other connections, but will prevent queues
+        /// from filling on pipes awaiting connection.
+        /// Default is false.
+        /// </summary>
         public bool DelayAttachOnConnect
         {
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DelayAttachOnConnect); }
@@ -237,6 +374,9 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.RouterRawSocket, value); }
         }
 
+        /// <summary>
+        /// Get or set the byte-order: big-endian, vs little-endian.
+        /// </summary>
         public Endianness Endian
         {
             get { return m_socket.GetSocketOptionX<Endianness>(ZmqSocketOption.Endian); }
