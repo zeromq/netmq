@@ -116,7 +116,7 @@ namespace NetMQ
                         }
                     }
                     catch (Exception)
-                    {}
+                    { }
 
                     m_pipe.Send(hostname);
                 }
@@ -276,6 +276,9 @@ namespace NetMQ
         /// </summary>
         public string Hostname { get; private set; }
 
+        /// <summary>
+        /// Get the socket of the contained actor.
+        /// </summary>
         NetMQSocket ISocketPollable.Socket
         {
             get { return ((ISocketPollable)m_actor).Socket; }
@@ -436,6 +439,9 @@ namespace NetMQ
             return m_actor.ReceiveFrameBytes();
         }
 
+        /// <summary>
+        /// Dispose of the contained actor.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);

@@ -8,8 +8,19 @@ namespace NetMQ.Security.V0_1
 {
     internal class HandshakeLayer : IDisposable
     {
+        /// <summary>
+        /// This is the SecureChannel that this handshake-protocol is communicating over.
+        /// </summary>
         private readonly SecureChannel m_secureChannel;
+
+        /// <summary>
+        /// This denotes the length of the byte-array that holds the random-number value.
+        /// </summary>
         public const int RandomNumberLength = 32;
+
+        /// <summary>
+        /// This denotes the length of the byte-array that holds the master-secret.
+        /// </summary>
         public const int MasterSecretLength = 48;
 
         /// <summary>
@@ -96,10 +107,19 @@ namespace NetMQ.Security.V0_1
 
         public SecurityParameters SecurityParameters { get; private set; }
 
+        /// <summary>
+        /// Get or set the array of allowed cipher-suites.
+        /// </summary>
         public CipherSuite[] AllowedCipherSuites { get; set; }
 
+        /// <summary>
+        /// Get or set the local X.509-certificate.
+        /// </summary>
         public X509Certificate2 LocalCertificate { get; set; }
 
+        /// <summary>
+        /// Get or set the remote X.509-certificate.
+        /// </summary>
         public X509Certificate2 RemoteCertificate { get; set; }
 
         /// <summary>
@@ -578,6 +598,9 @@ namespace NetMQ.Security.V0_1
             Array.Clear(preMasterSecret, 0, preMasterSecret.Length);
         }
 
+        /// <summary>
+        /// Dispose of any contained resources.
+        /// </summary>
         public void Dispose()
         {
             if (m_rng != null)

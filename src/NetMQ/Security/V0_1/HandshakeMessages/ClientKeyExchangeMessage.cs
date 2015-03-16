@@ -2,14 +2,14 @@
 {
     /// <summary>
     /// The ClientKeyExchangeMessage is a HandshakeMessage with a HandshakeType of ClientKeyExchange.
-    /// It holds a EncryptedPreMasterSecret,
+    /// It has an EncryptedPreMasterSecret property,
     /// and overrides SetFromNetMQMessage/ToNetMQMessage to read/write that
-    /// from the frames of a NetMQMessage.
+    /// from the frames of a <see cref="NetMQMessage"/>.
     /// </summary>
     class ClientKeyExchangeMessage : HandshakeMessage
     {
         /// <summary>
-        /// The number of bytes within the EncryptedPreMasterSecret.
+        /// The number of bytes within the <see cref="EncryptedPreMasterSecret"/>(here, 48).
         /// </summary>
         public const int PreMasterSecretLength = 48;
 
@@ -22,6 +22,9 @@
             get { return HandshakeType.ClientKeyExchange; }
         }
 
+        /// <summary>
+        /// Get or set the 48-byte array that is the encrypted pre-master secret.
+        /// </summary>
         public byte[] EncryptedPreMasterSecret { get; set; }
 
         /// <summary>

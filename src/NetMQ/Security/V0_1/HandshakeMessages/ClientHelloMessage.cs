@@ -10,6 +10,9 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
     /// </summary>
     class ClientHelloMessage : HandshakeMessage
     {
+        /// <summary>
+        /// Get or set the Random-Number that is a part of the handshake-protocol, as a byte-array.
+        /// </summary>
         public byte[] RandomNumber { get; set; }
 
         /// <summary>

@@ -22,6 +22,9 @@ namespace NetMQ
             ErrorCode = errorCode;
         }
 
+        /// <summary>
+        /// Get the (socket-related) error-code that denotes the error that gave rise to this exception.
+        /// </summary>
         public ErrorCode ErrorCode { get; private set; }
 
         /// <summary>

@@ -69,16 +69,25 @@ namespace NetMQ.Security
     }
 
     /// <summary>
-    /// Thrown by the SecureChannel when error occurred, check the ErrorCode property for the specific error.
+    /// NetMQSecurityException is an Exception that is thrown by the SecureChannel
+    /// when an error occurred. Check the ErrorCode property for the specific error.
     /// </summary>
     public class NetMQSecurityException : Exception
     {
+        /// <summary>
+        /// Create a new Net containing the given error-code and message.
+        /// </summary>
+        /// <param name="errorCode">an error-code that denotes the security-related error that caused this exception</param>
+        /// <param name="message">a textual description of what gave rise to this exception, to be exposed as the Message property</param>
         public NetMQSecurityException(NetMQSecurityErrorCode errorCode, string message)
             : base(message)
         {
             ErrorCode = errorCode;
         }
 
+        /// <summary>
+        /// Get the (security-related) error-code that denotes the error that gave rise to this exception.
+        /// </summary>
         public NetMQSecurityErrorCode ErrorCode { get; private set; }
     }
 }

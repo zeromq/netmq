@@ -58,12 +58,11 @@ namespace NetMQ.zmq.Patterns.Utils
         /// </summary>
         private bool m_more;
 
+        /// <summary>
+        /// Create a new, empty Distribution object.
+        /// </summary>
         public Distribution()
         {
-            m_matching = 0;
-            m_active = 0;
-            m_eligible = 0;
-            m_more = false;
             m_pipes = new List<Pipe>();
         }
 

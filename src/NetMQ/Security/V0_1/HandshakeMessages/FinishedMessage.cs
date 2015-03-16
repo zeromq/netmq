@@ -7,12 +7,12 @@
     class FinishedMessage : HandshakeMessage
     {
        /// <summary>
-        /// The number of bytes within the verification-data (which is a byte-array).
+        /// The number of bytes within the verification-data (which is a byte-array). This value is 12.
         /// </summary>
         public const int VerifyDataLength = 12;
 
         /// <summary>
-        /// Get the part of the handshake-protocol that this HandshakeMessage represents
+        /// Get the part of the handshake-protocol that this <see cref="HandshakeMessage"/>represents
         /// - in this case, Finished.
         /// </summary>
         public override HandshakeType HandshakeType
@@ -20,12 +20,15 @@
             get { return HandshakeType.Finished; }
         }
 
+        /// <summary>
+        /// Get or set a byte-array that contains the verification data that is part of the finished-message.
+        /// </summary>
         public byte[] VerifyData { get; set; }
 
         /// <summary>
         /// Remove the two frames from the given NetMQMessage, interpreting them thusly:
         /// 1. a byte with the HandshakeType,
-        /// 2. a byte-array containing the verification data (CBL  What is that exactly?).
+        /// 2. a byte-array containing the verification data - used to verify the integrity of the content.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 2 frames</param>
         public override void SetFromNetMQMessage(NetMQMessage message)

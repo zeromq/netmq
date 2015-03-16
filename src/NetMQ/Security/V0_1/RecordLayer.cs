@@ -158,6 +158,12 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="contentType">This identifies the type of content: ChangeCipherSpec, Handshake, or ApplicationData.</param>
+        /// <param name="plainMessage"></param>
+        /// <returns></returns>
         public NetMQMessage EncryptMessage(ContentType contentType, NetMQMessage plainMessage)
         {
             if (SecurityParameters.BulkCipherAlgorithm == BulkCipherAlgorithm.Null &&
@@ -204,9 +210,9 @@ namespace NetMQ.Security.V0_1
         /// <summary>
         /// Create and return an Initialization Vector (IV) using a given sequence-number and encryptor.
         /// </summary>
-        /// <param name="encryptor"></param>
-        /// <param name="seqNumBytes"></param>
-        /// <returns></returns>
+        /// <param name="encryptor">the ICryptoTransform to use to do the encryption</param>
+        /// <param name="seqNumBytes">a byte-array that is the sequence-number</param>
+        /// <returns>a byte-array that comprises the Initialization Vector (IV)</returns>
         private byte[] GenerateIV(ICryptoTransform encryptor, byte[] seqNumBytes)
         {
             // generating an IV by encrypting the sequence number with the random IV and encrypting symmetric key 
@@ -225,6 +231,10 @@ namespace NetMQ.Security.V0_1
             return iv;
         }
 
+        /// <summary>
+        /// Increment and return the sequence-number.
+        /// </summary>
+        /// <returns></returns>
         private ulong GetAndIncreaseSequneceNumber()
         {
             return m_sequenceNumber++;
@@ -285,10 +295,19 @@ namespace NetMQ.Security.V0_1
             return cipherBytes;
         }
 
+        /// <summary>
+        /// Return a new <see cref="NetMQMessage"/> that contains the decrypted content of the give message.
+        /// </summary>
+        /// <param name="contentType">This identifies the type of content: ChangeCipherSpec, Handshake, or ApplicationData.</param>
+        /// <param name="cipherMessage">the message to decrypt</param>
+        /// <returns>a new NetMQMessage with the contents decrypted</returns>
+        /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.InvalidFramesCount: Cipher message should have at least 2 frames, iv and sequence number.</exception>
+        /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.ReplayAttack: Message already handled or very old message, might be under replay attack.</exception>
+        /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.EncryptedFramesMissing: Frames were removed from the encrypted message.</exception>
         public NetMQMessage DecryptMessage(ContentType contentType, NetMQMessage cipherMessage)
         {
             if (SecurityParameters.BulkCipherAlgorithm == BulkCipherAlgorithm.Null &&
-              SecurityParameters.MACAlgorithm == MACAlgorithm.Null)
+                SecurityParameters.MACAlgorithm == MACAlgorithm.Null)
             {
                 return cipherMessage;
             }
@@ -329,7 +348,7 @@ namespace NetMQ.Security.V0_1
 
                 if (frameCount != cipherMessage.FrameCount)
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.EncryptedFramesMissing, "Frames was removed from the encrypted message");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.EncryptedFramesMissing, "Frames were removed from the encrypted message");
                 }
 
                 frameIndex++;
@@ -403,8 +422,18 @@ namespace NetMQ.Security.V0_1
             Buffer.BlockCopy(frameBytes, dataLength + SecurityParameters.MACLength, padding, 0, paddingSize);
         }
 
+        /// <summary>
+        /// Check the given arguments and throw a <see cref="NetMQSecurityException"/>if something is amiss.
+        /// </summary>
+        /// <param name="contentType">This identifies the type of content: ChangeCipherSpec, Handshake, or ApplicationData.</param>
+        /// <param name="seqNum"></param>
+        /// <param name="frameIndex"></param>
+        /// <param name="plainBytes"></param>
+        /// <param name="mac"></param>
+        /// <param name="padding"></param>
+        /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.MACNotMatched: MAC does not match message.</exception>
         public void ValidateBytes(ContentType contentType, ulong seqNum, int frameIndex,
-          byte[] plainBytes, byte[] mac, byte[] padding)
+                                  byte[] plainBytes, byte[] mac, byte[] padding)
         {
             if (SecurityParameters.MACAlgorithm != MACAlgorithm.Null)
             {
@@ -422,14 +451,15 @@ namespace NetMQ.Security.V0_1
 
                 if (!m_decryptionHMAC.Hash.SequenceEqual(mac))
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "MAC not matched message");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "MAC does not match message");
                 }
 
                 for (int i = 0; i < padding.Length; i++)
                 {
                     if (padding[i] != padding.Length - 1)
                     {
-                        throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "MAC not matched message");
+                        // TODO: Which is really the correct error-code here?
+                        throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "Padding is incorrect");
                     }
                 }
             }
@@ -481,6 +511,9 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// Dispose of all contained resources.
+        /// </summary>
         public void Dispose()
         {
             if (m_decryptionBulkAlgorithm != null)

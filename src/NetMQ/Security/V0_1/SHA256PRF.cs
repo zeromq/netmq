@@ -13,6 +13,9 @@ namespace NetMQ.Security.V0_1
         byte[] Get(byte[] secret, string label, byte[] seed, int bytes);
     }
 
+    /// <summary>
+    /// Class SHA256PRF is a IPRF that uses the SHA256 hashing algorithm.
+    /// </summary>
     public class SHA256PRF : IPRF
     {
         public byte[] Get(byte[] secret, string label, byte[] seed, int bytes)
@@ -73,6 +76,9 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// This does nothing.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);

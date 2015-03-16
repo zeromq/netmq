@@ -12,28 +12,29 @@ namespace NetMQ.Security
     public delegate bool VerifyCertificateDelegate(X509Certificate2 certificate2);
 
     /// <summary>
-    /// Secure channel between a client and a server
+    /// An ISecureChannel provides a secure communication channel between a client and a server.
+    /// It provides for a X.509 certificate, and methods to process, encrypt, and decrypt messages.
     /// </summary>
     public interface ISecureChannel : IDisposable
     {
         /// <summary>
-        /// Indicate if the secure channel is ready to encrypt messages
+        /// Get whether the secure channel is ready to encrypt messages.
         /// </summary>
         bool SecureChannelReady { get; }
 
         /// <summary>
-        /// The certificate of the server, for client this property is irrelevant.
-        /// The certificate must include a private key
+        /// Get or set the certificate of the server; for client this property is irrelevant.
+        /// The certificate must include a private key.
         /// </summary>
         X509Certificate2 Certificate { get; set; }
 
         /// <summary>
-        /// The allowed cipher suites for this secure channel order by the priority
+        /// Get or set the array of allowed cipher suites for this secure channel, ordered by priority.
         /// </summary>
         CipherSuite[] AllowedCipherSuites { get; set; }
 
         /// <summary>
-        /// Set the verify-certificate method, by default the certificate is validated by the certificate Chain
+        /// Set the verify-certificate method. By default the certificate is validated by the certificate chain.
         /// </summary>
         /// <param name="verifyCertificate">Delegate for the verify certificate method</param>
         void SetVerifyCertificate(VerifyCertificateDelegate verifyCertificate);
@@ -44,22 +45,22 @@ namespace NetMQ.Security
         /// Each call to the method may include outgoing messages that need to be sent to the other peer.
         /// </summary>
         /// <param name="incomingMessage">The incoming message from the other peer</param>
-        /// <param name="outgoingMesssages">Outgoing messages that need to be sent to the other peer</param>
+        /// <param name="outgoingMesssages">outgoing messages that need to be sent to the other peer</param>
         /// <returns>Return true when the method completes the handshake stage and the SecureChannel is ready to encrypt and decrypt messages</returns>
         bool ProcessMessage(NetMQMessage incomingMessage, IList<NetMQMessage> outgoingMesssages);
 
         /// <summary>
-        /// Encrypt application Message
+        /// Encrypt the given application message and return the encrypted version of it.
         /// </summary>
-        /// <param name="plainMessage">The plain message</param>
-        /// <returns>The cipher message</returns>
+        /// <param name="plainMessage">The plain-text message to encrypt</param>
+        /// <returns>The encrypted cipher message</returns>
         NetMQMessage EncryptApplicationMessage(NetMQMessage plainMessage);
 
         /// <summary>
-        /// Decrypt application message
+        /// Decrypt the given cipher message (a <see cref="NetMQMessage"/> that has been encrypted) and return the decrypted version of it.
         /// </summary>
-        /// <param name="cipherMessage">The cipher message</param>
-        /// <returns>The decrypted message</returns>
+        /// <param name="cipherMessage">The cipher message to decrypt</param>
+        /// <returns>the decrypted message</returns>
         NetMQMessage DecryptApplicationMessage(NetMQMessage cipherMessage);
     }
 }
