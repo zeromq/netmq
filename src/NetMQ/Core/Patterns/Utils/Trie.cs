@@ -48,7 +48,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <returns></returns>
         public bool Add([NotNull] byte[] prefix, int start, int size)
         {
-            //  We are at the node corresponding to the prefix. We are done.
+            // We are at the node corresponding to the prefix. We are done.
             if (size == 0)
             {
                 ++m_referenceCount;
@@ -58,8 +58,8 @@ namespace NetMQ.Core.Patterns.Utils
             byte currentCharacter = prefix[start];
             if (currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
             {
-                //  The character is out of range of currently handled
-                //  characters. We have to extend the table.
+                // The character is out of range of currently handled
+                // characters. We have to extend the table.
                 if (m_count == 0)
                 {
                     m_minCharacter = currentCharacter;
@@ -77,20 +77,20 @@ namespace NetMQ.Core.Patterns.Utils
                 }
                 else if (m_minCharacter < currentCharacter)
                 {
-                    //  The new character is above the current character range.
+                    // The new character is above the current character range.
                     m_count = (short)(currentCharacter - m_minCharacter + 1);
                     m_next = m_next.Resize(m_count, true);
                 }
                 else
                 {
-                    //  The new character is below the current character range.
+                    // The new character is below the current character range.
                     m_count = (short)((m_minCharacter + m_count) - currentCharacter);
                     m_next = m_next.Resize(m_count, false);
                     m_minCharacter = currentCharacter;
                 }
             }
 
-            //  If next node does not exist, create one.
+            // If next node does not exist, create one.
             if (m_count == 1)
             {
                 if (m_next == null)
@@ -162,12 +162,12 @@ namespace NetMQ.Core.Patterns.Utils
                     Debug.Assert(m_liveNodes > 1);
                     --m_liveNodes;
 
-                    //  Compact the table if possible
+                    // Compact the table if possible
                     if (m_liveNodes == 1)
                     {
-                        //  If there's only one live node in the table we can
-                        //  switch to using the more compact single-node
-                        //  representation
+                        // If there's only one live node in the table we can
+                        // switch to using the more compact single-node
+                        // representation
                         Trie node = null;
                         for (short i = 0; i < m_count; ++i)
                         {
@@ -187,7 +187,7 @@ namespace NetMQ.Core.Patterns.Utils
                     }
                     else if (currentCharacter == m_minCharacter)
                     {
-                        //  We can compact the table "from the left"
+                        // We can compact the table "from the left"
                         byte newMin = m_minCharacter;
                         for (short i = 1; i < m_count; ++i)
                         {
@@ -209,7 +209,7 @@ namespace NetMQ.Core.Patterns.Utils
                     }
                     else if (currentCharacter == m_minCharacter + m_count - 1)
                     {
-                        //  We can compact the table "from the right"
+                        // We can compact the table "from the right"
                         short newCount = m_count;
                         for (short i = 1; i < m_count; ++i)
                         {
@@ -238,27 +238,27 @@ namespace NetMQ.Core.Patterns.Utils
         /// <returns></returns>
         public bool Check([NotNull] byte[] data, int size)
         {
-            //  This function is on critical path. It deliberately doesn't use
-            //  recursion to get a bit better performance.
+            // This function is on critical path. It deliberately doesn't use
+            // recursion to get a bit better performance.
             Trie current = this;
             int start = 0;
             while (true)
             {
-                //  We've found a corresponding subscription!
+                // We've found a corresponding subscription!
                 if (current.m_referenceCount > 0)
                     return true;
 
-                //  We've checked all the data and haven't found matching subscription.
+                // We've checked all the data and haven't found matching subscription.
                 if (size == 0)
                     return false;
 
-                //  If there's no corresponding slot for the first character
-                //  of the prefix, the message does not match.
+                // If there's no corresponding slot for the first character
+                // of the prefix, the message does not match.
                 byte character = data[start];
                 if (character < current.m_minCharacter || character >= current.m_minCharacter + current.m_count)
                     return false;
 
-                //  Move to the next character.
+                // Move to the next character.
                 if (current.m_count == 1)
                     current = current.m_next[0];
                 else
@@ -273,7 +273,7 @@ namespace NetMQ.Core.Patterns.Utils
             }
         }
 
-        //  Apply the function supplied to each subscription in the trie.
+        // Apply the function supplied to each subscription in the trie.
         public void Apply([NotNull] TrieDelegate func, [CanBeNull] Object arg)
         {
             ApplyHelper(null, 0, 0, func, arg);
@@ -281,11 +281,11 @@ namespace NetMQ.Core.Patterns.Utils
 
         private void ApplyHelper([NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] TrieDelegate func, [CanBeNull] Object arg)
         {
-            //  If this node is a subscription, apply the function.
+            // If this node is a subscription, apply the function.
             if (m_referenceCount > 0)
                 func(buffer, bufferSize, arg);
 
-            //  Adjust the buffer.
+            // Adjust the buffer.
             if (bufferSize >= maxBufferSize)
             {
                 maxBufferSize = bufferSize + 256;
@@ -293,11 +293,11 @@ namespace NetMQ.Core.Patterns.Utils
                 Debug.Assert(buffer != null);
             }
 
-            //  If there are no subnodes in the trie, return.
+            // If there are no subnodes in the trie, return.
             if (m_count == 0)
                 return;
 
-            //  If there's one subnode (optimisation).
+            // If there's one subnode (optimisation).
             if (m_count == 1)
             {
                 buffer[bufferSize] = m_minCharacter;
@@ -306,7 +306,7 @@ namespace NetMQ.Core.Patterns.Utils
                 return;
             }
 
-            //  If there are multiple subnodes.
+            // If there are multiple subnodes.
             for (short c = 0; c != m_count; c++)
             {
                 buffer[bufferSize] = (byte)(m_minCharacter + c);

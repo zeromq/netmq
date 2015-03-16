@@ -64,13 +64,13 @@ namespace NetMQ.Core.Patterns.Utils
         {
             int index = m_pipes.IndexOf(pipe);
 
-            //  If we are in the middle of multipart message and current pipe
-            //  have disconnected, we have to drop the remainder of the message.
+            // If we are in the middle of multipart message and current pipe
+            // have disconnected, we have to drop the remainder of the message.
             if (index == m_current && m_more)
                 m_dropping = true;
 
-            //  Remove the pipe from the list; adjust number of active pipes
-            //  accordingly.
+            // Remove the pipe from the list; adjust number of active pipes
+            // accordingly.
             if (index < m_active)
             {
                 m_active--;
@@ -83,15 +83,15 @@ namespace NetMQ.Core.Patterns.Utils
 
         public void Activated([NotNull] Pipe pipe)
         {
-            //  Move the pipe to the list of active pipes.
+            // Move the pipe to the list of active pipes.
             m_pipes.Swap(m_pipes.IndexOf(pipe), m_active);
             m_active++;
         }
 
         public bool Send(ref Msg msg)
         {
-            //  Drop the message if required. If we are at the end of the message
-            //  switch back to non-dropping mode.
+            // Drop the message if required. If we are at the end of the message
+            // switch back to non-dropping mode.
             if (m_dropping)
             {
                 m_more = msg.HasMore;
@@ -115,14 +115,14 @@ namespace NetMQ.Core.Patterns.Utils
                     m_current = 0;
             }
 
-            //  If there are no pipes we cannot send the message.
+            // If there are no pipes we cannot send the message.
             if (m_active == 0)
             {
                 return false;
             }
 
-            //  If it's part of the message we can flush it downstream and
-            //  continue round-robinning (load balance).
+            // If it's part of the message we can flush it downstream and
+            // continue round-robinning (load balance).
             m_more = msg.HasMore;
             if (!m_more)
             {
@@ -131,7 +131,7 @@ namespace NetMQ.Core.Patterns.Utils
                     m_current = (m_current + 1) % m_active;
             }
 
-            //  Detach the message from the data buffer.
+            // Detach the message from the data buffer.
             msg.InitEmpty();
 
             return true;
@@ -139,19 +139,19 @@ namespace NetMQ.Core.Patterns.Utils
 
         public bool HasOut()
         {
-            //  If one part of the message was already written we can definitely
-            //  write the rest of the message.
+            // If one part of the message was already written we can definitely
+            // write the rest of the message.
             if (m_more)
                 return true;
 
             while (m_active > 0)
             {
 
-                //  Check whether a pipe has room for another message.
+                // Check whether a pipe has room for another message.
                 if (m_pipes[m_current].CheckWrite())
                     return true;
 
-                //  Deactivate the pipe.
+                // Deactivate the pipe.
                 m_active--;
                 m_pipes.Swap(m_current, m_active);
                 if (m_current == m_active)

@@ -30,7 +30,7 @@ namespace ROUTERbrokerREQworkers
 
                 for (int taskNumber = 0; taskNumber < WorkersCount*10; taskNumber++)
                 {
-                    //  LRU worker is next waiting in queue
+                    // LRU worker is next waiting in queue
                     string address = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", address);
                     string empty = client.ReceiveFrameString();
@@ -46,7 +46,7 @@ namespace ROUTERbrokerREQworkers
                     //Console.WriteLine("[B] Message sent: {0}", "This is the workload");
                 }
 
-                //  Now ask mamas to shut down and report their results
+                // Now ask mamas to shut down and report their results
                 for (int taskNbr = 0; taskNbr < WorkersCount; taskNbr++)
                 {
                     string address = client.ReceiveFrameString();
@@ -75,7 +75,7 @@ namespace ROUTERbrokerREQworkers
             using (var context = NetMQContext.Create())
             using (var worker = context.CreateRequestSocket())
             {
-                //  We use a string identity for ease here
+                // We use a string identity for ease here
                 string id = ZHelpers.SetID(worker, Encoding.Unicode);
                 string cnn = string.Format("tcp://localhost:{0}", portNumber);
                 worker.Connect(cnn);
@@ -86,11 +86,11 @@ namespace ROUTERbrokerREQworkers
                 bool end = false;
                 while (!end)
                 {
-                    //  Tell the router we're ready for work
+                    // Tell the router we're ready for work
                     worker.Send("Ready");
                     //Console.WriteLine("[W] Message sent: {0}", msg);
 
-                    //  Get workload from router, until finished
+                    // Get workload from router, until finished
                     string workload = worker.ReceiveFrameString();
                     //Console.WriteLine("[W] Workload received: {0}", workload);
 

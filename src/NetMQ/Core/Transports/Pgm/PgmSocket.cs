@@ -158,10 +158,10 @@ namespace NetMQ.Core.Transports.Pgm
                 }
 
                 // instead of using the struct _RM_SEND_WINDOW we are using byte array of size 12 (the size of the original struct and the size of three ints)
-                //  typedef struct _RM_SEND_WINDOW {
-                //  ULONG RateKbitsPerSec;
-                //  ULONG WindowSizeInMSecs;
-                //  ULONG WindowSizeInBytes;
+                // typedef struct _RM_SEND_WINDOW {
+                // ULONG RateKbitsPerSec;
+                // ULONG WindowSizeInMSecs;
+                // ULONG WindowSizeInBytes;
                 //} RM_SEND_WINDOW;
                 var sendWindow = new byte[12];
 

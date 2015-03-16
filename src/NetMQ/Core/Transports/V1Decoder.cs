@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//  Helper base class for decoders that know the amount of data to read
+// Helper base class for decoders that know the amount of data to read
 //  in advance at any moment. Knowing the amount in advance is a property
 //  of the protocol used. 0MQ framing protocol is based size-prefixed
 //  paradigm, which qualifies it to be parsed by this class.
@@ -62,7 +62,7 @@ namespace NetMQ.Core.Transports
             m_maxMessageSize = maxMessageSize;
             m_tmpbuf = new ByteArraySegment(new byte[8]);
 
-            //  At the beginning, read one byte and go to one_byte_size_ready state.
+            // At the beginning, read one byte and go to one_byte_size_ready state.
             NextStep(m_tmpbuf, 1, OneByteSizeReadyState);
 
             m_inProgress = new Msg();
@@ -98,9 +98,9 @@ namespace NetMQ.Core.Transports
         {
             m_tmpbuf.Reset();
 
-            //  First byte of size is read. If it is 0xff read 8-byte size.
-            //  Otherwise allocate the buffer for message data and read the
-            //  message data into it.
+            // First byte of size is read. If it is 0xff read 8-byte size.
+            // Otherwise allocate the buffer for message data and read the
+            // message data into it.
             byte first = m_tmpbuf[0];
             if (first == 0xff)
             {
@@ -109,16 +109,16 @@ namespace NetMQ.Core.Transports
             else
             {
 
-                //  There has to be at least one byte (the flags) in the message).
+                // There has to be at least one byte (the flags) in the message).
                 if (first == 0)
                 {
                     DecodingError();
                     return false;
                 }
 
-                //  in_progress is initialised at this point so in theory we should
-                //  close it before calling zmq_msg_init_size, however, it's a 0-byte
-                //  message and thus we can treat it as uninitialised...
+                // in_progress is initialised at this point so in theory we should
+                // close it before calling zmq_msg_init_size, however, it's a 0-byte
+                // message and thus we can treat it as uninitialised...
                 if (m_maxMessageSize >= 0 && (long)(first - 1) > m_maxMessageSize)
                 {
                     DecodingError();
@@ -140,24 +140,24 @@ namespace NetMQ.Core.Transports
             m_tmpbuf.Reset();
 
             //  8-byte payload length is read. Allocate the buffer
-            //  for message body and read the message data into it.
+            // for message body and read the message data into it.
             long payloadLength = m_tmpbuf.GetLong(Endian, 0);
 
-            //  There has to be at least one byte (the flags) in the message).
+            // There has to be at least one byte (the flags) in the message).
             if (payloadLength == 0)
             {
                 DecodingError();
                 return false;
             }
 
-            //  Message size must not exceed the maximum allowed size.
+            // Message size must not exceed the maximum allowed size.
             if (m_maxMessageSize >= 0 && payloadLength - 1 > m_maxMessageSize)
             {
                 DecodingError();
                 return false;
             }
 
-            //  Message size must fit within range of size_t data type.
+            // Message size must fit within range of size_t data type.
             if (payloadLength - 1 > int.MaxValue)
             {
                 DecodingError();
@@ -165,9 +165,9 @@ namespace NetMQ.Core.Transports
             }
 
             int msgSize = (int)(payloadLength - 1);
-            //  in_progress is initialised at this point so in theory we should
-            //  close it before calling init_size, however, it's a 0-byte
-            //  message and thus we can treat it as uninitialised...
+            // in_progress is initialised at this point so in theory we should
+            // close it before calling init_size, however, it's a 0-byte
+            // message and thus we can treat it as uninitialised...
             m_inProgress.InitPool(msgSize);
 
             NextStep(m_tmpbuf, 1, FlagsReadyState);
@@ -179,7 +179,7 @@ namespace NetMQ.Core.Transports
         {
             m_tmpbuf.Reset();
 
-            //  Store the flags from the wire into the message structure.
+            // Store the flags from the wire into the message structure.
 
             int first = m_tmpbuf[0];
 
@@ -194,8 +194,8 @@ namespace NetMQ.Core.Transports
         {
             m_tmpbuf.Reset();
 
-            //  Message is completely read. Push it further and start reading
-            //  new message. (in_progress is a 0-byte message after this point.)
+            // Message is completely read. Push it further and start reading
+            // new message. (in_progress is a 0-byte message after this point.)
 
             if (m_msgSink == null)
                 return false;

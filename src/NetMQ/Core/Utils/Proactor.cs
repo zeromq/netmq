@@ -97,7 +97,7 @@ namespace NetMQ.Core.Utils
 
             while (!m_stopping)
             {
-                //  Execute any due timers.
+                // Execute any due timers.
                 int timeout = ExecuteTimers();
 
                 int removed;

@@ -195,18 +195,18 @@ namespace NetMQ.Core
 
             if (!m_starting)
             {
-                //  Check whether termination was already underway, but interrupted and now
-                //  restarted.
+                // Check whether termination was already underway, but interrupted and now
+                // restarted.
                 bool restarted = m_terminating;
                 m_terminating = true;
                 Monitor.Exit(m_slotSync);
 
-                //  First attempt to terminate the context.
+                // First attempt to terminate the context.
                 if (!restarted)
                 {
-                    //  First send stop command to sockets so that any blocking calls
-                    //  can be interrupted. If there are no sockets we can ask reaper
-                    //  thread to stop.
+                    // First send stop command to sockets so that any blocking calls
+                    // can be interrupted. If there are no sockets we can ask reaper
+                    // thread to stop.
                     Monitor.Enter(m_slotSync);
                     try
                     {
@@ -222,7 +222,7 @@ namespace NetMQ.Core
                     }
                 }
 
-                //  Wait till reaper thread closes all the sockets.
+                // Wait till reaper thread closes all the sockets.
                 Command cmd = m_termMailbox.Recv(-1);
 
                 Debug.Assert(cmd != null);
@@ -232,7 +232,7 @@ namespace NetMQ.Core
             }
             Monitor.Exit(m_slotSync);
 
-            //  Deallocate the resources.
+            // Deallocate the resources.
             Destroy();
         }
 
@@ -293,8 +293,8 @@ namespace NetMQ.Core
                 if (m_starting)
                 {
                     m_starting = false;
-                    //  Initialise the array of mailboxes. Additional three slots are for
-                    //  zmq_term thread and reaper thread.
+                    // Initialise the array of mailboxes. Additional three slots are for
+                    // zmq_term thread and reaper thread.
 
                     int ios;
                     int mazmq;
@@ -308,16 +308,16 @@ namespace NetMQ.Core
                     m_slots = new IMailbox[m_slotCount];
                     //alloc_Debug.Assert(slots);
 
-                    //  Initialise the infrastructure for zmq_term thread.
+                    // Initialise the infrastructure for zmq_term thread.
                     m_slots[TermTid] = m_termMailbox;
 
-                    //  Create the reaper thread.
+                    // Create the reaper thread.
                     m_reaper = new Reaper(this, ReaperTid);
                     //alloc_Debug.Assert(reaper);
                     m_slots[ReaperTid] = m_reaper.Mailbox;
                     m_reaper.Start();
 
-                    //  Create I/O thread objects and launch them.
+                    // Create I/O thread objects and launch them.
                     for (int i = 2; i != ios + 2; i++)
                     {
                         var ioThread = new IOThread(this, i);
@@ -327,7 +327,7 @@ namespace NetMQ.Core
                         ioThread.Start();
                     }
 
-                    //  In the unused part of the slot array, create a list of empty slots.
+                    // In the unused part of the slot array, create a list of empty slots.
                     for (int i = m_slotCount - 1; i >= ios + 2; i--)
                     {
                         m_emptySlots.Push(i);
@@ -335,14 +335,14 @@ namespace NetMQ.Core
                     }
                 }
 
-                //  Once zmq_term() was called, we can't create new sockets.
+                // Once zmq_term() was called, we can't create new sockets.
                 if (m_terminating)
                 {
                     string xMsg = string.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
                     throw new TerminatingException(innerException: null, message: xMsg);
                 }
 
-                //  If max_sockets limit was reached, return error.
+                // If max_sockets limit was reached, return error.
                 if (m_emptySlots.Count == 0)
                 {
 #if DEBUG
@@ -353,13 +353,13 @@ namespace NetMQ.Core
 #endif
                 }
 
-                //  Choose a slot for the socket.
+                // Choose a slot for the socket.
                 int slot = m_emptySlots.Pop();
 
-                //  Generate new unique socket ID.
+                // Generate new unique socket ID.
                 int socketId = Interlocked.Increment(ref s_maxSocketId);
 
-                //  Create the socket and register its mailbox.
+                // Create the socket and register its mailbox.
                 SocketBase s = SocketBase.Create(type, this, slot, socketId);
 
                 m_sockets.Add(s);
@@ -373,7 +373,7 @@ namespace NetMQ.Core
 
         public void DestroySocket([NotNull] SocketBase socket)
         {
-            //  Free the associated thread slot.
+            // Free the associated thread slot.
             lock (m_slotSync)
             {
                 int threadId = socket.ThreadId;
@@ -381,11 +381,11 @@ namespace NetMQ.Core
                 m_slots[threadId].Close();
                 m_slots[threadId] = null;
 
-                //  Remove the socket from the list of sockets.
+                // Remove the socket from the list of sockets.
                 m_sockets.Remove(socket);
 
-                //  If zmq_term() was already called and there are no more socket
-                //  we can ask reaper thread to terminate.
+                // If zmq_term() was already called and there are no more socket
+                // we can ask reaper thread to terminate.
                 if (m_terminating && m_sockets.Count == 0)
                     m_reaper.Stop();
             }
@@ -420,7 +420,7 @@ namespace NetMQ.Core
             if (m_ioThreads.Count == 0)
                 return null;
 
-            //  Find the I/O thread with minimum load.
+            // Find the I/O thread with minimum load.
             int minLoad = -1;
             IOThread selectedIOThread = null;
 
@@ -508,10 +508,10 @@ namespace NetMQ.Core
                 if (endpoint == null)
                     throw new EndpointNotFoundException();
 
-                //  Increment the command sequence number of the peer so that it won't
-                //  get deallocated until "bind" command is issued by the caller.
-                //  The subsequent 'bind' has to be called with inc_seqnum parameter
-                //  set to false, so that the seqnum isn't incremented twice.
+                // Increment the command sequence number of the peer so that it won't
+                // get deallocated until "bind" command is issued by the caller.
+                // The subsequent 'bind' has to be called with inc_seqnum parameter
+                // set to false, so that the seqnum isn't incremented twice.
                 endpoint.Socket.IncSeqnum();
 
                 return endpoint;

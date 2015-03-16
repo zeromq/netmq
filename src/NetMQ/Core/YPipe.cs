@@ -81,10 +81,10 @@ namespace NetMQ.Core
         /// </summary> 
         public void Write(ref T value, bool incomplete)
         {
-            //  Place the value to the queue, add new terminator element.
+            // Place the value to the queue, add new terminator element.
             m_queue.Push(ref value);
 
-            //  Move the "flush up to here" pointer.
+            // Move the "flush up to here" pointer.
             if (!incomplete)
             {
                 m_flushToIndex = m_queue.BackPos;
@@ -112,27 +112,27 @@ namespace NetMQ.Core
         /// </returns>
         public bool Flush()
         {
-            //  If there are no un-flushed items, do nothing.
+            // If there are no un-flushed items, do nothing.
             if (m_flushFromIndex == m_flushToIndex)
             {
                 return true;
             }
 
-            //  Try to set 'c' to 'flushToIndex'.
+            // Try to set 'c' to 'flushToIndex'.
             if (Interlocked.CompareExchange(ref m_lastAllowedToReadIndex, m_flushToIndex, m_flushFromIndex) != m_flushFromIndex)
             {
-                //  Compare-and-swap was unsuccessful because 'lastAllowedToReadIndex' is NULL (-1).
-                //  This means that the reader is asleep. Therefore we don't
-                //  care about thread-safeness and update c in non-atomic
-                //  manner. We'll return false to let the caller know
-                //  that reader is sleeping.
+                // Compare-and-swap was unsuccessful because 'lastAllowedToReadIndex' is NULL (-1).
+                // This means that the reader is asleep. Therefore we don't
+                // care about thread-safeness and update c in non-atomic
+                // manner. We'll return false to let the caller know
+                // that reader is sleeping.
                 Interlocked.Exchange(ref m_lastAllowedToReadIndex, m_flushToIndex);
                 m_flushFromIndex = m_flushToIndex;
                 return false;
             }
 
-            //  Reader is alive. Nothing special to do now. Just move
-            //  the 'first un-flushed item' pointer to 'flushToIndex'.
+            // Reader is alive. Nothing special to do now. Just move
+            // the 'first un-flushed item' pointer to 'flushToIndex'.
             m_flushFromIndex = m_flushToIndex;
             return true;
         }
@@ -142,15 +142,15 @@ namespace NetMQ.Core
         /// </summary> 
         public bool CheckRead()
         {
-            //  Was the value prefetched already? If so, return.
+            // Was the value prefetched already? If so, return.
             int head = m_queue.FrontPos;
             if (head != m_readToIndex && m_readToIndex != -1)
                 return true;
 
-            //  There's no prefetched value, so let us prefetch more values.
-            //  Prefetching is to simply retrieve the
-            //  pointer from c in atomic fashion. If there are no
-            //  items to prefetch, set c to -1 (using compare-and-swap).
+            // There's no prefetched value, so let us prefetch more values.
+            // Prefetching is to simply retrieve the
+            // pointer from c in atomic fashion. If there are no
+            // items to prefetch, set c to -1 (using compare-and-swap).
             if (Interlocked.CompareExchange(ref m_lastAllowedToReadIndex, -1, head) == head)
             {
                 // nothing to read, h == r must be the same
@@ -161,14 +161,14 @@ namespace NetMQ.Core
                 m_readToIndex = m_lastAllowedToReadIndex;
             }
 
-            //  If there are no elements prefetched, exit.
-            //  During pipe's lifetime readToIndex should never be NULL, however,
-            //  it can happen during pipe shutdown when items
-            //  are being deallocated.
+            // If there are no elements prefetched, exit.
+            // During pipe's lifetime readToIndex should never be NULL, however,
+            // it can happen during pipe shutdown when items
+            // are being deallocated.
             if (head == m_readToIndex || m_readToIndex == -1)
                 return false;
 
-            //  There was at least one value prefetched.
+            // There was at least one value prefetched.
             return true;
         }
 
@@ -179,15 +179,15 @@ namespace NetMQ.Core
         /// </summary> 
         public bool Read(out T value)
         {
-            //  Try to prefetch a value.
+            // Try to prefetch a value.
             if (!CheckRead())
             {
                 value = default(T);
                 return false;
             }
 
-            //  There was at least one value prefetched.
-            //  Return it to the caller.
+            // There was at least one value prefetched.
+            // Return it to the caller.
             value = m_queue.Pop();
             return true;
         }

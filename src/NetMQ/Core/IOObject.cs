@@ -74,8 +74,8 @@ namespace NetMQ.Core
         {
             Debug.Assert(m_ioThread != null);
 
-            //  Forget about old poller in preparation to be migrated
-            //  to a different I/O thread.
+            // Forget about old poller in preparation to be migrated
+            // to a different I/O thread.
             m_ioThread = null;
             m_handler = null;
         }

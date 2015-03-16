@@ -73,9 +73,9 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="pipe"></param>  
         public void Attach([NotNull] Pipe pipe)
         {
-            //  If we are in the middle of sending a message, we'll add new pipe
-            //  into the list of eligible pipes. Otherwise we add it to the list
-            //  of active pipes. 
+            // If we are in the middle of sending a message, we'll add new pipe
+            // into the list of eligible pipes. Otherwise we add it to the list
+            // of active pipes. 
             if (m_more)
             {
                 m_pipes.Add(pipe);
@@ -100,15 +100,15 @@ namespace NetMQ.Core.Patterns.Utils
         {
             int index = m_pipes.IndexOf(pipe);
 
-            //  If pipe is already matching do nothing.
+            // If pipe is already matching do nothing.
             if (index < m_matching)
                 return;
 
-            //  If the pipe isn't eligible, ignore it.
+            // If the pipe isn't eligible, ignore it.
             if (index >= m_eligible)
                 return;
 
-            //  Mark the pipe as matching.
+            // Mark the pipe as matching.
             m_pipes.Swap(index, m_matching);
             m_matching++;
         }
@@ -127,8 +127,8 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="pipe"></param>
         public void Terminated([NotNull] Pipe pipe)
         {
-            //  Remove the pipe from the list; adjust number of matching, active and/or
-            //  eligible pipes accordingly.
+            // Remove the pipe from the list; adjust number of matching, active and/or
+            // eligible pipes accordingly.
             if (m_pipes.IndexOf(pipe) < m_matching)
                 m_matching--;
             if (m_pipes.IndexOf(pipe) < m_active)
@@ -144,12 +144,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="pipe"></param>  
         public void Activated([NotNull] Pipe pipe)
         {
-            //  Move the pipe from passive to eligible state.
+            // Move the pipe from passive to eligible state.
             m_pipes.Swap(m_pipes.IndexOf(pipe), m_eligible);
             m_eligible++;
 
-            //  If there's no message being sent at the moment, move it to
-            //  the active state.
+            // If there's no message being sent at the moment, move it to
+            // the active state.
             if (!m_more)
             {
                 m_pipes.Swap(m_eligible - 1, m_active);
@@ -173,13 +173,13 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="msg"></param>
         public void SendToMatching(ref Msg msg)
         {
-            //  Is this end of a multipart message?
+            // Is this end of a multipart message?
             bool hasMore = msg.HasMore;
 
-            //  Push the message to matching pipes.
+            // Push the message to matching pipes.
             Distribute(ref msg);
 
-            //  If multipart message is fully sent, activate all the eligible pipes.
+            // If multipart message is fully sent, activate all the eligible pipes.
             if (!hasMore)
                 m_active = m_eligible;
 
@@ -191,7 +191,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// </summary>
         private void Distribute(ref Msg msg)
         {
-            //  If there are no matching pipes available, simply drop the message.
+            // If there are no matching pipes available, simply drop the message.
             if (m_matching == 0)
             {
                 msg.Close();
@@ -216,11 +216,11 @@ namespace NetMQ.Core.Patterns.Utils
                 return;
             }
 
-            //  Add matching-1 references to the message. We already hold one reference,
-            //  that's why -1.
+            // Add matching-1 references to the message. We already hold one reference,
+            // that's why -1.
             msg.AddReferences(m_matching - 1);
 
-            //  Push copy of the message to each matching pipe.
+            // Push copy of the message to each matching pipe.
             int failed = 0;
             for (int i = 0; i < m_matching; ++i)
             {
@@ -233,8 +233,8 @@ namespace NetMQ.Core.Patterns.Utils
             if (failed != 0)
                 msg.RemoveReferences(failed);
 
-            //  Detach the original message from the data buffer. Note that we don't
-            //  close the message. That's because we've already used all the references.
+            // Detach the original message from the data buffer. Note that we don't
+            // close the message. That's because we've already used all the references.
             msg.InitEmpty();
         }
 

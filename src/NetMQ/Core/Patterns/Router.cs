@@ -243,22 +243,22 @@ namespace NetMQ.Core.Patterns
         /// <exception cref="HostUnreachableException">In Router.XSend</exception>
         protected override bool XSend(ref Msg msg)
         {
-            //  If this is the first part of the message it's the ID of the
-            //  peer to send the message to.
+            // If this is the first part of the message it's the ID of the
+            // peer to send the message to.
             if (!m_moreOut)
             {
                 Debug.Assert(m_currentOut == null);
 
-                //  If we have malformed message (prefix with no subsequent message)
-                //  then just silently ignore it.
-                //  TODO: The connections should be killed instead.
+                // If we have malformed message (prefix with no subsequent message)
+                // then just silently ignore it.
+                // TODO: The connections should be killed instead.
                 if (msg.HasMore)
                 {
                     m_moreOut = true;
 
-                    //  Find the pipe associated with the identity stored in the prefix.
-                    //  If there's no such pipe just silently ignore the message, unless
-                    //  mandatory is set.
+                    // Find the pipe associated with the identity stored in the prefix.
+                    // If there's no such pipe just silently ignore the message, unless
+                    // mandatory is set.
 
                     var identity = msg.Size == msg.Data.Length 
                         ? msg.Data 
@@ -287,7 +287,7 @@ namespace NetMQ.Core.Patterns
                     }
                 }
 
-                //  Detach the message from the data buffer.
+                // Detach the message from the data buffer.
                 msg.Close();
                 msg.InitEmpty();
 
@@ -299,10 +299,10 @@ namespace NetMQ.Core.Patterns
                 msg.ResetFlags(MsgFlags.More);
             }
 
-            //  Check whether this is the last part of the message.
+            // Check whether this is the last part of the message.
             m_moreOut = msg.HasMore;
 
-            //  Push the message into the pipe. If there's no out pipe, just drop it.
+            // Push the message into the pipe. If there's no out pipe, just drop it.
             if (m_currentOut != null)
             {
                 // Close the remote connection if user has asked to do so
@@ -331,7 +331,7 @@ namespace NetMQ.Core.Patterns
                 msg.Close();
             }
 
-            //  Detach the message from the data buffer.            
+            // Detach the message from the data buffer.            
             msg.InitEmpty();
 
             return true;
@@ -359,9 +359,9 @@ namespace NetMQ.Core.Patterns
 
             bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
 
-            //  It's possible that we receive peer's identity. That happens
-            //  after reconnection. The current implementation assumes that
-            //  the peer always uses the same identity.            
+            // It's possible that we receive peer's identity. That happens
+            // after reconnection. The current implementation assumes that
+            // the peer always uses the same identity.            
             while (isMessageAvailable && msg.IsIdentity)
                 isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
 
@@ -372,14 +372,14 @@ namespace NetMQ.Core.Patterns
 
             Debug.Assert(pipe[0] != null);
 
-            //  If we are in the middle of reading a message, just return the next part.
+            // If we are in the middle of reading a message, just return the next part.
             if (m_moreIn)
                 m_moreIn = msg.HasMore;
             else
             {
-                //  We are at the beginning of a message.
-                //  Keep the message part we have in the prefetch buffer
-                //  and return the ID of the peer instead.
+                // We are at the beginning of a message.
+                // Keep the message part we have in the prefetch buffer
+                // and return the ID of the peer instead.
                 m_prefetchedMsg.Move(ref msg);
 
                 m_prefetched = true;
@@ -395,7 +395,7 @@ namespace NetMQ.Core.Patterns
             return true;
         }
 
-        //  Rollback any message parts that were sent but not yet flushed.
+        // Rollback any message parts that were sent but not yet flushed.
         protected void Rollback()
         {
             if (m_currentOut != null)
@@ -408,25 +408,25 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XHasIn()
         {
-            //  If we are in the middle of reading the messages, there are
-            //  definitely more parts available.
+            // If we are in the middle of reading the messages, there are
+            // definitely more parts available.
             if (m_moreIn)
                 return true;
 
-            //  We may already have a message pre-fetched.
+            // We may already have a message pre-fetched.
             if (m_prefetched)
                 return true;
 
-            //  Try to read the next message.
-            //  The message, if read, is kept in the pre-fetch buffer.
+            // Try to read the next message.
+            // The message, if read, is kept in the pre-fetch buffer.
             var pipe = new Pipe[1];
 
             bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
 
-            //  It's possible that we receive peer's identity. That happens
-            //  after reconnection. The current implementation assumes that
-            //  the peer always uses the same identity.
-            //  TODO: handle the situation when the peer changes its identity.
+            // It's possible that we receive peer's identity. That happens
+            // after reconnection. The current implementation assumes that
+            // the peer always uses the same identity.
+            // TODO: handle the situation when the peer changes its identity.
             while (isMessageAvailable && m_prefetchedMsg.IsIdentity)
             {
                 isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
@@ -451,9 +451,9 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XHasOut()
         {
-            //  In theory, ROUTER socket is always ready for writing. Whether actual
-            //  attempt to write succeeds depends on which pipe the message is going
-            //  to be routed to.
+            // In theory, ROUTER socket is always ready for writing. Whether actual
+            // attempt to write succeeds depends on which pipe the message is going
+            // to be routed to.
             return true;
         }
 
@@ -470,7 +470,7 @@ namespace NetMQ.Core.Patterns
             }
             else
             {
-                //  Pick up handshake cases and also case where next identity is set
+                // Pick up handshake cases and also case where next identity is set
 
                 var msg = new Msg();
                 msg.InitEmpty();
@@ -482,7 +482,7 @@ namespace NetMQ.Core.Patterns
 
                 if (msg.Size == 0)
                 {
-                    //  Fall back on the auto-generation
+                    // Fall back on the auto-generation
                     identity = new byte[5];
 
                     byte[] result = BitConverter.GetBytes(m_nextPeerId++);
@@ -495,7 +495,7 @@ namespace NetMQ.Core.Patterns
                 {
                     identity = msg.CloneData();
 
-                    //  Ignore peers with duplicate ID.
+                    // Ignore peers with duplicate ID.
                     if (m_outpipes.ContainsKey(identity))
                     {
                         msg.Close();
@@ -507,7 +507,7 @@ namespace NetMQ.Core.Patterns
             }
 
             pipe.Identity = identity;
-            //  Add the record into output pipes lookup table
+            // Add the record into output pipes lookup table
             var outpipe = new Outpipe(pipe, true);
             m_outpipes.Add(identity, outpipe);
 

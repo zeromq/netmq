@@ -127,7 +127,7 @@ namespace NetMQ.Core.Transports.Pgm
             }
             else if (m_state == State.Active)
             {
-                //  We can write either all data or 0 which means rate limit reached.
+                // We can write either all data or 0 which means rate limit reached.
                 if (socketError == SocketError.Success && bytesTransferred == m_writeSize)
                 {
                     m_writeSize = 0;
@@ -149,25 +149,25 @@ namespace NetMQ.Core.Transports.Pgm
 
         private void BeginSending()
         {
-            //  If write buffer is empty,  try to read new data from the encoder.
+            // If write buffer is empty,  try to read new data from the encoder.
             if (m_writeSize == 0)
             {
-                //  First two bytes (sizeof uint16_t) are used to store message 
-                //  offset in following steps. Note that by passing our buffer to
-                //  the get data function we prevent it from returning its own buffer.
+                // First two bytes (sizeof uint16_t) are used to store message 
+                // offset in following steps. Note that by passing our buffer to
+                // the get data function we prevent it from returning its own buffer.
                 var bf = new ByteArraySegment(m_outBuffer, sizeof(ushort));
                 int bfsz = m_outBufferSize - sizeof(ushort);
                 int offset = -1;
                 m_encoder.GetData(ref bf, ref bfsz, ref offset);
 
-                //  If there are no data to write stop polling for output.
+                // If there are no data to write stop polling for output.
                 if (bfsz == 0)
                 {
                     m_state = State.ActiveSendingIdle;
                     return;
                 }
 
-                //  Put offset information in the buffer.
+                // Put offset information in the buffer.
                 m_writeSize = bfsz + sizeof(ushort);
 
                 m_outBuffer.PutUnsignedShort(m_options.Endian, offset == -1 ? (ushort)0xffff : (ushort)offset, 0);

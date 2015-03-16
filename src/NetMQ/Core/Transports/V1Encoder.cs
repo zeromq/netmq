@@ -38,7 +38,7 @@ namespace NetMQ.Core.Transports
             m_inProgress = new Msg();
             m_inProgress.InitEmpty();
 
-            //  Write 0 bytes to the batch and go to message_ready state.
+            // Write 0 bytes to the batch and go to message_ready state.
             NextStep(m_tmpbuf, 0, MessageReadyState, true);
         }
 
@@ -62,22 +62,22 @@ namespace NetMQ.Core.Transports
 
         private bool SizeReady()
         {
-            //  Write message body into the buffer.
+            // Write message body into the buffer.
             NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 
         private bool MessageReady()
         {
-            //  Release the content of the old message.
+            // Release the content of the old message.
             m_inProgress.Close();
 
             m_tmpbuf.Reset();
 
-            //  Read new message. If there is none, return false.
-            //  Note that new state is set only if write is successful. That way
-            //  unsuccessful write will cause retry on the next state machine
-            //  invocation.
+            // Read new message. If there is none, return false.
+            // Note that new state is set only if write is successful. That way
+            // unsuccessful write will cause retry on the next state machine
+            // invocation.
 
             if (m_msgSource == null)
             {
@@ -92,15 +92,15 @@ namespace NetMQ.Core.Transports
                 return false;
             }
 
-            //  Get the message size.
+            // Get the message size.
             int size = m_inProgress.Size;
 
-            //  Account for the 'flags' byte.
+            // Account for the 'flags' byte.
             size++;
 
-            //  For messages less than 255 bytes long, write one byte of message size.
-            //  For longer messages write 0xff escape character followed by 8-byte
-            //  message size. In both cases 'flags' field follows.
+            // For messages less than 255 bytes long, write one byte of message size.
+            // For longer messages write 0xff escape character followed by 8-byte
+            // message size. In both cases 'flags' field follows.
 
             if (size < 255)
             {

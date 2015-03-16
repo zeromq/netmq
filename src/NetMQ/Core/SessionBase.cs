@@ -172,19 +172,19 @@ namespace NetMQ.Core
         {
             Debug.Assert(m_pipe == null);
 
-            //  If there's still a pending linger timer, remove it.
+            // If there's still a pending linger timer, remove it.
             if (m_hasLingerTimer)
             {
                 m_ioObject.CancelTimer(LingerTimerId);
                 m_hasLingerTimer = false;
             }
 
-            //  Close the engine.
+            // Close the engine.
             if (m_engine != null)
                 m_engine.Terminate();
         }
 
-        //  To be used once only, when creating the session.
+        // To be used once only, when creating the session.
         public void AttachPipe([NotNull] Pipe pipe)
         {
             Debug.Assert(!IsTerminating);
@@ -196,7 +196,7 @@ namespace NetMQ.Core
 
         public virtual bool PullMsg(ref Msg msg)
         {
-            //  First message to send is identity
+            // First message to send is identity
             if (!m_identitySent)
             {
                 msg.InitPool(m_options.IdentitySize);
@@ -218,7 +218,7 @@ namespace NetMQ.Core
 
         public virtual bool PushMsg(ref Msg msg)
         {
-            //  First message to receive is identity (if required).
+            // First message to receive is identity (if required).
             if (!m_identityReceived)
             {
                 msg.SetFlags(MsgFlags.Identity);
@@ -243,7 +243,7 @@ namespace NetMQ.Core
 
         protected virtual void Reset()
         {
-            //  Restore identity flags.
+            // Restore identity flags.
             if (m_options.RawSocket)
             {
                 m_identitySent = true;
@@ -261,18 +261,18 @@ namespace NetMQ.Core
                 m_pipe.Flush();
         }
 
-        //  Remove any half processed messages. Flush unflushed messages.
-        //  Call this function when engine disconnect to get rid of leftovers.
+        // Remove any half processed messages. Flush unflushed messages.
+        // Call this function when engine disconnect to get rid of leftovers.
         private void CleanPipes()
         {
             if (m_pipe != null)
             {
-                //  Get rid of half-processed messages in the out pipe. Flush any
-                //  unflushed messages upstream.
+                // Get rid of half-processed messages in the out pipe. Flush any
+                // unflushed messages upstream.
                 m_pipe.Rollback();
                 m_pipe.Flush();
 
-                //  Remove any half-read message from the in pipe.
+                // Remove any half-read message from the in pipe.
                 while (m_incompleteIn)
                 {
                     var msg = new Msg();
@@ -290,7 +290,7 @@ namespace NetMQ.Core
 
         public void Terminated(Pipe pipe)
         {
-            //  Drop the reference to the deallocated pipe.
+            // Drop the reference to the deallocated pipe.
             Debug.Assert(m_pipe == pipe || m_terminatingPipes.Contains(pipe));
 
             if (m_pipe == pipe)
@@ -310,9 +310,9 @@ namespace NetMQ.Core
                 Terminate();
             }
 
-            //  If we are waiting for pending messages to be sent, at this point
-            //  we are sure that there will be no more messages and we can proceed
-            //  with termination safely.
+            // If we are waiting for pending messages to be sent, at this point
+            // we are sure that there will be no more messages and we can proceed
+            // with termination safely.
             if (m_pending && m_pipe == null && m_terminatingPipes.Count == 0)
                 ProceedWithTerm();
         }
@@ -347,8 +347,8 @@ namespace NetMQ.Core
 
         public void Hiccuped(Pipe pipe)
         {
-            //  Hiccups are always sent from session to socket, not the other
-            //  way round.
+            // Hiccups are always sent from session to socket, not the other
+            // way round.
             throw new NotSupportedException("Must Override");
         }
 
@@ -369,7 +369,7 @@ namespace NetMQ.Core
         {
             Debug.Assert(engine != null);
 
-            //  Create the pipe if it does not exist yet.
+            // Create the pipe if it does not exist yet.
             if (m_pipe == null && !IsTerminating)
             {
                 ZObject[] parents = { this, m_socket };
@@ -377,18 +377,18 @@ namespace NetMQ.Core
                 bool[] delays = { m_options.DelayOnClose, m_options.DelayOnDisconnect };
                 Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, delays);
 
-                //  Plug the local end of the pipe.
+                // Plug the local end of the pipe.
                 pipes[0].SetEventSink(this);
 
-                //  Remember the local end of the pipe.
+                // Remember the local end of the pipe.
                 Debug.Assert(m_pipe == null);
                 m_pipe = pipes[0];
 
-                //  Ask socket to plug into the remote end of the pipe.
+                // Ask socket to plug into the remote end of the pipe.
                 SendBind(m_socket, pipes[1]);
             }
 
-            //  Plug in the engine.
+            // Plug in the engine.
             Debug.Assert(m_engine == null);
             m_engine = engine;
             m_engine.Plug(m_ioThread, this);
@@ -396,16 +396,16 @@ namespace NetMQ.Core
 
         public void Detach()
         {
-            //  Engine is dead. Let's forget about it.
+            // Engine is dead. Let's forget about it.
             m_engine = null;
 
-            //  Remove any half-done messages from the pipes.
+            // Remove any half-done messages from the pipes.
             CleanPipes();
 
-            //  Send the event to the derived class.
+            // Send the event to the derived class.
             Detached();
 
-            //  Just in case there's only a delimiter in the pipe.
+            // Just in case there's only a delimiter in the pipe.
             if (m_pipe != null)
                 m_pipe.CheckRead();
         }
@@ -414,9 +414,9 @@ namespace NetMQ.Core
         {
             Debug.Assert(!m_pending);
 
-            //  If the termination of the pipe happens before the term command is
-            //  delivered there's nothing much to do. We can proceed with the
-            //  standard termination immediately.
+            // If the termination of the pipe happens before the term command is
+            // delivered there's nothing much to do. We can proceed with the
+            // standard termination immediately.
             if (m_pipe == null)
             {
                 ProceedWithTerm();
@@ -425,9 +425,9 @@ namespace NetMQ.Core
 
             m_pending = true;
 
-            //  If there's finite linger value, delay the termination.
-            //  If linger is infinite (negative) we don't even have to set
-            //  the timer.
+            // If there's finite linger value, delay the termination.
+            // If linger is infinite (negative) we don't even have to set
+            // the timer.
             if (linger > 0)
             {
                 Debug.Assert(!m_hasLingerTimer);
@@ -435,49 +435,49 @@ namespace NetMQ.Core
                 m_hasLingerTimer = true;
             }
 
-            //  Start pipe termination process. Delay the termination till all messages
-            //  are processed in case the linger time is non-zero.
+            // Start pipe termination process. Delay the termination till all messages
+            // are processed in case the linger time is non-zero.
             m_pipe.Terminate(linger != 0);
 
-            //  TODO: Should this go into pipe_t::terminate ?
-            //  In case there's no engine and there's only delimiter in the
-            //  pipe it wouldn't be ever read. Thus we check for it explicitly.
+            // TODO: Should this go into pipe_t::terminate ?
+            // In case there's no engine and there's only delimiter in the
+            // pipe it wouldn't be ever read. Thus we check for it explicitly.
             m_pipe.CheckRead();
         }
 
-        //  Call this function to move on with the delayed process_term.
+        // Call this function to move on with the delayed process_term.
         private void ProceedWithTerm()
         {
-            //  The pending phase have just ended.
+            // The pending phase have just ended.
             m_pending = false;
 
-            //  Continue with standard termination.
+            // Continue with standard termination.
             base.ProcessTerm(0);
         }
 
         public void TimerEvent(int id)
         {
-            //  Linger period expired. We can proceed with termination even though
-            //  there are still pending messages to be sent.
+            // Linger period expired. We can proceed with termination even though
+            // there are still pending messages to be sent.
             Debug.Assert(id == LingerTimerId);
             m_hasLingerTimer = false;
 
-            //  Ask pipe to terminate even though there may be pending messages in it.
+            // Ask pipe to terminate even though there may be pending messages in it.
             Debug.Assert(m_pipe != null);
             m_pipe.Terminate(false);
         }
 
         private void Detached()
         {
-            //  Transient session self-destructs after peer disconnects.
+            // Transient session self-destructs after peer disconnects.
             if (!m_connect)
             {
                 Terminate();
                 return;
             }
 
-            //  For delayed connect situations, terminate the pipe
-            //  and reestablish later on
+            // For delayed connect situations, terminate the pipe
+            // and reestablish later on
             if (m_pipe != null && m_options.DelayAttachOnConnect
                 && m_addr.Protocol != Address.PgmProtocol && m_addr.Protocol != Address.EpgmProtocol)
             {
@@ -489,12 +489,12 @@ namespace NetMQ.Core
 
             Reset();
 
-            //  Reconnect.
+            // Reconnect.
             if (m_options.ReconnectIvl != -1)
                 StartConnecting(true);
 
-            //  For subscriber sockets we hiccup the inbound pipe, which will cause
-            //  the socket object to resend all the subscriptions.
+            // For subscriber sockets we hiccup the inbound pipe, which will cause
+            // the socket object to resend all the subscriptions.
             if (m_pipe != null && (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub))
                 m_pipe.Hiccup();
         }
@@ -503,12 +503,12 @@ namespace NetMQ.Core
         {
             Debug.Assert(m_connect);
 
-            //  Choose I/O thread to run connector in. Given that we are already
-            //  running in an I/O thread, there must be at least one available.
+            // Choose I/O thread to run connector in. Given that we are already
+            // running in an I/O thread, there must be at least one available.
             IOThread ioThread = ChooseIOThread(m_options.Affinity);
             Debug.Assert(ioThread != null);
 
-            //  Create the connector object.
+            // Create the connector object.
 
             switch (m_addr.Protocol)
             {

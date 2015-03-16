@@ -102,12 +102,12 @@ namespace NetMQ.Core
         {
             while (true)
             {
-                //  Get the next command. If there is none, exit.
+                // Get the next command. If there is none, exit.
                 Command cmd = m_mailbox.Recv();
                 if (cmd == null)
                     break;
 
-                //  Process the command.
+                // Process the command.
                 cmd.Destination.ProcessCommand(cmd);
             }
         }

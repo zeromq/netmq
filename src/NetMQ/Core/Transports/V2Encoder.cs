@@ -22,7 +22,7 @@ namespace NetMQ.Core.Transports
 
             m_msgSource = session;
 
-            //  Write 0 bytes to the batch and go to message_ready state.
+            // Write 0 bytes to the batch and go to message_ready state.
             NextStep(m_tmpbuf, 0, MessageReadyState, true);
         }
 
@@ -46,22 +46,22 @@ namespace NetMQ.Core.Transports
 
         private bool SizeReady()
         {
-            //  Write message body into the buffer.
+            // Write message body into the buffer.
             NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 
         private bool MessageReady()
         {
-            //  Release the content of the old message.
+            // Release the content of the old message.
             m_inProgress.Close();
 
             m_tmpbuf.Reset();
 
-            //  Read new message. If there is none, return false.
-            //  Note that new state is set only if write is successful. That way
-            //  unsuccessful write will cause retry on the next state machine
-            //  invocation.
+            // Read new message. If there is none, return false.
+            // Note that new state is set only if write is successful. That way
+            // unsuccessful write will cause retry on the next state machine
+            // invocation.
 
             if (m_msgSource == null)
             {
@@ -83,9 +83,9 @@ namespace NetMQ.Core.Transports
                 protocolFlags |= V2Protocol.LargeFlag;
             m_tmpbuf[0] = (byte)protocolFlags;
 
-            //  Encode the message length. For messages less then 256 bytes,
-            //  the length is encoded as 8-bit unsigned integer. For larger
-            //  messages, 64-bit unsigned integer in network byte order is used.
+            // Encode the message length. For messages less then 256 bytes,
+            // the length is encoded as 8-bit unsigned integer. For larger
+            // messages, 64-bit unsigned integer in network byte order is used.
             int size = m_inProgress.Size;
             if (size > 255)
             {

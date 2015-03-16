@@ -27,7 +27,7 @@ namespace NetMQ.Core.Utils
 {
     internal sealed class Signaler
     {
-        //  Underlying write & read file descriptor.
+        // Underlying write & read file descriptor.
         [NotNull] private readonly Socket m_writeSocket;
         [NotNull] private readonly Socket m_readSocket;
         [NotNull] private readonly byte[] m_dummy;
@@ -38,7 +38,7 @@ namespace NetMQ.Core.Utils
             m_dummy = new byte[] { 0 };
             m_receiveDummy = new byte[1];
 
-            //  Create the socketpair for signaling.
+            // Create the socketpair for signaling.
             using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified))
             {
                 listener.NoDelay = true;
@@ -83,8 +83,8 @@ namespace NetMQ.Core.Utils
             {}
         }
 
-        //  Creates a pair of file descriptors that will be used
-        //  to pass the signals.
+        // Creates a pair of file descriptors that will be used
+        // to pass the signals.
 
         [NotNull]
         public Socket Handle

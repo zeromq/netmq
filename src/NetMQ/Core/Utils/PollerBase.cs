@@ -188,10 +188,10 @@ namespace NetMQ.Core.Utils
             {
                 var key = keys[i];
 
-                //  If we have to wait to execute the item, same will be true about
-                //  all the following items (multimap is sorted). Thus we can stop
-                //  checking the subsequent timers and return the time to wait for
-                //  the next timer (at least 1ms).
+                // If we have to wait to execute the item, same will be true about
+                // all the following items (multimap is sorted). Thus we can stop
+                // checking the subsequent timers and return the time to wait for
+                // the next timer (at least 1ms).
                 if (key > current)
                 {
                     return (int)(key - current);

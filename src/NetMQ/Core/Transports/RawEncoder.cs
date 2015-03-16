@@ -41,20 +41,20 @@ namespace NetMQ.Core.Transports
 
         private bool RawMessageSizeReady()
         {
-            //  Write message body into the buffer.
+            // Write message body into the buffer.
             NextStep(m_inProgress.Data, m_inProgress.Size, RawMessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 
         private bool RawMessageReady()
         {
-            //  Destroy content of the old message.
+            // Destroy content of the old message.
             m_inProgress.Close();
 
-            //  Read new message. If there is none, return false.
-            //  Note that new state is set only if write is successful. That way
-            //  unsuccessful write will cause retry on the next state machine
-            //  invocation.
+            // Read new message. If there is none, return false.
+            // Note that new state is set only if write is successful. That way
+            // unsuccessful write will cause retry on the next state machine
+            // invocation.
             if (m_msgSource == null)
                 return false;
 

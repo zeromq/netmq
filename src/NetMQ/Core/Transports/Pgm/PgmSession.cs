@@ -78,7 +78,7 @@ namespace NetMQ.Core.Transports.Pgm
                 Debug.Assert(m_decoder != null);
                 Debug.Assert(m_pendingData != null);
 
-                //  Ask the decoder to process remaining data.
+                // Ask the decoder to process remaining data.
                 int n = m_decoder.ProcessBuffer(m_pendingData, m_pendingBytes);
                 m_pendingBytes -= n;
                 m_session.Flush();
@@ -100,18 +100,18 @@ namespace NetMQ.Core.Transports.Pgm
             }
             else
             {
-                //  Read the offset of the fist message in the current packet.
+                // Read the offset of the fist message in the current packet.
                 Debug.Assert(bytesTransferred >= sizeof(ushort));
 
                 ushort offset = m_data.GetUnsignedShort(m_options.Endian, 0);
                 m_data.AdvanceOffset(sizeof(ushort));
                 bytesTransferred -= sizeof(ushort);
 
-                //  Join the stream if needed.
+                // Join the stream if needed.
                 if (!m_joined)
                 {
-                    //  There is no beginning of the message in current packet.
-                    //  Ignore the data.
+                    // There is no beginning of the message in current packet.
+                    // Ignore the data.
                     if (offset == 0xffff)
                     {
                         BeginReceive();
@@ -121,23 +121,23 @@ namespace NetMQ.Core.Transports.Pgm
                     Debug.Assert(offset <= bytesTransferred);
                     Debug.Assert(m_decoder == null);
 
-                    //  We have to move data to the beginning of the first message.
+                    // We have to move data to the beginning of the first message.
                     m_data.AdvanceOffset(offset);
                     bytesTransferred -= offset;
 
-                    //  Mark the stream as joined.
+                    // Mark the stream as joined.
                     m_joined = true;
 
-                    //  Create and connect decoder for the peer.
+                    // Create and connect decoder for the peer.
                     m_decoder = new V1Decoder(0, m_options.MaxMessageSize, m_options.Endian);
                     m_decoder.SetMsgSink(m_session);
                 }
 
-                //  Push all the data to the decoder.
+                // Push all the data to the decoder.
                 int processed = m_decoder.ProcessBuffer(m_data, bytesTransferred);
                 if (processed < bytesTransferred)
                 {
-                    //  Save some state so we can resume the decoding process later.
+                    // Save some state so we can resume the decoding process later.
                     m_pendingBytes = bytesTransferred - processed;
                     m_pendingData = new ByteArraySegment(m_data, processed);
 
@@ -160,10 +160,10 @@ namespace NetMQ.Core.Transports.Pgm
 
             m_ioObject.RemoveSocket(m_handle);
 
-            //  Disconnect from I/O threads poller object.
+            // Disconnect from I/O threads poller object.
             m_ioObject.Unplug();
 
-            //  Disconnect from session object.
+            // Disconnect from session object.
             if (m_decoder != null)
                 m_decoder.SetMsgSink(null);
 

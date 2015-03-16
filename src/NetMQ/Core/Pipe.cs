@@ -195,7 +195,7 @@ namespace NetMQ.Core
         /// <param name="peer">The peer to be assigned.</param>
         private void SetPeer([NotNull] Pipe peer)
         {
-            //  Peer can be set once only.
+            // Peer can be set once only.
             Debug.Assert(peer != null);
             m_peer = peer;
         }
@@ -225,15 +225,15 @@ namespace NetMQ.Core
             if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
                 return false;
 
-            //  Check if there's an item in the pipe.
+            // Check if there's an item in the pipe.
             if (!m_inboundPipe.CheckRead())
             {
                 m_inActive = false;
                 return false;
             }
 
-            //  If the next item in the pipe is message delimiter,
-            //  initiate termination process.
+            // If the next item in the pipe is message delimiter,
+            // initiate termination process.
             if (m_inboundPipe.Probe().IsDelimiter)
             {
                 var msg = new Msg();
@@ -261,7 +261,7 @@ namespace NetMQ.Core
                 return false;
             }
 
-            //  If delimiter was read, start termination process of the pipe.
+            // If delimiter was read, start termination process of the pipe.
             if (msg.IsDelimiter)
             {
                 Delimit();
@@ -322,7 +322,7 @@ namespace NetMQ.Core
         /// </summary>
         public void Rollback()
         {
-            //  Remove incomplete message from the outbound pipe.
+            // Remove incomplete message from the outbound pipe.
             if (m_outboundPipe != null)
             {
                 var msg = new Msg();
@@ -339,7 +339,7 @@ namespace NetMQ.Core
         /// </summary>
         public void Flush()
         {
-            //  The peer does not exist anymore at this point.
+            // The peer does not exist anymore at this point.
             if (m_state == State.Terminating)
                 return;
 
@@ -357,7 +357,7 @@ namespace NetMQ.Core
 
         protected override void ProcessActivateWrite(long msgsRead)
         {
-            //  Remember the peer's message sequence number.
+            // Remember the peer's message sequence number.
             m_peersMsgsRead = msgsRead;
 
             if (m_outActive || m_state != State.Active)
@@ -368,8 +368,8 @@ namespace NetMQ.Core
 
         protected override void ProcessHiccup(object pipe)
         {
-            //  Destroy old out-pipe. Note that the read end of the pipe was already
-            //  migrated to this thread.
+            // Destroy old out-pipe. Note that the read end of the pipe was already
+            // migrated to this thread.
             Debug.Assert(m_outboundPipe != null);
             m_outboundPipe.Flush();
             var msg = new Msg();
@@ -378,23 +378,23 @@ namespace NetMQ.Core
                 msg.Close();
             }
 
-            //  Plug in the new out-pipe.
+            // Plug in the new out-pipe.
             Debug.Assert(pipe != null);
             m_outboundPipe = (YPipe<Msg>)pipe;
             m_outActive = true;
 
-            //  If appropriate, notify the user about the hiccup.
+            // If appropriate, notify the user about the hiccup.
             if (m_state == State.Active)
                 m_sink.Hiccuped(this);
         }
 
         protected override void ProcessPipeTerm()
         {
-            //  This is the simple case of peer-induced termination. If there are no
-            //  more pending messages to read, or if the pipe was configured to drop
-            //  pending messages, we can move directly to the terminating state.
-            //  Otherwise we'll hang up in pending state till all the pending messages
-            //  are sent.
+            // This is the simple case of peer-induced termination. If there are no
+            // more pending messages to read, or if the pipe was configured to drop
+            // pending messages, we can move directly to the terminating state.
+            // Otherwise we'll hang up in pending state till all the pending messages
+            // are sent.
             if (m_state == State.Active)
             {
                 if (!m_delay)
@@ -408,8 +408,8 @@ namespace NetMQ.Core
                 return;
             }
 
-            //  Delimiter happened to arrive before the term command. Now we have the
-            //  term command as well, so we can move straight to terminating state.
+            // Delimiter happened to arrive before the term command. Now we have the
+            // term command as well, so we can move straight to terminating state.
             if (m_state == State.Delimited)
             {
                 m_state = State.Terminating;
@@ -418,9 +418,9 @@ namespace NetMQ.Core
                 return;
             }
 
-            //  This is the case where both ends of the pipe are closed in parallel.
-            //  We simply reply to the request by ack and continue waiting for our
-            //  own ack.
+            // This is the case where both ends of the pipe are closed in parallel.
+            // We simply reply to the request by ack and continue waiting for our
+            // own ack.
             if (m_state == State.Terminated)
             {
                 m_state = State.DoubleTerminated;
@@ -429,20 +429,20 @@ namespace NetMQ.Core
                 return;
             }
 
-            //  pipe_term is invalid in other states.
+            // pipe_term is invalid in other states.
             Debug.Assert(false);
         }
 
         protected override void ProcessPipeTermAck()
         {
-            //  Notify the user that all the references to the pipe should be dropped.
+            // Notify the user that all the references to the pipe should be dropped.
             Debug.Assert(m_sink != null);
             m_sink.Terminated(this);
 
-            //  In terminating and double_terminated states there's nothing to do.
-            //  Simply deallocate the pipe. In terminated state we have to ack the
-            //  peer before deallocating this side of the pipe. All the other states
-            //  are invalid.
+            // In terminating and double_terminated states there's nothing to do.
+            // Simply deallocate the pipe. In terminated state we have to ack the
+            // peer before deallocating this side of the pipe. All the other states
+            // are invalid.
             if (m_state == State.Terminated)
             {
                 m_outboundPipe = null;
@@ -451,11 +451,11 @@ namespace NetMQ.Core
             else
                 Debug.Assert(m_state == State.Terminating || m_state == State.DoubleTerminated);
 
-            //  We'll deallocate the inbound pipe, the peer will deallocate the outbound
-            //  pipe (which is an inbound pipe from its point of view).
-            //  First, delete all the unread messages in the pipe. We have to do it by
-            //  hand because msg_t doesn't have automatic destructor. Then deallocate
-            //  the ypipe itself.
+            // We'll deallocate the inbound pipe, the peer will deallocate the outbound
+            // pipe (which is an inbound pipe from its point of view).
+            // First, delete all the unread messages in the pipe. We have to do it by
+            // hand because msg_t doesn't have automatic destructor. Then deallocate
+            // the ypipe itself.
             var msg = new Msg();
             while (m_inboundPipe.Read(out msg))
             {
@@ -519,16 +519,16 @@ namespace NetMQ.Core
                 Debug.Assert(false);
             }
 
-            //  Stop outbound flow of messages.
+            // Stop outbound flow of messages.
             m_outActive = false;
 
             if (m_outboundPipe != null)
             {
-                //  Drop any unfinished outbound messages.
+                // Drop any unfinished outbound messages.
                 Rollback();
 
-                //  Write the delimiter into the pipe. Note that watermarks are not
-                //  checked; thus the delimiter can be written even when the pipe is full.
+                // Write the delimiter into the pipe. Note that watermarks are not
+                // checked; thus the delimiter can be written even when the pipe is full.
 
                 var msg = new Msg();
                 msg.InitDelimiter();
@@ -544,8 +544,8 @@ namespace NetMQ.Core
         /// <returns>the computed low-watermark</returns>
         private static int ComputeLowWatermark(int highWatermark)
         {
-            //  Compute the low water mark. Following point should be taken
-            //  into consideration:
+            // Compute the low water mark. Following point should be taken
+            // into consideration:
             //
             //  1. LWM has to be less than HWM.
             //  2. LWM cannot be set to very low value (such as zero) as after filling
@@ -557,13 +557,13 @@ namespace NetMQ.Core
             //     message to the queue and go back to sleep immediately. This would
             //     result in low performance.
             //
-            //  Given the 3. it would be good to keep HWM and LWM as far apart as
-            //  possible to reduce the thread switching overhead to almost zero,
-            //  say HWM-LWM should be max_wm_delta.
+            // Given the 3. it would be good to keep HWM and LWM as far apart as
+            // possible to reduce the thread switching overhead to almost zero,
+            // say HWM-LWM should be max_wm_delta.
             //
-            //  That done, we still we have to account for the cases where
-            //  HWM < max_wm_delta thus driving LWM to negative numbers.
-            //  Let's make LWM 1/2 of HWM in such cases.
+            // That done, we still we have to account for the cases where
+            // HWM < max_wm_delta thus driving LWM to negative numbers.
+            // Let's make LWM 1/2 of HWM in such cases.
             int result = (highWatermark > Config.MaxWatermarkDelta*2)
                 ? highWatermark - Config.MaxWatermarkDelta
                 : (highWatermark + 1)/2;
@@ -590,7 +590,7 @@ namespace NetMQ.Core
                 return;
             }
 
-            //  Delimiter in any other state is invalid.
+            // Delimiter in any other state is invalid.
             Debug.Assert(false);
         }
 
@@ -600,19 +600,19 @@ namespace NetMQ.Core
         /// </summary>
         public void Hiccup()
         {
-            //  If termination is already under way do nothing.
+            // If termination is already under way do nothing.
             if (m_state != State.Active)
                 return;
 
-            //  We'll drop the pointer to the in-pipe. From now on, the peer is
-            //  responsible for deallocating it.
+            // We'll drop the pointer to the in-pipe. From now on, the peer is
+            // responsible for deallocating it.
             m_inboundPipe = null;
 
-            //  Create new in-pipe.
+            // Create new in-pipe.
             m_inboundPipe = new YPipe<Msg>(Config.MessagePipeGranularity, "inpipe");
             m_inActive = true;
 
-            //  Notify the peer about the hiccup.
+            // Notify the peer about the hiccup.
             SendHiccup(m_peer, m_inboundPipe);
         }
 

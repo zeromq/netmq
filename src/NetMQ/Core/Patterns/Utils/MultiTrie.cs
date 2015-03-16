@@ -61,7 +61,7 @@ namespace NetMQ.Core.Patterns.Utils
 
         private bool AddHelper([CanBeNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
         {
-            //  We are at the node corresponding to the prefix. We are done.
+            // We are at the node corresponding to the prefix. We are done.
             if (size == 0)
             {
                 bool result = m_pipes == null;
@@ -79,8 +79,8 @@ namespace NetMQ.Core.Patterns.Utils
 
             if (currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
             {
-                //  The character is out of range of currently handled
-                //  characters. We have to extend the table.
+                // The character is out of range of currently handled
+                // characters. We have to extend the table.
                 if (m_count == 0)
                 {
                     m_minCharacter = currentCharacter;
@@ -98,20 +98,20 @@ namespace NetMQ.Core.Patterns.Utils
                 }
                 else if (m_minCharacter < currentCharacter)
                 {
-                    //  The new character is above the current character range.
+                    // The new character is above the current character range.
                     m_count = currentCharacter - m_minCharacter + 1;
                     m_next = m_next.Resize(m_count, true);
                 }
                 else
                 {
-                    //  The new character is below the current character range.
+                    // The new character is below the current character range.
                     m_count = (m_minCharacter + m_count) - currentCharacter;
                     m_next = m_next.Resize(m_count, false);
                     m_minCharacter = currentCharacter;
                 }
             }
 
-            //  If next node does not exist, create one.
+            // If next node does not exist, create one.
             if (m_count == 1)
             {
                 if (m_next == null)
@@ -152,32 +152,32 @@ namespace NetMQ.Core.Patterns.Utils
 
         private bool RemoveHelper([NotNull] Pipe pipe, [NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] MultiTrieDelegate func, [CanBeNull] Object arg)
         {
-            //  Remove the subscription from this node.
+            // Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
             {
                 func(null, buffer, bufferSize, arg);
                 m_pipes = null;
             }
 
-            //  Adjust the buffer.
+            // Adjust the buffer.
             if (bufferSize >= maxBufferSize)
             {
                 maxBufferSize = bufferSize + 256;
                 Array.Resize(ref buffer, maxBufferSize);
             }
 
-            //  If there are no subnodes in the trie, return.
+            // If there are no subnodes in the trie, return.
             if (m_count == 0)
                 return true;
 
-            //  If there's one subnode (optimisation).
+            // If there's one subnode (optimisation).
             if (m_count == 1)
             {
                 buffer[bufferSize] = (byte)m_minCharacter;
                 bufferSize++;
                 m_next[0].RemoveHelper(pipe, buffer, bufferSize, maxBufferSize, func, arg);
 
-                //  Prune the node if it was made redundant by the removal
+                // Prune the node if it was made redundant by the removal
                 if (m_next[0].IsRedundant)
                 {
                     m_next = null;
@@ -188,12 +188,12 @@ namespace NetMQ.Core.Patterns.Utils
                 return true;
             }
 
-            //  If there are multiple subnodes.
+            // If there are multiple subnodes.
 
-            //  New min non-null character in the node table after the removal
+            // New min non-null character in the node table after the removal
             int newMin = m_minCharacter + m_count - 1;
 
-            //  New max non-null character in the node table after the removal
+            // New max non-null character in the node table after the removal
             int newMax = m_minCharacter;
 
             for (int currentCharacter = 0; currentCharacter != m_count; currentCharacter++)
@@ -204,7 +204,7 @@ namespace NetMQ.Core.Patterns.Utils
                     m_next[currentCharacter].RemoveHelper(pipe, buffer, bufferSize + 1,
                         maxBufferSize, func, arg);
 
-                    //  Prune redundant nodes from the mtrie
+                    // Prune redundant nodes from the mtrie
                     if (m_next[currentCharacter].IsRedundant)
                     {
                         m_next[currentCharacter] = null;
@@ -214,13 +214,13 @@ namespace NetMQ.Core.Patterns.Utils
                     }
                     else
                     {
-                        //  The node is not redundant, so it's a candidate for being
-                        //  the new min/max node.
+                        // The node is not redundant, so it's a candidate for being
+                        // the new min/max node.
                         //
-                        //  We loop through the node array from left to right, so the
-                        //  first non-null, non-redundant node encountered is the new
-                        //  minimum index. Conversely, the last non-redundant, non-null
-                        //  node encountered is the new maximum index.
+                        // We loop through the node array from left to right, so the
+                        // first non-null, non-redundant node encountered is the new
+                        // minimum index. Conversely, the last non-redundant, non-null
+                        // node encountered is the new maximum index.
                         if (currentCharacter + m_minCharacter < newMin)
                             newMin = currentCharacter + m_minCharacter;
 
@@ -232,18 +232,18 @@ namespace NetMQ.Core.Patterns.Utils
 
             Debug.Assert(m_count > 1);
 
-            //  Free the node table if it's no longer used.
+            // Free the node table if it's no longer used.
             if (m_liveNodes == 0)
             {
                 m_next = null;
                 m_count = 0;
             }
-            //  Compact the node table if possible
+            // Compact the node table if possible
             else if (m_liveNodes == 1)
             {
-                //  If there's only one live node in the table we can
-                //  switch to using the more compact single-node
-                //  representation
+                // If there's only one live node in the table we can
+                // switch to using the more compact single-node
+                // representation
                 Debug.Assert(newMin == newMax);
                 Debug.Assert(newMin >= m_minCharacter && newMin < m_minCharacter + m_count);
 
@@ -332,12 +332,12 @@ namespace NetMQ.Core.Patterns.Utils
                     Debug.Assert(m_liveNodes > 1);
                     --m_liveNodes;
 
-                    //  Compact the table if possible
+                    // Compact the table if possible
                     if (m_liveNodes == 1)
                     {
-                        //  If there's only one live node in the table we can
-                        //  switch to using the more compact single-node
-                        //  representation
+                        // If there's only one live node in the table we can
+                        // switch to using the more compact single-node
+                        // representation
                         int i;
                         for (i = 0; i < m_count; ++i)
                         {
@@ -355,7 +355,7 @@ namespace NetMQ.Core.Patterns.Utils
                     }
                     else if (currentCharacter == m_minCharacter)
                     {
-                        //  We can compact the table "from the left"
+                        // We can compact the table "from the left"
                         int i;
                         for (i = 1; i < m_count; ++i)
                         {
@@ -372,7 +372,7 @@ namespace NetMQ.Core.Patterns.Utils
                     }
                     else if (currentCharacter == m_minCharacter + m_count - 1)
                     {
-                        //  We can compact the table "from the right"
+                        // We can compact the table "from the right"
                         int i;
                         for (i = 1; i < m_count; ++i)
                         {
@@ -402,23 +402,23 @@ namespace NetMQ.Core.Patterns.Utils
 
             while (true)
             {
-                //  Signal the pipes attached to this node.
+                // Signal the pipes attached to this node.
                 if (current.m_pipes != null)
                 {
                     foreach (Pipe it in current.m_pipes)
                         func(it, null, 0, arg);
                 }
 
-                //  If we are at the end of the message, there's nothing more to match.
+                // If we are at the end of the message, there's nothing more to match.
                 if (size == 0)
                     break;
 
-                //  If there are no subnodes in the trie, return.
+                // If there are no subnodes in the trie, return.
                 if (current.m_count == 0)
                     break;
 
                 byte c = data[index];
-                //  If there's one subnode (optimisation).
+                // If there's one subnode (optimisation).
                 if (current.m_count == 1)
                 {
                     if (c != current.m_minCharacter)
@@ -429,7 +429,7 @@ namespace NetMQ.Core.Patterns.Utils
                     continue;
                 }
 
-                //  If there are multiple subnodes.
+                // If there are multiple subnodes.
                 if (c < current.m_minCharacter || c >=
                     current.m_minCharacter + current.m_count)
                     break;

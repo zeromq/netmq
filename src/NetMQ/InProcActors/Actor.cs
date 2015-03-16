@@ -101,9 +101,9 @@ namespace NetMQ.Actors
             //Create Shim thread handler
             CreateShimThread();
 
-            //  Mandatory handshake for new actor so that constructor returns only
-            //  when actor has also initialized. This eliminates timing issues at
-            //  application start up.
+            // Mandatory handshake for new actor so that constructor returns only
+            // when actor has also initialized. This eliminates timing issues at
+            // application start up.
             m_self.WaitForSignal();
         }
 
@@ -153,7 +153,7 @@ namespace NetMQ.Actors
                     catch (TerminatingException)
                     {}
 
-                    //  Do not block, if the other end of the pipe is already deleted
+                    // Do not block, if the other end of the pipe is already deleted
                     m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
 
                     try

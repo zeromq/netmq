@@ -190,7 +190,7 @@ namespace NetMQ.Core.Utils
             m_checkRead.Remove(handle);
 //            m_checkWrite.Remove(handle);
 
-            //  Decrease the load metric of the thread.
+            // Decrease the load metric of the thread.
             AdjustLoad(-1);
         }
 

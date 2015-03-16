@@ -92,12 +92,12 @@ namespace NetMQ.Core
         {
             while (true)
             {
-                //  Get the next command. If there is none, exit.
+                // Get the next command. If there is none, exit.
                 Command cmd = m_mailbox.Recv(0);
                 if (cmd == null)
                     break;
 
-                //  Process the command.
+                // Process the command.
                 cmd.Destination.ProcessCommand(cmd);
             }
         }
@@ -116,7 +116,7 @@ namespace NetMQ.Core
         {
             m_terminating = true;
 
-            //  If there are no sockets being reaped finish immediately.
+            // If there are no sockets being reaped finish immediately.
             if (m_sockets == 0)
             {
                 SendDone();
@@ -127,7 +127,7 @@ namespace NetMQ.Core
 
         protected override void ProcessReap(SocketBase socket)
         {
-            //  Add the socket to the poller.
+            // Add the socket to the poller.
             socket.StartReaping(m_poller);
 
             ++m_sockets;
@@ -137,8 +137,8 @@ namespace NetMQ.Core
         {
             --m_sockets;
 
-            //  If reaped was already asked to terminate and there are no more sockets,
-            //  finish immediately.
+            // If reaped was already asked to terminate and there are no more sockets,
+            // finish immediately.
             if (m_sockets == 0 && m_terminating)
             {
                 SendDone();

@@ -54,29 +54,29 @@ namespace NetMQ.Core.Transports.Tcp
 
         public void Resolve(string name, bool ip4Only)
         {
-            //  Find the ':' at end that separates address from the port number.
+            // Find the ':' at end that separates address from the port number.
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
                 throw new InvalidException(string.Format("TcpAddress.Resolve, delimiter ({0}) must be non-negative.", delimiter));
 
-            //  Separate the address/port.
+            // Separate the address/port.
             string addrStr = name.Substring(0, delimiter);
             string portStr = name.Substring(delimiter + 1);
 
-            //  Remove square brackets around the address, if any.
+            // Remove square brackets around the address, if any.
             if (addrStr.Length >= 2 && addrStr[0] == '[' && addrStr[addrStr.Length - 1] == ']')
                 addrStr = addrStr.Substring(1, addrStr.Length - 2);
 
             int port;
-            //  Allow 0 specifically, to detect invalid port error in atoi if not
+            // Allow 0 specifically, to detect invalid port error in atoi if not
             if (portStr == "*" || portStr == "0")
             {
-                //  Resolve wildcard to 0 to allow auto-selection of port
+                // Resolve wildcard to 0 to allow auto-selection of port
                 port = 0;
             }
             else
             {
-                //  Parse the port number (0 is not a valid port).
+                // Parse the port number (0 is not a valid port).
                 port = Convert.ToInt32(portStr);
                 if (port == 0)
                 {

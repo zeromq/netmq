@@ -26,7 +26,7 @@ namespace NetMQ.Core.Transports.Pgm
                 throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), delimiter ({2}) must be non-negative.", name, ip4Only, delimiter));
             }
 
-            //  Separate the address/port.
+            // Separate the address/port.
             string addrStr = name.Substring(0, delimiter);
             string portStr = name.Substring(delimiter + 1);
 
@@ -43,20 +43,20 @@ namespace NetMQ.Core.Transports.Pgm
                 InterfaceAddress = null;
             }
 
-            //  Remove square brackets around the address, if any.
+            // Remove square brackets around the address, if any.
             if (addrStr.Length >= 2 && addrStr[0] == '[' && addrStr[addrStr.Length - 1] == ']')
                 addrStr = addrStr.Substring(1, addrStr.Length - 2);
 
             int port;
-            //  Allow 0 specifically, to detect invalid port error in atoi if not
+            // Allow 0 specifically, to detect invalid port error in atoi if not
             if (portStr == "*" || portStr == "0")
             {
-                //  Resolve wildcard to 0 to allow auto-selection of port
+                // Resolve wildcard to 0 to allow auto-selection of port
                 port = 0;
             }
             else
             {
-                //  Parse the port number (0 is not a valid port).
+                // Parse the port number (0 is not a valid port).
                 port = Convert.ToInt32(portStr);
                 
                 if (port == 0)

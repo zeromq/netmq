@@ -184,20 +184,20 @@ namespace NetMQ.Core.Patterns
         /// <exception cref="HostUnreachableException">In Stream.XSend</exception>
         protected override bool XSend(ref Msg msg)
         {
-            //  If this is the first part of the message it's the ID of the
-            //  peer to send the message to.
+            // If this is the first part of the message it's the ID of the
+            // peer to send the message to.
             if (!m_moreOut)
             {
                 Debug.Assert(m_currentOut == null);
 
-                //  If we have malformed message (prefix with no subsequent message)
-                //  then just silently ignore it.
-                //  TODO: The connections should be killed instead.
+                // If we have malformed message (prefix with no subsequent message)
+                // then just silently ignore it.
+                // TODO: The connections should be killed instead.
                 if (msg.HasMore)
                 {
-                    //  Find the pipe associated with the identity stored in the prefix.
-                    //  If there's no such pipe just silently ignore the message, unless
-                    //  mandatory is set.
+                    // Find the pipe associated with the identity stored in the prefix.
+                    // If there's no such pipe just silently ignore the message, unless
+                    // mandatory is set.
 
                     var identity = msg.Size == msg.Data.Length 
                         ? msg.Data 
@@ -228,13 +228,13 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            //  Ignore the MORE flag
+            // Ignore the MORE flag
             msg.ResetFlags(MsgFlags.More);
 
-            //  This is the last part of the message. 
+            // This is the last part of the message. 
             m_moreOut = false;
 
-            //  Push the message into the pipe. If there's no out pipe, just drop it.
+            // Push the message into the pipe. If there's no out pipe, just drop it.
             if (m_currentOut != null)
             {
                 if (msg.Size == 0)
@@ -253,7 +253,7 @@ namespace NetMQ.Core.Patterns
                 m_currentOut = null;
             }
 
-            //  Detach the message from the data buffer.
+            // Detach the message from the data buffer.
             msg.InitEmpty();
 
             return true;
@@ -289,9 +289,9 @@ namespace NetMQ.Core.Patterns
             Debug.Assert(pipe[0] != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
 
-            //  We have received a frame with TCP data.
-            //  Rather than sending this frame, we keep it in prefetched
-            //  buffer and send a frame with peer's ID.
+            // We have received a frame with TCP data.
+            // Rather than sending this frame, we keep it in prefetched
+            // buffer and send a frame with peer's ID.
             byte[] identity = pipe[0].Identity;
             msg.InitPool(identity.Length);
             msg.Put(identity, 0, identity.Length);
@@ -305,12 +305,12 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XHasIn()
         {
-            //  We may already have a message pre-fetched.
+            // We may already have a message pre-fetched.
             if (m_prefetched)
                 return true;
 
-            //  Try to read the next message.
-            //  The message, if read, is kept in the pre-fetch buffer.
+            // Try to read the next message.
+            // The message, if read, is kept in the pre-fetch buffer.
             var pipe = new Pipe[1];
 
             bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
@@ -337,9 +337,9 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XHasOut()
         {
-            //  In theory, STREAM socket is always ready for writing. Whether actual
-            //  attempt to write succeeds depends on which pipe the message is going
-            //  to be routed to.
+            // In theory, STREAM socket is always ready for writing. Whether actual
+            // attempt to write succeeds depends on which pipe the message is going
+            // to be routed to.
             return true;
         }
 
@@ -357,7 +357,7 @@ namespace NetMQ.Core.Patterns
 
             pipe.Identity = identity;
 
-            //  Add the record into output pipes lookup table
+            // Add the record into output pipes lookup table
             var outpipe = new Outpipe(pipe, true);
             m_outpipes.Add(identity, outpipe);
         }

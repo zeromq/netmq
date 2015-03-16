@@ -66,9 +66,9 @@ namespace NetMQ.Core
             m_proactor = proactor;
             m_mailboxEvent = mailboxEvent;
 
-            //  Get the pipe into passive state. That way, if the users starts by
-            //  polling on the associated file descriptor it will get woken up when
-            //  new command is posted.
+            // Get the pipe into passive state. That way, if the users starts by
+            // polling on the associated file descriptor it will get woken up when
+            // new command is posted.
             Command cmd;
             bool ok = m_commandPipe.Read(out cmd);
             Debug.Assert(!ok);
@@ -155,9 +155,9 @@ namespace NetMQ.Core
 
         public Mailbox([NotNull] string name)
         {
-            //  Get the pipe into passive state. That way, if the users starts by
-            //  polling on the associated file descriptor it will get woken up when
-            //  new command is posted.
+            // Get the pipe into passive state. That way, if the users starts by
+            // polling on the associated file descriptor it will get woken up when
+            // new command is posted.
 
             Command cmd;
             bool ok = m_commandPipe.Read(out cmd);
@@ -200,7 +200,7 @@ namespace NetMQ.Core
         {
             Command cmd;
             
-            //  Try to get the command straight away.
+            // Try to get the command straight away.
             if (m_active)
             {
                 m_commandPipe.Read(out cmd);
@@ -208,21 +208,21 @@ namespace NetMQ.Core
                 if (cmd != null)
                     return cmd;
 
-                //  If there are no more commands available, switch into passive state.
+                // If there are no more commands available, switch into passive state.
                 m_active = false;
                 m_signaler.Recv();
             }
 
 
-            //  Wait for signal from the command sender.
+            // Wait for signal from the command sender.
             bool rc = m_signaler.WaitEvent(timeout);
             if (!rc)
                 return null;
 
-            //  We've got the signal. Now we can switch into active state.
+            // We've got the signal. Now we can switch into active state.
             m_active = true;
 
-            //  Get a command.
+            // Get a command.
             bool ok = m_commandPipe.Read(out cmd);
             Debug.Assert(ok);
 

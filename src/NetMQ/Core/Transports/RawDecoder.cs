@@ -53,8 +53,8 @@ namespace NetMQ.Core.Transports
         {
             Debug.Assert(m_inProgress.Size != 0);
 
-            //  Message is completely read. Push it further and start reading
-            //  new message. (in_progress is a 0-byte message after this point.)
+            // Message is completely read. Push it further and start reading
+            // new message. (in_progress is a 0-byte message after this point.)
             if (m_msgSink == null)
                 return false;
 

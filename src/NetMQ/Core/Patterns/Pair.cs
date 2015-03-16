@@ -50,8 +50,8 @@ namespace NetMQ.Core.Patterns
         {
             Debug.Assert(pipe != null);
 
-            //  ZMQ_PAIR socket can only be connected to a single peer.
-            //  The socket rejects any further connection requests.
+            // ZMQ_PAIR socket can only be connected to a single peer.
+            // The socket rejects any further connection requests.
             if (m_pipe == null)
                 m_pipe = pipe;
             else
@@ -66,15 +66,15 @@ namespace NetMQ.Core.Patterns
 
         protected override void XReadActivated(Pipe pipe)
         {
-            //  There's just one pipe. No lists of active and inactive pipes.
-            //  There's nothing to do here.
+            // There's just one pipe. No lists of active and inactive pipes.
+            // There's nothing to do here.
         }
 
 
         protected override void XWriteActivated(Pipe pipe)
         {
-            //  There's just one pipe. No lists of active and inactive pipes.
-            //  There's nothing to do here.
+            // There's just one pipe. No lists of active and inactive pipes.
+            // There's nothing to do here.
         }
 
         protected override bool XSend(ref Msg msg)
@@ -85,7 +85,7 @@ namespace NetMQ.Core.Patterns
             if (!msg.HasMore)
                 m_pipe.Flush();
 
-            //  Detach the original message from the data buffer.
+            // Detach the original message from the data buffer.
             msg.InitEmpty();
 
             return true;
@@ -93,7 +93,7 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XRecv(ref Msg msg)
         {
-            //  Deallocate old content of the message.
+            // Deallocate old content of the message.
             msg.Close();
 
             if (m_pipe == null || !m_pipe.Read(ref msg))

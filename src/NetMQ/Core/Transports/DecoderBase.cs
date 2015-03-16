@@ -80,7 +80,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         public virtual bool Stalled()
         {
-            //  Check whether there was decoding error.
+            // Check whether there was decoding error.
             if (!Next())
                 return false;
 
@@ -101,14 +101,14 @@ namespace NetMQ.Core.Transports
         /// </summary>
         public void GetBuffer(out ByteArraySegment data, out int size)
         {
-            //  If we are expected to read large message, we'll opt for zero-
-            //  copy, i.e. we'll ask caller to fill the data directly to the
-            //  message. Note that subsequent read(s) are non-blocking, thus
-            //  each single read reads at most SO_RCVBUF bytes at once not
-            //  depending on how large is the chunk returned from here.
-            //  As a consequence, large messages being received won't block
-            //  other engines running in the same I/O thread for excessive
-            //  amounts of time.
+            // If we are expected to read large message, we'll opt for zero-
+            // copy, i.e. we'll ask caller to fill the data directly to the
+            // message. Note that subsequent read(s) are non-blocking, thus
+            // each single read reads at most SO_RCVBUF bytes at once not
+            // depending on how large is the chunk returned from here.
+            // As a consequence, large messages being received won't block
+            // other engines running in the same I/O thread for excessive
+            // amounts of time.
 
             if (m_toRead >= m_bufsize)
             {
@@ -130,15 +130,15 @@ namespace NetMQ.Core.Transports
         /// </summary>
         public int ProcessBuffer(ByteArraySegment data, int size)
         {
-            //  Check if we had an error in previous attempt.
+            // Check if we had an error in previous attempt.
             if (State < 0)
             {
                 return -1;
             }
 
-            //  In case of zero-copy simply adjust the pointers, no copying
-            //  is required. Also, run the state machine in case all the data
-            //  were processed.
+            // In case of zero-copy simply adjust the pointers, no copying
+            // is required. Also, run the state machine in case all the data
+            // were processed.
             if (data != null && data.Equals(m_readPos))
             {
                 m_readPos.AdvanceOffset(size);
@@ -162,8 +162,8 @@ namespace NetMQ.Core.Transports
             while (true)
             {
 
-                //  Try to get more space in the message to fill in.
-                //  If none is available, return.
+                // Try to get more space in the message to fill in.
+                // If none is available, return.
                 while (m_toRead == 0)
                 {
                     if (!Next())
@@ -177,11 +177,11 @@ namespace NetMQ.Core.Transports
                     }
                 }
 
-                //  If there are no more data in the buffer, return.
+                // If there are no more data in the buffer, return.
                 if (pos == size)
                     return pos;
 
-                //  Copy the data from buffer to the message.
+                // Copy the data from buffer to the message.
                 int toCopy = Math.Min(m_toRead, size - pos);
                 data.CopyTo(pos, m_readPos, 0, toCopy);
                 m_readPos.AdvanceOffset(toCopy);

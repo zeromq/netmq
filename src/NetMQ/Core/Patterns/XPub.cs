@@ -37,10 +37,10 @@ namespace NetMQ.Core.Patterns
             {}
         }
 
-        //  List of all subscriptions mapped to corresponding pipes.
+        // List of all subscriptions mapped to corresponding pipes.
         private readonly MultiTrie m_subscriptions;
 
-        //  Distributor of messages holding the list of outbound pipes.
+        // Distributor of messages holding the list of outbound pipes.
         private readonly Distribution m_distribution;
 
         // If true, send all subscription messages upstream, not just
@@ -58,8 +58,8 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private bool m_more;
 
-        //  List of pending (un)subscriptions, ie. those that were already
-        //  applied to the trie, but not yet received by the user.
+        // List of pending (un)subscriptions, ie. those that were already
+        // applied to the trie, but not yet received by the user.
         private readonly Queue<byte[]> m_pending;
 
         private static readonly MultiTrie.MultiTrieDelegate s_markAsMatching;
@@ -79,8 +79,8 @@ namespace NetMQ.Core.Patterns
 
                 if (self.m_options.SocketType != ZmqSocketType.Pub)
                 {
-                    //  Place the unsubscription to the queue of pending (un)subscriptions
-                    //  to be retrieved by the user later on.
+                    // Place the unsubscription to the queue of pending (un)subscriptions
+                    // to be retrieved by the user later on.
 
                     var unsub = new byte[size + 1];
                     unsub[0] = 0;
@@ -133,18 +133,18 @@ namespace NetMQ.Core.Patterns
                 pipe.Flush();
             }
 
-            //  The pipe is active when attached. Let's read the subscriptions from
-            //  it, if any.
+            // The pipe is active when attached. Let's read the subscriptions from
+            // it, if any.
             XReadActivated(pipe);
         }
 
         protected override void XReadActivated(Pipe pipe)
         {
-            //  There are some subscriptions waiting. Let's process them.
+            // There are some subscriptions waiting. Let's process them.
             var sub = new Msg();
             while (pipe.Read(ref sub))
             {
-                //  Apply the subscription to the trie.
+                // Apply the subscription to the trie.
                 byte[] data = sub.Data;
                 int size = sub.Size;
                 if (size > 0 && (data[0] == 0 || data[0] == 1))
@@ -161,8 +161,8 @@ namespace NetMQ.Core.Patterns
                             ? m_subscriptions.Remove(data, 1, size - 1, pipe) 
                             : m_subscriptions.Add(data, 1, size - 1, pipe);
 
-                        //  If the subscription is not a duplicate, store it so that it can be
-                        //  passed to used on next recv call.
+                        // If the subscription is not a duplicate, store it so that it can be
+                        // passed to used on next recv call.
                         if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
                             m_pending.Enqueue(sub.CloneData());
                     }
@@ -242,9 +242,9 @@ namespace NetMQ.Core.Patterns
 
         protected override void XTerminated(Pipe pipe)
         {
-            //  Remove the pipe from the trie. If there are topics that nobody
-            //  is interested in anymore, send corresponding un-subscriptions
-            //  upstream.
+            // Remove the pipe from the trie. If there are topics that nobody
+            // is interested in anymore, send corresponding un-subscriptions
+            // upstream.
 
             m_subscriptions.RemoveHelper(pipe, s_sendUnsubscription, this);
 
@@ -255,16 +255,16 @@ namespace NetMQ.Core.Patterns
         {
             bool msgMore = msg.HasMore;
 
-            //  For the first part of multipart message, find the matching pipes.
+            // For the first part of multipart message, find the matching pipes.
             if (!m_more)
                 m_subscriptions.Match(msg.Data, msg.Size, s_markAsMatching, this);
 
-            //  Send the message to all the pipes that were marked as matching
-            //  in the previous step.
+            // Send the message to all the pipes that were marked as matching
+            // in the previous step.
             m_distribution.SendToMatching(ref msg);
 
-            //  If we are at the end of multipart message we can mark all the pipes
-            //  as non-matching.
+            // If we are at the end of multipart message we can mark all the pipes
+            // as non-matching.
             if (!msgMore)
                 m_distribution.Unmatch();
 
@@ -280,7 +280,7 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XRecv(ref Msg msg)
         {
-            //  If there is at least one 
+            // If there is at least one 
             if (m_pending.Count == 0)
                 return false;
 

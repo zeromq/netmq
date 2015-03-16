@@ -21,7 +21,7 @@ namespace NetMQ.Core.Transports
 
             m_tmpbuf = new byte[8];
 
-            //  At the beginning, read one byte and go to one_byte_size_ready state.
+            // At the beginning, read one byte and go to one_byte_size_ready state.
             NextStep(m_tmpbuf, 1, FlagsReadyState);
 
             m_inProgress = new Msg();
@@ -58,7 +58,7 @@ namespace NetMQ.Core.Transports
         {
             m_tmpbuf.Reset();
 
-            //  Message size must not exceed the maximum allowed size.
+            // Message size must not exceed the maximum allowed size.
             if (m_maxmsgsize >= 0)
                 if (m_tmpbuf[0] > m_maxmsgsize)
                 {
@@ -66,9 +66,9 @@ namespace NetMQ.Core.Transports
                     return false;
                 }
 
-            //  in_progress is initialised at this point so in theory we should
-            //  close it before calling zmq_msg_init_size, however, it's a 0-byte
-            //  message and thus we can treat it as uninitialised...
+            // in_progress is initialised at this point so in theory we should
+            // close it before calling zmq_msg_init_size, however, it's a 0-byte
+            // message and thus we can treat it as uninitialised...
             m_inProgress.InitPool(m_tmpbuf[0]);
 
             m_inProgress.SetFlags(m_msgFlags);
@@ -81,12 +81,12 @@ namespace NetMQ.Core.Transports
         {
             m_tmpbuf.Reset();
 
-            //  The payload size is encoded as 64-bit unsigned integer.
-            //  The most significant byte comes first.        
+            // The payload size is encoded as 64-bit unsigned integer.
+            // The most significant byte comes first.        
 
             long msg_size = m_tmpbuf.GetLong(Endian, 0);
 
-            //  Message size must not exceed the maximum allowed size.
+            // Message size must not exceed the maximum allowed size.
             if (m_maxmsgsize >= 0)
                 if (msg_size > m_maxmsgsize)
                 {
@@ -94,16 +94,16 @@ namespace NetMQ.Core.Transports
                     return false;
                 }
 
-            //  Message size must fit within range of size_t data type.
+            // Message size must fit within range of size_t data type.
             if (msg_size > int.MaxValue)
             {
                 DecodingError();
                 return false;
             }
 
-            //  in_progress is initialised at this point so in theory we should
-            //  close it before calling init_size, however, it's a 0-byte
-            //  message and thus we can treat it as uninitialised.
+            // in_progress is initialised at this point so in theory we should
+            // close it before calling init_size, however, it's a 0-byte
+            // message and thus we can treat it as uninitialised.
             m_inProgress.InitPool((int)msg_size);
 
             m_inProgress.SetFlags(m_msgFlags);
@@ -116,14 +116,14 @@ namespace NetMQ.Core.Transports
         {
             m_tmpbuf.Reset();
 
-            //  Store the flags from the wire into the message structure.
+            // Store the flags from the wire into the message structure.
             m_msgFlags = 0;
             int first = m_tmpbuf[0];
             if ((first & V2Protocol.MoreFlag) > 0)
                 m_msgFlags |= MsgFlags.More;
 
-            //  The payload length is either one or eight bytes,
-            //  depending on whether the 'large' bit is set.
+            // The payload length is either one or eight bytes,
+            // depending on whether the 'large' bit is set.
             if ((first & V2Protocol.LargeFlag) > 0)
                 NextStep(m_tmpbuf, 8, EightByteSizeReadyState);
             else
@@ -137,8 +137,8 @@ namespace NetMQ.Core.Transports
         {
             m_tmpbuf.Reset();
 
-            //  Message is completely read. Push it further and start reading
-            //  new message. (in_progress is a 0-byte message after this point.)
+            // Message is completely read. Push it further and start reading
+            // new message. (in_progress is a 0-byte message after this point.)
 
             if (m_msgSink == null)
                 return false;

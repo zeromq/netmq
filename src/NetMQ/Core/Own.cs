@@ -128,10 +128,10 @@ namespace NetMQ.Core
 
         protected override void ProcessSeqnum()
         {
-            //  Catch up with counter of processed commands.
+            // Catch up with counter of processed commands.
             m_processedSeqnum++;
 
-            //  We may have caught up and still have pending terms acks.
+            // We may have caught up and still have pending terms acks.
             CheckTermAcks();
         }
 
@@ -141,13 +141,13 @@ namespace NetMQ.Core
         /// <param name="obj">The object to be launched.</param>
         protected void LaunchChild([NotNull] Own obj)
         {
-            //  Specify the owner of the object.
+            // Specify the owner of the object.
             obj.SetOwner(this);
 
-            //  Plug the object into the I/O thread.
+            // Plug the object into the I/O thread.
             SendPlug(obj);
 
-            //  Take ownership of the object.
+            // Take ownership of the object.
             SendOwn(this, obj);
         }
 
@@ -162,31 +162,31 @@ namespace NetMQ.Core
 
         protected override void ProcessTermReq(Own obj)
         {
-            //  When shutting down we can ignore termination requests from owned
-            //  objects. The termination request was already sent to the object.
+            // When shutting down we can ignore termination requests from owned
+            // objects. The termination request was already sent to the object.
             if (m_terminating)
                 return;
 
-            //  If I/O object is well and alive let's ask it to terminate.
+            // If I/O object is well and alive let's ask it to terminate.
 
-            //  If not found, we assume that termination request was already sent to
-            //  the object so we can safely ignore the request.
+            // If not found, we assume that termination request was already sent to
+            // the object so we can safely ignore the request.
             if (!m_owned.Contains(obj))
                 return;
 
             m_owned.Remove(obj);
             RegisterTermAcks(1);
 
-            //  Note that this object is the root of the (partial shutdown) thus, its
-            //  value of linger is used, rather than the value stored by the children.
+            // Note that this object is the root of the (partial shutdown) thus, its
+            // value of linger is used, rather than the value stored by the children.
             SendTerm(obj, m_options.Linger);
         }
 
 
         protected override void ProcessOwn(Own obj)
         {
-            //  If the object is already being shut down, new owned objects are
-            //  immediately asked to terminate. Note that linger is set to zero.
+            // If the object is already being shut down, new owned objects are
+            // immediately asked to terminate. Note that linger is set to zero.
             if (m_terminating)
             {
                 RegisterTermAcks(1);
@@ -194,7 +194,7 @@ namespace NetMQ.Core
                 return;
             }
 
-            //  Store the reference to the owned object.
+            // Store the reference to the owned object.
             m_owned.Add(obj);
         }
 
@@ -206,8 +206,8 @@ namespace NetMQ.Core
         /// </remarks>
         protected void Terminate()
         {
-            //  If termination is already underway, there's no point
-            //  in starting it anew.
+            // If termination is already underway, there's no point
+            // in starting it anew.
             if (m_terminating)
                 return;
 
@@ -239,10 +239,10 @@ namespace NetMQ.Core
         /// </remarks>
         protected override void ProcessTerm(int linger)
         {
-            //  Double termination should never happen.
+            // Double termination should never happen.
             Debug.Assert(!m_terminating);
 
-            //  Send termination request to all owned objects.
+            // Send termination request to all owned objects.
             foreach (Own it in m_owned)
             {
                 SendTerm(it, linger);
@@ -251,8 +251,8 @@ namespace NetMQ.Core
             RegisterTermAcks(m_owned.Count);
             m_owned.Clear();
 
-            //  Start termination process and check whether by chance we cannot
-            //  terminate immediately.
+            // Start termination process and check whether by chance we cannot
+            // terminate immediately.
             m_terminating = true;
             CheckTermAcks();
         }
@@ -274,7 +274,7 @@ namespace NetMQ.Core
             Debug.Assert(m_termAcks > 0);
             m_termAcks--;
 
-            //  This may be a last ack we are waiting for before termination...
+            // This may be a last ack we are waiting for before termination...
             CheckTermAcks();
         }
 
@@ -289,15 +289,15 @@ namespace NetMQ.Core
                 m_processedSeqnum == Interlocked.Read(ref m_sentSeqnum) &&
                 m_termAcks == 0)
             {
-                //  Sanity check. There should be no active children at this point.
+                // Sanity check. There should be no active children at this point.
                 Debug.Assert(m_owned.Count == 0);
 
-                //  The root object has nobody to confirm the termination to.
-                //  Other nodes will confirm the termination to the owner.
+                // The root object has nobody to confirm the termination to.
+                // Other nodes will confirm the termination to the owner.
                 if (m_owner != null)
                     SendTermAck(m_owner);
 
-                //  Deallocate the resources.
+                // Deallocate the resources.
                 ProcessDestroy();
             }
         }

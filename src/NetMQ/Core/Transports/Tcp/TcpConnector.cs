@@ -153,7 +153,7 @@ namespace NetMQ.Core.Transports.Tcp
         {
             Debug.Assert(m_s == null);
 
-            //  Create the socket.
+            // Create the socket.
             try
             {
                 m_s = AsyncSocket.Create(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -167,7 +167,7 @@ namespace NetMQ.Core.Transports.Tcp
             m_ioObject.AddSocket(m_s);
             m_handleValid = true;
 
-            //  Connect to the remote peer.
+            // Connect to the remote peer.
             try
             {
                 m_s.Connect(m_addr.Resolved.Address.Address, m_addr.Resolved.Address.Port);
@@ -231,17 +231,17 @@ namespace NetMQ.Core.Transports.Tcp
                     }
                 }
 
-                //  Create the engine object for this connection.
+                // Create the engine object for this connection.
                 var engine = new StreamEngine(m_s, m_options, m_endpoint);
 
                 m_socket.EventConnected(m_endpoint, m_s);
 
                 m_s = null;
 
-                //  Attach the engine to the corresponding session object.
+                // Attach the engine to the corresponding session object.
                 SendAttach(m_session, engine);
 
-                //  Shut the connector down.
+                // Shut the connector down.
                 Terminate();
             }
         }
@@ -270,15 +270,15 @@ namespace NetMQ.Core.Transports.Tcp
         /// </summary>
         private int GetNewReconnectIvl()
         {
-            //  The new interval is the current interval + random value.
+            // The new interval is the current interval + random value.
             int thisInterval = m_currentReconnectIvl + new Random().Next(0, m_options.ReconnectIvl);
 
-            //  Only change the current reconnect interval  if the maximum reconnect
-            //  interval was set and if it's larger than the reconnect interval.
+            // Only change the current reconnect interval  if the maximum reconnect
+            // interval was set and if it's larger than the reconnect interval.
             if (m_options.ReconnectIvlMax > 0 &&
                 m_options.ReconnectIvlMax > m_options.ReconnectIvl)
             {
-                //  Calculate the next interval
+                // Calculate the next interval
                 m_currentReconnectIvl = m_currentReconnectIvl * 2;
                 if (m_currentReconnectIvl >= m_options.ReconnectIvlMax)
                 {

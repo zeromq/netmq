@@ -89,12 +89,12 @@ namespace NetMQ.Core.Transports
             ActivateIn
         }
 
-        //  Size of the greeting message:
-        //  Preamble (10 bytes) + version (1 byte) + socket type (1 byte).
+        // Size of the greeting message:
+        // Preamble (10 bytes) + version (1 byte) + socket type (1 byte).
         private const int GreetingSize = 12;
         private const int PreambleSize = 10;
 
-        //  Position of the version field in the greeting.
+        // Position of the version field in the greeting.
         private const int VersionPos = 10;
 
         //private IOObject io_object;
@@ -109,23 +109,23 @@ namespace NetMQ.Core.Transports
         private int m_outsize;
         private EncoderBase m_encoder;
 
-        //  The receive buffer holding the greeting message
-        //  that we are receiving from the peer.
+        // The receive buffer holding the greeting message
+        // that we are receiving from the peer.
         private readonly byte[] m_greeting = new byte[12];
 
-        //  The number of bytes of the greeting message that
-        //  we have already received.
+        // The number of bytes of the greeting message that
+        // we have already received.
 
         private int m_greetingBytesRead;
 
-        //  The send buffer holding the greeting message
-        //  that we are sending to the peer.
+        // The send buffer holding the greeting message
+        // that we are sending to the peer.
         private readonly ByteArraySegment m_greetingOutputBuffer = new byte[12];
 
-        //  The session this engine is attached to.
+        // The session this engine is attached to.
         private SessionBase m_session;
 
-        //  Detached transient session.
+        // Detached transient session.
         //private SessionBase leftover_session;
 
         private readonly Options m_options;
@@ -166,7 +166,7 @@ namespace NetMQ.Core.Transports
             m_decoder = null;
             m_actionsQueue = new Queue<StateMachineAction>();
 
-            //  Set the socket buffer limits for the underlying socket.
+            // Set the socket buffer limits for the underlying socket.
             if (m_options.SendBuffer != 0)
             {
                 m_handle.SendBufferSize = m_options.SendBuffer;
@@ -198,7 +198,7 @@ namespace NetMQ.Core.Transports
             Debug.Assert(!m_plugged);
             m_plugged = true;
 
-            //  Connect to session object.
+            // Connect to session object.
             Debug.Assert(m_session == null);
             Debug.Assert(session != null);
             m_session = session;
@@ -207,7 +207,7 @@ namespace NetMQ.Core.Transports
             m_ioObject = new IOObject(null);
             m_ioObject.SetHandler(this);
 
-            //  Connect to I/O threads poller object.
+            // Connect to I/O threads poller object.
             m_ioObject.Plug(ioThread);
             m_ioObject.AddSocket(m_handle);
             m_ioEnabled = true;
@@ -226,19 +226,19 @@ namespace NetMQ.Core.Transports
             Debug.Assert(m_plugged);
             m_plugged = false;
 
-            //  remove handle from proactor.
+            // remove handle from proactor.
             if (m_ioEnabled)
             {
                 m_ioObject.RemoveSocket(m_handle);
                 m_ioEnabled = false;
             }
 
-            //  Disconnect from I/O threads poller object.
+            // Disconnect from I/O threads poller object.
             m_ioObject.Unplug();
 
             m_state = State.Closed;
 
-            //  Disconnect from session object.
+            // Disconnect from session object.
             if (m_encoder != null)
                 m_encoder.SetMsgSource(null);
             if (m_decoder != null)
@@ -319,9 +319,9 @@ namespace NetMQ.Core.Transports
                         case Action.OutCompleted:
                             int bytesSent = EndWrite(socketError, bytesTransferred);
 
-                            //  IO error has occurred. We stop waiting for output events.
-                            //  The engine is not terminated until we detect input error;
-                            //  this is necessary to prevent losing incoming messages.
+                            // IO error has occurred. We stop waiting for output events.
+                            // The engine is not terminated until we detect input error;
+                            // this is necessary to prevent losing incoming messages.
                             if (bytesSent == -1)
                             {
                                 m_sendingState = SendState.Error;
@@ -351,9 +351,9 @@ namespace NetMQ.Core.Transports
                     switch (action)
                     {
                         case Action.ActivateIn:
-                            //  There was an input error but the engine could not
-                            //  be terminated (due to the stalled decoder).
-                            //  Flush the pending message and terminate the engine now.
+                            // There was an input error but the engine could not
+                            // be terminated (due to the stalled decoder).
+                            // Flush the pending message and terminate the engine now.
                             m_decoder.ProcessBuffer(m_inpos, 0);
                             Debug.Assert(!m_decoder.Stalled());
                             m_session.Flush();
@@ -399,8 +399,8 @@ namespace NetMQ.Core.Transports
                     switch (action)
                     {
                         case Action.Start:
-                            //  Send the 'length' and 'flags' fields of the identity message.
-                            //  The 'length' field is encoded in the long format.
+                            // Send the 'length' and 'flags' fields of the identity message.
+                            // The 'length' field is encoded in the long format.
 
                             m_greetingOutputBuffer[m_outsize++] = ((byte)0xff);
                             m_greetingOutputBuffer.PutLong(m_options.Endian, (long)m_options.IdentitySize + 1, 1);
@@ -481,10 +481,10 @@ namespace NetMQ.Core.Transports
                                     m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
                                     m_decoder.SetMsgSink(m_session);
 
-                                    //  We have already sent the message header.
-                                    //  Since there is no way to tell the encoder to
-                                    //  skip the message header, we simply throw that
-                                    //  header data away.
+                                    // We have already sent the message header.
+                                    // Since there is no way to tell the encoder to
+                                    // skip the message header, we simply throw that
+                                    // header data away.
                                     int headerSize = m_options.IdentitySize + 1 >= 255 ? 10 : 2;
                                     var tmp = new byte[10];
                                     var bufferp = new ByteArraySegment(tmp);
@@ -495,15 +495,15 @@ namespace NetMQ.Core.Transports
 
                                     Debug.Assert(bufferSize == headerSize);
 
-                                    //  Make sure the decoder sees the data we have already received.
+                                    // Make sure the decoder sees the data we have already received.
                                     m_inpos = new ByteArraySegment(m_greeting);
                                     m_insize = m_greetingBytesRead;
 
-                                    //  To allow for interoperability with peers that do not forward
-                                    //  their subscriptions, we inject a phony subscription
-                                    //  message into the incoming message stream. To put this
-                                    //  message right after the identity message, we temporarily
-                                    //  divert the message stream from session to ourselves.
+                                    // To allow for interoperability with peers that do not forward
+                                    // their subscriptions, we inject a phony subscription
+                                    // message into the incoming message stream. To put this
+                                    // message right after the identity message, we temporarily
+                                    // divert the message stream from session to ourselves.
                                     if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
                                         m_decoder.SetMsgSink(this);
 
@@ -516,8 +516,8 @@ namespace NetMQ.Core.Transports
                                 }
                                 else
                                 {
-                                    //  The peer is using versioned protocol.
-                                    //  Send the rest of the greeting.
+                                    // The peer is using versioned protocol.
+                                    // Send the rest of the greeting.
                                     m_outpos[m_outsize++] = 1; // Protocol version
                                     m_outpos[m_outsize++] = (byte)m_options.SocketType;
 
@@ -596,7 +596,7 @@ namespace NetMQ.Core.Transports
                                 {
                                     if (m_greeting[VersionPos] == 0)
                                     {
-                                        //  ZMTP/1.0 framing.
+                                        // ZMTP/1.0 framing.
                                         m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
                                         m_encoder.SetMsgSource(m_session);
 
@@ -605,7 +605,7 @@ namespace NetMQ.Core.Transports
                                     }
                                     else
                                     {
-                                        //  v1 framing protocol.
+                                        // v1 framing protocol.
                                         m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
                                         m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
                                     }
@@ -632,8 +632,8 @@ namespace NetMQ.Core.Transports
 
         private void Activate()
         {
-            //  Handshaking was successful.
-            //  Switch into the normal message flow.            
+            // Handshaking was successful.
+            // Switch into the normal message flow.            
             m_state = State.Active;
 
             m_outsize = 0;
@@ -678,7 +678,7 @@ namespace NetMQ.Core.Transports
             }
             else
             {
-                //  Push the data to the decoder.
+                // Push the data to the decoder.
                 processed = m_decoder.ProcessBuffer(m_inpos, m_insize);
             }
 
@@ -688,7 +688,7 @@ namespace NetMQ.Core.Transports
             }
             else
             {
-                //  Stop polling for input if we got stuck.
+                // Stop polling for input if we got stuck.
                 if (processed < m_insize)
                 {
                     m_receivingState = ReceiveState.Stuck;
@@ -703,13 +703,13 @@ namespace NetMQ.Core.Transports
                 }
             }
 
-            //  Flush all messages the decoder may have produced.
+            // Flush all messages the decoder may have produced.
             m_session.Flush();
 
-            //  An input error has occurred. If the last decoded message
-            //  has already been accepted, we terminate the engine immediately.
-            //  Otherwise, we stop waiting for socket events and postpone
-            //  the termination until after the message is accepted.
+            // An input error has occurred. If the last decoded message
+            // has already been accepted, we terminate the engine immediately.
+            // Otherwise, we stop waiting for socket events and postpone
+            // the termination until after the message is accepted.
             if (disconnection)
             {
                 if (m_decoder.Stalled())
@@ -754,13 +754,13 @@ namespace NetMQ.Core.Transports
         {
             Debug.Assert(m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub);
 
-            //  The first message is identity.
-            //  Let the session process it.
+            // The first message is identity.
+            // Let the session process it.
 
             m_session.PushMsg(ref msg);
 
-            //  Inject the subscription message so that the ZMQ 2.x peer
-            //  receives our messages.
+            // Inject the subscription message so that the ZMQ 2.x peer
+            // receives our messages.
             msg.InitPool(1);
             msg.Put((byte)1);
 
@@ -768,8 +768,8 @@ namespace NetMQ.Core.Transports
 
             m_session.Flush();
 
-            //  Once we have injected the subscription message, we can
-            //  Divert the message flow back to the session.
+            // Once we have injected the subscription message, we can
+            // Divert the message flow back to the session.
             Debug.Assert(m_decoder != null);
             m_decoder.SetMsgSink(m_session);
 

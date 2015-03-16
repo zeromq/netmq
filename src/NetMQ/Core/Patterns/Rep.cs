@@ -55,7 +55,7 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XSend(ref Msg msg)
         {
-            //  If we are in the middle of receiving a request, we cannot send reply.
+            // If we are in the middle of receiving a request, we cannot send reply.
             if (!m_sendingReply)
             {
                 throw new FiniteStateMachineException("Rep.XSend - cannot send another reply");
@@ -63,13 +63,13 @@ namespace NetMQ.Core.Patterns
 
             bool more = msg.HasMore;
 
-            //  Push message to the reply pipe.
+            // Push message to the reply pipe.
             bool isMessageSent = base.XSend(ref msg);
 
             if (!isMessageSent)
                 return false;
 
-            //  If the reply is complete flip the FSM back to request receiving state.
+            // If the reply is complete flip the FSM back to request receiving state.
             if (!more)
                 m_sendingReply = false;
 
@@ -80,12 +80,12 @@ namespace NetMQ.Core.Patterns
         {
             bool isMessageAvailable;
 
-            //  If we are in middle of sending a reply, we cannot receive next request.
+            // If we are in middle of sending a reply, we cannot receive next request.
             if (m_sendingReply)
                 throw new FiniteStateMachineException("Rep.XRecv - cannot receive another request");
 
-            //  First thing to do when receiving a request is to copy all the labels
-            //  to the reply pipe.
+            // First thing to do when receiving a request is to copy all the labels
+            // to the reply pipe.
             if (m_requestBegins)
             {
                 while (true)
@@ -97,10 +97,10 @@ namespace NetMQ.Core.Patterns
 
                     if (msg.HasMore)
                     {
-                        //  Empty message part delimits the traceback stack.
+                        // Empty message part delimits the traceback stack.
                         bool bottom = (msg.Size == 0);
 
-                        //  Push it to the reply pipe.
+                        // Push it to the reply pipe.
                         isMessageAvailable = base.XSend(ref msg);
                         
                         if (!isMessageAvailable)
@@ -111,15 +111,15 @@ namespace NetMQ.Core.Patterns
                     }
                     else
                     {
-                        //  If the traceback stack is malformed, discard anything
-                        //  already sent to pipe (we're at end of invalid message).
+                        // If the traceback stack is malformed, discard anything
+                        // already sent to pipe (we're at end of invalid message).
                         base.Rollback();
                     }
                 }
                 m_requestBegins = false;
             }
 
-            //  Get next message part to return to the user.
+            // Get next message part to return to the user.
             isMessageAvailable = base.XRecv(ref msg);
 
             if (!isMessageAvailable)
@@ -127,7 +127,7 @@ namespace NetMQ.Core.Patterns
                 return false;
             }
 
-            //  If whole request is read, flip the FSM to reply-sending state.
+            // If whole request is read, flip the FSM to reply-sending state.
             if (!msg.HasMore)
             {
                 m_sendingReply = true;

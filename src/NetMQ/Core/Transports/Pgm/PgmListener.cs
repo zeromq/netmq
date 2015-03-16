@@ -54,7 +54,7 @@ namespace NetMQ.Core.Transports.Pgm
 
         protected override void ProcessPlug()
         {
-            //  Start polling for incoming connections.
+            // Start polling for incoming connections.
             m_ioObject.SetHandler(this);
             m_ioObject.AddSocket(m_handle);
 

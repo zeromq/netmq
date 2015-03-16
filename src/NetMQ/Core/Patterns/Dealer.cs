@@ -133,7 +133,7 @@ namespace NetMQ.Core.Patterns
         /// <returns>false if there were no messages to receive</returns>
         private bool ReceiveInternal(ref Msg msg)
         {
-            //  If there is a prefetched message, return it.
+            // If there is a prefetched message, return it.
             if (m_prefetched)
             {
                 msg.Move(ref m_prefetchedMsg);
@@ -143,7 +143,7 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            //  DEALER socket doesn't use identities. We can safely drop it and 
+            // DEALER socket doesn't use identities. We can safely drop it and 
             while (true)
             {
                 bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
@@ -168,11 +168,11 @@ namespace NetMQ.Core.Patterns
         /// <returns></returns>
         protected override bool XHasIn()
         {
-            //  We may already have a message pre-fetched.
+            // We may already have a message pre-fetched.
             if (m_prefetched)
                 return true;
 
-            //  Try to read the next message to the pre-fetch buffer.
+            // Try to read the next message to the pre-fetch buffer.
             bool isMessageAvailable = ReceiveInternal(ref m_prefetchedMsg);
 
             if (!isMessageAvailable)

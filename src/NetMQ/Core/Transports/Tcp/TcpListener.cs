@@ -178,14 +178,14 @@ namespace NetMQ.Core.Transports.Tcp
                         }
                     }
 
-                    //  Create the engine object for this connection.
+                    // Create the engine object for this connection.
                     var engine = new StreamEngine(m_acceptedSocket, m_options, m_endpoint);
 
-                    //  Choose I/O thread to run connector in. Given that we are already
-                    //  running in an I/O thread, there must be at least one available.
+                    // Choose I/O thread to run connector in. Given that we are already
+                    // running in an I/O thread, there must be at least one available.
                     IOThread ioThread = ChooseIOThread(m_options.Affinity);
 
-                    //  Create and launch a session object. 
+                    // Create and launch a session object. 
                     // TODO: send null in address parameter, is unneeded in this case
                     SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
                     session.IncSeqnum();

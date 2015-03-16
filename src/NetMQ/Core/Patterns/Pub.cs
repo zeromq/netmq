@@ -42,7 +42,7 @@ namespace NetMQ.Core.Patterns
         /// <exception cref="NotSupportedException">Messages cannot be received from PUB socket</exception>
         protected override bool XRecv(ref Msg msg)
         {
-            //  Messages cannot be received from PUB socket.
+            // Messages cannot be received from PUB socket.
             throw new NotSupportedException("Messages cannot be received from PUB socket");
         }
 

@@ -80,13 +80,13 @@ namespace NetMQ.Core.Transports
 
             while (pos < bufferSize)
             {
-                //  If there are no more data to return, run the state machine.
-                //  If there are still no data, return what we already have
-                //  in the buffer.
+                // If there are no more data to return, run the state machine.
+                // If there are still no data, return what we already have
+                // in the buffer.
                 if (m_toWrite == 0)
                 {
-                    //  If we are to encode the beginning of a new message,
-                    //  adjust the message offset.
+                    // If we are to encode the beginning of a new message,
+                    // adjust the message offset.
 
                     if (m_beginning)
                     {
@@ -100,16 +100,16 @@ namespace NetMQ.Core.Transports
                         break;
                 }
 
-                //  If there are no data in the buffer yet and we are able to
-                //  fill whole buffer in a single go, let's use zero-copy.
-                //  There's no disadvantage to it as we cannot stuck multiple
-                //  messages into the buffer anyway. Note that subsequent
-                //  write(s) are non-blocking, thus each single write writes
-                //  at most SO_SNDBUF bytes at once not depending on how large
-                //  is the chunk returned from here.
-                //  As a consequence, large messages being sent won't block
-                //  other engines running in the same I/O thread for excessive
-                //  amounts of time.
+                // If there are no data in the buffer yet and we are able to
+                // fill whole buffer in a single go, let's use zero-copy.
+                // There's no disadvantage to it as we cannot stuck multiple
+                // messages into the buffer anyway. Note that subsequent
+                // write(s) are non-blocking, thus each single write writes
+                // at most SO_SNDBUF bytes at once not depending on how large
+                // is the chunk returned from here.
+                // As a consequence, large messages being sent won't block
+                // other engines running in the same I/O thread for excessive
+                // amounts of time.
                 if (pos == 0 && data == null && m_toWrite >= bufferSize)
                 {
                     data = m_writePos;
@@ -120,7 +120,7 @@ namespace NetMQ.Core.Transports
                     return;
                 }
 
-                //  Copy data to the buffer. If the buffer is full, return.
+                // Copy data to the buffer. If the buffer is full, return.
                 int toCopy = Math.Min(m_toWrite, bufferSize - pos);
 
                 if (toCopy != 0)

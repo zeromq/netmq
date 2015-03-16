@@ -74,18 +74,18 @@ namespace NetMQ.Core.Patterns
             {
                 var pipe = (Pipe)arg;
 
-                //  Create the subscription message.
+                // Create the subscription message.
                 var msg = new Msg();
                 msg.InitPool(size + 1);
                 msg.Put(1);
                 msg.Put(data, 1, size);
 
-                //  Send it to the pipe.
+                // Send it to the pipe.
                 bool sent = pipe.Write(ref msg);
-                //  If we reached the SNDHWM, and thus cannot send the subscription, drop
-                //  the subscription message instead. This matches the behaviour of
-                //  zmq_setsockopt(ZMQ_SUBSCRIBE, ...), which also drops subscriptions
-                //  when the SNDHWM is reached.
+                // If we reached the SNDHWM, and thus cannot send the subscription, drop
+                // the subscription message instead. This matches the behaviour of
+                // zmq_setsockopt(ZMQ_SUBSCRIBE, ...), which also drops subscriptions
+                // when the SNDHWM is reached.
                 if (!sent)
                     msg.Close();
             };
@@ -124,7 +124,7 @@ namespace NetMQ.Core.Patterns
             m_fairQueueing.Attach(pipe);
             m_distribution.Attach(pipe);
 
-            //  Send all the cached subscriptions to the new upstream peer.
+            // Send all the cached subscriptions to the new upstream peer.
             m_subscriptions.Apply(s_sendSubscription, pipe);
             pipe.Flush();
         }
@@ -147,7 +147,7 @@ namespace NetMQ.Core.Patterns
 
         protected override void XHiccuped(Pipe pipe)
         {
-            //  Send all the cached subscriptions to the hiccuped pipe.
+            // Send all the cached subscriptions to the hiccuped pipe.
             m_subscriptions.Apply(s_sendSubscription, pipe);
             pipe.Flush();
         }
@@ -190,14 +190,14 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XHasOut()
         {
-            //  Subscription can be added/removed anytime.
+            // Subscription can be added/removed anytime.
             return true;
         }
 
         protected override bool XRecv(ref Msg msg)
         {
-            //  If there's already a message prepared by a previous call to zmq_poll,
-            //  return it straight ahead.
+            // If there's already a message prepared by a previous call to zmq_poll,
+            // return it straight ahead.
 
             if (m_hasMessage)
             {
@@ -207,31 +207,31 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            //  TODO: This can result in infinite loop in the case of continuous
-            //  stream of non-matching messages which breaks the non-blocking recv
-            //  semantics.
+            // TODO: This can result in infinite loop in the case of continuous
+            // stream of non-matching messages which breaks the non-blocking recv
+            // semantics.
             while (true)
             {
-                //  Get a message using fair queueing algorithm.
+                // Get a message using fair queueing algorithm.
                 bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
 
-                //  If there's no message available, return immediately.
-                //  The same when error occurs.
+                // If there's no message available, return immediately.
+                // The same when error occurs.
                 if (!isMessageAvailable)
                 {
                     return false;
                 }
 
-                //  Check whether the message matches at least one subscription.
-                //  Non-initial parts of the message are passed 
+                // Check whether the message matches at least one subscription.
+                // Non-initial parts of the message are passed 
                 if (m_more || !m_options.Filter || Match(msg))
                 {
                     m_more = msg.HasMore;
                     return true;
                 }
 
-                //  Message doesn't match. Pop any remaining parts of the message
-                //  from the pipe.
+                // Message doesn't match. Pop any remaining parts of the message
+                // from the pipe.
                 while (msg.HasMore)
                 {
                     isMessageAvailable = m_fairQueueing.Recv(ref msg);
@@ -243,38 +243,38 @@ namespace NetMQ.Core.Patterns
 
         protected override bool XHasIn()
         {
-            //  There are subsequent parts of the partly-read message available.
+            // There are subsequent parts of the partly-read message available.
             if (m_more)
                 return true;
 
-            //  If there's already a message prepared by a previous call to zmq_poll,
-            //  return straight ahead.
+            // If there's already a message prepared by a previous call to zmq_poll,
+            // return straight ahead.
             if (m_hasMessage)
                 return true;
 
-            //  TODO: This can result in infinite loop in the case of continuous
-            //  stream of non-matching messages.
+            // TODO: This can result in infinite loop in the case of continuous
+            // stream of non-matching messages.
             while (true)
             {
-                //  Get a message using fair queueing algorithm.
+                // Get a message using fair queueing algorithm.
                 bool isMessageAvailable = m_fairQueueing.Recv(ref m_message);
 
-                //  If there's no message available, return immediately.
-                //  The same when error occurs.
+                // If there's no message available, return immediately.
+                // The same when error occurs.
                 if (!isMessageAvailable)
                 {
                     return false;
                 }
 
-                //  Check whether the message matches at least one subscription.
+                // Check whether the message matches at least one subscription.
                 if (!m_options.Filter || Match(m_message))
                 {
                     m_hasMessage = true;
                     return true;
                 }
 
-                //  Message doesn't match. Pop any remaining parts of the message
-                //  from the pipe.
+                // Message doesn't match. Pop any remaining parts of the message
+                // from the pipe.
                 while (m_message.HasMore)
                 {
                     isMessageAvailable = m_fairQueueing.Recv(ref m_message);

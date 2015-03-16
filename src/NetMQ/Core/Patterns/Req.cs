@@ -59,14 +59,14 @@ namespace NetMQ.Core.Patterns
         /// <exception cref="FiniteStateMachineException">Cannot send while awaiting reply.</exception>
         protected override bool XSend(ref Msg msg)
         {
-            //  If we've sent a request and we still haven't got the reply,
-            //  we can't send another request.
+            // If we've sent a request and we still haven't got the reply,
+            // we can't send another request.
             if (m_receivingReply)
                 throw new FiniteStateMachineException("Req.XSend - cannot send another request");
 
             bool isMessageSent;
 
-            //  First part of the request is the request identity.
+            // First part of the request is the request identity.
             if (m_messageBegins)
             {
                 var bottom = new Msg();
@@ -87,7 +87,7 @@ namespace NetMQ.Core.Patterns
             if (!isMessageSent)
                 return false;
 
-            //  If the request was fully sent, flip the FSM into reply-receiving state.
+            // If the request was fully sent, flip the FSM into reply-receiving state.
             if (!more)
             {
                 m_receivingReply = true;
@@ -102,11 +102,11 @@ namespace NetMQ.Core.Patterns
         {
             bool isMessageAvailable;
 
-            //  If request wasn't send, we can't wait for reply.
+            // If request wasn't send, we can't wait for reply.
             if (!m_receivingReply)
                 throw new FiniteStateMachineException("Req.XRecv - cannot receive another reply");
 
-            //  First part of the reply should be the original request ID.
+            // First part of the reply should be the original request ID.
             if (m_messageBegins)
             {
                 isMessageAvailable = base.XRecv(ref msg);
@@ -136,7 +136,7 @@ namespace NetMQ.Core.Patterns
             if (!isMessageAvailable)
                 return false;
 
-            //  If the reply is fully received, flip the FSM into request-sending state.
+            // If the reply is fully received, flip the FSM into request-sending state.
             if (!msg.HasMore)
             {
                 m_receivingReply = false;
