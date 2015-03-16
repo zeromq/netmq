@@ -41,7 +41,7 @@ namespace NetMQ.zmq.Patterns
         {
             public RouterSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            { }
+            {}
         }
 
         /// <summary>

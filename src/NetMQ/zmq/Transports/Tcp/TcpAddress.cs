@@ -47,8 +47,6 @@ namespace NetMQ.zmq.Transports.Tcp
             /// <returns>true if the Address is equal to this given IPEndPoint</returns>
             public bool MatchAddress(IPEndPoint address)
             {
-                if (address == null || this.Address == null)
-                    return false;
                 return Address.Equals(address);
             }
         }

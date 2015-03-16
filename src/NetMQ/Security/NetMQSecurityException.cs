@@ -70,7 +70,7 @@ namespace NetMQ.Security
 
     /// <summary>
     /// NetMQSecurityException is an Exception that is thrown by the SecureChannel
-    /// when an error occurred. Check the ErrorCode property for the specific error.
+    /// when an error occurs. Check the ErrorCode property for the specific error.
     /// </summary>
     public class NetMQSecurityException : Exception
     {

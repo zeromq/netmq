@@ -18,7 +18,7 @@ namespace NetMQ
     /// <para/>
     /// Users of this class must call <see cref="Stop"/> when messages should no longer be proxied.
     /// </remarks>
-    public sealed class Proxy : IDisposable
+    public sealed class Proxy
     {
         [NotNull] private readonly NetMQSocket m_frontend;
         [NotNull] private readonly NetMQSocket m_backend;

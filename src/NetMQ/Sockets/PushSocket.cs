@@ -21,7 +21,7 @@ namespace NetMQ.Sockets
         /// <summary><see cref="PushSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
         /// <param name="msg">the Msg object to put it in</param>
         /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
-        /// <exception cref="NotSupportedException">Receive must not be called on a PushSocket.</exception>
+        /// <exception cref="NotSupportedException">Receive is not supported on PushSocket.</exception>
         [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public override void Receive(ref Msg msg, SendReceiveOptions options)
         {

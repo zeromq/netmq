@@ -27,17 +27,13 @@ using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
-    internal sealed class Signaler : IDisposable
+    internal sealed class Signaler
     {
         //  Underlying write & read file descriptor.
-        [NotNull]
-        private readonly Socket m_writeSocket;
-        [NotNull]
-        private readonly Socket m_readSocket;
-        [NotNull]
-        private readonly byte[] m_dummy;
-        [NotNull]
-        private readonly byte[] m_receiveDummy;
+        [NotNull] private readonly Socket m_writeSocket;
+        [NotNull] private readonly Socket m_readSocket;
+        [NotNull] private readonly byte[] m_dummy;
+        [NotNull] private readonly byte[] m_receiveDummy;
 
         public Signaler()
         {
@@ -75,23 +71,21 @@ namespace NetMQ.zmq.Utils
                 m_writeSocket.LingerState = new LingerOption(true, 0);
             }
             catch (SocketException)
-            {
-            }
+            {}
 
             try
             {
                 m_writeSocket.Close();
             }
             catch (SocketException)
-            {
-            }
+            {}
+
             try
             {
                 m_readSocket.Close();
             }
             catch (SocketException)
-            {
-            }
+            {}
         }
 
         //  Creates a pair of file descriptors that will be used

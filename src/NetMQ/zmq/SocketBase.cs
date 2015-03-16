@@ -37,13 +37,11 @@ using TcpListener = NetMQ.zmq.Transports.Tcp.TcpListener;
 
 namespace NetMQ.zmq
 {
-    internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents, IDisposable
+    internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        [NotNull]
-        private readonly Dictionary<String, Own> m_endpoints = new Dictionary<string, Own>();
+        [NotNull] private readonly Dictionary<String, Own> m_endpoints = new Dictionary<string, Own>();
 
-        [NotNull]
-        private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
+        [NotNull] private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
 
         private bool m_disposed;
 
@@ -58,12 +56,10 @@ namespace NetMQ.zmq
         private bool m_destroyed;
 
         /// <summary>Socket's mailbox object.</summary>
-        [NotNull]
-        private readonly Mailbox m_mailbox;
+        [NotNull] private readonly Mailbox m_mailbox;
 
         /// <summary>List of attached pipes.</summary>
-        [NotNull]
-        private readonly List<Pipe> m_pipes = new List<Pipe>();
+        [NotNull] private readonly List<Pipe> m_pipes = new List<Pipe>();
 
         /// <summary>
         /// Reaper's poller.
@@ -545,10 +541,10 @@ namespace NetMQ.zmq
             }
         }
 
-        /// <summary>Bind the specified TCP <paramref name="address"/> to an available port, assigned by the operating system.</summary>
+        /// <summary>Bind the specified TCP address to an available port, assigned by the operating system.</summary>
         /// <param name="addressToBindTo">the endpoint-address to bind to</param>
         /// <returns>the port-number that was bound to</returns>
-        /// <exception cref="ProtocolNotSupportedException"><paramref name="addr"/> uses a protocol other than TCP.</exception>
+        /// <exception cref="ProtocolNotSupportedException"><paramref name="addressToBindTo"/> uses a protocol other than TCP.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
         /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener errored during
@@ -560,7 +556,7 @@ namespace NetMQ.zmq
             DecodeAddress(addressToBindTo, out address, out protocol);
 
             if (protocol != Address.TcpProtocol)
-                throw new ProtocolNotSupportedException(String.Format("SocketBase.BindRandomPort({0}), address must use the TCP protocol.", addressToBindTo));
+                throw new ProtocolNotSupportedException(string.Format("SocketBase.BindRandomPort({0}), address must use the TCP protocol.", addressToBindTo));
 
             Bind(addressToBindTo + ":0");
             return m_port;
@@ -1563,7 +1559,7 @@ namespace NetMQ.zmq
                         Close();
                         ProcessDestroy();
                         CheckDestroy();
-                        m_mailbox.Dispose();
+                        //m_mailbox.Dispose();
                     }
                     catch (Exception x)
                     {

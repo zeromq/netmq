@@ -8,10 +8,8 @@ namespace NetMQ.zmq.Transports.PGM
 {
     internal class PgmListener : Own, IProactorEvents
     {
-        [NotNull]
-        private readonly SocketBase m_socket;
-        [NotNull]
-        private readonly IOObject m_ioObject;
+        [NotNull] private readonly SocketBase m_socket;
+        [NotNull] private readonly IOObject m_ioObject;
         private AsyncSocket m_handle;
         private PgmSocket m_pgmSocket;
         private PgmSocket m_acceptedSocket;
@@ -53,7 +51,7 @@ namespace NetMQ.zmq.Transports.PGM
         }
 
         public override void Destroy()
-        { }
+        {}
 
         protected override void ProcessPlug()
         {

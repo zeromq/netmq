@@ -362,7 +362,7 @@ namespace NetMQ.zmq
                     MulticastHops = (int)optionValue;
                     break;
 
-                // disable warning about obsolete values
+// disable warning about obsolete values
 #pragma warning disable 618
                 case ZmqSocketOption.ReceiveTimeout:
                     ReceiveTimeout = (int)optionValue;

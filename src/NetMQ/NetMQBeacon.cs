@@ -126,7 +126,7 @@ namespace NetMQ
                         }
                     }
                     catch (Exception)
-                    { }
+                    {}
 
                     m_pipe.Send(hostname);
                 }

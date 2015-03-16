@@ -106,7 +106,6 @@ namespace NetMQ.zmq.Patterns
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="flags"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
         /// <exception cref="FiniteStateMachineException">Req.XRecv expecting send, not receive.</exception>

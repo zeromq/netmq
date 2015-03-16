@@ -30,7 +30,7 @@ namespace NetMQ.zmq
     /// The Reaper is dedicated toward handling socket shutdown asynchronously and cleanly.
     /// By passing this task off to the Reaper, the message-queueing subsystem can terminate immediately.
     /// </summary>
-    internal class Reaper : ZObject, IPollEvents, IDisposable
+    internal class Reaper : ZObject, IPollEvents
     {
         /// <summary>
         /// Reaper thread accesses incoming commands via this mailbox.
@@ -213,7 +213,7 @@ namespace NetMQ.zmq
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool isDisposingManagedResources)
+        protected virtual void Dispose(bool isDisposingManagedResources)
         {
             if (!m_hasBeenDisposed)
             {
@@ -223,10 +223,10 @@ namespace NetMQ.zmq
                     try
                     {
                         this.Destroy();
-                        if (m_mailbox != null)
-                        {
-                            m_mailbox.Dispose();
-                        }
+                        //if (m_mailbox != null)
+                        //{
+                        //    m_mailbox.Dispose();
+                        //}
                         if (m_mailboxHandle != null)
                         {
                             m_mailboxHandle.Close();

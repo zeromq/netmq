@@ -41,14 +41,11 @@ namespace NetMQ.zmq
 
     internal class IOThreadMailbox : IMailbox
     {
-        [NotNull]
-        private readonly Proactor m_proactor;
+        [NotNull] private readonly Proactor m_proactor;
 
-        [NotNull]
-        private readonly IMailboxEvent m_mailboxEvent;
+        [NotNull] private readonly IMailboxEvent m_mailboxEvent;
 
-        [NotNull]
-        private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
+        [NotNull] private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
@@ -56,13 +53,11 @@ namespace NetMQ.zmq
         /// synchronised access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
-        [NotNull]
-        private readonly object m_sync = new object();
+        [NotNull] private readonly object m_sync = new object();
 
 #if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
-        [NotNull]
-        private readonly string m_name;
+        [NotNull] private readonly string m_name;
 #endif
 
         private bool m_disposed;
@@ -156,8 +151,7 @@ namespace NetMQ.zmq
 
 #if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
-        [NotNull]
-        private readonly string m_name;
+        [NotNull] private readonly string m_name;
 #endif
 
         /// <summary>

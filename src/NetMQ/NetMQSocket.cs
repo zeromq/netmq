@@ -191,7 +191,7 @@ namespace NetMQ
             m_socketHandle.TermEndpoint(address);
         }
 
-        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose"/>.</summary>
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling Dispose.</summary>
         public void Close()
         {
             if (m_isClosed)

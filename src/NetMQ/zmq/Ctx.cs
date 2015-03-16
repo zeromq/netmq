@@ -110,8 +110,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// The reaper thread.
         /// </summary>
-        [CanBeNull]
-        private Reaper m_reaper;
+        [CanBeNull] private Reaper m_reaper;
 
         /// <summary>
         /// List of I/O threads.
@@ -126,8 +125,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Array of pointers to mailboxes for both application and I/O threads.
         /// </summary>
-        [CanBeNull]
-        private IMailbox[] m_slots;
+        [CanBeNull] private IMailbox[] m_slots;
 
         /// <summary>
         /// Mailbox for zmq_term thread.
@@ -173,27 +171,6 @@ namespace NetMQ.zmq
         /// This is the thread-id to assign to the Reaper (value is 1).
         /// </summary>
         public const int ReaperTid = 1;
-
-        /// <summary>
-        /// Create a new Ctx object with all default values and a mailbox named "terminator".
-        /// </summary>
-        public Ctx()
-        {
-            m_starting = true;
-            m_maxSockets = DefaultMaxSockets;
-            m_ioThreadCount = DefaultIOThreads;
-
-            m_slotSync = new object();
-            m_endpointsSync = new object();
-            m_optSync = new object();
-
-            m_termMailbox = new Mailbox("terminator");
-
-            m_emptySlots = new Stack<int>();
-            m_ioThreads = new List<IOThread>();
-            m_sockets = new List<SocketBase>();
-            m_endpoints = new Dictionary<string, Endpoint>();
-        }
 
         /// <summary>
         /// Dump all of this object's resources

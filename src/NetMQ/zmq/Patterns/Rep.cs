@@ -30,7 +30,7 @@ namespace NetMQ.zmq.Patterns
         {
             public RepSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            { }
+            {}
         }
 
         /// <summary>
@@ -54,11 +54,6 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Rep;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
         /// <exception cref="FiniteStateMachineException">XSend must only be called on Rep when in the state of sending a reply.</exception>
         protected override bool XSend(ref Msg msg)
         {

@@ -42,7 +42,7 @@ namespace NetMQ
         /// <param name="message">a string containing the message-data of the frame</param>
         public NetMQFrame([NotNull] string message)
             : this(Encoding.ASCII.GetBytes(message))
-        { }
+        {}
 
         /// <summary>
         /// Create a new NetMQFrame containing the given string-message,
@@ -52,7 +52,7 @@ namespace NetMQ
         /// <param name="encoding">the Encoding to use to convert the given string-message into the internal byte-array</param>
         public NetMQFrame([NotNull] string message, [NotNull] Encoding encoding)
             : this(encoding.GetBytes(message))
-        { }
+        {}
 
         /// <summary>
         /// Create a new NetMQFrame with a data-buffer pre-sized to the given length.
@@ -279,24 +279,21 @@ namespace NetMQ
             return Equals(obj as NetMQFrame);
         }
 
-        // TODO: leverate-somech, can you please elaborate on why you commented that this operator is problematic?
-        // I did not add this code (the == and != operators) - I simply added the comments. Did it not already exist?  Thx, James Hurst.
-
         /// <summary>
         /// Return true if this one and the other NetMQFrame are equal, or both are null.
         /// </summary>
         /// <param name="one">one frame to compare against the other</param>
         /// <param name="other">the other frame to compare</param>
         /// <returns>true if both frames are equal</returns>
-        //public static bool operator ==(NetMQFrame one, NetMQFrame other)
-        //{
+        public static bool operator ==(NetMQFrame one, NetMQFrame other)
+        {
             // NOTE use of ReferenceEquals here to avoid recurrence and stack overflow exception
 
-        //    if (ReferenceEquals(one, null) && ReferenceEquals(other, null))
-        //        return true;
+            if (ReferenceEquals(one, null) && ReferenceEquals(other, null))
+                return true;
 
-        //    return !ReferenceEquals(one, null) && one.Equals(other);
-        //}
+            return !ReferenceEquals(one, null) && one.Equals(other);
+        }
 
         /// <summary>
         /// Return true if this one and the other NetMQFrame NOT are equal.
@@ -304,10 +301,10 @@ namespace NetMQ
         /// <param name="one">one frame to compare against the other</param>
         /// <param name="other">the other frame to compare</param>
         /// <returns>false if both frames are equal</returns>
-        //public static bool operator !=(NetMQFrame one, NetMQFrame other)
-        //{
-        //    return !(one == other);
-        //}
+        public static bool operator !=(NetMQFrame one, NetMQFrame other)
+        {
+           return !(one == other);
+        }
 
         /// <summary>
         /// Override the Object.GetHashCode method to return a hash-code derived from the content of the Buffer.

@@ -58,7 +58,7 @@ namespace NetMQ.zmq
         /// <param name="parent">another ZObject that provides the context and thread-id for this one</param>
         protected ZObject([NotNull] ZObject parent)
             : this(parent.m_ctx, parent.m_threadId)
-        { }
+        {}
 
         /// <summary>
         /// Get the id of the thread that this object belongs to.

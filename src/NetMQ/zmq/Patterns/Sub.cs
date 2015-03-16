@@ -32,7 +32,7 @@ namespace NetMQ.zmq.Patterns
         {
             public SubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            { }
+            {}
         }
 
         public Sub([NotNull] Ctx parent, int threadId, int socketId)

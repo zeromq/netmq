@@ -35,7 +35,7 @@ namespace NetMQ.zmq.Patterns
         {
             public XPubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            { }
+            {}
         }
 
         //  List of all subscriptions mapped to corresponding pipes.

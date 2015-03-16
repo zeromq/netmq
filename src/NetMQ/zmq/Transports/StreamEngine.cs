@@ -190,7 +190,7 @@ namespace NetMQ.zmq.Transports
                     m_handle.Dispose();
                 }
                 catch (SocketException)
-                { }
+                {}
                 m_handle = null;
             }
         }

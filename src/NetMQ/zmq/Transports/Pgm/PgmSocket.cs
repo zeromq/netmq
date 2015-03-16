@@ -18,12 +18,12 @@ namespace NetMQ.zmq.Transports.PGM
         Listener
     }
 
-    //    internal struct RM_SEND_WINDOW
-    //    {
-    //        public uint RateKbitsPerSec; // Send rate
-    //        public uint WindowSizeInMSecs;
-    //        public uint WindowSizeInBytes;
-    //    }
+//    internal struct RM_SEND_WINDOW
+//    {
+//        public uint RateKbitsPerSec; // Send rate
+//        public uint WindowSizeInMSecs;
+//        public uint WindowSizeInBytes;
+//    }
 
     /// <summary>
     /// A PgmSocket utilizes the Pragmatic General Multicast (PGM) multicast protocol, which is also referred to as "reliable multicast".
@@ -53,10 +53,10 @@ namespace NetMQ.zmq.Transports.PGM
         /// </summary>
         public const SocketOptionName RM_ADD_RECEIVE_IF = (SocketOptionName)(RmOptionsbase + 8);
 
-        //        /// <summary>
-        //        /// delete IP multicast incoming interface
-        //        /// </summary>
-        //        public const SocketOptionName RM_DEL_RECEIVE_IF = (SocketOptionName)(RmOptionsbase + 9);
+//        /// <summary>
+//        /// delete IP multicast incoming interface
+//        /// </summary>
+//        public const SocketOptionName RM_DEL_RECEIVE_IF = (SocketOptionName)(RmOptionsbase + 9);
 
         /// <summary>
         /// Set the Time-To-Live (TTL) of the MCast packets -- (ULONG)
@@ -93,7 +93,7 @@ namespace NetMQ.zmq.Transports.PGM
             {
 #if DEBUG
                 // Don't want to bloat the code with excessive debugging information, unless this is a DEBUG build.  jh
-                string xMsg = String.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this);
+                string xMsg = string.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this);
                 Debug.WriteLine(xMsg);
                 // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
                 PlatformID p = Environment.OSVersion.Platform;
@@ -115,7 +115,7 @@ namespace NetMQ.zmq.Transports.PGM
                     Debug.WriteLine("For Microsoft Windows, you may want to check to see whether you have installed MSMQ on this host, to get PGM socket support.");
                 }
 #else
-                string xMsg = String.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this);
+                string xMsg = string.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this);
 #endif
                 throw new FaultException(innerException: x, message: xMsg);
             }

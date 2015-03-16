@@ -72,8 +72,8 @@ namespace NetMQ
         /// </summary>
         public TimeSpan MulticastRecoveryInterval
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOptions.RecoveryIvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOptions.RecoveryIvl, value); }
+            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.RecoveryIvl); }
+            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.RecoveryIvl, value); }
         }
 
         /// <summary>

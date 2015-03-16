@@ -107,8 +107,7 @@ namespace NetMQ.zmq
         /// </summary>
         private readonly Address m_addr;
 
-        [NotNull]
-        private readonly IOObject m_ioObject;
+        [NotNull] private readonly IOObject m_ioObject;
 
         /// <summary>
         /// 
@@ -606,12 +605,12 @@ namespace NetMQ.zmq
             {
                 case Address.TcpProtocol:
                     {
-                        LaunchChild(new TcpConnector(ioThread, this, m_options, m_addr, wait));
+                        LaunchChild(new TcpConnector(ioThread, this, m_options, m_addr, isToWait));
                         return;
                     }
                 case Address.IpcProtocol:
                     {
-                        LaunchChild(new IpcConnector(ioThread, this, m_options, m_addr, wait));
+                        LaunchChild(new IpcConnector(ioThread, this, m_options, m_addr, isToWait));
                         return;
                     }
                 case Address.PgmProtocol:
