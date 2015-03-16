@@ -35,7 +35,7 @@ namespace NetMQ.zmq.Patterns
         {
             public XPubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {}
+            { }
         }
 
         //  List of all subscriptions mapped to corresponding pipes.
@@ -184,6 +184,13 @@ namespace NetMQ.zmq.Patterns
             m_distribution.Activated(pipe);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="option"></param>
+        /// <param name="optionValue"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidException">optionValue must be a byte-array.</exception>
         protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
         {
             if (option == ZmqSocketOption.XpubVerbose)

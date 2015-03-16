@@ -101,19 +101,19 @@ namespace NetMQ.Security.V0_1
 
                 if (protocolVersionBytes.Length != 2)
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFrameLength, "Wrong length for protocol version frame");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFrameLength, String.Format("Wrong length {0} for protocol version frame.", protocolVersionBytes.Length));
                 }
 
                 if (!protocolVersionBytes.SequenceEqual(m_protocolVersion))
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidProtocolVersion, "Wrong protocol version");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidProtocolVersion, String.Format("Wrong protocol version ({0}).", m_protocolVersion));
                 }
 
                 NetMQFrame contentTypeFrame = incomingMessage.Pop();
 
                 if (contentTypeFrame.MessageSize != 1)
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFrameLength, "wrong length for message size");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFrameLength, String.Format("Message size ({0}), should be 1.", contentTypeFrame.MessageSize ));
                 }
 
                 // Verify that the content-type is either handshake, or change-cipher-suit..
@@ -121,7 +121,7 @@ namespace NetMQ.Security.V0_1
 
                 if (contentType != ContentType.ChangeCipherSpec && contentType != ContentType.Handshake)
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, "Unknown content type");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, String.Format("Unknown content type ({0}).", contentType));
                 }
 
                 if (ChangeSuiteChangeArrived)
@@ -225,7 +225,7 @@ namespace NetMQ.Security.V0_1
 
             if (cipherMessage.FrameCount < 2)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "cipher message should have at least 2 frames");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, String.Format("cipher message has {0} frame. Should have at least 2.", cipherMessage.FrameCount));
             }
 
             NetMQFrame protocolVersionFrame = cipherMessage.Pop();
@@ -240,7 +240,7 @@ namespace NetMQ.Security.V0_1
 
             if (contentType != ContentType.ApplicationData)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, "Not an application data message");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidContentType, String.Format("contentType is {0}; should be an application data message.", contentType));
             }
 
             return m_recordLayer.DecryptMessage(ContentType.ApplicationData, cipherMessage);

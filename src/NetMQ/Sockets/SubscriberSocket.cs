@@ -24,6 +24,7 @@ namespace NetMQ.Sockets
         /// </summary>
         /// <param name="msg">the Msg to transmit</param>
         /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
+        /// <exception cref="NotSupportedException">Send must not be called on a SubscriberSocket.</exception>
         public override void Send(ref Msg msg, SendReceiveOptions options)
         {
             throw new NotSupportedException("Subscriber socket doesn't support sending");

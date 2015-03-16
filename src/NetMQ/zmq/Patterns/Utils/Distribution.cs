@@ -23,6 +23,7 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Patterns.Utils
 {
     internal class Distribution
@@ -121,9 +122,9 @@ namespace NetMQ.zmq.Patterns.Utils
         }
 
         /// <summary>
-        /// Removes the pipe from the distributor object.
+        /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe from the distributor.
         /// </summary>
-        /// <param name="pipe"></param>
+        /// <param name="pipe">the pipe that was terminated</param>
         public void Terminated([NotNull] Pipe pipe)
         {
             //  Remove the pipe from the list; adjust number of matching, active and/or

@@ -327,6 +327,7 @@ namespace NetMQ.zmq
         /// <returns>the newly-created socket</returns>
         /// <exception cref="TerminatingException">Cannot create new socket while terminating.</exception>
         /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
+        /// <exception cref="TerminatingException">The context (Ctx) must not be already terminating.</exception>
         [NotNull]
         public SocketBase CreateSocket(ZmqSocketType type)
         {
@@ -565,12 +566,16 @@ namespace NetMQ.zmq
             lock (m_endpointsSync)
             {
                 if (!m_endpoints.ContainsKey(address))
-                    throw new EndpointNotFoundException();
+                {
+                    throw new EndpointNotFoundException(message: String.Format("Not finding endpoint for address {0}.", address));
+                }
 
                 var endpoint = m_endpoints[address];
 
                 if (endpoint == null)
-                    throw new EndpointNotFoundException();
+                {
+                    throw new EndpointNotFoundException(message: String.Format("Endpoint for address {0} is null.", address));
+                }
 
                 //  Increment the command sequence number of the peer so that it won't
                 //  get deallocated until "bind" command is issued by the caller.

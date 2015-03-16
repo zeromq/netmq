@@ -101,10 +101,14 @@ namespace NetMQ.zmq
             m_options = options;
         }
 
+        /// <summary>
+        /// Eliminate any contained resources that need to have this explicitly done.
+        /// </summary>
         public abstract void Destroy();
 
         /// <summary>
         /// A place to hook in when physical destruction of the object is to be delayed.
+        /// Unless overridden, this simply calls Destroy.
         /// </summary>
         protected virtual void ProcessDestroy()
         {
@@ -122,7 +126,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// When another owned object wants to send command to this object it calls this function
+        /// When another owned object wants to send a command to this object it calls this function
         /// to let it know it should not shut down before the command is delivered.
         /// </summary>
         /// <remarks>
@@ -133,6 +137,9 @@ namespace NetMQ.zmq
             Interlocked.Increment(ref m_sentSeqnum);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void ProcessSeqnum()
         {
             //  Catch up with counter of processed commands.
@@ -277,17 +284,27 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Use following two functions to wait for arbitrary events before
-        /// terminating. Just add number of events to wait for using
-        /// register_tem_acks functions. When event occurs, call
-        /// remove_term_ack. When number of pending acks reaches zero
-        /// object will be deallocated.
+        /// Add the given number to the termination-acknowledgement count.
         /// </summary>
+        /// <remarks>
+        /// The methods RegisterTermAcks and <see cref="UnregisterTermAck"/> are used to wait for arbitrary events before
+        /// terminating. Just add the number of events to wait for, and when the event occurs - call <see cref="UnregisterTermAck"/>.
+        /// When the number of pending termination-acknowledgements reaches zero, this object will be deallocated.
+        /// </remarks>
         public void RegisterTermAcks(int count)
         {
             m_termAcks += count;
         }
 
+        /// <summary>
+        /// Decrement the termination-acknowledgement count, and if it reaches zero
+        /// then send a termination-ack to the owner.
+        /// </summary>
+        /// <remarks>
+        /// The methods <see cref="RegisterTermAcks"/> and UnregisterTermAck are used to wait for arbitrary events before
+        /// terminating. Just add the number of events to wait for, and when the event occurs - call UnregisterTermAck.
+        /// When the number of pending termination-acknowledgements reaches zero, this object will be deallocated.
+        /// </remarks>
         public void UnregisterTermAck()
         {
             Debug.Assert(m_termAcks > 0);
@@ -297,6 +314,10 @@ namespace NetMQ.zmq
             CheckTermAcks();
         }
 
+        /// <summary>
+        /// Process the first termination-acknowledgement.
+        /// Unless this is overridden, it simply calls <see cref="UnregisterTermAck"/>.
+        /// </summary>
         protected override void ProcessTermAck()
         {
             UnregisterTermAck();

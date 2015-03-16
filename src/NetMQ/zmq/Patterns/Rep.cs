@@ -21,6 +21,7 @@
 
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Patterns
 {
     internal sealed class Rep : Router
@@ -29,7 +30,7 @@ namespace NetMQ.zmq.Patterns
         {
             public RepSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {}
+            { }
         }
 
         /// <summary>
@@ -53,6 +54,12 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Rep;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        /// <exception cref="FiniteStateMachineException">XSend must only be called on Rep when in the state of sending a reply.</exception>
         protected override bool XSend(ref Msg msg)
         {
             //  If we are in the middle of receiving a request, we cannot send reply.
@@ -76,6 +83,12 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        /// <exception cref="FiniteStateMachineException">XRecv must not be called on Rep while in the state of sending a reply.</exception>
         protected override bool XRecv(ref Msg msg)
         {
             bool isMessageAvailable;
@@ -102,7 +115,7 @@ namespace NetMQ.zmq.Patterns
 
                         //  Push it to the reply pipe.
                         isMessageAvailable = base.XSend(ref msg);
-                        
+
                         if (!isMessageAvailable)
                             return false;
 

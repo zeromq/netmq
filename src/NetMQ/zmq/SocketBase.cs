@@ -850,7 +850,7 @@ namespace NetMQ.zmq
                 timeout = (int)(end - Clock.NowMs());
 
                 if (timeout <= 0)
-                    throw new AgainException(innerException: null, message: "SocketBase.Send failed and timeout <= 0");
+                    throw new AgainException(innerException: null, message: String.Format("SocketBase.Send failed and timeout ({0}) should be > 0", timeout));
             }
         }
 
@@ -1089,6 +1089,10 @@ namespace NetMQ.zmq
             AttachPipe(pipe);
         }
 
+        /// <summary>
+        /// Process a termination request.
+        /// </summary>
+        /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
         protected override void ProcessTerm(int linger)
         {
             //  Unregister all inproc endpoints associated with this socket.
@@ -1177,6 +1181,10 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">You must not call OutEvent on an instance of class SocketBase.</exception>
         public virtual void OutEvent()
         {
             throw new NotSupportedException();
@@ -1186,6 +1194,7 @@ namespace NetMQ.zmq
         /// In subclasses of SocketBase this is overridden, to handle the expiration of a timer.
         /// </summary>
         /// <param name="id">an integer used to identify the timer</param>
+        /// <exception cref="NotSupportedException">You must not call TimerEvent on an instance of class SocketBase.</exception>
         public virtual void TimerEvent(int id)
         {
             throw new NotSupportedException();
@@ -1232,6 +1241,10 @@ namespace NetMQ.zmq
                 XHiccuped(pipe);
         }
 
+        /// <summary>
+        /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
+        /// </summary>
+        /// <param name="pipe">the pipe that was terminated</param>
         public void Terminated(Pipe pipe)
         {
             //  Notify the specific socket type about the pipe termination.

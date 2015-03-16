@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Transports.PGM
 {
     internal sealed class PgmAddress : Address.IZAddress
@@ -17,6 +18,11 @@ namespace NetMQ.zmq.Transports.PGM
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="ip4Only"></param>
         /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
         public void Resolve(string name, bool ip4Only)
         {
@@ -58,7 +64,7 @@ namespace NetMQ.zmq.Transports.PGM
             {
                 //  Parse the port number (0 is not a valid port).
                 port = Convert.ToInt32(portStr);
-                
+
                 if (port == 0)
                     throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), portStr ({2}) must denote a valid nonzero integer.", name, ip4Only, portStr));
             }
@@ -85,8 +91,8 @@ namespace NetMQ.zmq.Transports.PGM
 
             IPEndPoint endpoint = Address;
 
-            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
-                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port 
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6
+                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port
                 : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 

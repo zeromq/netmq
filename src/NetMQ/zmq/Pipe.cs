@@ -40,6 +40,11 @@ namespace NetMQ.zmq
             void ReadActivated([NotNull] Pipe pipe);
             void WriteActivated([NotNull] Pipe pipe);
             void Hiccuped([NotNull] Pipe pipe);
+
+            /// <summary>
+            /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
+            /// </summary>
+            /// <param name="pipe">the pipe that was terminated</param>
             void Terminated([NotNull] Pipe pipe);
         }
 
@@ -433,6 +438,9 @@ namespace NetMQ.zmq
             Debug.Assert(false);
         }
 
+        /// <summary>
+        /// Process the pipe-termination ack.
+        /// </summary>
         protected override void ProcessPipeTermAck()
         {
             //  Notify the user that all the references to the pipe should be dropped.

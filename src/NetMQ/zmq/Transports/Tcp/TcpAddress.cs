@@ -24,6 +24,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
+
 namespace NetMQ.zmq.Transports.Tcp
 {
     /// <summary>
@@ -47,11 +48,16 @@ namespace NetMQ.zmq.Transports.Tcp
 
             var endpoint = Address;
 
-            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
-                ? Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port 
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6
+                ? Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port
                 : Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
         }
 
+        /// <param name="name">the address to resolve</param>
+        /// <param name="ip4Only">whether the address must be only-IPv4</param>
+        /// <exception cref="InvalidException">The name must contain the colon delimiter.</exception>
+        /// <exception cref="InvalidException">The specified port must be a valid nonzero integer.</exception>
+        /// <exception cref="InvalidException">Must be able to find the IP-address.</exception>
         public void Resolve(string name, bool ip4Only)
         {
             //  Find the ':' at end that separates address from the port number.
@@ -88,16 +94,16 @@ namespace NetMQ.zmq.Transports.Tcp
 
             if (addrStr == "*")
             {
-                ipAddress = ip4Only 
-                    ? IPAddress.Any 
+                ipAddress = ip4Only
+                    ? IPAddress.Any
                     : IPAddress.IPv6Any;
-            }            
+            }
             else if (!IPAddress.TryParse(addrStr, out ipAddress))
             {
                 var availableAddresses = Dns.GetHostEntry(addrStr).AddressList;
 
-                ipAddress = ip4Only 
-                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork) 
+                ipAddress = ip4Only
+                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                     : Dns.GetHostEntry(addrStr).AddressList.FirstOrDefault(
                         ip => ip.AddressFamily == AddressFamily.InterNetwork ||
                               ip.AddressFamily == AddressFamily.InterNetworkV6);
@@ -106,7 +112,7 @@ namespace NetMQ.zmq.Transports.Tcp
                     throw new InvalidException(string.Format("TcpAddress.Resolve, unable to find an IP address for {0}", name));
             }
 
-            Address = new IPEndPoint(ipAddress, port);             
+            Address = new IPEndPoint(ipAddress, port);
         }
 
         /// <summary>

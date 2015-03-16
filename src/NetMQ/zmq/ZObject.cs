@@ -23,6 +23,7 @@ using System;
 using JetBrains.Annotations;
 using NetMQ.zmq.Transports;
 
+
 namespace NetMQ.zmq
 {
     /// <summary>
@@ -326,77 +327,142 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessStop()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessPlug()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessOwn([NotNull] Own obj)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="engine"></param>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessAttach([NotNull] IEngine engine)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pipe"></param>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessBind([NotNull] Pipe pipe)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessActivateRead()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msgsRead"></param>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessActivateWrite(long msgsRead)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pipe"></param>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessHiccup([NotNull] Object pipe)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessPipeTerm()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessPipeTermAck()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessTermReq([NotNull] Own obj)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Process a termination request.
+        /// </summary>
+        /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessTerm(int linger)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessTermAck()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessReap([NotNull] SocketBase socket)
         {
             // Overriden by Reaper
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessReaped()
         {
             // Overriden by Reaper
@@ -408,6 +474,7 @@ namespace NetMQ.zmq
         /// was processed. The implementation should catch up with its counter
         /// of processed commands here.
         /// </summary>
+        /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessSeqnum()
         {
             throw new NotSupportedException();

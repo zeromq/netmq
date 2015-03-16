@@ -22,6 +22,7 @@
 using System;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Patterns
 {
     internal sealed class Pub : XPub
@@ -30,7 +31,7 @@ namespace NetMQ.zmq.Patterns
         {
             public PubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {}
+            { }
         }
 
         public Pub([NotNull] Ctx parent, int threadId, int socketId)
@@ -39,6 +40,12 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Pub;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException">XRecv must not be called on a Pub.</exception>
         protected override bool XRecv(ref Msg msg)
         {
             //  Messages cannot be received from PUB socket.

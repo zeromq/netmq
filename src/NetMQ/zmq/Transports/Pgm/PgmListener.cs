@@ -3,12 +3,15 @@ using System.Net.Sockets;
 using AsyncIO;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Transports.PGM
 {
     internal class PgmListener : Own, IProactorEvents
     {
-        [NotNull] private readonly SocketBase m_socket;
-        [NotNull] private readonly IOObject m_ioObject;
+        [NotNull]
+        private readonly SocketBase m_socket;
+        [NotNull]
+        private readonly IOObject m_ioObject;
         private AsyncSocket m_handle;
         private PgmSocket m_pgmSocket;
         private PgmSocket m_acceptedSocket;
@@ -50,7 +53,7 @@ namespace NetMQ.zmq.Transports.PGM
         }
 
         public override void Destroy()
-        {}
+        { }
 
         protected override void ProcessPlug()
         {
@@ -61,6 +64,10 @@ namespace NetMQ.zmq.Transports.PGM
             Accept();
         }
 
+        /// <summary>
+        /// Process a termination request.
+        /// </summary>
+        /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
         protected override void ProcessTerm(int linger)
         {
             m_ioObject.SetHandler(this);
@@ -149,7 +156,7 @@ namespace NetMQ.zmq.Transports.PGM
         /// This would be called when the a expires, although here it only throws a NotSupportedException.
         /// </summary>
         /// <param name="id">an integer used to identify the timer (not used here)</param>
-        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
+        /// <exception cref="NotSupportedException">This operation is not supported on the PgmListener class.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

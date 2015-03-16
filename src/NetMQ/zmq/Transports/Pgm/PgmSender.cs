@@ -183,9 +183,9 @@ namespace NetMQ.zmq.Transports.PGM
             {
                 m_socket.Send((byte[])m_outBuffer, m_outBuffer.Offset, m_writeSize, SocketFlags.None);
             }
-            catch (SocketException ex)
+            catch (SocketException x)
             {
-                NetMQException.Create(ex.SocketErrorCode);
+                throw NetMQException.Create(error: x.SocketErrorCode, innerException: x);
             }
         }
 
@@ -194,7 +194,7 @@ namespace NetMQ.zmq.Transports.PGM
         /// </summary>
         /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
         /// <param name="bytesTransferred">the number of bytes that were transferred</param>
-        /// <exception cref="NotSupportedException">this operation is not supported on the SessionBase class.</exception>
+        /// <exception cref="NotImplementedException">This method must not be called on instances of PgmSender.</exception>
         public override void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
@@ -204,6 +204,7 @@ namespace NetMQ.zmq.Transports.PGM
         /// This would be called when a timer expires, although here it only throws a NotSupportedException.
         /// </summary>
         /// <param name="id">an integer used to identify the timer (not used here)</param>
+        /// <exception cref="NotImplementedException">This method must not be called on instances of PgmSender.</exception>
         public override void TimerEvent(int id)
         {
             throw new NotImplementedException();

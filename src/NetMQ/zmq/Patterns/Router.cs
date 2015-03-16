@@ -27,6 +27,7 @@ using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ.zmq.Patterns
 {
     /// <summary>
@@ -40,7 +41,7 @@ namespace NetMQ.zmq.Patterns
         {
             public RouterSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {}
+            { }
         }
 
         /// <summary>
@@ -183,7 +184,7 @@ namespace NetMQ.zmq.Patterns
 
                 return true;
             }
-            
+
             if (option == ZmqSocketOption.RouterMandatory)
             {
                 m_mandatory = (bool)optval;
@@ -243,7 +244,12 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(outpipe != null);
         }
 
-        /// <exception cref="HostUnreachableException">In Router.XSend</exception>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        /// <exception cref="HostUnreachableException">The receiving host must be identifiable.</exception>
         protected override bool XSend(ref Msg msg)
         {
             //  If this is the first part of the message it's the ID of the
@@ -263,8 +269,8 @@ namespace NetMQ.zmq.Patterns
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
 
-                    var identity = msg.Size == msg.Data.Length 
-                        ? msg.Data 
+                    var identity = msg.Size == msg.Data.Length
+                        ? msg.Data
                         : msg.CloneData();
 
                     Outpipe op;
@@ -286,7 +292,7 @@ namespace NetMQ.zmq.Patterns
                     else if (m_mandatory)
                     {
                         m_moreOut = false;
-                        throw new HostUnreachableException("In Router.XSend");
+                        throw new HostUnreachableException(message: String.Format("In Router.XSend, identity {0} not found in output pipes.", identity));
                     }
                 }
 

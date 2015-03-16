@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Text;
 using NetMQ.zmq.Transports.Tcp;
 
+
 namespace NetMQ.zmq
 {
     /// <summary>
@@ -278,6 +279,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="option">a ZmqSocketOption that specifies what to set</param>
         /// <param name="optionValue">an Object that is the value to set that option to</param>
+        /// <exception cref="InvalidException">The option and optionValue must be valid.</exception>
         public void SetSocketOption(ZmqSocketOption option, Object optionValue)
         {
             switch (option)
@@ -357,7 +359,7 @@ namespace NetMQ.zmq
                     MulticastHops = (int)optionValue;
                     break;
 
-// disable warning about obsolete values
+                // disable warning about obsolete values
 #pragma warning disable 618
                 case ZmqSocketOption.ReceiveTimeout:
                     ReceiveTimeout = (int)optionValue;
@@ -399,7 +401,7 @@ namespace NetMQ.zmq
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1}) but must be 1..255", filterStr, filterStr.Length));
+                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1} but must be 1..255", filterStr, filterStr.Length));
                     }
                     else
                     {
@@ -423,6 +425,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="option">a ZmqSocketOption that specifies what to get</param>
         /// <returns>an Object that is the value of that option</returns>
+        /// <exception cref="InvalidException">A valid option must be specified.</exception>
         public Object GetSocketOption(ZmqSocketOption option)
         {
             switch (option)

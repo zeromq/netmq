@@ -23,6 +23,7 @@
 using System.Diagnostics;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Patterns
 {
     /// <summary>
@@ -56,7 +57,12 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Req;
         }
 
-        /// <exception cref="FiniteStateMachineException">Cannot send while awaiting reply.</exception>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        /// <exception cref="FiniteStateMachineException">Cannot XSend on a Req while awaiting reply.</exception>
         protected override bool XSend(ref Msg msg)
         {
             //  If we've sent a request and we still haven't got the reply,
@@ -97,7 +103,13 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-        /// <exception cref="FiniteStateMachineException">Expecting send, not receive.</exception>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="flags"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        /// <exception cref="FiniteStateMachineException">Req.XRecv expecting send, not receive.</exception>
         protected override bool XRecv(ref Msg msg)
         {
             bool isMessageAvailable;
@@ -179,6 +191,12 @@ namespace NetMQ.zmq.Patterns
                 m_state = State.Identity;
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="msg"></param>
+            /// <returns></returns>
+            /// <exception cref="FaultException">ReqSession must be in a valid state when PushMsg is called.</exception>
             public override bool PushMsg(ref Msg msg)
             {
                 // TODO the flags checks here don't check specific bits -- should they use HasMore instead? does this work with shared Msg objects?

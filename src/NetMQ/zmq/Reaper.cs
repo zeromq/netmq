@@ -129,6 +129,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// This method normally is for handling output-ready events, which don't apply here.
         /// </summary>
+        /// <exception cref="NotSupportedException">You must not call OutEvent on a Reaper.</exception>
         public void OutEvent()
         {
             throw new NotSupportedException();
@@ -138,6 +139,7 @@ namespace NetMQ.zmq
         /// This would be called when a timer expires - however in this event NotSupportedException would be thrown.
         /// </summary>
         /// <param name="id">an integer used to identify the timer</param>
+        /// <exception cref="NotSupportedException">You must not call TimerEvent on a Reaper.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();
