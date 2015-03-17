@@ -1605,40 +1605,5 @@ namespace NetMQ.zmq
                     return "UNKNOWN";
             }
         }
-
-        #region IDisposable
-
-        /// <summary>
-        /// Release any contained resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposingManagedResources)
-        {
-            if (!m_disposed)
-            {
-                if (isDisposingManagedResources)
-                {
-                    // Do not allow for exceptions to bubble out of this Dispose method.
-                    try
-                    {
-                        Close();
-                        ProcessDestroy();
-                        CheckDestroy();
-                        //m_mailbox.Dispose();
-                    }
-                    catch (Exception x)
-                    {
-                        Debug.WriteLine(String.Format("{0} in SocketBase.Dispose(true): {1}", x.GetType(), x.Message));
-                    }
-                }
-                m_disposed = true;
-            }
-        }
-        #endregion
     }
 }

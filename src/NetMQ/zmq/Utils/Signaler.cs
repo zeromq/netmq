@@ -119,39 +119,5 @@ namespace NetMQ.zmq.Utils
             Debug.Assert(received == 1);
             Debug.Assert(m_receiveDummy[0] == 0);
         }
-
-        #region IDisposable
-
-        private bool m_hasBeenDisposed;
-
-        /// <summary>
-        /// Release any contained resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool isDisposingManagedResources)
-        {
-            if (!m_hasBeenDisposed)
-            {
-                if (isDisposingManagedResources)
-                {
-                    // Do not allow for exceptions to bubble out of this Dispose method.
-                    try
-                    {
-                        this.Close();
-                    }
-                    catch (Exception x)
-                    {
-                        Debug.WriteLine(String.Format("{0} in Signaler.Dispose(true): {1}", x.GetType(), x.Message));
-                    }
-                }
-                m_hasBeenDisposed = true;
-            }
-        }
-        #endregion
     }
 }

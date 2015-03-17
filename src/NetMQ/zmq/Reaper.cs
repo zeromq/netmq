@@ -199,47 +199,5 @@ namespace NetMQ.zmq
                 m_poller.Stop();
             }
         }
-
-        #region IDisposable
-
-        private bool m_hasBeenDisposed;
-
-        /// <summary>
-        /// Release any contained resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposingManagedResources)
-        {
-            if (!m_hasBeenDisposed)
-            {
-                if (isDisposingManagedResources)
-                {
-                    // Do not allow for exceptions to bubble out of this Dispose method.
-                    try
-                    {
-                        this.Destroy();
-                        //if (m_mailbox != null)
-                        //{
-                        //    m_mailbox.Dispose();
-                        //}
-                        if (m_mailboxHandle != null)
-                        {
-                            m_mailboxHandle.Close();
-                        }
-                    }
-                    catch (Exception x)
-                    {
-                        Debug.WriteLine(String.Format("{0} in Reaper.Dispose(true): {1}", x.GetType(), x.Message));
-                    }
-                }
-                m_hasBeenDisposed = true;
-            }
-        }
-        #endregion
     }
 }
