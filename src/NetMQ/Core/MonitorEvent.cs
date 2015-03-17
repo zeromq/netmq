@@ -107,7 +107,7 @@ namespace NetMQ.Core
 
             var msg = new Msg();
             msg.InitGC((byte[])buffer, buffer.Size);
-            s.Send(ref msg, 0);
+            s.Send(ref msg, SendReceiveOptions.None);
         }
 
         [NotNull]
