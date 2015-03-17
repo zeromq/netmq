@@ -47,7 +47,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives.
+        /// Receive a single frame from <see cref="IReceivingSocket"/>, blocking until one arrives.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <returns>The content of the received message frame.</returns>
@@ -59,7 +59,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives.
+        /// Receive a single frame from <see cref="IReceivingSocket"/>, blocking until one arrives.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -86,7 +86,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// Attempt to receive a single frame from <see cref="IReceivingSocket"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
