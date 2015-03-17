@@ -37,7 +37,14 @@ namespace NetMQ.zmq
     {
         public interface IPipeEvents
         {
+            /// <summary>
+            /// Indicate that the given pipe is now ready for reading.
+            /// Pipe calls this on it's sink in response to ProcessActivateRead.
+            /// When called upon an instance of SocketBase, this simply calls XReadActivated.
+            /// </summary>
+            /// <param name="pipe">the pipe to indicate is ready for reading</param>
             void ReadActivated([NotNull] Pipe pipe);
+
             void WriteActivated([NotNull] Pipe pipe);
             void Hiccuped([NotNull] Pipe pipe);
 

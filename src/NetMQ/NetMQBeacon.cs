@@ -515,6 +515,10 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release any contained resources, which in this case is the Actor.
+        /// </summary>
+        /// <param name="isDisposingManagedResources">true if disposing of managed resources</param>
         protected virtual void Dispose(bool isDisposingManagedResources)
         {
             if (!m_hasBeenDisposed)

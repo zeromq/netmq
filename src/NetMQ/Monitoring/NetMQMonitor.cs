@@ -263,6 +263,10 @@ namespace NetMQ.Monitoring
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release and dispose of any contained resources.
+        /// </summary>
+        /// <param name="disposing">true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

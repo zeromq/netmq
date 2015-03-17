@@ -138,9 +138,14 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        /// <summary>
+        /// Perform any freeing, releasing or resetting of contained resources.
+        /// If this poller is already started, signal the polling thread to stop - and block to wait for it.
+        /// </summary>
+        /// <param name="isDisposingOfManagedResources">true if releasing managed resources</param>
+        protected virtual void Dispose(bool isDisposingOfManagedResources)
         {
-            if (!disposing)
+            if (!isDisposingOfManagedResources)
                 return;
 
             if (!m_disposed)

@@ -85,6 +85,9 @@ namespace NetMQ.Security.V0_1
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// This does nothing.
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
         }

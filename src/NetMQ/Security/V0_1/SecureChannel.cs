@@ -258,6 +258,13 @@ namespace NetMQ.Security.V0_1
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release any contained resources of this SecureChannel object.
+        /// </summary>
+        /// <param name="disposing">set this to true if disposing of managed resources</param>
+        /// <remarks>
+        /// This disposes of the handshake-layer and the record-layer.
+        /// </remarks>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

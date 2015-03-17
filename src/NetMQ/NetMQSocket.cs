@@ -569,6 +569,8 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Close"/>.</summary>
+        /// <param name="disposing">true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

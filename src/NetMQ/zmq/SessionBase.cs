@@ -376,6 +376,11 @@ namespace NetMQ.zmq
                 ProceedWithTerm();
         }
 
+        /// <summary>
+        /// Indicate that the given pipe is now ready for reading.
+        /// Pipe calls this on it's sink in response to ProcessActivateRead.
+        /// </summary>
+        /// <param name="pipe">the pipe to indicate is ready for reading</param>
         public void ReadActivated(Pipe pipe)
         {
             // Skip activating if we're detaching this pipe

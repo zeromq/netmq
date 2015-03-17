@@ -1265,7 +1265,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// 
+        /// Handle input-ready events by receiving and processing any incoming commands.
         /// </summary>
         /// <exception cref="TerminatingException">the context must not already be terminating</exception>
         public virtual void InEvent()
@@ -1286,9 +1286,9 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// 
+        /// Handle output-ready events.
         /// </summary>
-        /// <exception cref="NotSupportedException">You must not call OutEvent on an instance of class SocketBase.</exception>
+        /// <exception cref="NotSupportedException">This is not supported on instances of the parent class SocketBase.</exception>
         public virtual void OutEvent()
         {
             throw new NotSupportedException();
@@ -1326,11 +1326,21 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// Indicate that the given pipe is now ready for reading.
+        /// Pipe calls this on it's sink in response to ProcessActivateRead.
+        /// When called upon an instance of SocketBase, this simply calls XReadActivated.
+        /// </summary>
+        /// <param name="pipe">the pipe to indicate is ready for reading</param>
         public void ReadActivated(Pipe pipe)
         {
             XReadActivated(pipe);
         }
 
+        /// <summary>
+        /// When called upon an instance of SocketBase, this simply calls XWriteActivated.
+        /// </summary>
+        /// <param name="pipe">the pipe to indicate is ready for writing</param>
         public void WriteActivated(Pipe pipe)
         {
             XWriteActivated(pipe);

@@ -291,6 +291,10 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Close (or terminate) this context.
+        /// </summary>
+        /// <param name="disposing">true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

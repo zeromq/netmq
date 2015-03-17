@@ -113,12 +113,19 @@ namespace NetMQ
             get { return 1; }
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        /// <param name="disposing">set this to true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

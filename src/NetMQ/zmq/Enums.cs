@@ -14,7 +14,7 @@ namespace NetMQ.zmq
 
     /// <summary>
     /// This enum-type is used to specify the basic type of message-queue socket
-    /// based upon the intended pattern, such as Pub,Sub, Req,Rep, Dealer,Router, Pull,Push, Xpub,Xsub.
+    /// based upon the intended pattern, such as Pub,Sub, Req,Rep, Dealer,Router, Pull,Push, XPub,XSub.
     /// </summary>
     public enum ZmqSocketType
     {
@@ -49,12 +49,12 @@ namespace NetMQ.zmq
         Rep = 4,
 
         /// <summary>
-        /// This denotes an Dealer socket (CBL)
+        /// This denotes an Dealer socket.
         /// </summary>
         Dealer = 5,
 
         /// <summary>
-        /// This denotes an Router socket (CBL)
+        /// This denotes an Router socket.
         /// </summary>
         Router = 6,
 
@@ -69,14 +69,18 @@ namespace NetMQ.zmq
         Push = 8,
 
         /// <summary>
-        /// This denotes an XPublisher socket (CBL)
+        /// This denotes an XPublisher socket.
         /// </summary>
         Xpub = 9,
 
         /// <summary>
-        /// This denotes an XSubscriber socket (CBL)
+        /// This denotes an XSubscriber socket.
         /// </summary>
         Xsub = 10,
+
+        /// <summary>
+        /// This denotes a Stream socket - which is a parent-class to the other socket types.
+        /// </summary>
         Stream = 11
     }
 
@@ -483,18 +487,37 @@ namespace NetMQ.zmq
         PollError = 0x4
     }
 
+    /// <summary>
+    /// This static class provides the HasIn, HasOut, and HasError methods
+    /// and exists as a convenience for determining these facts about a given PollEvents object.
+    /// </summary>
     public static class PollEventsExtensions
     {
+        /// <summary>
+        /// Return true if the given <see cref="PollEvents"/> has the PollIn flag set.
+        /// </summary>
+        /// <param name="pollEvents">the PollEvents to check the flag of</param>
+        /// <returns>true if the PollIn flag is set</returns>
         public static bool HasIn(this PollEvents pollEvents)
         {
             return (pollEvents & PollEvents.PollIn) == PollEvents.PollIn;
         }
 
+        /// <summary>
+        /// Return true if the given <see cref="PollEvents"/> has the PollOut flag set.
+        /// </summary>
+        /// <param name="pollEvents">the PollEvents to check the flag of</param>
+        /// <returns>true if the PollOut flag is set</returns>
         public static bool HasOut(this PollEvents pollEvents)
         {
             return (pollEvents & PollEvents.PollOut) == PollEvents.PollOut;
         }
 
+        /// <summary>
+        /// Return true if the given <see cref="PollEvents"/> has the PollError flag set.
+        /// </summary>
+        /// <param name="pollEvents">the PollEvents to check the flag of</param>
+        /// <returns>true if the PollError flag is set</returns>
         public static bool HasError(this PollEvents pollEvents)
         {
             return (pollEvents & PollEvents.PollError) == PollEvents.PollError;
