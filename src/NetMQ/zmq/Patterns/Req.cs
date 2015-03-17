@@ -58,10 +58,10 @@ namespace NetMQ.zmq.Patterns
         }
 
         /// <summary>
-        /// 
+        /// Transmit the given message. The <c>Send</c> method calls this to do the actual sending.
         /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
+        /// <param name="msg">the message to transmit</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
         /// <exception cref="FiniteStateMachineException">Cannot XSend on a Req while awaiting reply.</exception>
         protected override bool XSend(ref Msg msg)
         {
@@ -104,10 +104,10 @@ namespace NetMQ.zmq.Patterns
         }
 
         /// <summary>
-        /// 
+        /// Receive a message. The <c>Recv</c> method calls this lower-level method to do the actual receiving.
         /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         /// <exception cref="FiniteStateMachineException">Req.XRecv expecting send, not receive.</exception>
         protected override bool XRecv(ref Msg msg)
         {

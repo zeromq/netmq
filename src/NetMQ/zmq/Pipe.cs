@@ -371,6 +371,14 @@ namespace NetMQ.zmq
             m_sink.WriteActivated(this);
         }
 
+        /// <summary>
+        /// This method is called to assign the specified pipe as a replacement for the outbound pipe that was being used.
+        /// </summary>
+        /// <param name="pipe">the pipe to use for writing</param>
+        /// <remarks>
+        /// A "Hiccup" occurs when an outbound pipe experiences something like a transient disconnect or for whatever other reason
+        /// is no longer available for writing to.
+        /// </remarks>
         protected override void ProcessHiccup(object pipe)
         {
             //  Destroy old out-pipe. Note that the read end of the pipe was already

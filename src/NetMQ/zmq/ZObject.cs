@@ -392,9 +392,14 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// 
+        /// This method would be called to assign the specified pipe as a replacement for the outbound pipe that was being used.
+        /// This, is an abstract method that is to be overridden by subclasses to provide their own concrete implementation.
         /// </summary>
-        /// <param name="pipe"></param>
+        /// <param name="pipe">the pipe to use for writing</param>
+        /// <remarks>
+        /// A "Hiccup" occurs when an outbound pipe experiences something like a transient disconnect or for whatever other reason
+        /// is no longer available for writing to.
+        /// </remarks>
         /// <exception cref="NotSupportedException">This method must not be called on an instance of the ZObject class itself.</exception>
         protected virtual void ProcessHiccup([NotNull] Object pipe)
         {

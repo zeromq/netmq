@@ -117,6 +117,12 @@ namespace NetMQ.zmq
         /// <param name="icanhasall">if true - subscribe to all data on the pipe</param>
         protected abstract void XAttachPipe([NotNull] Pipe pipe, bool icanhasall);
 
+        /// <summary>
+        /// Abstract method that gets called to signal that the given pipe is to be removed from this socket.
+        /// The concrete implementations of SocketBase override this to provide their own implementation
+        /// of how to terminate the pipe.
+        /// </summary>
+        /// <param name="pipe">the Pipe that is being removed</param>
         protected abstract void XTerminated([NotNull] Pipe pipe);
 
         /// <summary>Throw <see cref="ObjectDisposedException"/> if this socket is already disposed.</summary>  
@@ -405,7 +411,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Bind this socket to the given address.
         /// </summary>
-        /// <param name="endpointAddressToBindTo">a string denoting the endpoint-address to bind to</param>
+        /// <param name="endpointToBindTo">a string denoting the endpoint-address to bind to</param>
         /// <exception cref="AddressAlreadyInUseException">the address specified to bind to must not be already in use</exception>
         /// <exception cref="ArgumentException">The requested protocol is not supported.</exception>
         /// <exception cref="FaultException">the socket bind failed</exception>
@@ -419,7 +425,7 @@ namespace NetMQ.zmq
         /// If the protocol is either "pgm" or "epgm", then this socket must be of type Pub, Sub, XPub, or XSub.
         /// If the protocol is "inproc", you cannot bind to the same address more than once.
         /// </remarks>
-        public void Bind([NotNull] string endpointAddressToBindTo)
+        public void Bind([NotNull] string endpointToBindTo)
         {
             CheckContextTerminated();
 
@@ -429,7 +435,7 @@ namespace NetMQ.zmq
             string protocol;
             string address;
 
-            DecodeAddress(endpointAddressToBindTo, out address, out protocol);
+            DecodeAddress(endpointToBindTo, out address, out protocol);
 
             CheckProtocol(protocol);
 
@@ -438,12 +444,12 @@ namespace NetMQ.zmq
                 case Address.InProcProtocol:
                     {
                         var endpoint = new Ctx.Endpoint(this, m_options);
-                        bool addressRegistered = RegisterEndpoint(endpointAddressToBindTo, endpoint);
+                        bool addressRegistered = RegisterEndpoint(endpointToBindTo, endpoint);
 
                         if (!addressRegistered)
-                            throw new AddressAlreadyInUseException(string.Format("Cannot bind address ( {0} ) - already in use.", endpointAddressToBindTo));
+                            throw new AddressAlreadyInUseException(string.Format("Cannot bind address ( {0} ) - already in use.", endpointToBindTo));
 
-                        m_options.LastEndpoint = endpointAddressToBindTo;
+                        m_options.LastEndpoint = endpointToBindTo;
                         return;
                     }
                 case Address.PgmProtocol:
@@ -453,7 +459,7 @@ namespace NetMQ.zmq
                         {
                             // For convenience's sake, bind can be used interchangeable with
                             // connect for PGM and EPGM transports.
-                            Connect(endpointAddressToBindTo);
+                            Connect(endpointToBindTo);
                             return;
                         }
                         break;
@@ -479,19 +485,19 @@ namespace NetMQ.zmq
                             m_port = listener.Port;
 
                             // Recreate the address string (localhost:1234) in case the port was system-assigned
-                            endpointAddressToBindTo = string.Format("tcp://{0}:{1}",
+                            endpointToBindTo = string.Format("tcp://{0}:{1}",
                                 address.Substring(0, address.IndexOf(':')),
                                 m_port);
                         }
                         catch (NetMQException ex)
                         {
                             listener.Destroy();
-                            EventBindFailed(endpointAddressToBindTo, ex.ErrorCode);
+                            EventBindFailed(endpointToBindTo, ex.ErrorCode);
                             throw;
                         }
 
                         m_options.LastEndpoint = listener.Address;
-                        AddEndpoint(endpointAddressToBindTo, listener);
+                        AddEndpoint(endpointToBindTo, listener);
                         break;
                     }
                 case Address.PgmProtocol:
@@ -506,12 +512,12 @@ namespace NetMQ.zmq
                         catch (NetMQException ex)
                         {
                             listener.Destroy();
-                            EventBindFailed(endpointAddressToBindTo, ex.ErrorCode);
+                            EventBindFailed(endpointToBindTo, ex.ErrorCode);
                             throw;
                         }
 
-                        m_options.LastEndpoint = endpointAddressToBindTo;
-                        AddEndpoint(endpointAddressToBindTo, listener);
+                        m_options.LastEndpoint = endpointToBindTo;
+                        AddEndpoint(endpointToBindTo, listener);
                         break;
                     }
                 case Address.IpcProtocol:
@@ -526,46 +532,46 @@ namespace NetMQ.zmq
                         catch (NetMQException ex)
                         {
                             listener.Destroy();
-                            EventBindFailed(endpointAddressToBindTo, ex.ErrorCode);
+                            EventBindFailed(endpointToBindTo, ex.ErrorCode);
                             throw;
                         }
 
                         m_options.LastEndpoint = listener.Address;
-                        AddEndpoint(endpointAddressToBindTo, listener);
+                        AddEndpoint(endpointToBindTo, listener);
                         break;
                     }
                 default:
                     {
-                        throw new ArgumentException(string.Format("Address {0} has unsupported protocol: {1}", endpointAddressToBindTo, protocol), "endpointAddressToBindTo");
+                        throw new ArgumentException(string.Format("Endpoint {0} has unsupported protocol: {1}", endpointToBindTo, protocol), "endpointToBindTo");
                     }
             }
         }
 
         /// <summary>Bind the specified TCP address to an available port, assigned by the operating system.</summary>
-        /// <param name="addressToBindTo">the endpoint-address to bind to</param>
+        /// <param name="endpointToBindTo">a string denoting the endpoint to bind to</param>
         /// <returns>the port-number that was bound to</returns>
-        /// <exception cref="ProtocolNotSupportedException"><paramref name="addressToBindTo"/> uses a protocol other than TCP.</exception>
+        /// <exception cref="ProtocolNotSupportedException"><paramref name="endpointToBindTo"/> uses a protocol other than TCP.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
         /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener errored during
         /// initialisation.</exception>
-        public int BindRandomPort([NotNull] string addressToBindTo)
+        public int BindRandomPort([NotNull] string endpointToBindTo)
         {
             string address, protocol;
 
-            DecodeAddress(addressToBindTo, out address, out protocol);
+            DecodeAddress(endpointToBindTo, out address, out protocol);
 
             if (protocol != Address.TcpProtocol)
-                throw new ProtocolNotSupportedException(string.Format("SocketBase.BindRandomPort({0}), address must use the TCP protocol.", addressToBindTo));
+                throw new ProtocolNotSupportedException(string.Format("SocketBase.BindRandomPort({0}), endpoint must use the TCP protocol.", endpointToBindTo));
 
-            Bind(addressToBindTo + ":0");
+            Bind(endpointToBindTo + ":0");
             return m_port;
         }
 
         /// <summary>
         /// Connect this socket to the given address.
         /// </summary>
-        /// <param name="endpointAddressToConnectTo">a string denoting the endpoint-address to connect to</param>
+        /// <param name="endpointToConnectTo">a string denoting the endpoint to connect to</param>
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
         /// <exception cref="NetMQException">No IO thread was found.</exception>
         /// <exception cref="ProtocolNotSupportedException">the specified protocol is not supported</exception>
@@ -575,7 +581,7 @@ namespace NetMQ.zmq
         /// The supported protocols are "inproc", "ipc", "tcp", "pgm", and "epgm".
         /// If the protocol is either "pgm" or "epgm", then this socket must be of type Pub, Sub, XPub, or XSub.
         /// </remarks>
-        public void Connect([NotNull] string endpointAddressToConnectTo)
+        public void Connect([NotNull] string endpointToConnectTo)
         {
             CheckContextTerminated();
 
@@ -584,7 +590,7 @@ namespace NetMQ.zmq
 
             string address;
             string protocol;
-            DecodeAddress(endpointAddressToConnectTo, out address, out protocol);
+            DecodeAddress(endpointToConnectTo, out address, out protocol);
 
             CheckProtocol(protocol);
 
@@ -595,7 +601,7 @@ namespace NetMQ.zmq
                 //  is in place we should follow generic pipe creation algorithm.
 
                 //  Find the peer endpoint.
-                Ctx.Endpoint peer = FindEndpoint(endpointAddressToConnectTo);
+                Ctx.Endpoint peer = FindEndpoint(endpointToConnectTo);
 
                 // The total HWM for an inproc connection should be the sum of
                 // the binder's HWM and the connector's HWM.
@@ -646,10 +652,10 @@ namespace NetMQ.zmq
                 SendBind(peer.Socket, pipes[1], false);
 
                 // Save last endpoint URI
-                m_options.LastEndpoint = endpointAddressToConnectTo;
+                m_options.LastEndpoint = endpointToConnectTo;
 
                 // remember inproc connections for disconnect
-                m_inprocs.Add(endpointAddressToConnectTo, pipes[0]);
+                m_inprocs.Add(endpointToConnectTo, pipes[0]);
 
                 return;
             }
@@ -682,7 +688,7 @@ namespace NetMQ.zmq
                     {
                         if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
                         {
-                            Bind(endpointAddressToConnectTo);
+                            Bind(endpointToConnectTo);
                             return;
                         }
                         paddr.Resolved = new PgmAddress();
@@ -717,51 +723,51 @@ namespace NetMQ.zmq
             // Save last endpoint URI
             m_options.LastEndpoint = paddr.ToString();
 
-            AddEndpoint(endpointAddressToConnectTo, session);
+            AddEndpoint(endpointToConnectTo, session);
         }
 
         /// <summary>
         /// Given a string containing an endpoint address like "tcp://127.0.0.1:5555,
         /// break-it-down into the address part ("127.0.0.1:5555") and the protocol part ("tcp").
         /// </summary>
-        /// <param name="sourceEndpointAddress">the complete end-point address to take the parts from</param>
+        /// <param name="sourceEndpoint">a string denoting the endpoint, to take the parts from</param>
         /// <param name="addressPart">the IP-address portion of the end-point address</param>
         /// <param name="protocolPart">the protocol portion of the end-point address (such as "tcp")</param>
-        private static void DecodeAddress([NotNull] string sourceEndpointAddress, out string addressPart, out string protocolPart)
+        private static void DecodeAddress([NotNull] string sourceEndpoint, out string addressPart, out string protocolPart)
         {
             const string protocolDelimeter = "://";
-            int protocolDelimiterIndex = sourceEndpointAddress.IndexOf(protocolDelimeter, StringComparison.Ordinal);
+            int protocolDelimiterIndex = sourceEndpoint.IndexOf(protocolDelimeter, StringComparison.Ordinal);
 
-            protocolPart = sourceEndpointAddress.Substring(0, protocolDelimiterIndex);
-            addressPart = sourceEndpointAddress.Substring(protocolDelimiterIndex + protocolDelimeter.Length);
+            protocolPart = sourceEndpoint.Substring(0, protocolDelimiterIndex);
+            addressPart = sourceEndpoint.Substring(protocolDelimiterIndex + protocolDelimeter.Length);
         }
 
         /// <summary>
-        /// Takes ownership of <paramref name="endpoint"/> and registers it against <paramref name="addr"/>.
+        /// Take ownership of the given <paramref name="endpoint"/> and register it against the given <paramref name="address"/>.
         /// </summary>
-        private void AddEndpoint([NotNull] string addr, [NotNull] Own endpoint)
+        private void AddEndpoint([NotNull] string address, [NotNull] Own endpoint)
         {
             //  Activate the session. Make it a child of this socket.
             LaunchChild(endpoint);
-            m_endpoints[addr] = endpoint;
+            m_endpoints[address] = endpoint;
         }
 
         /// <summary>
         /// Disconnect from the given endpoint.
         /// </summary>
-        /// <param name="endpointAddress">the endpoint to disconnect from</param>
-        /// <exception cref="ArgumentNullException"><paramref name="endpointAddress"/> is <c>null</c>.</exception>
+        /// <param name="endpoint">the endpoint to disconnect from</param>
+        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
         /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
-        /// <exception cref="InvalidException">TermEndpoint must not be called with a null endpointAddress.</exception>
+        /// <exception cref="InvalidException">TermEndpoint must not be called with a null endpoint.</exception>
         /// <exception cref="ProtocolNotSupportedException">The specified protocol must be valid.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void TermEndpoint([NotNull] string endpointAddress)
+        public void TermEndpoint([NotNull] string endpoint)
         {
             CheckContextTerminated();
 
             //  Check whether endpoint address passed to the function is valid.
-            if (endpointAddress == null)
-                throw new ArgumentNullException("endpointAddress");
+            if (endpoint == null)
+                throw new ArgumentNullException("endpoint");
 
             //  Process pending commands, if any, since there could be pending unprocessed process_own()'s
             //  (from launch_child() for example) we're asked to terminate now.
@@ -770,30 +776,30 @@ namespace NetMQ.zmq
             string protocol;
             string address;
 
-            DecodeAddress(endpointAddress, out address, out protocol);
+            DecodeAddress(endpoint, out address, out protocol);
 
             CheckProtocol(protocol);
 
             if (protocol == Address.InProcProtocol)
             {
-                if (UnregisterEndpoint(endpointAddress, this))
+                if (UnregisterEndpoint(endpoint, this))
                     return;
 
                 Pipe pipe;
-                if (!m_inprocs.TryGetValue(endpointAddress, out pipe))
-                    throw new EndpointNotFoundException(String.Format("Endpoint {0} was not found and cannot be disconnected", endpointAddress));
+                if (!m_inprocs.TryGetValue(endpoint, out pipe))
+                    throw new EndpointNotFoundException(String.Format("Endpoint {0} was not found and cannot be disconnected", endpoint));
 
                 pipe.Terminate(true);
-                m_inprocs.Remove(endpointAddress);
+                m_inprocs.Remove(endpoint);
             }
             else
             {
-                Own endpoint;
-                if (!m_endpoints.TryGetValue(endpointAddress, out endpoint))
-                    throw new EndpointNotFoundException(String.Format("Endpoint {0} was not found and cannot be disconnected", endpointAddress));
+                Own endpointOwner;
+                if (!m_endpoints.TryGetValue(endpoint, out endpointOwner))
+                    throw new EndpointNotFoundException(String.Format("Endpoint {0} was not found and cannot be disconnected", endpoint));
 
-                TermChild(endpoint);
-                m_endpoints.Remove(endpointAddress);
+                TermChild(endpointOwner);
+                m_endpoints.Remove(endpoint);
             }
         }
 
@@ -877,11 +883,38 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// Receive a frame into the given <paramref name="msg"/> and return <c>true</c> if successful, <c>false</c> if it timed out.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to read the received message into</param>
+        /// <param name="timeout">this controls whether the call blocks, and for how long.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> if it timed out</returns>
+        /// <remarks>
+        /// For <paramref name="timeout"/>, there are three categories of value:
+        /// <list type="bullet">
+        ///   <item><see cref="TimeSpan.Zero"/> - return <c>false</c> immediately if no message is available</item>
+        ///   <item>Positive - return <c>false</c> after the corresponding duration if no message has become available</item>
+        ///   <item>Negative - wait indefinitely, always returning <c>true</c></item>
+        /// </list>
+        /// </remarks>
+        /// <exception cref="AgainException">if there is no message ready to be received, this exception is thrown if DontWait is set or no receive-timeout is specified</exception>
+        /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
+        /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
         public bool TryRecv(ref Msg msg, TimeSpan timeout)
         {
             return Recv(ref msg, timeout);
         }
 
+        /// <summary>
+        /// Receive a frame into the given <paramref name="msg"/>.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to read the received message into</param>
+        /// <remarks>
+        /// This calls <c>Recv(Msg, TimeSpan)</c> with a TimeSpan value of <c>TimeSpan.MinValue</c>.
+        /// </remarks>
+        /// <exception cref="AgainException">if there is no message ready to be received, this exception is thrown if DontWait is set or no receive-timeout is specified</exception>
+        /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
+        /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
         public void Recv(ref Msg msg)
         {
             var res = Recv(ref msg, TimeSpan.MinValue);
@@ -890,7 +923,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Receives a frame into <paramref name="msg"/>.
+        /// Receives a frame into <paramref name="msg"/> and returns <c>true</c> if successful, <c>false</c> if it timed out.
         /// </summary>
         /// <remarks>
         /// For <paramref name="timeout"/>, there are three categories of value:
@@ -905,7 +938,7 @@ namespace NetMQ.zmq
         /// <returns><c>true</c> if a message was received, or <c>false</c> if the receive timed out.</returns>
         /// <exception cref="AgainException">if there is no message ready to be received, this exception is thrown if DontWait is set or no receive-timeout is specified</exception>
         /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
-        /// <exception cref="TerminatingException">The Ctx context must not already be terminating.</exception>
+        /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
         private bool Recv(ref Msg msg, TimeSpan timeout)
         {
             CheckContextTerminated();
@@ -1169,6 +1202,13 @@ namespace NetMQ.zmq
             return false;
         }
 
+        /// <summary>
+        /// Transmit the given message. The <see cref="Send"/> method calls this to do the actual sending.
+        /// This abstract method gets overridden by the different socket types
+        /// to provide their concrete implementation of sending messages.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
         protected virtual bool XSend(ref Msg msg)
         {
             throw new NotSupportedException("Must Override");
@@ -1184,16 +1224,36 @@ namespace NetMQ.zmq
             return false;
         }
 
+        /// <summary>
+        /// Receive a message. The <c>Recv</c> method calls this lower-level method to do the actual receiving.
+        /// This abstract method gets overridden by the different socket types
+        /// to provide their concrete implementation of receiving messages.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected virtual bool XRecv(ref Msg msg)
         {
             throw new NotSupportedException("Must Override");
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for reading by this socket.
+        /// This abstract method gets overridden by the different sockets
+        /// to provide their own concrete implementation.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for reading</param>
         protected virtual void XReadActivated([NotNull] Pipe pipe)
         {
             throw new NotSupportedException("Must Override");
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for writing to by this socket.
+        /// This abstract method gets called by the WriteActivated method
+        /// and gets overridden by the different sockets
+        /// to provide their own concrete implementation.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected virtual void XWriteActivated([NotNull] Pipe pipe)
         {
             throw new NotSupportedException("Must Override");
@@ -1324,18 +1384,18 @@ namespace NetMQ.zmq
         /// <summary>
         /// Register the given events to monitor on the given endpoint.
         /// </summary>
-        /// <param name="endpointAddress">the endpoint-address to monitor</param>
+        /// <param name="endpointToMonitor">a string denoting the endpoint to monitor. If this is null - monitoring is stopped.</param>
         /// <param name="events">the SocketEvent to monitor for</param>
         /// <exception cref="FaultException">Must be able to create the monitor-socket.</exception>
         /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
-        /// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="endpointAddress"/> is not supported.</exception>
+        /// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="endpointToMonitor"/> is not supported.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void Monitor([CanBeNull] string endpointAddress, SocketEvent events)
+        public void Monitor([CanBeNull] string endpointToMonitor, SocketEvent events)
         {
             CheckContextTerminated();
 
             // Support de-registering monitoring endpoints as well
-            if (endpointAddress == null)
+            if (endpointToMonitor == null)
             {
                 StopMonitor();
                 return;
@@ -1343,13 +1403,13 @@ namespace NetMQ.zmq
 
             string address;
             string protocol;
-            DecodeAddress(endpointAddress, out address, out protocol);
+            DecodeAddress(endpointToMonitor, out address, out protocol);
 
             CheckProtocol(protocol);
 
             // Event notification only supported over inproc://
             if (protocol != Address.InProcProtocol)
-                throw new ProtocolNotSupportedException(string.Format("In SocketBase.Monitor({0},), protocol must be inproc", endpointAddress));
+                throw new ProtocolNotSupportedException(string.Format("In SocketBase.Monitor({0},), protocol must be inproc", endpointToMonitor));
 
             // Register events to monitor
             m_monitorEvents = events;
@@ -1372,7 +1432,7 @@ namespace NetMQ.zmq
             // Spawn the monitor socket endpoint
             try
             {
-                m_monitorSocket.Bind(endpointAddress);
+                m_monitorSocket.Bind(endpointToMonitor);
             }
             catch (NetMQException)
             {
