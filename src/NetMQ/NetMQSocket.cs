@@ -14,14 +14,12 @@ namespace NetMQ
     public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
         private readonly SocketBase m_socketHandle;
-        private bool m_isClosed;
         private readonly NetMQSocketEventArgs m_socketEventArgs;
+        private readonly Selector m_selector;
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
-
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
-
-        private readonly Selector m_selector;
+        private bool m_isClosed;
 
         /// <summary>
         /// Create a new NetMQSocket with the given <see cref="SocketBase"/>.
@@ -34,6 +32,8 @@ namespace NetMQ
             Options = new SocketOptions(this);
             m_socketEventArgs = new NetMQSocketEventArgs(this);
         }
+
+        #region Events
 
         /// <summary>
         /// This event occurs when at least one message may be received from the socket without blocking.
@@ -81,11 +81,6 @@ namespace NetMQ
         internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
 
         /// <summary>
-        /// Get or set an integer that represents the number of errors that have accumulated.
-        /// </summary>
-        internal int Errors { get; set; }
-
-        /// <summary>
         /// Raise the <see cref="EventsChanged"/> event.
         /// </summary>
         private void InvokeEventsChanged()
@@ -98,6 +93,13 @@ namespace NetMQ
                 temp(this, m_socketEventArgs);
             }
         }
+
+        #endregion
+
+        /// <summary>
+        /// Get or set an integer that represents the number of errors that have accumulated.
+        /// </summary>
+        internal int Errors { get; set; }
 
         /// <summary>
         /// Get the <see cref="SocketOptions"/> of this socket.
@@ -116,6 +118,8 @@ namespace NetMQ
         {
             get { return this; }
         }
+
+        #region Bind, Unbind, Connect, Disconnect, Close
 
         /// <summary>
         /// Bind the socket to <paramref name="address"/>.
@@ -202,6 +206,8 @@ namespace NetMQ
             m_socketHandle.CheckDisposed();
             m_socketHandle.Close();
         }
+
+        #endregion
 
         #region Polling
 
@@ -412,6 +418,8 @@ namespace NetMQ
             m_socketHandle.Monitor(endpoint, events);
         }
 
+        #region Socket options
+
         /// <summary>
         /// Get whether a message is waiting to be picked up (<c>true</c> if there is, <c>false</c> if there is none).
         /// </summary>
@@ -432,8 +440,6 @@ namespace NetMQ
         {
             get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasOut(); }
         }
-
-        #region Socket options
 
         /// <summary>
         /// Get the integer-value of the specified <see cref="ZmqSocketOption"/>.
@@ -526,6 +532,8 @@ namespace NetMQ
 
         #endregion
 
+        #region IDisposable
+
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Close"/>.</summary>
         public void Dispose()
         {
@@ -540,5 +548,7 @@ namespace NetMQ
 
             Close();
         }
+
+        #endregion
     }
 }
