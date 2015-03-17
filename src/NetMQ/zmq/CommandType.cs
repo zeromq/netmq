@@ -44,8 +44,8 @@ namespace NetMQ.zmq
         ActivateRead,
 
         /// <summary>
-        /// Sent by pipe reader to inform pipe writer how many
-        /// messages it has read so far.
+        /// Sent by pipe reader to inform pipe writer that it
+        /// is ready for writing to.
         /// </summary>
         ActivateWrite,
 
@@ -53,6 +53,7 @@ namespace NetMQ.zmq
         /// Sent by pipe reader to writer after creating a new inpipe.
         /// The parameter is actually of type pipe_t::upipe_t, however,
         /// its definition is private so we'll have to do with void*.
+        /// TODO: I think this is incorrect. What *is* the right definition?  jh
         /// </summary>
         Hiccup,
 
