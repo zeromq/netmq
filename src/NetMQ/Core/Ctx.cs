@@ -236,46 +236,28 @@ namespace NetMQ.Core
             Destroy();
         }
 
-        /// <summary>
-        /// Set either the max-sockets or the I/O-thread-count, depending upon which ContextOption is indicated.
-        /// </summary>
-        /// <param name="option">this determines which of the two properties to set</param>
-        /// <param name="optionValue">the value to assign to that property</param>
-        /// <exception cref="InvalidException">option must be MaxSockets with optionValue >= 1, or IOThreads with optionValue >= 0.</exception>
-        public void Set(ContextOption option, int optionValue)
+        public int IOThreadCount
         {
-            if (option == ContextOption.MaxSockets && optionValue >= 1)
+            get { return m_ioThreadCount; }
+            set
             {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("value", value, "Must be zero or greater");
                 lock (m_optSync)
-                {
-                    m_maxSockets = optionValue;
-                }
-            }
-            else if (option == ContextOption.IOThreads && optionValue >= 0)
-            {
-                lock (m_optSync)
-                {
-                    m_ioThreadCount = optionValue;
-                }
-            }
-            else
-            {
-                throw new InvalidException(string.Format("In Ctx.Set({0}, {1}), option must be MaxSockets with optionValue >= 1, or IOThreads with optionValue >= 0.", option, optionValue));
+                    m_ioThreadCount = value;
             }
         }
 
-        /// <summary>
-        /// Return either the max-sockets or the I/O-thread-count, depending upon which ContextOption is indicated.
-        /// </summary>
-        /// <param name="option">this determines which of the two properties to get</param>
-        /// <exception cref="InvalidException">option must be MaxSockets or IOThreads.</exception>
-        public int Get(ContextOption option)
+        public int MaxSockets
         {
-            if (option == ContextOption.MaxSockets)
-                return m_maxSockets;
-            if (option == ContextOption.IOThreads)
-                return m_ioThreadCount;
-            throw new InvalidException(string.Format("In Ctx.Get({0}), option must be MaxSockets or IOThreads.", option));
+            get { return m_maxSockets; }
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentOutOfRangeException("value", value, "Must be greater than zero");
+                lock (m_optSync)
+                    m_maxSockets = value;
+            }
         }
 
         /// <summary>

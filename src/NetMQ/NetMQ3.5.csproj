@@ -57,7 +57,6 @@
     <Compile Include="Core\Command.cs" />
     <Compile Include="Core\CommandType.cs" />
     <Compile Include="Core\Config.cs" />
-    <Compile Include="Core\ContextOption.cs" />
     <Compile Include="Core\Ctx.cs" />
     <Compile Include="Core\ErrorHelper.cs" />
     <Compile Include="Core\IMsgSink.cs" />

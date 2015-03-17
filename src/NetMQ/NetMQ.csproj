@@ -145,7 +145,6 @@
     <Compile Include="Core\Patterns\Utils\Distribution.cs" />
     <Compile Include="Core\Transports\V1Encoder.cs" />
     <Compile Include="Core\Transports\EncoderBase.cs" />
-    <Compile Include="Core\ContextOption.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="Core\ErrorHelper.cs" />
     <Compile Include="Core\Transports\IDecoder.cs" />
