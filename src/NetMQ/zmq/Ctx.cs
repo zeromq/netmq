@@ -187,7 +187,6 @@ namespace NetMQ.zmq
             if (m_reaper != null)
                 m_reaper.Destroy();
 
-            if (m_termMailbox != null)
                 m_termMailbox.Close();
 
             m_disposed = true;

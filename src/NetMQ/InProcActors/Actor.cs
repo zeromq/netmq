@@ -14,11 +14,18 @@ namespace NetMQ.Actors
     [Obsolete("Use non generic NetMQActor")]
     public class NetMQActorEventArgs<T> : EventArgs
     {
+        /// <summary>
+        /// Create a new NetMQActorEventArgs with the given actor.
+        /// </summary>
+        /// <param name="actor">the Actor for the new NetMQActorEventArgs to contain</param>
         public NetMQActorEventArgs([NotNull] Actor<T> actor)
         {
             Actor = actor;
         }
 
+        /// <summary>
+        /// Get the Actor object that this NetMQActorEventArgs contains.
+        /// </summary>
         [NotNull]
         public Actor<T> Actor { get; private set; }
     }
@@ -152,7 +159,7 @@ namespace NetMQ.Actors
                         m_shim.Handler.RunPipeline(m_shim.Pipe);
                     }
                     catch (TerminatingException)
-                    {}
+                    { }
 
                     //  Do not block, if the other end of the pipe is already deleted
                     m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
@@ -162,13 +169,16 @@ namespace NetMQ.Actors
                         m_shim.Pipe.SignalOK();
                     }
                     catch (AgainException)
-                    {}
+                    { }
 
                     m_shim.Pipe.Dispose();
                 },
                 TaskCreationOptions.LongRunning);
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
         public void Dispose()
         {
             //send destroy message to pipe
@@ -179,7 +189,7 @@ namespace NetMQ.Actors
                 m_self.WaitForSignal();
             }
             catch (AgainException)
-            {}
+            { }
 
             m_shimTask.Wait();
             m_self.Dispose();

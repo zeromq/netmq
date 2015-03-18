@@ -253,12 +253,19 @@ namespace NetMQ
 
         #region Disposing
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        /// <param name="disposing">true if managed resources are to be released</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

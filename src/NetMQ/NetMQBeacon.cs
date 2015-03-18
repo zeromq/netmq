@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using JetBrains.Annotations;
@@ -126,7 +125,7 @@ namespace NetMQ
                         }
                     }
                     catch (Exception)
-                    {}
+                    { }
 
                     m_pipe.Send(hostname);
                 }
@@ -455,18 +454,25 @@ namespace NetMQ
             return m_actor.ReceiveFrameBytes();
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        /// <param name="disposing">true if managed resources are to be released</param>
         protected virtual void Dispose(bool disposing)
-                    {
+        {
             if (!disposing)
                 return;
 
-                        m_actor.Dispose();
-                    }
-                }
+            m_actor.Dispose();
+        }
+    }
 }

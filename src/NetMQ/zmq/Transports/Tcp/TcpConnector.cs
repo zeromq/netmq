@@ -252,6 +252,9 @@ namespace NetMQ.zmq.Transports.Tcp
             }
             else  // socketError is Success.
             {
+                m_ioObject.RemoveSocket(m_asyncSocket);
+                m_isHandleValid = false;
+
                 m_asyncSocket.NoDelay = true;
 
                 // As long as the TCP keep-alive option is not -1 (indicating no change),

@@ -39,7 +39,7 @@
         /// Null - no cipher algorithm specified (the default value of this enum-type).
         /// </summary>
         Null = 0,
-        
+
         /// <summary>
         /// The Advanced Encryption Standard (AES) symmetric-key algorithm.
         /// </summary>
@@ -63,6 +63,9 @@
     /// </summary>
     public enum MACAlgorithm
     {
+        /// <summary>
+        /// No MAC-algorithm is specified.
+        /// </summary>
         Null = 0,
 
         /// <summary>
@@ -82,6 +85,9 @@
     /// </summary>
     public enum CompressionMethod
     {
+        /// <summary>
+        /// No compression-method is specified.
+        /// </summary>
         Null = 0,
     }
 
