@@ -56,7 +56,6 @@ namespace NetMQ.Core
             SendHighWatermark = 1000;
             SendTimeout = -1;
             SocketType = ZmqSocketType.None;
-            TcpAcceptFilters = new List<TcpAddress.TcpAddressMask>();
             TcpKeepalive = -1;
             TcpKeepaliveCnt = -1;
             TcpKeepaliveIdle = -1;
@@ -244,12 +243,6 @@ namespace NetMQ.Core
         public ZmqSocketType SocketType { get; set; }
 
         /// <summary>
-        /// Get the TCP accept() filters,
-        /// this being a list of TcpAddressMasks.
-        /// </summary>
-        public List<TcpAddress.TcpAddressMask> TcpAcceptFilters { get; private set; }
-
-        /// <summary>
         /// TCP keep-alive settings.
         /// Defaults to -1 = do not change socket options
         /// </summary>
@@ -389,24 +382,6 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.TcpKeepaliveIntvl:
                     TcpKeepaliveIntvl = (int)optionValue;
-                    break;
-
-                case ZmqSocketOption.TcpAcceptFilter:
-                    var filterStr = (string)optionValue;
-                    if (filterStr == null)
-                    {
-                        TcpAcceptFilters.Clear();
-                    }
-                    else if (filterStr.Length == 0 || filterStr.Length > 255)
-                    {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1}) but must be 1..255", filterStr, filterStr.Length));
-                    }
-                    else
-                    {
-                        var filter = new TcpAddress.TcpAddressMask();
-                        filter.Resolve(filterStr, IPv4Only);
-                        TcpAcceptFilters.Add(filter);
-                    }
                     break;
 
                 case ZmqSocketOption.Endian:

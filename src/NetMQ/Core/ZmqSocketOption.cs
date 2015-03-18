@@ -78,7 +78,6 @@ namespace NetMQ.Core
         TcpKeepalive = 34,
         TcpKeepaliveIdle = 36,
         TcpKeepaliveIntvl = 37,
-        TcpAcceptFilter = 38,
         DelayAttachOnConnect = 39,
         XpubVerbose = 40,
         RouterRawSocket = 41,

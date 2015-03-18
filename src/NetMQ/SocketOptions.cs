@@ -213,12 +213,10 @@ namespace NetMQ
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl, value); }
         }
 
-        [CanBeNull]
+        [Obsolete("This feature has not been implemented and will be removed.")]
         public string TcpAcceptFilter
         {
-            // TODO the logic here doesn't really suit a setter -- set values are appended to a list, and null clear that list
-            // get { return m_socket.GetSocketOptionX<string>(ZmqSocketOption.TcpAcceptFilter); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.TcpAcceptFilter, value); }
+            set { }
         }
 
         public bool DelayAttachOnConnect

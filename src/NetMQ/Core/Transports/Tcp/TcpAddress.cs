@@ -30,16 +30,8 @@ namespace NetMQ.Core.Transports.Tcp
     /// A TcpAddress implements IZAddress, and contains an IPEndPoint (the Address property)
     /// and a Protocol property.
     /// </summary>
-    internal class TcpAddress : Address.IZAddress
+    internal sealed class TcpAddress : Address.IZAddress
     {
-        public class TcpAddressMask : TcpAddress
-        {
-            public bool MatchAddress(IPEndPoint addr)
-            {
-                return Address.Equals(addr);
-            }
-        }
-
         public override string ToString()
         {
             if (Address == null)
