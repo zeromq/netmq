@@ -472,7 +472,7 @@ namespace NetMQ.Core.Transports
                             {
                                 m_greetingBytesRead += bytesReceived;
 
-                                // check if it is an unversion protocol
+                                // check if it is an unversioned protocol
                                 if (m_greeting[0] != 0xff || (m_greetingBytesRead == 10 && (m_greeting[9] & 0x01) == 0))
                                 {
                                     m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
@@ -779,9 +779,8 @@ namespace NetMQ.Core.Transports
         private static int EndWrite(SocketError socketError, int bytesTransferred)
         {
             if (socketError == SocketError.Success && bytesTransferred > 0)
-            {
                 return bytesTransferred;
-            }
+
             if (bytesTransferred == 0 ||
                 socketError == SocketError.NetworkDown ||
                 socketError == SocketError.NetworkReset ||
@@ -789,13 +788,9 @@ namespace NetMQ.Core.Transports
                 socketError == SocketError.ConnectionAborted ||
                 socketError == SocketError.TimedOut ||
                 socketError == SocketError.ConnectionReset)
-            {
                 return -1;
-            }
-            else
-            {
-                throw NetMQException.Create(socketError);
-            }
+
+            throw NetMQException.Create(socketError);
         }
 
         private void BeginWrite([NotNull] ByteArraySegment data, int size)

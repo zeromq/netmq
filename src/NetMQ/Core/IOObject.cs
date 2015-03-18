@@ -64,7 +64,7 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// "Un-Plug" this IOObject from it's current IOThread, and set it's handler to null.
+        /// "Un-Plug" this IOObject from its current IOThread, and set its handler to null.
         /// </summary>
         /// <remarks>
         /// When migrating an object from one I/O thread to another, first
