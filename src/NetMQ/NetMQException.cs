@@ -15,7 +15,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="innerException">an Exception that this exception will expose via it's InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        /// <param name="errorCode">an ErrorCode that this exception will expose via it's ErrorCode property</param>
+        /// <param name="errorCode">an ErrorCode that this exception will expose via its ErrorCode property</param>
         protected NetMQException([CanBeNull] Exception innerException, [CanBeNull] string message, ErrorCode errorCode)
             : base(message, innerException)
         {
@@ -27,7 +27,7 @@ namespace NetMQ
         /// <summary>
         /// Create and return a new NetMQException with no Message containing only the given SocketException.
         /// </summary>
-        /// <param name="innerException">a SocketException that this exception will expose via it's InnerException property</param>
+        /// <param name="innerException">a SocketException that this exception will expose via its InnerException property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create([NotNull] SocketException innerException)
@@ -38,8 +38,8 @@ namespace NetMQ
         /// <summary>
         /// Create and return a new NetMQException with no Message containing the given SocketError and Exception.
         /// </summary>
-        /// <param name="error">a SocketError that this exception will carry and expose via it's ErrorCode property</param>
-        /// <param name="innerException">an Exception that this exception will expose via it's InnerException property</param>
+        /// <param name="error">a SocketError that this exception will carry and expose via its ErrorCode property</param>
+        /// <param name="innerException">an Exception that this exception will expose via its InnerException property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create(SocketError error, [CanBeNull] Exception innerException = null)
@@ -121,8 +121,8 @@ namespace NetMQ
         /// <summary>
         /// Create and return a new NetMQException with no Message containing the given ErrorCode and Exception.
         /// </summary>
-        /// <param name="errorCode">an ErrorCode for this exception to contain and expose via it's ErrorCode property</param>
-        /// <param name="innerException">an Exception for this exception to contain and expose via it's InnerException property</param>
+        /// <param name="errorCode">an ErrorCode for this exception to contain and expose via its ErrorCode property</param>
+        /// <param name="innerException">an Exception for this exception to contain and expose via its InnerException property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create(ErrorCode errorCode, [CanBeNull] Exception innerException)
@@ -133,7 +133,7 @@ namespace NetMQ
         /// <summary>
         /// Create and return a new NetMQException with no Message containing only the given ErrorCode.
         /// </summary>
-        /// <param name="errorCode">an ErrorCode that this exception will carry and expose via it's ErrorCode property</param>
+        /// <param name="errorCode">an ErrorCode that this exception will carry and expose via its ErrorCode property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create(ErrorCode errorCode)
@@ -145,7 +145,7 @@ namespace NetMQ
         /// Create and return a new NetMQException with the given Message and ErrorCode.
         /// </summary>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        /// <param name="errorCode">an ErrorCode that this exception will carry and expose via it's ErrorCode property</param>
+        /// <param name="errorCode">an ErrorCode that this exception will carry and expose via its ErrorCode property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create([CanBeNull] string message, ErrorCode errorCode)
@@ -156,9 +156,9 @@ namespace NetMQ
         /// <summary>
         /// Create and return a new NetMQException with the given ErrorCode, Message, and Exception.
         /// </summary>
-        /// <param name="errorCode">an ErrorCode that this exception will contain and expose via it's ErrorCode property</param>
+        /// <param name="errorCode">an ErrorCode that this exception will contain and expose via its ErrorCode property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        /// <param name="innerException">an Exception that this exception will expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception that this exception will expose via its InnerException property</param>
         /// <returns>a new NetMQException, or subclass of NetMQException that corresponds to the given ErrorCode</returns>
         [NotNull]
         private static NetMQException Create(ErrorCode errorCode, [CanBeNull] string message, [CanBeNull] Exception innerException)
@@ -192,12 +192,13 @@ namespace NetMQ
     /// <summary>
     /// AddressAlreadyInUseException is a NetMQException that is used within SocketBase.Bind to signal an address-conflict.
     /// </summary>
+    [Serializable]
     public class AddressAlreadyInUseException : NetMQException
     {
         /// <summary>
         /// Create a new AddressAlreadyInUseException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         public AddressAlreadyInUseException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.AddressAlreadyInUse)
@@ -223,7 +224,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new EndpointNotFoundException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         public EndpointNotFoundException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.EndpointNotFound)
@@ -259,7 +260,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new AgainException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal AgainException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.TryAgain)
@@ -285,7 +286,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new TerminatingException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal TerminatingException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.ContextTerminated)
@@ -310,7 +311,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new InvalidException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal InvalidException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.Invalid)
@@ -344,7 +345,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new FaultException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal FaultException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.Fault)
@@ -379,7 +380,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new ProtocolNotSupportedException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal ProtocolNotSupportedException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.ProtocolNotSupported)
@@ -414,7 +415,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new HostUnreachableException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal HostUnreachableException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.HostUnreachable)
@@ -449,7 +450,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new FiniteStateMachineException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal FiniteStateMachineException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.FiniteStateMachine)
