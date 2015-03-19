@@ -185,7 +185,7 @@ namespace NetMQ.Core.Transports.Pgm
             }
             catch (SocketException ex)
             {
-                NetMQException.Create(ex.SocketErrorCode);
+                throw NetMQException.Create(ex.SocketErrorCode, ex);
             }
         }
 
