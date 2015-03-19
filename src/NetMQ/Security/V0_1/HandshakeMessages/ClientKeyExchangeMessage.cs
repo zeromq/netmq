@@ -4,7 +4,7 @@
     /// The ClientKeyExchangeMessage is a HandshakeMessage with a HandshakeType of ClientKeyExchange.
     /// It holds a EncryptedPreMasterSecret,
     /// and overrides SetFromNetMQMessage/ToNetMQMessage to read/write that
-    /// from the frames of a NetMQMessage.
+    /// from the frames of a <see cref="NetMQMessage"/>.
     /// </summary>
     class ClientKeyExchangeMessage : HandshakeMessage
     {
@@ -22,6 +22,9 @@
             get { return HandshakeType.ClientKeyExchange; }
         }
 
+        /// <summary>
+        /// Get or set the 48-byte array that is the encrypted pre-master secret.
+        /// </summary>
         public byte[] EncryptedPreMasterSecret { get; set; }
 
         /// <summary>
@@ -44,6 +47,7 @@
         /// 2. a byte-array containing the EncryptedPreMasterSecret.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 2 frames</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must be 1.</exception>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);

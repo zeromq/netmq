@@ -33,19 +33,19 @@ namespace NetMQ.Core.Transports.Tcp
     internal class TcpConnector : Own, IProactorEvents
     {
         /// <summary>
-        ///  ID of the timer used to delay the reconnection.
+        /// ID of the timer used to delay the reconnection. Value is 1.
         /// </summary>
         private const int ReconnectTimerId = 1;
 
         private readonly IOObject m_ioObject;
 
         /// <summary>
-        ///  Address to connect to. Owned by session_base_t.
+        /// Address to connect to. Owned by session_base_t.
         /// </summary>
         private readonly Address m_addr;
 
         /// <summary>
-        /// Underlying socket.
+        /// The underlying AsyncSocket.
         /// </summary>
         [CanBeNull]
         private AsyncSocket m_s;
@@ -72,7 +72,7 @@ namespace NetMQ.Core.Transports.Tcp
         private readonly SessionBase m_session;
 
         /// <summary>
-        /// Current reconnect-interval, updated for back-off strategy
+        /// Current reconnect-interval. This gets updated for back-off strategy.
         /// </summary>
         private int m_currentReconnectIvl;
 
@@ -86,6 +86,14 @@ namespace NetMQ.Core.Transports.Tcp
         /// </summary>
         private readonly SocketBase m_socket;
 
+        /// <summary>
+        /// Create a new TcpConnector object.
+        /// </summary>
+        /// <param name="ioThread">the I/O-thread for this TcpConnector to live on.</param>
+        /// <param name="session">the session that will contain this</param>
+        /// <param name="options">Options that define this new TcpC</param>
+        /// <param name="addr">the Address for this Tcp to connect to</param>
+        /// <param name="delayedStart">this boolean flag dictates whether to wait before trying to connect</param>
         public TcpConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
             : base(ioThread, options)
         {
@@ -103,6 +111,9 @@ namespace NetMQ.Core.Transports.Tcp
             m_socket = session.Socket;
         }
 
+        /// <summary>
+        /// This does nothing.
+        /// </summary>
         public override void Destroy()
         {
             Debug.Assert(!m_timerStarted);
@@ -110,6 +121,9 @@ namespace NetMQ.Core.Transports.Tcp
             Debug.Assert(m_s == null);
         }
 
+        /// <summary>
+        /// Begin connecting.  If a delayed-start was specified - then the reconnect-timer is set, otherwise this starts immediately.
+        /// </summary>
         protected override void ProcessPlug()
         {
             m_ioObject.SetHandler(this);
@@ -121,6 +135,11 @@ namespace NetMQ.Core.Transports.Tcp
             }
         }
 
+        /// <summary>
+        /// Process a termination request.
+        /// This cancels the reconnect-timer, closes the AsyncSocket, and marks the socket-handle as invalid.
+        /// </summary>
+        /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
         protected override void ProcessTerm(int linger)
         {
             if (m_timerStarted)
@@ -141,6 +160,12 @@ namespace NetMQ.Core.Transports.Tcp
             base.ProcessTerm(linger);
         }
 
+        /// <summary>
+        /// This method would be called when a message receive operation has been completed, although here it only throws a NotImplementedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotImplementedException">InCompleted must not be called on a TcpConnector.</exception>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
@@ -180,11 +205,12 @@ namespace NetMQ.Core.Transports.Tcp
         }
 
         /// <summary>
-        /// 
+        /// This method is called when a message Send operation has been completed.
         /// </summary>
-        /// <param name="socketError"></param>
-        /// <param name="bytesTransferred"></param>
-        /// <exception cref="NetMQException">a non-recoverable socket error occurred.</exception>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NetMQException">A non-recoverable socket error occurred.</exception>
+        /// <exception cref="NetMQException">If the socketError is not Success then it must be a valid recoverable error.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             if (socketError != SocketError.Success)
@@ -194,6 +220,8 @@ namespace NetMQ.Core.Transports.Tcp
 
                 Close();
 
+                // Try again to connect after a time,
+                // as long as the error is one of these..
                 if (socketError == SocketError.ConnectionRefused || socketError == SocketError.TimedOut ||
                     socketError == SocketError.ConnectionAborted ||
                     socketError == SocketError.HostUnreachable || socketError == SocketError.NetworkUnreachable ||
@@ -213,12 +241,15 @@ namespace NetMQ.Core.Transports.Tcp
 
                 m_s.NoDelay = true;
 
+                // As long as the TCP keep-alive option is not -1 (indicating no change),
                 if (m_options.TcpKeepalive != -1)
                 {
+                    // Set the TCP keep-alive option values to the underlying socket.
                     m_s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
 
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
+                        // Write the TCP keep-alive options to a byte-array, to feed to the IOControl method..
                         var bytes = new ByteArraySegment(new byte[12]);
 
                         Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
@@ -246,6 +277,10 @@ namespace NetMQ.Core.Transports.Tcp
             }
         }
 
+        /// <summary>
+        /// This is called when the timer expires - to start trying to connect.
+        /// </summary>
+        /// <param name="id">The timer-id. This is not used.</param>
         public void TimerEvent(int id)
         {
             m_timerStarted = false;

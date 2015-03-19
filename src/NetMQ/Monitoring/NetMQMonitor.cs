@@ -36,8 +36,8 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// This constructor receives an already-created monitored socket. The other constructor is preferred; this one is here to support clrzmq signature
         /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="endpoint"></param>
+        /// <param name="socket">this will be the monitoring socket</param>
+        /// <param name="endpoint">a string denoting the endpoint which will be the monitoring address</param>
         public NetMQMonitor([NotNull] NetMQSocket socket, [NotNull] string endpoint)
         {
             Endpoint = endpoint;
@@ -49,6 +49,9 @@ namespace NetMQ.Monitoring
             m_isOwner = false;
         }
 
+        /// <summary>
+        /// Occurs when a connection is made to a socket.
+        /// </summary>
         public event EventHandler<NetMQMonitorSocketEventArgs> Connected;
 
         /// <summary>
@@ -106,6 +109,10 @@ namespace NetMQ.Monitoring
         /// </summary>
         internal NetMQSocket MonitoringSocket { get; private set; }
 
+        /// <summary>
+        /// Get whether this monitor is currently running.
+        /// This is set within Start and AttachToPoller, and cleared within DetachFromPoller.
+        /// </summary>
         public bool IsRunning { get; private set; }
 
         /// <summary>
@@ -202,6 +209,7 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Start monitor the socket, the method doesn't start a new thread and will block until the monitor poll is stopped
         /// </summary>
+        /// <exception cref="InvalidOperationException">The Monitor must not have already started nor attached to a poller.</exception>
         public void Start()
         {
             // in case the sockets is created in another thread
@@ -235,6 +243,7 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Stop the socket monitoring
         /// </summary>
+        /// <exception cref="InvalidOperationException">If this monitor is attached to a poller you must detach it first and not use the stop method.</exception>
         public void Stop()
         {
             if (m_attachedPoller != null)
@@ -246,12 +255,19 @@ namespace NetMQ.Monitoring
             m_isStoppedEvent.WaitOne();
         }
 
+        /// <summary>
+        /// Release and dispose of any contained resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release and dispose of any contained resources.
+        /// </summary>
+        /// <param name="disposing">true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

@@ -56,7 +56,12 @@ namespace NetMQ.Core.Patterns
             m_options.SocketType = ZmqSocketType.Req;
         }
 
-        /// <exception cref="FiniteStateMachineException">Cannot send while awaiting reply.</exception>
+        /// <summary>
+        /// Transmit the given message. The <c>Send</c> method calls this to do the actual sending.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
+        /// <exception cref="FiniteStateMachineException">Cannot XSend on a Req while awaiting reply.</exception>
         protected override bool XSend(ref Msg msg)
         {
             // If we've sent a request and we still haven't got the reply,
@@ -97,7 +102,12 @@ namespace NetMQ.Core.Patterns
             return true;
         }
 
-        /// <exception cref="FiniteStateMachineException">Expecting send, not receive.</exception>
+        /// <summary>
+        /// Receive a message. The <c>Recv</c> method calls this lower-level method to do the actual receiving.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
+        /// <exception cref="FiniteStateMachineException">Req.XRecv expecting send, not receive.</exception>
         protected override bool XRecv(ref Msg msg)
         {
             bool isMessageAvailable;
@@ -179,6 +189,7 @@ namespace NetMQ.Core.Patterns
                 m_state = State.Identity;
             }
 
+            /// <exception cref="FaultException">ReqSession must be in a valid state when PushMsg is called.</exception>
             public override bool PushMsg(ref Msg msg)
             {
                 // TODO the flags checks here don't check specific bits -- should they use HasMore instead? does this work with shared Msg objects?

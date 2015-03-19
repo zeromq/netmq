@@ -43,6 +43,11 @@ namespace NetMQ.Core.Utils
         /// </summary>
         private class TimerInfo
         {
+            /// <summary>
+            /// Create a new TimerInfo object from the given sink and id.
+            /// </summary>
+            /// <param name="sink">an ITimerEvent that acts as a sink for when the timer expires</param>
+            /// <param name="id">an integer id that identifies this timer</param>
             public TimerInfo([NotNull] ITimerEvent sink, int id)
             {
                 Sink = sink;
@@ -101,9 +106,8 @@ namespace NetMQ.Core.Utils
         }
 
         /// <summary>
-        /// Add a TimerInfo to the internal list, to expire in the given number of milliseconds. Afterward the
-        /// expiration method TimerEvent on the sink object will be called with
-        /// argument set to id.
+        /// Add a <see cref="TimerInfo"/> to the internal list, created from the given sink and id - to expire in the given number of milliseconds.
+        /// Afterward the expiration method TimerEvent on the sink object will be called with argument set to id.
         /// </summary>
         /// <param name="timeout">the timeout-period in milliseconds of the new timer</param>
         /// <param name="sink">the IProactorEvents to add for the sink of the new timer</param>

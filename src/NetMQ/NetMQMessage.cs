@@ -133,7 +133,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Add the given message (in this case a byte-array) to this NetMQMessage, at the highest-indexed position of the frame-stack.
+        /// Add the given data (in this case a byte-array) to this NetMQMessage, at the highest-indexed position of the frame-stack.
         /// Data is not copied.
         /// </summary>
         /// <param name="buffer">a byte-array containing the message to append onto the frame-stack of this NetMQMessage</param>
@@ -143,7 +143,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Add the given message - which gets converted into a NetMQFrame - onto
+        /// Add the given string - which gets converted into a NetMQFrame - onto
         /// the highest-indexed position of the frame-stack of this NetMQMessage.
         /// </summary>
         /// <param name="message">a string containing the message to append onto the frame-stack of this NetMQMessage</param>
@@ -152,27 +152,48 @@ namespace NetMQ
             m_frames.Add(new NetMQFrame(message));
         }
 
+        /// <summary>
+        /// Add the given string - which gets converted into a NetMQFrame - onto
+        /// the highest-indexed position of the frame-stack of this NetMQMessage.
+        /// </summary>
+        /// <param name="message">a string containing the message to append onto the frame-stack of this NetMQMessage</param>
+        /// <param name="encoding">an Encoding that specifies how to convert the string into bytes</param>
         public void Append([NotNull] string message, [NotNull] Encoding encoding)
         {
             m_frames.Add(new NetMQFrame(message, encoding));
         }
 
+        /// <summary>
+        /// Convert the given integer value into an array of bytes and add it as a new frame onto this NetMQMessage.
+        /// </summary>
+        /// <param name="value">a 32-bit integer value that is to be converted into bytes and added to this message</param>
         public void Append(int value)
         {
             Append(NetworkOrderBitsConverter.GetBytes(value));
         }
 
+        /// <summary>
+        /// Convert the given long value into an array of bytes and add it as a new frame onto this NetMQMessage.
+        /// </summary>
+        /// <param name="value">a 64-bit number that is to be converted into bytes and added to this message</param>
         public void Append(long value)
         {
             Append(NetworkOrderBitsConverter.GetBytes(value));
         }
 
+        /// <summary>
+        /// Add the Data of the given Blob, as a new frame, onto this NetMQMessage.
+        /// </summary>
+        /// <param name="blob">the Blob whose data is to be added as a new frame</param>
         [Obsolete("Use NetMQFrame instead of blobs")]
         public void Append([NotNull] Blob blob)
         {
             Append(blob.Data);
         }
 
+        /// <summary>
+        /// Add an empty frame to this NetMQMessage.
+        /// </summary>
         public void AppendEmptyFrame()
         {
             m_frames.Add(NetMQFrame.Empty);
@@ -183,54 +204,105 @@ namespace NetMQ
         #region Pushing frames
 
         /// <summary>
-        /// Insert the given NetMQFrame into the lowest-indexed position of this NetMQMessage,
-        /// pushing all of the other frames upward in index-position.
-        /// The concept is the same as pushing an element onto a stack.
+        /// Push the given NetMQFrame into the frame-stack of this NetMQMessage.
         /// </summary>
-        /// <param name="frame">a NetMQFrame object comprising the frame to be pushed onto the frame-stack</param>
+        /// <param name="frame">the NetMQFrame to be inserted into the frame-stack</param>
+        /// <remarks>
+        /// The concept is the same as pushing an element onto a stack.
+        /// This inserts the given NetMQFrame into the lowest-indexed position of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// </remarks>
         public void Push([NotNull] NetMQFrame frame)
         {
             m_frames.Insert(0, frame);
         }
 
         /// <summary>
-        /// Insert the given message (in this case a byte-array) into the lowest-indexed position of this NetMQMessage,
-        /// pushing all of the other frames upward in index-position.
-        /// The concept is the same as pushing an element onto a stack.
+        /// Push a new frame containing the given byte-array into the frame-stack of this NetMQMessage.
         /// </summary>
-        /// <param name="buffer">a byte-array containing the message to push onto the NetMQMessage</param>
+        /// <param name="buffer">the byte-array to create a new frame from</param>
+        /// <remarks>
+        /// The concept is the same as pushing an element onto a stack.
+        /// This creates a new frame from the given data (in this case a byte-array) and inserts it into the lowest-indexed position of 
+        /// the collection of frames of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// </remarks>
         public void Push([NotNull] byte[] buffer)
         {
             m_frames.Insert(0, new NetMQFrame(buffer));
         }
 
         /// <summary>
-        /// Insert the given message - which gets converted into a NetMQFrame - into
-        /// the lowest-indexed position of the frame-stack of this NetMQMessage,
-        /// pushing all of the other content upward in index-position.
-        /// The concept is the same as pushing an element onto a stack.
+        /// Push a new frame containing the given string (converted into a byte-array) into the frame-stack of this NetMQMessage.
         /// </summary>
-        /// <param name="message">a string containing the message to push onto the frame-stack of this NetMQMessage</param>
+        /// <param name="message">the string to create a new frame from</param>
+        /// <remarks>
+        /// The concept is the same as pushing an element onto a stack.
+        /// This creates a new frame from the given data (in this case a string which gets converted into a byte-array using the default ASCII encoding) and inserts it into the lowest-indexed position of 
+        /// the collection of frames of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// </remarks>
         public void Push([NotNull] string message)
         {
             m_frames.Insert(0, new NetMQFrame(message));
         }
 
+        /// <summary>
+        /// Push a new frame containing the given string (converted into a byte-array) into the frame-stack of this NetMQMessage.
+        /// </summary>
+        /// <param name="message">the string to create a new frame from</param>
+        /// <param name="encoding">the Encoding that dictates how to encode the string into bytes</param>
+        /// <remarks>
+        /// The concept is the same as pushing an element onto a stack.
+        /// This creates a new frame from the given data (in this case a string which gets converted into a byte-array using the given Encoding) and inserts it into the lowest-indexed position of 
+        /// the collection of frames of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// </remarks>
         public void Push([NotNull] string message, [NotNull] Encoding encoding)
         {
             m_frames.Insert(0, new NetMQFrame(message, encoding));
         }
 
+        /// <summary>
+        /// Push a new frame containing the given integer (converted into a byte-array) into the frame-stack of this NetMQMessage.
+        /// </summary>
+        /// <param name="value">the integer to create a new frame from</param>
+        /// <remarks>
+        /// The concept is the same as pushing an element onto a stack.
+        /// This creates a new frame from the given data (in this case a 32-bit integer which gets converted into a byte-array in big-endian order) and inserts it into the lowest-indexed position of 
+        /// the collection of frames of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// </remarks>
         public void Push(int value)
         {
             Push(NetworkOrderBitsConverter.GetBytes(value));
         }
 
+        /// <summary>
+        /// Push a new frame containing the given long (converted into a byte-array) into the frame-stack of this NetMQMessage.
+        /// </summary>
+        /// <param name="value">the 64-bit number to create a new frame from</param>
+        /// <remarks>
+        /// The concept is the same as pushing an element onto a stack.
+        /// This creates a new frame from the given data (in this case a 64-bit long which gets converted into a byte-array in big-endian order) and inserts it into the lowest-indexed position of 
+        /// the collection of frames of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// </remarks>
         public void Push(long value)
         {
             Push(NetworkOrderBitsConverter.GetBytes(value));
         }
 
+        /// <summary>
+        /// Push a new frame containing the given Data of the given Blob, into the frame-stack of this NetMQMessage.
+        /// </summary>
+        /// <param name="blob">the Blob to create a new frame from</param>
+        /// <remarks>
+        /// The concept is the same as pushing an element onto a stack.
+        /// This creates a new frame from the given data (in this case taken from the Data property of the Blob) and inserts it into the lowest-indexed position of 
+        /// the collection of frames of this NetMQMessage,
+        /// pushing all of the other frames upward in index-position.
+        /// </remarks>
         [Obsolete("Use NetMQFrame instead of blobs")]
         public void Push([NotNull] Blob blob)
         {
@@ -280,11 +352,19 @@ namespace NetMQ
 
         #region IEnumerable
 
+        /// <summary>
+        /// Return an enumerator over the frames contained within this message.
+        /// </summary>
+        /// <returns>an IEnumerator over the frames in this message</returns>
         public IEnumerator<NetMQFrame> GetEnumerator()
         {
             return m_frames.GetEnumerator();
         }
 
+        /// <summary>
+        /// Return an enumerator over the frames contained within this message.
+        /// </summary>
+        /// <returns>an IEnumerator over the frames in this message</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();

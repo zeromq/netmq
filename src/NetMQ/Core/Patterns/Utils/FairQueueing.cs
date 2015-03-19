@@ -66,6 +66,10 @@ namespace NetMQ.Core.Patterns.Utils
             m_active++;
         }
 
+        /// <summary>
+        /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
+        /// </summary>
+        /// <param name="pipe">the pipe that was terminated</param>
         public void Terminated(Pipe pipe)
         {
             int index = m_pipes.IndexOf(pipe);

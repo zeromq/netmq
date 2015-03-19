@@ -383,6 +383,7 @@ namespace NetMQ
         /// If this is a Pool Msg, then this also increases the reference-counter and sets the Shared bit.
         /// </summary>
         /// <param name="src">the source Msg to copy from</param>
+        /// <exception cref="FaultException">The object is not initialised.</exception>
         public void Copy(ref Msg src)
         {
             // Check the validity of the source.
@@ -415,6 +416,7 @@ namespace NetMQ
         /// Close this Msg and make it reference the given source Msg, and then clear the Msg to empty.
         /// </summary>
         /// <param name="src">the source-Msg to become</param>
+        /// <exception cref="FaultException">The object is not initialised.</exception>
         public void Move(ref Msg src)
         {
             // Check the validity of the source.

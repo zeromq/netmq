@@ -30,7 +30,8 @@ namespace NetMQ.Core
 {
     /// <summary>
     /// Objects of class Ctx are intended to encapsulate all of the global state
-    /// associated with the NetMQ library.
+    /// associated with the NetMQ library. This contains the sockets, and manages interaction
+    /// between them.
     /// </summary>
     /// <remarks>Internal analog of the public <see cref="NetMQContext"/> class.</remarks>
     internal sealed class Ctx
@@ -47,15 +48,26 @@ namespace NetMQ.Core
         /// </summary>
         public class Endpoint
         {
+            /// <summary>
+            /// Create a new Endpoint with the given socket.
+            /// </summary>
+            /// <param name="socket">the socket for this new Endpoint</param>
+            /// <param name="options">the Options to assign to this new Endpoint</param>
             public Endpoint([NotNull] SocketBase socket, [NotNull] Options options)
             {
                 Socket = socket;
                 Options = options;
             }
 
+            /// <summary>
+            /// Get the socket associated with this Endpoint.
+            /// </summary>
             [NotNull]
             public SocketBase Socket { get; private set; }
 
+            /// <summary>
+            /// Get the Options of this Endpoint.
+            /// </summary>
             [NotNull]
             public Options Options { get; private set; }
         }
@@ -131,7 +143,7 @@ namespace NetMQ.Core
         private readonly object m_endpointsSync = new object();
 
         /// <summary>
-        /// The maximum socket ID.  CBL
+        /// The highest socket-id that has been assigned thus far.
         /// </summary>
         private static int s_maxSocketId;
 
@@ -150,12 +162,19 @@ namespace NetMQ.Core
         /// </summary>
         private readonly object m_optSync = new object();
 
+        /// <summary>
+        /// The thread-id for the termination (the equivalent of the zmq_term) thread.
+        /// </summary>
         public const int TermTid = 0;
+
+        /// <summary>
+        /// This is the thread-id to assign to the Reaper (value is 1).
+        /// </summary>
         public const int ReaperTid = 1;
 
         /// <summary>
-        /// Dump all of this object's resources by stopping and destroying all of it's threads,
-        /// destroying the reaper, and closing the mailbox.
+        /// Dump all of this object's resources
+        /// by stopping and destroying all of it's threads, destroying the reaper, and closing the mailbox.
         /// </summary>
         private void Destroy()
         {
@@ -261,12 +280,13 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// TODO
+        /// Create and return a new socket of the given type, and initialize this Ctx if this is the first one.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">the type of socket to create</param>
+        /// <returns>the newly-created socket</returns>
         /// <exception cref="TerminatingException">Cannot create new socket while terminating.</exception>
         /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
+        /// <exception cref="TerminatingException">The context (Ctx) must not be already terminating.</exception>
         [NotNull]
         public SocketBase CreateSocket(ZmqSocketType type)
         {
@@ -353,6 +373,14 @@ namespace NetMQ.Core
             }
         }
 
+        /// <summary>
+        /// Destroy the given socket - which means to remove it from the list of active sockets,
+        /// and add it to the list of unused sockets to be terminated.
+        /// </summary>
+        /// <param name="socket">the socket to destroy</param>
+        /// <remarks>
+        /// If this was the last socket, then stop the reaper.
+        /// </remarks>
         public void DestroySocket([NotNull] SocketBase socket)
         {
             // Free the associated thread slot.
@@ -423,41 +451,51 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// Save the given addr and Endpoint within our internal list.
+        /// Save the given address and Endpoint within our internal list.
         /// This is used for management of inproc endpoints.
         /// </summary>
-        /// <param name="addr">the textual name to give this endpoint</param>
+        /// <param name="address">the textual name to give this endpoint</param>
         /// <param name="endpoint">the Endpoint to remember</param>
-        /// <returns>true if the given addr was NOT already registered</returns>
-        public bool RegisterEndpoint([NotNull] string addr, [NotNull] Endpoint endpoint)
+        /// <returns>true if the given address was NOT already registered</returns>
+        public bool RegisterEndpoint([NotNull] string address, [NotNull] Endpoint endpoint)
         {
             lock (m_endpointsSync)
             {
-                if (m_endpoints.ContainsKey(addr))
+                if (m_endpoints.ContainsKey(address))
                     return false;
 
-                m_endpoints[addr] = endpoint;
+                m_endpoints[address] = endpoint;
                 return true;
             }
         }
 
-        public bool UnregisterEndpoint([NotNull] string addr, [NotNull] SocketBase socket)
+        /// <summary>
+        /// Un-register the given address/socket, by removing it from the contained list of endpoints.
+        /// </summary>
+        /// <param name="address">the (string) address denoting the endpoint to unregister</param>
+        /// <param name="socket">the socket associated with that endpoint</param>
+        /// <returns>true if the endpoint having this address and socket is found, false otherwise</returns>
+        public bool UnregisterEndpoint([NotNull] string address, [NotNull] SocketBase socket)
         {
             lock (m_endpointsSync)
             {
                 Endpoint endpoint;
-                
-                if (!m_endpoints.TryGetValue(addr, out endpoint))
+
+                if (!m_endpoints.TryGetValue(address, out endpoint))
                     return false;
-                
+
                 if (socket != endpoint.Socket)
                     return false;
 
-                m_endpoints.Remove(addr);
+                m_endpoints.Remove(address);
                 return true;
             }
         }
 
+        /// <summary>
+        /// Remove from the list of endpoints, all endpoints that reference the given socket.
+        /// </summary>
+        /// <param name="socket">the socket to remove all references to</param>
         public void UnregisterEndpoints([NotNull] SocketBase socket)
         {
             lock (m_endpointsSync)
@@ -470,11 +508,15 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// TODO
+        /// Return the EndPoint that has the given address, and increments the seqnum of the associated socket.
         /// </summary>
-        /// <param name="addr"></param>
-        /// <returns></returns>
+        /// <param name="address">the (string) address to match against the endpoints</param>
+        /// <returns>the Endpoint that was found</returns>
         /// <exception cref="EndpointNotFoundException">The given address was not found in the list of endpoints.</exception>
+        /// <remarks>
+        /// By calling this method, the socket associated with that returned EndPoint has it's Seqnum incremented,
+        /// in order to prevent it from being de-allocated before a command can be sent to it.
+        /// </remarks>
         [NotNull]
         public Endpoint FindEndpoint([NotNull] string addr)
         {

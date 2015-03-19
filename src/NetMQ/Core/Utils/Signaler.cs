@@ -59,6 +59,9 @@ namespace NetMQ.Core.Utils
             m_readSocket.Blocking = false;
         }
 
+        /// <summary>
+        /// Close the read and write sockets.
+        /// </summary>
         public void Close()
         {
             try

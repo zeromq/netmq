@@ -58,6 +58,7 @@ namespace NetMQ
         /// Create a new NetMQFrame with a data-buffer pre-sized to the given length.
         /// </summary>
         /// <param name="length">the number of bytes to allocate for the data-buffer</param>
+        /// <exception cref="ArgumentOutOfRangeException">length must be non-negative (zero or positive).</exception>
         public NetMQFrame(int length)
         {
             if (length < 0)
@@ -72,6 +73,7 @@ namespace NetMQ
         /// <summary>
         /// Get or set the size of the message data contained in the frame, which here represents the number of bytes.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">The value must be between zero and BufferSize.</exception>
         public int MessageSize
         {
             get { return m_messageSize; }
@@ -277,6 +279,12 @@ namespace NetMQ
             return Equals(obj as NetMQFrame);
         }
 
+        /// <summary>
+        /// Return true if this one and the other NetMQFrame are equal, or both are null.
+        /// </summary>
+        /// <param name="one">one frame to compare against the other</param>
+        /// <param name="other">the other frame to compare</param>
+        /// <returns>true if both frames are equal</returns>
         public static bool operator ==(NetMQFrame one, NetMQFrame other)
         {
             // NOTE use of ReferenceEquals here to avoid recurrence and stack overflow exception
@@ -287,6 +295,12 @@ namespace NetMQ
             return !ReferenceEquals(one, null) && one.Equals(other);
         }
 
+        /// <summary>
+        /// Return true if this one and the other NetMQFrame NOT are equal.
+        /// </summary>
+        /// <param name="one">one frame to compare against the other</param>
+        /// <param name="other">the other frame to compare</param>
+        /// <returns>false if both frames are equal</returns>
         public static bool operator !=(NetMQFrame one, NetMQFrame other)
         {
             return !(one == other);

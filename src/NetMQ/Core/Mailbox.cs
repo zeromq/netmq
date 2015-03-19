@@ -153,6 +153,10 @@ namespace NetMQ.Core
         [NotNull] private readonly string m_name;
 #endif
 
+        /// <summary>
+        /// Create a new Mailbox with the given name.
+        /// </summary>
+        /// <param name="name">the name to give this new Mailbox</param>
         public Mailbox([NotNull] string name)
         {
             // Get the pipe into passive state. That way, if the users starts by
@@ -171,12 +175,19 @@ namespace NetMQ.Core
 #endif
         }
 
+        /// <summary>
+        /// Get the socket-handle contained by the Signaler.
+        /// </summary>
         [NotNull]
         public Socket Handle
         {
             get { return m_signaler.Handle; }
         }
 
+        /// <summary>
+        /// Send the given Command out accross the command-pipe.
+        /// </summary>
+        /// <param name="cmd">the Command to send</param>
         public void Send(Command cmd)
         {
             bool ok;
@@ -195,6 +206,11 @@ namespace NetMQ.Core
             }
         }
 
+        /// <summary>
+        /// Receive and return a Command from the command-pipe.
+        /// </summary>
+        /// <param name="timeout">how long to wait for a command (in milliseconds) before returning</param>
+        /// <returns>the Command that was received</returns>
         [CanBeNull]
         public Command Recv(int timeout)
         {
@@ -229,12 +245,19 @@ namespace NetMQ.Core
             return cmd;
         }
 
+        /// <summary>
+        /// Close the contained Signaler.
+        /// </summary>
         public void Close()
         {
             m_signaler.Close();
         }
 
 #if DEBUG
+        /// <summary>
+        /// Override ToString to provide the type-name, plus the Mailbox name within brackets.
+        /// </summary>
+        /// <returns>a string of the form Mailbox[name]</returns>
         public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";

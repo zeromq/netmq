@@ -10,6 +10,10 @@ namespace NetMQ
     /// </summary>
     public interface IShimHandler
     {
+        /// <summary>
+        /// Execute whatever action this <c>IShimHandler</c> represents against the given shim.
+        /// </summary>
+        /// <param name="shim"></param>
         void Run([NotNull] PairSocket shim);
     }
 
@@ -34,8 +38,18 @@ namespace NetMQ
         public NetMQActor Actor { get; private set; }
     }
 
+    /// <summary>
+    /// This delegate represents the action for this actor to execute.
+    /// </summary>
+    /// <param name="shim">the <seealso cref="PairSocket"/> that is the shim to execute this action</param>
     public delegate void ShimAction(PairSocket shim);
 
+    /// <summary>
+    /// This delegate represents the action for this actor to execute - along with a state-information object.
+    /// </summary>
+    /// <typeparam name="T">the type to use for the state-information object</typeparam>
+    /// <param name="shim">the <seealso cref="PairSocket"/> that is the shim to execute this action</param>
+    /// <param name="state">the state-information that the action will use</param>
     public delegate void ShimAction<in T>(PairSocket shim, T state);
 
     /// <summary>
@@ -46,6 +60,7 @@ namespace NetMQ
     public class NetMQActor : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
         /// <summary>
+        /// The terminate-shim command.
         /// This is just the literal string "endPipe".
         /// </summary>
         public const string EndShimMessage = "endPipe";
@@ -57,12 +72,22 @@ namespace NetMQ
             private readonly ShimAction<T> m_action;
             private readonly T m_state;
 
+            /// <summary>
+            /// Create a new ActionShimHandler with the given type T to serve as the state-information,
+            /// and the given action to operate upon that type.
+            /// </summary>
+            /// <param name="action">a ShimAction of type T that comprises the action to perform</param>
+            /// <param name="state">the state-information</param>
             public ActionShimHandler(ShimAction<T> action, T state)
             {
                 m_action = action;
                 m_state = state;
             }
 
+            /// <summary>
+            /// Perform the action upon the given shim, using our state-information.
+            /// </summary>
+            /// <param name="shim">a <see cref="PairSocket"/> that is the shim to perform the action upon</param>
             public void Run([NotNull] PairSocket shim)
             {
                 m_action(shim, m_state);
@@ -73,11 +98,19 @@ namespace NetMQ
         {
             private readonly ShimAction m_action;
 
+            /// <summary>
+            /// Create a new ActionShimHandler with a given action to operate upon that type.
+            /// </summary>
+            /// <param name="action">a ShimAction that comprises the action to perform</param>
             public ActionShimHandler(ShimAction action)
             {
                 m_action = action;
             }
 
+            /// <summary>
+            /// Perform the action upon the given shim, using our state-information.
+            /// </summary>
+            /// <param name="shim">a <see cref="PairSocket"/> that is the shim to perform the action upon</param>
             public void Run([NotNull] PairSocket shim)
             {
                 m_action(shim);
@@ -141,18 +174,37 @@ namespace NetMQ
             m_self.ReceiveSignal();
         }
 
+        /// <summary>
+        /// Create a new <c>NetMQActor</c> with the given context and shimHandler.
+        /// </summary>
+        /// <param name="context">the context for this actor to live within</param>
+        /// <param name="shimHandler">an <c>IShimHandler</c> that provides the Run method</param>
+        /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
         public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
         {
             return new NetMQActor(context, shimHandler);
         }
 
+        /// <summary>
+        /// Create a new <c>NetMQActor</c> with the given context, action, and state-information.
+        /// </summary>
+        /// <param name="context">the context for this actor to live within</param>
+        /// <param name="action">a <c>ShimAction</c> - delegate for the action to perfrom</param>
+        /// <param name="state">the state-information - of the generic type T</param>
+        /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
         public static NetMQActor Create<T>([NotNull] NetMQContext context, [NotNull] ShimAction<T> action, T state)
         {
             return new NetMQActor(context, new ActionShimHandler<T>(action, state));
         }
 
+        /// <summary>
+        /// Create a new <c>NetMQActor</c> with the given context and <see cref="ShimAction"/>.
+        /// </summary>
+        /// <param name="context">the context for this actor to live within</param>
+        /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
+        /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
         public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] ShimAction action)
         {
@@ -161,6 +213,9 @@ namespace NetMQ
 
         #endregion
 
+        /// <summary>
+        /// Execute the shimhandler's Run method, signal ok and then dispose of the shim.
+        /// </summary>
         private void RunShim()
         {
             try
@@ -184,10 +239,10 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Transmit the given Msg over this socket.
+        /// Transmit the given Msg over this actor's own socket.
         /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="options"></param>
+        /// <param name="msg">the <c>Msg</c> to transmit</param>
+        /// <param name="options">this denotes any of the DontWait and SendMore flags be set</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
         /// <exception cref="AgainException">The send operation timed out.</exception>
@@ -205,6 +260,12 @@ namespace NetMQ
             m_self.Receive(ref msg, options);
         }
 
+        /// <summary>
+        /// Attempt to receive a message for the specified period of time, returning true if successful or false if it times-out.
+        /// </summary>
+        /// <param name="msg">a <c>Msg</c> to write the received message into</param>
+        /// <param name="timeout">a <c>TimeSpan</c> specifying how long to block, waiting for a message, before timing out</param>
+        /// <returns>true only if a message was indeed received</returns>
         public bool TryReceive(ref Msg msg, TimeSpan timeout)
         {
             return m_self.TryReceive(ref msg, timeout);
@@ -251,12 +312,19 @@ namespace NetMQ
 
         #region Disposing
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        /// <param name="disposing">true if managed resources are to be released</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

@@ -37,12 +37,12 @@
         Rep = 4,
 
         /// <summary>
-        /// This denotes an Dealer socket (CBL)
+        /// This denotes an Dealer socket.
         /// </summary>
         Dealer = 5,
 
         /// <summary>
-        /// This denotes an Router socket (CBL)
+        /// This denotes an Router socket.
         /// </summary>
         Router = 6,
 
@@ -57,14 +57,18 @@
         Push = 8,
 
         /// <summary>
-        /// This denotes an XPublisher socket (CBL)
+        /// This denotes an XPublisher socket.
         /// </summary>
         Xpub = 9,
 
         /// <summary>
-        /// This denotes an XSubscriber socket (CBL)
+        /// This denotes an XSubscriber socket.
         /// </summary>
         Xsub = 10,
+
+        /// <summary>
+        /// This denotes a Stream socket - which is a parent-class to the other socket types.
+        /// </summary>
         Stream = 11
     }
 }

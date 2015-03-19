@@ -1,8 +1,8 @@
 ﻿namespace NetMQ.Security.V0_1.HandshakeMessages
 {
     /// <summary>
-    /// The ServerHelloMessage is a HandshakeMessage with a HandshakeType of ServerHello.
-    /// It holds a RandomNumber and a CipherSuite, both of which are gleaned from
+    /// The ServerHelloMessage is a HandshakeMessage with a <see cref="HandshakeType"/>of ServerHello.
+    /// It holds a RandomNumber and a <see cref="CipherSuite"/>, both of which are gleaned from
     /// a NetMQMessage in the override of SetFromNetMQMessage.
     /// </summary>
     class ServerHelloMessage : HandshakeMessage
@@ -16,6 +16,9 @@
             get { return HandshakeType.ServerHello; }
         }
 
+        /// <summary>
+        /// Get or set the Random-Number that is a part of the handshake-protocol, as a byte-array.
+        /// </summary>
         public byte[] RandomNumber { get; set; }
 
         /// <summary>
@@ -25,11 +28,12 @@
 
         /// <summary>
         /// Remove the three frames from the given NetMQMessage, interpreting them thusly:
-        /// 1. a byte with the HandshakeType,
+        /// 1. a byte with the <see cref="HandshakeType"/>,
         /// 2. RandomNumber (a byte-array),
-        /// 3. a 2-byte array with the CipherSuite in the 2nd byte.
+        /// 3. a 2-byte array with the <see cref="CipherSuite"/> in the 2nd byte.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 3 frames</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must be 2.</exception>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);
@@ -50,7 +54,7 @@
 
         /// <summary>
         /// Return a new NetMQMessage that holds three frames:
-        /// 1. contains a byte with the HandshakeType,
+        /// 1. contains a byte with the <see cref="HandshakeType"/>,
         /// 2. contains the RandomNumber (a byte-array),
         /// 3. contains a 2-byte array containing zero, and a byte representing the CipherSuite.
         /// </summary>

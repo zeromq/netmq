@@ -89,6 +89,7 @@ namespace NetMQ.Core.Utils
 
         private int m_nextGlobalIndex;
 
+        /// <param name="chunkSize">the size to give the new YQueue</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="chunkSize"/> should be no less than 2</exception>
         public YQueue(int chunkSize)
         {

@@ -29,32 +29,37 @@ namespace NetMQ.Core
     internal sealed class Address
     {
         /// <summary>
-        /// This is the string-literal "inproc".
+        /// The string-literal "inproc"
+        /// - this denotes in-process, or inter-thread, communication.
         /// </summary>
         public const string InProcProtocol = "inproc";
 
         /// <summary>
-        /// This is the string-literal "tcp".
+        /// The string-literal "tcp"
+        /// - this denotes TCP communication over the network.
         /// </summary>
         public const string TcpProtocol = "tcp";
 
         /// <summary>
-        /// This is the string-literal "ipc".
+        /// The string-literal "ipc"
+        /// - this denotes inter-process communication, which on NetMQ is exactly the same as TCP.
         /// </summary>
         public const string IpcProtocol = "ipc";
 
         /// <summary>
-        /// This is the string-literal "pgm".
+        /// The string-literal "pgm"
+        /// - this denotes the Pragmatic General Multicast (PGM) reliable multicast protocol.
         /// </summary>
         public const string PgmProtocol = "pgm";
 
         /// <summary>
-        /// This is the string-literal "epgm".
+        /// The string-literal "epgm"
+        /// - this denotes the Encapsulated PGM protocol.
         /// </summary>
         public const string EpgmProtocol = "epgm";
 
         /// <summary>
-        /// interface IZAddress specifies that Resolve and property Address must be implemented.
+        /// Interface IZAddress specifies that Resolve and property Address must be implemented.
         /// </summary>
         public interface IZAddress
         {

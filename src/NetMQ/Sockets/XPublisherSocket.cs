@@ -11,7 +11,7 @@ namespace NetMQ.Sockets
     public class XPublisherSocket : NetMQSocket
     {
         /// <summary>
-        /// Create a new XPublisherSocket based upon the given SocketBase.
+        /// Create a new XPublisherSocket based upon the given <see cref="SocketBase"/>.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>
         internal XPublisherSocket(SocketBase socketHandle)

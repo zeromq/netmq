@@ -6,7 +6,14 @@
     /// </summary>
     public enum Endianness
     {
+        /// <summary>
+        /// Most-significant bits are placed first in memory.
+        /// </summary>
         Big,
+
+        /// <summary>
+        /// Most-significant bits are placed last in memory.
+        /// </summary>
         Little
     }
 }

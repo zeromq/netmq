@@ -12,7 +12,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new NetMQSocketEventArgs referencing the given socket.
         /// </summary>
-        /// <param name="socket">the NetMQSocket that this is about</param>
+        /// <param name="socket">the NetMQSocket that this is in reference to</param>
         public NetMQSocketEventArgs([NotNull] NetMQSocket socket)
         {
             Socket = socket;
@@ -28,6 +28,9 @@ namespace NetMQ
             IsReadyToSend = events.HasOut();
         }
 
+        /// <summary>
+        /// Get the NetMQSocket that this references.
+        /// </summary>
         [NotNull]
         public NetMQSocket Socket { get; private set; }
 

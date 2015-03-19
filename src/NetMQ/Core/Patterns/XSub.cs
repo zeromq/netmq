@@ -129,16 +129,29 @@ namespace NetMQ.Core.Patterns
             pipe.Flush();
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for reading by this socket.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for reading</param>
         protected override void XReadActivated(Pipe pipe)
         {
             m_fairQueueing.Activated(pipe);
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for writing to by this socket.
+        /// This gets called by the WriteActivated method.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected override void XWriteActivated(Pipe pipe)
         {
             m_distribution.Activated(pipe);
         }
 
+        /// <summary>
+        /// This is an override of the abstract method that gets called to signal that the given pipe is to be removed from this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe that is being removed</param>
         protected override void XTerminated(Pipe pipe)
         {
             m_fairQueueing.Terminated(pipe);
@@ -152,6 +165,11 @@ namespace NetMQ.Core.Patterns
             pipe.Flush();
         }
 
+        /// <summary>
+        /// Transmit the given message. The <c>Send</c> method calls this to do the actual sending.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
         protected override bool XSend(ref Msg msg)
         {
             byte[] data = msg.Data;
@@ -194,6 +212,11 @@ namespace NetMQ.Core.Patterns
             return true;
         }
 
+        /// <summary>
+        /// Receive a message. The <c>Recv</c> method calls this lower-level method to do the actual receiving.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
             // If there's already a message prepared by a previous call to zmq_poll,
