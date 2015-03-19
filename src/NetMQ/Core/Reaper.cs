@@ -20,6 +20,7 @@
 
 using System;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
@@ -33,17 +34,17 @@ namespace NetMQ.Core
         /// <summary>
         /// Reaper thread accesses incoming commands via this mailbox.
         /// </summary>
-        private readonly Mailbox m_mailbox;
+        [NotNull] private readonly Mailbox m_mailbox;
 
         /// <summary>
         /// This is a Socket, used as the handle associated with the mailbox's file descriptor.
         /// </summary>
-        private readonly Socket m_mailboxHandle;
+        [NotNull] private readonly Socket m_mailboxHandle;
 
         /// <summary>
         /// I/O multiplexing is performed using a poller object.
         /// </summary>
-        private readonly Utils.Poller m_poller;
+        [NotNull] private readonly Utils.Poller m_poller;
 
         /// <summary>
         /// Number of sockets being reaped at the moment.
@@ -62,7 +63,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="ctx">the Ctx for this to be in</param>
         /// <param name="threadId">an integer id to give to the thread this will live on</param>
-        public Reaper(Ctx ctx, int threadId)
+        public Reaper([NotNull] Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
             m_sockets = 0;
@@ -90,6 +91,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Get the Mailbox that this Reaper uses for communication with the rest of the message-queueing subsystem.
         /// </summary>
+        [NotNull]
         public Mailbox Mailbox
         {
             get { return m_mailbox; }
