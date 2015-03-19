@@ -441,7 +441,7 @@ namespace NetMQ.Security.V0_1
 
                 if (!m_decryptionHMAC.Hash.SequenceEqual(mac))
                 {
-                    throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "MAC not matched message");
+                    throw new NetMQSecurityException(NetMQSecurityErrorCode.MACNotMatched, "MAC does not match message");
                 }
 
                 for (int i = 0; i < padding.Length; i++)

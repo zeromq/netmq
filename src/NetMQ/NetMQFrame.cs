@@ -303,7 +303,7 @@ namespace NetMQ
         /// <returns>false if both frames are equal</returns>
         public static bool operator !=(NetMQFrame one, NetMQFrame other)
         {
-            return !(one == other);
+           return !(one == other);
         }
 
         /// <summary>
