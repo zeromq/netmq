@@ -83,6 +83,7 @@ namespace NetMQ.Core
         RouterRawSocket = 41,
         XPublisherManual = 42,
         XPublisherWelcomeMessage = 43,
+        DisableTimeWait = 44,
 
         /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.

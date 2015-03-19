@@ -148,6 +148,10 @@ namespace NetMQ.Core.Transports.Tcp
 
             // start accepting socket async
             m_handle.Accept(m_acceptedSocket);
+
+            // Disable TIME_WAIT tcp state
+            if (m_options.DisableTimeWait)
+                m_handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 0);
         }
 
         public void InCompleted(SocketError socketError, int bytesTransferred)

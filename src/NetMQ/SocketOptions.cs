@@ -245,5 +245,11 @@ namespace NetMQ
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherManual, value); }
         }
+
+        public bool DisableTimeWait
+        {
+            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DisableTimeWait); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.DisableTimeWait, value); }
+        }
     }
 }
