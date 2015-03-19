@@ -44,76 +44,15 @@ namespace NetMQ
         [NotNull]
         public static NetMQException Create(SocketError error, [CanBeNull] Exception innerException = null)
         {
-            ErrorCode errorCode;
+            var errorCode = error.ToErrorCode();
 
-            switch (error)
-            {
-                case SocketError.AccessDenied:
-                    errorCode = ErrorCode.AccessDenied;
-                    break;
-                case SocketError.Fault:
-                    errorCode = ErrorCode.Fault;
-                    break;
-                case SocketError.InvalidArgument:
-                    errorCode = ErrorCode.Invalid;
-                    break;
-                case SocketError.TooManyOpenSockets:
-                    errorCode = ErrorCode.TooManyOpenSockets;
-                    break;
-                case SocketError.InProgress:
-                    errorCode = ErrorCode.TryAgain;
-                    break;
-                case SocketError.MessageSize:
-                    errorCode = ErrorCode.MessageSize;
-                    break;
-                case SocketError.ProtocolNotSupported:
-                    errorCode = ErrorCode.ProtocolNotSupported;
-                    break;
-                case SocketError.AddressFamilyNotSupported:
-                    errorCode = ErrorCode.AddressFamilyNotSupported;
-                    break;
-                case SocketError.AddressNotAvailable:
-                    errorCode = ErrorCode.AddressNotAvailable;
-                    break;
-                case SocketError.NetworkDown:
-                    errorCode = ErrorCode.NetworkDown;
-                    break;
-                case SocketError.NetworkUnreachable:
-                    errorCode = ErrorCode.NetworkUnreachable;
-                    break;
-                case SocketError.NetworkReset:
-                    errorCode = ErrorCode.NetworkReset;
-                    break;
-                case SocketError.ConnectionAborted:
-                    errorCode = ErrorCode.ConnectionAborted;
-                    break;
-                case SocketError.ConnectionReset:
-                    errorCode = ErrorCode.ConnectionReset;
-                    break;
-                case SocketError.NoBufferSpaceAvailable:
-                    errorCode = ErrorCode.NoBufferSpaceAvailable;
-                    break;
-                case SocketError.NotConnected:
-                    errorCode = ErrorCode.NotConnected;
-                    break;
-                case SocketError.TimedOut:
-                    errorCode = ErrorCode.TimedOut;
-                    break;
-                case SocketError.ConnectionRefused:
-                    errorCode = ErrorCode.ConnectionRefused;
-                    break;
-                case SocketError.HostUnreachable:
-                    errorCode = ErrorCode.HostUnreachable;
-                    break;
-                default:
-                    errorCode = 0; // to indicate no valid SocketError.
 #if DEBUG
-                    string s = string.Format("(And within NetMQException.Create: Unanticipated error-code: {0})", error.ToString());
-                    return Create(errorCode: errorCode, message: s, innerException: innerException);
-#else
-                    break;
-#endif
+            if (errorCode == 0)
+            {
+                var s = string.Format("(And within NetMQException.Create: Unanticipated error-code: {0})", error.ToString());
+                return Create(errorCode: errorCode, message: s, innerException: innerException);
             }
+#endif
 
             return Create(errorCode, innerException);
         }
