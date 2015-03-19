@@ -107,9 +107,6 @@ namespace NetMQ.Core.Patterns
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Xpub;
-            m_verbose = false;
-            m_manual = false;
-            m_more = false;
 
             m_welcomeMessage = new Msg();
             m_welcomeMessage.InitEmpty();

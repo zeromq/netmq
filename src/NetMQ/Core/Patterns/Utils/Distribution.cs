@@ -63,10 +63,6 @@ namespace NetMQ.Core.Patterns.Utils
         /// </summary>
         public Distribution()
         {
-            m_matching = 0;
-            m_active = 0;
-            m_eligible = 0;
-            m_more = false;
             m_pipes = new List<Pipe>();
         }
 

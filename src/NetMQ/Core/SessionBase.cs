@@ -167,15 +167,8 @@ namespace NetMQ.Core
             m_ioObject = new IOObject(ioThread);
 
             m_connect = connect;
-            m_pipe = null;
-            m_incompleteIn = false;
-            m_pending = false;
-            m_engine = null;
             m_socket = socket;
             m_ioThread = ioThread;
-            m_hasLingerTimer = false;
-            m_identitySent = false;
-            m_identityReceived = false;
             m_addr = addr;
 
             if (options.RawSocket)
