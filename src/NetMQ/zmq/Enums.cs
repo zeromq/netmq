@@ -332,7 +332,13 @@ namespace NetMQ.zmq
         /// </remarks>
         DelayAttachOnConnect = 39,
 
+        /// <summary>
+        /// This applies only to XPub sockets.
+        /// If true, send all subscription messages upstream, not just unique ones.
+        /// The default is false.
+        /// </summary>
         XpubVerbose = 40,
+
         RouterRawSocket = 41,
         XPublisherManual = 42,
 

@@ -110,14 +110,15 @@ namespace NetMQ.zmq
         [NotNull] private readonly IOObject m_ioObject;
 
         /// <summary>
-        /// 
+        /// Create a return a new session.
+        /// The specific subclass of SessionBase that is created is dictated by the SocketType specified by the options argument.
         /// </summary>
-        /// <param name="ioThread"></param>
-        /// <param name="connect"></param>
-        /// <param name="socket"></param>
-        /// <param name="options"></param>
-        /// <param name="addr"></param>
-        /// <returns></returns>
+        /// <param name="ioThread">the <c>IOThread</c> for this session to run in</param>
+        /// <param name="connect">whether to immediately connect</param>
+        /// <param name="socket">the socket to connect</param>
+        /// <param name="options">an <c>Options</c> that provides the SocketType that dictates which type of session to create</param>
+        /// <param name="addr">an <c>Address</c> object that specifies the protocol and address to connect to</param>
+        /// <returns>the newly-created instance of whichever subclass of SessionBase is specified by the options</returns>
         /// <exception cref="InvalidException">The socket must be of the correct type.</exception>
         /// <remarks>
         /// The socket type may be any of these types:

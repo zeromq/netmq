@@ -37,6 +37,9 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.Affinity, value); }
         }
 
+        /// <summary>
+        /// Unused.
+        /// </summary>
         [Obsolete("This property doesn't effect NetMQ anymore")]
         public bool CopyMessages
         {
@@ -261,6 +264,10 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.IPv4Only, value); }
         }
 
+        /// <summary>
+        /// Get the last endpoint bound for TCP and IPC transports.
+        /// The returned value will be a string in the form of a ZMQ DSN.
+        /// </summary>
         [Obsolete("Use LastEndpoint instead")]
         [CanBeNull]
         public string GetLastEndpoint
@@ -269,7 +276,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get or set the last endpoint bound for TCP and IPC transports.
+        /// Get the last endpoint bound for TCP and IPC transports.
         /// The returned value will be a string in the form of a ZMQ DSN.
         /// </summary>
         /// <remarks>
@@ -307,6 +314,9 @@ namespace NetMQ
             // See  http://api.zeromq.org/3-2:zmq-getsockopt
         }
 
+        /// <summary>
+        /// Unused
+        /// </summary>
         [Obsolete("This option is not supported and has no effect")]
         public int TcpKeepaliveCnt
         {
@@ -374,6 +384,11 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.DelayAttachOnConnect, value); }
         }
 
+        /// <summary>
+        /// This applies only to publisher sockets.
+        /// Set whether to send all subscription messages upstream, not just unique ones.
+        /// The default is false.
+        /// </summary>
         public bool XPubVerbose
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.XpubVerbose, value); }

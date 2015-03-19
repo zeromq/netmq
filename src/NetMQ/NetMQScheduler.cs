@@ -108,6 +108,10 @@ namespace NetMQ
             return m_schedulerThread.Value && TryExecuteTask(task);
         }
 
+        /// <summary>
+        /// Get the maximum level of concurrency used in the scheduling.
+        /// This is simply the value 1, and is not presently used anywhere within NetMQ.
+        /// </summary>
         public override int MaximumConcurrencyLevel
         {
             get { return 1; }
@@ -163,9 +167,13 @@ namespace NetMQ
             m_clientSocket.Dispose();
         }
 
+        /// <summary>
+        /// Return a collection of the scheduled Tasks.  (Not supported - for debug purposes only)
+        /// </summary>
+        /// <returns></returns>
         protected override IEnumerable<Task> GetScheduledTasks()
         {
-            // this is not supported, also it's only important for debug propose and doesn't get called in real time
+            // this is not supported, also it's only important for debug proposes and doesn't get called in real time.
             throw new NotSupportedException();
         }
 

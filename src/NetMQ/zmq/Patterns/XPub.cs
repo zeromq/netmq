@@ -38,16 +38,26 @@ namespace NetMQ.zmq.Patterns
             {}
         }
 
-        //  List of all subscriptions mapped to corresponding pipes.
+        /// <summary>
+        /// List of all subscriptions mapped to corresponding pipes.
+        /// </summary>
         private readonly MultiTrie m_subscriptions;
 
-        //  Distributor of messages holding the list of outbound pipes.
+        /// <summary>
+        /// Distributor of messages holding the list of outbound pipes.
+        /// </summary>
         private readonly Distribution m_distribution;
 
-        // If true, send all subscription messages upstream, not just
-        // unique ones
+        /// <summary>
+        /// If true, send all subscription messages upstream, not just
+        /// unique ones. The default is false.
+        /// </summary>
         private bool m_verbose;
 
+        /// <summary>
+        /// 
+        /// The default value is false.
+        /// </summary>
         private bool m_manual;
 
         private Pipe m_lastPipe;
@@ -59,8 +69,10 @@ namespace NetMQ.zmq.Patterns
         /// </summary>
         private bool m_more;
 
-        //  List of pending (un)subscriptions, ie. those that were already
-        //  applied to the trie, but not yet received by the user.
+        /// <summary>
+        /// List of pending (un)subscriptions, ie. those that were already
+        /// applied to the trie, but not yet received by the user.
+        /// </summary>
         private readonly Queue<byte[]> m_pending;
 
         private static readonly MultiTrie.MultiTrieDelegate s_markAsMatching;
@@ -96,9 +108,6 @@ namespace NetMQ.zmq.Patterns
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Xpub;
-            m_verbose = false;
-            m_manual = false;
-            m_more = false;
 
             m_welcomeMessage = new Msg();
             m_welcomeMessage.InitEmpty();
@@ -194,11 +203,11 @@ namespace NetMQ.zmq.Patterns
         }
 
         /// <summary>
-        /// 
+        /// Set the specified option on this socket.
         /// </summary>
-        /// <param name="option"></param>
-        /// <param name="optionValue"></param>
-        /// <returns></returns>
+        /// <param name="option">which option to set</param>
+        /// <param name="optionValue">the value to set the option to</param>
+        /// <returns><c>true</c> if successful</returns>
         /// <exception cref="InvalidException">optionValue must be a byte-array.</exception>
         protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
         {
@@ -317,7 +326,6 @@ namespace NetMQ.zmq.Patterns
 
             return true;
         }
-
 
         protected override bool XHasOut()
         {

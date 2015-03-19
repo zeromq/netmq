@@ -36,8 +36,8 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// This constructor receives an already-created monitored socket. The other constructor is preferred; this one is here to support clrzmq signature
         /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="endpoint"></param>
+        /// <param name="socket">this will be the monitoring socket</param>
+        /// <param name="endpoint">a string denoting the endpoint which will be the monitoring address</param>
         public NetMQMonitor([NotNull] NetMQSocket socket, [NotNull] string endpoint)
         {
             Endpoint = endpoint;
@@ -49,6 +49,9 @@ namespace NetMQ.Monitoring
             m_isOwner = false;
         }
 
+        /// <summary>
+        /// Occurs when a connection is made to a socket.
+        /// </summary>
         public event EventHandler<NetMQMonitorSocketEventArgs> Connected;
 
         /// <summary>
@@ -106,6 +109,10 @@ namespace NetMQ.Monitoring
         /// </summary>
         internal NetMQSocket MonitoringSocket { get; private set; }
 
+        /// <summary>
+        /// Get whether this monitor is currently running.
+        /// This is set within Start and AttachToPoller, and cleared within DetachFromPoller.
+        /// </summary>
         public bool IsRunning { get; private set; }
 
         /// <summary>

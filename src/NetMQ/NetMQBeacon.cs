@@ -425,8 +425,8 @@ namespace NetMQ
         /// Blocks until a string is received. As the returning of this method is uncontrollable, it's
         /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
         /// </summary>
-        /// <param name="peerName"></param>
-        /// <returns></returns>
+        /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
+        /// <returns>the string that was received</returns>
         [NotNull]
         public string ReceiveString(out string peerName)
         {
@@ -435,6 +435,14 @@ namespace NetMQ
             return m_actor.ReceiveFrameString();
         }
 
+        /// <summary>
+        /// Attempt to receive a message from the specified peer for the specified amount of time.
+        /// </summary>
+        /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
+        /// <param name="peerName">the name of the peer that the message comes from is written to this string</param>
+        /// <param name="message">the string to write the received message into</param>
+        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
+        /// otherwise <c>false</c>.</returns>
         public bool TryReceiveString(TimeSpan timeout, out string peerName, out string message)
         {
             if (!m_actor.TryReceiveFrameString(timeout, out peerName))
@@ -446,6 +454,12 @@ namespace NetMQ
             return m_actor.TryReceiveFrameString(timeout, out message);
         }
 
+        /// <summary>
+        /// Blocks until a message is received. As the returning of this method is uncontrollable, it's
+        /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
+        /// </summary>
+        /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
+        /// <returns>the byte-array of data that was received</returns>
         [NotNull]
         public byte[] Receive(out string peerName)
         {
