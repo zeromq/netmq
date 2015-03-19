@@ -151,7 +151,7 @@ namespace NetMQ.Core.Transports.Tcp
 
             // Disable TIME_WAIT tcp state
             if (m_options.DisableTimeWait)
-                m_handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 0);
+                m_handle.LingerState = new LingerOption(true, 0);
         }
 
         public void InCompleted(SocketError socketError, int bytesTransferred)
