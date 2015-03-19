@@ -138,7 +138,7 @@ namespace NetMQ.Core.Transports.Pgm
                 {
                     Debug.Assert(false);
 
-                    throw NetMQException.Create(ErrorHelper.SocketErrorToErrorCode(socketError));
+                    throw NetMQException.Create(socketError.ToErrorCode());
                 }
             }
             else

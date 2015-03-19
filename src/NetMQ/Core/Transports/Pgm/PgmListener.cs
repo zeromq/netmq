@@ -81,7 +81,7 @@ namespace NetMQ.Core.Transports.Pgm
             }
             catch (SocketException ex)
             {
-                m_socket.EventCloseFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+                m_socket.EventCloseFailed(m_address.ToString(), ex.SocketErrorCode.ToErrorCode());
             }
             catch (NetMQException ex)
             {
@@ -96,7 +96,7 @@ namespace NetMQ.Core.Transports.Pgm
         {
             if (socketError != SocketError.Success)
             {
-                m_socket.EventAcceptFailed(m_address.ToString(), ErrorHelper.SocketErrorToErrorCode(socketError));
+                m_socket.EventAcceptFailed(m_address.ToString(), socketError.ToErrorCode());
 
                 // dispose old object                
                 m_acceptedSocket.Handle.Dispose();

@@ -4,7 +4,7 @@ using System.Net.Sockets;
 namespace NetMQ.Core
 {
     /// <summary>
-    /// Class ErrorHelper provides one static method - SocketErrorToErrorCode, for converting a SocketError to the equivalent ErrorCode.
+    /// Class ErrorHelper provides one static method - ToErrorCode, for converting a SocketError to the equivalent ErrorCode.
     /// </summary>
     internal static class ErrorHelper
     {
@@ -13,7 +13,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="error">the SocketError to convert from</param>
         /// <returns>an ErrorCode that corresponds to the given SocketError</returns>
-        public static ErrorCode SocketErrorToErrorCode(SocketError error)
+        public static ErrorCode ToErrorCode(this SocketError error)
         {
             switch (error)
             {
