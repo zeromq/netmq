@@ -10,6 +10,8 @@ namespace NetMQ
     [Serializable]
     public class NetMQException : Exception
     {
+        public ErrorCode ErrorCode { get; private set; }
+
         /// <summary>
         /// Create a new NetMQException containing the given Exception, Message and ErrorCode.
         /// </summary>
@@ -21,8 +23,6 @@ namespace NetMQ
         {
             ErrorCode = errorCode;
         }
-
-        public ErrorCode ErrorCode { get; private set; }
 
         /// <summary>
         /// Create and return a new NetMQException with no Message containing only the given SocketException.
