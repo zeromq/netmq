@@ -1,16 +1,50 @@
 using System;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using JetBrains.Annotations;
+using NetMQ.Core;
 
 namespace NetMQ
 {
     /// <summary>
-    /// Class NetMQException is the parent-class for Exceptions that occur within the NetMQ library.
+    /// Base class for custom exceptions within the NetMQ library.
     /// </summary>
     [Serializable]
     public class NetMQException : Exception
     {
         public ErrorCode ErrorCode { get; private set; }
+
+        #region Exception contract & serialisation
+
+        // For discussion of this contract, see https://msdn.microsoft.com/en-us/library/ms182151.aspx
+
+        public NetMQException()
+        {}
+
+        public NetMQException(string message)
+            : base(message)
+        {}
+
+        public NetMQException(string message, Exception innerException)
+            : base(message, innerException)
+        {}
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected NetMQException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+            ErrorCode = (ErrorCode)info.GetInt32("ErrorCode");
+        }
+
+        [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("ErrorCode", ErrorCode);
+            base.GetObjectData(info, context);
+        }
+
+        #endregion
 
         /// <summary>
         /// Create a new NetMQException containing the given Exception, Message and ErrorCode.
@@ -152,6 +186,12 @@ namespace NetMQ
             : this(null, message)
         {
         }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected AddressAlreadyInUseException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 
     /// <summary>
@@ -186,6 +226,12 @@ namespace NetMQ
             : this(null)
         {
         }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected EndpointNotFoundException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 
     /// <summary>
@@ -206,11 +252,22 @@ namespace NetMQ
         {
         }
 
+        public AgainException([CanBeNull] string message)
+            : this(null, message)
+        {
+        }
+
         /// <summary>
         /// Create a new AgainException with no message nor inner-exception.
         /// </summary>
         public AgainException()
             : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected AgainException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -232,11 +289,22 @@ namespace NetMQ
         {
         }
 
+        public TerminatingException([CanBeNull] string message)
+            : this(null, message)
+        {
+        }
+
         /// <summary>
         /// Create a new TerminatingException with no message nor inner-exception.
         /// </summary>
         internal TerminatingException()
             : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected TerminatingException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -273,6 +341,12 @@ namespace NetMQ
             : this(null, null)
         {
         }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected InvalidException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 
     /// <summary>
@@ -305,6 +379,12 @@ namespace NetMQ
         /// </summary>
         public FaultException()
             : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected FaultException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -342,6 +422,12 @@ namespace NetMQ
             : this(null, null)
         {
         }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected ProtocolNotSupportedException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 
     /// <summary>
@@ -377,6 +463,12 @@ namespace NetMQ
             : this(null, null)
         {
         }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected HostUnreachableException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 
     /// <summary>
@@ -410,6 +502,12 @@ namespace NetMQ
         /// </summary>
         public FiniteStateMachineException()
             : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected FiniteStateMachineException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
