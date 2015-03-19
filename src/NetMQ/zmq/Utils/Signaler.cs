@@ -18,10 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using JetBrains.Annotations;
+
 
 namespace NetMQ.zmq.Utils
 {
@@ -59,6 +61,9 @@ namespace NetMQ.zmq.Utils
             m_readSocket.Blocking = false;
         }
 
+        /// <summary>
+        /// Close the read and write sockets.
+        /// </summary>
         public void Close()
         {
             try
@@ -102,7 +107,7 @@ namespace NetMQ.zmq.Utils
         public bool WaitEvent(int timeout)
         {
             if (m_readSocket.Connected)
-                return m_readSocket.Poll(timeout*1000, SelectMode.SelectRead);
+                return m_readSocket.Poll(timeout * 1000, SelectMode.SelectRead);
 
             return false;
         }

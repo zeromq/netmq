@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Text;
 using NetMQ.zmq.Transports.Tcp;
 
+
 namespace NetMQ.zmq
 {
     /// <summary>
@@ -244,9 +245,12 @@ namespace NetMQ.zmq
         public ZmqSocketType SocketType { get; set; }
 
         /// <summary>
-        /// Get the TCP accept() filters,
-        /// this being a list of TcpAddressMasks.
+        /// Get the list of accept-filters, which denote the addresses that a socket may accept.
+        /// Each filter in this list is a TcpAddressMask that provides a MatchAddress method.
         /// </summary>
+        /// <remarks>
+        /// Presently this is not used inside of NetMQ.
+        /// </remarks>
         public List<TcpAddress.TcpAddressMask> TcpAcceptFilters { get; private set; }
 
         /// <summary>
@@ -278,6 +282,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="option">a ZmqSocketOption that specifies what to set</param>
         /// <param name="optionValue">an Object that is the value to set that option to</param>
+        /// <exception cref="InvalidException">The option and optionValue must be valid.</exception>
         public void SetSocketOption(ZmqSocketOption option, Object optionValue)
         {
             switch (option)
@@ -392,6 +397,8 @@ namespace NetMQ.zmq
                     break;
 
                 case ZmqSocketOption.TcpAcceptFilter:
+                    // TODO: Apparently this is not used at all within NetMQ.
+                    //       Is it intended to?  If not - then why have this code at all?  jh
                     var filterStr = (string)optionValue;
                     if (filterStr == null)
                     {
@@ -399,7 +406,7 @@ namespace NetMQ.zmq
                     }
                     else if (filterStr.Length == 0 || filterStr.Length > 255)
                     {
-                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1}) but must be 1..255", filterStr, filterStr.Length));
+                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpAcceptFilter,{0}), optionValue has invalid length of {1} but must be 1..255", filterStr, filterStr.Length));
                     }
                     else
                     {
@@ -423,6 +430,7 @@ namespace NetMQ.zmq
         /// </summary>
         /// <param name="option">a ZmqSocketOption that specifies what to get</param>
         /// <returns>an Object that is the value of that option</returns>
+        /// <exception cref="InvalidException">A valid option must be specified.</exception>
         public Object GetSocketOption(ZmqSocketOption option)
         {
             switch (option)

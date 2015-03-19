@@ -46,24 +46,38 @@ namespace NetMQ.zmq.Transports
         /// </summary>
         private readonly byte[] m_buf;
 
+        /// <summary>
+        /// The size of the encoded-data buffer
+        /// </summary>
         private readonly int m_buffersize;
 
-        private bool m_error;
+        /// <summary>
+        /// This flag indicates whether there has been an encoder error.
+        /// </summary>
+        private bool m_isError;
 
-        protected EncoderBase(int bufsize, Endianness endian)
+        /// <summary>
+        /// Create a new EncoderBase with a buffer of the given size.
+        /// </summary>
+        /// <param name="bufferSize">how big of an internal buffer to allocate (in bytes)</param>
+        /// <param name="endian">the <see cref="Endianness"/> to set this EncoderBase to</param>
+        protected EncoderBase(int bufferSize, Endianness endian)
         {
             Endian = endian;
-            m_buffersize = bufsize;
-            m_buf = new byte[bufsize];
-            m_error = false;
+            m_buffersize = bufferSize;
+            m_buf = new byte[bufferSize];
+            m_isError = false;
         }
 
+        /// <summary>
+        /// Get the Endianness (Big or Little) that this EncoderBase uses.
+        /// </summary>
         public Endianness Endian { get; private set; }
 
         public abstract void SetMsgSource(IMsgSource msgSource);
 
         /// <summary>
-        /// The function returns a batch of binary data. The data
+        /// This returns a batch of binary data. The data
         /// are filled to a supplied buffer. If no buffer is supplied (data_
         /// points to NULL) decoder object will provide buffer of its own.
         /// </summary>
@@ -145,45 +159,32 @@ namespace NetMQ.zmq.Transports
             private set;
         }
 
+        /// <summary>
+        /// Set a flag that indicates that there has been an encoding-error.
+        /// </summary>
         protected void EncodingError()
         {
-            m_error = true;
+            m_isError = true;
         }
 
+        /// <summary>
+        /// Return true if there has been an encoding error.
+        /// </summary>
+        /// <returns>the state of the error-flag</returns>
         public bool IsError()
         {
-            return m_error;
+            return m_isError;
         }
 
         abstract protected bool Next();
 
-        //protected void next_step (Msg msg_, int state_, bool beginning_) {
-        //    if (msg_ == null)
-        //        next_step((ByteBuffer) null, 0, state_, beginning_);
-        //    else
-        //        next_step(msg_.data(), msg_.size(), state_, beginning_);
-        //}
-
         protected void NextStep(ByteArraySegment writePos, int toWrite,
-                                 int state, bool beginning)
+                                int state, bool beginning)
         {
-
             m_writePos = writePos;
             m_toWrite = toWrite;
             State = state;
             m_beginning = beginning;
         }
-
-        //protected void next_step (byte[] buf_, int to_write_,
-        //        int next_, bool beginning_)
-        //{
-        //    write_buf = null;
-        //    write_array = buf_;
-        //    write_pos = 0;
-        //    to_write = to_write_;
-        //    next = next_;
-        //    beginning = beginning_;
-        //}
-
     }
 }

@@ -23,6 +23,7 @@ using System;
 using JetBrains.Annotations;
 using NetMQ.zmq.Transports;
 
+
 namespace NetMQ.zmq
 {
     /// <summary>
@@ -57,7 +58,7 @@ namespace NetMQ.zmq
         /// <param name="parent">another ZObject that provides the context and thread-id for this one</param>
         protected ZObject([NotNull] ZObject parent)
             : this(parent.m_ctx, parent.m_threadId)
-        {}
+        { }
 
         /// <summary>
         /// Get the id of the thread that this object belongs to.
@@ -76,14 +77,14 @@ namespace NetMQ.zmq
             get { return m_ctx; }
         }
 
-        protected bool RegisterEndpoint([NotNull] string addr, [NotNull] Ctx.Endpoint endpoint)
+        protected bool RegisterEndpoint([NotNull] string address, [NotNull] Ctx.Endpoint endpoint)
         {
-            return m_ctx.RegisterEndpoint(addr, endpoint);
+            return m_ctx.RegisterEndpoint(address, endpoint);
         }
 
-        protected bool UnregisterEndpoint([NotNull] string addr, [NotNull] SocketBase socket)
+        protected bool UnregisterEndpoint([NotNull] string address, [NotNull] SocketBase socket)
         {
-            return m_ctx.UnregisterEndpoint(addr, socket);
+            return m_ctx.UnregisterEndpoint(address, socket);
         }
 
         protected void UnregisterEndpoints([NotNull] SocketBase socket)
@@ -92,9 +93,9 @@ namespace NetMQ.zmq
         }
 
         [NotNull]
-        protected Ctx.Endpoint FindEndpoint([NotNull] string addr)
+        protected Ctx.Endpoint FindEndpoint([NotNull] string address)
         {
-            return m_ctx.FindEndpoint(addr);
+            return m_ctx.FindEndpoint(address);
         }
 
         protected void DestroySocket([NotNull] SocketBase socket)
@@ -231,6 +232,9 @@ namespace NetMQ.zmq
             SendCommand(new Command(m_ctx.GetReaper(), CommandType.Reaped));
         }
 
+        /// <summary>
+        /// Send a Done command to the Ctx itself (null destination).
+        /// </summary>
         protected void SendDone()
         {
             // Use m_ctx.SendCommand directly as we have a null destination
@@ -323,77 +327,147 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessStop()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessPlug()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessOwn([NotNull] Own obj)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="engine"></param>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessAttach([NotNull] IEngine engine)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Process the bind command with the given pipe.
+        /// </summary>
+        /// <param name="pipe"></param>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessBind([NotNull] Pipe pipe)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessActivateRead()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msgsRead"></param>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessActivateWrite(long msgsRead)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// This method would be called to assign the specified pipe as a replacement for the outbound pipe that was being used.
+        /// This, is an abstract method that is to be overridden by subclasses to provide their own concrete implementation.
+        /// </summary>
+        /// <param name="pipe">the pipe to use for writing</param>
+        /// <remarks>
+        /// A "Hiccup" occurs when an outbound pipe experiences something like a transient disconnect or for whatever other reason
+        /// is no longer available for writing to.
+        /// </remarks>
+        /// <exception cref="NotSupportedException">No supported on the ZObject class.</exception>
         protected virtual void ProcessHiccup([NotNull] Object pipe)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Process the terminate-pipe command.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessPipeTerm()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Process the terminate-pipe acknowledgement command.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessPipeTermAck()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Process a termination-request command on the Own object.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessTermReq([NotNull] Own obj)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Process a termination request.
+        /// </summary>
+        /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessTerm(int linger)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Process the termination-acknowledgement command.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessTermAck()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessReap([NotNull] SocketBase socket)
         {
             // Overriden by Reaper
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessReaped()
         {
             // Overriden by Reaper
@@ -405,6 +479,7 @@ namespace NetMQ.zmq
         /// was processed. The implementation should catch up with its counter
         /// of processed commands here.
         /// </summary>
+        /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessSeqnum()
         {
             throw new NotSupportedException();

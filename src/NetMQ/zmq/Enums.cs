@@ -1,5 +1,6 @@
 ﻿using System;
 
+
 namespace NetMQ.zmq
 {
     /// <summary>
@@ -13,7 +14,7 @@ namespace NetMQ.zmq
 
     /// <summary>
     /// This enum-type is used to specify the basic type of message-queue socket
-    /// based upon the intended pattern, such as Pub,Sub, Req,Rep, Dealer,Router, Pull,Push, Xpub,Xsub.
+    /// based upon the intended pattern, such as Pub,Sub, Req,Rep, Dealer,Router, Pull,Push, XPub,XSub.
     /// </summary>
     public enum ZmqSocketType
     {
@@ -48,12 +49,12 @@ namespace NetMQ.zmq
         Rep = 4,
 
         /// <summary>
-        /// This denotes an Dealer socket (CBL)
+        /// This denotes an Dealer socket.
         /// </summary>
         Dealer = 5,
 
         /// <summary>
-        /// This denotes an Router socket (CBL)
+        /// This denotes an Router socket.
         /// </summary>
         Router = 6,
 
@@ -68,14 +69,18 @@ namespace NetMQ.zmq
         Push = 8,
 
         /// <summary>
-        /// This denotes an XPublisher socket (CBL)
+        /// This denotes an XPublisher socket.
         /// </summary>
         Xpub = 9,
 
         /// <summary>
-        /// This denotes an XSubscriber socket (CBL)
+        /// This denotes an XSubscriber socket.
         /// </summary>
         Xsub = 10,
+
+        /// <summary>
+        /// This denotes a Stream socket - which is a parent-class to the other socket types.
+        /// </summary>
         Stream = 11
     }
 
@@ -85,43 +90,142 @@ namespace NetMQ.zmq
     internal enum ZmqSocketOption
     {
         /// <summary>
-        /// The I/O-thread affinity. This is a 64-bit value used to specify  which threads from the I/O thread-pool
-        /// associated with the socket's context shall handle newly-created connections.
+        /// The I/O-thread affinity.
         /// 0 means no affinity, meaning that work shall be distributed fairly among all I/O threads.
         /// For non-zero values, the lowest bit corresponds to thread 1, second lowest bit to thread 2, and so on.
         /// </summary>
+        /// <remarks>
+        /// The I/O-thread <c>Affinity</c> is a 64-bit value used to specify which threads from the I/O thread-pool
+        /// associated with the socket's context shall handle newly-created connections.
+        /// 0 means no affinity, meaning that work shall be distributed fairly among all I/O threads.
+        /// For non-zero values, the lowest bit corresponds to thread 1, second lowest bit to thread 2, and so on.
+        /// </remarks>
         Affinity = 4,
 
+        /// <summary>
+        /// The unique identity of the socket, from a message-queueing router's perspective.
+        /// </summary>
+        /// <remarks>
+        /// This is at most 255 bytes long.
+        /// </remarks>
         Identity = 5,
+
+        /// <summary>
+        /// Setting this option subscribes a socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <remarks>
+        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
+        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         Subscribe = 6,
+
+        /// <summary>
+        /// Set this option to un-subscribe a socket from a given topic. Only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <remarks>
+        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
+        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         Unsubscribe = 7,
+
+        /// <summary>
+        /// The maximum send or receive data rate for multicast transports on the specified socket.
+        /// </summary>
         Rate = 8,
+
+        /// <summary>
+        /// The recovery-interval, in milliseconds, for multicast transports using the specified socket.
+        /// Default is 10,000 ms (10 seconds).
+        /// </summary>
+        /// <remarks>
+        /// This option determines the maximum time that a receiver can be absent from a multicast group
+        /// before unrecoverable data loss will occur. Default is 10,000 ms (10 seconds).
+        /// </remarks>
         RecoveryIvl = 9,
+
+        /// <summary>
+        /// The size of the transmit buffer for the specified socket.
+        /// </summary>
         SendBuffer = 11,
+
+        /// <summary>
+        /// The size of the receive buffer for the specified socket.
+        /// </summary>
+        [Obsolete("Use ReceiveBuffer instead")]
+        ReceivevBuffer = ReceiveBuffer,
+
+        /// <summary>
+        /// The size of the receive buffer for the specified socket.
+        /// </summary>
         ReceiveBuffer = 12,
+
+        /// <summary>
+        /// This indicates more messages are to be received.
+        /// </summary>
         ReceiveMore = 13,
 
+        /// <summary>
+        /// The file descriptor associated with the specified socket.
+        /// </summary>
         Handle = 14,
 
+        /// <summary>
+        /// The event state for the specified socket.
+        /// This is a combination of:
+        ///   PollIn - at least one message may be received without blocking
+        ///   PollOut - at least one messsage may be sent without blocking
+        /// </summary>
         Events = 15,
+
         Type = 16,
+
+        /// <summary>
+        /// This option specifies the linger period for the specified socket,
+        /// which determines how long pending messages which have yet to be sent to a peer
+        /// shall linger in memory after a socket is closed.
+        /// </summary>
         Linger = 17,
 
         /// <summary>
-        /// The reconnect-interval.
+        /// The initial reconnection interval for the specified socket.
+        /// -1 means no reconnection.
         /// </summary>
+        /// <remarks>
+        /// This is the period to wait between attempts to reconnect disconnected peers
+        /// when using connection-oriented transports.
+        /// A value of -1 means no reconnection.
+        /// </remarks>
         ReconnectIvl = 18,
 
+        /// <summary>
+        /// This is the maximum length of the queue of outstanding peer connections
+        /// for the specified socket. This only applies to connection-oriented transports.
+        /// Default is 100.
+        /// </summary>
         Backlog = 19,
 
         /// <summary>
-        /// The maximum reconnect-interval.
+        /// The maximum reconnection interval for the specified socket.
+        /// The default value of zero means no exponential backoff is performed.
         /// </summary>
+        /// <remarks>
+        /// This option value denotes the maximum reconnection interval for a socket.
+        /// It is used when a connection drops and NetMQ attempts to reconnect.
+        /// On each attempt to reconnect, the previous interval is doubled
+        /// until this maximum period is reached.
+        /// The default value of zero means no exponential backoff is performed.
+        /// </remarks>
         ReconnectIvlMax = 21,
 
         /// <summary>
-        /// The upper limit to how many bytes a message may have.
+        /// The upper limit to to the size for inbound messages.
+        /// -1 (the default value) means no limit.
         /// </summary>
+        /// <remarks>
+        /// If a peer sends a message larger than this it is disconnected.
+        /// </remarks>
         MaxMessageSize = 22,
 
         /// <summary>
@@ -136,6 +240,11 @@ namespace NetMQ.zmq
         /// </summary>
         ReceiveHighWatermark = 24,
 
+        /// <summary>
+        /// The time-to-live (maximum number of hops) that outbound multicast packets
+        /// are allowed to propagate.
+        /// The default value of 1 means that the multicast packets don't leave the local network.
+        /// </summary>
         MulticastHops = 25,
 
         /// <summary>
@@ -146,20 +255,96 @@ namespace NetMQ.zmq
 
         /// <summary>
         /// Specifies the amount of time after which a synchronous send call will time out.
+        /// A value of 0 means Send will return immediately, with a EAGAIN error if the message cannot be sent.
+        /// -1 means to block until the message is sent.
+        /// TODO: May need to update this explanation.
         /// </summary>
         SendTimeout = 28,
 
+        /// <summary>
+        /// This indicates the underlying native socket type.
+        /// </summary>
+        /// <remarks>
+        /// An IPv4 socket will only use IPv4, while an IPv6 socket lets applications
+        /// connect to and accept connections from both IPv4 and IPv6 hosts.
+        /// </remarks>
         IPv4Only = 31,
+
+        /// <summary>
+        /// The last endpoint bound for TCP and IPC transports.
+        /// The returned value will be a string in the form of a ZMQ DSN.
+        /// </summary>
+        /// <remarks>
+        /// If the TCP host is ANY, indicated by a *, then the returned address
+        /// will be 0.0.0.0 (for IPv4).
+        /// </remarks>
         LastEndpoint = 32,
+
         RouterMandatory = 33,
+
+        /// <summary>
+        /// Whether to use TCP keep-alive on this socket.
+        /// 0 = no, 1 = yes,
+        /// -1 (the default value) means to skip any overrides and leave it to the OS default.
+        /// </summary>
         TcpKeepalive = 34,
+
+        /// <summary>
+        /// The keep-alive time - the duration between two keepalive transmissions in idle condition.
+        /// </summary>
+        /// <remarks>
+        /// The TCP keepalive period is required by socket implementers to be configurable and by default is
+        /// set to no less than 2 hours.
+        /// In 0MQ, -1 (the default value) means to just leave it to the OS default.
+        /// </remarks>
         TcpKeepaliveIdle = 36,
+
+        /// <summary>
+        /// The TCP keep-alive interval - the duration between two keepalive transmission if no response was received to a previous keepalive probe.
+        /// </summary>
+        /// <remarks>
+        /// By default a keepalive packet is sent every 2 hours or 7,200,000 milliseconds
+        /// (TODO: Check these comments concerning default values!  jh)
+        /// if no other data have been carried over the TCP connection.
+        /// If there is no response to a keepalive, it is repeated once every KeepAliveInterval seconds.
+        /// The default is one second.
+        /// </remarks>
         TcpKeepaliveIntvl = 37,
+
+        /// <summary>
+        /// The list of accept-filters, which denote the addresses that a socket may accept.
+        /// Setting this to null clears the filter.
+        /// </summary>
+        /// <remarks>
+        /// This applies to IPv4 addresses only.
+        /// </remarks>
         TcpAcceptFilter = 38,
+
+        /// <summary>
+        /// The attach-on-connect value.
+        /// Default is false.
+        /// </summary>
+        /// <remarks>
+        /// If set to 1, will delay the attachment of a pipe on connect until
+        /// the underlying connection has completed. This will cause the socket
+        /// to block if there are no other connections, but will prevent queues
+        /// from filling on pipes awaiting connection.
+        /// </remarks>
         DelayAttachOnConnect = 39,
+
+        /// <summary>
+        /// This applies only to XPub sockets.
+        /// If true, send all subscription messages upstream, not just unique ones.
+        /// The default is false.
+        /// </summary>
         XpubVerbose = 40,
+
         RouterRawSocket = 41,
         XPublisherManual = 42,
+
+        /// <summary>
+        /// This is an XPublisher-socket welcome-message.
+        /// </summary>
         XPublisherWelcomeMessage = 43,
 
         /// <summary>
@@ -174,7 +359,14 @@ namespace NetMQ.zmq
     /// </summary>
     public enum Endianness
     {
+        /// <summary>
+        /// This means the most-significant bits are placed first in memory.
+        /// </summary>
         Big,
+
+        /// <summary>
+        /// this means the most-significant bits are placed last in memory.
+        /// </summary>
         Little
     }
 
@@ -201,7 +393,9 @@ namespace NetMQ.zmq
         /// </summary>
         SendMore = 2,
 
-        // Deprecated aliases
+        /// <summary>
+        /// (Deprecated) This flag specifies NOT to block waiting for a message to arrive.
+        /// </summary>
         [Obsolete("Use DontWait instead")]
         NoBlock = DontWait
     }
@@ -214,20 +408,59 @@ namespace NetMQ.zmq
     [Flags]
     public enum SocketEvent
     {
+        /// <summary>
+        /// This socket connected.
+        /// </summary>
         Connected = 1,
+
+        /// <summary>
+        /// The socket was delayed from connecting.
+        /// </summary>
         ConnectDelayed = 2,
+
+        /// <summary>
+        /// The connection was retried.
+        /// </summary>
         ConnectRetried = 4,
 
+        /// <summary>
+        /// The socket has started listening for connections.
+        /// </summary>
         Listening = 8,
+
+        /// <summary>
+        /// The socket bind operation failed.
+        /// </summary>
         BindFailed = 16,
 
+        /// <summary>
+        /// The socket Accept operation succeeded.
+        /// </summary>
         Accepted = 32,
+
+        /// <summary>
+        /// The socket Accept-call failed.
+        /// </summary>
         AcceptFailed = 64,
 
+        /// <summary>
+        /// The socket was closed.
+        /// </summary>
         Closed = 128,
+
+        /// <summary>
+        /// The close-operation on the socket failed.
+        /// </summary>
         CloseFailed = 256,
+
+        /// <summary>
+        /// The socket has disconnected.
+        /// </summary>
         Disconnected = 512,
 
+        /// <summary>
+        /// This is the bitwise-OR of all possible flag bits.
+        /// </summary>
         All = Connected | ConnectDelayed |
               ConnectRetried | Listening |
               BindFailed | Accepted |
@@ -242,24 +475,55 @@ namespace NetMQ.zmq
     [Flags]
     public enum PollEvents
     {
+        /// <summary>
+        /// Unknown - this is the default value.
+        /// </summary>
         None = 0x0,
+        /// <summary>
+        /// The poll-event indicates a message is ready to be received.
+        /// </summary>
         PollIn = 0x1,
+        /// <summary>
+        /// The poll-event indicates a message is ready to be sent.
+        /// </summary>
         PollOut = 0x2,
+        /// <summary>
+        /// The poll-event reflects a polling-error.
+        /// </summary>
         PollError = 0x4
     }
 
+    /// <summary>
+    /// This static class provides the HasIn, HasOut, and HasError methods
+    /// and exists as a convenience for determining these facts about a given PollEvents object.
+    /// </summary>
     public static class PollEventsExtensions
     {
+        /// <summary>
+        /// Return true if the given <see cref="PollEvents"/> has the PollIn flag set.
+        /// </summary>
+        /// <param name="pollEvents">the PollEvents to check the flag of</param>
+        /// <returns>true if the PollIn flag is set</returns>
         public static bool HasIn(this PollEvents pollEvents)
         {
             return (pollEvents & PollEvents.PollIn) == PollEvents.PollIn;
         }
 
+        /// <summary>
+        /// Return true if the given <see cref="PollEvents"/> has the PollOut flag set.
+        /// </summary>
+        /// <param name="pollEvents">the PollEvents to check the flag of</param>
+        /// <returns>true if the PollOut flag is set</returns>
         public static bool HasOut(this PollEvents pollEvents)
         {
             return (pollEvents & PollEvents.PollOut) == PollEvents.PollOut;
         }
 
+        /// <summary>
+        /// Return true if the given <see cref="PollEvents"/> has the PollError flag set.
+        /// </summary>
+        /// <param name="pollEvents">the PollEvents to check the flag of</param>
+        /// <returns>true if the PollError flag is set</returns>
         public static bool HasError(this PollEvents pollEvents)
         {
             return (pollEvents & PollEvents.PollError) == PollEvents.PollError;

@@ -76,18 +76,23 @@ namespace NetMQ.zmq.Transports.PGM
             m_pgmAddress = pgmAddress;
         }
 
+        /// <summary>
+        /// Perform initialization of this PgmSocket, including creating the socket handle.
+        /// </summary>
+        /// <exception cref="FaultException">The call to AsyncSocket.Create must not result in a SocketException.</exception>
+        /// <remarks>
+        /// Any SocketException thrown by the call to AsyncSocket.Create is caught here and a FaultException is thrown with that SocketException contained as the inner-exception.
+        /// </remarks>
         internal void Init()
         {
-#if DEBUG
-            // Don't want to bloat the code with excessive debugging information, unless this is a DEBUG build.  jh
             try
             {
-#endif
                 Handle = AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PgmProtocolType);
-#if DEBUG
             }
             catch (SocketException x)
             {
+#if DEBUG
+                // Don't want to bloat the code with excessive debugging information, unless this is a DEBUG build.  jh
                 string xMsg = string.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this);
                 Debug.WriteLine(xMsg);
                 // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
@@ -109,9 +114,11 @@ namespace NetMQ.zmq.Transports.PGM
                 {
                     Debug.WriteLine("For Microsoft Windows, you may want to check to see whether you have installed MSMQ on this host, to get PGM socket support.");
                 }
+#else
+                string xMsg = string.Format("SocketException with ErrorCode={0}, SocketErrorCode={1}, Message={2}, {3}", x.ErrorCode, x.SocketErrorCode, x.Message, this);
+#endif
                 throw new FaultException(innerException: x, message: xMsg);
             }
-#endif
             Handle.ExclusiveAddressUse = false;
             Handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
         }

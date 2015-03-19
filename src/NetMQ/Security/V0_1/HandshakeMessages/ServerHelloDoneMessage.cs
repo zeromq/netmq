@@ -1,4 +1,7 @@
-﻿namespace NetMQ.Security.V0_1.HandshakeMessages
+﻿using System;
+
+
+namespace NetMQ.Security.V0_1.HandshakeMessages
 {
     /// <summary>
     /// The ServerHelloDoneMessage is a HandshakeMessage with a HandshakeType of ServerHelloDone.
@@ -19,13 +22,14 @@
         /// presumed here to be ServerHelloDone.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 1 frame</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must be 0.</exception>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);
 
             if (message.FrameCount != 0)
             {
-                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, "Malformed message");
+                throw new NetMQSecurityException(NetMQSecurityErrorCode.InvalidFramesCount, String.Format("Malformed message. FrameCount ({0}) must be 0.", message.FrameCount));
             }
         }
     }

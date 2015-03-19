@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using JetBrains.Annotations;
 
+
 namespace NetMQ
 {
     /// <summary>
@@ -35,18 +36,33 @@ namespace NetMQ
         private readonly byte[] m_buffer;
         private int m_hash;
 
+        /// <summary>
+        /// Create a new Blob object containing the given data, and with a data-buffer of the given size.
+        /// </summary>
+        /// <param name="data">the byte-array of data for this Blob to contain</param>
+        /// <param name="size">the length in bytes to allocate to the data buffer</param>
         public Blob([NotNull] byte[] data, int size)
         {
             m_buffer = new byte[size];
 
-            Buffer.BlockCopy(data, 0, m_buffer, 0, size);            
+            Buffer.BlockCopy(data, 0, m_buffer, 0, size);
         }
 
+        /// <summary>
+        /// Create a new Blob object with a data-buffer of the given size.
+        /// </summary>
+        /// <param name="size">the length in bytes to allocate to the data buffer</param>
         public Blob(int size)
         {
             m_buffer = new byte[size];
         }
 
+        /// <summary>
+        /// Put the given byte into the data buffer at the indicated position.
+        /// </summary>
+        /// <param name="pos">the (zero-based) index of the data buffer to put the byte into</param>
+        /// <param name="b">the byte to write into the buffer</param>
+        /// <returns>a reference to this Blob so that other method-calls may be chained</returns>
         [NotNull]
         public Blob Put(int pos, byte b)
         {
@@ -55,6 +71,13 @@ namespace NetMQ
             return this;
         }
 
+        /// <summary>
+        /// Put the given byte into the data buffer at the indicated position.
+        /// </summary>
+        /// <param name="pos">the (zero-based) index of the data buffer to put the byte into</param>
+        /// <param name="data">the byte-array data to write into the data buffer</param>
+        /// <param name="count">how many bytes of data to write into the data buffer</param>
+        /// <returns>a reference to this Blob so that other method-calls may be chained</returns>
         [NotNull]
         public Blob Put(int pos, [NotNull] byte[] data, int count)
         {
@@ -64,17 +87,28 @@ namespace NetMQ
             return this;
         }
 
+        /// <summary>
+        /// Get the length of the data-buffer (the number of bytes in the array).
+        /// </summary>
         public int Size
         {
             get { return m_buffer.Length; }
         }
 
+        /// <summary>
+        /// Get the data buffer contained by this Blob, as a byte-array.
+        /// </summary>
         [NotNull]
         public byte[] Data
         {
             get { return m_buffer; }
         }
 
+        /// <summary>
+        /// Return true if this Blob is equal to the given object.
+        /// </summary>
+        /// <param name="t">the other object to compare against</param>
+        /// <returns>true if equal</returns>
         public override bool Equals([CanBeNull] Object t)
         {
             var blob = t as Blob;
@@ -90,6 +124,10 @@ namespace NetMQ
             return false;
         }
 
+        /// <summary>
+        /// Return an integer hash-code to use to uniquely identify this Blob object.
+        /// </summary>
+        /// <returns>the hash-code</returns>
         public override int GetHashCode()
         {
             if (m_hash == 0)

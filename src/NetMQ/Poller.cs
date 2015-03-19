@@ -7,8 +7,13 @@ using JetBrains.Annotations;
 using NetMQ.zmq;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ
 {
+    /// <summary>
+    /// The Poller class provides for managing a set of one or more sockets and being alerted when one of them has a message
+    /// ready.
+    /// </summary>
     public class Poller : IDisposable
     {
         /// <summary>
@@ -133,9 +138,14 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        /// <summary>
+        /// Perform any freeing, releasing or resetting of contained resources.
+        /// If this poller is already started, signal the polling thread to stop - and block to wait for it.
+        /// </summary>
+        /// <param name="isDisposingOfManagedResources">true if releasing managed resources</param>
+        protected virtual void Dispose(bool isDisposingOfManagedResources)
         {
-            if (!disposing)
+            if (!isDisposingOfManagedResources)
                 return;
 
             if (!m_disposed)
@@ -370,6 +380,9 @@ namespace NetMQ
             thread.Start();
         }
 
+        /// <summary>
+        /// Poll till Cancel or CancelAndJoin is called. This is a blocking method.
+        /// </summary>
         [Obsolete("Use PollTillCancelled instead")]
         public void Start()
         {
@@ -483,6 +496,8 @@ namespace NetMQ
         /// Poll as long as the given Func evaluates to true.
         /// </summary>
         /// <param name="condition">a Func that returns a boolean value, to evaluate on each poll-iteration to decide when to exit the loop</param>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
+        /// <exception cref="InvalidOperationException">This poller must not have already been started.</exception>
         private void PollWhile([NotNull, InstantHandle] Func<bool> condition)
         {
             if (m_disposed)

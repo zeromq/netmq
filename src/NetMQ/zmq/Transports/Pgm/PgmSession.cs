@@ -91,6 +91,11 @@ namespace NetMQ.zmq.Transports.PGM
             }
         }
 
+        /// <summary>
+        /// This method is be called when a message receive operation has been completed.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             if (socketError != SocketError.Success || bytesTransferred == 0)
@@ -188,9 +193,18 @@ namespace NetMQ.zmq.Transports.PGM
             }
         }
 
+        /// <summary>
+        /// This method would be called when a message Send operation has been completed, except in this case this method does nothing.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {}
 
+        /// <summary>
+        /// This would be called when a timer expires, although here it does nothing.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer (not used here)</param>
         public void TimerEvent(int id)
         {}
 

@@ -37,9 +37,21 @@ namespace NetMQ.zmq
     {
         public interface IPipeEvents
         {
+            /// <summary>
+            /// Indicate that the given pipe is now ready for reading.
+            /// Pipe calls this on it's sink in response to ProcessActivateRead.
+            /// When called upon an instance of SocketBase, this simply calls XReadActivated.
+            /// </summary>
+            /// <param name="pipe">the pipe to indicate is ready for reading</param>
             void ReadActivated([NotNull] Pipe pipe);
+
             void WriteActivated([NotNull] Pipe pipe);
             void Hiccuped([NotNull] Pipe pipe);
+
+            /// <summary>
+            /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
+            /// </summary>
+            /// <param name="pipe">the pipe that was terminated</param>
             void Terminated([NotNull] Pipe pipe);
         }
 
@@ -366,6 +378,14 @@ namespace NetMQ.zmq
             m_sink.WriteActivated(this);
         }
 
+        /// <summary>
+        /// This method is called to assign the specified pipe as a replacement for the outbound pipe that was being used.
+        /// </summary>
+        /// <param name="pipe">the pipe to use for writing</param>
+        /// <remarks>
+        /// A "Hiccup" occurs when an outbound pipe experiences something like a transient disconnect or for whatever other reason
+        /// is no longer available for writing to.
+        /// </remarks>
         protected override void ProcessHiccup(object pipe)
         {
             //  Destroy old out-pipe. Note that the read end of the pipe was already
@@ -433,6 +453,9 @@ namespace NetMQ.zmq
             Debug.Assert(false);
         }
 
+        /// <summary>
+        /// Process the pipe-termination ack.
+        /// </summary>
         protected override void ProcessPipeTermAck()
         {
             //  Notify the user that all the references to the pipe should be dropped.

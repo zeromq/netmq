@@ -24,6 +24,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
+
 namespace NetMQ.zmq.Transports.Tcp
 {
     /// <summary>
@@ -32,14 +33,29 @@ namespace NetMQ.zmq.Transports.Tcp
     /// </summary>
     internal class TcpAddress : Address.IZAddress
     {
+        /// <summary>
+        /// A TcpAddressMask is used to match addresses.
+        /// This is simply a TcpAddress that adds one method: MatchAddress(IPEndPoint address),
+        /// which checks whether it's Address property is equal to a given IPEndPoint.
+        /// </summary>
         public class TcpAddressMask : TcpAddress
         {
-            public bool MatchAddress(IPEndPoint addr)
+            /// <summary>
+            /// Return true if the given IPEndPoint is equal to this object's Address.
+            /// </summary>
+            /// <param name="address">the IPEndPoint to compare against the Address</param>
+            /// <returns>true if the Address is equal to this given IPEndPoint</returns>
+            public bool MatchAddress(IPEndPoint address)
             {
-                return Address.Equals(addr);
+                return Address.Equals(address);
             }
         }
 
+        /// <summary>
+        /// Override ToString to provide a detailed description of this object's state
+        /// in the form:  Protocol://[AddressFamily]:Port
+        /// </summary>
+        /// <returns>a string in the form Protocol://[AddressFamily]:Port</returns>
         public override string ToString()
         {
             if (Address == null)
@@ -47,11 +63,20 @@ namespace NetMQ.zmq.Transports.Tcp
 
             var endpoint = Address;
 
-            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
-                ? Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port 
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6
+                ? Protocol + "://[" + endpoint.AddressFamily.ToString() + "]:" + endpoint.Port
                 : Protocol + "://" + endpoint.Address.ToString() + ":" + endpoint.Port;
         }
 
+        /// <summary>
+        /// Given a string that should identify an endpoint-address, resolve it to an actual IP address
+        /// and set the Address property to a valid corresponding value.
+        /// </summary>
+        /// <param name="name">the endpoint-address to resolve</param>
+        /// <param name="ip4Only">whether the address must be only-IPv4</param>
+        /// <exception cref="InvalidException">The name must contain the colon delimiter.</exception>
+        /// <exception cref="InvalidException">The specified port must be a valid nonzero integer.</exception>
+        /// <exception cref="InvalidException">Must be able to find the IP-address.</exception>
         public void Resolve(string name, bool ip4Only)
         {
             //  Find the ':' at end that separates address from the port number.
@@ -67,6 +92,7 @@ namespace NetMQ.zmq.Transports.Tcp
             if (addrStr.Length >= 2 && addrStr[0] == '[' && addrStr[addrStr.Length - 1] == ']')
                 addrStr = addrStr.Substring(1, addrStr.Length - 2);
 
+            // Get the port-number (or zero for auto-selection of a port).
             int port;
             //  Allow 0 specifically, to detect invalid port error in atoi if not
             if (portStr == "*" || portStr == "0")
@@ -86,27 +112,28 @@ namespace NetMQ.zmq.Transports.Tcp
 
             IPAddress ipAddress;
 
+            // Interpret * as Any.
             if (addrStr == "*")
             {
-                ipAddress = ip4Only 
-                    ? IPAddress.Any 
+                ipAddress = ip4Only
+                    ? IPAddress.Any
                     : IPAddress.IPv6Any;
-            }            
+            }
             else if (!IPAddress.TryParse(addrStr, out ipAddress))
             {
                 var availableAddresses = Dns.GetHostEntry(addrStr).AddressList;
 
-                ipAddress = ip4Only 
-                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork) 
+                ipAddress = ip4Only
+                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                     : Dns.GetHostEntry(addrStr).AddressList.FirstOrDefault(
                         ip => ip.AddressFamily == AddressFamily.InterNetwork ||
                               ip.AddressFamily == AddressFamily.InterNetworkV6);
 
                 if (ipAddress == null)
-                    throw new InvalidException(string.Format("TcpAddress.Resolve, unable to find an IP address for {0}", name));
+                    throw new InvalidException(string.Format("TcpAddress.Resolve({0}, {1}), unable to find IP address. addrStr is {2}", name, ip4Only, addrStr));
             }
 
-            Address = new IPEndPoint(ipAddress, port);             
+            Address = new IPEndPoint(ipAddress, port);
         }
 
         /// <summary>
@@ -117,7 +144,7 @@ namespace NetMQ.zmq.Transports.Tcp
 
         /// <summary>
         /// Get the textual-representation of the communication protocol implied by this TcpAddress,
-        /// which here is simply "tcp".
+        /// which for this class (TcpAddress) is simply "tcp".
         /// </summary>
         public string Protocol
         {

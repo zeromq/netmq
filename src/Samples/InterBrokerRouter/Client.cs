@@ -14,7 +14,7 @@ namespace InterBrokerRouter
 
         /// <summary>
         /// This client will connect its <see cref="RequestSocket"/> to the frontend <see cref="RouterSocket"/> of the broker and 
-        /// its <see cref="PushSocket"/> to the the broker's <see cref="PullSocket"/> as monitor.
+        /// its <see cref="PushSocket"/> to the broker's <see cref="PullSocket"/> as monitor.
         /// It will send a messages and wait at most 10 seconds for an answer before sending an error message via monitor.
         /// If an answer is received it will send a success message via monitor.
         /// </summary>

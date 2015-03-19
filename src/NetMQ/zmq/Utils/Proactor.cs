@@ -91,6 +91,10 @@ namespace NetMQ.zmq.Utils
             item.Cancelled = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">The completionStatuses item must have a valid OperationType.</exception>
         private void Loop()
         {
             var completionStatuses = new CompletionStatus[CompletionStatusArraySize];
@@ -119,9 +123,10 @@ namespace NetMQ.zmq.Utils
 
                         if (!item.Cancelled)
                         {
+                            var operationType = completionStatuses[i].OperationType;
                             try
                             {
-                                switch (completionStatuses[i].OperationType)
+                                switch (operationType)
                                 {
                                     case OperationType.Accept:
                                     case OperationType.Receive:
@@ -137,7 +142,9 @@ namespace NetMQ.zmq.Utils
                                             completionStatuses[i].BytesTransferred);
                                         break;
                                     default:
-                                        throw new ArgumentOutOfRangeException();
+                                    {
+                                        throw new InvalidException(message: String.Format("For index {0}, operationType is {1}.", i, operationType));
+                                    }
                                 }
                             }
                             catch (TerminatingException)

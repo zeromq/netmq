@@ -23,8 +23,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text;
 using AsyncIO;
 using JetBrains.Annotations;
+
 
 namespace NetMQ.zmq.Transports
 {
@@ -730,6 +732,11 @@ namespace NetMQ.zmq.Transports
             }
         }
 
+        /// <summary>
+        /// This method is be called when a message receive operation has been completed.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             FeedAction(Action.InCompleted, socketError, bytesTransferred);
@@ -740,6 +747,11 @@ namespace NetMQ.zmq.Transports
             FeedAction(Action.ActivateIn, SocketError.Success, 0);
         }
 
+        /// <summary>
+        /// This method is called when a message Send operation has been completed.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             FeedAction(Action.OutCompleted, socketError, bytesTransferred);
@@ -776,6 +788,18 @@ namespace NetMQ.zmq.Transports
             return isMessagePushed;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="socketError">the SocketError that resulted from the write - which could be Success (no error at all)</param>
+        /// <param name="bytesTransferred">this indicates the number of bytes that were transferred in the write</param>
+        /// <returns>the number of bytes transferred if successful, -1 otherwise</returns>
+        /// <exception cref="NetMQException">If the socketError is not Success then it must be a valid recoverable error or the number of bytes transferred must be zero.</exception>
+        /// <remarks>
+        /// If socketError is SocketError.Success and bytesTransferred is > 0, then this returns bytesTransferred.
+        /// If bytes is zero, or the socketError is one of NetworkDown, NetworkReset, HostUn, Connection Aborted, TimedOut, or ConnectionReset, - then -1 is returned.
+        /// Otherwise, a NetMQException is thrown.
+        /// </remarks>
         private static int EndWrite(SocketError socketError, int bytesTransferred)
         {
             if (socketError == SocketError.Success && bytesTransferred > 0)
@@ -794,7 +818,21 @@ namespace NetMQ.zmq.Transports
             }
             else
             {
-                throw NetMQException.Create(socketError);
+#if DEBUG
+                var sb = new StringBuilder("StreamEngine.EndWrite(SocketError = ");
+                sb.Append(socketError);
+                sb.Append(", bytesTransferred = ");
+                sb.Append(bytesTransferred).Append(") ");
+                ErrorCode errorCode;
+                if (!NetMQException.TryConvertSocketErrorToErrorCode(socketError, out errorCode))
+                {
+                    sb.Append("(no equiv. ErrorCode).");
+                }
+                string xMsg = sb.ToString();
+                throw NetMQException.Create(message: xMsg, errorCode: errorCode);
+#else
+                throw NetMQException.Create(error: socketError);
+#endif
             }
         }
 
@@ -810,6 +848,18 @@ namespace NetMQ.zmq.Transports
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="socketError">the SocketError that resulted from the read - which could be Success (no error at all)</param>
+        /// <param name="bytesTransferred">this indicates the number of bytes that were transferred in the read</param>
+        /// <returns>the number of bytes transferred if successful, -1 otherwise</returns>
+        /// <exception cref="NetMQException">If the socketError is not Success then it must be a valid recoverable error or the number of bytes transferred must be zero.</exception>
+        /// <remarks>
+        /// If socketError is SocketError.Success and bytesTransferred is > 0, then this returns bytesTransferred.
+        /// If bytes is zero, or the socketError is one of NetworkDown, NetworkReset, HostUn, Connection Aborted, TimedOut, or ConnectionReset, - then -1 is returned.
+        /// Otherwise, a NetMQException is thrown.
+        /// </remarks>
         private static int EndRead(SocketError socketError, int bytesTransferred)
         {
             if (socketError == SocketError.Success && bytesTransferred > 0)
@@ -824,7 +874,21 @@ namespace NetMQ.zmq.Transports
                 socketError == SocketError.ConnectionReset)
                 return -1;
 
-            throw NetMQException.Create(socketError);
+#if DEBUG
+            var sb = new StringBuilder("StreamEngine.EndWrite(SocketError = ");
+            sb.Append(socketError);
+            sb.Append(", bytesTransferred = ");
+            sb.Append(bytesTransferred).Append(") ");
+            ErrorCode errorCode;
+            if (!NetMQException.TryConvertSocketErrorToErrorCode(socketError, out errorCode))
+            {
+                sb.Append("(no equiv. ErrorCode).");
+            }
+            string xMsg = sb.ToString();
+            throw NetMQException.Create(message: xMsg, errorCode: errorCode);
+#else
+            throw NetMQException.Create(error: socketError);
+#endif
         }
 
         private void BeginRead([NotNull] ByteArraySegment data, int size)
@@ -839,7 +903,11 @@ namespace NetMQ.zmq.Transports
             }
         }
 
-        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
+        /// <summary>
+        /// This would be called when a timer expires, although here it only throws NotSupportedException.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer (not used here)</param>
+        /// <exception cref="NotSupportedException">TimerEvent is not supported on StreamEngine.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

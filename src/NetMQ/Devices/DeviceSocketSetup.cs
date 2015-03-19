@@ -5,6 +5,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using NetMQ.Sockets;
 
+
 namespace NetMQ.Devices
 {
     /// <summary>
@@ -43,6 +44,7 @@ namespace NetMQ.Devices
         /// The constructor: create a new DeviceSocketSetup object associated with the given NetMQSocket.
         /// </summary>
         /// <param name="socket">the NetMQSocket to associate with this DeviceSocketSetup</param>
+        /// <exception cref="ArgumentNullException">socket must not be null.</exception>
         internal DeviceSocketSetup([NotNull] NetMQSocket socket)
         {
             if (socket == null)
@@ -60,6 +62,7 @@ namespace NetMQ.Devices
         /// </summary>
         /// <param name="endpoint">a string representing the endpoint to which the socket will bind (must not be null)</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
+        /// <exception cref="ArgumentNullException">endpoint must not be null.</exception>
         public DeviceSocketSetup Bind([NotNull] string endpoint)
         {
             if (endpoint == null)
@@ -75,6 +78,7 @@ namespace NetMQ.Devices
         /// </summary>
         /// <param name="endpoint">a string representing the endpoint to which the socket will connect (must not be null)</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
+        /// <exception cref="ArgumentNullException">endpoint must not be null.</exception>
         public DeviceSocketSetup Connect([NotNull] string endpoint)
         {
             if (endpoint == null)
@@ -87,7 +91,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Set an integer-based socket option.
         /// </summary>
-        /// <param name="property">the <see cref="NetMQSocket"/> property to set</param>
+        /// <param name="property">an <see cref="Expression"/> that denotes the property to set</param>
         /// <param name="value">the integer value to assign</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, int>> property, int value)
@@ -98,7 +102,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Set an timespan-based socket option.
         /// </summary>
-        /// <param name="property">the <see cref="NetMQSocket"/> property to set</param>
+        /// <param name="property">an <see cref="Expression"/> that denotes the property to set</param>
         /// <param name="value">the timespan value to assign</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, TimeSpan>> property, TimeSpan value)
@@ -109,7 +113,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Set a socket option that is other than an integer or timespan.
         /// </summary>
-        /// <param name="property">the <see cref="NetMQSocket"/> property to set</param>
+        /// <param name="property">an <see cref="Expression"/> that denotes the property to set</param>
         /// <param name="value">the object value to assign</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         public DeviceSocketSetup SetSocketOption(Expression<Func<NetMQSocket, object>> property, object value)
@@ -123,6 +127,7 @@ namespace NetMQ.Devices
         /// </summary>
         /// <param name="prefix">a byte-array containing the prefix to which the socket will subscribe</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
+        /// <exception cref="InvalidException">The socket type must support Subscription.</exception>
         public DeviceSocketSetup Subscribe(byte[] prefix)
         {
             return AddSocketInitializer(s =>
@@ -145,6 +150,7 @@ namespace NetMQ.Devices
         /// </summary>
         /// <param name="prefix">a string that denotes the prefix to which the socket will subscribe</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
+        /// <exception cref="InvalidException">The socket type must support Subscription.</exception>
         public DeviceSocketSetup Subscribe(string prefix)
         {
             return AddSocketInitializer(s =>
@@ -153,8 +159,8 @@ namespace NetMQ.Devices
 
                 if (sck == null)
                 {
-                    string xMsg = string.Format("DeviceSocketSetup.Subscribe, this socket type {0} does not support Subscription.", s.GetType());
-                    throw new ArgumentException(xMsg);
+                    string xMsg = String.Format("DeviceSocketSetup.Subscribe, this socket type {0} does not support Subscription.", s.GetType());
+                    throw new InvalidException(xMsg);
                 }
 
                 sck.Subscribe(prefix);
@@ -175,6 +181,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Perform the initializations, bindings, and connections on the socket.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Device socket must bind or connect to at least one endpoint.</exception>
         internal void Configure()
         {
             if (m_isConfigured)
@@ -207,6 +214,7 @@ namespace NetMQ.Devices
         /// <param name="property">the "T" property to set</param>
         /// <param name="value">the "T" value to assign</param>
         /// <returns>the current DeviceSocketSetup</returns>
+        /// <exception cref="InvalidOperationException">The specified property must be a valid member of the type.</exception>
         private DeviceSocketSetup SetSocketOption<T>(Expression<Func<NetMQSocket, T>> property, T value)
         {
             var propertyInfo = property.Body is MemberExpression

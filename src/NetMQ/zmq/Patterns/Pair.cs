@@ -58,12 +58,21 @@ namespace NetMQ.zmq.Patterns
                 pipe.Terminate(false);
         }
 
+        /// <summary>
+        /// This is an override of the abstract method that gets called to signal that the given pipe is to be removed from this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe that is being removed</param>
         protected override void XTerminated(Pipe pipe)
         {
             if (pipe == m_pipe)
                 m_pipe = null;
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for reading by this socket
+        /// - however in the case of Pair, this does nothing.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for reading</param>
         protected override void XReadActivated(Pipe pipe)
         {
             //  There's just one pipe. No lists of active and inactive pipes.
@@ -71,12 +80,23 @@ namespace NetMQ.zmq.Patterns
         }
 
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for writing to by this socket,
+        /// however in the case of this Pair socket - this does nothing.
+        /// This method gets called by the WriteActivated method.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected override void XWriteActivated(Pipe pipe)
         {
             //  There's just one pipe. No lists of active and inactive pipes.
             //  There's nothing to do here.
         }
 
+        /// <summary>
+        /// Transmit the given message. The <c>Send</c> method calls this to do the actual sending.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
         protected override bool XSend(ref Msg msg)
         {
             if (m_pipe == null || !m_pipe.Write(ref msg))
@@ -91,6 +111,11 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
+        /// <summary>
+        /// Receive a message. The <c>Recv</c> method calls this lower-level method to do the actual receiving.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
             //  Deallocate old content of the message.

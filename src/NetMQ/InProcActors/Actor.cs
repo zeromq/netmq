@@ -14,11 +14,18 @@ namespace NetMQ.Actors
     [Obsolete("Use non generic NetMQActor")]
     public class NetMQActorEventArgs<T> : EventArgs
     {
+        /// <summary>
+        /// Create a new NetMQActorEventArgs with the given actor.
+        /// </summary>
+        /// <param name="actor">the Actor for the new NetMQActorEventArgs to contain</param>
         public NetMQActorEventArgs([NotNull] Actor<T> actor)
         {
             Actor = actor;
         }
 
+        /// <summary>
+        /// Get the Actor object that this NetMQActorEventArgs contains.
+        /// </summary>
         [NotNull]
         public Actor<T> Actor { get; private set; }
     }
@@ -46,6 +53,12 @@ namespace NetMQ.Actors
                 s_rand.Next(0, 10000), s_rand.Next(0, 10000));
         }
 
+        /// <summary>
+        /// Create a new Actor within the given shim-handler and state-information.
+        /// </summary>
+        /// <param name="context">the context for this actor to live within</param>
+        /// <param name="shimHandler">this <see cref="IShimHandler"/> is will handle the actions we send to the shim</param>
+        /// <param name="state">this generic type represents the state-information that the action will use</param>
         public Actor([NotNull] NetMQContext context, [NotNull] IShimHandler<T> shimHandler, T state)
         {
             m_self = context.CreatePairSocket();
@@ -152,7 +165,7 @@ namespace NetMQ.Actors
                         m_shim.Handler.RunPipeline(m_shim.Pipe);
                     }
                     catch (TerminatingException)
-                    {}
+                    { }
 
                     //  Do not block, if the other end of the pipe is already deleted
                     m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
@@ -162,13 +175,16 @@ namespace NetMQ.Actors
                         m_shim.Pipe.SignalOK();
                     }
                     catch (AgainException)
-                    {}
+                    { }
 
                     m_shim.Pipe.Dispose();
                 },
                 TaskCreationOptions.LongRunning);
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
         public void Dispose()
         {
             //send destroy message to pipe
@@ -179,7 +195,7 @@ namespace NetMQ.Actors
                 m_self.WaitForSignal();
             }
             catch (AgainException)
-            {}
+            { }
 
             m_shimTask.Wait();
             m_self.Dispose();
@@ -205,6 +221,13 @@ namespace NetMQ.Actors
             m_self.Receive(ref msg, options);
         }
 
+        /// <summary>
+        /// Attempt to receive a message for the specified amount of time.
+        /// </summary>
+        /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message data should be placed.</param>
+        /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
+        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
+        /// otherwise <c>false</c>.</returns>
         public bool TryReceive(ref Msg msg, TimeSpan timeout)
         {
             return m_self.TryReceive(ref msg, timeout);

@@ -27,6 +27,7 @@ using JetBrains.Annotations;
 using NetMQ.zmq.Patterns.Utils;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ.zmq.Patterns
 {
     /// <summary>
@@ -183,7 +184,7 @@ namespace NetMQ.zmq.Patterns
 
                 return true;
             }
-            
+
             if (option == ZmqSocketOption.RouterMandatory)
             {
                 m_mandatory = (bool)optval;
@@ -193,6 +194,10 @@ namespace NetMQ.zmq.Patterns
             return false;
         }
 
+        /// <summary>
+        /// This is an override of the abstract method that gets called to signal that the given pipe is to be removed from this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe that is being removed</param>
         protected override void XTerminated(Pipe pipe)
         {
             if (!m_anonymousPipes.Remove(pipe))
@@ -210,6 +215,10 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for reading by this socket.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for reading</param>
         protected override void XReadActivated(Pipe pipe)
         {
             if (!m_anonymousPipes.Contains(pipe))
@@ -225,6 +234,11 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for writing to by this socket.
+        /// This gets called by the WriteActivated method.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected override void XWriteActivated(Pipe pipe)
         {
             Outpipe outpipe = null;
@@ -243,7 +257,12 @@ namespace NetMQ.zmq.Patterns
             Debug.Assert(outpipe != null);
         }
 
-        /// <exception cref="HostUnreachableException">In Router.XSend</exception>
+        /// <summary>
+        /// Transmit the given message. The <c>Send</c> method calls this to do the actual sending.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
+        /// <exception cref="HostUnreachableException">The receiving host must be identifiable.</exception>
         protected override bool XSend(ref Msg msg)
         {
             //  If this is the first part of the message it's the ID of the
@@ -263,8 +282,8 @@ namespace NetMQ.zmq.Patterns
                     //  If there's no such pipe just silently ignore the message, unless
                     //  mandatory is set.
 
-                    var identity = msg.Size == msg.Data.Length 
-                        ? msg.Data 
+                    var identity = msg.Size == msg.Data.Length
+                        ? msg.Data
                         : msg.CloneData();
 
                     Outpipe op;
@@ -286,7 +305,7 @@ namespace NetMQ.zmq.Patterns
                     else if (m_mandatory)
                     {
                         m_moreOut = false;
-                        throw new HostUnreachableException("In Router.XSend");
+                        throw new HostUnreachableException(message: String.Format("In Router.XSend, identity {0} not found in output pipes.", identity));
                     }
                 }
 
@@ -340,6 +359,11 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
+        /// <summary>
+        /// Receive a message. The <c>Recv</c> method calls this lower-level method to do the actual receiving.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
             if (m_prefetched)

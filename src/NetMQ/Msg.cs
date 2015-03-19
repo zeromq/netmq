@@ -23,6 +23,7 @@ using System;
 using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ
 {
     /// <summary>Defines a set of flags applicable to a <see cref="Msg"/> instance: None (default), More, Identity, Shared</summary>
@@ -250,7 +251,7 @@ namespace NetMQ
         /// If this is not a shared-data Msg (MsgFlags.Shared is not set), or it is shared but the reference-counter has dropped to zero,
         /// then return the data back to the BufferPool.
         /// </summary>
-        /// <exception cref="FaultException">The object is not initialised.</exception>
+        /// <exception cref="FaultException">The Msg must have been already initialised.</exception>
         public void Close()
         {
             if (!IsInitialised)
@@ -382,51 +383,53 @@ namespace NetMQ
         /// by simply setting it to point to the given source Msg.
         /// If this is a Pool Msg, then this also increases the reference-counter and sets the Shared bit.
         /// </summary>
-        /// <param name="src">the source Msg to copy from</param>
-        public void Copy(ref Msg src)
+        /// <param name="sourceMsg">the source Msg to copy from</param>
+        /// <exception cref="FaultException">The source Msg must have been already initialised.</exception>
+        public void Copy(ref Msg sourceMsg)
         {
             // Check the validity of the source.
-            if (!src.IsInitialised)
+            if (!sourceMsg.IsInitialised)
                 throw new FaultException("Cannot copy an uninitialised Msg.");
 
             if (IsInitialised)
                 Close();
 
-            if (src.MsgType == MsgType.Pool)
+            if (sourceMsg.MsgType == MsgType.Pool)
             {
                 //  One reference is added to shared messages. Non-shared messages
                 //  are turned into shared messages and reference count is set to 2.
                 if (IsShared)
                 {
-                    src.m_refCount.Increase(1);
+                    sourceMsg.m_refCount.Increase(1);
                 }
                 else
                 {
-                    src.Flags |= MsgFlags.Shared;
-                    src.m_refCount.Set(2);
+                    sourceMsg.Flags |= MsgFlags.Shared;
+                    sourceMsg.m_refCount.Set(2);
                 }
             }
 
             // Populate this instance via a memberwise-copy from the 'src' instance.
-            this = src;
+            this = sourceMsg;
         }
 
         /// <summary>
         /// Close this Msg and make it reference the given source Msg, and then clear the Msg to empty.
         /// </summary>
-        /// <param name="src">the source-Msg to become</param>
-        public void Move(ref Msg src)
+        /// <param name="sourceMsg">the source-Msg to become</param>
+        /// <exception cref="FaultException">The source Msg must have been already initialised.</exception>
+        public void Move(ref Msg sourceMsg)
         {
             // Check the validity of the source.
-            if (!src.IsInitialised)
+            if (!sourceMsg.IsInitialised)
                 throw new FaultException("Cannot move an uninitialised Msg.");
 
             if (IsInitialised)
                 Close();
 
-            this = src;
+            this = sourceMsg;
 
-            src.InitEmpty();
+            sourceMsg.InitEmpty();
         }
 
         /// <summary>Returns a new array containing the first <see cref="Size"/> bytes of <see cref="Data"/>.</summary>

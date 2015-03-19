@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.zmq;
+
 
 namespace NetMQ
 {
@@ -16,7 +18,7 @@ namespace NetMQ
     /// <para/>
     /// Users of this class must call <see cref="Stop"/> when messages should no longer be proxied.
     /// </remarks>
-    public class Proxy
+    public sealed class Proxy
     {
         [NotNull] private readonly NetMQSocket m_frontend;
         [NotNull] private readonly NetMQSocket m_backend;
@@ -51,7 +53,7 @@ namespace NetMQ
         /// <summary>
         /// Start proxying messages between the front and back ends. Blocks, unless using an external <see cref="Poller"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException">The proxy has already been started.</exception>
+        /// <exception cref="InvalidOperationException">The proxy must not have already been started.</exception>
         public void Start()
         {
             if (Interlocked.CompareExchange(ref m_state, StateStarting, StateStopped) != StateStopped)
@@ -77,7 +79,7 @@ namespace NetMQ
         /// <summary>
         /// Stops the proxy, blocking until the underlying <see cref="Poller"/> has completed.
         /// </summary>
-        /// <exception cref="InvalidOperationException">The proxy has not been started.</exception>
+        /// <exception cref="InvalidOperationException">The proxy must have already been started.</exception>
         public void Stop()
         {
             if (Interlocked.CompareExchange(ref m_state, StateStopping, StateStarted) != StateStarted)

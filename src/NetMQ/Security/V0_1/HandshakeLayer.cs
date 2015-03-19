@@ -8,8 +8,19 @@ namespace NetMQ.Security.V0_1
 {
     internal class HandshakeLayer : IDisposable
     {
+        /// <summary>
+        /// This is the SecureChannel that this handshake-protocol is communicating over.
+        /// </summary>
         private readonly SecureChannel m_secureChannel;
+
+        /// <summary>
+        /// This denotes the length of the byte-array that holds the random-number value.
+        /// </summary>
         public const int RandomNumberLength = 32;
+
+        /// <summary>
+        /// This denotes the length of the byte-array that holds the master-secret.
+        /// </summary>
         public const int MasterSecretLength = 48;
 
         /// <summary>
@@ -96,10 +107,19 @@ namespace NetMQ.Security.V0_1
 
         public SecurityParameters SecurityParameters { get; private set; }
 
+        /// <summary>
+        /// Get or set the array of allowed cipher-suites.
+        /// </summary>
         public CipherSuite[] AllowedCipherSuites { get; set; }
 
+        /// <summary>
+        /// Get or set the local X.509-certificate.
+        /// </summary>
         public X509Certificate2 LocalCertificate { get; set; }
 
+        /// <summary>
+        /// Get or set the remote X.509-certificate.
+        /// </summary>
         public X509Certificate2 RemoteCertificate { get; set; }
 
         /// <summary>
@@ -126,6 +146,8 @@ namespace NetMQ.Security.V0_1
         /// <param name="incomingMessage">the NetMQMessage that has come in</param>
         /// <param name="outgoingMessages">a collection of NetMQMessages that are to be sent</param>
         /// <returns>true if finished - ie, an incoming message of type Finished was received</returns>
+        /// <exception cref="ArgumentNullException">handshakeMessage must not be null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The incomingMessage must have a valid HandshakeType.</exception>
         public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
         {
             if (incomingMessage == null)
@@ -139,7 +161,7 @@ namespace NetMQ.Security.V0_1
                 }
                 else
                 {
-                    throw new ArgumentNullException("handshakeMessage is null");
+                    throw new ArgumentNullException(paramName: "incomingMessage", message: "handshakeMessage is null");
                 }
             }
 
@@ -166,7 +188,7 @@ namespace NetMQ.Security.V0_1
                     OnFinished(incomingMessage, outgoingMessages);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(paramName: "incomingMessage", message: String.Format("incomingMessage has an invalid HandshakeType: {0}", handshakeType));
             }
 
             m_lastReceivedMessage = handshakeType;
@@ -242,6 +264,12 @@ namespace NetMQ.Security.V0_1
             m_lastSentMessage = HandshakeType.ClientHello;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="incomingMessage"></param>
+        /// <param name="outgoingMessages"></param>
+        /// <exception cref="NetMQSecurityException">The client hello message must not be received while expecting a different message.</exception>
         private void OnClientHello(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
         {
             if (m_lastReceivedMessage != HandshakeType.HelloRequest || m_lastSentMessage != HandshakeType.HelloRequest)
@@ -310,6 +338,11 @@ namespace NetMQ.Security.V0_1
             m_lastSentMessage = HandshakeType.ServerHello;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="incomingMessage"></param>
+        /// <exception cref="NetMQSecurityException">The server hello message must not be received while expecting a different message.</exception>
         private void OnServerHello(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.HelloRequest || m_lastSentMessage != HandshakeType.ClientHello)
@@ -327,6 +360,12 @@ namespace NetMQ.Security.V0_1
             SetCipherSuite(serverHelloMessage.CipherSuite);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="incomingMessage"></param>
+        /// <exception cref="NetMQSecurityException">Must be able to verify the certificate.</exception>
+        /// <exception cref="NetMQSecurityException">The certificate message must not be received while expecting a another message.</exception>
         private void OnCertificate(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.ServerHello || m_lastSentMessage != HandshakeType.ClientHello)
@@ -347,6 +386,12 @@ namespace NetMQ.Security.V0_1
             RemoteCertificate = certificateMessage.Certificate;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="incomingMessage"></param>
+        /// <param name="outgoingMessages"></param>
+        /// <exception cref="NetMQSecurityException">The server hello message must not be received while expecting another message.</exception>
         private void OnServerHelloDone(NetMQMessage incomingMessage,
             OutgoingMessageBag outgoingMessages)
         {
@@ -385,6 +430,11 @@ namespace NetMQ.Security.V0_1
             m_lastSentMessage = HandshakeType.ClientKeyExchange;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="incomingMessage"></param>
+        /// <exception cref="NetMQSecurityException">The client key exchange must not be received while expecting a another message.</exception>
         private void OnClientKeyExchange(NetMQMessage incomingMessage)
         {
             if (m_lastReceivedMessage != HandshakeType.ClientHello || m_lastSentMessage != HandshakeType.ServerHelloDone)
@@ -406,6 +456,13 @@ namespace NetMQ.Security.V0_1
             InvokeChangeCipherSuite();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="incomingMessage"></param>
+        /// <param name="outgoingMessages"></param>
+        /// <exception cref="NetMQSecurityException">The Finished message must not be received while expecting a another message.</exception>
+        /// <exception cref="NetMQSecurityException">The peer verification data must be valid.</exception>
         private void OnFinished(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
         {
             if (
@@ -494,6 +551,11 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cipher"></param>
+        /// <exception cref="ArgumentOutOfRangeException">cipher must have a valid value.</exception>
         private void SetCipherSuite(CipherSuite cipher)
         {
             switch (cipher)
@@ -524,7 +586,7 @@ namespace NetMQ.Security.V0_1
                     SecurityParameters.RecordIVLength = 16;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("cipher");
+                    throw new ArgumentOutOfRangeException(paramName: "cipher", message: String.Format("cipher has an invalid value: {0}", cipher));
             }
 
             switch (cipher)
@@ -549,7 +611,7 @@ namespace NetMQ.Security.V0_1
                     SecurityParameters.MACLength = 32;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("cipher");
+                    throw new ArgumentOutOfRangeException(paramName: "cipher", message: String.Format("cipher has an invalid value: {0}", cipher));
             }
         }
 
@@ -578,6 +640,9 @@ namespace NetMQ.Security.V0_1
             Array.Clear(preMasterSecret, 0, preMasterSecret.Length);
         }
 
+        /// <summary>
+        /// Dispose of any contained resources.
+        /// </summary>
         public void Dispose()
         {
             if (m_rng != null)

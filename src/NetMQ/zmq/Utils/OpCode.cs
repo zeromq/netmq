@@ -5,6 +5,10 @@ using JetBrains.Annotations;
 
 namespace NetMQ.zmq.Utils
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Mmap must not fail.</exception>
     internal static class Opcode
     {
         private static IntPtr s_codeBuffer;

@@ -89,6 +89,7 @@ namespace NetMQ.zmq.Utils
 
         private int m_nextGlobalIndex;
 
+        /// <param name="chunkSize">the size to give the new YQueue</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="chunkSize"/> should be no less than 2</exception>
         public YQueue(int chunkSize)
         {
@@ -125,7 +126,7 @@ namespace NetMQ.zmq.Utils
         {
             T value = m_beginChunk.Values[m_beginPositionInChunk];
             m_beginChunk.Values[m_beginPositionInChunk] = default(T);
-            
+
             m_beginPositionInChunk++;
             if (m_beginPositionInChunk == m_chunkSize)
             {
@@ -201,7 +202,7 @@ namespace NetMQ.zmq.Utils
             // Capturing and removing the unpushed value from chunk.
             T value = m_backChunk.Values[m_backPositionInChunk];
             m_backChunk.Values[m_backPositionInChunk] = default(T);
-            
+
             return value;
         }
     }

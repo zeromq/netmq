@@ -23,6 +23,7 @@ using System;
 using System.Text;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Patterns
 {
     internal sealed class Sub : XSub
@@ -44,6 +45,14 @@ namespace NetMQ.zmq.Patterns
             m_options.Filter = true;
         }
 
+        /// <summary>
+        /// Set the specified option on this socket - which must be either a SubScribe or an Unsubscribe.
+        /// </summary>
+        /// <param name="option">which option to set</param>
+        /// <param name="optionValue">the value to set the option to</param>
+        /// <returns><c>true</c> if successful</returns>
+        /// <exception cref="InvalidException">optionValue must be a String or a byte-array.</exception>
+        /// <exception cref="AgainException">XSend must return true.</exception>
         protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
         {
             if (option != ZmqSocketOption.Subscribe && option != ZmqSocketOption.Unsubscribe)
@@ -76,8 +85,7 @@ namespace NetMQ.zmq.Patterns
 
                 if (!isMessageSent)
                 {
-                    string xMsg = string.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
-                    throw new AgainException(innerException: null, message: xMsg);
+                    throw new AgainException(innerException: null, message: String.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue));
                 }
             }
             finally
@@ -88,6 +96,11 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
+        /// <summary>
+        /// XSend transmits a given message. The <c>Send</c> method calls this to do the actual sending.
+        /// This override of that abstract method simply throws NotSupportedException because XSend is not supported on a Sub socket.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
         /// <exception cref="NotSupportedException">XSend not supported on Sub socket</exception>
         protected override bool XSend(ref Msg msg)
         {
@@ -95,6 +108,10 @@ namespace NetMQ.zmq.Patterns
             throw new NotSupportedException("XSend not supported on Sub socket");
         }
 
+        /// <summary>
+        /// Return false to indicate that XHasOut is not applicable on a Sub socket.
+        /// </summary>
+        /// <returns></returns>
         protected override bool XHasOut()
         {
             //  Overload the XSUB's send.

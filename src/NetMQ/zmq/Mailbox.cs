@@ -24,6 +24,7 @@ using System.Net.Sockets;
 using JetBrains.Annotations;
 using NetMQ.zmq.Utils;
 
+
 namespace NetMQ.zmq
 {
     internal interface IMailbox
@@ -95,7 +96,7 @@ namespace NetMQ.zmq
 
         [CanBeNull]
         public Command Recv()
-        {            
+        {
             Command cmd;
             m_commandPipe.Read(out cmd);
             return cmd;
@@ -153,6 +154,10 @@ namespace NetMQ.zmq
         [NotNull] private readonly string m_name;
 #endif
 
+        /// <summary>
+        /// Create a new Mailbox with the given name.
+        /// </summary>
+        /// <param name="name">the name to give this new Mailbox</param>
         public Mailbox([NotNull] string name)
         {
             //  Get the pipe into passive state. That way, if the users starts by
@@ -171,12 +176,19 @@ namespace NetMQ.zmq
 #endif
         }
 
+        /// <summary>
+        /// Get the socket-handle contained by the Signaler.
+        /// </summary>
         [NotNull]
         public Socket Handle
         {
             get { return m_signaler.Handle; }
         }
 
+        /// <summary>
+        /// Send the given Command out accross the command-pipe.
+        /// </summary>
+        /// <param name="cmd">the Command to send</param>
         public void Send(Command cmd)
         {
             bool ok;
@@ -195,16 +207,21 @@ namespace NetMQ.zmq
             }
         }
 
+        /// <summary>
+        /// Receive and return a Command from the command-pipe.
+        /// </summary>
+        /// <param name="timeout">how long to wait for a command (in milliseconds) before returning</param>
+        /// <returns>the Command that was received</returns>
         [CanBeNull]
         public Command Recv(int timeout)
         {
             Command cmd;
-            
+
             //  Try to get the command straight away.
             if (m_active)
             {
                 m_commandPipe.Read(out cmd);
-                
+
                 if (cmd != null)
                     return cmd;
 
@@ -229,12 +246,19 @@ namespace NetMQ.zmq
             return cmd;
         }
 
+        /// <summary>
+        /// Close the contained Signaler.
+        /// </summary>
         public void Close()
         {
             m_signaler.Close();
         }
 
 #if DEBUG
+        /// <summary>
+        /// Override ToString to provide the type-name, plus the Mailbox name within brackets.
+        /// </summary>
+        /// <returns>a string of the form Mailbox[name]</returns>
         public override string ToString()
         {
             return base.ToString() + "[" + m_name + "]";

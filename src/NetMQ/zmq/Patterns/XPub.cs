@@ -38,16 +38,26 @@ namespace NetMQ.zmq.Patterns
             {}
         }
 
-        //  List of all subscriptions mapped to corresponding pipes.
+        /// <summary>
+        /// List of all subscriptions mapped to corresponding pipes.
+        /// </summary>
         private readonly MultiTrie m_subscriptions;
 
-        //  Distributor of messages holding the list of outbound pipes.
+        /// <summary>
+        /// Distributor of messages holding the list of outbound pipes.
+        /// </summary>
         private readonly Distribution m_distribution;
 
-        // If true, send all subscription messages upstream, not just
-        // unique ones
+        /// <summary>
+        /// If true, send all subscription messages upstream, not just
+        /// unique ones. The default is false.
+        /// </summary>
         private bool m_verbose;
 
+        /// <summary>
+        /// 
+        /// The default value is false.
+        /// </summary>
         private bool m_manual;
 
         private Pipe m_lastPipe;
@@ -59,8 +69,10 @@ namespace NetMQ.zmq.Patterns
         /// </summary>
         private bool m_more;
 
-        //  List of pending (un)subscriptions, ie. those that were already
-        //  applied to the trie, but not yet received by the user.
+        /// <summary>
+        /// List of pending (un)subscriptions, ie. those that were already
+        /// applied to the trie, but not yet received by the user.
+        /// </summary>
         private readonly Queue<byte[]> m_pending;
 
         private static readonly MultiTrie.MultiTrieDelegate s_markAsMatching;
@@ -96,9 +108,6 @@ namespace NetMQ.zmq.Patterns
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Xpub;
-            m_verbose = false;
-            m_manual = false;
-            m_more = false;
 
             m_welcomeMessage = new Msg();
             m_welcomeMessage.InitEmpty();
@@ -139,6 +148,10 @@ namespace NetMQ.zmq.Patterns
             XReadActivated(pipe);
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for reading by this socket.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for reading</param>
         protected override void XReadActivated(Pipe pipe)
         {
             //  There are some subscriptions waiting. Let's process them.
@@ -179,11 +192,23 @@ namespace NetMQ.zmq.Patterns
             }
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for writing to by this socket.
+        /// This gets called by the WriteActivated method.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected override void XWriteActivated(Pipe pipe)
         {
             m_distribution.Activated(pipe);
         }
 
+        /// <summary>
+        /// Set the specified option on this socket.
+        /// </summary>
+        /// <param name="option">which option to set</param>
+        /// <param name="optionValue">the value to set the option to</param>
+        /// <returns><c>true</c> if successful</returns>
+        /// <exception cref="InvalidException">optionValue must be a byte-array.</exception>
         protected override bool XSetSocketOption(ZmqSocketOption option, Object optionValue)
         {
             if (option == ZmqSocketOption.XpubVerbose)
@@ -259,18 +284,26 @@ namespace NetMQ.zmq.Patterns
             return false;
         }
 
+        /// <summary>
+        /// This is an override of the abstract method that gets called to signal that the given pipe is to be removed from this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe that is being removed</param>
         protected override void XTerminated(Pipe pipe)
         {
             //  Remove the pipe from the trie. If there are topics that nobody
             //  is interested in anymore, send corresponding un-subscriptions
             //  upstream.
 
-
             m_subscriptions.RemoveHelper(pipe, s_sendUnsubscription, this);
 
             m_distribution.Terminated(pipe);
         }
 
+        /// <summary>
+        /// Transmit the given message. The <c>Send</c> method calls this to do the actual sending.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
         protected override bool XSend(ref Msg msg)
         {
             bool msgMore = msg.HasMore;
@@ -294,12 +327,16 @@ namespace NetMQ.zmq.Patterns
             return true;
         }
 
-
         protected override bool XHasOut()
         {
             return m_distribution.HasOut();
         }
 
+        /// <summary>
+        /// Receive a message. The <c>Recv</c> method calls this lower-level method to do the actual receiving.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
             //  If there is at least one 

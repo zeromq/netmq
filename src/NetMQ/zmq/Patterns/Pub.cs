@@ -22,6 +22,7 @@
 using System;
 using JetBrains.Annotations;
 
+
 namespace NetMQ.zmq.Patterns
 {
     internal sealed class Pub : XPub
@@ -39,6 +40,11 @@ namespace NetMQ.zmq.Patterns
             m_options.SocketType = ZmqSocketType.Pub;
         }
 
+        /// <summary>
+        /// This override of the abstract XRecv method, simply throws a NotSupportedException because XRecv is not supported on a Pub socket.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <exception cref="NotSupportedException">XRecv is not supported a Pub.</exception>
         protected override bool XRecv(ref Msg msg)
         {
             //  Messages cannot be received from PUB socket.

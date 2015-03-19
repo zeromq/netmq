@@ -22,8 +22,10 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text;
 using AsyncIO;
 using JetBrains.Annotations;
+
 
 namespace NetMQ.zmq.Transports.Tcp
 {
@@ -67,6 +69,12 @@ namespace NetMQ.zmq.Transports.Tcp
         /// </summary>
         private int m_port;
 
+        /// <summary>
+        /// Create a new TcpListener on the given IOThread and socket.
+        /// </summary>
+        /// <param name="ioThread">the IOThread for this to live within</param>
+        /// <param name="socket">a SocketBase to listen on</param>
+        /// <param name="options">socket-related Options</param>
         public TcpListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
             : base(ioThread, options)
         {
@@ -76,6 +84,9 @@ namespace NetMQ.zmq.Transports.Tcp
             m_socket = socket;
         }
 
+        /// <summary>
+        /// Release any contained resources (here - does nothing).
+        /// </summary>
         public override void Destroy()
         {
             Debug.Assert(m_handle == null);
@@ -89,6 +100,10 @@ namespace NetMQ.zmq.Transports.Tcp
             Accept();
         }
 
+        /// <summary>
+        /// Process a termination request.
+        /// </summary>
+        /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
         protected override void ProcessTerm(int linger)
         {
             m_ioObject.SetHandler(this);
@@ -98,17 +113,17 @@ namespace NetMQ.zmq.Transports.Tcp
         }
 
         /// <summary>
-        /// Set address to listen on. return the used port
+        /// Set address to listen on.
         /// </summary>
-        /// <param name="addr"></param>
-        public virtual void SetAddress([NotNull] string addr)
+        /// <param name="address">a string denoting the address to set this to</param>
+        public virtual void SetAddress([NotNull] string address)
         {
-            m_address.Resolve(addr, m_options.IPv4Only);
+            m_address.Resolve(address, m_options.IPv4Only);
 
             try
             {
                 m_handle = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                
+
                 Debug.Assert(m_handle != null);
 
                 if (!m_options.IPv4Only && m_address.Address.AddressFamily == AddressFamily.InterNetworkV6)
@@ -138,7 +153,13 @@ namespace NetMQ.zmq.Transports.Tcp
             catch (SocketException ex)
             {
                 Close();
-                throw NetMQException.Create(ex);
+                var sb = new StringBuilder("TcpListener.SetAddress(");
+                sb.Append(address).Append(")");
+#if DEBUG
+                sb.Append(", m_options.IPv4Only = ");
+                sb.Append(m_options.IPv4Only);
+#endif
+                throw new FaultException(innerException: ex, message: sb.ToString());
             }
         }
 
@@ -150,6 +171,12 @@ namespace NetMQ.zmq.Transports.Tcp
             m_handle.Accept(m_acceptedSocket);
         }
 
+        /// <summary>
+        /// This is called when socket input has been completed.
+        /// </summary>
+        /// <param name="socketError">This indicates the status of the input operation - whether Success or some error.</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NetMQException">A non-recoverable socket-error occurred.</exception>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
             if (socketError != SocketError.Success)
@@ -258,18 +285,30 @@ namespace NetMQ.zmq.Transports.Tcp
             get { return m_address.ToString(); }
         }
 
+        /// <summary>
+        /// Get the port-number to listen on.
+        /// </summary>
         public virtual int Port
         {
             get { return m_port; }
         }
 
-        /// <exception cref="NotSupportedException">Method is not implemented.</exception>
+        /// <summary>
+        /// This method would be called when a message Send operation has been completed - except in this case it simply throws a NotImplementedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotImplementedException">OutCompleted is not implemented on TcpListener.</exception>
         void IProactorEvents.OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
         }
 
-        /// <exception cref="NotSupportedException">Operation is not supported.</exception>
+        /// <summary>
+        /// This would be called when a timer expires, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer (not used here)</param>
+        /// <exception cref="NotSupportedException">TimerEvent is not supported on TcpListener.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();

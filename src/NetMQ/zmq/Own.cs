@@ -31,6 +31,9 @@ namespace NetMQ.zmq
     /// </summary>
     internal abstract class Own : ZObject
     {
+        /// <summary>
+        /// The Options of this Own.
+        /// </summary>
         [NotNull]
         protected readonly Options m_options;
 
@@ -98,16 +101,24 @@ namespace NetMQ.zmq
             m_options = options;
         }
 
+        /// <summary>
+        /// Eliminate any contained resources that need to have this explicitly done.
+        /// </summary>
         public abstract void Destroy();
 
         /// <summary>
         /// A place to hook in when physical destruction of the object is to be delayed.
+        /// Unless overridden, this simply calls Destroy.
         /// </summary>
         protected virtual void ProcessDestroy()
         {
             Destroy();
         }
 
+        /// <summary>
+        /// Set the owner of *this* Own object, to be the given owner.
+        /// </summary>
+        /// <param name="owner">the Own object to be our new owner</param>
         private void SetOwner([NotNull] Own owner)
         {
             Debug.Assert(m_owner == null);
@@ -115,7 +126,7 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// When another owned object wants to send command to this object it calls this function
+        /// When another owned object wants to send a command to this object it calls this function
         /// to let it know it should not shut down before the command is delivered.
         /// </summary>
         /// <remarks>
@@ -126,6 +137,9 @@ namespace NetMQ.zmq
             Interlocked.Increment(ref m_sentSeqnum);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void ProcessSeqnum()
         {
             //  Catch up with counter of processed commands.
@@ -138,7 +152,7 @@ namespace NetMQ.zmq
         /// <summary>
         /// Launch the supplied object and become its owner.
         /// </summary>
-        /// <param name="obj">The object to be launched.</param>
+        /// <param name="obj">the Own object to take ownership of and launched</param>
         protected void LaunchChild([NotNull] Own obj)
         {
             //  Specify the owner of the object.
@@ -154,12 +168,17 @@ namespace NetMQ.zmq
         /// <summary>
         /// Terminate owned object.
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">the Own object to terminate</param>
         protected void TermChild([NotNull] Own obj)
         {
             ProcessTermReq(obj);
         }
 
+        /// <summary>
+        /// Process a termination-request for the given Own obj,
+        /// removing it from the listed of owned things.
+        /// </summary>
+        /// <param name="obj">the Own object to remove and terminate</param>
         protected override void ProcessTermReq(Own obj)
         {
             //  When shutting down we can ignore termination requests from owned
@@ -182,7 +201,14 @@ namespace NetMQ.zmq
             SendTerm(obj, m_options.Linger);
         }
 
-
+        /// <summary>
+        /// Add the given Own object to the list of owned things.
+        /// </summary>
+        /// <param name="obj">the Own object to add to our list</param>
+        /// <remarks>
+        /// If *this* Own is already terminating, then send a request to the given Own obj
+        /// to terminate itself.
+        /// </remarks>
         protected override void ProcessOwn(Own obj)
         {
             //  If the object is already being shut down, new owned objects are
@@ -225,12 +251,12 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Returns true if the object is in process of termination.
+        /// Returns true if this object itself is in process of termination.
         /// </summary>
         protected bool IsTerminating { get { return m_terminating; } }
 
         /// <summary>
-        /// Runs the termination process.
+        /// Send termination requests to all of the owned objects, and then runs the termination process.
         /// </summary>
         /// <param name="linger">the linger time, in milliseconds</param>
         /// <remarks>
@@ -258,17 +284,27 @@ namespace NetMQ.zmq
         }
 
         /// <summary>
-        /// Use following two functions to wait for arbitrary events before
-        /// terminating. Just add number of events to wait for using
-        /// register_tem_acks functions. When event occurs, call
-        /// remove_term_ack. When number of pending acks reaches zero
-        /// object will be deallocated.
+        /// Add the given number to the termination-acknowledgement count.
         /// </summary>
+        /// <remarks>
+        /// The methods RegisterTermAcks and <see cref="UnregisterTermAck"/> are used to wait for arbitrary events before
+        /// terminating. Just add the number of events to wait for, and when the event occurs - call <see cref="UnregisterTermAck"/>.
+        /// When the number of pending termination-acknowledgements reaches zero, this object will be deallocated.
+        /// </remarks>
         public void RegisterTermAcks(int count)
         {
             m_termAcks += count;
         }
 
+        /// <summary>
+        /// Decrement the termination-acknowledgement count, and if it reaches zero
+        /// then send a termination-ack to the owner.
+        /// </summary>
+        /// <remarks>
+        /// The methods <see cref="RegisterTermAcks"/> and UnregisterTermAck are used to wait for arbitrary events before
+        /// terminating. Just add the number of events to wait for, and when the event occurs - call UnregisterTermAck.
+        /// When the number of pending termination-acknowledgements reaches zero, this object will be deallocated.
+        /// </remarks>
         public void UnregisterTermAck()
         {
             Debug.Assert(m_termAcks > 0);
@@ -278,11 +314,19 @@ namespace NetMQ.zmq
             CheckTermAcks();
         }
 
+        /// <summary>
+        /// Process the first termination-acknowledgement.
+        /// Unless this is overridden, it simply calls <see cref="UnregisterTermAck"/>.
+        /// </summary>
         protected override void ProcessTermAck()
         {
             UnregisterTermAck();
         }
 
+        /// <summary>
+        /// If terminating, and we've already worked through the Seq-nums that were sent,
+        /// then send a termination-ack to the owner (if there is one) and destroy itself.
+        /// </summary>
         private void CheckTermAcks()
         {
             if (m_terminating &&
