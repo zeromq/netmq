@@ -60,6 +60,7 @@ namespace NetMQ.Core
             TcpKeepaliveCnt = -1;
             TcpKeepaliveIdle = -1;
             TcpKeepaliveIntvl = -1;
+            DisableTimeWait = false;
         }
 
         /// <summary>
@@ -267,6 +268,12 @@ namespace NetMQ.Core
         public int TcpKeepaliveIntvl { get; set; }
 
         /// <summary>
+        /// Disable TIME_WAIT tcp state when client disconnect.
+        /// The default value is false.
+        /// </summary>
+        public bool DisableTimeWait { get; set; }
+
+        /// <summary>
         /// Assign the given optionValue to the specified option.
         /// </summary>
         /// <param name="option">a ZmqSocketOption that specifies what to set</param>
@@ -388,6 +395,10 @@ namespace NetMQ.Core
                     Endian = (Endianness)optionValue;
                     break;
 
+                case ZmqSocketOption.DisableTimeWait:
+                    DisableTimeWait = (bool)optionValue;
+                    break;
+
                 default:
                     throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOption of " + option);
             }
@@ -475,6 +486,9 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.Endian:
                     return Endian;
+
+                case ZmqSocketOption.DisableTimeWait:
+                    return DisableTimeWait;
 
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);
