@@ -30,6 +30,14 @@ namespace NetMQ
             msg.Close();
         }
 
+        /// <summary>
+        /// Transmit a byte-array of data over this socket.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="data">the byte-array of data to send</param>
+        /// <param name="length">the number of bytes to send</param>
+        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
+        /// <param name="sendMore">set this flag to true to signal that you will be immediately sending another message (optional: default is false)</param>
         public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false, bool sendMore = false)
         {
             var options = SendReceiveOptions.None;
@@ -47,11 +55,24 @@ namespace NetMQ
             socket.Send(data, length, options);
         }
 
+        /// <summary>
+        /// Transmit a byte-array of data over this socket.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="data">the byte-array of data to send</param>
         public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data)
         {
             socket.Send(data, data.Length);
         }
 
+        /// <summary>
+        /// Transmit a string-message of data over this socket, while indicating that more is to come
+        /// (the SendMore flag is set to true).
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="data">the byte-array of data to send</param>
+        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
         public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, bool dontWait = false)
         {
@@ -59,6 +80,15 @@ namespace NetMQ
             return socket;
         }
 
+        /// <summary>
+        /// Transmit a string-message of data over this socket, while indicating that more is to come
+        /// (the SendMore flag is set to true).
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="data">the byte-array of data to send</param>
+        /// <param name="length">the number of bytes to send</param>
+        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
         public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false)
         {
@@ -70,6 +100,13 @@ namespace NetMQ
 
         #region Sending Strings
 
+        /// <summary>
+        /// Transmit a string-message of data over this socket. The string will be encoded into bytes using the specified Encoding.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="message">a string containing the message to send</param>
+        /// <param name="encoding">the Encoding to use when converting the message-string into bytes</param>
+        /// <param name="options">use this to specify which of the DontWait and SendMore flags to set</param>
         public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, SendReceiveOptions options)
         {
             var msg = new Msg();
@@ -88,6 +125,14 @@ namespace NetMQ
             msg.Close();
         }
 
+        /// <summary>
+        /// Transmit a string-message of data over this socket. The string will be encoded into bytes using the specified Encoding.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="message">a string containing the message to send</param>
+        /// <param name="encoding">the Encoding to use when converting the message-string into bytes</param>
+        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
+        /// <param name="sendMore">set this flag to true to signal that you will be immediately sending another message (optional: default is false)</param>
         public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false, bool sendMore = false)
         {
             var options = SendReceiveOptions.None;
@@ -105,6 +150,13 @@ namespace NetMQ
             socket.Send(message, encoding, options);
         }
 
+        /// <summary>
+        /// Transmit a string-message of data over this socket. The string will be encoded into bytes using the default Encoding (ASCII).
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="message">a string containing the message to send</param>
+        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
+        /// <param name="sendMore">set this flag to true to signal that you will be immediately sending another message (optional: default is false)</param>
         public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false, bool sendMore = false)
         {
             Send(socket, message, Encoding.ASCII, dontWait, sendMore);
@@ -112,7 +164,7 @@ namespace NetMQ
 
         /// <summary>
         /// Transmit a string-message of data over this socket, while indicating that more is to come
-        /// (sendMore is set to true).
+        /// (the SendMore flag is set to true).
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="message">a string containing the message to send</param>
@@ -125,6 +177,15 @@ namespace NetMQ
             return socket;
         }
 
+        /// <summary>
+        /// Transmit a string-message of data over this socket and also signal that you are sending more.
+        /// The string will be encoded into bytes using the specified Encoding.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="message">a string containing the message to send</param>
+        /// <param name="encoding">the Encoding to use when converting the message-string into bytes</param>
+        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
         public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false)
         {
@@ -136,6 +197,12 @@ namespace NetMQ
 
         #region Sending NetMQMessage
 
+        /// <summary>
+        /// Transmit a message over this socket.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="message">the NetMQMessage that contains the frames of data to send</param>
+        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
         public static void SendMessage([NotNull] this IOutgoingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
         {
             for (int i = 0; i < message.FrameCount - 1; i++)
@@ -150,6 +217,11 @@ namespace NetMQ
 
         #region Sending Signals
 
+        /// <summary>
+        /// Transmit a status-signal over this socket.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="status">a byte that contains the status signal to send</param>
         private static void Signal([NotNull] this IOutgoingSocket socket, byte status)
         {
             long signalValue = 0x7766554433221100L + status;
@@ -159,11 +231,19 @@ namespace NetMQ
             socket.SendMessage(message);
         }
 
+        /// <summary>
+        /// Transmit a specific status-signal over this socket that indicates OK.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
         public static void SignalOK([NotNull] this IOutgoingSocket socket)
         {
             socket.Signal(0);
         }
 
+        /// <summary>
+        /// Transmit a specific status-signal over this socket that indicates there is an error.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
         public static void SignalError([NotNull] this IOutgoingSocket socket)
         {
             socket.Signal(1);

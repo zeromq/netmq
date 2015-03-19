@@ -78,6 +78,10 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release the buffers currently cached in this manager.
+        /// </summary>
+        /// <param name="disposing">true if managed resources are to be disposed</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
@@ -123,6 +127,10 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release the buffers currently cached in this manager (however in this case, this does nothing).
+        /// </summary>
+        /// <param name="disposing">true if managed resources are to be disposed</param>
         protected virtual void Dispose(bool disposing)
         {
         }

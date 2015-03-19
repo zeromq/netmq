@@ -19,6 +19,7 @@
         /// presumed here to be ServerHelloDone.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 1 frame</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must be 0.</exception>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);

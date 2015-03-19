@@ -77,6 +77,8 @@ namespace NetMQ.Devices
         /// A <see cref="NetMQSocket"/> that will receive messages from (and optionally send replies to) <paramref name="frontendSocket"/>.
         /// </param>
         /// <param name="mode">the <see cref="DeviceMode"/> (either Blocking or Threaded) for this device</param>
+        /// <exception cref="ArgumentNullException">frontendSocket must not be null.</exception>
+        /// <exception cref="ArgumentNullException">backendSocket must not be null.</exception>
         protected DeviceBase(Poller poller, [NotNull] NetMQSocket frontendSocket, [NotNull] NetMQSocket backendSocket, DeviceMode mode)
         {
             if (frontendSocket == null)

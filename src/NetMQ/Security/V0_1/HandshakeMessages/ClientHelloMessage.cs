@@ -10,6 +10,9 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
     /// </summary>
     class ClientHelloMessage : HandshakeMessage
     {
+        /// <summary>
+        /// Get or set the Random-Number that is a part of the handshake-protocol, as a byte-array.
+        /// </summary>
         public byte[] RandomNumber { get; set; }
 
         /// <summary>
@@ -34,6 +37,7 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
         /// 3. a byte-array with the list of CipherSuites.
         /// </summary>
         /// <param name="message">a NetMQMessage - which must have 2 frames</param>
+        /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.InvalidFramesCount"/>: FrameCount must be 3.</exception>
         public override void SetFromNetMQMessage(NetMQMessage message)
         {
             base.SetFromNetMQMessage(message);

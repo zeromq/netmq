@@ -17,23 +17,23 @@ namespace NetMQ.Security
     public interface ISecureChannel : IDisposable
     {
         /// <summary>
-        /// Indicate if the secure channel is ready to encrypt messages
+        /// Get whether the secure channel is ready to encrypt messages.
         /// </summary>
         bool SecureChannelReady { get; }
 
         /// <summary>
-        /// The certificate of the server, for client this property is irrelevant.
-        /// The certificate must include a private key
+        /// Get or set the certificate of the server; for client this property is irrelevant.
+        /// The certificate must include a private key.
         /// </summary>
         X509Certificate2 Certificate { get; set; }
 
         /// <summary>
-        /// The allowed cipher suites for this secure channel order by the priority
+        /// Get or set the array of allowed cipher suites for this secure channel, ordered by priority.
         /// </summary>
         CipherSuite[] AllowedCipherSuites { get; set; }
 
         /// <summary>
-        /// Set the verify-certificate method, by default the certificate is validated by the certificate Chain
+        /// Set the verify-certificate method. By default the certificate is validated by the certificate chain.
         /// </summary>
         /// <param name="verifyCertificate">Delegate for the verify certificate method</param>
         void SetVerifyCertificate(VerifyCertificateDelegate verifyCertificate);

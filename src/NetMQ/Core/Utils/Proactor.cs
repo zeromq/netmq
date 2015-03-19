@@ -91,6 +91,7 @@ namespace NetMQ.Core.Utils
             item.Cancelled = true;
         }
 
+        /// <exception cref="ArgumentOutOfRangeException">The completionStatuses item must have a valid OperationType.</exception>
         private void Loop()
         {
             var completionStatuses = new CompletionStatus[CompletionStatusArraySize];

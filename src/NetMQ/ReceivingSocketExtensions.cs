@@ -46,7 +46,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives.
+        /// Receive a single frame from <paramref cref="socket"/>, blocking until one arrives.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <returns>The content of the received message frame.</returns>
@@ -58,7 +58,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives.
+        /// Receive a single frame from <paramref cref="socket"/>, blocking until one arrives.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -85,7 +85,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -98,7 +98,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
@@ -116,7 +116,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -130,7 +130,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
@@ -277,7 +277,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive all frames of the next message from <see cref="socket"/>, blocking until a message arrives.
+        /// Receive all frames of the next message from <paramref cref="socket"/>, blocking until a message arrives.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="expectedFrameCount">Optional initial <see cref="List{T}.Capacity"/> for the returned <see cref="List{T}"/>.</param>
@@ -291,7 +291,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Receive all frames of the next message from <see cref="socket"/>, blocking until a message arrives.
+        /// Receive all frames of the next message from <paramref cref="socket"/>, blocking until a message arrives.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="frames">Reference to a list for return values. If <c>null</c> a new instance will be assigned, otherwise the provided list will be cleared and populated.</param>
@@ -321,7 +321,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -337,7 +337,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -426,7 +426,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives, and decode as a string using <see cref="DefaultEncoding"/>.
+        /// Receive a single frame from <paramref cref="socket"/>, blocking until one arrives, and decode as a string using <see cref="DefaultEncoding"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <returns>The content of the received message frame as a string.</returns>
@@ -438,7 +438,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives, and decode as a string using <see cref="DefaultEncoding"/>.
+        /// Receive a single frame from <paramref cref="socket"/>, blocking until one arrives, and decode as a string using <see cref="DefaultEncoding"/>.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -451,7 +451,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives, and decode as a string using <paramref name="encoding"/>.
+        /// Receive a single frame from <paramref cref="socket"/>, blocking until one arrives, and decode as a string using <paramref name="encoding"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="encoding">The encoding used to convert the frame's data to a string.</param>
@@ -464,7 +464,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives, and decode as a string using <paramref name="encoding"/>.
+        /// Receive a single frame from <paramref cref="socket"/>, blocking until one arrives, and decode as a string using <paramref name="encoding"/>.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -494,7 +494,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, and decode as a string using <see cref="DefaultEncoding"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, and decode as a string using <see cref="DefaultEncoding"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -507,7 +507,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, and decode as a string using <see cref="DefaultEncoding"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, and decode as a string using <see cref="DefaultEncoding"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -520,7 +520,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, and decode as a string using <paramref name="encoding"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, and decode as a string using <paramref name="encoding"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -534,7 +534,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, and decode as a string using <paramref name="encoding"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, and decode as a string using <paramref name="encoding"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -552,7 +552,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, and decode as a string using <see cref="DefaultEncoding"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, and decode as a string using <see cref="DefaultEncoding"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -566,7 +566,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, and decode as a string using <see cref="DefaultEncoding"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, and decode as a string using <see cref="DefaultEncoding"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -580,7 +580,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, and decode as a string using <paramref name="encoding"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, and decode as a string using <paramref name="encoding"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -595,7 +595,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, and decode as a string using <paramref name="encoding"/>.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, and decode as a string using <paramref name="encoding"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -668,7 +668,7 @@ namespace NetMQ
         /// <summary>
         /// Read an available message, extract the data which is converted to a string using
         /// <see cref="Encoding.ASCII"/>, and inform of the availability of more messages via
-        /// <paramref name="hasMore."/>
+        /// <paramref name="hasMore"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore flags</param>
@@ -877,7 +877,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive all frames of the next message from <see cref="socket"/>, blocking until they arrive, and decode as strings using <see cref="DefaultEncoding"/>.
+        /// Receive all frames of the next message from <paramref cref="socket"/>, blocking until they arrive, and decode as strings using <see cref="DefaultEncoding"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
@@ -891,7 +891,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Receive all frames of the next message from <see cref="socket"/>, blocking until they arrive, and decode as strings using <see cref="DefaultEncoding"/>.
+        /// Receive all frames of the next message from <paramref cref="socket"/>, blocking until they arrive, and decode as strings using <see cref="DefaultEncoding"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="encoding">The encoding used to convert the frame's data to a string.</param>
@@ -922,7 +922,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>, and decode them as strings using <see cref="DefaultEncoding"/>.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>, and decode them as strings using <see cref="DefaultEncoding"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -937,7 +937,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>, and decode them as strings using <paramref name="encoding"/>.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>, and decode them as strings using <paramref name="encoding"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -957,7 +957,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>, and decode them as strings using <see cref="DefaultEncoding"/>.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>, and decode them as strings using <see cref="DefaultEncoding"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -973,7 +973,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>, and decode them as strings using <paramref name="encoding"/>.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>, and decode them as strings using <paramref name="encoding"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1082,7 +1082,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive all frames of the next message from <see cref="socket"/>, blocking until they arrive.
+        /// Receive all frames of the next message from <paramref cref="socket"/>, blocking until they arrive.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
@@ -1113,7 +1113,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1132,7 +1132,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1251,7 +1251,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive frames from <see cref="socket"/>, blocking until a valid signal arrives.
+        /// Receive frames from <paramref cref="socket"/>, blocking until a valid signal arrives.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <returns><c>true</c> if the received signal was zero, otherwise <c>false</c>.</returns>
@@ -1289,7 +1289,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive a valid signal from <see cref="socket"/>.
+        /// Attempt to receive a valid signal from <paramref cref="socket"/>.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1305,7 +1305,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to receive a valid signal from <see cref="socket"/>.
+        /// Attempt to receive a valid signal from <paramref cref="socket"/>.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1392,7 +1392,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives, then ignore its content.
+        /// Receive a single frame from <paramref cref="socket"/>, blocking until one arrives, then ignore its content.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         public static void SkipFrame([NotNull] this IReceivingSocket socket)
@@ -1404,7 +1404,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Receive a single frame from <see cref="socket"/>, blocking until one arrives, then ignore its content.
+        /// Receive a single frame from <paramref cref="socket"/>, blocking until one arrives, then ignore its content.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1423,7 +1423,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, then ignore its content.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, then ignore its content.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1438,7 +1438,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, then ignore its content.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, then ignore its content.
         /// If no message is immediately available, return <c>false</c>.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
@@ -1460,7 +1460,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, then ignore its content.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, then ignore its content.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1476,7 +1476,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to receive a single frame from <see cref="socket"/>, then ignore its content.
+        /// Attempt to receive a single frame from <paramref cref="socket"/>, then ignore its content.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// Indicate whether further frames exist via <paramref name="more"/>.
         /// </summary>
@@ -1510,7 +1510,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Receive all frames of the next message from <see cref="socket"/>, blocking until a message arrives, then ignore their contents.
+        /// Receive all frames of the next message from <paramref cref="socket"/>, blocking until a message arrives, then ignore their contents.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         public static void SkipMultipartMessage([NotNull] this IReceivingSocket socket)
@@ -1530,7 +1530,7 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>, then ignore their contents.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>, then ignore their contents.
         /// If no message is immediately available, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
@@ -1549,7 +1549,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to receive all frames of the next message from <see cref="socket"/>, then ignore their contents.
+        /// Attempt to receive all frames of the next message from <paramref cref="socket"/>, then ignore their contents.
         /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>

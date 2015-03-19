@@ -46,8 +46,21 @@ namespace NetMQ.Core.Transports
         /// </summary>
         private readonly byte[] m_buffer;
 
+        /// <summary>
+        /// The size of the encoded-data buffer
+        /// </summary>
         private readonly int m_bufferSize;
 
+        /// <summary>
+        /// This flag indicates whether there has been an encoder error.
+        /// </summary>
+        private bool m_error;
+
+        /// <summary>
+        /// Create a new EncoderBase with a buffer of the given size.
+        /// </summary>
+        /// <param name="bufferSize">how big of an internal buffer to allocate (in bytes)</param>
+        /// <param name="endian">the <see cref="Endianness"/> to set this EncoderBase to</param>
         protected EncoderBase(int bufferSize, Endianness endian)
         {
             Endian = endian;
@@ -55,12 +68,15 @@ namespace NetMQ.Core.Transports
             m_buffer = new byte[bufferSize];
         }
 
+        /// <summary>
+        /// Get the Endianness (Big or Little) that this EncoderBase uses.
+        /// </summary>
         public Endianness Endian { get; private set; }
 
         public abstract void SetMsgSource(IMsgSource msgSource);
 
         /// <summary>
-        /// The function returns a batch of binary data. The data
+        /// This returns a batch of binary data. The data
         /// are filled to a supplied buffer. If no buffer is supplied (data_
         /// points to NULL) decoder object will provide buffer of its own.
         /// </summary>
@@ -137,6 +153,23 @@ namespace NetMQ.Core.Transports
         }
 
         protected int State { get; private set; }
+
+        /// <summary>
+        /// Set a flag that indicates that there has been an encoding-error.
+        /// </summary>
+        protected void EncodingError()
+        {
+            m_error = true;
+        }
+
+        /// <summary>
+        /// Return true if there has been an encoding error.
+        /// </summary>
+        /// <returns>the state of the error-flag</returns>
+        public bool IsError()
+        {
+            return m_error;
+        }
 
         abstract protected bool Next();
 

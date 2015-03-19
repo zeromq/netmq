@@ -43,6 +43,14 @@ namespace NetMQ.Core.Patterns
             m_options.Filter = true;
         }
 
+        /// <summary>
+        /// Set the specified option on this socket - which must be either a SubScribe or an Unsubscribe.
+        /// </summary>
+        /// <param name="option">which option to set</param>
+        /// <param name="optionValue">the value to set the option to</param>
+        /// <returns><c>true</c> if successful</returns>
+        /// <exception cref="InvalidException">optionValue must be a String or a byte-array.</exception>
+        /// <exception cref="AgainException">XSend must return true.</exception>
         protected override bool XSetSocketOption(ZmqSocketOption option, object optionValue)
         {
             // Only subscribe/unsubscribe options are supported
@@ -82,6 +90,11 @@ namespace NetMQ.Core.Patterns
             return true;
         }
 
+        /// <summary>
+        /// XSend transmits a given message. The <c>Send</c> method calls this to do the actual sending.
+        /// This override of that abstract method simply throws NotSupportedException because XSend is not supported on a Sub socket.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
         /// <exception cref="NotSupportedException">XSend not supported on Sub socket</exception>
         protected override bool XSend(ref Msg msg)
         {
@@ -89,6 +102,10 @@ namespace NetMQ.Core.Patterns
             throw new NotSupportedException("XSend not supported on Sub socket");
         }
 
+        /// <summary>
+        /// Return false to indicate that XHasOut is not applicable on a Sub socket.
+        /// </summary>
+        /// <returns></returns>
         protected override bool XHasOut()
         {
             // Overload the XSUB's send.

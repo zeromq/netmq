@@ -190,6 +190,10 @@ namespace NetMQ.Core.Patterns
             return false;
         }
 
+        /// <summary>
+        /// This is an override of the abstract method that gets called to signal that the given pipe is to be removed from this socket.
+        /// </summary>
+        /// <param name="pipe">the Pipe that is being removed</param>
         protected override void XTerminated(Pipe pipe)
         {
             if (!m_anonymousPipes.Remove(pipe))
@@ -207,6 +211,10 @@ namespace NetMQ.Core.Patterns
             }
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for reading by this socket.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for reading</param>
         protected override void XReadActivated(Pipe pipe)
         {
             if (!m_anonymousPipes.Contains(pipe))
@@ -222,6 +230,11 @@ namespace NetMQ.Core.Patterns
             }
         }
 
+        /// <summary>
+        /// Indicate the given pipe as being ready for writing to by this socket.
+        /// This gets called by the WriteActivated method.
+        /// </summary>
+        /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected override void XWriteActivated(Pipe pipe)
         {
             Outpipe outpipe = null;
@@ -240,7 +253,12 @@ namespace NetMQ.Core.Patterns
             Debug.Assert(outpipe != null);
         }
 
-        /// <exception cref="HostUnreachableException">In Router.XSend</exception>
+        /// <summary>
+        /// Transmit the given message. The <c>Send</c> method calls this to do the actual sending.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
+        /// <exception cref="HostUnreachableException">The receiving host must be identifiable.</exception>
         protected override bool XSend(ref Msg msg)
         {
             // If this is the first part of the message it's the ID of the
@@ -337,6 +355,11 @@ namespace NetMQ.Core.Patterns
             return true;
         }
 
+        /// <summary>
+        /// Receive a message. The <c>Recv</c> method calls this lower-level method to do the actual receiving.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
             if (m_prefetched)

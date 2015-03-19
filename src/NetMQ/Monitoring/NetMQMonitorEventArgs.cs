@@ -38,6 +38,12 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitorSocketEventArgs : NetMQMonitorEventArgs
     {
+        /// <summary>
+        /// Create a new NetMQMonitorSocketEventArgs that contains the given monitor, address, and socket.
+        /// </summary>
+        /// <param name="monitor">the NetMQMonitor that this event concerns</param>
+        /// <param name="address">a string denoting the endpoint-address</param>
+        /// <param name="socket">the AsyncSocket in question</param>
         public NetMQMonitorSocketEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, [NotNull] AsyncSocket socket)
             : base(monitor, address)
         {
@@ -56,6 +62,12 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitorErrorEventArgs : NetMQMonitorEventArgs
     {
+        /// <summary>
+        /// Create a new NetMQMonitorErrorEventArgs that contains the given monitor, address, and error-code.
+        /// </summary>
+        /// <param name="monitor">the NetMQMonitor that this event concerns</param>
+        /// <param name="address">a string denoting the endpoint-address</param>
+        /// <param name="errorCode">the ErrorCode that is giving rise to this event</param>
         public NetMQMonitorErrorEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, ErrorCode errorCode)
             : base(monitor, address)
         {

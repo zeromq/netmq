@@ -39,6 +39,10 @@ namespace NetMQ.Core.Patterns
             m_options.SocketType = ZmqSocketType.Pub;
         }
 
+        /// <summary>
+        /// This override of the abstract XRecv method, simply throws a NotSupportedException because XRecv is not supported on a Pub socket.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to receive the message into</param>
         /// <exception cref="NotSupportedException">Messages cannot be received from PUB socket</exception>
         protected override bool XRecv(ref Msg msg)
         {

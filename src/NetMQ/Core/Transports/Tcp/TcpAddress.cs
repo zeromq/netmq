@@ -32,6 +32,11 @@ namespace NetMQ.Core.Transports.Tcp
     /// </summary>
     internal sealed class TcpAddress : Address.IZAddress
     {
+        /// <summary>
+        /// Override ToString to provide a detailed description of this object's state
+        /// in the form:  Protocol://[AddressFamily]:Port
+        /// </summary>
+        /// <returns>a string in the form Protocol://[AddressFamily]:Port</returns>
         public override string ToString()
         {
             if (Address == null)
@@ -44,6 +49,15 @@ namespace NetMQ.Core.Transports.Tcp
                 : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
+        /// <summary>
+        /// Given a string that should identify an endpoint-address, resolve it to an actual IP address
+        /// and set the Address property to a valid corresponding value.
+        /// </summary>
+        /// <param name="name">the endpoint-address to resolve</param>
+        /// <param name="ip4Only">whether the address must be only-IPv4</param>
+        /// <exception cref="InvalidException">The name must contain the colon delimiter.</exception>
+        /// <exception cref="InvalidException">The specified port must be a valid nonzero integer.</exception>
+        /// <exception cref="InvalidException">Must be able to find the IP-address.</exception>
         public void Resolve(string name, bool ip4Only)
         {
             // Find the ':' at end that separates address from the port number.
@@ -59,6 +73,7 @@ namespace NetMQ.Core.Transports.Tcp
             if (addrStr.Length >= 2 && addrStr[0] == '[' && addrStr[addrStr.Length - 1] == ']')
                 addrStr = addrStr.Substring(1, addrStr.Length - 2);
 
+            // Get the port-number (or zero for auto-selection of a port).
             int port;
             // Allow 0 specifically, to detect invalid port error in atoi if not
             if (portStr == "*" || portStr == "0")
@@ -78,6 +93,7 @@ namespace NetMQ.Core.Transports.Tcp
 
             IPAddress ipAddress;
 
+            // Interpret * as Any.
             if (addrStr == "*")
             {
                 ipAddress = ip4Only 

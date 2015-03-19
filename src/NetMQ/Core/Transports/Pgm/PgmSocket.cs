@@ -76,6 +76,9 @@ namespace NetMQ.Core.Transports.Pgm
             m_pgmAddress = pgmAddress;
         }
 
+        /// <summary>
+        /// Perform initialization of this PgmSocket, including creating the socket handle.
+        /// </summary>
         internal void Init()
         {
 #if DEBUG

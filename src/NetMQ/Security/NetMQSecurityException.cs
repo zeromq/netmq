@@ -79,6 +79,9 @@ namespace NetMQ.Security
             ErrorCode = errorCode;
         }
 
+        /// <summary>
+        /// Get the (security-related) error-code that denotes the error that gave rise to this exception.
+        /// </summary>
         public NetMQSecurityErrorCode ErrorCode { get; private set; }
     }
 }

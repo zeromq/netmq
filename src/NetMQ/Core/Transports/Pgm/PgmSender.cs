@@ -108,6 +108,12 @@ namespace NetMQ.Core.Transports.Pgm
             Debug.Assert(false);
         }
 
+        /// <summary>
+        /// This method is called when a message Send operation has been completed.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NetMQException">A non-recoverable socket error occurred.</exception>
         public override void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             if (m_state == State.Connecting)
@@ -179,15 +185,26 @@ namespace NetMQ.Core.Transports.Pgm
             }
             catch (SocketException ex)
             {
-                NetMQException.Create(ex.SocketErrorCode);
+                throw NetMQException.Create(ex.SocketErrorCode, ex);
             }
         }
 
+        /// <summary>
+        /// This method would be called when a message receive operation has been completed, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotImplementedException">This method must not be called on instances of PgmSender.</exception>
         public override void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// This would be called when a timer expires, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer (not used here)</param>
+        /// <exception cref="NotImplementedException">This method must not be called on instances of PgmSender.</exception>
         public override void TimerEvent(int id)
         {
             throw new NotImplementedException();

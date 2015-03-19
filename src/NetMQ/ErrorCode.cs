@@ -224,6 +224,9 @@ namespace NetMQ
         [Obsolete("Use NoBufferSpaceAvailable")]
         ENOBUFS = 55,
 
+        /// <summary>
+        /// Unused
+        /// </summary>
         [Obsolete("Not in use")]
         EISCONN = 56,
 
@@ -275,6 +278,9 @@ namespace NetMQ
         [Obsolete("Use NetworkUnreachable")]
         ENETUNREACH = BaseErrorNumber + 12,
 
+        /// <summary>
+        /// The connection-attempt has apparently been aborted.
+        /// </summary>
         [Obsolete("Use ConnectionAborted")]
         ECONNABORTED = BaseErrorNumber + 13,
 
@@ -321,9 +327,15 @@ namespace NetMQ
         [Obsolete("Use EmptyThread")]
         EMTHREAD = BaseErrorNumber + 54,
 
+        /// <summary>
+        /// Unused
+        /// </summary>
         [Obsolete("Not In Use")]
         EIOEXC = BaseErrorNumber + 105,
 
+        /// <summary>
+        /// Unused
+        /// </summary>
         [Obsolete]
         ESOCKET = BaseErrorNumber + 106,
 

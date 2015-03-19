@@ -108,6 +108,17 @@ namespace NetMQ.Core
 
         [NotNull] private readonly IOObject m_ioObject;
 
+        /// <summary>
+        /// Create a return a new session.
+        /// The specific subclass of SessionBase that is created is dictated by the SocketType specified by the options argument.
+        /// </summary>
+        /// <param name="ioThread">the <c>IOThread</c> for this session to run in</param>
+        /// <param name="connect">whether to immediately connect</param>
+        /// <param name="socket">the socket to connect</param>
+        /// <param name="options">an <c>Options</c> that provides the SocketType that dictates which type of session to create</param>
+        /// <param name="addr">an <c>Address</c> object that specifies the protocol and address to connect to</param>
+        /// <returns>the newly-created instance of whichever subclass of SessionBase is specified by the options</returns>
+        /// <exception cref="InvalidException">The socket must be of the correct type.</exception>
         [NotNull]
         public static SessionBase Create([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
         {
@@ -142,21 +153,22 @@ namespace NetMQ.Core
             }
         }
 
+        /// <summary>
+        /// Create a new SessionBase object from the given IOThread, socket, and Address.
+        /// </summary>
+        /// <param name="ioThread">the IOThread for this session to run on</param>
+        /// <param name="connect">this flag dictates whether to connect</param>
+        /// <param name="socket">the socket to contain</param>
+        /// <param name="options">Options that dictate the settings of this session</param>
+        /// <param name="addr">an Address that dictates the protocol and IP-address to use when connecting</param>
         public SessionBase([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
 
             m_connect = connect;
-            m_pipe = null;
-            m_incompleteIn = false;
-            m_pending = false;
-            m_engine = null;
             m_socket = socket;
             m_ioThread = ioThread;
-            m_hasLingerTimer = false;
-            m_identitySent = false;
-            m_identityReceived = false;
             m_addr = addr;
 
             if (options.RawSocket)
@@ -168,6 +180,10 @@ namespace NetMQ.Core
             m_terminatingPipes = new HashSet<Pipe>();
         }
 
+        /// <summary>
+        /// Terminate and release any contained resources.
+        /// This cancels the linger-timer if that exists, and terminates the protocol-engine if that exists.
+        /// </summary>
         public override void Destroy()
         {
             Debug.Assert(m_pipe == null);
@@ -184,7 +200,12 @@ namespace NetMQ.Core
                 m_engine.Terminate();
         }
 
-        // To be used once only, when creating the session.
+        /// <summary>
+        /// Attach the given pipe to this session.
+        /// </summary>
+        /// <remarks>
+        /// This is to be used once only, when creating the session.
+        /// </remarks>
         public void AttachPipe([NotNull] Pipe pipe)
         {
             Debug.Assert(!IsTerminating);
@@ -194,6 +215,11 @@ namespace NetMQ.Core
             m_pipe.SetEventSink(this);
         }
 
+        /// <summary>
+        /// Read a message from the pipe.
+        /// </summary>
+        /// <param name="msg">a reference to a Msg to put the message into</param>
+        /// <returns>true if the Msg is successfully sent</returns>
         public virtual bool PullMsg(ref Msg msg)
         {
             // First message to send is identity
@@ -216,6 +242,11 @@ namespace NetMQ.Core
             return true;
         }
 
+        /// <summary>
+        /// Write the given Msg to the pipe.
+        /// </summary>
+        /// <param name="msg">the Msg to push to the pipe</param>
+        /// <returns>true if the Msg was successfully sent</returns>
         public virtual bool PushMsg(ref Msg msg)
         {
             // First message to receive is identity (if required).
@@ -241,6 +272,9 @@ namespace NetMQ.Core
             return false;
         }
 
+        /// <summary>
+        /// Set the identity-sent and identity-received flags to false.
+        /// </summary>
         protected virtual void Reset()
         {
             // Restore identity flags.
@@ -248,21 +282,27 @@ namespace NetMQ.Core
             {
                 m_identitySent = true;
                 m_identityReceived = true;
-            } else
+            }
+            else
             {
                 m_identitySent = false;
                 m_identityReceived = false;
             }
         }
 
+        /// <summary>
+        /// Flush any messages that are in the pipe downstream.
+        /// </summary>
         public void Flush()
         {
             if (m_pipe != null)
                 m_pipe.Flush();
         }
 
-        // Remove any half processed messages. Flush unflushed messages.
-        // Call this function when engine disconnect to get rid of leftovers.
+        /// <summary>
+        /// Remove any half processed messages. Flush unflushed messages.
+        /// Call this function when engine disconnect to get rid of leftovers.
+        /// </summary>
         private void CleanPipes()
         {
             if (m_pipe != null)
@@ -288,6 +328,10 @@ namespace NetMQ.Core
             }
         }
 
+        /// <summary>
+        /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
+        /// </summary>
+        /// <param name="pipe">the pipe that was terminated</param>
         public void Terminated(Pipe pipe)
         {
             // Drop the reference to the deallocated pipe.
@@ -317,6 +361,11 @@ namespace NetMQ.Core
                 ProceedWithTerm();
         }
 
+        /// <summary>
+        /// Indicate that the given pipe is now ready for reading.
+        /// Pipe calls this on it's sink in response to ProcessActivateRead.
+        /// </summary>
+        /// <param name="pipe">the pipe to indicate is ready for reading</param>
         public void ReadActivated(Pipe pipe)
         {
             // Skip activating if we're detaching this pipe
@@ -352,12 +401,19 @@ namespace NetMQ.Core
             throw new NotSupportedException("Must Override");
         }
 
+        /// <summary>
+        /// Get the contained socket.
+        /// </summary>
         [NotNull]
         public SocketBase Socket
         {
             get { return m_socket; }
         }
 
+        /// <summary>
+        /// Process the Plug-request by setting this SessionBase as teh handler for the io-object
+        /// and starting connecting (without waiting).
+        /// </summary>
         protected override void ProcessPlug()
         {
             m_ioObject.SetHandler(this);
@@ -365,6 +421,11 @@ namespace NetMQ.Core
                 StartConnecting(false);
         }
 
+        /// <summary>
+        /// Process the Attach-request by hooking up the pipes
+        /// and plugging in the given engine.
+        /// </summary>
+        /// <param name="engine">the IEngine to plug in</param>
         protected override void ProcessAttach(IEngine engine)
         {
             Debug.Assert(engine != null);
@@ -394,6 +455,9 @@ namespace NetMQ.Core
             m_engine.Plug(m_ioThread, this);
         }
 
+        /// <summary>
+        /// Flush out any leftover messages and call Detached.
+        /// </summary>
         public void Detach()
         {
             // Engine is dead. Let's forget about it.
@@ -410,6 +474,10 @@ namespace NetMQ.Core
                 m_pipe.CheckRead();
         }
 
+        /// <summary>
+        /// Process a termination request.
+        /// </summary>
+        /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
         protected override void ProcessTerm(int linger)
         {
             Debug.Assert(!m_pending);
@@ -445,7 +513,9 @@ namespace NetMQ.Core
             m_pipe.CheckRead();
         }
 
-        // Call this function to move on with the delayed process_term.
+        /// <summary>
+        /// Call this function to move on with the delayed process-termination request.
+        /// </summary>
         private void ProceedWithTerm()
         {
             // The pending phase have just ended.
@@ -455,6 +525,10 @@ namespace NetMQ.Core
             base.ProcessTerm(0);
         }
 
+        /// <summary>
+        /// This is called when the timer expires.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer</param>
         public void TimerEvent(int id)
         {
             // Linger period expired. We can proceed with termination even though
@@ -467,6 +541,9 @@ namespace NetMQ.Core
             m_pipe.Terminate(false);
         }
 
+        /// <summary>
+        /// The parent SessionBase class calls this when the Detach method finishes detaching.
+        /// </summary>
         private void Detached()
         {
             // Transient session self-destructs after peer disconnects.
@@ -499,6 +576,10 @@ namespace NetMQ.Core
                 m_pipe.Hiccup();
         }
 
+        /// <summary>
+        /// Begin connecting.
+        /// </summary>
+        /// <param name="wait">Whether to wait a bit before actually attempting to connect</param>
         private void StartConnecting(bool wait)
         {
             Debug.Assert(m_connect);
@@ -535,16 +616,32 @@ namespace NetMQ.Core
             Debug.Assert(false);
         }
 
+        /// <summary>
+        /// Override the ToString method to also show the socket-id. 
+        /// </summary>
+        /// <returns>the type of this object and [ socket-id ]</returns>
         public override string ToString()
         {
             return base.ToString() + "[" + m_options.SocketId + "]";
         }
 
+        /// <summary>
+        /// This method would be called when a message receive operation has been completed, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotSupportedException">This operation is not supported on the SessionBase class.</exception>
         public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// This method would be called when a message Send operation has been completed, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="socketError">a SocketError value that indicates whether Success or an error occurred</param>
+        /// <param name="bytesTransferred">the number of bytes that were transferred</param>
+        /// <exception cref="NotSupportedException">This operation is not supported on the SessionBase class.</exception>
         public virtual void OutCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotSupportedException();

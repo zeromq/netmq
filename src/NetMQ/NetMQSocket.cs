@@ -243,8 +243,8 @@ namespace NetMQ
         /// <param name="timeout">the timeout period</param>
         /// <returns>
         /// PollEvents.None     -> no message available
-        /// PollEvents.PollIn   -> no message arrived
-        /// PollEvents.PollOut  -> no message to send
+        /// PollEvents.PollIn   -> at least one message has arrived
+        /// PollEvents.PollOut  -> at least one message is ready to send
         /// PollEvents.Error    -> an error has occurred
         /// or any combination thereof
         /// </returns>
@@ -369,24 +369,60 @@ namespace NetMQ
 
         #region Unsubscribe (obsolete)
 
+        /// <summary>
+        /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a string denoting the topic to subscribe to</param>
+        /// <remarks>
+        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
+        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
+        /// <summary>
+        /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a byte-array denoting the topic to subscribe to</param>
+        /// <remarks>
+        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
+        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
+        /// <summary>
+        /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a string denoting the topic to unsubscribe from</param>
+        /// <remarks>
+        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
+        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
+        /// <summary>
+        /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a byte-array denoting the topic to unsubscribe from</param>
+        /// <remarks>
+        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
+        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(byte[] topic)
         {
@@ -541,6 +577,8 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Close"/>.</summary>
+        /// <param name="disposing">true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

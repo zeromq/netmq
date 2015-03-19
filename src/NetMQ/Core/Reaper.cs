@@ -20,28 +20,35 @@
 
 using System;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
+    /// <summary>
+    /// Class Reaper is a ZObject and implements IPollEvents.
+    /// The Reaper is dedicated toward handling socket shutdown asynchronously and cleanly.
+    /// By passing this task off to the Reaper, the message-queueing subsystem can terminate immediately.
+    /// </summary>
     internal class Reaper : ZObject, IPollEvents
     {
         /// <summary>
         /// Reaper thread accesses incoming commands via this mailbox.
         /// </summary>
-        private readonly Mailbox m_mailbox;
+        [NotNull] private readonly Mailbox m_mailbox;
 
         /// <summary>
         /// This is a Socket, used as the handle associated with the mailbox's file descriptor.
         /// </summary>
-        private readonly Socket m_mailboxHandle;
+        [NotNull] private readonly Socket m_mailboxHandle;
 
         /// <summary>
         /// I/O multiplexing is performed using a poller object.
         /// </summary>
-        private readonly Utils.Poller m_poller;
+        [NotNull] private readonly Utils.Poller m_poller;
 
         /// <summary>
         /// Number of sockets being reaped at the moment.
+        /// These are the reason for having a reaper: to take over the task of terminating these sockets.
         /// </summary>
         private int m_sockets;
 
@@ -50,7 +57,13 @@ namespace NetMQ.Core
         /// </summary>
         private volatile bool m_terminating;
 
-        public Reaper(Ctx ctx, int threadId)
+        /// <summary>
+        /// Create a new Reaper with the given thread-id.
+        /// This will have a new Poller with the name "reaper-" + thread-id, and a Mailbox of that same name.
+        /// </summary>
+        /// <param name="ctx">the Ctx for this to be in</param>
+        /// <param name="threadId">an integer id to give to the thread this will live on</param>
+        public Reaper([NotNull] Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
             m_sockets = 0;
@@ -66,28 +79,45 @@ namespace NetMQ.Core
             m_poller.SetPollIn(m_mailboxHandle);
         }
 
+        /// <summary>
+        /// Release any contained resources - by destroying the poller and closing the mailbox.
+        /// </summary>
         public void Destroy()
         {
             m_poller.Destroy();
             m_mailbox.Close();
         }
 
+        /// <summary>
+        /// Get the Mailbox that this Reaper uses for communication with the rest of the message-queueing subsystem.
+        /// </summary>
+        [NotNull]
         public Mailbox Mailbox
         {
             get { return m_mailbox; }
         }
 
+        /// <summary>
+        /// Start the contained Poller to begin polling.
+        /// </summary>
         public void Start()
         {
             m_poller.Start();
         }
 
+        /// <summary>
+        /// Issue the Stop command to this Reaper object.
+        /// </summary>
         public void Stop()
         {
             if (!m_terminating)
                 SendStop();
         }
 
+        /// <summary>
+        /// Handle input-ready events, by receiving and processing any commands
+        /// that are waiting in the mailbox.
+        /// </summary>
         public void InEvent()
         {
             while (true)
@@ -102,16 +132,29 @@ namespace NetMQ.Core
             }
         }
 
+        /// <summary>
+        /// This method normally is for handling output-ready events, which don't apply here.
+        /// </summary>
+        /// <exception cref="NotSupportedException">You must not call OutEvent on a Reaper.</exception>
         public void OutEvent()
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// This would be called when a timer expires - however in this event NotSupportedException would be thrown.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer</param>
+        /// <exception cref="NotSupportedException">You must not call TimerEvent on a Reaper.</exception>
         public void TimerEvent(int id)
         {
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Respond to the Stop command by signaling the polling-loop to terminate,
+        /// and if there're no sockets left to reap - stop the poller.
+        /// </summary>
         protected override void ProcessStop()
         {
             m_terminating = true;
@@ -125,6 +168,10 @@ namespace NetMQ.Core
             }
         }
 
+        /// <summary>
+        /// Add the given socket to the list to be reaped (terminated).
+        /// </summary>
+        /// <param name="socket">the socket to add to the list for termination</param>
         protected override void ProcessReap(SocketBase socket)
         {
             // Add the socket to the poller.
@@ -133,6 +180,10 @@ namespace NetMQ.Core
             ++m_sockets;
         }
 
+        /// <summary>
+        /// Respond to having one of the sockets that are marked for reaping, - finished being reaped,
+        /// and if there are none left - send the Done command and stop the poller.
+        /// </summary>
         protected override void ProcessReaped()
         {
             --m_sockets;
