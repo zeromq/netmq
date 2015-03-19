@@ -2,7 +2,6 @@
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace NetMQ
 {
@@ -136,9 +135,9 @@ namespace NetMQ
             m_shimThread = new Thread(RunShim);
             m_shimThread.Start();
 
-            //  Mandatory handshake for new actor so that constructor returns only
-            //  when actor has also initialised. This eliminates timing issues at
-            //  application start up.
+            // Mandatory handshake for new actor so that constructor returns only
+            // when actor has also initialised. This eliminates timing issues at
+            // application start up.
             m_self.ReceiveSignal();
         }
 
@@ -171,7 +170,7 @@ namespace NetMQ
             catch (TerminatingException)
             {}
 
-            //  Do not block, if the other end of the pipe is already deleted
+            // Do not block, if the other end of the pipe is already deleted
             m_shim.Options.SendTimeout = TimeSpan.Zero;
 
             try
@@ -212,7 +211,6 @@ namespace NetMQ
         }
 
         #endregion
-
 
         #region Events Handling
 

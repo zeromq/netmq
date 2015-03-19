@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using NetMQ;
-using NetMQ.zmq;
 
 namespace remote_lat
 {

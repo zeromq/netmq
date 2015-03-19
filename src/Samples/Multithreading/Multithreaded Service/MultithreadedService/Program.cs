@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NetMQ;
 using NetMQ.Devices;
 using NetMQ.Sockets;
-using NetMQ.zmq;
 
 namespace MultithreadedService
 {

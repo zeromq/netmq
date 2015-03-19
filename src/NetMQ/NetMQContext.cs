@@ -3,7 +3,7 @@ using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ
 {
@@ -39,8 +39,8 @@ namespace NetMQ
         /// </summary>
         public int ThreadPoolSize
         {
-            get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.IOThreads); }
-            set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.IOThreads, value); }
+            get { m_ctx.CheckDisposed(); return m_ctx.IOThreadCount; }
+            set { m_ctx.CheckDisposed(); m_ctx.IOThreadCount = value; }
         }
 
         /// <summary>
@@ -48,8 +48,8 @@ namespace NetMQ
         /// </summary>
         public int MaxSockets
         {
-            get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.MaxSockets); }
-            set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.MaxSockets, value); }
+            get { m_ctx.CheckDisposed(); return m_ctx.MaxSockets; }
+            set { m_ctx.CheckDisposed(); m_ctx.IOThreadCount = value; }
         }
 
         #region Socket Creation

@@ -4,8 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using JetBrains.Annotations;
-using NetMQ.zmq;
-using NetMQ.zmq.Utils;
+using NetMQ.Core.Utils;
 
 namespace NetMQ
 {
@@ -506,7 +505,7 @@ namespace NetMQ
                 // at the beginning of the loop
                 Thread.MemoryBarrier();
 
-                //  Recalculate all timers now
+                // Recalculate all timers now
                 foreach (var timer in m_timers)
                 {
                     if (timer.Enable)
@@ -596,8 +595,8 @@ namespace NetMQ
 
                     if (m_zombies.Any())
                     {
-                        //  Now handle any timer zombies
-                        //  This is going to be slow if we have many zombies
+                        // Now handle any timer zombies
+                        // This is going to be slow if we have many zombies
                         foreach (var netMQTimer in m_zombies)
                         {
                             m_timers.Remove(netMQTimer);

@@ -168,7 +168,7 @@ namespace NetMQ
                 string peerName;
                 var frame = ReceiveUdpFrame(out peerName);
 
-                //  If filter is set, check that beacon matches it
+                // If filter is set, check that beacon matches it
                 bool isValid = false;
                 if (m_filter != null)
                 {
@@ -178,7 +178,7 @@ namespace NetMQ
                     }
                 }
 
-                //  If valid, discard our own broadcasts, which UDP echoes to us
+                // If valid, discard our own broadcasts, which UDP echoes to us
                 if (isValid && m_transmit != null)
                 {
                     if (frame.MessageSize == m_transmit.MessageSize && Compare(frame, m_transmit, m_transmit.MessageSize))
@@ -187,7 +187,7 @@ namespace NetMQ
                     }
                 }
 
-                //  If still a valid beacon, send on to the API
+                // If still a valid beacon, send on to the API
                 if (isValid)
                 {
                     m_pipe.SendMore(peerName).Send(frame.Buffer, frame.MessageSize);

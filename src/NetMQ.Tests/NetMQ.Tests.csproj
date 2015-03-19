@@ -102,7 +102,7 @@
     <Compile Include="Security\SecureChannelTests.cs" />
     <Compile Include="SocketTests.cs" />
     <Compile Include="StreamTests.cs" />
-    <Compile Include="zmq\YQueueTests.cs" />
+    <Compile Include="Core\YQueueTests.cs" />
     <Compile Include="SocketOptionsTests.cs" />
   </ItemGroup>
   <ItemGroup>

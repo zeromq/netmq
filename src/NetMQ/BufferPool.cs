@@ -3,7 +3,6 @@ using System.ServiceModel.Channels;
 using System.Threading;
 using JetBrains.Annotations;
 
-
 namespace NetMQ
 {
     /// <summary>

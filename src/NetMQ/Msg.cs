@@ -21,7 +21,7 @@
 
 using System;
 using JetBrains.Annotations;
-using NetMQ.zmq.Utils;
+using NetMQ.Core.Utils;
 
 namespace NetMQ
 {
@@ -394,8 +394,8 @@ namespace NetMQ
 
             if (src.MsgType == MsgType.Pool)
             {
-                //  One reference is added to shared messages. Non-shared messages
-                //  are turned into shared messages and reference count is set to 2.
+                // One reference is added to shared messages. Non-shared messages
+                // are turned into shared messages and reference count is set to 2.
                 if (IsShared)
                 {
                     src.m_refCount.Increase(1);
