@@ -66,7 +66,7 @@ namespace NetMQ
         [NotNull]
         public static NetMQException Create(ErrorCode errorCode, [CanBeNull] Exception innerException)
         {
-            return Create(errorCode, "", innerException);
+            return Create(errorCode, null, innerException);
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace NetMQ
         [NotNull]
         public static NetMQException Create(ErrorCode errorCode)
         {
-            return Create("", errorCode);
+            return Create(null, errorCode);
         }
 
         /// <summary>
@@ -183,7 +183,7 @@ namespace NetMQ
         /// Create a new EndpointNotFoundException with no message nor inner-exception.
         /// </summary>
         public EndpointNotFoundException()
-            : this("")
+            : this(null)
         {
         }
     }
@@ -210,7 +210,7 @@ namespace NetMQ
         /// Create a new AgainException with no message nor inner-exception.
         /// </summary>
         public AgainException()
-            : this(null, "")
+            : this(null, null)
         {
         }
     }
@@ -236,7 +236,7 @@ namespace NetMQ
         /// Create a new TerminatingException with no message nor inner-exception.
         /// </summary>
         internal TerminatingException()
-            : this(null, "")
+            : this(null, null)
         {
         }
     }
@@ -270,7 +270,7 @@ namespace NetMQ
         /// Create a new InvalidException with no message nor inner-exception.
         /// </summary>
         public InvalidException()
-            : this(null, "")
+            : this(null, null)
         {
         }
     }
@@ -304,7 +304,7 @@ namespace NetMQ
         /// Create a new FaultException with no message nor inner-exception.
         /// </summary>
         public FaultException()
-            : this(null, "")
+            : this(null, null)
         {
         }
     }
@@ -339,7 +339,7 @@ namespace NetMQ
         /// Create a new ProtocolNotSupportedException with no message nor inner-exception.
         /// </summary>
         public ProtocolNotSupportedException()
-            : this(null, "")
+            : this(null, null)
         {
         }
     }
@@ -374,7 +374,7 @@ namespace NetMQ
         /// Create a new HostUnreachableException with no message nor inner-exception.
         /// </summary>
         public HostUnreachableException()
-            : this(null, "")
+            : this(null, null)
         {
         }
     }
@@ -409,7 +409,7 @@ namespace NetMQ
         /// Create a new FiniteStateMachineException with no message nor inner-exception.
         /// </summary>
         public FiniteStateMachineException()
-            : this(null, "")
+            : this(null, null)
         {
         }
     }
