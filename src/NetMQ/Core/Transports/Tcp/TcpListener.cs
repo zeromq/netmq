@@ -206,7 +206,7 @@ namespace NetMQ.Core.Transports.Tcp
                 case SocketError.NoBufferSpaceAvailable:
                 case SocketError.TooManyOpenSockets:
                 {
-                    m_socket.EventAcceptFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(socketError));
+                    m_socket.EventAcceptFailed(m_endpoint, socketError.ToErrorCode());
 
                     Accept();
                     break;
@@ -238,7 +238,7 @@ namespace NetMQ.Core.Transports.Tcp
             }
             catch (SocketException ex)
             {
-                m_socket.EventCloseFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+                m_socket.EventCloseFailed(m_endpoint, ex.SocketErrorCode.ToErrorCode());
             }
 
             if (m_acceptedSocket != null)

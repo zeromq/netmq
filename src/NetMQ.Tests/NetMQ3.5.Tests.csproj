@@ -73,7 +73,6 @@
     <Compile Include="Core\YQueueTests.cs" />
     <Compile Include="RouterTests.cs" />
     <Compile Include="XPubSubTests.cs" />
-    <Compile Include="ExpectedZmqException.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
     <Compile Include="NetMQTestRunner.cs" />

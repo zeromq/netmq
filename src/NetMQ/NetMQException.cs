@@ -1,33 +1,67 @@
 using System;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using JetBrains.Annotations;
+using NetMQ.Core;
 
 namespace NetMQ
 {
     /// <summary>
-    /// Class NetMQException is the parent-class for Exceptions that occur within the NetMQ library.
+    /// Base class for custom exceptions within the NetMQ library.
     /// </summary>
     [Serializable]
     public class NetMQException : Exception
     {
+        public ErrorCode ErrorCode { get; private set; }
+
+        #region Exception contract & serialisation
+
+        // For discussion of this contract, see https://msdn.microsoft.com/en-us/library/ms182151.aspx
+
+        public NetMQException()
+        {}
+
+        public NetMQException(string message)
+            : base(message)
+        {}
+
+        public NetMQException(string message, Exception innerException)
+            : base(message, innerException)
+        {}
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected NetMQException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+            ErrorCode = (ErrorCode)info.GetInt32("ErrorCode");
+        }
+
+        [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("ErrorCode", ErrorCode);
+            base.GetObjectData(info, context);
+        }
+
+        #endregion
+
         /// <summary>
         /// Create a new NetMQException containing the given Exception, Message and ErrorCode.
         /// </summary>
         /// <param name="innerException">an Exception that this exception will expose via it's InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        /// <param name="errorCode">an ErrorCode that this exception will expose via it's ErrorCode property</param>
+        /// <param name="errorCode">an ErrorCode that this exception will expose via its ErrorCode property</param>
         protected NetMQException([CanBeNull] Exception innerException, [CanBeNull] string message, ErrorCode errorCode)
             : base(message, innerException)
         {
             ErrorCode = errorCode;
         }
 
-        public ErrorCode ErrorCode { get; private set; }
-
         /// <summary>
         /// Create and return a new NetMQException with no Message containing only the given SocketException.
         /// </summary>
-        /// <param name="innerException">a SocketException that this exception will expose via it's InnerException property</param>
+        /// <param name="innerException">a SocketException that this exception will expose via its InnerException property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create([NotNull] SocketException innerException)
@@ -38,82 +72,21 @@ namespace NetMQ
         /// <summary>
         /// Create and return a new NetMQException with no Message containing the given SocketError and Exception.
         /// </summary>
-        /// <param name="error">a SocketError that this exception will carry and expose via it's ErrorCode property</param>
-        /// <param name="innerException">an Exception that this exception will expose via it's InnerException property</param>
+        /// <param name="error">a SocketError that this exception will carry and expose via its ErrorCode property</param>
+        /// <param name="innerException">an Exception that this exception will expose via its InnerException property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create(SocketError error, [CanBeNull] Exception innerException = null)
         {
-            ErrorCode errorCode;
+            var errorCode = error.ToErrorCode();
 
-            switch (error)
-            {
-                case SocketError.AccessDenied:
-                    errorCode = ErrorCode.AccessDenied;
-                    break;
-                case SocketError.Fault:
-                    errorCode = ErrorCode.Fault;
-                    break;
-                case SocketError.InvalidArgument:
-                    errorCode = ErrorCode.Invalid;
-                    break;
-                case SocketError.TooManyOpenSockets:
-                    errorCode = ErrorCode.TooManyOpenSockets;
-                    break;
-                case SocketError.InProgress:
-                    errorCode = ErrorCode.TryAgain;
-                    break;
-                case SocketError.MessageSize:
-                    errorCode = ErrorCode.MessageSize;
-                    break;
-                case SocketError.ProtocolNotSupported:
-                    errorCode = ErrorCode.ProtocolNotSupported;
-                    break;
-                case SocketError.AddressFamilyNotSupported:
-                    errorCode = ErrorCode.AddressFamilyNotSupported;
-                    break;
-                case SocketError.AddressNotAvailable:
-                    errorCode = ErrorCode.AddressNotAvailable;
-                    break;
-                case SocketError.NetworkDown:
-                    errorCode = ErrorCode.NetworkDown;
-                    break;
-                case SocketError.NetworkUnreachable:
-                    errorCode = ErrorCode.NetworkUnreachable;
-                    break;
-                case SocketError.NetworkReset:
-                    errorCode = ErrorCode.NetworkReset;
-                    break;
-                case SocketError.ConnectionAborted:
-                    errorCode = ErrorCode.ConnectionAborted;
-                    break;
-                case SocketError.ConnectionReset:
-                    errorCode = ErrorCode.ConnectionReset;
-                    break;
-                case SocketError.NoBufferSpaceAvailable:
-                    errorCode = ErrorCode.NoBufferSpaceAvailable;
-                    break;
-                case SocketError.NotConnected:
-                    errorCode = ErrorCode.NotConnected;
-                    break;
-                case SocketError.TimedOut:
-                    errorCode = ErrorCode.TimedOut;
-                    break;
-                case SocketError.ConnectionRefused:
-                    errorCode = ErrorCode.ConnectionRefused;
-                    break;
-                case SocketError.HostUnreachable:
-                    errorCode = ErrorCode.HostUnreachable;
-                    break;
-                default:
-                    errorCode = 0; // to indicate no valid SocketError.
 #if DEBUG
-                    string s = string.Format("(And within NetMQException.Create: Unanticipated error-code: {0})", error.ToString());
-                    return Create(errorCode: errorCode, message: s, innerException: innerException);
-#else
-                    break;
-#endif
+            if (errorCode == 0)
+            {
+                var s = string.Format("(And within NetMQException.Create: Unanticipated error-code: {0})", error.ToString());
+                return Create(errorCode: errorCode, message: s, innerException: innerException);
             }
+#endif
 
             return Create(errorCode, innerException);
         }
@@ -121,31 +94,31 @@ namespace NetMQ
         /// <summary>
         /// Create and return a new NetMQException with no Message containing the given ErrorCode and Exception.
         /// </summary>
-        /// <param name="errorCode">an ErrorCode for this exception to contain and expose via it's ErrorCode property</param>
-        /// <param name="innerException">an Exception for this exception to contain and expose via it's InnerException property</param>
+        /// <param name="errorCode">an ErrorCode for this exception to contain and expose via its ErrorCode property</param>
+        /// <param name="innerException">an Exception for this exception to contain and expose via its InnerException property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create(ErrorCode errorCode, [CanBeNull] Exception innerException)
         {
-            return Create(errorCode, "", innerException);
+            return Create(errorCode, null, innerException);
         }
 
         /// <summary>
         /// Create and return a new NetMQException with no Message containing only the given ErrorCode.
         /// </summary>
-        /// <param name="errorCode">an ErrorCode that this exception will carry and expose via it's ErrorCode property</param>
+        /// <param name="errorCode">an ErrorCode that this exception will carry and expose via its ErrorCode property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create(ErrorCode errorCode)
         {
-            return Create("", errorCode);
+            return Create(null, errorCode);
         }
 
         /// <summary>
         /// Create and return a new NetMQException with the given Message and ErrorCode.
         /// </summary>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        /// <param name="errorCode">an ErrorCode that this exception will carry and expose via it's ErrorCode property</param>
+        /// <param name="errorCode">an ErrorCode that this exception will carry and expose via its ErrorCode property</param>
         /// <returns>a new NetMQException</returns>
         [NotNull]
         public static NetMQException Create([CanBeNull] string message, ErrorCode errorCode)
@@ -156,9 +129,9 @@ namespace NetMQ
         /// <summary>
         /// Create and return a new NetMQException with the given ErrorCode, Message, and Exception.
         /// </summary>
-        /// <param name="errorCode">an ErrorCode that this exception will contain and expose via it's ErrorCode property</param>
+        /// <param name="errorCode">an ErrorCode that this exception will contain and expose via its ErrorCode property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        /// <param name="innerException">an Exception that this exception will expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception that this exception will expose via its InnerException property</param>
         /// <returns>a new NetMQException, or subclass of NetMQException that corresponds to the given ErrorCode</returns>
         [NotNull]
         private static NetMQException Create(ErrorCode errorCode, [CanBeNull] string message, [CanBeNull] Exception innerException)
@@ -192,12 +165,13 @@ namespace NetMQ
     /// <summary>
     /// AddressAlreadyInUseException is a NetMQException that is used within SocketBase.Bind to signal an address-conflict.
     /// </summary>
+    [Serializable]
     public class AddressAlreadyInUseException : NetMQException
     {
         /// <summary>
         /// Create a new AddressAlreadyInUseException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         public AddressAlreadyInUseException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.AddressAlreadyInUse)
@@ -212,6 +186,12 @@ namespace NetMQ
             : this(null, message)
         {
         }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected AddressAlreadyInUseException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 
     /// <summary>
@@ -223,7 +203,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new EndpointNotFoundException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         public EndpointNotFoundException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.EndpointNotFound)
@@ -243,7 +223,13 @@ namespace NetMQ
         /// Create a new EndpointNotFoundException with no message nor inner-exception.
         /// </summary>
         public EndpointNotFoundException()
-            : this("")
+            : this(null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected EndpointNotFoundException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -259,10 +245,15 @@ namespace NetMQ
         /// <summary>
         /// Create a new AgainException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal AgainException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.TryAgain)
+        {
+        }
+
+        public AgainException([CanBeNull] string message)
+            : this(null, message)
         {
         }
 
@@ -270,7 +261,13 @@ namespace NetMQ
         /// Create a new AgainException with no message nor inner-exception.
         /// </summary>
         public AgainException()
-            : this(null, "")
+            : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected AgainException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -285,10 +282,15 @@ namespace NetMQ
         /// <summary>
         /// Create a new TerminatingException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal TerminatingException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.ContextTerminated)
+        {
+        }
+
+        public TerminatingException([CanBeNull] string message)
+            : this(null, message)
         {
         }
 
@@ -296,7 +298,13 @@ namespace NetMQ
         /// Create a new TerminatingException with no message nor inner-exception.
         /// </summary>
         internal TerminatingException()
-            : this(null, "")
+            : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected TerminatingException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -310,7 +318,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new InvalidException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal InvalidException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.Invalid)
@@ -330,7 +338,13 @@ namespace NetMQ
         /// Create a new InvalidException with no message nor inner-exception.
         /// </summary>
         public InvalidException()
-            : this(null, "")
+            : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected InvalidException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -344,7 +358,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new FaultException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal FaultException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.Fault)
@@ -364,7 +378,13 @@ namespace NetMQ
         /// Create a new FaultException with no message nor inner-exception.
         /// </summary>
         public FaultException()
-            : this(null, "")
+            : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected FaultException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -379,7 +399,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new ProtocolNotSupportedException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal ProtocolNotSupportedException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.ProtocolNotSupported)
@@ -399,7 +419,13 @@ namespace NetMQ
         /// Create a new ProtocolNotSupportedException with no message nor inner-exception.
         /// </summary>
         public ProtocolNotSupportedException()
-            : this(null, "")
+            : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected ProtocolNotSupportedException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -414,7 +440,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new HostUnreachableException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal HostUnreachableException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.HostUnreachable)
@@ -434,7 +460,13 @@ namespace NetMQ
         /// Create a new HostUnreachableException with no message nor inner-exception.
         /// </summary>
         public HostUnreachableException()
-            : this(null, "")
+            : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected HostUnreachableException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
@@ -449,7 +481,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new FiniteStateMachineException with a given inner-exception and message.
         /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via it's InnerException property</param>
+        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
         internal FiniteStateMachineException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.FiniteStateMachine)
@@ -469,7 +501,13 @@ namespace NetMQ
         /// Create a new FiniteStateMachineException with no message nor inner-exception.
         /// </summary>
         public FiniteStateMachineException()
-            : this(null, "")
+            : this(null, null)
+        {
+        }
+
+        /// <summary>Constructor for serialisation.</summary>
+        protected FiniteStateMachineException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }

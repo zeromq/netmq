@@ -302,7 +302,7 @@ namespace NetMQ.Core.Transports.Tcp
             }
             catch (SocketException ex)
             {
-                m_socket.EventCloseFailed(m_endpoint, ErrorHelper.SocketErrorToErrorCode(ex.SocketErrorCode));
+                m_socket.EventCloseFailed(m_endpoint, ex.SocketErrorCode.ToErrorCode());
             }
         }
     }

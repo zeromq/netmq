@@ -69,6 +69,7 @@
     <Compile Include="ActorTests.cs" />
     <Compile Include="BeaconTests.cs" />
     <Compile Include="ByteArraySegmentTests.cs" />
+    <Compile Include="ExceptionTests.cs" />
     <Compile Include="InProcActors\AccountJSON\Account.cs" />
     <Compile Include="InProcActors\AccountJSON\AccountAction.cs" />
     <Compile Include="InProcActors\AccountJSON\AccountShimHandler.cs" />
@@ -86,7 +87,6 @@
     <Compile Include="Devices\ForwarderDeviceTests.cs" />
     <Compile Include="Devices\QueueDeviceTests.cs" />
     <Compile Include="Devices\StreamerDeviceTests.cs" />
-    <Compile Include="ExpectedZmqException.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
     <Compile Include="NetMQSchedulerTest.cs" />
