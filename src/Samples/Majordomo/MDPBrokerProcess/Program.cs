@@ -7,11 +7,7 @@ namespace MDPBrokerProcess
 {
     internal static class Program
     {
-<<<<<<< HEAD
-        private static bool _verbose, _debug;
-=======
         private static bool s_verbose, s_debug;
->>>>>>> remotes/upstream/master
 
         private static void Main(string[] args)
         {
@@ -30,14 +26,7 @@ namespace MDPBrokerProcess
             s_verbose = args.Length > 0 && args[0] == "-v";
             s_debug = args.Length == 2 && args[1] == "-d";
 
-<<<<<<< HEAD
-            _verbose = args.Length > 0 && args[0] == "-v";
-            _debug = args.Length == 2 && args[1] == "-d";
-
-            Console.WriteLine ("\nMessageLevel: Verbose = {0} and Debug = {1}", _verbose, _debug);
-=======
             Console.WriteLine ("\nMessageLevel: Verbose = {0} and Debug = {1}", s_verbose, s_debug);
->>>>>>> remotes/upstream/master
 
             // used to signal to stop the broker process
             var cts = new CancellationTokenSource();
@@ -83,20 +72,12 @@ namespace MDPBrokerProcess
                 Console.ReadKey();
             }
         }
-<<<<<<< HEAD
-        
-        private static async Task RunBroker (CancellationTokenSource cts)
-=======
+
 
         private static async Task RunBroker(CancellationTokenSource cts)
->>>>>>> remotes/upstream/master
         {
             using (var broker = new MDPBroker("tcp://*:5555"))
             {
-<<<<<<< HEAD
-                if (_verbose)
-                    broker.LogInfoReady += (s, e) => Console.WriteLine (e.Info);
-=======
                 if (s_verbose)
                     broker.LogInfoReady += (s, e) => Console.WriteLine(e.Info);
                 if (s_verbose)
@@ -106,10 +87,6 @@ namespace MDPBrokerProcess
              
                 if (s_verbose)
                     broker.DebugInfoReady += (s, e) => Console.WriteLine(e.Info);
->>>>>>> remotes/upstream/master
-
-                if (_verbose)
-                    broker.DebugInfoReady += (s, e) => Console.WriteLine (e.Info);
 
                 await broker.Run (cts.Token);
             }

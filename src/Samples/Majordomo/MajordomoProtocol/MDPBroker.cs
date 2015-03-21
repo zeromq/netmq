@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-
+using JetBrains.Annotations;
 using MajordomoProtocol.Contracts;
 
 using NetMQ;
@@ -116,7 +116,7 @@ namespace MajordomoProtocol
             Socket = m_ctx.CreateRouterSocket ();
             m_services = new List<Service> ();
             m_knownWorkers = new List<Worker> ();
-            m_heartbeatInterval = TimeSpan.FromMilliseconds (2500);
+            m_heartbeatInterval = TimeSpan.FromMilliseconds (2500); // otherwise the expiry would be 0(!)
             HeartbeatLiveliness = 3;                    // so m_heartbeatExpiry = value * m_heartbeatInterval = 7.500 ms
             m_isBound = false;
         }
@@ -126,7 +126,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="endpoint">a valid NetMQ endpoint for the broker</param>
         /// <param name="heartbeatInterval">the interval between heartbeats in milliseconds</param>
-        public MDPBroker (string endpoint, int heartbeatInterval = 0)
+        public MDPBroker ([NotNull] string endpoint, int heartbeatInterval = 0)
             : this ()
         {
             if (string.IsNullOrWhiteSpace (endpoint))
@@ -175,7 +175,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="endpoint">the new endpoint to bind to</param>
         /// <exception cref="InvalidOperationException">Can not change binding while operating!</exception>
-        public void Bind (string endpoint)
+        public void Bind ([NotNull] string endpoint)
         {
             if (m_isRunning)
                 throw new InvalidOperationException ("Can not change binding while operating!");
@@ -322,7 +322,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="sender">the sender identity frame</param>
         /// <param name="message">the message sent</param>
-        public void ProcessWorkerMessage (NetMQFrame sender, NetMQMessage message)
+        public void ProcessWorkerMessage ([NotNull] NetMQFrame sender, [NotNull] NetMQMessage message)
         {
             // should be 
             // READY        [mdp command][service name]
@@ -409,7 +409,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="sender">client identity</param>
         /// <param name="message">the message received</param>
-        public void ProcessClientMessage (NetMQFrame sender, NetMQMessage message)
+        public void ProcessClientMessage ([NotNull] NetMQFrame sender, [NotNull] NetMQMessage message)
         {
             // should be
             // REQUEST      [service name][request] OR 
@@ -423,22 +423,22 @@ namespace MajordomoProtocol
 
             // if it is a "mmi.service" request, handle it locally
             // this request searches for a service and returns a code indicating the result of that search
-            // 200 =>   service exists and worker are available
-            // 400 =>   service exists but no workers are available
-            // 501 =>   service does not exist
+            // OK       =>   service exists and worker are available
+            // Pending  =>   service exists but no workers are available
+            // Unknown  =>   service does not exist
             if (serviceName == "mmi.service")
             {
-                var returnCode = "501";
+                var returnCode = MmiCodes.Unknown;
                 var name = request.Last.ConvertToString ();
 
                 if (m_services.Exists (s => s.Name == name))
                 {
                     var svc = m_services.Find (s => s.Name == name);
 
-                    returnCode = svc.DoWorkersExist () ? "200" : "400";
+                    returnCode = svc.DoWorkersExist () ? MmiCodes.Ok : MmiCodes.Pending;
                 }
                 // set the return code to be the last frame in the message
-                var rc = new NetMQFrame (returnCode);           // [return code]
+                var rc = new NetMQFrame (returnCode.ToString ());// [return code]
 
                 request.RemoveFrame (message.Last);             // [CLIENT ADR][e] -> [service name]
                 request.Append (serviceName);                   // [CLIENT ADR][e] <- ['mmi.service']

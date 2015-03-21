@@ -7,6 +7,12 @@ namespace TitanicProtocol
     /// </summary>
     internal class RequestEntry : IEquatable<RequestEntry>
     {
+        private byte m_state;
+        // introduced strictly for readability (!)
+        public static readonly byte Is_Processed = (byte) '+';
+        public static readonly byte Is_Pending = (byte) '-';
+        public static readonly byte Is_Closed = (byte) 'o';
+
         /// <summary>
         ///     the Guid of the request
         /// </summary>
@@ -19,12 +25,21 @@ namespace TitanicProtocol
 
         /// <summary>
         ///     true if the request has been processed and false otherwise
+        ///     <para>+ -> processed</para>
+        ///     <para>- -> pending</para>
+        ///     <para>o -> closed</para>
         /// </summary>
-        public bool IsProcessed { get; set; }
+        public byte State
+        {
+            get { return m_state; }
+            // make sure only valid values are used(!)
+            set { m_state = value == Is_Processed ? Is_Processed : value == Is_Pending ? Is_Pending : Is_Closed; }
+        }
 
         public override string ToString ()
         {
-            return string.Format ("Id={0} / Position={1} / IsProcessed={2}", RequestId, Position, IsProcessed);
+            var status = State == Is_Processed ? "processed" : State == Is_Pending ? "pending" : "closed";
+            return String.Format ("Id={0} / Position={1} / IsProcessed={2}", RequestId, Position, status);
         }
 
         public override int GetHashCode ()
@@ -42,7 +57,7 @@ namespace TitanicProtocol
             if (ReferenceEquals (other, null))
                 return false;
 
-            return RequestId == other.RequestId && IsProcessed == other.IsProcessed;
+            return RequestId == other.RequestId && State == other.State;
         }
 
         public static bool operator == (RequestEntry one, RequestEntry other)

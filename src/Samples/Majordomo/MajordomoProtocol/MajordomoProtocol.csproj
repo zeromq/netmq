@@ -59,6 +59,7 @@
     <Compile Include="Contracts\IMDPClient.cs" />
     <Compile Include="Contracts\IMDPWorker.cs" />
     <Compile Include="Contracts\MDPCommand.cs" />
+    <Compile Include="Contracts\MMICodes.cs" />
     <Compile Include="LogInfoEventArgs.cs" />
     <Compile Include="MDPBroker.cs" />
     <Compile Include="MDPClient.cs" />
@@ -76,7 +77,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UseUniversalClock="True" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.YearDayOfYear.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.YearDayOfYear.Increment" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_UseUniversalClock="True" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

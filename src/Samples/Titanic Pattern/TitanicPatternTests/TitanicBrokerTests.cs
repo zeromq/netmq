@@ -1,0 +1,7 @@
+﻿namespace TitanicProtocolTests
+{
+    class TitanicBrokerTests
+    {
+
+    }
+}
