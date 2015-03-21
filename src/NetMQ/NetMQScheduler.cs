@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ
 {
@@ -108,17 +108,28 @@ namespace NetMQ
             return m_schedulerThread.Value && TryExecuteTask(task);
         }
 
+        /// <summary>
+        /// Get the maximum level of concurrency used in the scheduling.
+        /// This is simply the value 1, and is not presently used anywhere within NetMQ.
+        /// </summary>
         public override int MaximumConcurrencyLevel
         {
             get { return 1; }
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        /// <param name="disposing">set this to true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
@@ -156,9 +167,13 @@ namespace NetMQ
             m_clientSocket.Dispose();
         }
 
+        /// <summary>
+        /// Return a collection of the scheduled Tasks.  (Not supported - for debug purposes only)
+        /// </summary>
+        /// <returns></returns>
         protected override IEnumerable<Task> GetScheduledTasks()
         {
-            // this is not supported, also it's only important for debug propose and doesn't get called in real time
+            // this is not supported, also it's only important for debug purposes and doesn't get called in real time.
             throw new NotSupportedException();
         }
 

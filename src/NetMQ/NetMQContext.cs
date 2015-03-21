@@ -3,7 +3,7 @@ using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ
 {
@@ -13,6 +13,18 @@ namespace NetMQ
     /// methods for socket creation.
     /// You should (ordinarily) have only one context in your application process.
     /// </summary>
+    /// <remarks>
+    /// The NetMQContext is used to create all sockets. Thus, to use NetMQ you should start by calling <c>NetMQContext.Create()</c>
+    /// to create an instance. NetMQContext is an <c>IDisposable</c> so you can use it within a using block:
+    /// <code>
+    /// using (var context = NetMQContext.Create())
+    /// {
+    ///     // Put your code in here. Exit this block to dispose the context
+    ///     // only when communication is no longer required.
+    /// }
+    /// </code>
+    /// You should create and use exactly one context in your process.
+    /// </remarks>
     public class NetMQContext : IDisposable
     {
         private readonly Ctx m_ctx;
@@ -39,8 +51,8 @@ namespace NetMQ
         /// </summary>
         public int ThreadPoolSize
         {
-            get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.IOThreads); }
-            set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.IOThreads, value); }
+            get { m_ctx.CheckDisposed(); return m_ctx.IOThreadCount; }
+            set { m_ctx.CheckDisposed(); m_ctx.IOThreadCount = value; }
         }
 
         /// <summary>
@@ -48,12 +60,17 @@ namespace NetMQ
         /// </summary>
         public int MaxSockets
         {
-            get { m_ctx.CheckDisposed(); return m_ctx.Get(ContextOption.MaxSockets); }
-            set { m_ctx.CheckDisposed(); m_ctx.Set(ContextOption.MaxSockets, value); }
+            get { m_ctx.CheckDisposed(); return m_ctx.MaxSockets; }
+            set { m_ctx.CheckDisposed(); m_ctx.IOThreadCount = value; }
         }
 
         #region Socket Creation
 
+        /// <summary>
+        /// Create a socket of the given type within this context.
+        /// </summary>
+        /// <param name="socketType">a ZmqSocketType denoting which type of socket to create</param>
+        /// <returns>a new socket of the given type</returns>
         [CanBeNull]
         private SocketBase CreateHandle(ZmqSocketType socketType)
         {
@@ -67,6 +84,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socketType">a ZmqSocketType indicating the type of socket to create</param>
         /// <returns>a new socket - a subclass of NetMQSocket</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The socketType must be a valid value.</exception>
         [NotNull]
         public NetMQSocket CreateSocket(ZmqSocketType socketType)
         {
@@ -228,6 +246,8 @@ namespace NetMQ
         /// </summary>
         /// <param name="endpoint">a string denoting the endpoint to be monitored</param>
         /// <returns>the new NetMQMonitor</returns>
+        /// <exception cref="ArgumentNullException">endpoint must not be null.</exception>
+        /// <exception cref="ArgumentException">endpoint must not be an empty string.</exception>
         [NotNull]
         public NetMQMonitor CreateMonitorSocket([NotNull] string endpoint)
         {
@@ -271,6 +291,10 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Close (or terminate) this context.
+        /// </summary>
+        /// <param name="disposing">true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

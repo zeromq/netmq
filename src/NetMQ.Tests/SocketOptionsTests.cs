@@ -1,6 +1,5 @@
 ﻿using System;
 using NUnit.Framework;
-using NetMQ.zmq;
 
 namespace NetMQ.Tests
 {
@@ -106,6 +105,10 @@ namespace NetMQ.Tests
 
                 socket.Options.Endian = Endianness.Little;
                 Assert.AreEqual(Endianness.Little, socket.Options.Endian);
+
+                Assert.IsFalse(socket.Options.DisableTimeWait);
+                socket.Options.DisableTimeWait = true;
+                Assert.IsTrue(socket.Options.DisableTimeWait);
             }
 
             using (var context = NetMQContext.Create())

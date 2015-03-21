@@ -23,8 +23,8 @@ namespace SimplePirate.Worker
 
                 worker.ReceiveReady += (s, e) =>
                 {
-                    //  Read and save all frames until we get an empty frame
-                    //  In this example there is only 1 but it could be more
+                    // Read and save all frames until we get an empty frame
+                    // In this example there is only 1 but it could be more
                     byte[] address = worker.ReceiveFrameBytes();
                     worker.ReceiveFrameBytes(); // empty
                     byte[] request = worker.ReceiveFrameBytes();

@@ -2,7 +2,6 @@
 using System.Text;
 using System.Threading;
 using MajordomoProtocol;
-
 using NetMQ;
 
 namespace MDPServiceDiscoveryClientExample

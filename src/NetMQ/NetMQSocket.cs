@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
-using NetMQ.zmq;
-using NetMQ.zmq.Utils;
+using NetMQ.Core;
+using NetMQ.Core.Utils;
 
 namespace NetMQ
 {
@@ -14,14 +14,12 @@ namespace NetMQ
     public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
         private readonly SocketBase m_socketHandle;
-        private bool m_isClosed;
         private readonly NetMQSocketEventArgs m_socketEventArgs;
+        private readonly Selector m_selector;
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
-
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
-
-        private readonly Selector m_selector;
+        private bool m_isClosed;
 
         /// <summary>
         /// Create a new NetMQSocket with the given <see cref="SocketBase"/>.
@@ -34,6 +32,8 @@ namespace NetMQ
             Options = new SocketOptions(this);
             m_socketEventArgs = new NetMQSocketEventArgs(this);
         }
+
+        #region Events
 
         /// <summary>
         /// This event occurs when at least one message may be received from the socket without blocking.
@@ -81,11 +81,6 @@ namespace NetMQ
         internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
 
         /// <summary>
-        /// Get or set an integer that represents the number of errors that have accumulated.
-        /// </summary>
-        internal int Errors { get; set; }
-
-        /// <summary>
         /// Raise the <see cref="EventsChanged"/> event.
         /// </summary>
         private void InvokeEventsChanged()
@@ -98,6 +93,13 @@ namespace NetMQ
                 temp(this, m_socketEventArgs);
             }
         }
+
+        #endregion
+
+        /// <summary>
+        /// Get or set an integer that represents the number of errors that have accumulated.
+        /// </summary>
+        internal int Errors { get; set; }
 
         /// <summary>
         /// Get the <see cref="SocketOptions"/> of this socket.
@@ -116,6 +118,8 @@ namespace NetMQ
         {
             get { return this; }
         }
+
+        #region Bind, Unbind, Connect, Disconnect, Close
 
         /// <summary>
         /// Bind the socket to <paramref name="address"/>.
@@ -203,6 +207,8 @@ namespace NetMQ
             m_socketHandle.Close();
         }
 
+        #endregion
+
         #region Polling
 
         /// <summary>
@@ -237,8 +243,8 @@ namespace NetMQ
         /// <param name="timeout">the timeout period</param>
         /// <returns>
         /// PollEvents.None     -> no message available
-        /// PollEvents.PollIn   -> no message arrived
-        /// PollEvents.PollOut  -> no message to send
+        /// PollEvents.PollIn   -> at least one message has arrived
+        /// PollEvents.PollOut  -> at least one message is ready to send
         /// PollEvents.Error    -> an error has occurred
         /// or any combination thereof
         /// </returns>
@@ -363,24 +369,60 @@ namespace NetMQ
 
         #region Unsubscribe (obsolete)
 
+        /// <summary>
+        /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a string denoting the topic to subscribe to</param>
+        /// <remarks>
+        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
+        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
+        /// <summary>
+        /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a byte-array denoting the topic to subscribe to</param>
+        /// <remarks>
+        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
+        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Subscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
 
+        /// <summary>
+        /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a string denoting the topic to unsubscribe from</param>
+        /// <remarks>
+        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
+        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
 
+        /// <summary>
+        /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
+        /// <param name="topic">a byte-array denoting the topic to unsubscribe from</param>
+        /// <remarks>
+        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
+        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
+        /// This is valid only for Subscriber and XSubscriber sockets.
+        /// </remarks>
         [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
         public virtual void Unsubscribe(byte[] topic)
         {
@@ -412,6 +454,8 @@ namespace NetMQ
             m_socketHandle.Monitor(endpoint, events);
         }
 
+        #region Socket options
+
         /// <summary>
         /// Get whether a message is waiting to be picked up (<c>true</c> if there is, <c>false</c> if there is none).
         /// </summary>
@@ -432,8 +476,6 @@ namespace NetMQ
         {
             get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasOut(); }
         }
-
-        #region Socket options
 
         /// <summary>
         /// Get the integer-value of the specified <see cref="ZmqSocketOption"/>.
@@ -526,6 +568,8 @@ namespace NetMQ
 
         #endregion
 
+        #region IDisposable
+
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Close"/>.</summary>
         public void Dispose()
         {
@@ -533,6 +577,8 @@ namespace NetMQ
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Close"/>.</summary>
+        /// <param name="disposing">true if releasing managed resources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
@@ -540,5 +586,7 @@ namespace NetMQ
 
             Close();
         }
+
+        #endregion
     }
 }

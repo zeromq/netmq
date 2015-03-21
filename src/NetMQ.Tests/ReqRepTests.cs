@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Net.Sockets;
+using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -8,7 +9,7 @@ namespace NetMQ.Tests
         [Test]
         [TestCase("tcp://localhost")]
         [TestCase("tcp://127.0.0.1")]
-        [TestCase("tcp://unknownhostname", ExpectedException = typeof(System.Net.Sockets.SocketException))]
+        [TestCase("tcp://unknownhostname", ExpectedException = typeof(SocketException))]
         public void SimpleReqRep(string address)
         {
             using (var context = NetMQContext.Create())

@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Monitoring;
-using NetMQ.zmq;
 using NUnit.Framework;
 
 namespace NetMQ.Tests

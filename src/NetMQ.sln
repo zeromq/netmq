@@ -155,6 +155,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D
 		..\docs\xpub-xsub.md = ..\docs\xpub-xsub.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicProtoclTests", "Samples\Titanic Pattern\TitanicBrokerTests\TitanicBrokerTests\TitanicProtoclTests.csproj", "{E065C121-21E0-4317-97DA-A1DBF7D74ABF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -648,6 +650,18 @@ Global
 		{15327854-4753-4B80-AE20-1D34A94F5771}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{15327854-4753-4B80-AE20-1D34A94F5771}.Release|x64.ActiveCfg = Release|Any CPU
 		{15327854-4753-4B80-AE20-1D34A94F5771}.Release|x86.ActiveCfg = Release|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Release|x64.ActiveCfg = Release|Any CPU
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -704,5 +718,6 @@ Global
 		{32B1FA88-2A00-41C9-AF28-1EB9F8BB51F3} = {ED1FF3FB-01D4-4315-A6D5-070C420F2908}
 		{9D3ECC09-8001-4282-8F46-414C3FFBE4A7} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 		{15327854-4753-4B80-AE20-1D34A94F5771} = {ED1FF3FB-01D4-4315-A6D5-070C420F2908}
+		{E065C121-21E0-4317-97DA-A1DBF7D74ABF} = {ED1FF3FB-01D4-4315-A6D5-070C420F2908}
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,5 @@
 ﻿using System;
-using NetMQ.zmq;
+using NetMQ.Core;
 
 namespace NetMQ.Sockets
 {
@@ -23,6 +23,7 @@ namespace NetMQ.Sockets
         /// </summary>
         /// <param name="msg">the Msg to transmit</param>
         /// <param name="options">a SendReceiveOptions that may be None, or any of the bits DontWait, SendMore</param>
+        /// <exception cref="NotSupportedException">Send must not be called on a PullSocket.</exception>
         public override void Send(ref Msg msg, SendReceiveOptions options)
         {
             throw new NotSupportedException("Pull socket doesn't support sending");

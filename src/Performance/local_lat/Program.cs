@@ -1,6 +1,5 @@
 ﻿using System;
 using NetMQ;
-using NetMQ.zmq;
 
 namespace local_lat
 {

@@ -34,7 +34,15 @@ namespace NetMQ
         public const string ConfigureCommand = "CONFIGURE";
         public const string PublishCommand = "PUBLISH";
         public const string SilenceCommand = "SILENCE";
+
+        /// <summary>
+        /// Command to subscribe a socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
         public const string SubscribeCommand = "SUBSCRIBE";
+
+        /// <summary>
+        /// Command to un-subscribe a socket from messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
+        /// </summary>
         public const string UnsubscribeCommand = "UNSUBSCRIBE";
 
         #region Nested class: Shim
@@ -168,7 +176,7 @@ namespace NetMQ
                 string peerName;
                 var frame = ReceiveUdpFrame(out peerName);
 
-                //  If filter is set, check that beacon matches it
+                // If filter is set, check that beacon matches it
                 bool isValid = false;
                 if (m_filter != null)
                 {
@@ -178,7 +186,7 @@ namespace NetMQ
                     }
                 }
 
-                //  If valid, discard our own broadcasts, which UDP echoes to us
+                // If valid, discard our own broadcasts, which UDP echoes to us
                 if (isValid && m_transmit != null)
                 {
                     if (frame.MessageSize == m_transmit.MessageSize && Compare(frame, m_transmit, m_transmit.MessageSize))
@@ -187,7 +195,7 @@ namespace NetMQ
                     }
                 }
 
-                //  If still a valid beacon, send on to the API
+                // If still a valid beacon, send on to the API
                 if (isValid)
                 {
                     m_pipe.SendMore(peerName).Send(frame.Buffer, frame.MessageSize);
@@ -276,6 +284,9 @@ namespace NetMQ
         /// </summary>
         public string Hostname { get; private set; }
 
+        /// <summary>
+        /// Get the socket of the contained actor.
+        /// </summary>
         NetMQSocket ISocketPollable.Socket
         {
             get { return ((ISocketPollable)m_actor).Socket; }
@@ -407,8 +418,8 @@ namespace NetMQ
         /// Blocks until a string is received. As the returning of this method is uncontrollable, it's
         /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
         /// </summary>
-        /// <param name="peerName"></param>
-        /// <returns></returns>
+        /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
+        /// <returns>the string that was received</returns>
         [NotNull]
         public string ReceiveString(out string peerName)
         {
@@ -417,6 +428,14 @@ namespace NetMQ
             return m_actor.ReceiveFrameString();
         }
 
+        /// <summary>
+        /// Attempt to receive a message from the specified peer for the specified amount of time.
+        /// </summary>
+        /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
+        /// <param name="peerName">the name of the peer that the message comes from is written to this string</param>
+        /// <param name="message">the string to write the received message into</param>
+        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
+        /// otherwise <c>false</c>.</returns>
         public bool TryReceiveString(TimeSpan timeout, out string peerName, out string message)
         {
             if (!m_actor.TryReceiveFrameString(timeout, out peerName))
@@ -428,6 +447,12 @@ namespace NetMQ
             return m_actor.TryReceiveFrameString(timeout, out message);
         }
 
+        /// <summary>
+        /// Blocks until a message is received. As the returning of this method is uncontrollable, it's
+        /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
+        /// </summary>
+        /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
+        /// <returns>the byte-array of data that was received</returns>
         [NotNull]
         public byte[] Receive(out string peerName)
         {
@@ -436,12 +461,19 @@ namespace NetMQ
             return m_actor.ReceiveFrameBytes();
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        /// <param name="disposing">true if managed resources are to be released</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

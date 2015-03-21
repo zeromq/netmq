@@ -4,9 +4,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+<<<<<<< HEAD
 using JetBrains.Annotations;
+=======
+>>>>>>> remotes/upstream/master
 using MajordomoProtocol.Contracts;
-
 using NetMQ;
 
 namespace MajordomoProtocol

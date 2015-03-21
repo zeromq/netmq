@@ -10,11 +10,36 @@ namespace NetMQ.Security.V0_1
     /// </summary>
     public interface IPRF : IDisposable
     {
+        /// <summary>
+        /// Given a shared-secret, return a byte-array that comprises a random number.
+        /// </summary>
+        /// <param name="secret">the shared secret that is used in the generation of the random number</param>
+        /// <param name="label"></param>
+        /// <param name="seed">a "seed" value that affects the randomness of the number</param>
+        /// <param name="bytes">the number of bytes to write in the result</param>
+        /// <returns>a byte-array that comprises the random number</returns>
         byte[] Get(byte[] secret, string label, byte[] seed, int bytes);
     }
 
+    /// <summary>
+    /// Class SHA256PRF is a secure hashing algorithm. It implements the interface <see cref="IPRF"/>
+    /// and uses the SHA256 hashing algorithm.
+    /// </summary>
+    /// <remarks>
+    /// SHA-256 is a 256-bit hash and is meant to provide 128 bites of security against collision attacks.
+    /// SHA stands for Secure Hashing Algorithm, and is a type of PRF.
+    /// PRF stands for Pseudo-Random number generating Function, and <see cref="IPRF"/> is an interface that mandates the Get method.
+    /// </remarks>
     public class SHA256PRF : IPRF
     {
+        /// <summary>
+        /// Given a shared-secret, return a byte-array that comprises a random number.
+        /// </summary>
+        /// <param name="secret">the shared secret that is used in the generation of the random number</param>
+        /// <param name="label"></param>
+        /// <param name="seed">a "seed" value that affects the randomness of the number</param>
+        /// <param name="bytes">the number of bytes to write in the result</param>
+        /// <returns>a byte-array that comprises the random number</returns>
         public byte[] Get(byte[] secret, string label, byte[] seed, int bytes)
         {
             byte[] prf = PRF(secret, label, seed, (bytes / 32) + 1);
@@ -32,6 +57,14 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// Combine the given secret and label into one "secret" and call PHash.
+        /// </summary>
+        /// <param name="secret">a shared secret</param>
+        /// <param name="label">a string that will be combined with the secret and used as the combined shared-secret</param>
+        /// <param name="seed">a seed value that affects the randomness of the result</param>
+        /// <param name="iterations"></param>
+        /// <returns>a byte-array that comprises the random number</returns>
         private static byte[] PRF(byte[] secret, string label, byte[] seed, int iterations)
         {
             byte[] ls = new byte[label.Length + seed.Length];
@@ -73,12 +106,18 @@ namespace NetMQ.Security.V0_1
             }
         }
 
+        /// <summary>
+        /// This does nothing.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// This does nothing.
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
         }

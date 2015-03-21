@@ -21,7 +21,7 @@
 
 using System;
 using JetBrains.Annotations;
-using NetMQ.zmq.Utils;
+using NetMQ.Core.Utils;
 
 namespace NetMQ
 {
@@ -383,6 +383,7 @@ namespace NetMQ
         /// If this is a Pool Msg, then this also increases the reference-counter and sets the Shared bit.
         /// </summary>
         /// <param name="src">the source Msg to copy from</param>
+        /// <exception cref="FaultException">The object is not initialised.</exception>
         public void Copy(ref Msg src)
         {
             // Check the validity of the source.
@@ -394,8 +395,8 @@ namespace NetMQ
 
             if (src.MsgType == MsgType.Pool)
             {
-                //  One reference is added to shared messages. Non-shared messages
-                //  are turned into shared messages and reference count is set to 2.
+                // One reference is added to shared messages. Non-shared messages
+                // are turned into shared messages and reference count is set to 2.
                 if (IsShared)
                 {
                     src.m_refCount.Increase(1);
@@ -415,6 +416,7 @@ namespace NetMQ
         /// Close this Msg and make it reference the given source Msg, and then clear the Msg to empty.
         /// </summary>
         /// <param name="src">the source-Msg to become</param>
+        /// <exception cref="FaultException">The object is not initialised.</exception>
         public void Move(ref Msg src)
         {
             // Check the validity of the source.

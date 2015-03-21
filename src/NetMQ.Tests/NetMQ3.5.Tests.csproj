@@ -70,9 +70,9 @@
     <Compile Include="ActorTests.cs" />
     <Compile Include="BeaconTests.cs" />
     <Compile Include="ByteArraySegmentTests.cs" />
+    <Compile Include="Core\YQueueTests.cs" />
     <Compile Include="RouterTests.cs" />
     <Compile Include="XPubSubTests.cs" />
-    <Compile Include="ExpectedZmqException.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
     <Compile Include="NetMQTestRunner.cs" />
@@ -86,7 +86,6 @@
     <Compile Include="ReqRepTests.cs" />
     <Compile Include="SocketTests.cs" />
     <Compile Include="StreamTests.cs" />
-    <Compile Include="zmq\YQueueTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NetMQ\NetMQ3.5.csproj">
