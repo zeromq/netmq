@@ -1,7 +1,17 @@
 ﻿namespace TitanicProtocolTests
 {
-    class TitanicBrokerTests
+    public class TitanicBrokerTests
     {
-
+        /*
+         *  Run 
+         *  ProcessTitanicRequest - Thread
+         *  ProcessTitanicReply - Thread
+         *  ProcessTitanicClose - Thread
+         *  
+         *  DispatchRequests
+         *  ServiceCall
+         *  DidAnyTaskStopp 
+         *  LogException
+         */
     }
 }

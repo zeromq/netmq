@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using JetBrains.Annotations;
+
 using NetMQ;
 
 using TitanicCommons;
@@ -15,90 +17,127 @@ namespace TitanicProtocol
     ///     this static class handles the I/O for TITANIC
     ///     if allows to transparently write, read, find and delete entries
     /// </summary>
-    internal static class TitanicIO
+    internal class TitanicIO
     {
-        private const string _titanic_dir = ".titanic";
-        private const string _titanic_queue = "titanic.queue";
-        private const int _size_of_entry = 17;
-        // the queue will contain 1000 deleted marked requests
-        private const int _threshold_for_queue_deletes = 1000;
+        private const string _TITANIC_DIR = ".titanic";
+        private const string _TITANIC_QUEUE = "titanic.queue";
+        private const int _SIZE_OF_ENTRY = 17;
 
         /// <summary>
         ///     if a certain amount of "titanic.close" requests have been performed
         ///     the "titanic.queue" file needs a re-organization to remove the requests
         ///     marked as closed
         /// </summary>
-        private static int s_deleteCycles;
+        private int m_deleteCycles;
+
+        // the queue will contain 1000 deleted marked requests before it is purged
+        private readonly int m_thresholdForQueueDeletes = 10000;
 
         /// <summary>
         ///     represents the application directory
         /// </summary>
-        private static string s_appDir = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_dir);
+        private readonly string m_appDir;
+
+        public string TitanicDirectory { get { return m_appDir; } }
 
         /// <summary>
         ///     represents the filename of the queue of requests
         /// </summary>
-        private static string s_titanicQueue = Path.Combine (s_appDir, _titanic_queue);
+        private readonly string m_titanicQueue;
+
+        public string TitanicQueue { get { return m_titanicQueue; } }
+
+        /// <summary>
+        ///     ctor - creation with all standard values
+        /// 
+        ///     app dir = application directory \ .titanic
+        ///     titanic queue = 'app dir'\titanic.queue
+        ///     purge threshold = 10,000 -> 170,000 bytes
+        /// </summary>
+        public TitanicIO ()
+        {
+            m_appDir = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _TITANIC_DIR);
+            m_titanicQueue = Path.Combine (m_appDir, _TITANIC_QUEUE);
+
+            CheckConfig ();
+        }
+
+        /// <summary>
+        ///     ctor - creation with all standard values
+        /// </summary>
+        /// <param name="path">root path to titanic files</param>
+        public TitanicIO ([NotNull] string path)
+        {
+            m_appDir = path;
+            m_titanicQueue = Path.Combine (m_appDir, _TITANIC_QUEUE);
+
+            CheckConfig ();
+        }
+
+        /// <summary>
+        ///     ctor - creation with all standard values
+        /// </summary>
+        /// <param name="path">root path to titanic files</param>
+        /// <param name="threshold">max delete cycles before compressing files</param>
+        public TitanicIO ([NotNull] string path, int threshold)
+        {
+            m_appDir = path;
+            m_titanicQueue = Path.Combine (m_appDir, _TITANIC_QUEUE);
+            m_thresholdForQueueDeletes = threshold;
+
+            CheckConfig ();
+        }
 
         /// <summary>
         ///     make sure all the directories and files are existing
         ///     if they don't create them
         /// </summary>
-        public static void CheckConfig ()
+        private void CheckConfig ()
         {
-            if (!Directory.Exists (s_appDir))
-                Directory.CreateDirectory (s_appDir);
+            if (!Directory.Exists (m_appDir))
+                Directory.CreateDirectory (m_appDir);
 
-            if (!File.Exists (s_titanicQueue))
-                File.Create (s_titanicQueue);
+            if (!File.Exists (m_titanicQueue))
+                File.Create (m_titanicQueue).Dispose ();    // create file but release all ressources immediately
         }
 
-        /// <summary>
-        ///     set a specific path for the files to be created under
-        /// </summary>
-        public static void SetConfig (string path)
-        {
-            s_appDir = Path.Combine (path, _titanic_dir);
-            s_titanicQueue = Path.Combine (s_appDir, _titanic_queue);
-
-            CheckConfig ();
-        }
-
-        #region REQUEST I/O HANDLING
+        #region REQUEST/REPLY I/O HANDLING
 
         /// <summary>
-        ///     returns an iterable sequence of request entries
+        ///     returns an iterable sequence of all request entries or an empty sequence
         /// </summary>
-        public static IEnumerable<RequestEntry> RetrieveRequests ()
+        public IEnumerable<RequestEntry> RetrieveRequests ()
         {
             long pos = 0;
             RequestEntry result;
 
             while ((result = ReadRequestEntry (pos)) != null)
             {
-                pos = result.Position + _size_of_entry;
+                pos = result.Position + _SIZE_OF_ENTRY;
 
                 yield return result;
             }
         }
 
         /// <summary>
-        ///     finds a specific request in a specified file
+        ///     finds a specific request identified with a GUID
         /// </summary>
         /// <param name="id">the id of the request to search for</param>
         /// <returns>the request entry or <c>default (RequestEntry)</c> if none was found</returns>
-        public static RequestEntry FindRequest (Guid id)
+        public RequestEntry FindRequest (Guid id)
         {
-            return RetrieveRequests ().SingleOrDefault (r => r.RequestId == id);
+            return id == Guid.Empty
+                       ? default (RequestEntry)
+                       : RetrieveRequests ().SingleOrDefault (r => r.RequestId == id);
         }
 
         /// <summary>
-        ///     appends a new request to titanic.queue
+        ///     save a new request under a GUID
         /// </summary>
         /// <param name="id">the id of the request</param>
-        public static void SaveNewRequest (Guid id)
+        public void SaveNewRequest (Guid id)
         {
-            using (var file = File.OpenWrite (s_titanicQueue))
+            using (var file = File.OpenWrite (m_titanicQueue))
             {
                 var source = CreateFileEntry (id, RequestEntry.Is_Pending);
 
@@ -107,32 +146,26 @@ namespace TitanicProtocol
         }
 
         /// <summary>
-        ///     writes a processed request entry to a file at a specified 
-        ///     position within that file
+        ///     save a processed request entry and mark it as such
         /// </summary>
-        /// <param name="entry">the entry to write</param>
-        public static void SaveProcessedRequest (RequestEntry entry)
+        /// <param name="entry">the entry to save</param>
+        public void SaveProcessedRequest ([NotNull] RequestEntry entry)
         {
-            using (var file = File.OpenWrite (s_titanicQueue))
-            {
-                var source = CreateFileEntry (entry.RequestId, entry.State);
+            entry.State = RequestEntry.Is_Processed;
 
-                var pos = entry.Position;
-
-                WriteRequest (file, source, pos);
-            }
+            SaveRequest (entry);
         }
 
-        #endregion REQUEST
+        #endregion REQUEST/REPLY I/O HANDLING
 
-        #region NetMQMessage File I/O HANDLING
+        #region NetMQMessage I/O HANDLING
 
         /// <summary>
-        ///     read a NetMQ message from a file
+        ///     read a NetMQ message identified by a GUID
         /// </summary>
         /// <param name="id">the guid of the message to read</param>
         /// <param name="op">defines whether it is a REQUEST or REPLY message</param>
-        public static NetMQMessage RetrieveMessage (TitanicOperation op, Guid id)
+        public NetMQMessage RetrieveMessage (TitanicOperation op, Guid id)
         {
             var filename = op == TitanicOperation.Request ? GetRequestFileName (id) : GetReplyFileName (id);
             var message = new NetMQMessage ();
@@ -153,11 +186,11 @@ namespace TitanicProtocol
         }
 
         /// <summary>
-        ///     read a NetMQ message from a file asynchronous
+        ///     read a NetMQ message identified by a GUID asynchronously
         /// </summary>
         /// <param name="id">the guid of the message to read</param>
         /// <param name="op">defines whether it is a REQUEST or REPLY message</param>
-        public static Task<NetMQMessage> RetrieveMessageAsync (TitanicOperation op, Guid id)
+        public Task<NetMQMessage> RetrieveMessageAsync (TitanicOperation op, Guid id)
         {
             var tcs = new TaskCompletionSource<NetMQMessage> ();
 
@@ -174,12 +207,12 @@ namespace TitanicProtocol
         }
 
         /// <summary>
-        ///     write a NetMQ message to a file
+        ///     save a NetMQ message under a GUID
         /// </summary>
         /// <param name="op">defines whether it is a REQUEST or REPLY message</param>
         /// <param name="id">the guid of the message to save</param>
         /// <param name="message">the message to save</param>
-        public static bool SaveMessage (TitanicOperation op, Guid id, NetMQMessage message)
+        public bool SaveMessage (TitanicOperation op, Guid id, [NotNull] NetMQMessage message)
         {
             var filename = op == TitanicOperation.Request ? GetRequestFileName (id) : GetReplyFileName (id);
 
@@ -191,16 +224,16 @@ namespace TitanicProtocol
                     w.WriteLine (message[i].ConvertToString ());
             }
 
-            return true;    // just needed for the async method(!)
+            return true; // just needed for the async method(!)
         }
 
         /// <summary>
-        ///     write asynchronously a NetMQ message to a file
+        ///     save  a NetMQ message with a GUID asynchronously
         /// </summary>
         /// <param name="op">defines whether it is a REQUEST or REPLY message</param>
         /// <param name="id">the guid of the message to save</param>
         /// <param name="message">the message to save</param>
-        public static Task<bool> SaveMessageAsync (TitanicOperation op, Guid id, NetMQMessage message)
+        public Task<bool> SaveMessageAsync (TitanicOperation op, Guid id, [NotNull] NetMQMessage message)
         {
             var tcs = new TaskCompletionSource<bool> ();
 
@@ -217,7 +250,7 @@ namespace TitanicProtocol
         }
 
         /// <summary>
-        ///     test if a file for either a request or reply exists
+        ///     test if a request or reply with the GUID exists
         /// </summary>
         /// <param name="op">commands whether it is for a REQUEST or a REPLY</param>
         /// <param name="id">the GUID für the Request/Reply</param>
@@ -225,7 +258,7 @@ namespace TitanicProtocol
         ///         true if it exists and false otherwise and if 'op' is not one 
         ///         of the aforementioned
         /// </returns>
-        public static bool Exists (TitanicOperation op, Guid id)
+        public bool Exists (TitanicOperation op, Guid id)
         {
             if (op == TitanicOperation.Close)
                 return false;
@@ -236,18 +269,21 @@ namespace TitanicProtocol
         }
 
         /// <summary>
-        ///     mark a request as closed
+        ///     mark a request with a GUID as closed
         /// </summary>
-        /// <param name="id"></param>
-        public static void CloseRequest (Guid id)
+        /// <param name="id">the GUID of the request to close</param>
+        public void CloseRequest (Guid id)
         {
+            if (id == Guid.Empty)
+                return;
+
             var reqFile = GetRequestFileName (id);
             var replyFile = GetReplyFileName (id);
 
             File.Delete (reqFile);
             File.Delete (replyFile);
 
-            s_deleteCycles++;
+            m_deleteCycles++;
 
             MarkRequestClosed (id);
         }
@@ -257,15 +293,19 @@ namespace TitanicProtocol
         /// <summary>
         ///     searches for the entry in titanic.queue and marks it as closed
         /// </summary>
-        private static void MarkRequestClosed (Guid id)
+        private void MarkRequestClosed (Guid id)
         {
             var request = FindRequest (id);
 
+            // entry does not exist
+            if (request == default (RequestEntry))
+                return;
+
             request.State = RequestEntry.Is_Closed;
 
-            SaveProcessedRequest (request);
+            SaveRequest (request);
 
-            if (s_deleteCycles > _threshold_for_queue_deletes)
+            if (m_deleteCycles >= m_thresholdForQueueDeletes)
                 PurgeQueue ();
         }
 
@@ -279,13 +319,13 @@ namespace TitanicProtocol
         ///     then it resets the file size to 0 and writes the collected entries 
         ///     to the file and releases the exclusive access
         /// </remarks>
-        private static void PurgeQueue ()
+        private void PurgeQueue ()
         {
-            var entries = new List<RequestEntry> ();
+            var entries = new List<byte[]> ();
 
-            using (var file = File.Open (_titanic_queue, FileMode.Open, FileAccess.ReadWrite))
+            using (var file = File.Open (m_titanicQueue, FileMode.Open, FileAccess.ReadWrite))
             {
-                var target = new byte[_size_of_entry];
+                var target = new byte[_SIZE_OF_ENTRY];
 
                 // get exclusive file access - no other thread can write to that file
                 file.Lock (0, file.Length);
@@ -293,62 +333,74 @@ namespace TitanicProtocol
                 file.Seek (0, SeekOrigin.Begin);
 
                 // 0 == End Of File and Positin is automatically advanced
-                while (file.Read (target, (int) file.Position, _size_of_entry) != 0)
+                while (file.Read (target, 0, _SIZE_OF_ENTRY) != 0)
                 {
                     // collect all entries BUT the closed once
                     if (target[0] != RequestEntry.Is_Closed)
-                        entries.Add (new RequestEntry
-                                     {
-                                         State = target[0],
-                                         // Position is int this case of no importance!
-                                         // Position is recreated in new file anyway
-                                         RequestId = GetGuidFromStoredRequest (target)
-                                     });
+                        entries.Add (target);
                 }
                 // reset the file in order to re-create the content
                 file.SetLength (0);
                 // write all collected entries to queue -> will only be the not closed one
-                foreach (var source in entries.Select (entry => CreateFileEntry (entry.RequestId, entry.State)))
+                for (var i = 0; i < entries.Count; i++)
                 {
                     // write the entry at the current position in the file
-                    file.Write (source, 0, source.Length);
+                    file.Write (entries[i], 0, entries[i].Length);
                 }
-
-                // release the file for others to access
-                file.Unlock (0, file.Length);
             }
         }
 
         /// <summary>
-        ///     read an entry of the specified file from a specified position
-        ///     within the file
+        ///     saves a request entry to file
+        /// </summary>
+        /// <param name="entry"></param>
+        private void SaveRequest (RequestEntry entry)
+        {
+            using (var file = File.OpenWrite (m_titanicQueue))
+            {
+                var source = CreateFileEntry (entry.RequestId, entry.State);
+
+                var pos = entry.Position;
+
+                WriteRequest (file, source, pos);
+            }
+        }
+
+        /// <summary>
+        ///     read an entry from a specified position within Titanic.Queue
         /// </summary>
         /// <param name="pos">the position from the beginning in bytes - 0 based</param>
         /// <returns>the read request entry or null if EOF</returns>
-        private static RequestEntry ReadRequestEntry (long pos)
+        private RequestEntry ReadRequestEntry (long pos)
         {
-            using (var file = File.OpenRead (s_titanicQueue))
+            using (var file = File.OpenRead (m_titanicQueue))
             {
                 return ReadRequestedEntry (pos, file);
             }
         }
 
-        private static RequestEntry ReadRequestedEntry (long pos, FileStream f)
+        /// <summary>
+        ///     read an entry from a specified position within a specified filestream
+        /// </summary>
+        /// <param name="pos">the position from the beginning in bytes - 0 based</param>
+        /// <param name="f">the filestream to read from</param>
+        /// <returns></returns>
+        private RequestEntry ReadRequestedEntry (long pos, [NotNull] FileStream f)
         {
-            var target = new byte[_size_of_entry];
+            var target = new byte[_SIZE_OF_ENTRY];
 
             f.Seek (pos, SeekOrigin.Begin);
 
-            var readBytes = f.Read (target, 0, _size_of_entry);
+            var readBytes = f.Read (target, 0, _SIZE_OF_ENTRY);
 
             return readBytes == 0
                        ? null
                        : new RequestEntry
-                       {
-                           State = target[0],
-                           Position = pos,
-                           RequestId = GetGuidFromStoredRequest (target)
-                       };
+                         {
+                             State = target[0],
+                             Position = pos,
+                             RequestId = GetGuidFromStoredRequest (target)
+                         };
         }
 
         /// <summary>
@@ -357,7 +409,7 @@ namespace TitanicProtocol
         /// <param name="f">FileStream</param>
         /// <param name="b">byte sequence to write</param>
         /// <param name="pos">the 0 based position from the beginning of the file</param>
-        private static void WriteRequest (FileStream f, byte[] b, long pos)
+        private void WriteRequest ([NotNull] FileStream f, [NotNull] byte[] b, long pos)
         {
             f.Seek (pos, SeekOrigin.Begin);
             f.Write (b, 0, b.Length);
@@ -368,7 +420,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="bytes">the raw request entry as byte sequence</param>
         /// <returns>the enbedded Guid</returns>
-        private static Guid GetGuidFromStoredRequest (byte[] bytes)
+        private Guid GetGuidFromStoredRequest ([NotNull] byte[] bytes)
         {
             var guid = new byte[16];
 
@@ -383,7 +435,7 @@ namespace TitanicProtocol
         /// <param name="id">Guid of the request</param>
         /// <param name="state">is either IsProcessed, IsPending or IsClosed</param>
         /// <returns></returns>
-        private static byte[] CreateFileEntry (Guid id, byte state)
+        private byte[] CreateFileEntry (Guid id, byte state)
         {
             var b = id.ToByteArray ();
 
@@ -395,7 +447,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="bytes">sequence of bytes</param>
         /// <param name="b">byte to add</param>
-        private static byte[] AddByteAtStart (byte[] bytes, byte b)
+        private byte[] AddByteAtStart ([NotNull] byte[] bytes, byte b)
         {
             var target = new byte[bytes.Length + 1];
 
@@ -409,17 +461,17 @@ namespace TitanicProtocol
         /// <summary>
         ///     return the full path + filename for a request
         /// </summary>
-        private static string GetRequestFileName (Guid guid)
+        private string GetRequestFileName (Guid guid)
         {
-            return Path.Combine (s_appDir, guid + ".request");
+            return Path.Combine (m_appDir, guid + ".request");
         }
 
         /// <summary>
         ///     return the full path + filename for a reply
         /// </summary>
-        private static string GetReplyFileName (Guid guid)
+        private string GetReplyFileName (Guid guid)
         {
-            return Path.Combine (s_appDir, guid + ".reply");
+            return Path.Combine (m_appDir, guid + ".reply");
         }
 
     }

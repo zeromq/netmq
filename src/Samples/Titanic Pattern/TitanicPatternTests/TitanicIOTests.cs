@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.IO;
-using System.Threading;
+using System.Linq;
+
 using FluentAssertions;
-using NetMQ;
 using NUnit.Framework;
+
+using NetMQ;
+
 using TitanicCommons;
 using TitanicProtocol;
 
@@ -13,63 +15,43 @@ namespace TitanicProtocolTests
     [TestFixture]
     public class TitanicIOTests
     {
-        /*
-         *  IEnumerable<RequestEntry> RetrieveRequests ()
-         *  RequestEntry FindRequest (Guid id)
-         *  void SaveNewRequest (Guid id)
-         *  void SaveProcessedRequest (RequestEntry entry)
-         *  NetMQMessage RetrieveMessage (TitanicOperation op, Guid id)
-         *  void SaveMessage (TitanicOperation op, Guid id, NetMQMessage message)
-         *  bool Exists (TitanicOperation op, Guid id)
-         *  void CloseRequest (Guid id)
-         *  
-         * Purge ()!
-         *
-         */
-
-        private const string _titanic_dir = ".titanic";
-        private const string _titanic_queue = "titanic.queue";
-        private const string _request_ending = ".request";
-        private const string _reply_ending = ".reply";
+        private const string _REQUEST_ENDING = ".request";
+        private const string _REPLY_ENDING = ".reply";
 
         [Test]
         public void SetConfig_ValidPath_ShouldCreateDirectoryAndFile ()
         {
-            var path = Path.GetTempPath ();
-            var expectedDirectory = Path.Combine (path, _titanic_dir);
-            var expectedFile = Path.Combine (expectedDirectory, _titanic_queue);
+            var sut = new TitanicIO (Path.GetTempPath ());
 
-            TitanicIO.SetConfig (path);
+            var expectedDirectory = sut.TitanicDirectory;
+            var expectedFile = sut.TitanicQueue;
 
+            Directory.Exists (expectedDirectory)
+                     .Should ()
+                     .BeTrue (string.Format ("because {0} should have been created!", expectedDirectory));
 
-            Assert.IsTrue (Directory.Exists (expectedDirectory));
-            Assert.IsTrue (File.Exists (expectedFile));
-
-            // immediate deleting fails, so wait 100ms for freeing the handles
-            Thread.Sleep (100);
-
-            File.Delete (expectedFile);
-            Directory.Delete (expectedDirectory);
+            File.Exists (expectedFile)
+                .Should ()
+                .BeTrue (string.Format ("because {0} should have been created!", expectedFile));
         }
 
         [Test]
-        public void SaveMessage_RequestMessage_SholdCreateNewFileWithGuidAsName ()
+        public void SaveMessage_RequestMessage_ShouldCreateNewFileWithGuidAsName ()
         {
-            var path = Path.GetTempPath ();
-            TitanicIO.SetConfig (path);
+            var sut = new TitanicIO (Path.GetTempPath ());
 
             var message = new NetMQMessage ();
             message.Push ("Hello World");
             message.Push ("echo");
 
-            var messageSize = message[0].BufferSize + message[1].BufferSize + 4;    // 2 lines with \r\n
+            var messageSize = message[0].BufferSize + message[1].BufferSize + 4;    // + 2 lines with \r\n
 
             var id = Guid.NewGuid ();
 
-            TitanicIO.SaveMessage (TitanicOperation.Request, id, message);
+            sut.SaveMessage (TitanicOperation.Request, id, message);
 
-            var expectedDir = Path.Combine (path, _titanic_dir);
-            var expectedFile = Path.Combine (expectedDir, id + _request_ending);
+            var expectedDir = sut.TitanicDirectory;
+            var expectedFile = Path.Combine (expectedDir, id + _REQUEST_ENDING);
 
             File.Exists (expectedFile).Should ().BeTrue ("because the file exists");
 
@@ -83,8 +65,7 @@ namespace TitanicProtocolTests
         [Test]
         public void SaveMessage_ReplyMessage_SholdCreateNewFileWithGuidAsName ()
         {
-            var path = Path.GetTempPath ();
-            TitanicIO.SetConfig (path);
+            var sut = new TitanicIO (Path.GetTempPath ());
 
             var message = new NetMQMessage ();
             message.Push ("Hello World");
@@ -94,10 +75,10 @@ namespace TitanicProtocolTests
 
             var id = Guid.NewGuid ();
 
-            TitanicIO.SaveMessage (TitanicOperation.Reply, id, message);
+            sut.SaveMessage (TitanicOperation.Reply, id, message);
 
-            var expectedDir = Path.Combine (path, _titanic_dir);
-            var expectedFile = Path.Combine (expectedDir, id + _reply_ending);
+            var expectedDir = sut.TitanicDirectory;
+            var expectedFile = Path.Combine (expectedDir, id + _REPLY_ENDING);
 
             File.Exists (expectedFile).Should ().BeTrue ("because the file exists");
 
@@ -111,8 +92,7 @@ namespace TitanicProtocolTests
         [Test]
         public void RetrieveMessage_RequestMessage_ShouldReturnOriginalMessage ()
         {
-            var path = Path.GetTempPath ();
-            TitanicIO.SetConfig (path);
+            var sut = new TitanicIO (Path.GetTempPath ());
 
             var message = new NetMQMessage ();
             message.Push ("Hello World");
@@ -120,17 +100,17 @@ namespace TitanicProtocolTests
 
             var id = Guid.NewGuid ();
 
-            TitanicIO.SaveMessage (TitanicOperation.Request, id, message);
+            sut.SaveMessage (TitanicOperation.Request, id, message);
 
-            var expectedDir = Path.Combine (path, _titanic_dir);
-            var expectedFile = Path.Combine (expectedDir, id + _reply_ending);
-
-            var result = TitanicIO.RetrieveMessage (TitanicOperation.Request, id);
+            var result = sut.RetrieveMessage (TitanicOperation.Request, id);
 
             result.FrameCount.Should ().Be (2, "because there are two frames");
 
             for (var i = 0; i < result.FrameCount; i++)
                 (result[i] == message[i]).Should ().BeTrue ("because they are identical.");
+
+            var expectedDir = sut.TitanicDirectory;
+            var expectedFile = Path.Combine (expectedDir, id + _REQUEST_ENDING);
 
             File.Delete (expectedFile);
         }
@@ -138,8 +118,7 @@ namespace TitanicProtocolTests
         [Test]
         public void RetrieveMessage_ReplyMessage_ShouldReturnOriginalMessage ()
         {
-            var path = Path.GetTempPath ();
-            TitanicIO.SetConfig (path);
+            var sut = new TitanicIO (Path.GetTempPath ());
 
             var message = new NetMQMessage ();
             message.Push ("Hello World");
@@ -147,19 +126,310 @@ namespace TitanicProtocolTests
 
             var id = Guid.NewGuid ();
 
-            TitanicIO.SaveMessage (TitanicOperation.Reply, id, message);
+            sut.SaveMessage (TitanicOperation.Reply, id, message);
 
-            var expectedDir = Path.Combine (path, _titanic_dir);
-            var expectedFile = Path.Combine (expectedDir, id + _reply_ending);
-
-            var result = TitanicIO.RetrieveMessage (TitanicOperation.Reply, id);
+            var result = sut.RetrieveMessage (TitanicOperation.Reply, id);
 
             result.FrameCount.Should ().Be (2, "because there are two frames");
 
             for (var i = 0; i < result.FrameCount; i++)
                 (result[i] == message[i]).Should ().BeTrue ("because they are identical.");
 
+            var expectedDir = sut.TitanicDirectory;
+            var expectedFile = Path.Combine (expectedDir, id + _REPLY_ENDING);
+
             File.Delete (expectedFile);
+        }
+
+        [Test]
+        public void Exists_ExistingRequest_ShouldReturnTrue ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            const TitanicOperation op = TitanicOperation.Request;
+
+            var message = new NetMQMessage ();
+            message.Push ("Hello World");
+            message.Push ("echo");
+
+            var id = Guid.NewGuid ();
+
+            sut.SaveMessage (op, id, message);
+
+            sut.Exists (op, id).Should ().BeTrue ("because it has been created.");
+
+            var expectedDir = sut.TitanicDirectory;
+            var expectedFile = Path.Combine (expectedDir, id + _REQUEST_ENDING);
+
+            File.Delete (expectedFile);
+        }
+
+        [Test]
+        public void Exists_ExistingReply_ShouldReturnTrue ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            const TitanicOperation op = TitanicOperation.Reply;
+
+            var message = new NetMQMessage ();
+            message.Push ("Hello World");
+            message.Push ("echo");
+
+            var id = Guid.NewGuid ();
+
+            sut.SaveMessage (op, id, message);
+
+            sut.Exists (op, id).Should ().BeTrue ("because it has been created.");
+
+            var expectedDir = sut.TitanicDirectory;
+            var expectedFile = Path.Combine (expectedDir, id + _REPLY_ENDING);
+
+            File.Delete (expectedFile);
+        }
+
+        [Test]
+        public void Exists_NonExistingRequest_ShouldReturnFalse ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            var id = Guid.NewGuid ();
+
+            sut.Exists (TitanicOperation.Request, id).Should ().BeFalse ("because it has never been created.");
+        }
+
+        [Test]
+        public void Exists_NonExistingReply_ShouldReturnFalse ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            var id = Guid.NewGuid ();
+
+            sut.Exists (TitanicOperation.Reply, id).Should ().BeFalse ("because it has never been created.");
+        }
+
+        [Test]
+        public void SaveNewRequest_ValidId_ShouldAddRequestMarkedAsNew ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            var id = Guid.NewGuid ();
+
+            sut.SaveNewRequest (id);      // -> to titanic.queue
+
+            sut.RetrieveRequests ()
+                     .First ()
+                     .State.Should ()
+                     .Be (RequestEntry.Is_Pending, "because it is a new request.");
+
+            var file = sut.TitanicQueue;
+
+            File.Exists (file).Should ().BeTrue (string.Format ("because {0} was created.", file));
+        }
+
+        [Test]
+        public void SaveNewRequest_NonExistingId_ShouldReturnEmpty ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            var titanicQueue = sut.TitanicQueue;
+
+            // create empty queue but release filestream immediately again
+            File.Create (titanicQueue).Dispose ();
+
+            sut.RetrieveRequests ().Should ().BeEmpty ("because there are none.");
+        }
+
+        [Test]
+        public void SaveNewRequest_MultipleValidIds_ShouldAddAllRequestMarkedAsNew ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            for (var i = 0; i < 10; i++)
+                sut.SaveNewRequest (Guid.NewGuid ()); // -> to titanic.queue
+
+            sut.RetrieveRequests ()
+                     .All (re => re.State == RequestEntry.Is_Pending)
+                     .Should ()
+                     .BeTrue ("because all entries are new.");
+
+            var titanicQueue = sut.TitanicQueue;
+            File.Delete (titanicQueue);
+        }
+
+        [Test]
+        public void SaveProcessedRequest_NonProcessedRequest_ShouldMarkRequestAppropriately ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            for (var i = 0; i < 10; i++)
+                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+
+            var req = sut.RetrieveRequests ().Skip (3).First ();
+
+            req.State.Should ().Be (RequestEntry.Is_Pending);
+
+            sut.SaveProcessedRequest (req);
+
+            sut.RetrieveRequests ()
+                     .Count (re => re.State == RequestEntry.Is_Processed)
+                     .Should ()
+                     .Be (1, "because only one request has been processed.");
+
+            var titanicQueue = sut.TitanicQueue;
+            File.Delete (titanicQueue);
+        }
+
+        [Test]
+        public void FindRequest_ExistingRequest_ShouldReturnCorrectRequestEntry ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            for (var i = 0; i < 10; i++)
+                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+
+            var requests = sut.RetrieveRequests ().ToArray ();
+
+            var req = requests.Skip (3).First ();
+
+            sut.FindRequest (req.RequestId).Should ().Be (req, "because it was searched.");
+
+            var titanicQueue = sut.TitanicQueue;
+            File.Delete (titanicQueue);
+        }
+
+        [Test]
+        public void FindRequest_NonExistingRequest_ShouldReturnCorrectRequestEntry ()
+        {
+            var sut = new TitanicIO (Path.GetTempPath ());
+
+            for (var i = 0; i < 10; i++)
+                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+
+            sut.FindRequest (Guid.NewGuid ()).Should ().Be (default (RequestEntry));
+
+            var titanicQueue = sut.TitanicQueue;
+            File.Delete (titanicQueue);
+        }
+
+        [Test]
+        public void CloseRequest_ProcessedRequest_ShouldMarkRequestAppropriate ()
+        {
+            var path = Path.Combine (Path.GetTempPath (), ".titanic", "Close_1");
+            var sut = new TitanicIO (path);
+
+            for (var i = 0; i < 10; i++)
+                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+
+            var req = sut.RetrieveRequests ().Skip (3).First ();
+
+            sut.SaveProcessedRequest (req);
+
+            sut.CloseRequest (req.RequestId);
+
+            sut.RetrieveRequests ()
+                     .Count (re => re.State == RequestEntry.Is_Closed)
+                     .Should ()
+                     .Be (1, "because only one request has been processed.");
+
+            sut.FindRequest (req.RequestId).State.Should ().Be (RequestEntry.Is_Closed);
+
+            Directory.Delete (sut.TitanicDirectory, true);
+        }
+
+        [Test]
+        public void CloseRequest_MaxEntryClosedRequests_ShouldPurgeQueue ()
+        {
+            const int max_entries = 20;
+            var path = Path.Combine (Path.GetTempPath (), ".titanic", "Close_2");
+
+            var sut = new TitanicIO (path, max_entries);
+
+            for (var i = 0; i < max_entries; i++)
+                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+
+            var requests = sut.RetrieveRequests ().ToArray ();
+            requests.Length.Should ().Be (max_entries, "because 20 entries were written.");
+
+            foreach (var entry in requests)
+                sut.CloseRequest (entry.RequestId);
+
+            sut.RetrieveRequests ()
+                     .Should ().BeEmpty ("because all requests have been closed!");
+
+            Directory.Delete (sut.TitanicDirectory, true);
+        }
+
+        [Test]
+        public void CloseRequest_MaxEntryClosedRequestsLeaveAdditionalRequests_ShouldReorganizeQueue ()
+        {
+            const int additional_requests = 5;
+            const int max_entries = 20;
+            var path = Path.Combine (Path.GetTempPath (), ".titanic", "Close_3");
+
+            var sut = new TitanicIO (path, max_entries);
+
+            for (var i = 0; i < max_entries + additional_requests; i++)
+                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+
+            var requests = sut.RetrieveRequests ().ToArray ();
+            requests.Length.Should ().Be (max_entries + additional_requests);
+
+            for (var i = 0; i < max_entries; i++)
+                sut.CloseRequest (requests[i].RequestId);
+
+            sut.RetrieveRequests ()
+                     .Count ()
+                     .Should ()
+                     .Be (additional_requests, "because 5 requests should have been left over!");
+
+            Directory.Delete (sut.TitanicDirectory, true);
+        }
+
+        [Test]
+        public void CloseRequest_MaxEntryClosedAndAdditionalRequestsAndReplies_ShouldReorganizeQueue ()
+        {
+            const int max_entries = 20;
+            const int additional_requests = 5;
+            var path = Path.Combine (Path.GetTempPath (), ".titanic", "Close_4");
+
+            var sut = new TitanicIO (path, max_entries);
+
+            var titanicQueue = sut.TitanicQueue;
+
+            for (var i = 0; i < max_entries + additional_requests; i++)
+            {
+                var id = Guid.NewGuid ();
+                sut.SaveNewRequest (id); // -> fill titanic.queue
+
+                var message = new NetMQMessage ();
+                message.Push (string.Format ("Message #{0}", i));
+                message.Push ("echo");
+
+                sut.SaveMessage (TitanicOperation.Request, id, message);
+            }
+
+            foreach (var entry in sut.RetrieveRequests ().Skip (3).Take (5))
+            {
+                sut.SaveProcessedRequest (entry);
+
+                var message = sut.RetrieveMessage (TitanicOperation.Request, entry.RequestId);
+
+                sut.SaveMessage (TitanicOperation.Reply, entry.RequestId, message);
+            }
+
+            var requests = sut.RetrieveRequests ().ToArray ();
+            requests.Length.Should ().Be (max_entries + additional_requests);
+            requests.Count (re => re.State == RequestEntry.Is_Processed).Should ().Be (5);
+
+            for (var i = 0; i < max_entries; i++)
+                sut.CloseRequest (requests[i].RequestId);     // mark closed not worrying about state
+
+            sut.RetrieveRequests ()
+                     .Count ()
+                     .Should ()
+                     .Be (additional_requests, "because 5 requests should have been left over!");
+
+            Directory.Delete (sut.TitanicDirectory, true);
         }
     }
 }

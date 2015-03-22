@@ -62,15 +62,15 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\NetMQ\NetMQ.csproj">
+    <ProjectReference Include="..\..\..\NetMQ\NetMQ.csproj">
       <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
       <Name>NetMQ</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\TitanicBroker\TitanicProtocol.csproj">
+    <ProjectReference Include="..\TitanicBroker\TitanicProtocol.csproj">
       <Project>{f92e05f9-9177-4889-b192-23dfb49ec045}</Project>
       <Name>TitanicProtocol</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\TitanicCommons\TitanicCommons.csproj">
+    <ProjectReference Include="..\TitanicCommons\TitanicCommons.csproj">
       <Project>{15327854-4753-4b80-ae20-1d34a94f5771}</Project>
       <Name>TitanicCommons</Name>
     </ProjectReference>

@@ -155,7 +155,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D
 		..\docs\xpub-xsub.md = ..\docs\xpub-xsub.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicProtoclTests", "Samples\Titanic Pattern\TitanicBrokerTests\TitanicBrokerTests\TitanicProtoclTests.csproj", "{E065C121-21E0-4317-97DA-A1DBF7D74ABF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicPatternTests", "Samples\Titanic Pattern\TitanicPatternTests\TitanicPatternTests.csproj", "{E065C121-21E0-4317-97DA-A1DBF7D74ABF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

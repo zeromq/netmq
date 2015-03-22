@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -60,13 +61,40 @@ namespace TitanicProtocol
     /// </summary>
     public class TitanicBroker : ITitanicBroker
     {
-        private const string _titanic_address = "tcp://localhost:5555";
-        private const string _titanic_internal_communication = "inproc://titanic.inproc";
+        private const string _TITANIC_INTERNAL_COMMUNICATION = "inproc://titanic.inproc";
+
+        private readonly string m_titanicAddress;
+
+        private readonly TitanicIO titanicIO;
 
         /// <summary>
         ///     if broker has a log message available if fires this event
         /// </summary>
         public event EventHandler<LogInfoEventArgs> LogInfoReady;
+
+        /// <summary>
+        ///     ctor - initializes the broker ip to "tcp://localhost:5555"
+        /// </summary>
+        public TitanicBroker ()
+        {
+            m_titanicAddress = "tcp://localhost:5555";
+            titanicIO = new TitanicIO ();
+        }
+
+        /// <summary>
+        ///     ctor with broker ip
+        /// </summary>
+        /// <param name="brokerIP">the ip address of the broker as string</param>
+        /// <exception cref="ApplicationException">The broker ip address is invalid!</exception>
+        public TitanicBroker ([NotNull] string brokerIP)
+            : this ()
+        {
+            IPAddress ip;
+            if (!IPAddress.TryParse (brokerIP, out ip))
+                throw new ApplicationException ("The IP address of the broker is invalid!");
+
+            m_titanicAddress = brokerIP;
+        }
 
         /// <summary>
         ///     <para>is the main thread of the broker</para>
@@ -76,16 +104,14 @@ namespace TitanicProtocol
         /// </summary>
         public void Run ()
         {
-            TitanicIO.CheckConfig ();
-
             using (var ctx = NetMQContext.Create ())
             using (var pipeStart = ctx.CreatePairSocket ())
             using (var pipeEnd = ctx.CreatePairSocket ())
             using (var cts = new CancellationTokenSource ())
             {
                 // set up the inter thread communication pipe
-                pipeStart.Bind (_titanic_internal_communication);
-                pipeEnd.Connect (_titanic_internal_communication);
+                pipeStart.Bind (_TITANIC_INTERNAL_COMMUNICATION);
+                pipeEnd.Connect (_TITANIC_INTERNAL_COMMUNICATION);
 
                 // start the three child tasks
                 var requestTask = Task.Run (() => ProcessTitanicRequest (pipeEnd), cts.Token);
@@ -106,17 +132,17 @@ namespace TitanicProtocol
 
                         Guid guid;
                         if (!Guid.TryParse (msg, out guid))
-                            Log ("[TITANIC] Received a malformed GUID - throw it away");
+                            Log ("Received a malformed GUID - throw it away");
                         else
                         {
                             // now we have a valid GUID - save it to disk for further use
-                            TitanicIO.SaveNewRequest (guid);
+                            titanicIO.SaveNewRequest (guid);
                         }
                     }
 
                     //! now dispatch (brute force) the requests -> SHOULD BE MORE INTELLIGENT (!)
-                    foreach (var entry in TitanicIO.RetrieveRequests ().Where (entry => DispatchRequests (entry.RequestId)))
-                        TitanicIO.SaveProcessedRequest (entry);
+                    foreach (var entry in titanicIO.RetrieveRequests ().Where (entry => DispatchRequests (entry.RequestId)))
+                        titanicIO.SaveProcessedRequest (entry);
 
                     //! should implement some sort of restart
                     // beware of the silently dieing threads - must be detected!
@@ -133,44 +159,6 @@ namespace TitanicProtocol
         }
 
         /// <summary>
-        ///     handle the situation when a thread dies and take appropriate steps
-        /// </summary>
-        /// <param name="tasks"></param>
-        /// <returns></returns>
-        private bool DidAnyTaskStopp (Task[] tasks)
-        {
-            if (Task.WhenAny (tasks).IsCompleted)
-            {
-                Log (string.Format ("[TITANIC] UNEXPECTED ABORTION OF A THREAD! ABANDONING!"));
-
-                return true;
-            }
-
-            if (Task.WhenAny (tasks).IsFaulted)
-            {
-                Log (string.Format ("[TITANIC] An expection has been detected! ABANDONING!"));
-                // get the exceptions available and log them
-                foreach (var task in tasks.Where (task => task.IsFaulted))
-                    LogExceptions (task.Exception);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        ///     log all exceptions of the AggregateException
-        /// </summary>
-        private void LogExceptions (AggregateException exception)
-        {
-            Log (string.Format ("[TITANIC] Exception: {0}", exception.Message));
-
-            foreach (var ex in exception.Flatten ().InnerExceptions)
-                Log (string.Format ("[TITANIC] Inner Exception: {0}", ex.Message));
-        }
-
-        /// <summary>
         ///     process a titanic request according to TITANIC Protocol
         ///     
         ///     <para>it connects via provided PAIR socket to main thread</para>
@@ -181,7 +169,7 @@ namespace TitanicProtocol
         {
             // get a MDP worker with an automatic id and register with the service "titanic.request"
             // the worker will automatically start and connect to a MDP Broker at the indicated address
-            using (IMDPWorker worker = new MDPWorker (_titanic_address, TitanicOperation.Request.ToString ()))
+            using (IMDPWorker worker = new MDPWorker (m_titanicAddress, TitanicOperation.Request.ToString ()))
             {
                 NetMQMessage reply = null;
 
@@ -198,7 +186,7 @@ namespace TitanicProtocol
                     // generate Guid for the request
                     var requestId = Guid.NewGuid ();
                     // save request to file -> [service name][request data]
-                    TitanicIO.SaveMessage (TitanicOperation.Request, requestId, request);
+                    titanicIO.SaveMessage (TitanicOperation.Request, requestId, request);
                     // send GUID through message queue to main thread
                     pipe.Send (requestId.ToString ());
                     // return GUID via reply message via worker.Receive call
@@ -220,7 +208,7 @@ namespace TitanicProtocol
         {
             // get a MDP worker with an automatic id and register with the service "titanic.reply"
             // the worker will automatically start and connect to the indicated address
-            using (IMDPWorker worker = new MDPWorker (_titanic_address, TitanicOperation.Reply.ToString ()))
+            using (IMDPWorker worker = new MDPWorker (m_titanicAddress, TitanicOperation.Reply.ToString ()))
             {
                 NetMQMessage reply = null;
 
@@ -237,16 +225,16 @@ namespace TitanicProtocol
                     var requestIdAsString = request.Pop ().ConvertToString ();
                     var requestId = Guid.Parse (requestIdAsString);
 
-                    if (TitanicIO.Exists (TitanicOperation.Reply, requestId))
+                    if (titanicIO.Exists (TitanicOperation.Reply, requestId))
                     {
-                        reply = TitanicIO.RetrieveMessage (TitanicOperation.Reply, requestId);
+                        reply = titanicIO.RetrieveMessage (TitanicOperation.Reply, requestId);
                         reply.Push (TitanicCommand.Ok.ToString ());
                     }
                     else
                     {
                         reply = new NetMQMessage ();
 
-                        var replyCommand = (TitanicIO.Exists (TitanicOperation.Request, requestId)
+                        var replyCommand = (titanicIO.Exists (TitanicOperation.Request, requestId)
                                                 ? TitanicCommand.Pending
                                                 : TitanicCommand.Unknown);
 
@@ -264,7 +252,7 @@ namespace TitanicProtocol
         {
             // get a MDP worker with an automatic id and register with the service "titanic.Close"
             // the worker will automatically start and connect to MDP Broker with the indicated address
-            using (IMDPWorker worker = new MDPWorker (_titanic_address, TitanicOperation.Close.ToString ()))
+            using (IMDPWorker worker = new MDPWorker (m_titanicAddress, TitanicOperation.Close.ToString ()))
             {
                 NetMQMessage reply = null;
 
@@ -280,7 +268,7 @@ namespace TitanicProtocol
                     var guidAsString = request.Pop ().ConvertToString ();
                     var guid = Guid.Parse (guidAsString);
                     // close the request
-                    TitanicIO.CloseRequest (guid);
+                    titanicIO.CloseRequest (guid);
 
                     // send back the confirmation
                     reply = new NetMQMessage ();
@@ -298,7 +286,7 @@ namespace TitanicProtocol
         {
             // is the request already been processed? -> file does not exist
             // threat this as successfully processed
-            if (!TitanicIO.Exists (TitanicOperation.Request, requestId))
+            if (!titanicIO.Exists (TitanicOperation.Request, requestId))
             {
                 Log (string.Format ("Request {0} does not exist.", requestId));
 
@@ -306,7 +294,7 @@ namespace TitanicProtocol
             }
 
             // load request from file
-            var request = TitanicIO.RetrieveMessage (TitanicOperation.Request, requestId);
+            var request = titanicIO.RetrieveMessage (TitanicOperation.Request, requestId);
             // [service] is first frame and is a string
             var serviceName = request[0].ConvertToString ();
 
@@ -320,7 +308,7 @@ namespace TitanicProtocol
             // a reply has been received -> save it
             Log (string.Format ("Saving reply for request {0}.", requestId));
 
-            TitanicIO.SaveMessage (TitanicOperation.Reply, requestId, reply);
+            titanicIO.SaveMessage (TitanicOperation.Reply, requestId, reply);
 
             return true;
         }
@@ -331,10 +319,10 @@ namespace TitanicProtocol
         /// <param name="serviceName">the service's name requested</param>
         /// <param name="request">request to process by worker</param>
         /// <returns><c>true</c> if successfull and <c>false</c> otherwise</returns>
-        private NetMQMessage ServiceCall (string serviceName, NetMQMessage request)
+        private NetMQMessage ServiceCall ([NotNull] string serviceName, [NotNull] NetMQMessage request)
         {
             // create MDPClient session
-            using (var session = new MDPClient (_titanic_address))
+            using (var session = new MDPClient (m_titanicAddress))
             {
                 session.Timeout = TimeSpan.FromMilliseconds (1000);     // 1s
                 session.Retries = 1;                                    // only 1 retry
@@ -360,12 +348,50 @@ namespace TitanicProtocol
             }
         }
 
-        private void Log (string info)
+        /// <summary>
+        ///     handle the situation when a thread dies and take appropriate steps
+        /// </summary>
+        /// <param name="tasks"></param>
+        /// <returns></returns>
+        private bool DidAnyTaskStopp ([NotNull] Task[] tasks)
+        {
+            if (Task.WhenAny (tasks).IsCompleted)
+            {
+                Log (string.Format ("UNEXPECTED ABORTION OF A THREAD! ABANDONING!"));
+
+                return true;
+            }
+
+            if (Task.WhenAny (tasks).IsFaulted)
+            {
+                Log (string.Format ("An expection has been detected! ABANDONING!"));
+                // get the exceptions available and log them
+                foreach (var task in tasks.Where (task => task.IsFaulted))
+                    LogExceptions (task.Exception);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     log all exceptions of the AggregateException
+        /// </summary>
+        private void LogExceptions (AggregateException exception)
+        {
+            Log (string.Format ("Exception: {0}", exception.Message));
+
+            foreach (var ex in exception.Flatten ().InnerExceptions)
+                Log (string.Format ("Inner Exception: {0}", ex.Message));
+        }
+
+        private void Log ([NotNull] string info)
         {
             if (string.IsNullOrWhiteSpace (info))
                 return;
 
-            OnLogInfoReady (new LogInfoEventArgs { Info = info });
+            OnLogInfoReady (new LogInfoEventArgs { Info = "[TITANIC] " + info });
         }
 
         protected virtual void OnLogInfoReady (LogInfoEventArgs e)
