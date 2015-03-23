@@ -1,4 +1,5 @@
 ﻿using System;
+
 using MajordomoProtocol;
 
 namespace TitanicCommons

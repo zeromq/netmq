@@ -16,12 +16,16 @@ namespace TitanicProtocol
     /// <summary>
     ///     this static class handles the I/O for TITANIC
     ///     if allows to transparently write, read, find and delete entries
+    /// 
+    ///     it creates it own infrastructure only if it does not exist
+    ///     if it already exists it is assumed that this is a restart after
+    ///     a crash and all information are deemed to be valid
     /// </summary>
     internal class TitanicIO
     {
-        private const string _TITANIC_DIR = ".titanic";
-        private const string _TITANIC_QUEUE = "titanic.queue";
-        private const int _SIZE_OF_ENTRY = 17;
+        private const string _titanic_dir = ".titanic";
+        private const string _titanic_queue = "titanic.queue";
+        private const int _size_of_entry = 17;
 
         /// <summary>
         ///     if a certain amount of "titanic.close" requests have been performed
@@ -56,8 +60,8 @@ namespace TitanicProtocol
         /// </summary>
         public TitanicIO ()
         {
-            m_appDir = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _TITANIC_DIR);
-            m_titanicQueue = Path.Combine (m_appDir, _TITANIC_QUEUE);
+            m_appDir = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_dir);
+            m_titanicQueue = Path.Combine (m_appDir, _titanic_queue);
 
             CheckConfig ();
         }
@@ -69,7 +73,7 @@ namespace TitanicProtocol
         public TitanicIO ([NotNull] string path)
         {
             m_appDir = path;
-            m_titanicQueue = Path.Combine (m_appDir, _TITANIC_QUEUE);
+            m_titanicQueue = Path.Combine (m_appDir, _titanic_queue);
 
             CheckConfig ();
         }
@@ -82,7 +86,7 @@ namespace TitanicProtocol
         public TitanicIO ([NotNull] string path, int threshold)
         {
             m_appDir = path;
-            m_titanicQueue = Path.Combine (m_appDir, _TITANIC_QUEUE);
+            m_titanicQueue = Path.Combine (m_appDir, _titanic_queue);
             m_thresholdForQueueDeletes = threshold;
 
             CheckConfig ();
@@ -113,7 +117,7 @@ namespace TitanicProtocol
 
             while ((result = ReadRequestEntry (pos)) != null)
             {
-                pos = result.Position + _SIZE_OF_ENTRY;
+                pos = result.Position + _size_of_entry;
 
                 yield return result;
             }
@@ -325,7 +329,7 @@ namespace TitanicProtocol
 
             using (var file = File.Open (m_titanicQueue, FileMode.Open, FileAccess.ReadWrite))
             {
-                var target = new byte[_SIZE_OF_ENTRY];
+                var target = new byte[_size_of_entry];
 
                 // get exclusive file access - no other thread can write to that file
                 file.Lock (0, file.Length);
@@ -333,7 +337,7 @@ namespace TitanicProtocol
                 file.Seek (0, SeekOrigin.Begin);
 
                 // 0 == End Of File and Positin is automatically advanced
-                while (file.Read (target, 0, _SIZE_OF_ENTRY) != 0)
+                while (file.Read (target, 0, _size_of_entry) != 0)
                 {
                     // collect all entries BUT the closed once
                     if (target[0] != RequestEntry.Is_Closed)
@@ -387,11 +391,11 @@ namespace TitanicProtocol
         /// <returns></returns>
         private RequestEntry ReadRequestedEntry (long pos, [NotNull] FileStream f)
         {
-            var target = new byte[_SIZE_OF_ENTRY];
+            var target = new byte[_size_of_entry];
 
             f.Seek (pos, SeekOrigin.Begin);
 
-            var readBytes = f.Read (target, 0, _SIZE_OF_ENTRY);
+            var readBytes = f.Read (target, 0, _size_of_entry);
 
             return readBytes == 0
                        ? null

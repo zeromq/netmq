@@ -110,6 +110,9 @@ namespace MajordomoProtocol
 
         /// <summary>
         ///     ctor initializing all local variables
+        ///     <para>DEFAULTS:</para>
+        ///     <para>heartbeat interval 2,500ms</para>
+        ///     <para>max retries for waiting on heartbeats 3 times</para>
         /// </summary>
         private MDPBroker ()
         {
@@ -126,7 +129,7 @@ namespace MajordomoProtocol
         ///     ctor initializing all private variables and set the user requested once
         /// </summary>
         /// <param name="endpoint">a valid NetMQ endpoint for the broker</param>
-        /// <param name="heartbeatInterval">the interval between heartbeats in milliseconds</param>
+        /// <param name="heartbeatInterval">the interval between heartbeats in milliseconds, default 2,500ms</param>
         public MDPBroker ([NotNull] string endpoint, int heartbeatInterval = 0)
             : this ()
         {
