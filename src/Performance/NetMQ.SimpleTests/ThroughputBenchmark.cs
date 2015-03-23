@@ -130,11 +130,16 @@ namespace NetMQ.SimpleTests
         protected override void Produce(PushSocket socket, int messageSize)
         {
             var msg = new Msg();
-            msg.InitGC(new byte[messageSize], messageSize);
-            msg.Data[messageSize/2] = 0x42;
-
+            
             for (int i = 0; i < MsgCount; i++)
+            {
+                msg.InitGC(new byte[messageSize], messageSize);
+                msg.Data[messageSize / 2] = 0x42;
+
                 socket.Send(ref msg, SendReceiveOptions.None);
+
+                msg.Close();
+            }
         }
 
         protected override void Consume(PullSocket socket, int messageSize)
