@@ -123,15 +123,15 @@ namespace NetMQ.SimpleTests
 
         protected override long DoClient(NetMQSocket socket, int messageSize)
         {
-            var msg = new Msg();
-            msg.InitGC(new byte[messageSize], messageSize);
-
+            var msg = new Msg();            
             var watch = Stopwatch.StartNew();
 
             for (int i = 0; i < Iterations; i++)
             {
+                msg.InitGC(new byte[messageSize], messageSize);
                 socket.Send(ref msg, SendReceiveOptions.None);
                 socket.Receive(ref msg);
+                msg.Close();
             }
 
             return watch.ElapsedTicks;
@@ -139,10 +139,14 @@ namespace NetMQ.SimpleTests
 
         protected override void DoServer(NetMQSocket socket, int messageSize)
         {
+            Msg msg  = new Msg();
+            msg.InitEmpty();
+
             for (int i = 0; i < Iterations; i++)
             {
-                byte[] message = socket.ReceiveFrameBytes();
-                socket.Send(message);
+                socket.Receive(ref msg, SendReceiveOptions.None);
+
+                socket.Send(ref msg, SendReceiveOptions.None);
             }
         }
 
