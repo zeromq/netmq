@@ -72,7 +72,6 @@ namespace NetMQ
 
         private readonly Selector m_selector = new Selector();
 
-        #region constructors
         /// <summary>
         /// Create a new Poller object, with a default PollTimeout of 1 second.
         /// </summary>
@@ -120,46 +119,6 @@ namespace NetMQ
                 AddTimer(timer);
             }
         }
-        #endregion constructors
-
-        #region Dispose
-        /// <summary>
-        /// Perform any freeing, releasing or resetting of contained resources.
-        /// If this poller is already started, signal the polling thread to stop - and block to wait for it.
-        /// </summary>
-        /// <remarks>
-        /// Calling this again after the first time, does nothing.
-        /// </remarks>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Perform any freeing, releasing or resetting of contained resources.
-        /// If this poller is already started, signal the polling thread to stop - and block to wait for it.
-        /// </summary>
-        /// <param name="disposing">true if releasing managed resources</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing)
-                return;
-
-            if (!m_disposed)
-            {
-                // If this poller is already started, signal the polling thread to stop
-                // and wait for it.
-                if (m_isStarted)
-                    Cancel(true);
-
-                m_disposed = true;
-                m_isStoppedEvent.Close();
-            }
-        }
-        #endregion
-
-        #region public properties
 
         /// <summary>
         /// Get whether the polling has started.
@@ -174,10 +133,6 @@ namespace NetMQ
         /// Get or set the poll timeout in milliseconds.
         /// </summary>
         public int PollTimeout { get; set; }
-
-        #endregion public properties
-
-        #region public methods
 
         /// <summary>
         /// Add the given socket and Action to this Poller's collection of socket/actions.
@@ -407,10 +362,6 @@ namespace NetMQ
         {
             Cancel(true);
         }
-
-        #endregion public methods
-
-        #region internal implementation
 
         /// <summary>
         /// Handle the EventsChanged event of any of the sockets contained within this Poller,
@@ -668,6 +619,44 @@ namespace NetMQ
             }
         }
 
-        #endregion internal implementation
+
+        #region Dispose
+        
+        /// <summary>
+        /// Perform any freeing, releasing or resetting of contained resources.
+        /// If this poller is already started, signal the polling thread to stop - and block to wait for it.
+        /// </summary>
+        /// <remarks>
+        /// Calling this again after the first time, does nothing.
+        /// </remarks>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Perform any freeing, releasing or resetting of contained resources.
+        /// If this poller is already started, signal the polling thread to stop - and block to wait for it.
+        /// </summary>
+        /// <param name="disposing">true if releasing managed resources</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
+            if (!m_disposed)
+            {
+                // If this poller is already started, signal the polling thread to stop
+                // and wait for it.
+                if (m_isStarted)
+                    Cancel(true);
+
+                m_disposed = true;
+                m_isStoppedEvent.Close();
+            }
+        }
+
+        #endregion
     }
 }
