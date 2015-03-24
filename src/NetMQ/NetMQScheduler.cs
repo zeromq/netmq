@@ -103,9 +103,14 @@ namespace NetMQ
             }
         }
 
+        public bool CanExecuteTaskInline
+        {
+            get { return m_schedulerThread.Value; }
+        }
+
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
-            return m_schedulerThread.Value && TryExecuteTask(task);
+            return CanExecuteTaskInline && TryExecuteTask(task);
         }
 
         /// <summary>
