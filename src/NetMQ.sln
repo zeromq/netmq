@@ -157,7 +157,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicBrokerProcess", "Sam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TitanicUsageExample", "TitanicUsageExample", "{6E473EBF-8344-4EC4-B66B-D6349B6F0F5F}"
 	ProjectSection(SolutionItems) = preProject
-		Samples\Titanic Pattern\StartTitanicExample - Verbose.bat = Samples\Titanic Pattern\StartTitanicExample - Verbose.bat
+		Samples\Titanic Pattern\TitanicUsageExample\StartTitanicExample - Verbose.bat = Samples\Titanic Pattern\TitanicUsageExample\StartTitanicExample - Verbose.bat
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicClientExample", "Samples\Titanic Pattern\TitanicUsageExample\TitanicClientExample\TitanicClientExample.csproj", "{F516F643-D475-43FD-AEC7-B5CA8B997D22}"

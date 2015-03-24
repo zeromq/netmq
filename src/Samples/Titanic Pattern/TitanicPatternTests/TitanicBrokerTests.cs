@@ -82,99 +82,105 @@ namespace TitanicProtocolTests
          *  
          */
 
-        [Test]
-        public void Run_TitanicRequest_SendRequest_ShouldReplyCorrect ()
-        {
-            // 1. create and start MDPBroker
-            // 2. create and start TitanicBroker (will register 3 MDPWorker titanic.request, ~.reply and ~.close)
-            // 3. create MDPClient
-            // 4. send request
-            // 5. test for valid GUID as reply
-            // 6. test for created file GUID.request & queue must consist GUID as requests
-            // 7. dispose of all created objects
+        //[Test]
+        //public void Run_TitanicRequest_SendRequest_ShouldReplyCorrect ()
+        //{
+        //    // 1. create and start MDPBroker
+        //    // 2. create and start TitanicBroker (will register 3 MDPWorker titanic.request, ~.reply and ~.close)
+        //    // 3. create MDPClient
+        //    // 4. send request
+        //    // 5. test for valid GUID as reply
+        //    // 6. test for created file GUID.request & queue must consist GUID as requests
+        //    // 7. dispose of all created objects
 
-            using (var mdpBroker = new MDPBroker (_titanic_broker_address))
-            using (var titanicBroker = new TitanicBroker (_titanic_broker_address))
-            using (var worker = new MDPWorker (_titanic_broker_address, "echo"))
-            using (var client = new MDPClient (_titanic_broker_address))
-            using (var cts = new CancellationTokenSource ())
-            {
-                var mdp = Task.Factory.StartNew (() => mdpBroker.Run (cts.Token), cts.Token);
-                var titanic = Task.Factory.StartNew (() => titanicBroker.Run (), cts.Token);
-                var workerTask = Task.Factory.StartNew (() => EchoRequestWorker (worker), cts.Token);
+        //    var workerName = new[] { (byte) 'W', (byte) '1' };
+        //    var clientName = new[] { (byte) 'C', (byte) '1' };
 
-                mdp.Status.Should ().Be (TaskStatus.WaitingToRun, "because MDPBroker has been started and waits for requests");
-                titanic.Status.Should ().Be (TaskStatus.WaitingToRun, "because TitanicBroker has been started");
-                workerTask.Status.Should ().Be (TaskStatus.WaitingToRun, "because MDPWorker has been started");
+        //    using (var mdpBroker = new MDPBroker (_titanic_broker_address))
+        //    using (var titanicBroker = new TitanicBroker (_titanic_broker_address))
+        //    using (var worker = new MDPWorker (_titanic_broker_address, "echo", workerName))
+        //    using (var client = new MDPClient (_titanic_broker_address, clientName))
+        //    using (var cts = new CancellationTokenSource ())
+        //    {
+        //        mdpBroker.LogInfoReady += (s, e) => Console.WriteLine (e.Info);
+        //        //mdpBroker.DebugInfoReady += (s, e) => Console.WriteLine (e.Info);
+        //        titanicBroker.LogInfoReady += (s, e) => Console.WriteLine (e.Info);
 
-                var request = new NetMQMessage ();
-                request.Push ("Hello from Client!");
+        //        var mdp = Task.Factory.StartNew (() => mdpBroker.Run (cts.Token), cts.Token);
+        //        var titanic = Task.Factory.StartNew (() => titanicBroker.Run (), cts.Token);
+        //        var workerTask = Task.Factory.StartNew (() => EchoRequestWorker (worker), cts.Token);
+        //        // give the system some time to organize itself
+        //        Thread.Sleep (500);
 
-                var reply = client.Send ("echo", request);
+        //        var request = new NetMQMessage ();
+        //        request.Push ("Hello from Client!");
+        //        request.Push ("echo");
 
-                reply.FrameCount.Should ().Be (2, "because only 2 Frames are returned");
-                reply[0].ConvertToString ().Should ().Be ("Ok", "because OK should be returned");
+        //        var reply = client.Send (TitanicOperation.Request.ToString (), request);
 
-                Guid id;
-                Guid.TryParse (reply[0].ConvertToString (), out id).Should ().BeTrue ("because a valid GUID should have been returned");
+        //        reply.FrameCount.Should ().Be (2, "because only 2 Frames are returned");
+        //        reply[0].ConvertToString ().Should ().Be ("Ok", "because OK should be returned");
 
-                var path = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory);
-                var queue = Path.Combine (path, _titanic_queue);
-                var requestFile = Path.Combine (path, id + _request_ending);
+        //        Guid id;
+        //        Guid.TryParse (reply[0].ConvertToString (), out id).Should ().BeTrue ("because a valid GUID should have been returned");
 
-                File.Exists (requestFile).Should ().BeTrue ("because {0} should result in {1} exist.", id, requestFile);
+        //        var path = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory);
+        //        var queue = Path.Combine (path, _titanic_queue);
+        //        var requestFile = Path.Combine (path, id + _request_ending);
 
-                var io = new TitanicIO ();
-                var requestMessage = io.FindRequest (id);
-                requestMessage.Should ().NotBeNull ("because the entry shold have been created.");
+        //        File.Exists (requestFile).Should ().BeTrue ("because {0} should result in {1} exist.", id, requestFile);
 
-                cts.Cancel ();
+        //        var io = new TitanicIO ();
+        //        var requestMessage = io.FindRequest (id);
+        //        requestMessage.Should ().NotBeNull ("because the entry shold have been created.");
 
-                File.Delete (requestFile);
-            }
-        }
+        //        cts.Cancel ();
 
-        // ==================== Utility Methods for the MDPWorker & MDPClient needed
+        //        File.Delete (requestFile);
+        //    }
+        //}
 
-        private void RequestClient (string serviceName, string endpoint, int runs = 1)
-        {
-            var replies = new List<NetMQMessage> ();
-            var idC01 = new[] { (byte) 'C', (byte) '1' };
+        //// ==================== Utility Methods for the MDPWorker & MDPClient needed
 
-            var client = new MDPClient (endpoint, idC01);
+        //private void RequestClient (string serviceName, string endpoint, int runs = 1)
+        //{
+        //    var replies = new List<NetMQMessage> ();
+        //    var idC01 = new[] { (byte) 'C', (byte) '1' };
 
-            for (var i = 0; i < runs; i++)
-            {
-                var request = new NetMQMessage ();
-                request.Push (string.Format ("Message #{0}", i));
-                var reply = client.Send (serviceName, request);
-                replies.Add (reply);
-            }
+        //    var client = new MDPClient (endpoint, idC01);
 
-            client.Dispose ();
-        }
+        //    for (var i = 0; i < runs; i++)
+        //    {
+        //        var request = new NetMQMessage ();
+        //        request.Push (string.Format ("Message #{0}", i));
+        //        var reply = client.Send (serviceName, request);
+        //        replies.Add (reply);
+        //    }
 
-        private void EchoRequestWorker (IMDPWorker worker = null, string endpoint = null, int heartbeatinterval = 2500)
-        {
-            var idW01 = new[] { (byte) 'W', (byte) '1' };
+        //    client.Dispose ();
+        //}
 
-            worker = worker ?? new MDPWorker (endpoint, "echo", idW01);
+        //private void EchoRequestWorker (IMDPWorker worker = null, string endpoint = null, int heartbeatinterval = 2500)
+        //{
+        //    var idW01 = new[] { (byte) 'W', (byte) '1' };
 
-            worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
+        //    worker = worker ?? new MDPWorker (endpoint, "echo", idW01);
 
-            NetMQMessage reply = null;
+        //    worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
 
-            while (true)
-            {
-                // send the reply and wait for a request
-                var request = worker.Receive (reply);
-                // was the worker interrupted
-                if (ReferenceEquals (request, null))
-                    throw new ApplicationException ("Request was <null>!");
-                // echo the request and wait for next request which will not come
-                // here the task will be canceled
-                reply = worker.Receive (request);
-            }
-        }
+        //    NetMQMessage reply = null;
+
+        //    while (true)
+        //    {
+        //        // send the reply and wait for a request
+        //        var request = worker.Receive (reply);
+        //        // was the worker interrupted
+        //        if (ReferenceEquals (request, null))
+        //            throw new ApplicationException ("Request was <null>!");
+        //        // echo the request and wait for next request which will not come
+        //        // here the task will be canceled
+        //        reply = worker.Receive (request);
+        //    }
+        //}
     }
 }

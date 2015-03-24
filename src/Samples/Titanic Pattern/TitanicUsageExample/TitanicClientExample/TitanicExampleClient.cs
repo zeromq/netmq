@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading;
+
 using MajordomoProtocol;
 using MajordomoProtocol.Contracts;
+
 using NetMQ;
+
 using TitanicCommons;
-using TitanicProtocol;
 
 namespace TitanicClientExample
 {
@@ -23,9 +25,6 @@ namespace TitanicClientExample
         static void Main (string[] args)
         {
             const string address = "tcp://localhost:5555";
-            const string titanic_request = "titanic.request";
-            const string titanic_reply = "titanic.reply";
-            const string titanic_close = "titanic.close";
 
             var verbose = args.Length > 0 && args[0] == "-v";
             var exit = false;
@@ -37,6 +36,11 @@ namespace TitanicClientExample
                 exit = true;
             };
 
+            Console.WriteLine ("Staring Titanic Client\n");
+
+            // wait to allow MDP/Titanic Broker to complete start up
+            Thread.Sleep (500);
+
             using (var client = new MDPClient (address))
             {
                 if (verbose)
@@ -44,15 +48,19 @@ namespace TitanicClientExample
 
                 // 1. send 'echo' request to Titanic
                 var request = new NetMQMessage ();
-                // set requested service
-                request.Push ("echo");
-                // set request data
-                request.Push ("Hello World");
 
-                var reply = ServiceCall (client, titanic_request, request);
+                // set request data
+                request.Push ("Hello World");       // [data]
+                // set requested service
+                request.Push ("echo");              // [service name][data]
+
+                Console.WriteLine ("REQUEST service: {0}", request);
+
+                var reply = ServiceCall (client, TitanicOperation.Request, request);
 
                 if (!ReferenceEquals (reply, null) && !reply.IsEmpty)
                 {
+                    // [data] -> here is a GUID
                     var guid = reply.Pop ().ConvertToString ();
 
                     Console.WriteLine ("Titanic replied: GUID = {0}", guid);
@@ -66,53 +74,64 @@ namespace TitanicClientExample
                         request = new NetMQMessage ();
                         request.Push (guid);
 
-                        reply = ServiceCall (client, titanic_reply, request);
+                        Console.WriteLine ("REQUEST reply for: {0}", request);
+
+                        reply = ServiceCall (client, TitanicOperation.Reply, request);
 
                         if (!ReferenceEquals (reply, null) && !reply.IsEmpty)
                         {
                             var answer = reply.Last.ConvertToString ();
 
-                            Console.WriteLine ("Reply: {0}", answer);
+                            Console.WriteLine ("Titanic's answer to the reply request: {0}", answer);
 
                             // 3. close request
                             request = new NetMQMessage ();
                             request.Push (guid);
 
-                            reply = ServiceCall (client, titanic_close, request);
+                            Console.WriteLine ("REQUEST close: {0}", request);
 
-                            Console.WriteLine ("Closed request: {0}", reply);
+                            reply = ServiceCall (client, TitanicOperation.Close, request);
+
+                            Console.WriteLine ("REQUEST closed.");
 
                             break;
                         }
-                        else
-                        {
-                            Console.WriteLine ("INFO: No reply yet. Retrying ...");
 
-                            Thread.Sleep (5000); // wait for 5s
-                        }
+                        Console.WriteLine ("INFO: No reply yet. Retrying ...");
+
+                        Thread.Sleep (5000); // wait for 5s
                     }
                 }
                 else
                     Console.WriteLine ("ERROR: CORRUPTED REPLY BY TITANIC - PANIC!");
             }
+
+            Console.WriteLine ("\nTo exit press any key!");
+            Console.ReadKey ();
         }
 
-        private static NetMQMessage ServiceCall (IMDPClient session, string service, NetMQMessage request)
+        private static NetMQMessage ServiceCall (IMDPClient session, TitanicOperation op, NetMQMessage request)
         {
-            var reply = session.Send (service, request);
+            // [operation][Guid]
+            var reply = session.Send (op.ToString (), request);
+
+            Console.WriteLine ("ServiceCall received: {0}", reply);
 
             if (ReferenceEquals (reply, null) || reply.IsEmpty)
                 return null; // went wrong - why? I don't care!
 
-            // we got a reply
-            var status = reply.Pop ().ConvertToString ();
+            // we got a reply -> [operation][data]
+            var rc = reply.Pop ().ConvertToString ();       // [operation] <- [data]
+            var status = (MmiCodes) Enum.Parse (typeof (MmiCodes), rc);
 
             switch (status)
             {
-                case "200":
-                    return reply;
-                case "400":
-                case "500":
+                case MmiCodes.Ok:
+                case MmiCodes.Pending:
+                    return reply;   // [data]
+                case MmiCodes.Unknown:
+                    Console.WriteLine ("Service unknown - Abandoning");
+                    return null;
                 default:
                     Console.WriteLine ("ERROR: FATAL ERROR ABANDONING!");
                     return null;

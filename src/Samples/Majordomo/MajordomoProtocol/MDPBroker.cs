@@ -171,7 +171,7 @@ namespace MajordomoProtocol
             var major = Assembly.GetExecutingAssembly ().GetName ().Version.Major;
             var minor = Assembly.GetExecutingAssembly ().GetName ().Version.Minor;
 
-            Log (string.Format ("[BROKER] MDP Broker/{0}.{1} is active at {2}", major, minor, m_endpoint));
+            Log (string.Format ("[MDP BROKER] MDP Broker/{0}.{1} is active at {2}", major, minor, m_endpoint));
         }
 
         /// <summary>
@@ -221,13 +221,13 @@ namespace MajordomoProtocol
                 poller.AddSocket (Socket);
                 poller.AddTimer (timer);
 
-                Log ("[BROKER] Starting to listen for incoming messages ...");
+                Log ("[MDP BROKER] Starting to listen for incoming messages ...");
 
                 // start the poller and wait for the return, which will happen once token is 
                 // signalling Cancel(!)
                 await Task.Factory.StartNew (poller.PollTillCancelled, token);
 
-                Log ("[BROKER] ... Stopped!");
+                Log ("[MDP BROKER] ... Stopped!");
 
                 // clean up
                 poller.RemoveTimer (timer);
@@ -265,13 +265,13 @@ namespace MajordomoProtocol
                 poller.AddSocket (Socket);
                 poller.AddTimer (timer);
 
-                Log ("[BROKER] Starting to listen for incoming messages ...");
+                Log ("[MDP BROKER] Starting to listen for incoming messages ...");
 
                 // start the poller and wait for the return, which will happen once token is 
                 // signalling Cancel(!)
                 Task.Factory.StartNew (poller.PollTillCancelled, token).Wait ();
 
-                Log ("[BROKER] ... Stopped!");
+                Log ("[MDP BROKER] ... Stopped!");
 
                 // clean up
                 poller.RemoveTimer (timer);
@@ -293,7 +293,7 @@ namespace MajordomoProtocol
             foreach (var worker in m_knownWorkers)
                 WorkerSend (worker, MDPCommand.Heartbeat, null);
 
-            Log ("[BROKER] Sent HEARTBEAT to all worker!");
+            Log ("[MDP BROKER] Sent HEARTBEAT to all worker!");
         }
 
         /// <summary>
@@ -305,7 +305,7 @@ namespace MajordomoProtocol
         {
             var msg = e.Socket.ReceiveMultipartMessage ();
 
-            Log (string.Format ("[BROKER] Received {0}", msg));
+            Log (string.Format ("[MDP BROKER] Received: {0}", msg));
 
             var senderFrame = msg.Pop ();               // [e][protocol header][service or command][data]
             var empty = msg.Pop ();                     // [protocol header][service or command][data]
@@ -318,7 +318,7 @@ namespace MajordomoProtocol
                 if (header == MDPWorkerHeader)
                     ProcessWorkerMessage (senderFrame, msg);
                 else
-                    Log (string.Format ("[BROKER] ERROR - message with invalid protocol header!"));
+                    Log (string.Format ("[MDP BROKER] ERROR - message with invalid protocol header!"));
         }
 
         /// <summary>
@@ -354,7 +354,7 @@ namespace MajordomoProtocol
                         // service and a potential waiting list therein
                         RemoveWorker (m_knownWorkers.Find (w => w.Id == workerId));
 
-                        Log (string.Format ("[BROKER] READY out of sync. Removed worker {0}.", workerId));
+                        Log (string.Format ("[MDP BROKER] READY out of sync. Removed worker {0}.", workerId));
                     }
                     else
                     {
@@ -367,7 +367,7 @@ namespace MajordomoProtocol
                         // now add the worker
                         AddWorker (worker, service);
 
-                        Log (string.Format ("[BROKER] READY processed. Worker {0} added to service {1}",
+                        Log (string.Format ("[MDP BROKER] READY processed. Worker {0} added to service {1}",
                                             workerId,
                                             serviceName));
                     }
@@ -385,7 +385,7 @@ namespace MajordomoProtocol
 
                         Socket.SendMessage (reply);
 
-                        Log (string.Format ("[BROKER] REPLY from {0} received and send to {1} -> {2}",
+                        Log (string.Format ("[MDP BROKER] REPLY from {0} received and send to {1} -> {2}",
                                             workerId,
                                             client.ConvertToString (),
                                             message));
@@ -399,11 +399,11 @@ namespace MajordomoProtocol
                         var worker = m_knownWorkers.Find (w => w.Id == workerId);
                         worker.Expiry = DateTime.UtcNow + m_heartbeatExpiry;
 
-                        Log (string.Format ("[BROKER] HEARTBEAT from {0} received.", workerId));
+                        Log (string.Format ("[MDP BROKER] HEARTBEAT from {0} received.", workerId));
                     }
                     break;
                 default:
-                    Log ("[BROKER] ERROR: Invalid MDPCommand received or message received!");
+                    Log ("[MDP BROKER] ERROR: Invalid MDPCommand received or message received!");
                     break;
             }
         }
@@ -451,14 +451,14 @@ namespace MajordomoProtocol
                 // remove client return envelope and insert 
                 // protocol header and service name, 
                 // then rewrap envelope
-                var client = UnWrap (request);                  // [return code]
-                request.Push (MDPClientHeader);                 // [protocol header][return code]
-                var reply = Wrap (client, request);             // [CLIENT ADR][e][protocol header][return code]
+                var client = UnWrap (request);                  // ['mmi.service'][return code]
+                request.Push (MDPClientHeader);                 // [protocol header]['mmi.service'][return code]
+                var reply = Wrap (client, request);             // [CLIENT ADR][e][protocol header]['mmi.service'][return code]
 
                 // send to back to CLIENT(!)
                 Socket.SendMessage (reply);
 
-                Log (string.Format ("[BROKER] MMI request processed. Answered {0}", reply));
+                Log (string.Format ("[MDP BROKER] MMI request processed. Answered {0}", reply));
             }
             else
             {
@@ -466,7 +466,7 @@ namespace MajordomoProtocol
                 var service = ServiceRequired (serviceName);
 
                 // a standard REQUEST received
-                Log (string.Format ("[BROKER] Dispatching request -> {0}", request));
+                Log (string.Format ("[MDP BROKER] Dispatching request -> {0} to {1}", request, serviceName));
 
                 // send to a worker offering the requested service
                 // will add command, header and worker adr envelope
@@ -487,7 +487,7 @@ namespace MajordomoProtocol
         /// </remarks>
         private void Purge ()
         {
-            DebugLog ("[BROKER DEBUG] start purging for all services");
+            DebugLog ("[MDP BROKER DEBUG] start purging for all services");
 
             lock (m_syncRoot)
             {
@@ -519,12 +519,12 @@ namespace MajordomoProtocol
             {
                 m_knownWorkers.Add (worker);
 
-                DebugLog (string.Format ("[BROKER DEBUG] added {0} to known worker.", worker.Id));
+                DebugLog (string.Format ("[MDP BROKER DEBUG] added {0} to known worker.", worker.Id));
             }
 
             service.AddWaitingWorker (worker);
 
-            DebugLog (string.Format ("[BROKER DEBUG] added {0} to waiting worker in service {1}.",
+            DebugLog (string.Format ("[MDP BROKER DEBUG] added {0} to waiting worker in service {1}.",
                                      worker.Id,
                                      service.Name));
 
@@ -545,14 +545,14 @@ namespace MajordomoProtocol
                 var service = m_services.Find (s => s.Equals (worker.Service));
                 service.DeleteWorker (worker);
 
-                DebugLog (string.Format ("[BROKER DEBUG] removed worker {0} from service {1}",
+                DebugLog (string.Format ("[MDP BROKER DEBUG] removed worker {0} from service {1}",
                                          worker.Id,
                                          service.Name));
             }
 
             m_knownWorkers.Remove (worker);
 
-            DebugLog (string.Format ("[BROKER DEBUG] removed {0} from known worker.", worker.Id));
+            DebugLog (string.Format ("[MDP BROKER DEBUG] removed {0} from known worker.", worker.Id));
         }
 
         /// <summary>
@@ -572,7 +572,7 @@ namespace MajordomoProtocol
             // stack routing envelope
             var request = Wrap (worker.Identity, msg);
 
-            DebugLog (string.Format ("[BROKER DEBUG] Sending {0}", request));
+            DebugLog (string.Format ("[MDP BROKER DEBUG] Sending {0}", request));
             // send to worker
             Socket.SendMessage (request);
         }
@@ -606,7 +606,7 @@ namespace MajordomoProtocol
         /// </summary>
         private void ServiceDispatch (Service service, NetMQMessage message)
         {
-            DebugLog (string.Format ("[BROKER DEBUG] Service [{0}] dispatches -> {1}",
+            DebugLog (string.Format ("[MDP BROKER DEBUG] Service [{0}] dispatches -> {1}",
                                      service.Name,
                                      message == null ? "PURGING" : "message = " + message));
 
@@ -627,7 +627,7 @@ namespace MajordomoProtocol
                 {
                     var request = service.GetNextRequest ();
 
-                    DebugLog (string.Format ("[BROKER DEBUG] Service Dispatch -> pending request {0} to {1}", request, worker.Id));
+                    DebugLog (string.Format ("[MDP BROKER DEBUG] Service Dispatch -> pending request {0} to {1}", request, worker.Id));
 
                     WorkerSend (worker, MDPCommand.Request, request);
                 }

@@ -41,11 +41,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="TitanicBrokerMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Majordomo\MajordomoProtocol\MajordomoProtocol.csproj">
+      <Project>{A16EBCCB-A575-4BA5-813D-C8AD925D5A59}</Project>
+      <Name>MajordomoProtocol</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\TitanicBroker\TitanicProtocol.csproj">
+      <Project>{f92e05f9-9177-4889-b192-23dfb49ec045}</Project>
+      <Name>TitanicProtocol</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\TitanicCommons\TitanicCommons.csproj">
+      <Project>{15327854-4753-4b80-ae20-1d34a94f5771}</Project>
+      <Name>TitanicCommons</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

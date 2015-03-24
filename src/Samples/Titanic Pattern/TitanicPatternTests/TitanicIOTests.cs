@@ -15,8 +15,8 @@ namespace TitanicProtocolTests
     [TestFixture]
     public class TitanicIOTests
     {
-        private const string _REQUEST_ENDING = ".request";
-        private const string _REPLY_ENDING = ".reply";
+        private const string _request_ending = ".request";
+        private const string _reply_ending = ".reply";
 
         [Test]
         public void SetConfig_ValidPath_ShouldCreateDirectoryAndFile ()
@@ -51,7 +51,7 @@ namespace TitanicProtocolTests
             sut.SaveMessage (TitanicOperation.Request, id, message);
 
             var expectedDir = sut.TitanicDirectory;
-            var expectedFile = Path.Combine (expectedDir, id + _REQUEST_ENDING);
+            var expectedFile = Path.Combine (expectedDir, id + _request_ending);
 
             File.Exists (expectedFile).Should ().BeTrue ("because the file exists");
 
@@ -78,7 +78,7 @@ namespace TitanicProtocolTests
             sut.SaveMessage (TitanicOperation.Reply, id, message);
 
             var expectedDir = sut.TitanicDirectory;
-            var expectedFile = Path.Combine (expectedDir, id + _REPLY_ENDING);
+            var expectedFile = Path.Combine (expectedDir, id + _reply_ending);
 
             File.Exists (expectedFile).Should ().BeTrue ("because the file exists");
 
@@ -102,7 +102,7 @@ namespace TitanicProtocolTests
 
             sut.SaveMessage (TitanicOperation.Request, id, message);
 
-            var result = sut.RetrieveMessage (TitanicOperation.Request, id);
+            var result = sut.GetMessage (TitanicOperation.Request, id);
 
             result.FrameCount.Should ().Be (2, "because there are two frames");
 
@@ -110,7 +110,7 @@ namespace TitanicProtocolTests
                 (result[i] == message[i]).Should ().BeTrue ("because they are identical.");
 
             var expectedDir = sut.TitanicDirectory;
-            var expectedFile = Path.Combine (expectedDir, id + _REQUEST_ENDING);
+            var expectedFile = Path.Combine (expectedDir, id + _request_ending);
 
             File.Delete (expectedFile);
         }
@@ -128,7 +128,7 @@ namespace TitanicProtocolTests
 
             sut.SaveMessage (TitanicOperation.Reply, id, message);
 
-            var result = sut.RetrieveMessage (TitanicOperation.Reply, id);
+            var result = sut.GetMessage (TitanicOperation.Reply, id);
 
             result.FrameCount.Should ().Be (2, "because there are two frames");
 
@@ -136,7 +136,7 @@ namespace TitanicProtocolTests
                 (result[i] == message[i]).Should ().BeTrue ("because they are identical.");
 
             var expectedDir = sut.TitanicDirectory;
-            var expectedFile = Path.Combine (expectedDir, id + _REPLY_ENDING);
+            var expectedFile = Path.Combine (expectedDir, id + _reply_ending);
 
             File.Delete (expectedFile);
         }
@@ -159,7 +159,7 @@ namespace TitanicProtocolTests
             sut.Exists (op, id).Should ().BeTrue ("because it has been created.");
 
             var expectedDir = sut.TitanicDirectory;
-            var expectedFile = Path.Combine (expectedDir, id + _REQUEST_ENDING);
+            var expectedFile = Path.Combine (expectedDir, id + _request_ending);
 
             File.Delete (expectedFile);
         }
@@ -182,7 +182,7 @@ namespace TitanicProtocolTests
             sut.Exists (op, id).Should ().BeTrue ("because it has been created.");
 
             var expectedDir = sut.TitanicDirectory;
-            var expectedFile = Path.Combine (expectedDir, id + _REPLY_ENDING);
+            var expectedFile = Path.Combine (expectedDir, id + _reply_ending);
 
             File.Delete (expectedFile);
         }
@@ -214,9 +214,9 @@ namespace TitanicProtocolTests
 
             var id = Guid.NewGuid ();
 
-            sut.SaveNewRequest (id);      // -> to titanic.queue
+            sut.SaveNewRequestEntry (id);      // -> to titanic.queue
 
-            sut.RetrieveRequests ()
+            sut.GetRequestEntries (null)
                      .First ()
                      .State.Should ()
                      .Be (RequestEntry.Is_Pending, "because it is a new request.");
@@ -236,7 +236,7 @@ namespace TitanicProtocolTests
             // create empty queue but release filestream immediately again
             File.Create (titanicQueue).Dispose ();
 
-            sut.RetrieveRequests ().Should ().BeEmpty ("because there are none.");
+            sut.GetRequestEntries (null).Should ().BeEmpty ("because there are none.");
         }
 
         [Test]
@@ -245,9 +245,9 @@ namespace TitanicProtocolTests
             var sut = new TitanicIO (Path.GetTempPath ());
 
             for (var i = 0; i < 10; i++)
-                sut.SaveNewRequest (Guid.NewGuid ()); // -> to titanic.queue
+                sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> to titanic.queue
 
-            sut.RetrieveRequests ()
+            sut.GetRequestEntries (null)
                      .All (re => re.State == RequestEntry.Is_Pending)
                      .Should ()
                      .BeTrue ("because all entries are new.");
@@ -262,15 +262,15 @@ namespace TitanicProtocolTests
             var sut = new TitanicIO (Path.GetTempPath ());
 
             for (var i = 0; i < 10; i++)
-                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+                sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
 
-            var req = sut.RetrieveRequests ().Skip (3).First ();
+            var req = sut.GetRequestEntries (null).Skip (3).First ();
 
             req.State.Should ().Be (RequestEntry.Is_Pending);
 
-            sut.SaveProcessedRequest (req);
+            sut.SaveProcessedRequestEntry (req);
 
-            sut.RetrieveRequests ()
+            sut.GetRequestEntries (null)
                      .Count (re => re.State == RequestEntry.Is_Processed)
                      .Should ()
                      .Be (1, "because only one request has been processed.");
@@ -285,13 +285,13 @@ namespace TitanicProtocolTests
             var sut = new TitanicIO (Path.GetTempPath ());
 
             for (var i = 0; i < 10; i++)
-                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+                sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
 
-            var requests = sut.RetrieveRequests ().ToArray ();
+            var requests = sut.GetRequestEntries (null).ToArray ();
 
             var req = requests.Skip (3).First ();
 
-            sut.FindRequest (req.RequestId).Should ().Be (req, "because it was searched.");
+            sut.GetRequestEntry (req.RequestId).Should ().Be (req, "because it was searched.");
 
             var titanicQueue = sut.TitanicQueue;
             File.Delete (titanicQueue);
@@ -303,9 +303,9 @@ namespace TitanicProtocolTests
             var sut = new TitanicIO (Path.GetTempPath ());
 
             for (var i = 0; i < 10; i++)
-                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+                sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
 
-            sut.FindRequest (Guid.NewGuid ()).Should ().Be (default (RequestEntry));
+            sut.GetRequestEntry (Guid.NewGuid ()).Should ().Be (default (RequestEntry));
 
             var titanicQueue = sut.TitanicQueue;
             File.Delete (titanicQueue);
@@ -318,20 +318,20 @@ namespace TitanicProtocolTests
             var sut = new TitanicIO (path);
 
             for (var i = 0; i < 10; i++)
-                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+                sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
 
-            var req = sut.RetrieveRequests ().Skip (3).First ();
+            var req = sut.GetRequestEntries (null).Skip (3).First ();
 
-            sut.SaveProcessedRequest (req);
+            sut.SaveProcessedRequestEntry (req);
 
-            sut.CloseRequest (req.RequestId);
+            sut.CloseRequestEntry (req.RequestId);
 
-            sut.RetrieveRequests ()
+            sut.GetRequestEntries (null)
                      .Count (re => re.State == RequestEntry.Is_Closed)
                      .Should ()
                      .Be (1, "because only one request has been processed.");
 
-            sut.FindRequest (req.RequestId).State.Should ().Be (RequestEntry.Is_Closed);
+            sut.GetRequestEntry (req.RequestId).State.Should ().Be (RequestEntry.Is_Closed);
 
             Directory.Delete (sut.TitanicDirectory, true);
         }
@@ -345,15 +345,15 @@ namespace TitanicProtocolTests
             var sut = new TitanicIO (path, max_entries);
 
             for (var i = 0; i < max_entries; i++)
-                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+                sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
 
-            var requests = sut.RetrieveRequests ().ToArray ();
+            var requests = sut.GetRequestEntries (null).ToArray ();
             requests.Length.Should ().Be (max_entries, "because 20 entries were written.");
 
             foreach (var entry in requests)
-                sut.CloseRequest (entry.RequestId);
+                sut.CloseRequestEntry (entry.RequestId);
 
-            sut.RetrieveRequests ()
+            sut.GetRequestEntries (null)
                      .Should ().BeEmpty ("because all requests have been closed!");
 
             Directory.Delete (sut.TitanicDirectory, true);
@@ -369,15 +369,15 @@ namespace TitanicProtocolTests
             var sut = new TitanicIO (path, max_entries);
 
             for (var i = 0; i < max_entries + additional_requests; i++)
-                sut.SaveNewRequest (Guid.NewGuid ()); // -> fill titanic.queue
+                sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
 
-            var requests = sut.RetrieveRequests ().ToArray ();
+            var requests = sut.GetRequestEntries (null).ToArray ();
             requests.Length.Should ().Be (max_entries + additional_requests);
 
             for (var i = 0; i < max_entries; i++)
-                sut.CloseRequest (requests[i].RequestId);
+                sut.CloseRequestEntry (requests[i].RequestId);
 
-            sut.RetrieveRequests ()
+            sut.GetNotClosedRequestEntries ()
                      .Count ()
                      .Should ()
                      .Be (additional_requests, "because 5 requests should have been left over!");
@@ -399,7 +399,7 @@ namespace TitanicProtocolTests
             for (var i = 0; i < max_entries + additional_requests; i++)
             {
                 var id = Guid.NewGuid ();
-                sut.SaveNewRequest (id); // -> fill titanic.queue
+                sut.SaveNewRequestEntry (id); // -> fill titanic.queue
 
                 var message = new NetMQMessage ();
                 message.Push (string.Format ("Message #{0}", i));
@@ -408,23 +408,23 @@ namespace TitanicProtocolTests
                 sut.SaveMessage (TitanicOperation.Request, id, message);
             }
 
-            foreach (var entry in sut.RetrieveRequests ().Skip (3).Take (5))
+            foreach (var entry in sut.GetRequestEntries (null).Skip (3).Take (5))
             {
-                sut.SaveProcessedRequest (entry);
+                sut.SaveProcessedRequestEntry (entry);
 
-                var message = sut.RetrieveMessage (TitanicOperation.Request, entry.RequestId);
+                var message = sut.GetMessage (TitanicOperation.Request, entry.RequestId);
 
                 sut.SaveMessage (TitanicOperation.Reply, entry.RequestId, message);
             }
 
-            var requests = sut.RetrieveRequests ().ToArray ();
+            var requests = sut.GetRequestEntries (null).ToArray ();
             requests.Length.Should ().Be (max_entries + additional_requests);
             requests.Count (re => re.State == RequestEntry.Is_Processed).Should ().Be (5);
 
             for (var i = 0; i < max_entries; i++)
-                sut.CloseRequest (requests[i].RequestId);     // mark closed not worrying about state
+                sut.CloseRequestEntry (requests[i].RequestId);     // mark closed not worrying about state
 
-            sut.RetrieveRequests ()
+            sut.GetNotClosedRequestEntries ()
                      .Count ()
                      .Should ()
                      .Be (additional_requests, "because 5 requests should have been left over!");

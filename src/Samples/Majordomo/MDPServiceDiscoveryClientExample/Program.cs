@@ -40,7 +40,7 @@ namespace MDPServiceDiscoveryClientExample
                 {
                     var answer = reply.First.ConvertToString ();
 
-                    Console.WriteLine ("Lookup {0} service returned: {1}", service_to_lookup, answer);
+                    Console.WriteLine ("Lookup {0} service returned: {1}/{2}", service_to_lookup, answer, reply);
                 }
                 else
                     Console.WriteLine ("ERROR: no response from broker, seems like broker is NOT running!");

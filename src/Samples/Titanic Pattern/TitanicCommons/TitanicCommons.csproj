@@ -39,10 +39,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TitanicCommands.cs" />
+    <Compile Include="LogEventArgs.cs" />
+    <Compile Include="TitanicResult.cs" />
     <Compile Include="ITitanicBroker.cs" />
     <Compile Include="ITitanicClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TitanicOperation.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\NetMQ\NetMQ.csproj">

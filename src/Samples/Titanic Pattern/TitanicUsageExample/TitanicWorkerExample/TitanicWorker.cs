@@ -17,17 +17,13 @@ namespace TitanicWorkerExample
 
             var id = new[] { (byte) 'W', (byte) '1' };
 
-            Console.WriteLine ("Starting the worker!");
+            Console.WriteLine ("Starting the Titanic Worker!\n");
+
             try
             {
                 // create worker offering the service 'echo'
                 using (var session = new MDPWorker ("tcp://localhost:5555", "echo", id))
                 {
-                    session.HeartbeatDelay = TimeSpan.FromMilliseconds (10000);
-                    // logging info to be displayed on screen
-                    if (verbose)
-                        session.LogInfoReady += (s, e) => Console.WriteLine ("{0}", e.Info);
-
                     // there is no inital reply
                     NetMQMessage reply = null;
 
@@ -37,19 +33,22 @@ namespace TitanicWorkerExample
                         var request = session.Receive (reply);
 
                         if (verbose)
-                            Console.WriteLine ("Received: {0}", request);
+                            Console.WriteLine ("[TITANIC WORKER] Received: {0}", request);
 
                         // was the worker interrupted
                         if (ReferenceEquals (request, null))
                             break;
                         // echo the request
                         reply = request;
+                        
+                        if (verbose)
+                            Console.WriteLine ("[TITANIC WORKER] Reply: {0}", request);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine ("ERROR:");
+                Console.WriteLine ("[TITANIC WORKER] ERROR:");
                 Console.WriteLine ("{0}", ex.Message);
                 Console.WriteLine ("{0}", ex.StackTrace);
 
