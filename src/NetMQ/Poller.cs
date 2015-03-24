@@ -619,6 +619,13 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Gets whether <paramref name="socket"/> has been added to this <see cref="Poller"/>.
+        /// </summary>
+        public bool ContainsSocket(NetMQSocket socket)
+        {
+            return m_sockets.Contains(socket);
+        }
 
         #region Dispose
         
