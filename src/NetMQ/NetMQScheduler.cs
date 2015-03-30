@@ -103,9 +103,37 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Get whether the caller is running on the scheduler's thread.
+        /// If <c>true</c>, the caller can execute tasks directly (inline).
+        /// If <c>false</c>, the caller must start a <see cref="Task"/> on this scheduler.
+        /// </summary>
+        /// <remarks>
+        /// This property enables avoiding the creation of a <see cref="Task"/> object and
+        /// potential delays to its execution due to queueing. In most cases this is just
+        /// an optimisation.
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// if (scheduler.CanExecuteTaskInline)
+        /// {
+        ///     socket.Send(...);
+        /// }
+        /// else
+        /// {
+        ///     var task = new Task(() => socket.Send(...));
+        ///     task.Start(scheduler);
+        /// }
+        /// </code>
+        /// </example>
+        public bool CanExecuteTaskInline
+        {
+            get { return m_schedulerThread.Value; }
+        }
+
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
-            return m_schedulerThread.Value && TryExecuteTask(task);
+            return CanExecuteTaskInline && TryExecuteTask(task);
         }
 
         /// <summary>

@@ -34,6 +34,7 @@ namespace NetMQ.Devices
         /// This flag indicates whether this device owns the m_poller.
         /// </summary>
         private readonly bool m_pollerIsOwned;
+        private bool m_isInitialized;
 
         /// <summary>
         /// Get whether this device is currently running.
@@ -81,6 +82,8 @@ namespace NetMQ.Devices
         /// <exception cref="ArgumentNullException">backendSocket must not be null.</exception>
         protected DeviceBase(Poller poller, [NotNull] NetMQSocket frontendSocket, [NotNull] NetMQSocket backendSocket, DeviceMode mode)
         {
+            m_isInitialized = false;
+
             if (frontendSocket == null)
                 throw new ArgumentNullException("frontendSocket");
 
@@ -122,10 +125,19 @@ namespace NetMQ.Devices
         /// <summary>
         /// Configure the frontend and backend sockets and then Start this device.
         /// </summary>
+        public void Initialize()
+        {
+            if (!m_isInitialized)
+            {
+                m_isInitialized = true;
+                FrontendSetup.Configure();
+                BackendSetup.Configure();
+            }
+        }
+
         public void Start()
         {
-            FrontendSetup.Configure();
-            BackendSetup.Configure();
+            Initialize();
             m_runner.Start();
         }
 

@@ -38,13 +38,21 @@ namespace NetMQ
         /// <param name="backend">the socket that messages will be forwarded to</param>
         /// <param name="control">this socket will have messages also sent to it - you can set this to null if not needed</param>
         /// <param name="poller">an optional external poller to use within this proxy</param>
+        /// <exception cref="InvalidOperationException"><paramref name="poller"/> is not <c>null</c> and either <paramref name="frontend"/> or <paramref name="backend"/> are not contained within it.</exception>
         public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, Poller poller = null)
         {
+            if (poller != null)
+            {
+                if (!poller.ContainsSocket(backend) || !poller.ContainsSocket(frontend))
+                    throw new InvalidOperationException("When using an external poller, both the frontend and backend sockets must be added to it.");
+
+                m_externalPoller = true;
+                m_poller = poller;
+            }
+
             m_frontend = frontend;
             m_backend = backend;
             m_control = control;
-            m_externalPoller = poller != null;
-            m_poller = poller;
         }
 
         /// <summary>
