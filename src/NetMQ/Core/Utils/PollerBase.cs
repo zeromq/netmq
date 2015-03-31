@@ -178,7 +178,7 @@ namespace NetMQ.Core.Utils
         protected int ExecuteTimers()
         {
             // Immediately return 0 if there are no timers.
-            if (!m_timers.Any())
+            if (m_timers.Count == 0)
                 return 0;
 
             // Get the current time.
