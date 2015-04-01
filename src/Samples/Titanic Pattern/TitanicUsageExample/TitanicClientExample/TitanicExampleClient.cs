@@ -1,19 +1,19 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 
-using MajordomoProtocol;
-using MajordomoProtocol.Contracts;
-
-using NetMQ;
-
 using TitanicCommons;
+using TitanicProtocol;
 
 namespace TitanicClientExample
 {
     /// <summary>
-    ///     usage:  TitanicClientExample [-v]
+    ///     usage:  TitanicClientExample [-v] [-cN]
     /// 
     ///     implements a Titanic Client API usage
+    /// 
+    ///     -v  =>  verbose
+    ///     -cN =>  repeat the request N times
     /// </summary>
     /// <remark>
     ///     this is a 'naked' approach and should not be used in real apps
@@ -22,120 +22,81 @@ namespace TitanicClientExample
     /// </remark>
     class TitanicExampleClient
     {
-        static void Main (string[] args)
+        private static bool s_verbose;
+        private static int s_runs = 1;
+
+        static void Main (string[] arguments)
         {
             const string address = "tcp://localhost:5555";
+            //const string service_name = "echo";
 
-            var verbose = args.Length > 0 && args[0] == "-v";
-            var exit = false;
-
-            // trapping Ctrl+C as exit signal!
-            Console.CancelKeyPress += (s, e) =>
-            {
-                e.Cancel = true;
-                exit = true;
-            };
+            SetParameter (arguments);
 
             Console.WriteLine ("Staring Titanic Client\n");
+            Console.WriteLine ("{0} / #{1} Messages\n", s_verbose ? "verbose" : "silent", s_runs);
 
             // wait to allow MDP/Titanic Broker to complete start up
             Thread.Sleep (500);
 
-            using (var client = new MDPClient (address))
+            using (ITitanicClient client = new TitanicClient (address))
             {
-                if (verbose)
+                if (s_verbose)
                     client.LogInfoReady += (s, e) => Console.WriteLine (e.Info);
 
-                // 1. send 'echo' request to Titanic
-                var request = new NetMQMessage ();
-
-                // set request data
-                request.Push ("Hello World");       // [data]
-                // set requested service
-                request.Push ("echo");              // [service name][data]
-
-                Console.WriteLine ("REQUEST service: {0}", request);
-
-                var reply = ServiceCall (client, TitanicOperation.Request, request);
-
-                if (!ReferenceEquals (reply, null) && !reply.IsEmpty)
+                for (var i = 0; i < s_runs; i++)
                 {
-                    // [data] -> here is a GUID
-                    var guid = reply.Pop ().ConvertToString ();
+                    var reply = new Tuple<byte[], TitanicReturnCode> (null, TitanicReturnCode.Failure);
+                    var data = "ERROR! NO REPLY";
+                    
+                    // does 5 retries to get the reply
+                    reply = client.GetResult ("echo", "Hallo World", 5);
+                    data = reply.Item1 != null ? Encoding.UTF8.GetString (reply.Item1) : data;
+                    
+                    if (data != "Hallo World")
+                        Console.WriteLine ("Hallo World != {0} on loop #{1} with status {2}", data, i, reply.Item2);
 
-                    Console.WriteLine ("Titanic replied: GUID = {0}", guid);
-
-                    // wait for a moment
-                    Thread.Sleep (100);
-
-                    // 2. wait for reply
-                    while (!exit)
-                    {
-                        request = new NetMQMessage ();
-                        request.Push (guid);
-
-                        Console.WriteLine ("REQUEST reply for: {0}", request);
-
-                        reply = ServiceCall (client, TitanicOperation.Reply, request);
-
-                        if (!ReferenceEquals (reply, null) && !reply.IsEmpty)
-                        {
-                            var answer = reply.Last.ConvertToString ();
-
-                            Console.WriteLine ("Titanic's answer to the reply request: {0}", answer);
-
-                            // 3. close request
-                            request = new NetMQMessage ();
-                            request.Push (guid);
-
-                            Console.WriteLine ("REQUEST close: {0}", request);
-
-                            reply = ServiceCall (client, TitanicOperation.Close, request);
-
-                            Console.WriteLine ("REQUEST closed.");
-
-                            break;
-                        }
-
-                        Console.WriteLine ("INFO: No reply yet. Retrying ...");
-
-                        Thread.Sleep (5000); // wait for 5s
-                    }
+                    if (!ReferenceEquals (reply.Item1, null) && reply.Item2 == TitanicReturnCode.Ok)
+                        Console.WriteLine ("Status = {0} - Reply = {1}", reply.Item2, data);
                 }
-                else
-                    Console.WriteLine ("ERROR: CORRUPTED REPLY BY TITANIC - PANIC!");
             }
 
             Console.WriteLine ("\nTo exit press any key!");
             Console.ReadKey ();
         }
 
-        private static NetMQMessage ServiceCall (IMDPClient session, TitanicOperation op, NetMQMessage request)
+        private static void SetParameter (string[] arguments)
         {
-            // [operation][Guid]
-            var reply = session.Send (op.ToString (), request);
-
-            Console.WriteLine ("ServiceCall received: {0}", reply);
-
-            if (ReferenceEquals (reply, null) || reply.IsEmpty)
-                return null; // went wrong - why? I don't care!
-
-            // we got a reply -> [operation][data]
-            var rc = reply.Pop ().ConvertToString ();       // [operation] <- [data]
-            var status = (MmiCodes) Enum.Parse (typeof (MmiCodes), rc);
-
-            switch (status)
+            switch (arguments.Length)
             {
-                case MmiCodes.Ok:
-                case MmiCodes.Pending:
-                    return reply;   // [data]
-                case MmiCodes.Unknown:
-                    Console.WriteLine ("Service unknown - Abandoning");
-                    return null;
-                default:
-                    Console.WriteLine ("ERROR: FATAL ERROR ABANDONING!");
-                    return null;
+                case 0:
+                    return;
+                case 1:
+                    if (arguments[0] == "-v")
+                        s_verbose = true;
+
+                    if (arguments[0].StartsWith ("-c"))
+                        GetCount (arguments[0]);
+                    break;
             }
+
+            if (arguments.Length == 2)
+            {
+                if (arguments[0] == "-v" || arguments[1] == "-v")
+                    s_verbose = true;
+
+                if (arguments[0].StartsWith ("-c"))
+                    GetCount (arguments[0]);
+                else
+                    if (arguments[1].StartsWith ("-c"))
+                        GetCount (arguments[1]);
+            }
+        }
+
+        private static void GetCount (string s)
+        {
+            var number = s.Replace (" ", "").Remove (0, 2);
+            var n = int.Parse (number);
+            s_runs = n <= 0 ? 1 : n;        // min. 1 run
         }
     }
 }

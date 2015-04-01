@@ -66,6 +66,9 @@ namespace TitanicProtocol
         private readonly string m_titanicAddress;
         private readonly string m_titanicDirectory;
 
+        /// <summary>
+        ///     allows the access to the titanic storage
+        /// </summary>
         private readonly TitanicIO m_io;
 
         /// <summary>
@@ -76,14 +79,12 @@ namespace TitanicProtocol
         /// <summary>
         ///     if broker has a log message available if fires this event
         /// </summary>
-        public event EventHandler<LogEventArgs> LogInfoReady;
+        public event EventHandler<TitanicLogEventArgs> LogInfoReady;
 
         /// <summary>
         ///     ctor
         ///         initializes the ip address to 'tcp://localhost:5555'
         ///         initializes root for storage "application directory"\.titanic
-        /// 
-        ///         but does NOT create any directory or file
         /// </summary>
         public TitanicBroker ()
         {
@@ -202,7 +203,7 @@ namespace TitanicProtocol
                 while (true)
                 {
                     // initiate the communication with sending a 'null', since there is no initial reply
-                    // should be [service name][request data]
+                    // a request should be [service name][request data]
                     var request = worker.Receive (reply);
 
                     Log (string.Format ("[TITANIC REQUEST] Received request: {0}", request));
@@ -225,7 +226,7 @@ namespace TitanicProtocol
                     // [Guid]
                     reply.Push (requestId.ToString ());
                     // [Ok][Guid]
-                    reply.Push (TitanicResult.Ok.ToString ());
+                    reply.Push (TitanicReturnCode.Ok.ToString ());
 
                     Log (string.Format ("[TITANIC REQUEST] sending reply: {0}", reply));
                 }
@@ -264,16 +265,16 @@ namespace TitanicProtocol
                     {
                         Log (string.Format ("[TITANIC REPLY] reply for request exists: {0}", requestId));
 
-                        reply = m_io.GetMessage (TitanicOperation.Reply, requestId);    // [service][reply]
-                        reply.Push (TitanicResult.Ok.ToString ());                               // ["OK"][service][reply]
+                        reply = m_io.GetMessage (TitanicOperation.Reply, requestId);        // [service][reply]
+                        reply.Push (TitanicReturnCode.Ok.ToString ());                          // ["OK"][service][reply]
                     }
                     else
                     {
                         reply = new NetMQMessage ();
 
                         var replyCommand = (m_io.Exists (TitanicOperation.Request, requestId)
-                                                ? TitanicResult.Pending
-                                                : TitanicResult.Unknown);
+                                                ? TitanicReturnCode.Pending
+                                                : TitanicReturnCode.Unknown);
 
                         reply.Push (replyCommand.ToString ());
                     }
@@ -315,11 +316,11 @@ namespace TitanicProtocol
                     Log (string.Format ("[TITANIC CLOSE] closing {0}", guid));
 
                     // close the request
-                    m_io.CloseRequestEntry (guid);
+                    m_io.CloseRequest (guid);
 
                     // send back the confirmation
                     reply = new NetMQMessage ();
-                    reply.Push (TitanicResult.Ok.ToString ());
+                    reply.Push (TitanicReturnCode.Ok.ToString ());
                 }
             }
         }
@@ -336,9 +337,9 @@ namespace TitanicProtocol
             // threat this as successfully processed
             if (!m_io.Exists (TitanicOperation.Request, requestId))
             {
-                Log (string.Format ("[TITANIC Dispatch] Request {0} does not exist. Removing it from queue.", requestId));
+                Log (string.Format ("[TITANIC DISPATCH] Request {0} does not exist. Removing it from queue.", requestId));
                 // close request inorder to avoid any further processing
-                m_io.CloseRequestEntry (requestId);
+                m_io.CloseRequest (requestId);
 
                 return true;
             }
@@ -348,7 +349,7 @@ namespace TitanicProtocol
             // [service name][data]
             var serviceName = request[0].ConvertToString ();
 
-            Log (string.Format ("[TITANIC Dispatch] Do a ServiceCall for {0} - {1}.", serviceName, request));
+            Log (string.Format ("[TITANIC DISPATCH] Do a ServiceCall for {0} - {1}.", serviceName, request));
 
             var reply = ServiceCall (serviceName, request);
 
@@ -356,7 +357,7 @@ namespace TitanicProtocol
                 return false;       // no reply
 
             // a reply has been received -> save it
-            Log (string.Format ("[TITANIC Dispatch] Saving reply for request {0}.", requestId));
+            Log (string.Format ("[TITANIC DISPATCH] Saving reply for request {0}.", requestId));
             // save the reply for further use
             m_io.SaveMessage (TitanicOperation.Reply, requestId, reply);
 
@@ -383,7 +384,7 @@ namespace TitanicProtocol
                 session.Retries = 1;                                    // only 1 retry
                 // use MMI protocol to check if service is available
                 var mmi = new NetMQMessage ();
-                // add nam of service to inquire
+                // add name of service to inquire
                 mmi.Push (serviceName);
                 // request mmi.service resolution
                 var reply = session.Send ("mmi.service", mmi);
@@ -393,12 +394,12 @@ namespace TitanicProtocol
                 // answer == "Ok" -> service is available -> make the request
                 if (answer == MmiCodes.Ok)
                 {
-                    Log (string.Format ("[TITANIC ServiceCall] -> {0} - {1}", serviceName, request));
+                    Log (string.Format ("[TITANIC SERVICECALL] -> {0} - {1}", serviceName, request));
 
                     return session.Send (serviceName, request);
                 }
 
-                Log (string.Format ("[TITANIC ServiceCall] Service {0} (RC = {1}/{2}) is not available.",
+                Log (string.Format ("[TITANIC SERVICECALL] Service {0} (RC = {1}/{2}) is not available.",
                                     serviceName,
                                     answer,
                                     request));
@@ -444,10 +445,10 @@ namespace TitanicProtocol
 
         private void Log ([NotNull] string info)
         {
-            OnLogInfoReady (new LogEventArgs { Info = info });
+            OnLogInfoReady (new TitanicLogEventArgs { Info = info });
         }
 
-        protected virtual void OnLogInfoReady (LogEventArgs e)
+        protected virtual void OnLogInfoReady (TitanicLogEventArgs e)
         {
             var handler = LogInfoReady;
 

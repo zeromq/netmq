@@ -101,12 +101,12 @@ namespace MajordomoProtocol
         /// <summary>
         ///     if broker has a log message available if fires this event
         /// </summary>
-        public event EventHandler<LogInfoEventArgs> LogInfoReady;
+        public event EventHandler<MDPLogEventArgs> LogInfoReady;
 
         /// <summary>
         ///     broadcast elaborate debugging info
         /// </summary>
-        public event EventHandler<LogInfoEventArgs> DebugInfoReady;
+        public event EventHandler<MDPLogEventArgs> DebugInfoReady;
 
         /// <summary>
         ///     ctor initializing all local variables
@@ -293,7 +293,7 @@ namespace MajordomoProtocol
             foreach (var worker in m_knownWorkers)
                 WorkerSend (worker, MDPCommand.Heartbeat, null);
 
-            Log ("[MDP BROKER] Sent HEARTBEAT to all worker!");
+            DebugLog ("[MDP BROKER] Sent HEARTBEAT to all worker!");
         }
 
         /// <summary>
@@ -305,7 +305,7 @@ namespace MajordomoProtocol
         {
             var msg = e.Socket.ReceiveMultipartMessage ();
 
-            Log (string.Format ("[MDP BROKER] Received: {0}", msg));
+            DebugLog (string.Format ("[MDP BROKER] Received: {0}", msg));
 
             var senderFrame = msg.Pop ();               // [e][protocol header][service or command][data]
             var empty = msg.Pop ();                     // [protocol header][service or command][data]
@@ -354,7 +354,7 @@ namespace MajordomoProtocol
                         // service and a potential waiting list therein
                         RemoveWorker (m_knownWorkers.Find (w => w.Id == workerId));
 
-                        Log (string.Format ("[MDP BROKER] READY out of sync. Removed worker {0}.", workerId));
+                        DebugLog (string.Format ("[MDP BROKER] READY out of sync. Removed worker {0}.", workerId));
                     }
                     else
                     {
@@ -385,7 +385,7 @@ namespace MajordomoProtocol
 
                         Socket.SendMessage (reply);
 
-                        Log (string.Format ("[MDP BROKER] REPLY from {0} received and send to {1} -> {2}",
+                        DebugLog (string.Format ("[MDP BROKER] REPLY from {0} received and send to {1} -> {2}",
                                             workerId,
                                             client.ConvertToString (),
                                             message));
@@ -399,7 +399,7 @@ namespace MajordomoProtocol
                         var worker = m_knownWorkers.Find (w => w.Id == workerId);
                         worker.Expiry = DateTime.UtcNow + m_heartbeatExpiry;
 
-                        Log (string.Format ("[MDP BROKER] HEARTBEAT from {0} received.", workerId));
+                        DebugLog (string.Format ("[MDP BROKER] HEARTBEAT from {0} received.", workerId));
                     }
                     break;
                 default:
@@ -458,7 +458,7 @@ namespace MajordomoProtocol
                 // send to back to CLIENT(!)
                 Socket.SendMessage (reply);
 
-                Log (string.Format ("[MDP BROKER] MMI request processed. Answered {0}", reply));
+                DebugLog (string.Format ("[MDP BROKER] MMI request processed. Answered {0}", reply));
             }
             else
             {
@@ -466,7 +466,7 @@ namespace MajordomoProtocol
                 var service = ServiceRequired (serviceName);
 
                 // a standard REQUEST received
-                Log (string.Format ("[MDP BROKER] Dispatching request -> {0} to {1}", request, serviceName));
+                DebugLog (string.Format ("[MDP BROKER] Dispatching request -> {0} to {1}", request, serviceName));
 
                 // send to a worker offering the requested service
                 // will add command, header and worker adr envelope
@@ -637,7 +637,7 @@ namespace MajordomoProtocol
             }
         }
 
-        protected virtual void OnLogInfoReady (LogInfoEventArgs e)
+        protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
             var handler = LogInfoReady;
 
@@ -645,7 +645,7 @@ namespace MajordomoProtocol
                 handler (this, e);
         }
 
-        protected virtual void OnDebugInfoReady (LogInfoEventArgs e)
+        protected virtual void OnDebugInfoReady (MDPLogEventArgs e)
         {
             var handler = DebugInfoReady;
 
@@ -658,7 +658,7 @@ namespace MajordomoProtocol
             if (string.IsNullOrWhiteSpace (info))
                 return;
 
-            OnLogInfoReady (new LogInfoEventArgs { Info = info });
+            OnLogInfoReady (new MDPLogEventArgs { Info = info });
         }
 
         private void DebugLog (string info)
@@ -666,7 +666,7 @@ namespace MajordomoProtocol
             if (string.IsNullOrWhiteSpace (info))
                 return;
 
-            OnDebugInfoReady (new LogInfoEventArgs { Info = info });
+            OnDebugInfoReady (new MDPLogEventArgs { Info = info });
         }
 
         /// <summary>

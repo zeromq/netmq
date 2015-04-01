@@ -34,7 +34,7 @@ namespace MajordomoProtocol
         /// <summary>
         ///     if client has a log message available if fires this event
         /// </summary>
-        public event EventHandler<LogInfoEventArgs> LogInfoReady;
+        public event EventHandler<MDPLogEventArgs> LogInfoReady;
 
         /// <summary>
         ///     setup the client with standard values
@@ -204,14 +204,14 @@ namespace MajordomoProtocol
         private void Log (string info)
         {
             if (!string.IsNullOrWhiteSpace (info))
-                OnLogInfoReady (new LogInfoEventArgs { Info = info });
+                OnLogInfoReady (new MDPLogEventArgs { Info = info });
         }
 
         /// <summary>
         ///     broadcast the logging information if someone is listening
         /// </summary>
         /// <param name="e"></param>
-        protected virtual void OnLogInfoReady (LogInfoEventArgs e)
+        protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
             var handler = LogInfoReady;
 

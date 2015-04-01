@@ -53,9 +53,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestEntities\TestEntity.cs" />
     <Compile Include="TitanicBrokerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TitanicClientTests.cs" />
     <Compile Include="TitanicIOTests.cs" />
+    <Compile Include="TestEntities\MDPTestClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

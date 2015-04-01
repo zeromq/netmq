@@ -40,7 +40,7 @@ namespace MajordomoProtocol
         /// <summary>
         ///     broadcast logging information via this event
         /// </summary>
-        public event EventHandler<LogInfoEventArgs> LogInfoReady;
+        public event EventHandler<MDPLogEventArgs> LogInfoReady;
 
         /// <summary>
         ///     create worker with standard parameter
@@ -187,7 +187,7 @@ namespace MajordomoProtocol
         ///     raise the event if someone is listening
         /// </summary>
         /// <param name="e">the wrapped logging information</param>
-        protected virtual void OnLogInfoReady (LogInfoEventArgs e)
+        protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
             var handler = LogInfoReady;
 
@@ -385,7 +385,7 @@ namespace MajordomoProtocol
         private void Log (string info)
         {
             if (!string.IsNullOrWhiteSpace (info))
-                OnLogInfoReady (new LogInfoEventArgs { Info = info });
+                OnLogInfoReady (new MDPLogEventArgs { Info = info });
         }
 
         public void Dispose ()

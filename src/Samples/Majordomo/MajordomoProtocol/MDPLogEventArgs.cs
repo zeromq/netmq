@@ -2,7 +2,7 @@
 
 namespace MajordomoProtocol
 {
-    public class LogInfoEventArgs : EventArgs
+    public class MDPLogEventArgs : EventArgs
     {
         public string Info { get; set; }
     }

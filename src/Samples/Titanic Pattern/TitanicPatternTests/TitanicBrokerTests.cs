@@ -18,19 +18,6 @@ namespace TitanicProtocolTests
     [TestFixture]
     public class TitanicBrokerTests
     {
-        /*
-         *  Run 
-         *  ProcessTitanicRequest - Thread
-         *  ProcessTitanicReply - Thread
-         *  ProcessTitanicClose - Thread
-         *  
-         *  DispatchRequests
-         *  ServiceCall
-         *  
-         *  DidAnyTaskStopp 
-         *  LogException
-         */
-
         private const string _titanic_broker_address = "tcp://localhost:5555";
         private const string _titanic_internal_communication = "inproc://titanic.inproc";
         private const string _titanic_directory = ".titanic";

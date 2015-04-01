@@ -2,7 +2,7 @@
 
 namespace TitanicCommons
 {
-    public class LogEventArgs : EventArgs
+    public class TitanicLogEventArgs : EventArgs
     {
         public string Info { get; set; }
     }

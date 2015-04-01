@@ -35,7 +35,7 @@ namespace MajordomoTests
 
                 sut.Bind();
 
-                Assert.That(info, Is.EqualTo("[BROKER] MDP Broker/0.3 is active at tcp://localhost:5555"));
+                Assert.That(info, Is.EqualTo("[MDP BROKER] MDP Broker/0.3 is active at tcp://localhost:5555"));
             }
         }
 
@@ -59,7 +59,7 @@ namespace MajordomoTests
 
                 sut.Bind("tcp://localhost:5555");
 
-                Assert.That(info, Is.EqualTo("[BROKER] MDP Broker/0.3 is active at tcp://localhost:5555"));
+                Assert.That(info, Is.EqualTo("[MDP BROKER] MDP Broker/0.3 is active at tcp://localhost:5555"));
             }
         }
 
@@ -135,7 +135,7 @@ namespace MajordomoTests
         [Test]
         public async void Run_ReceiveREADYMessageFromThreeWorkersSameServices_LogSuccessfulRegistration()
         {
-            const string endPoint = "tcp://localhost:5555";
+            const string endPoint = "tcp://localhost:5556";
             var log = new List<string>();
             var id01 = Encoding.ASCII.GetBytes("W01");
             var id02 = Encoding.ASCII.GetBytes("W02");
@@ -246,9 +246,9 @@ namespace MajordomoTests
                 Assert.That(log.Count, Is.EqualTo(7));
                 Assert.That(log.Count(s => s.Contains("READY processed. Worker W1 added to service echo")), Is.EqualTo(1));
                 Assert.That(log.Count(s => s.Contains("Received")), Is.EqualTo(3));
-                Assert.That(log[4], Is.EqualTo("[BROKER] Dispatching request -> NetMQMessage[C1,,Helo World!]"));
+                Assert.That(log[4], Is.EqualTo("[MDP BROKER] Dispatching request -> NetMQMessage[C1,,Helo World!] to echo"));
                 Assert.That(log[6],
-                    Is.EqualTo("[BROKER] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Helo World!]"));
+                    Is.EqualTo("[MDP BROKER] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Helo World!]"));
             }
         }
 

@@ -20,7 +20,7 @@ namespace MajordomoProtocol.Contracts
         /// <summary>
         ///     broadcast logging information via this event
         /// </summary>
-        event EventHandler<LogInfoEventArgs> LogInfoReady;
+        event EventHandler<MDPLogEventArgs> LogInfoReady;
 
         /// <summary>
         ///      sends it's reply and waits for a new request

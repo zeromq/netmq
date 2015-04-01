@@ -27,6 +27,6 @@ namespace MajordomoProtocol.Contracts
         /// <summary>
         ///     broadcast logging info via this event
         /// </summary>
-        event EventHandler<LogInfoEventArgs> LogInfoReady;
+        event EventHandler<MDPLogEventArgs> LogInfoReady;
     }
 }

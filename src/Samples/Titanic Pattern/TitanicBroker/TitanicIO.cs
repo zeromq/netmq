@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
@@ -32,7 +33,10 @@ namespace TitanicProtocol
         /// </summary>
         private readonly object m_syncRoot = new object ();
 
-        public event EventHandler<LogEventArgs> LogInfoReady;
+        /// <summary>
+        ///     the hook for the handling of logging messages published
+        /// </summary>
+        public event EventHandler<TitanicLogEventArgs> LogInfoReady;
 
         /// <summary>
         ///     if a certain amount of "titanic.close" requests have been performed
@@ -118,7 +122,11 @@ namespace TitanicProtocol
                 Directory.CreateDirectory (m_appDir);
 
             if (!File.Exists (m_titanicQueue))
-                File.Create (m_titanicQueue).Dispose ();    // create file but release all ressources immediately
+            {
+                // create file but release all ressources immediately
+                var f = File.Create (m_titanicQueue);
+                f.Dispose ();
+            }
         }
 
         #region REQUEST/REPLY QUEUE I/O HANDLING
@@ -182,7 +190,7 @@ namespace TitanicProtocol
         ///     and purge queue if necessary
         /// </summary>
         /// <param name="id">the GUID of the request to close</param>
-        public void CloseRequestEntry (Guid id)
+        public void CloseRequest (Guid id)
         {
             if (id == Guid.Empty)
                 return;
@@ -514,10 +522,10 @@ namespace TitanicProtocol
 
         private void Log ([NotNull] string info)
         {
-            OnLogInfoReady (new LogEventArgs { Info = info });
+            OnLogInfoReady (new TitanicLogEventArgs { Info = info });
         }
 
-        protected virtual void OnLogInfoReady (LogEventArgs e)
+        protected virtual void OnLogInfoReady (TitanicLogEventArgs e)
         {
             var handler = LogInfoReady;
 

@@ -6,7 +6,7 @@ using NetMQ;
 
 namespace MDPServiceDiscoveryClientExample
 {
-    class Program
+    class MDPServiceDiscoveryProgram
     {
         /// <summary>
         ///     usage:  MDPServiceDiscoveryClientExample [-v]

@@ -54,7 +54,7 @@ namespace TitanicCommons
         ///     any subscriber will receive detailed processing information
         ///     and can decide to process it as needed
         /// </value>
-        event EventHandler<LogEventArgs> LogInfoReady;
+        event EventHandler<TitanicLogEventArgs> LogInfoReady;
 
         /// <summary>
         ///     starts the processing of TITANIC Broker

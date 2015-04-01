@@ -324,7 +324,7 @@ namespace TitanicProtocolTests
 
             sut.SaveProcessedRequestEntry (req);
 
-            sut.CloseRequestEntry (req.RequestId);
+            sut.CloseRequest (req.RequestId);
 
             sut.GetRequestEntries (null)
                      .Count (re => re.State == RequestEntry.Is_Closed)
@@ -351,7 +351,7 @@ namespace TitanicProtocolTests
             requests.Length.Should ().Be (max_entries, "because 20 entries were written.");
 
             foreach (var entry in requests)
-                sut.CloseRequestEntry (entry.RequestId);
+                sut.CloseRequest (entry.RequestId);
 
             sut.GetRequestEntries (null)
                      .Should ().BeEmpty ("because all requests have been closed!");
@@ -375,7 +375,7 @@ namespace TitanicProtocolTests
             requests.Length.Should ().Be (max_entries + additional_requests);
 
             for (var i = 0; i < max_entries; i++)
-                sut.CloseRequestEntry (requests[i].RequestId);
+                sut.CloseRequest (requests[i].RequestId);
 
             sut.GetNotClosedRequestEntries ()
                      .Count ()
@@ -422,7 +422,7 @@ namespace TitanicProtocolTests
             requests.Count (re => re.State == RequestEntry.Is_Processed).Should ().Be (5);
 
             for (var i = 0; i < max_entries; i++)
-                sut.CloseRequestEntry (requests[i].RequestId);     // mark closed not worrying about state
+                sut.CloseRequest (requests[i].RequestId);     // mark closed not worrying about state
 
             sut.GetNotClosedRequestEntries ()
                      .Count ()
