@@ -558,7 +558,7 @@ namespace NetMQ
                         }
                     }
 
-                    if (m_zombies.Any())
+                    if (m_zombies.Count > 0)
                     {
                         // Now handle any timer zombies
                         // This is going to be slow if we have many zombies
