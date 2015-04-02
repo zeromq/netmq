@@ -5,7 +5,7 @@ namespace TitanicProtocol
     /// <summary>
     ///     represents an entry of a request made
     /// </summary>
-    internal class RequestEntry : IEquatable<RequestEntry>
+    public class RequestEntry : IEquatable<RequestEntry>
     {
         private byte m_state;
         // introduced strictly for readability (!)

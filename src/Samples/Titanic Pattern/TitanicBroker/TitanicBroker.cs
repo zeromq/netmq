@@ -69,7 +69,7 @@ namespace TitanicProtocol
         /// <summary>
         ///     allows the access to the titanic storage
         /// </summary>
-        private readonly TitanicIO m_io;
+        private readonly ITitanicIO m_io;
 
         /// <summary>
         ///     returns the ip-address of the titanic broker
@@ -86,11 +86,11 @@ namespace TitanicProtocol
         ///         initializes the ip address to 'tcp://localhost:5555'
         ///         initializes root for storage "application directory"\.titanic
         /// </summary>
-        public TitanicBroker ()
+        public TitanicBroker ([CanBeNull] ITitanicIO titanicIO = null)
         {
             m_titanicDirectory = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory);
             m_titanicAddress = "tcp://localhost:5555";
-            m_io = new TitanicIO (m_titanicDirectory);
+            m_io = titanicIO ?? new TitanicIO (m_titanicDirectory);
         }
 
         /// <summary>
@@ -103,15 +103,16 @@ namespace TitanicProtocol
         ///                  e.g. 'tcp://localhost:5555' or 'tcp://35.1.45.76:5000' or alike</param>
         /// <param name="path">root path for titanic file system, 
         ///                    if 'null' standard will be used</param>
+        /// <param name="titanicIo">a implementation of ITitanicIO allowing to persist</param>
         /// <exception cref="ApplicationException">The broker ip address is invalid!</exception>
-        public TitanicBroker ([NotNull] string ip, string path = null)
+        public TitanicBroker ([NotNull] string ip, string path = null, ITitanicIO titanicIo = null)
             : this ()
         {
             if (!string.IsNullOrWhiteSpace (path))
-            {
                 m_titanicDirectory = path;
-                m_io = new TitanicIO (path);
-            }
+
+            if (titanicIo != null)
+                m_io = titanicIo;
 
             m_titanicAddress = ip;
         }
@@ -124,7 +125,15 @@ namespace TitanicProtocol
         ///     to available workers via MDPBroker</para>
         ///     <para>it also manages the appropriate changes in the file system as well as in queue</para>
         /// </summary>
-        public void Run ()
+        /// <param name="requestWorker">mdp worker processing the incoming requests for services</param>
+        /// <param name="replyWorker">mdp worker processing incoming reply requests</param>
+        /// <param name="closeWorker">mdp worker processing incoming close requests</param>
+        /// <param name="serviceCallClient">mdp client forwarding requests to service providing mdp worker
+        ///                                 via mdp broker and collecting replies</param>
+        public void Run ([CanBeNull] IMDPWorker requestWorker = null,
+                         [CanBeNull] IMDPWorker replyWorker = null,
+                         [CanBeNull] IMDPWorker closeWorker = null,
+                         [CanBeNull] IMDPClient serviceCallClient = null)
         {
             using (var ctx = NetMQContext.Create ())
             using (var pipeStart = ctx.CreatePairSocket ())
@@ -136,9 +145,9 @@ namespace TitanicProtocol
                 pipeEnd.Connect (_titanic_internal_communication);
 
                 // start the three child tasks
-                var requestTask = Task.Run (() => ProcessTitanicRequest (pipeEnd), cts.Token);
-                var replyTask = Task.Run (() => ProcessTitanicReply (), cts.Token);
-                var closeTask = Task.Run (() => ProcessTitanicClose (), cts.Token);
+                var requestTask = Task.Run (() => ProcessTitanicRequest (pipeEnd, requestWorker), cts.Token);
+                var replyTask = Task.Run (() => ProcessTitanicReply (replyWorker), cts.Token);
+                var closeTask = Task.Run (() => ProcessTitanicClose (closeWorker), cts.Token);
 
                 var tasks = new[] { requestTask, replyTask, closeTask };
 
@@ -167,7 +176,7 @@ namespace TitanicProtocol
                     // dispatching will also worry about the handling of a potential reply
                     // dispatch only requests which have not been closed
                     foreach (var entry in m_io.GetRequestEntries (e => e.State != RequestEntry.Is_Closed)
-                                                   .Where (entry => DispatchRequests (entry.RequestId, m_io)))
+                                              .Where (entry => DispatchRequests (entry.RequestId, serviceCallClient)))
                     {
                         m_io.SaveProcessedRequestEntry (entry);
                     }
@@ -192,11 +201,11 @@ namespace TitanicProtocol
         ///     <para>write request to disk and return the GUID to client</para>
         ///     sends the GUID of the request back via the pipe for further processing
         /// </summary>
-        internal void ProcessTitanicRequest ([NotNull] PairSocket pipe)
+        internal void ProcessTitanicRequest ([NotNull] PairSocket pipe, [CanBeNull]IMDPWorker mdpWorker = null)
         {
             // get a MDP worker with an automatic id and register with the service "titanic.request"
             // the worker will automatically start and connect to a MDP Broker at the indicated address
-            using (IMDPWorker worker = new MDPWorker (m_titanicAddress, TitanicOperation.Request.ToString ()))
+            using (var worker = mdpWorker ?? new MDPWorker (m_titanicAddress, TitanicOperation.Request.ToString ()))
             {
                 NetMQMessage reply = null;
 
@@ -211,6 +220,8 @@ namespace TitanicProtocol
                     // has there been a breaking cause? -> exit
                     if (ReferenceEquals (request, null))
                         break;
+
+                    //! check if service exists! and return 'Unknown' if not
 
                     // generate Guid for the request
                     var requestId = Guid.NewGuid ();
@@ -238,11 +249,11 @@ namespace TitanicProtocol
         ///     
         ///     <para>will send an OK, PENDING or UNKNOWN as result of the request for the reply</para>
         /// </summary>
-        internal void ProcessTitanicReply ()
+        internal void ProcessTitanicReply ([CanBeNull] IMDPWorker mdpWorker = null)
         {
             // get a MDP worker with an automatic id and register with the service "titanic.reply"
             // the worker will automatically start and connect to the indicated address
-            using (IMDPWorker worker = new MDPWorker (m_titanicAddress, TitanicOperation.Reply.ToString ()))
+            using (var worker = mdpWorker ?? new MDPWorker (m_titanicAddress, TitanicOperation.Reply.ToString ()))
             {
                 NetMQMessage reply = null;
 
@@ -265,8 +276,8 @@ namespace TitanicProtocol
                     {
                         Log (string.Format ("[TITANIC REPLY] reply for request exists: {0}", requestId));
 
-                        reply = m_io.GetMessage (TitanicOperation.Reply, requestId);        // [service][reply]
-                        reply.Push (TitanicReturnCode.Ok.ToString ());                          // ["OK"][service][reply]
+                        reply = m_io.GetMessage (TitanicOperation.Reply, requestId);    // [service][reply]
+                        reply.Push (TitanicReturnCode.Ok.ToString ());                  // ["OK"][service][reply]
                     }
                     else
                     {
@@ -288,14 +299,11 @@ namespace TitanicProtocol
         ///     an idempotent method processing all requests to close a request with a GUID
         ///     it is safe to call it multiple times with the same GUID
         /// </summary>
-        internal void ProcessTitanicClose ()
+        internal void ProcessTitanicClose ([CanBeNull]IMDPWorker mdpWorker = null)
         {
-            //! DEBUG ONLY
-            m_io.LogInfoReady += (s, e) => Console.WriteLine (e.Info);
-
             // get a MDP worker with an automatic id and register with the service "titanic.Close"
             // the worker will automatically start and connect to MDP Broker with the indicated address
-            using (IMDPWorker worker = new MDPWorker (m_titanicAddress, TitanicOperation.Close.ToString ()))
+            using (var worker = mdpWorker ?? new MDPWorker (m_titanicAddress, TitanicOperation.Close.ToString ()))
             {
                 NetMQMessage reply = null;
 
@@ -317,7 +325,6 @@ namespace TitanicProtocol
 
                     // close the request
                     m_io.CloseRequest (guid);
-
                     // send back the confirmation
                     reply = new NetMQMessage ();
                     reply.Push (TitanicReturnCode.Ok.ToString ());
@@ -329,9 +336,9 @@ namespace TitanicProtocol
         ///     dispatch the request with the specified GUID th the next available worker if any
         /// </summary>
         /// <param name="requestId">request's GUID</param>
-        /// <param name="titanicIO">providing the titanic io methods</param>
+        /// <param name="serviceClient">mdp client to handle mdp broker communication</param>
         /// <returns><c>true</c> if successfull <c>false</c> otherwise</returns>
-        internal bool DispatchRequests (Guid requestId, TitanicIO titanicIO)
+        internal bool DispatchRequests (Guid requestId, [CanBeNull] IMDPClient serviceClient = null)
         {
             // has the request already been processed? -> file does not exist
             // threat this as successfully processed
@@ -351,7 +358,7 @@ namespace TitanicProtocol
 
             Log (string.Format ("[TITANIC DISPATCH] Do a ServiceCall for {0} - {1}.", serviceName, request));
 
-            var reply = ServiceCall (serviceName, request);
+            var reply = ServiceCall (serviceName, request, serviceClient);
 
             if (reply == null)
                 return false;       // no reply
@@ -374,11 +381,14 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="serviceName">the service's name requested</param>
         /// <param name="request">request to process by worker</param>
+        /// <param name="serviceClient">mdp client handling the forwarding of requests 
+        ///             to service offering mdp worker via mdp broker and collecting 
+        ///             the replies from the mdp worker</param>
         /// <returns><c>true</c> if successfull and <c>false</c> otherwise</returns>
-        private NetMQMessage ServiceCall ([NotNull] string serviceName, [NotNull] NetMQMessage request)
+        private NetMQMessage ServiceCall ([NotNull] string serviceName, [NotNull] NetMQMessage request, [CanBeNull]IMDPClient serviceClient = null)
         {
             // create MDPClient session and send the request to MDPBroker
-            using (var session = new MDPClient (m_titanicAddress))
+            using (var session = serviceClient ?? new MDPClient (m_titanicAddress))
             {
                 session.Timeout = TimeSpan.FromMilliseconds (1000);     // 1s
                 session.Retries = 1;                                    // only 1 retry
@@ -403,6 +413,9 @@ namespace TitanicProtocol
                                     serviceName,
                                     answer,
                                     request));
+
+                //! shall this information be available for request? Unknown or Pending
+                //! so TitanicRequest could utilize this information 
 
                 return null;
             }
@@ -445,7 +458,7 @@ namespace TitanicProtocol
 
         private void Log ([NotNull] string info)
         {
-            OnLogInfoReady (new TitanicLogEventArgs { Info = info });
+            OnLogInfoReady (new TitanicLogEventArgs { Info = "[TITANIC BROKER]" + info });
         }
 
         protected virtual void OnLogInfoReady (TitanicLogEventArgs e)

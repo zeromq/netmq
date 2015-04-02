@@ -385,7 +385,7 @@ namespace TitanicProtocol
                 return null; // went wrong - why? I don't care!
 
             // we got a reply -> [return code][data]
-            var rc = reply.Pop ().ConvertToString ();       // [return code] <- [data]
+            var rc = reply.Pop ().ConvertToString ();       // [return code] <- [data] or [service name] if 'Unknown'
             var status = (TitanicReturnCode) Enum.Parse (typeof (TitanicReturnCode), rc);
 
             switch (status)
@@ -396,7 +396,7 @@ namespace TitanicProtocol
                     return new Tuple<NetMQMessage, TitanicReturnCode> (reply, TitanicReturnCode.Pending);
                 case TitanicReturnCode.Unknown:
                     Log ("ERROR: Service unknown!");
-                    return new Tuple<NetMQMessage, TitanicReturnCode> (null, TitanicReturnCode.Unknown);
+                    return new Tuple<NetMQMessage, TitanicReturnCode> (reply, TitanicReturnCode.Unknown);
                 default:
                     Log ("ERROR: FATAL ERROR ABANDONING!");
                     return new Tuple<NetMQMessage, TitanicReturnCode> (null, TitanicReturnCode.Failure);

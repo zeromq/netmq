@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ITitanicIO.cs" />
     <Compile Include="RequestEntry.cs" />
     <Compile Include="TitanicBroker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

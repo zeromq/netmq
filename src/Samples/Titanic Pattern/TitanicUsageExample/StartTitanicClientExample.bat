@@ -1,4 +1,6 @@
+@echo off
 start ..\..\Majordomo\MDPBrokerProcess\bin\Debug\MDPBrokerProcess.exe
 start TitanicBrokerProcess\bin\Debug\TitanicBrokerProcess.exe -v
 start TitanicWorkerExample\bin\Debug\TitanicWorkerExample.exe -v
-start TitanicClientExample\bin\Debug\TitanicClientExample.exe -n1
+set/p runs="How many messages shall be send? "
+start TitanicClientExample\bin\Debug\TitanicClientExample.exe -n%runs%

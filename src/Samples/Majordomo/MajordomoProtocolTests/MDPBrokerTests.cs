@@ -94,14 +94,14 @@ namespace MajordomoTests
                 // start broker session
                 broker.Run(cts.Token);
                 // start echo task
-                Task.Run(() => EchoWorker(workerSession), cts.Token);
+                Task.Run (() => new EchoWorker ().Run (workerSession), cts.Token);
                 // wait for everything to happen
                 await Task.Delay(500);
                 // cancel the tasks
                 cts.Cancel();
                 // check on the logging
-                Assert.That(log.Count, Is.EqualTo(3));
-                Assert.That(log[2], Is.StringContaining("added to service echo"));
+                Assert.That(log.Count, Is.EqualTo(2));
+                Assert.That(log[1], Is.StringContaining("added to service echo"));
             }
         }
 
@@ -121,14 +121,14 @@ namespace MajordomoTests
                 // start broker session
                 Task.Run(() => broker.RunSynchronous(cts.Token));
                 // start echo task
-                Task.Run(() => EchoWorker(workerSession), cts.Token);
+                Task.Run (() => new EchoWorker ().Run (workerSession), cts.Token);
                 // wait for everything to happen
                 Thread.Sleep(500);
                 // cancel the tasks
                 cts.Cancel();
                 // check on the logging
-                Assert.That(log.Count, Is.EqualTo(3));
-                Assert.That(log[2], Is.StringContaining("added to service echo"));
+                Assert.That(log.Count, Is.EqualTo(2));
+                Assert.That(log[1], Is.StringContaining("added to service echo"));
             }
         }
 
@@ -153,17 +153,19 @@ namespace MajordomoTests
                 // start broker session
                 broker.Run(cts.Token);
                 // start echo task
-                Task.Run(() => EchoWorker(worker1), cts.Token);
-                Task.Run(() => EchoWorker(worker2), cts.Token);
-                Task.Run(() => EchoWorker(worker3), cts.Token);
+                Task.Run(() => new EchoWorker().Run(worker1), cts.Token);
+                Task.Run (() => new EchoWorker ().Run (worker2), cts.Token);
+                Task.Run (() => new EchoWorker ().Run (worker3), cts.Token);
                 // wait for everything to happen
                 await Task.Delay(1000);
                 // cancel the tasks
                 cts.Cancel();
                 // check on the logging
-                Assert.That(log.Count, Is.EqualTo(7));
-                Assert.That(log.Count(s => s.Contains("Received Net")), Is.EqualTo(3));
+                Assert.That(log.Count, Is.EqualTo(4));
                 Assert.That(log.Count(s => s.Contains("READY processed")), Is.EqualTo(3));
+                Assert.That(log.Count(s=>s.Contains("W01")),Is.EqualTo(1));
+                Assert.That(log.Count(s=>s.Contains("W02")),Is.EqualTo(1));
+                Assert.That(log.Count(s=>s.Contains("W03")),Is.EqualTo(1));
             }
         }
 
@@ -188,7 +190,7 @@ namespace MajordomoTests
                 // start broker session
                 broker.Run(cts.Token);
                 // start echo task
-                Task.Run(() => EchoWorker(worker1), cts.Token);
+                Task.Run (() => new EchoWorker ().Run (worker1), cts.Token);
                 Task.Run(() => DoubleEchoWorker(worker2), cts.Token);
                 Task.Run(() => AddHelloWorker(worker3), cts.Token);
                 // wait for everything to happen
@@ -196,7 +198,7 @@ namespace MajordomoTests
                 // cancel the tasks
                 cts.Cancel();
                 // check on the logging
-                Assert.That(log.Count, Is.EqualTo(7));
+                Assert.That(log.Count, Is.EqualTo(4));
                 Assert.That(log.Count(s => s.Contains("service echo")), Is.EqualTo(1));
                 Assert.That(log.Count(s => s.Contains("service double echo")), Is.EqualTo(1));
                 Assert.That(log.Count(s => s.Contains("service add hello")), Is.EqualTo(1));
@@ -231,7 +233,7 @@ namespace MajordomoTests
                 // wait a little for broker to get started
                 await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run(() => EchoWorker(echoWorker, longHeartbeatInterval), cts.Token);
+                Task.Run (() => new EchoWorker ().Run (echoWorker, longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
                 await Task.Delay(250);
                 // get the task for simulating the client
@@ -243,12 +245,17 @@ namespace MajordomoTests
                 // cancel the broker
                 cts.Cancel();
 
-                Assert.That(log.Count, Is.EqualTo(7));
+                Assert.That(log.Count, Is.EqualTo(2));
+                Assert.That (log.Count (s => s.Contains ("Starting to listen for incoming messages")),Is.EqualTo(1));
                 Assert.That(log.Count(s => s.Contains("READY processed. Worker W1 added to service echo")), Is.EqualTo(1));
-                Assert.That(log.Count(s => s.Contains("Received")), Is.EqualTo(3));
-                Assert.That(log[4], Is.EqualTo("[MDP BROKER] Dispatching request -> NetMQMessage[C1,,Helo World!] to echo"));
-                Assert.That(log[6],
-                    Is.EqualTo("[MDP BROKER] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Helo World!]"));
+
+                if (debugLog.Count > 0)
+                {
+                    Assert.That (debugLog.Count, Is.EqualTo (16));
+                    Assert.That (debugLog.Count (s => s.Contains ("Received")), Is.EqualTo (3));
+                    Assert.That (debugLog.Contains("[MDP BROKER DEBUG] Dispatching -> NetMQMessage[C1,,Helo World!] to echo"));
+                    Assert.That (debugLog.Contains ("[MDP BROKER DEBUG] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Helo World!]"));
+                }
             }
         }
 
@@ -257,6 +264,7 @@ namespace MajordomoTests
         {
             const string endPoint = "tcp://localhost:5555";
             var log = new List<string>();
+            var debugLog = new List<string>();
 
             var idW01 = new[] { (byte)'W', (byte)'1' };
             var idW02 = new[] { (byte)'W', (byte)'2' };
@@ -280,13 +288,13 @@ namespace MajordomoTests
                 // collect all logging information from broker
                 broker.LogInfoReady += (s, e) => log.Add(e.Info);
                 // follow more details
-                //broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
+                broker.DebugInfoReady += (s, e) => debugLog.Add (e.Info);
                 // start broker session
                 broker.Run(cts.Token);
                 // wait a little for broker to get started
                 await Task.Delay(250);
                 // get the task for simulating the worker & start it
-                Task.Run(() => EchoWorker(worker01, longHeartbeatInterval), cts.Token);
+                Task.Run (() => new EchoWorker ().Run (worker01, longHeartbeatInterval), cts.Token);
                 Task.Run(() => DoubleEchoWorker(worker02, longHeartbeatInterval), cts.Token);
                 Task.Run(() => AddHelloWorker(worker03, longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
@@ -304,10 +312,21 @@ namespace MajordomoTests
                 // cancel the broker
                 cts.Cancel();
 
-                Assert.That(log.Count, Is.EqualTo(19));
+                Assert.That(log.Count, Is.EqualTo(4));
                 Assert.That(log.Count(s => s.Contains("READY")), Is.EqualTo(3));
-                Assert.That(log.Count(s => s.Contains("REPLY")), Is.EqualTo(3));
-                Assert.That(log.Count(s => s.Contains("Dispatching")), Is.EqualTo(3));
+
+                if (debugLog.Count > 0)
+                {
+                    Assert.That(debugLog.Count (s=>s.Contains("Received: NetMQMessage[W1")),Is.GreaterThanOrEqualTo(1));
+                    Assert.That (debugLog.Count (s => s.Contains ("Received: NetMQMessage[W2")), Is.GreaterThanOrEqualTo (1));
+                    Assert.That (debugLog.Count (s => s.Contains ("Received: NetMQMessage[W3")), Is.GreaterThanOrEqualTo (1));
+                    Assert.That (debugLog.Count (s => s.Contains ("Dispatching -> NetMQMessage[C1")), Is.GreaterThanOrEqualTo (1));
+                    Assert.That (debugLog.Count (s => s.Contains ("Dispatching -> NetMQMessage[C2")), Is.GreaterThanOrEqualTo (1));
+                    Assert.That (debugLog.Count (s => s.Contains ("Dispatching -> NetMQMessage[C3")), Is.GreaterThanOrEqualTo (1));
+                    Assert.That (debugLog.Count (s => s.Contains ("REPLY from W1")), Is.EqualTo (1));
+                    Assert.That (debugLog.Count (s => s.Contains ("REPLY from W2")), Is.EqualTo (1));
+                    Assert.That (debugLog.Count (s => s.Contains ("REPLY from W3")), Is.EqualTo (1));
+                }
             }
         }
 
@@ -589,18 +608,6 @@ namespace MajordomoTests
 
         // ======================= HELPER =========================
 
-        private void EchoWorker(IMDPWorker worker, int heartbeatinterval = 2500)
-        {
-            worker.HeartbeatDelay = TimeSpan.FromMilliseconds(heartbeatinterval);
-            // send the reply and wait for a request
-            var request = worker.Receive(null);
-            // was the worker interrupted
-            Assert.That(request, Is.Not.Null);
-            // echo the request and wait for next request which will not come
-            // here the task will be canceled
-            var newrequest = worker.Receive(request);
-        }
-
         private void EchoClient(IMDPClient client, string serviceName)
         {
             var request = new NetMQMessage();
@@ -716,6 +723,21 @@ namespace MajordomoTests
             Assert.That(reply, Is.Not.Null, "[ADD HELLO CLIENT] REPLY was <null>");
             Assert.That(reply.FrameCount, Is.EqualTo(1));
             Assert.That(reply.First.ConvertToString(), Is.EqualTo(_PAYLOAD + " - HELLO"));
+        }
+
+        class EchoWorker
+        {
+            public void Run (IMDPWorker worker, int heartbeatinterval = 2500)
+            {
+                worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
+                // send the reply and wait for a request
+                var request = worker.Receive (null);
+                // was the worker interrupted
+                Assert.That (request, Is.Not.Null);
+                // echo the request and wait for next request which will not come
+                // here the task will be canceled
+                var newrequest = worker.Receive (request);
+            }
         }
     }
 }

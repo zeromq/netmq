@@ -1,4 +1,5 @@
 ﻿using System;
+using MajordomoProtocol.Contracts;
 
 namespace TitanicCommons
 {
@@ -58,13 +59,23 @@ namespace TitanicCommons
 
         /// <summary>
         ///     starts the processing of TITANIC Broker
+        ///     take optionally three workers for each main function of TitanicBroker
         /// </summary>
+        /// <param name="requestWorker">MDP worker for processing requests</param>
+        /// <param name="replyWorker">MDP worker for processing replies</param>
+        /// <param name="closeWorker">MDP worker for processing close requests</param>
+        /// <param name="serviceCallClient">MDP client to generate requests to MDP Broker for processing</param>
         /// <remarks>
         ///     <para>it creates three thread as MDP workers.</para>
         ///     <para>those are registering with a MDPBroker at a given IP address
         ///     for processing REQUEST, REPLY and Close requests send via MDP clients.</para>
+        ///     <para>A mdp client is used to forward the requests made to titanic to the correct
+        ///     service providing mdp worker and collect that's reply</para>
         ///     <para>the titanic commands are defined in TitanicCommons as TitanicOperation</para>
         /// </remarks>
-        void Run ();
+        void Run (IMDPWorker requestWorker = null,
+                  IMDPWorker replyWorker = null,
+                  IMDPWorker closeWorker = null,
+                  IMDPClient serviceCallClient = null);
     }
 }

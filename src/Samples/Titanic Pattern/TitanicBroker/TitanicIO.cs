@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
@@ -22,7 +21,7 @@ namespace TitanicProtocol
     ///     if it already exists it is assumed that this is a restart after
     ///     a crash and all information are deemed to be valid
     /// </summary>
-    internal class TitanicIO
+    internal class TitanicIO : ITitanicIO
     {
         private const string _titanic_dir = ".titanic";
         private const string _titanic_queue = "titanic.queue";
@@ -186,23 +185,6 @@ namespace TitanicProtocol
         }
 
         /// <summary>
-        ///     mark a request entry identified by the specified GUID as closed
-        ///     and purge queue if necessary
-        /// </summary>
-        /// <param name="id">the GUID of the request to close</param>
-        public void CloseRequest (Guid id)
-        {
-            if (id == Guid.Empty)
-                return;
-
-            CloseMessage (id);
-
-            m_deleteCycles++;
-
-            MarkRequestClosed (id);
-        }
-
-        /// <summary>
         ///     save a new request under a GUID
         /// </summary>
         /// <param name="id">the id of the request</param>
@@ -221,6 +203,23 @@ namespace TitanicProtocol
             entry.State = RequestEntry.Is_Processed;
 
             SaveRequestEntry (entry);
+        }
+
+        /// <summary>
+        ///     mark a request entry identified by the specified GUID as closed
+        ///     and purge queue if necessary
+        /// </summary>
+        /// <param name="id">the GUID of the request to close</param>
+        public void CloseRequest (Guid id)
+        {
+            if (id == Guid.Empty)
+                return;
+
+            CloseMessage (id);
+
+            m_deleteCycles++;
+
+            MarkRequestClosed (id);
         }
 
         #endregion
@@ -335,11 +334,15 @@ namespace TitanicProtocol
             return File.Exists (filename);
         }
 
+        #endregion
+
+        #region Helper Methods
+
         /// <summary>
         ///     delete message with a specific GUID
         /// </summary>
         /// <param name="id">the GUID of the request/reply to delete</param>
-        public void CloseMessage (Guid id)
+        private void CloseMessage (Guid id)
         {
             if (id == Guid.Empty)
                 return;
@@ -350,10 +353,6 @@ namespace TitanicProtocol
             File.Delete (reqFile);
             File.Delete (replyFile);
         }
-
-        #endregion
-
-        #region Helper Methods
 
         /// <summary>
         ///     reads all request entries available
