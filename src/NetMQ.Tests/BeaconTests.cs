@@ -74,7 +74,7 @@ namespace NetMQ.Tests
 
                 // this should send one broadcast message and stop
                 speaker.Publish("Hello", s_publishInterval);
-
+                Thread.Sleep(10);
                 listener.Unsubscribe();
 
                 string peerName;
