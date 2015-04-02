@@ -23,90 +23,89 @@ using System.Diagnostics;
 
 namespace NetMQ.Core.Utils
 {
-    /// <summary>
-    /// The Clock class provides properties for getting timer-counts in either milliseconds or microseconds,
-    /// and the CPU's timestamp-counter if available.
-    /// </summary>
-    internal static class Clock
-    {
-        /// <summary>
-        /// TSC timestamp of when last time measurement was made.
-        /// </summary>
-        private static long s_lastTsc;
+	/// <summary>
+	/// The Clock class provides properties for getting timer-counts in either milliseconds or microseconds,
+	/// and the CPU's timestamp-counter if available.
+	/// </summary>
+	internal static class Clock
+	{
+		/// <summary>
+		/// TSC timestamp of when last time measurement was made.
+		/// </summary>
+		private static long s_lastTsc;
 
-        /// <summary>
-        /// Physical time corresponding to the TSC above (in milliseconds).
-        /// </summary>
-        private static long s_lastTime;
+		/// <summary>
+		/// Physical time corresponding to the TSC above (in milliseconds).
+		/// </summary>
+		private static long s_lastTime;
 
-        /// <summary>
-        /// This flag indicates whether the rdtsc instruction is supported on this platform.
-        /// </summary>
-        private static readonly bool s_rdtscSupported;
+		/// <summary>
+		/// This flag indicates whether the rdtsc instruction is supported on this platform.
+		/// </summary>
+		private static readonly bool s_rdtscSupported;
 
-        static Clock()
-        {
-            try
-            {
-                if (Environment.OSVersion.Platform == PlatformID.Win32NT ||
-                    Environment.OSVersion.Platform == PlatformID.Unix ||
-                    Environment.OSVersion.Platform == (PlatformID)128)
-                {
-                    Opcode.Open();
-                    s_rdtscSupported = true;
-                }
-                else
-                {
-                    s_rdtscSupported = false;
-                }
-            }
-            catch (Exception)
-            {
-                s_rdtscSupported = false;
-            }
-        }
+		static Clock()
+		{
+			try
+			{
+				if (Environment.OSVersion.Platform == PlatformID.Win32NT ||
+					Environment.OSVersion.Platform == PlatformID.Unix ||
+					Environment.OSVersion.Platform == (PlatformID)128)
+				{
+					s_rdtscSupported = Opcode.Open();
+				}
+				else
+				{
+					s_rdtscSupported = false;
+				}
+			}
+			catch (Exception)
+			{
+				s_rdtscSupported = false;
+			}
+		}
 
-        /// <summary>
-        /// Return the High-Precision timestamp, as a 64-bit integer that denotes microseconds.
-        /// </summary>
-        public static long NowUs()
-        {
-            long ticksPerSecond = Stopwatch.Frequency;
-            long tickCount = Stopwatch.GetTimestamp();
+		/// <summary>
+		/// Return the High-Precision timestamp, as a 64-bit integer that denotes microseconds.
+		/// </summary>
+		public static long NowUs()
+		{
+			long ticksPerSecond = Stopwatch.Frequency;
+			long tickCount = Stopwatch.GetTimestamp();
 
-            double ticksPerMicrosecond = ticksPerSecond / 1000000.0;
-            return (long)(tickCount / ticksPerMicrosecond);
-        }
+			double ticksPerMicrosecond = ticksPerSecond / 1000000.0;
+			return (long)(tickCount / ticksPerMicrosecond);
+		}
 
-        /// <summary>
-        /// Return the Low-Precision timestamp, as a 64-bit integer denoting milliseconds.
-        /// In tight loops generating it can be 10 to 100 times faster than the High-Precision timestamp.
-        /// </summary>
-        public static long NowMs()
-        {
-            long tsc = Rdtsc();
+		/// <summary>
+		/// Return the Low-Precision timestamp, as a 64-bit integer denoting milliseconds.
+		/// In tight loops generating it can be 10 to 100 times faster than the High-Precision timestamp.
+		/// </summary>
+		public static long NowMs()
+		{
+			long tsc = Rdtsc();
 
-            if (tsc == 0)
-            {
-                return NowUs() / 1000;
-            }
+			if (tsc == 0)
+			{
+				return NowUs() / 1000;
+			}
 
-            if (tsc - s_lastTsc <= Config.ClockPrecision / 2 && tsc >= s_lastTsc)
-            {
-                return s_lastTime;
-            }
+			if (tsc - s_lastTsc <= Config.ClockPrecision / 2 && tsc >= s_lastTsc)
+			{
+				return s_lastTime;
+			}
 
-            s_lastTsc = tsc;
-            s_lastTime = NowUs() / 1000;
-            return s_lastTime;
-        }
+			s_lastTsc = tsc;
+			s_lastTime = NowUs() / 1000;
+			return s_lastTime;
+		}
 
-        /// <summary>
-        /// Return the CPU's timestamp counter, or 0 if it's not available.
-        /// </summary>
-        public static long Rdtsc()
-        {
-            return s_rdtscSupported ? (long)Opcode.Rdtsc() : 0;
-        }
-    }
+		/// <summary>
+		/// Return the CPU's timestamp counter, or 0 if it's not available.
+		/// </summary>
+		public static long Rdtsc()
+		{
+			return s_rdtscSupported ? (long)Opcode.Rdtsc() : 0;
+		}
+	}
 }
