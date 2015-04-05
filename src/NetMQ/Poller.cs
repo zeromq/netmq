@@ -490,7 +490,23 @@ namespace NetMQ
                     var pollStart = Clock.NowMs();
                     var timeout = TicklessTimer();
 
-                    var isItemsAvailable = m_selector.Select(m_pollset, m_pollSize, timeout);
+                    var isItemsAvailable = false;
+
+                    if (m_pollSize > 0)
+                    {
+                        isItemsAvailable = m_selector.Select(m_pollset, m_pollSize, timeout);
+                    }
+                    else
+                    {
+                        // Don't pass anything less than 0 to sleep or risk an out of range exception or worse - infinity. Do not sleep on 0 from orginal code.
+                        if (timeout > 0)
+                        {
+                            //TODO: Do we really want to simply sleep and return, doing nothing during this interval?
+                            //TODO: Should a large value be passed it will sleep for a month literaly.
+                            //      Solution should be different, but sleep is more natural here than in selector (timers are not selector concern).
+                            Thread.Sleep(timeout);
+                        }
+                    }
 
                     // Get the expected end time in case we time out. This looks redundant but, unfortunately,
                     // it happens that Poll takes slightly less than the requested time and 'Clock.NowMs() >= timer.When'
@@ -628,7 +644,7 @@ namespace NetMQ
         }
 
         #region Dispose
-        
+
         /// <summary>
         /// Perform any freeing, releasing or resetting of contained resources.
         /// If this poller is already started, signal the polling thread to stop - and block to wait for it.

@@ -52,18 +52,13 @@ namespace NetMQ.Core.Utils
         /// <exception cref="FaultException">The internal select operation failed.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="items"/> is <c>null</c>.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public bool Select([NotNull] SelectItem[] items, int itemsCount, int timeout)
+        public bool Select([NotNull] SelectItem[] items, int itemsCount, long timeout)
         {
             if (items == null)
                 throw new ArgumentNullException("items");
 
             if (itemsCount == 0)
             {
-                if (timeout == 0)
-                    return false;
-
-                //TODO:  Do we really want to simply sleep and return, doing nothing during this interval?
-                Thread.Sleep(timeout);
                 return false;
             }
 
@@ -74,22 +69,29 @@ namespace NetMQ.Core.Utils
 
             while (true)
             {
-                int currentTimeoutMicroSeconds;
+                long currentTimeoutMicroSeconds;
 
                 if (firstPass)
                 {
                     currentTimeoutMicroSeconds = 0;
                 }
-                else if (timeout == -1)
+                else if (timeout < 0)
                 {
+                    // Consider everything below 0 to be infinite
                     currentTimeoutMicroSeconds = -1;
                 }
                 else
                 {
-                    currentTimeoutMicroSeconds = (int)((timeout - stopwatch.ElapsedMilliseconds) * 1000);
+                    currentTimeoutMicroSeconds = (timeout - stopwatch.ElapsedMilliseconds) * 1000;
 
                     if (currentTimeoutMicroSeconds < 0)
+                    {
                         currentTimeoutMicroSeconds = 0;
+                    }
+                    else if (currentTimeoutMicroSeconds > Int32.MaxValue)
+                    {
+                        currentTimeoutMicroSeconds = Int32.MaxValue;
+                    }
                 }
 
                 m_checkRead.Clear();
@@ -117,7 +119,7 @@ namespace NetMQ.Core.Utils
 
                 try
                 {
-                    SocketUtility.Select(m_checkRead, m_checkWrite, m_checkError, currentTimeoutMicroSeconds);
+                    SocketUtility.Select(m_checkRead, m_checkWrite, m_checkError, (int)currentTimeoutMicroSeconds);
                 }
                 catch (SocketException x)
                 {
@@ -183,7 +185,8 @@ namespace NetMQ.Core.Utils
                     continue;
                 }
 
-                if (stopwatch.ElapsedMilliseconds > timeout)
+                // Check also equality as it might frequently occur on 1000Hz clock
+                if (stopwatch.ElapsedMilliseconds >= timeout)
                     break;
             }
 
