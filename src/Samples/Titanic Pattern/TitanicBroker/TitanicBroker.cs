@@ -119,7 +119,6 @@ namespace TitanicProtocol
 
         /// <summary>
         ///     <para>is the main thread of the broker</para>
-        /// 
         ///     <para>it spawns threads handling titanic operations</para>
         ///     <para>it receives GUID from Titanic Request Service and dispatches the requests 
         ///     to available workers via MDPBroker</para>
@@ -130,6 +129,11 @@ namespace TitanicProtocol
         /// <param name="closeWorker">mdp worker processing incoming close requests</param>
         /// <param name="serviceCallClient">mdp client forwarding requests to service providing mdp worker
         ///                                 via mdp broker and collecting replies</param>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
+        /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener encountered an
+        ///                                  error during initialization.</exception>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         public void Run ([CanBeNull] IMDPWorker requestWorker = null,
                          [CanBeNull] IMDPWorker replyWorker = null,
                          [CanBeNull] IMDPWorker closeWorker = null,
@@ -175,10 +179,10 @@ namespace TitanicProtocol
                     //! now dispatch (brute force) the requests -> SHOULD BE MORE INTELLIGENT (!)
                     // dispatching will also worry about the handling of a potential reply
                     // dispatch only requests which have not been closed
-                    foreach (var entry in m_io.GetRequestEntries (e => e.State != RequestEntry.Is_Closed)
-                                              .Where (entry => DispatchRequests (entry.RequestId, serviceCallClient)))
+                    foreach (var entry in m_io.GetNotClosedRequestEntries ().Where (entry => entry != default (RequestEntry)))
                     {
-                        m_io.SaveProcessedRequestEntry (entry);
+                        if (DispatchRequests (entry.RequestId, serviceCallClient))
+                            m_io.SaveProcessedRequestEntry (entry);
                     }
 
                     //! should implement some sort of restart

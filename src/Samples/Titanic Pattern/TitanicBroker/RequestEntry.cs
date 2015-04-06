@@ -1,4 +1,5 @@
 ﻿using System;
+using NetMQ;
 
 namespace TitanicProtocol
 {
@@ -24,6 +25,11 @@ namespace TitanicProtocol
         public long Position { get; set; }
 
         /// <summary>
+        ///     the request made - only if needed
+        /// </summary>
+        public NetMQMessage Request { get; set; }
+
+        /// <summary>
         ///     true if the request has been processed and false otherwise
         ///     <para>+ -> processed</para>
         ///     <para>- -> pending</para>
@@ -39,7 +45,7 @@ namespace TitanicProtocol
         public override string ToString ()
         {
             var status = State == Is_Processed ? "processed" : State == Is_Pending ? "pending" : "closed";
-            return String.Format ("Id={0} / Position={1} / IsProcessed={2}", RequestId, Position, status);
+            return string.Format ("Id={0} / Position={1} / IsProcessed={2}", RequestId, Position, status);
         }
 
         public override int GetHashCode ()

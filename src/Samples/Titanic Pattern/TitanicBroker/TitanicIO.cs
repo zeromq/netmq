@@ -14,8 +14,9 @@ using TitanicCommons;
 namespace TitanicProtocol
 {
     /// <summary>
-    ///     this static class handles the I/O for TITANIC
-    ///     if allows to transparently write, read, find and delete entries
+    ///     this class handles the I/O for TITANIC
+    ///     if allows to transparently write, read, find and delete entries 
+    ///     to a file in a standard or specified directory
     /// 
     ///     it creates it own infrastructure only if it does not exist
     ///     if it already exists it is assumed that this is a restart after
