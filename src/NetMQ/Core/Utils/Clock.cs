@@ -52,8 +52,7 @@ namespace NetMQ.Core.Utils
                     Environment.OSVersion.Platform == PlatformID.Unix ||
                     Environment.OSVersion.Platform == (PlatformID)128)
                 {
-                    Opcode.Open();
-                    s_rdtscSupported = true;
+                    s_rdtscSupported = Opcode.Open();
                 }
                 else
                 {

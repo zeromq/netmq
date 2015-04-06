@@ -887,14 +887,14 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">the <c>Msg</c> to read the received message into</param>
         /// <remarks>
-        /// This calls <c>Recv(Msg, TimeSpan)</c> with a TimeSpan value of <c>TimeSpan.MinValue</c>.
+        /// This calls <c>Recv(Msg, TimeSpan)</c> with a TimeSpan value of -1 (ms).
         /// </remarks>
         /// <exception cref="AgainException">if there is no message ready to be received, this exception is thrown if DontWait is set or no receive-timeout is specified</exception>
         /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
         /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
         public void Recv(ref Msg msg)
         {
-            var res = Recv(ref msg, TimeSpan.MinValue);
+            var res = Recv(ref msg, TimeSpan.FromMilliseconds(-1));
 
             Debug.Assert(res);
         }
