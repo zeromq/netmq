@@ -22,7 +22,7 @@ namespace TitanicProtocol
     ///     if it already exists it is assumed that this is a restart after
     ///     a crash and all information are deemed to be valid
     /// </summary>
-    internal class TitanicIO : ITitanicIO
+    internal class TitanicFileIO : ITitanicIO
     {
         private const string _titanic_dir = ".titanic";
         private const string _titanic_queue = "titanic.queue";
@@ -69,7 +69,7 @@ namespace TitanicProtocol
         ///     titanic queue = 'app dir'\titanic.queue
         ///     purge threshold = 10,000 -> 170,000 bytes
         /// </summary>
-        public TitanicIO ()
+        public TitanicFileIO ()
         {
             m_appDir = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_dir);
             m_titanicQueue = Path.Combine (m_appDir, _titanic_queue);
@@ -81,7 +81,7 @@ namespace TitanicProtocol
         ///     ctor - creation with all standard values
         /// </summary>
         /// <param name="path">root path to titanic files, if empty or whitespace standards are used</param>
-        public TitanicIO ([NotNull] string path)
+        public TitanicFileIO ([NotNull] string path)
             : this ()
         {
             if (string.IsNullOrWhiteSpace (path))
@@ -98,7 +98,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="path">root path to titanic files</param>
         /// <param name="threshold">max delete cycles before compressing files</param>
-        public TitanicIO ([NotNull] string path, int threshold)
+        public TitanicFileIO ([NotNull] string path, int threshold)
             : this ()
         {
             if (!string.IsNullOrWhiteSpace (path))
@@ -149,9 +149,7 @@ namespace TitanicProtocol
             {
                 using (var file = File.Open (m_titanicQueue, FileMode.Open, FileAccess.ReadWrite))
                 {
-                    return predicate == null
-                               ? ReadRequestEntries (file).ToArray ()
-                               : ReadRequestEntries (file).Where (predicate).ToArray ();
+                    return ReadRequestEntries (file).Where (predicate).ToArray ();
                 }
             }
         }
@@ -192,6 +190,21 @@ namespace TitanicProtocol
         public void SaveNewRequestEntry (Guid id)
         {
             var entry = new RequestEntry () { RequestId = id, Position = -1, State = RequestEntry.Is_Pending };
+            SaveRequestEntry (entry);
+        }
+
+        /// <summary>
+        ///     save a new request under a GUID and saves the request data as well
+        /// </summary>
+        /// <param name="id">the id of the request</param>
+        /// <param name="request">the request data to save</param>
+        public void SaveNewRequestEntry (Guid id, NetMQMessage request)
+        {
+            // save the request data to file first and then
+            SaveMessage (TitanicOperation.Request, id, request);
+            // create the appropriate entry and
+            var entry = new RequestEntry () { RequestId = id, Position = -1, State = RequestEntry.Is_Pending };
+            // save the request to queue
             SaveRequestEntry (entry);
         }
 
@@ -325,7 +338,7 @@ namespace TitanicProtocol
         ///         true if it exists and false otherwise and if 'op' is not one 
         ///         of the aforementioned
         /// </returns>
-        public bool Exists (TitanicOperation op, Guid id)
+        public bool ExistsMessage (TitanicOperation op, Guid id)
         {
             if (op == TitanicOperation.Close)
                 return false;

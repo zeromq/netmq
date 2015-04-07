@@ -57,8 +57,9 @@
     <Compile Include="TitanicBrokerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TitanicClientTests.cs" />
-    <Compile Include="TitanicIOTests.cs" />
+    <Compile Include="TitanicFileIOTests.cs" />
     <Compile Include="TestEntities\MDPTestClient.cs" />
+    <Compile Include="TitanicMemoryIOTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

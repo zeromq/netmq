@@ -7,13 +7,12 @@ using NUnit.Framework;
 
 using NetMQ;
 
-using TitanicCommons;
 using TitanicProtocol;
 
 namespace TitanicProtocolTests
 {
     [TestFixture]
-    public class TitanicIOTests
+    public class TitanicFileIOTests
     {
         private const string _request_ending = ".request";
         private const string _reply_ending = ".reply";
@@ -21,7 +20,7 @@ namespace TitanicProtocolTests
         [Test]
         public void SetConfig_ValidPath_ShouldCreateDirectoryAndFile ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var expectedDirectory = sut.TitanicDirectory;
             var expectedFile = sut.TitanicQueue;
@@ -38,7 +37,7 @@ namespace TitanicProtocolTests
         [Test]
         public void SaveMessage_RequestMessage_ShouldCreateNewFileWithGuidAsName ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var message = new NetMQMessage ();
             message.Push ("Hello World");
@@ -65,7 +64,7 @@ namespace TitanicProtocolTests
         [Test]
         public void SaveMessage_ReplyMessage_SholdCreateNewFileWithGuidAsName ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var message = new NetMQMessage ();
             message.Push ("Hello World");
@@ -92,7 +91,7 @@ namespace TitanicProtocolTests
         [Test]
         public void RetrieveMessage_RequestMessage_ShouldReturnOriginalMessage ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var message = new NetMQMessage ();
             message.Push ("Hello World");
@@ -118,7 +117,7 @@ namespace TitanicProtocolTests
         [Test]
         public void RetrieveMessage_ReplyMessage_ShouldReturnOriginalMessage ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var message = new NetMQMessage ();
             message.Push ("Hello World");
@@ -144,7 +143,7 @@ namespace TitanicProtocolTests
         [Test]
         public void Exists_ExistingRequest_ShouldReturnTrue ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             const TitanicOperation op = TitanicOperation.Request;
 
@@ -156,7 +155,7 @@ namespace TitanicProtocolTests
 
             sut.SaveMessage (op, id, message);
 
-            sut.Exists (op, id).Should ().BeTrue ("because it has been created.");
+            sut.ExistsMessage (op, id).Should ().BeTrue ("because it has been created.");
 
             var expectedDir = sut.TitanicDirectory;
             var expectedFile = Path.Combine (expectedDir, id + _request_ending);
@@ -167,7 +166,7 @@ namespace TitanicProtocolTests
         [Test]
         public void Exists_ExistingReply_ShouldReturnTrue ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             const TitanicOperation op = TitanicOperation.Reply;
 
@@ -179,7 +178,7 @@ namespace TitanicProtocolTests
 
             sut.SaveMessage (op, id, message);
 
-            sut.Exists (op, id).Should ().BeTrue ("because it has been created.");
+            sut.ExistsMessage (op, id).Should ().BeTrue ("because it has been created.");
 
             var expectedDir = sut.TitanicDirectory;
             var expectedFile = Path.Combine (expectedDir, id + _reply_ending);
@@ -190,27 +189,27 @@ namespace TitanicProtocolTests
         [Test]
         public void Exists_NonExistingRequest_ShouldReturnFalse ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var id = Guid.NewGuid ();
 
-            sut.Exists (TitanicOperation.Request, id).Should ().BeFalse ("because it has never been created.");
+            sut.ExistsMessage (TitanicOperation.Request, id).Should ().BeFalse ("because it has never been created.");
         }
 
         [Test]
         public void Exists_NonExistingReply_ShouldReturnFalse ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var id = Guid.NewGuid ();
 
-            sut.Exists (TitanicOperation.Reply, id).Should ().BeFalse ("because it has never been created.");
+            sut.ExistsMessage (TitanicOperation.Reply, id).Should ().BeFalse ("because it has never been created.");
         }
 
         [Test]
         public void SaveNewRequest_ValidId_ShouldAddRequestMarkedAsNew ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var id = Guid.NewGuid ();
 
@@ -229,7 +228,7 @@ namespace TitanicProtocolTests
         [Test]
         public void SaveNewRequest_NonExistingId_ShouldReturnEmpty ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             var titanicQueue = sut.TitanicQueue;
 
@@ -242,7 +241,7 @@ namespace TitanicProtocolTests
         [Test]
         public void SaveNewRequest_MultipleValidIds_ShouldAddAllRequestMarkedAsNew ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             for (var i = 0; i < 10; i++)
                 sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> to titanic.queue
@@ -259,7 +258,7 @@ namespace TitanicProtocolTests
         [Test]
         public void SaveProcessedRequest_NonProcessedRequest_ShouldMarkRequestAppropriately ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             for (var i = 0; i < 10; i++)
                 sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
@@ -282,7 +281,7 @@ namespace TitanicProtocolTests
         [Test]
         public void FindRequest_ExistingRequest_ShouldReturnCorrectRequestEntry ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             for (var i = 0; i < 10; i++)
                 sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
@@ -300,7 +299,7 @@ namespace TitanicProtocolTests
         [Test]
         public void FindRequest_NonExistingRequest_ShouldReturnCorrectRequestEntry ()
         {
-            var sut = new TitanicIO (Path.GetTempPath ());
+            var sut = new TitanicFileIO (Path.GetTempPath ());
 
             for (var i = 0; i < 10; i++)
                 sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
@@ -315,7 +314,7 @@ namespace TitanicProtocolTests
         public void CloseRequest_ProcessedRequest_ShouldMarkRequestAppropriate ()
         {
             var path = Path.Combine (Path.GetTempPath (), ".titanic", "Close_1");
-            var sut = new TitanicIO (path);
+            var sut = new TitanicFileIO (path);
 
             for (var i = 0; i < 10; i++)
                 sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
@@ -342,7 +341,7 @@ namespace TitanicProtocolTests
             const int max_entries = 20;
             var path = Path.Combine (Path.GetTempPath (), ".titanic", "Close_2");
 
-            var sut = new TitanicIO (path, max_entries);
+            var sut = new TitanicFileIO (path, max_entries);
 
             for (var i = 0; i < max_entries; i++)
                 sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
@@ -366,7 +365,7 @@ namespace TitanicProtocolTests
             const int max_entries = 20;
             var path = Path.Combine (Path.GetTempPath (), ".titanic", "Close_3");
 
-            var sut = new TitanicIO (path, max_entries);
+            var sut = new TitanicFileIO (path, max_entries);
 
             for (var i = 0; i < max_entries + additional_requests; i++)
                 sut.SaveNewRequestEntry (Guid.NewGuid ()); // -> fill titanic.queue
@@ -392,7 +391,7 @@ namespace TitanicProtocolTests
             const int additional_requests = 5;
             var path = Path.Combine (Path.GetTempPath (), ".titanic", "Close_4");
 
-            var sut = new TitanicIO (path, max_entries);
+            var sut = new TitanicFileIO (path, max_entries);
 
             var titanicQueue = sut.TitanicQueue;
 

@@ -90,7 +90,7 @@ namespace TitanicProtocol
         {
             m_titanicDirectory = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory);
             m_titanicAddress = "tcp://localhost:5555";
-            m_io = titanicIO ?? new TitanicIO (m_titanicDirectory);
+            m_io = titanicIO ?? new TitanicFileIO (m_titanicDirectory);
         }
 
         /// <summary>
@@ -276,7 +276,7 @@ namespace TitanicProtocol
                     var requestIdAsString = request.Pop ().ConvertToString ();
                     var requestId = Guid.Parse (requestIdAsString);
 
-                    if (m_io.Exists (TitanicOperation.Reply, requestId))
+                    if (m_io.ExistsMessage (TitanicOperation.Reply, requestId))
                     {
                         Log (string.Format ("[TITANIC REPLY] reply for request exists: {0}", requestId));
 
@@ -287,7 +287,7 @@ namespace TitanicProtocol
                     {
                         reply = new NetMQMessage ();
 
-                        var replyCommand = (m_io.Exists (TitanicOperation.Request, requestId)
+                        var replyCommand = (m_io.ExistsMessage (TitanicOperation.Request, requestId)
                                                 ? TitanicReturnCode.Pending
                                                 : TitanicReturnCode.Unknown);
 
@@ -346,7 +346,7 @@ namespace TitanicProtocol
         {
             // has the request already been processed? -> file does not exist
             // threat this as successfully processed
-            if (!m_io.Exists (TitanicOperation.Request, requestId))
+            if (!m_io.ExistsMessage (TitanicOperation.Request, requestId))
             {
                 Log (string.Format ("[TITANIC DISPATCH] Request {0} does not exist. Removing it from queue.", requestId));
                 // close request inorder to avoid any further processing

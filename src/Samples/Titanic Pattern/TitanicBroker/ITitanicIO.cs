@@ -15,19 +15,21 @@ namespace TitanicProtocol
         event EventHandler<TitanicLogEventArgs> LogInfoReady;
 
         string TitanicDirectory { get; }
-        string TitanicQueue { get;  }
+        string TitanicQueue { get; }
 
         // ====== RequestEntry handling
 
         RequestEntry GetRequestEntry (Guid id);
 
-        IEnumerable<RequestEntry> GetRequestEntries (Func<RequestEntry, bool> predicate);
+        IEnumerable<RequestEntry> GetRequestEntries ([NotNull] Func<RequestEntry, bool> predicate);
 
         IEnumerable<RequestEntry> GetNotClosedRequestEntries ();
 
         void SaveRequestEntry ([NotNull] RequestEntry entry);
 
         void SaveNewRequestEntry (Guid id);
+
+        void SaveNewRequestEntry (Guid id, [NotNull] NetMQMessage request);
 
         void SaveProcessedRequestEntry ([NotNull] RequestEntry entry);
 
@@ -43,6 +45,6 @@ namespace TitanicProtocol
 
         Task<bool> SaveMessageAsync (TitanicOperation op, Guid id, [NotNull] NetMQMessage message);
 
-        bool Exists (TitanicOperation op, Guid id);
+        bool ExistsMessage (TitanicOperation op, Guid id);
     }
 }

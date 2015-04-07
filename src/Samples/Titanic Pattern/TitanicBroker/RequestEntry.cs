@@ -10,8 +10,17 @@ namespace TitanicProtocol
     {
         private byte m_state;
         // introduced strictly for readability (!)
+        /// <summary>
+        ///     '+' indicates the request has been processed
+        /// </summary>
         public static readonly byte Is_Processed = (byte) '+';
+        /// <summary>
+        ///     '-' indicates the request is pending
+        /// </summary>
         public static readonly byte Is_Pending = (byte) '-';
+        /// <summary>
+        ///     'o' indicates the request has been closed
+        /// </summary>
         public static readonly byte Is_Closed = (byte) 'o';
 
         /// <summary>
@@ -40,6 +49,14 @@ namespace TitanicProtocol
             get { return m_state; }
             // make sure only valid values are used(!)
             set { m_state = value == Is_Processed ? Is_Processed : value == Is_Pending ? Is_Pending : Is_Closed; }
+        }
+
+        public RequestEntry ()
+        {
+            Position = -1;
+            Request = null;
+            RequestId = Guid.Empty;
+            State = Is_Pending;
         }
 
         public override string ToString ()
