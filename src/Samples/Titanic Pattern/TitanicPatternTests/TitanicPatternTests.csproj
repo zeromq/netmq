@@ -53,12 +53,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestEntities\FakeDispatchMDPClient.cs" />
+    <Compile Include="TestEntities\FakeCloseMDPWorker.cs" />
+    <Compile Include="TestEntities\FakeReplyMDPWorker.cs" />
+    <Compile Include="TestEntities\FakeRequestMDPWorker.cs" />
     <Compile Include="TestEntities\TestEntity.cs" />
     <Compile Include="TitanicBrokerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TitanicClientTests.cs" />
     <Compile Include="TitanicFileIOTests.cs" />
-    <Compile Include="TestEntities\MDPTestClient.cs" />
+    <Compile Include="TestEntities\MDPTestClientForTitanicClient.cs" />
     <Compile Include="TitanicMemoryIOTests.cs" />
   </ItemGroup>
   <ItemGroup>

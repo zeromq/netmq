@@ -432,14 +432,14 @@ namespace MajordomoProtocol
             // Unknown  =>   service does not exist
             if (serviceName == "mmi.service")
             {
-                var returnCode = MmiCodes.Unknown;
+                var returnCode = MmiCode.Unknown;
                 var name = request.Last.ConvertToString ();
 
                 if (m_services.Exists (s => s.Name == name))
                 {
                     var svc = m_services.Find (s => s.Name == name);
 
-                    returnCode = svc.DoWorkersExist () ? MmiCodes.Ok : MmiCodes.Pending;
+                    returnCode = svc.DoWorkersExist () ? MmiCode.Ok : MmiCode.Pending;
                 }
                 // set the return code to be the last frame in the message
                 var rc = new NetMQFrame (returnCode.ToString ());// [return code]

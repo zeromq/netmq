@@ -64,7 +64,6 @@ namespace TitanicProtocol
         private const string _titanic_directory = ".titanic";
 
         private readonly string m_titanicAddress;
-        private readonly string m_titanicDirectory;
 
         /// <summary>
         ///     allows the access to the titanic storage
@@ -74,7 +73,7 @@ namespace TitanicProtocol
         /// <summary>
         ///     returns the ip-address of the titanic broker
         /// </summary>
-        public string TitanicAddress { get { return m_titanicDirectory; } }
+        public string TitanicAddress { get { return m_titanicAddress; } }
 
         /// <summary>
         ///     if broker has a log message available if fires this event
@@ -85,12 +84,16 @@ namespace TitanicProtocol
         ///     ctor
         ///         initializes the ip address to 'tcp://localhost:5555'
         ///         initializes root for storage "application directory"\.titanic
+        ///         initializes io to TitanicFileIO
         /// </summary>
-        public TitanicBroker ([CanBeNull] ITitanicIO titanicIO = null)
+        public TitanicBroker ([CanBeNull] ITitanicIO titanicIO = null, string path = null)
         {
-            m_titanicDirectory = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory);
+            var titanicDirectory = string.IsNullOrWhiteSpace (path)
+                                            ? Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory)
+                                            : path;
+
             m_titanicAddress = "tcp://localhost:5555";
-            m_io = titanicIO ?? new TitanicFileIO (m_titanicDirectory);
+            m_io = titanicIO ?? new TitanicFileIO (titanicDirectory);
         }
 
         /// <summary>
@@ -101,19 +104,12 @@ namespace TitanicProtocol
         /// <param name="ip">the ip address of the broker as string may include a port
         ///                  the format is: tcp://'ip address':'port'
         ///                  e.g. 'tcp://localhost:5555' or 'tcp://35.1.45.76:5000' or alike</param>
-        /// <param name="path">root path for titanic file system, 
-        ///                    if 'null' standard will be used</param>
-        /// <param name="titanicIo">a implementation of ITitanicIO allowing to persist</param>
+        /// <param name="path">point to the intended root path for the file system and must exist</param>
+        /// <param name="titanicIO">a implementation of ITitanicIO allowing to persist</param>
         /// <exception cref="ApplicationException">The broker ip address is invalid!</exception>
-        public TitanicBroker ([NotNull] string ip, string path = null, ITitanicIO titanicIo = null)
-            : this ()
+        public TitanicBroker ([NotNull] string ip, string path = null, ITitanicIO titanicIO = null)
+            : this (titanicIO, path)
         {
-            if (!string.IsNullOrWhiteSpace (path))
-                m_titanicDirectory = path;
-
-            if (titanicIo != null)
-                m_io = titanicIo;
-
             m_titanicAddress = ip;
         }
 
@@ -221,7 +217,7 @@ namespace TitanicProtocol
 
                     Log (string.Format ("[TITANIC REQUEST] Received request: {0}", request));
 
-                    // has there been a breaking cause? -> exit
+                    //! has there been a breaking cause? -> exit
                     if (ReferenceEquals (request, null))
                         break;
 
@@ -269,7 +265,7 @@ namespace TitanicProtocol
 
                     Log (string.Format ("TITANIC REPLY] received: {0}", request));
 
-                    // has there been a breaking cause? -> exit
+                    //! has there been a breaking cause? -> exit
                     if (ReferenceEquals (request, null))
                         break;
 
@@ -318,9 +314,10 @@ namespace TitanicProtocol
 
                     Log (string.Format ("[TITANIC CLOSE] received: {0}", request));
 
-                    // has there been a breaking cause? -> exit
+                    //! has there been a breaking cause? -> exit
                     if (ReferenceEquals (request, null))
                         break;
+
                     // we expect [Guid] as the only frame
                     var guidAsString = request.Pop ().ConvertToString ();
                     var guid = Guid.Parse (guidAsString);
@@ -364,7 +361,7 @@ namespace TitanicProtocol
 
             var reply = ServiceCall (serviceName, request, serviceClient);
 
-            if (reply == null)
+            if (ReferenceEquals (reply, null))
                 return false;       // no reply
 
             // a reply has been received -> save it
@@ -404,9 +401,9 @@ namespace TitanicProtocol
                 var reply = session.Send ("mmi.service", mmi);
                 // first frame should be result of inquiry
                 var rc = reply[0].ConvertToString ();
-                var answer = (MmiCodes) Enum.Parse (typeof (MmiCodes), rc);
+                var answer = (MmiCode) Enum.Parse (typeof (MmiCode), rc);
                 // answer == "Ok" -> service is available -> make the request
-                if (answer == MmiCodes.Ok)
+                if (answer == MmiCode.Ok)
                 {
                     Log (string.Format ("[TITANIC SERVICECALL] -> {0} - {1}", serviceName, request));
 

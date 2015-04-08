@@ -114,7 +114,14 @@ namespace TitanicProtocol
         /// <exception cref="OverflowException">max. number of elements exceeded, <see cref="F:System.Int32.MaxValue" />.</exception>
         public void SaveNewRequestEntry (Guid id)
         {
-            var entry = new RequestEntry { RequestId = id, Position = -1, State = RequestEntry.Is_Pending };
+            // if it is already processed or closed (but not yet deleted) -> forget it
+            if (ExistsMessage (TitanicOperation.Reply, id) || ExistsMessage (TitanicOperation.Close, id))
+                return;
+
+            // the entry could already exist - so check and use it if so
+            var entry = ExistsMessage (TitanicOperation.Request, id)
+                            ? GetRequestEntry (id)
+                            : new RequestEntry { RequestId = id, Position = -1, State = RequestEntry.Is_Pending };
 
             SaveRequestEntry (entry);
         }
@@ -248,7 +255,8 @@ namespace TitanicProtocol
         /// </returns>
         public bool ExistsMessage (TitanicOperation op, Guid id)
         {
-            return m_titanicQueue.Any (e => e.Value.RequestId == id && e.Value.State == GetStateFromOperation (op));
+            return op != TitanicOperation.Close
+                   && m_titanicQueue.Any (e => e.Value.RequestId == id && e.Value.State == GetStateFromOperation (op));
         }
 
         #endregion

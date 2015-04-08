@@ -20,7 +20,7 @@ namespace TitanicProtocolTests
         [Test]
         public void ctor_withFakeClient_ShouldReturnvalidObject ()
         {
-            IMDPClient fakeMDPClient = new MDPTestClient ();
+            IMDPClient fakeMDPClient = new MDPTestClientForTitanicClient ();
 
             var sut = new TitanicClient (fakeMDPClient);
 
@@ -36,7 +36,7 @@ namespace TitanicProtocolTests
             replyMessage.Push (expectedId.ToString ());
             replyMessage.Push (TitanicReturnCode.Ok.ToString ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyMessage = replyMessage, RequestId = expectedId };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage, RequestId = expectedId };
 
 
             var sut = new TitanicClient (fakeMDPClient);
@@ -54,7 +54,7 @@ namespace TitanicProtocolTests
             replyMessage.Push (expectedId.ToString ());
             replyMessage.Push (TitanicReturnCode.Ok.ToString ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyMessage = replyMessage, RequestId = expectedId };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage, RequestId = expectedId };
 
 
             var sut = new TitanicClient (fakeMDPClient);
@@ -72,7 +72,7 @@ namespace TitanicProtocolTests
             replyMessage.Push (expectedId.ToString ());
             replyMessage.Push (TitanicReturnCode.Ok.ToString ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyMessage = replyMessage, RequestId = expectedId };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage, RequestId = expectedId };
 
             var generic = new TestEntity ();
             var sut = new TitanicClient (fakeMDPClient);
@@ -84,7 +84,7 @@ namespace TitanicProtocolTests
         [Test]
         public void Request_NullOrEmptyServiceName_ShouldThrowArgumentNullException ()
         {
-            var fakeMDPClient = new MDPTestClient ();
+            var fakeMDPClient = new MDPTestClientForTitanicClient ();
 
             var sut = new TitanicClient (fakeMDPClient);
 
@@ -97,7 +97,7 @@ namespace TitanicProtocolTests
             const string expected_phrase = "Thank God Its Friday";
             var replyFrame = new NetMQFrame (expected_phrase);
 
-            var fakeMDPClient = new MDPTestClient { ReplyDataFrame = replyFrame };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
             var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
@@ -112,7 +112,7 @@ namespace TitanicProtocolTests
             const string expected_phrase = "Thank God Its Friday";
             var replyFrame = new NetMQFrame (expected_phrase);
 
-            var fakeMDPClient = new MDPTestClient { ReplyDataFrame = replyFrame };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
             var reply = sut.Reply (Guid.NewGuid ().ToString (), 0, TimeSpan.FromMilliseconds (0));
@@ -127,7 +127,7 @@ namespace TitanicProtocolTests
             var expected = new TestEntity ();
             var replyFrame = new NetMQFrame (expected.ConvertToBytes ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyDataFrame = replyFrame };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
             var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
@@ -146,7 +146,7 @@ namespace TitanicProtocolTests
             var expected = new TestEntity ();
             var replyFrame = new NetMQFrame (expected.ConvertToBytes ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyDataFrame = replyFrame };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
             var reply = sut.Reply (Guid.NewGuid ().ToString (), 0, TimeSpan.FromMilliseconds (0));
@@ -165,7 +165,7 @@ namespace TitanicProtocolTests
             var replyMessage = new NetMQMessage ();
             replyMessage.Push (TitanicReturnCode.Pending.ToString ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyMessage = replyMessage };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage };
             var sut = new TitanicClient (fakeMDPClient);
 
             var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
@@ -180,7 +180,7 @@ namespace TitanicProtocolTests
             var replyMessage = new NetMQMessage ();
             replyMessage.Push (TitanicReturnCode.Unknown.ToString ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyMessage = replyMessage };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage };
             var sut = new TitanicClient (fakeMDPClient);
 
             var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
@@ -195,7 +195,7 @@ namespace TitanicProtocolTests
             var replyMessage = new NetMQMessage ();
             replyMessage.Push (TitanicReturnCode.Failure.ToString ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyMessage = replyMessage };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage };
             var sut = new TitanicClient (fakeMDPClient);
 
             var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
@@ -210,7 +210,7 @@ namespace TitanicProtocolTests
             const string expected_phrase = "Thank God Its Friday";
             var replyFrame = new NetMQFrame (expected_phrase);
 
-            var fakeMDPClient = new MDPTestClient { ReplyDataFrame = replyFrame };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
             var result = sut.GetResult ("echo", Encoding.UTF8.GetBytes (expected_phrase));
@@ -225,7 +225,7 @@ namespace TitanicProtocolTests
             const string expected_phrase = "Thank God Its Friday";
             var replyFrame = new NetMQFrame (expected_phrase);
 
-            var fakeMDPClient = new MDPTestClient { ReplyDataFrame = replyFrame };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
             var result = sut.GetResult ("echo", expected_phrase);
@@ -241,7 +241,7 @@ namespace TitanicProtocolTests
             const string expected_phrase = "Thank God Its Friday";
             var replyFrame = new NetMQFrame (enc.GetBytes (expected_phrase));
 
-            var fakeMDPClient = new MDPTestClient { ReplyDataFrame = replyFrame };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
             var result = sut.GetResult ("echo", expected_phrase, enc);
@@ -256,7 +256,7 @@ namespace TitanicProtocolTests
             var expected = new TestEntity ();
             var replyFrame = new NetMQFrame (expected.ConvertToBytes ());
 
-            var fakeMDPClient = new MDPTestClient { ReplyDataFrame = replyFrame };
+            var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
             var result = sut.GetResult<TestEntity, TestEntity> ("echo", expected);

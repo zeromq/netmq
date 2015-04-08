@@ -3,7 +3,7 @@
     /// <summary>
     ///     the available return codes for the service discovery
     /// </summary>
-    public enum MmiCodes
+    public enum MmiCode
     {
         Ok = 200,
         Pending = 300,

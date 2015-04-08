@@ -13,7 +13,7 @@ namespace TitanicProtocolTests.TestEntities
     ///     injected in lieu of the really MDPClient to avoid the installing of the infrastructure
     ///     just for testing
     /// </summary>
-    internal class MDPTestClient : IMDPClient
+    internal class MDPTestClientForTitanicClient : IMDPClient
     {
         public event EventHandler<MDPLogEventArgs> LogInfoReady;
 
@@ -40,7 +40,7 @@ namespace TitanicProtocolTests.TestEntities
 
         public Guid RequestId { get; set; }
 
-        public MDPTestClient ()
+        public MDPTestClientForTitanicClient ()
         {
             ReplyMessage = null;
             RequestId = Guid.Empty;
