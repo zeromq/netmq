@@ -19,7 +19,7 @@ namespace MDPClientExample
             {
                 if (!(args[0] == "-v" || args[0].Contains ("-r")))
                 {
-                    Console.WriteLine ("MDPBrokerProcess [-v(erbose) OR -h(elp)]");
+                    Console.WriteLine ("MDPClientExample [-v(erbose) OR -h(elp)]");
                     Console.WriteLine ("\t-v => verbose");
                     Console.WriteLine ("\tto stop processing use CTRL+C");
 

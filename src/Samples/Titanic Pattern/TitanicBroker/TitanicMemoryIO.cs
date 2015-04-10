@@ -20,7 +20,7 @@ namespace TitanicProtocol
     ///     it is fast but all information is lost in case this computer or
     ///     the process dies!
     /// </summary>
-    internal class TitanicMemoryIO : ITitanicIO
+    public class TitanicMemoryIO : ITitanicIO
     {
         /// <summary>
         ///     dictionary to hold all requests and supporting data in memory

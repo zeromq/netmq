@@ -22,7 +22,7 @@ namespace TitanicProtocol
     ///     if it already exists it is assumed that this is a restart after
     ///     a crash and all information are deemed to be valid
     /// </summary>
-    internal class TitanicFileIO : ITitanicIO
+    public class TitanicFileIO : ITitanicIO
     {
         private const string _titanic_dir = ".titanic";
         private const string _titanic_queue = "titanic.queue";

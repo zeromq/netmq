@@ -191,6 +191,9 @@ namespace TitanicProtocol
 
             var reply = ServiceCall (m_client, TitanicOperation.Request, message);
 
+            if (reply == null)
+                return null;
+
             return (reply.Item2 != TitanicReturnCode.Failure) ? reply.Item1.Pop ().ConvertToString () : null;
         }
 

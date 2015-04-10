@@ -148,6 +148,17 @@ namespace TitanicProtocolTests
          */
 
         [Test]
+        public void Run_NoWorkers_ShouldSitAndWaitFor5Seconds ()
+        {
+            using (var sut = new TitanicBroker (new TitanicMemoryIO ()))
+            {
+                Task.Factory.StartNew (() => sut.Run ());
+
+                Thread.Sleep (5000);
+            }
+        }
+
+        [Test]
         public void TitanicClose_RequestToCloseRequest_ShouldDeleteRequestFromQueue ()
         {
             var io = new TitanicMemoryIO ();

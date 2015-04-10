@@ -63,7 +63,7 @@ namespace TitanicProtocol
         private const string _titanic_internal_communication = "inproc://titanic.inproc";
         private const string _titanic_directory = ".titanic";
 
-        private readonly string m_titanicAddress;
+        private readonly string m_titanicAddress = "tcp://localhost:5555";
 
         /// <summary>
         ///     allows the access to the titanic storage
@@ -92,7 +92,6 @@ namespace TitanicProtocol
                                             ? Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory)
                                             : path;
 
-            m_titanicAddress = "tcp://localhost:5555";
             m_io = titanicIO ?? new TitanicFileIO (titanicDirectory);
         }
 
@@ -101,16 +100,16 @@ namespace TitanicProtocol
         /// 
         ///         but does NOT create any directory or file
         /// </summary>
-        /// <param name="ip">the ip address of the broker as string may include a port
+        /// <param name="endpoint">the ip address of the broker as string may include a port
         ///                  the format is: tcp://'ip address':'port'
         ///                  e.g. 'tcp://localhost:5555' or 'tcp://35.1.45.76:5000' or alike</param>
         /// <param name="path">point to the intended root path for the file system and must exist</param>
         /// <param name="titanicIO">a implementation of ITitanicIO allowing to persist</param>
         /// <exception cref="ApplicationException">The broker ip address is invalid!</exception>
-        public TitanicBroker ([NotNull] string ip, string path = null, ITitanicIO titanicIO = null)
+        public TitanicBroker ([NotNull] string endpoint, string path = null, ITitanicIO titanicIO = null)
             : this (titanicIO, path)
         {
-            m_titanicAddress = ip;
+            m_titanicAddress = endpoint;
         }
 
         /// <summary>

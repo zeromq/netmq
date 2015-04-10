@@ -32,8 +32,8 @@ namespace TitanicClientExample
 
             SetParameter (arguments);
 
-            Console.WriteLine ("Staring Titanic Client\n");
-            Console.WriteLine ("{0} / #{1} Messages\n", s_verbose ? "verbose" : "silent", s_runs);
+            Console.WriteLine ("[TitanicClient] Staring Titanic Client\n");
+            Console.WriteLine ("[TitanicClient] {0} / #{1} Messages\n\n", s_verbose ? "verbose" : "silent", s_runs);
 
             // wait to allow MDP/Titanic Broker to complete start up
             Thread.Sleep (500);
@@ -45,22 +45,30 @@ namespace TitanicClientExample
 
                 for (var i = 0; i < s_runs; i++)
                 {
-                    var reply = new Tuple<byte[], TitanicReturnCode> (null, TitanicReturnCode.Failure);
+                    Console.WriteLine ("[TitanicClient] Loop #{0} entered ...", i);
+
                     var data = "ERROR! NO REPLY";
-                    
+
                     // does 5 retries to get the reply
-                    reply = client.GetResult ("echo", "Hallo World", 5);
+                    var reply = client.GetResult ("echo", "Hallo World", 5);
+
+                    if (reply == null)
+                    {
+                        Console.WriteLine ("\t[TitanicClient] ran into a problem, received 'null' in loop #{0}", i);
+                        continue;
+                    }
+
                     data = reply.Item1 != null ? Encoding.UTF8.GetString (reply.Item1) : data;
-                    
+
                     if (data != "Hallo World")
-                        Console.WriteLine ("Hallo World != {0} on loop #{1} with status {2}", data, i, reply.Item2);
+                        Console.WriteLine ("\t[TitanicClient] Hallo World != {0} on loop #{1} with status {2}", data, i, reply.Item2);
 
                     if (!ReferenceEquals (reply.Item1, null) && reply.Item2 == TitanicReturnCode.Ok)
-                        Console.WriteLine ("Status = {0} - Reply = {1}", reply.Item2, data);
+                        Console.WriteLine ("\t[TitanicClient] Status = {0} - Reply = {1}", reply.Item2, data);
                 }
             }
 
-            Console.WriteLine ("\nTo exit press any key!");
+            Console.WriteLine ("\n[TitanicClient] To exit press any key!");
             Console.ReadKey ();
         }
 

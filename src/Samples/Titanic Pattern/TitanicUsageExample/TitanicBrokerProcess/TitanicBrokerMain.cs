@@ -28,16 +28,26 @@ namespace TitanicBrokerProcess
                                           cts.Cancel ();
                                       };
 
-            Console.WriteLine ("Starting Titanic Broker in {0} - mode.", verbose ? "verbose" : "silent");
+            Console.WriteLine ("Starting Titanic Broker in {0} - mode.\n\n", verbose ? "verbose" : "silent");
 
-            var titanic = new TitanicBroker ();
+            using (var titanic = new TitanicBroker (new TitanicMemoryIO ()))
+            {
+                if (verbose)
+                    titanic.LogInfoReady += (s, e) => PrintMessage (e.Info);
 
-            if (verbose)
-                titanic.LogInfoReady += (s, e) => PrintMessage (e.Info);
-
-            Task.Factory.StartNew (() => titanic.Run (), cts.Token).Wait ();
-
-            cts.Dispose ();
+                try
+                {
+                    Task.Factory.StartNew (() => titanic.Run (), cts.Token).Wait (cts.Token);
+                }
+                catch (AggregateException e)
+                {
+                    Console.WriteLine (e.Flatten ());
+                }
+                finally
+                {
+                    cts.Dispose ();
+                }
+            }
         }
 
         // print coloured according to message producer

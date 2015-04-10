@@ -159,6 +159,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TitanicUsageExample", "Tita
 	ProjectSection(SolutionItems) = preProject
 		Samples\Titanic Pattern\TitanicUsageExample\StartTitanicClient1000ReqestsExample.bat = Samples\Titanic Pattern\TitanicUsageExample\StartTitanicClient1000ReqestsExample.bat
 		Samples\Titanic Pattern\TitanicUsageExample\StartTitanicClientExample.bat = Samples\Titanic Pattern\TitanicUsageExample\StartTitanicClientExample.bat
+		Samples\Titanic Pattern\TitanicUsageExample\StartTitanicExample - Test.bat = Samples\Titanic Pattern\TitanicUsageExample\StartTitanicExample - Test.bat
 		Samples\Titanic Pattern\TitanicUsageExample\StartTitanicExample - Verbose.bat = Samples\Titanic Pattern\TitanicUsageExample\StartTitanicExample - Verbose.bat
 	EndProjectSection
 EndProject
