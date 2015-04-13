@@ -7,8 +7,7 @@ using JetBrains.Annotations;
 using NetMQ;
 
 using MajordomoProtocol;
-using MajordomoProtocol.Contracts;
-
+using MDPCommons;
 using TitanicCommons;
 
 namespace TitanicProtocol
@@ -18,7 +17,7 @@ namespace TitanicProtocol
     /// </summary>
     public class TitanicClient : ITitanicClient
     {
-        private readonly IMDPClient m_client = null;
+        private IMDPClient m_client = null;
 
         /// <summary>
         ///     the hook to attach observers for logging information
@@ -73,8 +72,25 @@ namespace TitanicProtocol
 
             Log (string.Format ("requesting service {0} to process {1}", serviceName, request));
 
-            var requestId = Request (serviceName, request);
+            var count = 0;
+            var requestId = Guid.Empty;
+            while (count < retries)
+            {
+                // 1. get the request id for the request made
+                requestId = Request (serviceName, request);
 
+                count++;
+                // has anything gone wrong?
+                if (requestId == Guid.Empty)
+                {
+                    // now the client is not usable anymore -> needs to be recreated
+                    RecreateClient ();
+                    // if we have reached max retries, return the failure else retry
+                    if (count == retries)
+                        return new Tuple<byte[], TitanicReturnCode> (null, TitanicReturnCode.Failure);
+                }
+
+            }
             Log (string.Format ("RequestId = {0}", requestId));
 
             // 2. wait for reply
@@ -176,7 +192,7 @@ namespace TitanicProtocol
         ///     byte[] are considered to be encoded UTF-8
         /// </remarks>
         /// <exception cref="ArgumentNullException">The name of the service requested must not be empty or 'null'!</exception>
-        public string Request (string serviceName, byte[] request)
+        public Guid Request (string serviceName, byte[] request)
         {
             if (string.IsNullOrWhiteSpace (serviceName))
                 throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
@@ -192,9 +208,14 @@ namespace TitanicProtocol
             var reply = ServiceCall (m_client, TitanicOperation.Request, message);
 
             if (reply == null)
-                return null;
+                return Guid.Empty;
 
-            return (reply.Item2 != TitanicReturnCode.Failure) ? reply.Item1.Pop ().ConvertToString () : null;
+            if (reply.Item2 == TitanicReturnCode.Failure)
+                return Guid.Empty;
+
+            var id = reply.Item1.Pop ().ConvertToString ();
+
+            return new Guid (id);
         }
 
         /// <summary>
@@ -204,7 +225,7 @@ namespace TitanicProtocol
         /// <param name="request">data to process by that service, will be converted to byte[] with UTF-8</param>
         /// <returns>GUID or 'null' if it fails</returns>
         /// <exception cref="ArgumentNullException">The name of the service requested must not be empty or 'null'!</exception>
-        public string Request (string serviceName, string request)
+        public Guid Request (string serviceName, string request)
         {
             if (string.IsNullOrWhiteSpace (serviceName))
                 throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
@@ -222,7 +243,7 @@ namespace TitanicProtocol
         ///     'T' must implement 'ITitanicConvert' in order to be processed
         /// </remarks>
         /// <exception cref="ArgumentNullException">The name of the service requested must not be empty or 'null'!</exception>
-        public string Request<T> (string serviceName, T request) where T : ITitanicConvert<T>
+        public Guid Request<T> (string serviceName, T request) where T : ITitanicConvert<T>
         {
             if (string.IsNullOrWhiteSpace (serviceName))
                 throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
@@ -259,10 +280,10 @@ namespace TitanicProtocol
         ///             
         /// </returns>
         /// <exception cref="ArgumentNullException">The id of the request must not be empty or 'null'!</exception>
-        public Tuple<byte[], TitanicReturnCode> Reply (string requestId, int retries, TimeSpan waitBetweenRetries)
+        public Tuple<byte[], TitanicReturnCode> Reply (Guid requestId, int retries, TimeSpan waitBetweenRetries)
         {
-            if (string.IsNullOrWhiteSpace (requestId))
-                throw new ArgumentNullException ("requestId", "The id of the request must not be empty or 'null'!");
+            if (requestId == Guid.Empty)
+                throw new ArgumentNullException ("requestId", "The id of the request must not be empty!");
 
             var message = new NetMQMessage ();
             var rc = TitanicReturnCode.Failure;
@@ -271,7 +292,7 @@ namespace TitanicProtocol
 
             for (var i = 0; i < retries; i++)
             {
-                message.Push (requestId);
+                message.Push (requestId.ToString ());
 
                 Log (string.Format ("requesting reply for: {0}", message));
 
@@ -298,10 +319,10 @@ namespace TitanicProtocol
         ///     interpreting the reply's content
         /// </returns>
         /// <exception cref="ArgumentNullException">The id of the request must not be empty or 'null'!</exception>
-        public Tuple<byte[], TitanicReturnCode> Reply (string requestId, TimeSpan waitFor)
+        public Tuple<byte[], TitanicReturnCode> Reply (Guid requestId, TimeSpan waitFor)
         {
-            if (string.IsNullOrWhiteSpace (requestId))
-                throw new ArgumentNullException ("requestId", "The id of the request must not be empty or 'null'!");
+            if (requestId == Guid.Empty)
+                throw new ArgumentNullException ("requestId", "The id of the request must not be empty!");
 
             var retries = waitFor.Milliseconds > 5000 ? 8 : 4;
             var waitBetween = waitFor.Milliseconds / retries;
@@ -317,10 +338,10 @@ namespace TitanicProtocol
         /// <param name="waitFor">milliseconds to wait for a reply</param>
         /// <returns>a tuple with the type and a state for interpreting the types content</returns>
         /// <exception cref="ArgumentNullException">The id of the request must not be empty or 'null'!</exception>
-        public Tuple<T, TitanicReturnCode> Reply<T> (string requestId, TimeSpan waitFor) where T : ITitanicConvert<T>, new ()
+        public Tuple<T, TitanicReturnCode> Reply<T> (Guid requestId, TimeSpan waitFor) where T : ITitanicConvert<T>, new ()
         {
-            if (string.IsNullOrWhiteSpace (requestId))
-                throw new ArgumentNullException ("requestId", "The id of the request must not be empty or 'null'!");
+            if (requestId == Guid.Empty)
+                throw new ArgumentNullException ("requestId", "The id of the request must not be empty!");
 
             var reply = Reply (requestId, waitFor);
 
@@ -338,11 +359,11 @@ namespace TitanicProtocol
         /// <param name="waitBetweenRetries">milliseconds to wait in between tries, default == 2500</param>
         /// <returns>a tuple with the type and a state for interpreting the types content</returns>
         /// <exception cref="ArgumentNullException">The id of the request must not be empty or 'null'!</exception>
-        public Tuple<T, TitanicReturnCode> Reply<T> (string requestId, int retries, TimeSpan waitBetweenRetries)
+        public Tuple<T, TitanicReturnCode> Reply<T> (Guid requestId, int retries, TimeSpan waitBetweenRetries)
             where T : ITitanicConvert<T>, new ()
         {
-            if (string.IsNullOrWhiteSpace (requestId))
-                throw new ArgumentNullException ("requestId", "The id of the request must not be empty or 'null'!");
+            if (requestId == Guid.Empty)
+                throw new ArgumentNullException ("requestId", "The id of the request must not be empty!");
 
             var reply = Reply (requestId, retries, waitBetweenRetries);
 
@@ -356,13 +377,13 @@ namespace TitanicProtocol
         ///     the request may be in any state
         /// </summary>
         /// <param name="requestId">id of the request to close</param>
-        public void CloseRequest (string requestId)
+        public void CloseRequest (Guid requestId)
         {
-            if (string.IsNullOrWhiteSpace (requestId))
+            if (requestId == Guid.Empty)
                 return;
 
             var message = new NetMQMessage ();
-            message.Push (requestId);
+            message.Push (requestId.ToString ());
 
             Log (string.Format ("request close: {0}", message));
 
@@ -417,6 +438,17 @@ namespace TitanicProtocol
 
             if (handler != null)
                 handler (this, e);
+        }
+
+        private void RecreateClient ()
+        {
+            var adr = m_client.Address;
+            var id = m_client.Identity;
+
+            m_client.Dispose ();
+
+            // recreate the client with the old config values
+            m_client = new MDPClient (adr, id);
         }
 
         #region IDisposable

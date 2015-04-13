@@ -79,7 +79,7 @@ namespace TitanicCommons
         /// <param name="serviceName">the service to send the request to</param>
         /// <param name="request">the request data as an array of bytes</param>
         /// <returns>the GUID of the request as a string</returns>
-        string Request (string serviceName, byte[] request);
+        Guid Request (string serviceName, byte[] request);
 
         /// <summary>
         ///     sending a request
@@ -87,7 +87,7 @@ namespace TitanicCommons
         /// <param name="serviceName">the service to send the request to</param>
         /// <param name="request">the request data as string</param>
         /// <returns>the GUID of the request as a string</returns>
-        string Request (string serviceName, string request);
+        Guid Request (string serviceName, string request);
 
         /// <summary>
         ///     sending a request
@@ -95,7 +95,7 @@ namespace TitanicCommons
         /// <param name="serviceName">the service to send the request to</param>
         /// <param name="request">the request data</param>
         /// <returns>the GUID of the request as a string</returns>
-        string Request<T> (string serviceName, T request) where T : ITitanicConvert<T>;
+        Guid Request<T> (string serviceName, T request) where T : ITitanicConvert<T>;
 
         /// <summary>
         ///     gets a reply for a previous request
@@ -103,7 +103,7 @@ namespace TitanicCommons
         /// <param name="requestId">the previous request's id</param>
         /// <param name="waitFor">max milliseconds to wait for the reply</param>
         /// <returns>a tuple containing the result and a status of the reply</returns>
-        Tuple<byte[], TitanicReturnCode> Reply (string requestId, TimeSpan waitFor);
+        Tuple<byte[], TitanicReturnCode> Reply (Guid requestId, TimeSpan waitFor);
 
         /// <summary>
         ///     gets a reply for a previous request
@@ -112,7 +112,7 @@ namespace TitanicCommons
         /// <param name="retries">the number of retires to perform for retrieving the reply</param>
         /// <param name="waitBetweenRetries">milliseconds to wait in between the retrieval tries</param>
         /// <returns>a tuple containing the result and a status of the reply</returns>
-        Tuple<byte[], TitanicReturnCode> Reply (string requestId, int retries, TimeSpan waitBetweenRetries);
+        Tuple<byte[], TitanicReturnCode> Reply (Guid requestId, int retries, TimeSpan waitBetweenRetries);
 
         /// <summary>
         ///     gets a reply for a previous request
@@ -120,7 +120,7 @@ namespace TitanicCommons
         /// <param name="requestId">the previous request's id</param>
         /// <param name="waitFor">max milliseconds to wait for the reply</param>
         /// <returns>a tuple containing the result and a status of the reply</returns>
-        Tuple<T, TitanicReturnCode> Reply<T> (string requestId, TimeSpan waitFor) where T : ITitanicConvert<T>, new ();
+        Tuple<T, TitanicReturnCode> Reply<T> (Guid requestId, TimeSpan waitFor) where T : ITitanicConvert<T>, new ();
 
         /// <summary>
         ///     gets a reply for a previous request
@@ -129,13 +129,13 @@ namespace TitanicCommons
         /// <param name="retries">the number of retires to perform for retrieving the reply</param>
         /// <param name="waitBetweenRetries">milliseconds to wait in between the retrieval tries</param>
         /// <returns>a tuple containing the result and a status of the reply</returns>
-        Tuple<T, TitanicReturnCode> Reply<T> (string requestId, int retries, TimeSpan waitBetweenRetries)
+        Tuple<T, TitanicReturnCode> Reply<T> (Guid requestId, int retries, TimeSpan waitBetweenRetries)
             where T : ITitanicConvert<T>, new ();
 
         /// <summary>
         ///     closes a previous made request and the assigned reply
         /// </summary>
         /// <param name="requestId">the request's id</param>
-        void CloseRequest (string requestId);
+        void CloseRequest (Guid requestId);
     }
 }

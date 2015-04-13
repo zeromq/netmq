@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 
-using MajordomoProtocol;
-using MajordomoProtocol.Contracts;
-
+using MDPCommons;
 using NetMQ;
 
 namespace TitanicProtocolTests.TestEntities
@@ -19,6 +18,10 @@ namespace TitanicProtocolTests.TestEntities
         public TimeSpan Timeout { get; set; }
 
         public int Retries { get; set; }
+
+        public string Address { get { return "NO ADDRESS"; } }
+
+        public byte[] Identity { get { return Encoding.UTF8.GetBytes ("NO IDENTITY"); } }
 
         public NetMQMessage Send (string serviceName, NetMQMessage request)
         {

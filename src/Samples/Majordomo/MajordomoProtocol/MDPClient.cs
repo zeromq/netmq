@@ -1,6 +1,9 @@
 ﻿using System;
-using MajordomoProtocol.Contracts;
+using System.Text;
+
 using NetMQ;
+
+using MDPCommons;
 
 namespace MajordomoProtocol
 {
@@ -32,6 +35,16 @@ namespace MajordomoProtocol
         public int Retries { get; set; }
 
         /// <summary>
+        ///     returns the address of the broker the client is connected to
+        /// </summary>
+        public string Address { get { return m_brokerAddress; } }
+
+        /// <summary>
+        ///     returns the name of the client
+        /// </summary>
+        public byte[] Identity { get { return m_identity; } }
+
+        /// <summary>
         ///     if client has a log message available if fires this event
         /// </summary>
         public event EventHandler<MDPLogEventArgs> LogInfoReady;
@@ -55,7 +68,7 @@ namespace MajordomoProtocol
         ///     setup the client, use standard values and parameters
         /// </summary>
         /// <param name="brokerAddress">address the broker can be connected to</param>
-        /// <param name="identity">if present will become the name for the client socket</param>
+        /// <param name="identity">if present will become the name for the client socket, encoded in UTF8</param>
         public MDPClient (string brokerAddress, byte[] identity = null)
             : this ()
         {
@@ -63,6 +76,22 @@ namespace MajordomoProtocol
                 throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
 
             m_identity = identity;
+            m_brokerAddress = brokerAddress;
+        }
+
+        /// <summary>
+        ///     setup the client, use standard values and parameters
+        /// </summary>
+        /// <param name="brokerAddress">address the broker can be connected to</param>
+        /// <param name="identity">sets the name of the client (must be UTF8), if empty or white space it is ignored</param>
+        public MDPClient (string brokerAddress, string identity)
+        {
+            if (string.IsNullOrWhiteSpace (brokerAddress))
+                throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
+
+            if (!string.IsNullOrWhiteSpace (identity))
+                m_identity = Encoding.UTF8.GetBytes (identity);
+
             m_brokerAddress = brokerAddress;
         }
 

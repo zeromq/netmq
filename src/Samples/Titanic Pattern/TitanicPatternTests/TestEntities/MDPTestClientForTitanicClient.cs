@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Text;
 using JetBrains.Annotations;
-using MajordomoProtocol;
-using MajordomoProtocol.Contracts;
-
+using MDPCommons;
 using NetMQ;
 using TitanicCommons;
 using TitanicProtocol;
@@ -20,6 +19,10 @@ namespace TitanicProtocolTests.TestEntities
         public TimeSpan Timeout { get { throw new NotImplementedException (); } set { throw new NotImplementedException (); } }
 
         public int Retries { get { throw new NotImplementedException (); } set { throw new NotImplementedException (); } }
+
+        public string Address { get { return "Fake Address"; } }
+
+        public byte[] Identity { get { return Encoding.UTF8.GetBytes ("Fake Identity"); } }
 
         /// <remarks>
         ///  return messages can be:

@@ -6,9 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
+
 using NetMQ;
 
-using MajordomoProtocol.Contracts;
+using MDPCommons;
 
 namespace MajordomoProtocol
 {

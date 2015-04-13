@@ -7,7 +7,7 @@ using FluentAssertions;
 
 using NetMQ;
 
-using MajordomoProtocol.Contracts;
+using MDPCommons;
 using TitanicCommons;
 using TitanicProtocol;
 using TitanicProtocolTests.TestEntities;
@@ -100,7 +100,7 @@ namespace TitanicProtocolTests
             var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
-            var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
+            var reply = sut.Reply (Guid.NewGuid (), TimeSpan.FromMilliseconds (0));
 
             reply.Item2.Should ().Be (TitanicReturnCode.Ok);
             Encoding.UTF8.GetString (reply.Item1).Should ().Be (expected_phrase);
@@ -115,7 +115,7 @@ namespace TitanicProtocolTests
             var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
-            var reply = sut.Reply (Guid.NewGuid ().ToString (), 0, TimeSpan.FromMilliseconds (0));
+            var reply = sut.Reply (Guid.NewGuid (), 0, TimeSpan.FromMilliseconds (0));
 
             reply.Item2.Should ().Be (TitanicReturnCode.Ok);
             Encoding.UTF8.GetString (reply.Item1).Should ().Be (expected_phrase);
@@ -130,7 +130,7 @@ namespace TitanicProtocolTests
             var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
-            var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
+            var reply = sut.Reply (Guid.NewGuid (), TimeSpan.FromMilliseconds (0));
 
             reply.Item2.Should ().Be (TitanicReturnCode.Ok);
             var result = new TestEntity ();
@@ -149,7 +149,7 @@ namespace TitanicProtocolTests
             var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyDataFrame = replyFrame };
             var sut = new TitanicClient (fakeMDPClient);
 
-            var reply = sut.Reply (Guid.NewGuid ().ToString (), 0, TimeSpan.FromMilliseconds (0));
+            var reply = sut.Reply (Guid.NewGuid (), 0, TimeSpan.FromMilliseconds (0));
 
             reply.Item2.Should ().Be (TitanicReturnCode.Ok);
             var result = new TestEntity ();
@@ -168,7 +168,7 @@ namespace TitanicProtocolTests
             var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage };
             var sut = new TitanicClient (fakeMDPClient);
 
-            var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
+            var reply = sut.Reply (Guid.NewGuid (), TimeSpan.FromMilliseconds (0));
 
             reply.Item2.Should ().Be (TitanicReturnCode.Pending);
             reply.Item1.Should ().BeNull ();
@@ -183,7 +183,7 @@ namespace TitanicProtocolTests
             var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage };
             var sut = new TitanicClient (fakeMDPClient);
 
-            var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
+            var reply = sut.Reply (Guid.NewGuid (), TimeSpan.FromMilliseconds (0));
 
             reply.Item2.Should ().Be (TitanicReturnCode.Unknown);
             reply.Item1.Should ().BeNull ();
@@ -198,7 +198,7 @@ namespace TitanicProtocolTests
             var fakeMDPClient = new MDPTestClientForTitanicClient { ReplyMessage = replyMessage };
             var sut = new TitanicClient (fakeMDPClient);
 
-            var reply = sut.Reply (Guid.NewGuid ().ToString (), TimeSpan.FromMilliseconds (0));
+            var reply = sut.Reply (Guid.NewGuid (), TimeSpan.FromMilliseconds (0));
 
             reply.Item2.Should ().Be (TitanicReturnCode.Failure);
             reply.Item1.Should ().BeNull ();

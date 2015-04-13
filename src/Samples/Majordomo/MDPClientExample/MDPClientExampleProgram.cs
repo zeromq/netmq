@@ -103,7 +103,7 @@ namespace MDPClientExample
 
             var time = watch.Elapsed;
 
-            Console.WriteLine ("{0} request/replies in {1} ms processed! Took {2} ms per REQ/REP",
+            Console.WriteLine ("{0} request/replies in {1} ms processed! Took {2:N3} ms per REQ/REP",
                 runs,
                 time.TotalMilliseconds,
                 time.TotalMilliseconds / runs);

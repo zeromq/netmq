@@ -78,6 +78,10 @@
       <Project>{a16ebccb-a575-4ba5-813d-c8ad925d5a59}</Project>
       <Name>MajordomoProtocol</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Majordomo\MDPCommons\MDPCommons.csproj">
+      <Project>{ec5a112c-5652-4eaa-bee9-bf1a98f719c4}</Project>
+      <Name>MDPCommons</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TitanicBroker\TitanicProtocol.csproj">
       <Project>{f92e05f9-9177-4889-b192-23dfb49ec045}</Project>
       <Name>TitanicProtocol</Name>

@@ -1,5 +1,5 @@
 ﻿using System;
-using MajordomoProtocol.Contracts;
+using MDPCommons;
 
 namespace TitanicCommons
 {

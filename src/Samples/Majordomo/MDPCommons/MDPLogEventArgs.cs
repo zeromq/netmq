@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MajordomoProtocol
+namespace MDPCommons
 {
     public class MDPLogEventArgs : EventArgs
     {

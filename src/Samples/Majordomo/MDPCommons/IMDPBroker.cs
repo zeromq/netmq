@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MajordomoProtocol.Contracts
+namespace MDPCommons
 {
     /// <summary>
     ///     Implements a Broker according to Majordomo Protocol v0.1

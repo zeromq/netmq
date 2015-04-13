@@ -1,4 +1,4 @@
-﻿namespace MajordomoProtocol.Contracts
+﻿namespace MDPCommons
 {
     /// <summary>
     ///     the available return codes for the service discovery

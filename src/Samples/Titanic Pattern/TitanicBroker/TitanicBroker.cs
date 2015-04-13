@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 using MajordomoProtocol;
-using MajordomoProtocol.Contracts;
-
+using MDPCommons;
 using NetMQ;
 using NetMQ.Sockets;
 

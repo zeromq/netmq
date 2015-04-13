@@ -1,7 +1,7 @@
 ﻿using System;
 using NetMQ;
 
-namespace MajordomoProtocol.Contracts
+namespace MDPCommons
 {
     // define the possible message types for the worker MDP
 

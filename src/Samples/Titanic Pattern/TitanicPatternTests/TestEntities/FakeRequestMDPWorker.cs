@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Threading;
-
-using MajordomoProtocol;
-using MajordomoProtocol.Contracts;
-
+using MDPCommons;
 using NetMQ;
 
 namespace TitanicProtocolTests.TestEntities

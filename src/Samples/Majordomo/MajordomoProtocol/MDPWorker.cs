@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Threading;
-using MajordomoProtocol.Contracts;
+
 using NetMQ;
+
+using MDPCommons;
+
 
 namespace MajordomoProtocol
 {
