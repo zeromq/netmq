@@ -49,6 +49,7 @@ namespace MajordomoTests
                 broker.Bind(hostAddress);
                 // we need to pick up any message in order to avoid errors
                 broker.ReceiveReady += (s, e) =>
+
                 {
                     var msg = e.Socket.ReceiveMultipartMessage();
                     // we expect to receive a 4 Frame message
@@ -66,7 +67,6 @@ namespace MajordomoTests
 
                 poller.AddSocket(broker);
                 Task.Factory.StartNew(poller.PollTillCancelled);
-
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
                 // well formed message
