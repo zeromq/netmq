@@ -63,7 +63,7 @@ namespace NetMQ
         {
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException("length", "A non-negative value is expected.");
+                throw new ArgumentOutOfRangeException ("length", "A non-negative value is expected.");
             }
 
             Buffer = new byte[length];
@@ -81,7 +81,7 @@ namespace NetMQ
             {
                 if (value < 0 || value > BufferSize)
                 {
-                    throw new ArgumentOutOfRangeException("value", "Expecting a non-negative value less than or equal to the buffer size.");
+                    throw new ArgumentOutOfRangeException ("value", "Expected non-negative value less than or equal to the buffer size.");
                 }
 
                 m_messageSize = value;
@@ -107,7 +107,7 @@ namespace NetMQ
         /// </summary>
         public static NetMQFrame Empty
         {
-            get { return new NetMQFrame(0); }
+            get { return new NetMQFrame (0); }
         }
 
         /// <summary>
@@ -129,12 +129,12 @@ namespace NetMQ
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException("buffer");
+                throw new ArgumentNullException ("buffer");
             }
 
-            var copy = new NetMQFrame(buffer.Length);
+            var copy = new NetMQFrame (buffer.Length);
 
-            System.Buffer.BlockCopy(buffer, 0, copy.Buffer, 0, buffer.Length);
+            System.Buffer.BlockCopy (buffer, 0, copy.Buffer, 0, buffer.Length);
 
             return copy;
         }
@@ -164,18 +164,18 @@ namespace NetMQ
         /// Convert the buffer to integer in network byte order (big-endian)
         /// </summary>
         /// <returns></returns>
-        public int ConvertToInt32()
+        public int ConvertToInt32 ()
         {
-            return NetworkOrderBitsConverter.ToInt32(Buffer);
+            return NetworkOrderBitsConverter.ToInt32 (Buffer);
         }
 
         /// <summary>
         /// Convert the buffer to long in network byte order (big-endian)
         /// </summary>
         /// <returns></returns>
-        public long ConvertToInt64()
+        public long ConvertToInt64 ()
         {
-            return NetworkOrderBitsConverter.ToInt64(Buffer);
+            return NetworkOrderBitsConverter.ToInt64 (Buffer);
         }
 
         /// <summary>
@@ -184,18 +184,19 @@ namespace NetMQ
         /// <param name="frame">the <see cref="NetMQFrame"/> to copy</param>
         /// <returns>a <see cref="NetMQFrame"/> containing a copy of <paramref name="frame"/></returns>
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
+
         [NotNull]
         public static NetMQFrame Copy([NotNull] NetMQFrame frame)
         {
             if (frame == null)
             {
-                throw new ArgumentNullException("frame");
+                throw new ArgumentNullException ("frame");
             }
 
-            var copy = new NetMQFrame(new byte[frame.BufferSize]);
+            var copy = new NetMQFrame (new byte[frame.BufferSize]);
             copy.MessageSize = frame.MessageSize;
 
-            System.Buffer.BlockCopy(frame.Buffer, 0, copy.Buffer, 0, frame.BufferSize);
+            System.Buffer.BlockCopy (frame.Buffer, 0, copy.Buffer, 0, frame.BufferSize);
 
             return copy;
         }
@@ -207,7 +208,7 @@ namespace NetMQ
         [NotNull]
         public NetMQFrame Duplicate()
         {
-            return Copy(this);
+            return Copy (this);
         }
 
         /// <summary>
@@ -223,7 +224,7 @@ namespace NetMQ
             if (other.Length != MessageSize)
                 return false;
 
-            if (ReferenceEquals(Buffer, other))
+            if (ReferenceEquals (Buffer, other))
                 return true;
 
             for (int i = 0; i < MessageSize; i++)
@@ -245,7 +246,7 @@ namespace NetMQ
             if (other == null)
                 return false;
 
-            if (ReferenceEquals(this, other))
+            if (ReferenceEquals (this, other))
                 return true;
 
             if (MessageSize > other.BufferSize || MessageSize != other.MessageSize)
@@ -264,11 +265,13 @@ namespace NetMQ
             return true;
         }
 
-        bool IEquatable<NetMQFrame>.Equals(NetMQFrame other)
+        
+        bool IEquatable<NetMQFrame>.Equals (NetMQFrame other)
         {
-            return Equals(other);
+            return Equals (other);
         }
 
+        
         /// <summary>
         /// Return true if the given Object is a NetMQFrame which has a Buffer that is identical to that of this one.
         /// </summary>
@@ -276,7 +279,7 @@ namespace NetMQ
         /// <returns>true only if the given Object is a NetMQFrame equal to this one</returns>
         public override bool Equals(object obj)
         {
-            return Equals(obj as NetMQFrame);
+            return Equals (obj as NetMQFrame);
         }
 
         /// <summary>
