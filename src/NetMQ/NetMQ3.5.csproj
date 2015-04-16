@@ -46,6 +46,9 @@
       <HintPath>..\packages\AsyncIO.0.1.17.0\lib\net35\AsyncIO.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="JetBrains.Annotations">
+      <HintPath>..\packages\JetBrains.Annotations.9.1.1\lib\net20\JetBrains.Annotations.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceModel" />
@@ -179,7 +182,6 @@
     <Compile Include="ZmqSocketType.cs" />
     <None Include="NetMQ.nuspec" />
     <None Include="NetMQ.snk" />
-    <Compile Include="JetBrains.Annotations.cs" />
     <None Include="packages.NetMQ3.5.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
