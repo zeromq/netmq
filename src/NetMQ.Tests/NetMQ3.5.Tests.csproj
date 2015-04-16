@@ -74,7 +74,12 @@
     <Compile Include="BeaconTests.cs" />
     <Compile Include="ByteArraySegmentTests.cs" />
     <Compile Include="Core\YQueueTests.cs" />
+    <Compile Include="ExceptionTests.cs" />
+    <Compile Include="MockBufferPool.cs" />
+    <Compile Include="MsgTests.cs" />
+    <Compile Include="ReceivingSocketExtensionsTests.cs" />
     <Compile Include="RouterTests.cs" />
+    <Compile Include="SocketOptionsTests.cs" />
     <Compile Include="XPubSubTests.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="MonitorPollTests.cs" />
@@ -103,6 +108,7 @@
     <None Include="NetMQ.Testing.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
     <None Include="packages.NetMQ3.5.Tests.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
