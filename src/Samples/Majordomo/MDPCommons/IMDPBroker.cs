@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MajordomoProtocol.Contracts
+namespace MDPCommons
 {
     /// <summary>
     ///     Implements a Broker according to Majordomo Protocol v0.1
@@ -44,12 +44,12 @@ namespace MajordomoProtocol.Contracts
         /// <summary>
         ///     broadcast logging information via this event
         /// </summary>
-        event EventHandler<LogInfoEventArgs> LogInfoReady;
+        event EventHandler<MDPLogEventArgs> LogInfoReady;
 
         /// <summary>
         ///     broadcast elaborate debugging info if subscribed to
         /// </summary>
-        event EventHandler<LogInfoEventArgs> DebugInfoReady;
+        event EventHandler<MDPLogEventArgs> DebugInfoReady;
 
         /// <summary>
         ///     broker binds his socket to endpoint given at ctor

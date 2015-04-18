@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace MajordomoProtocol
+namespace TitanicCommons
 {
-    public class LogInfoEventArgs : EventArgs
+    public class TitanicLogEventArgs : EventArgs
     {
         public string Info { get; set; }
     }

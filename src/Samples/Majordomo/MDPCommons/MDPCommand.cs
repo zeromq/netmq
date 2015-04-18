@@ -1,4 +1,4 @@
-﻿namespace MajordomoProtocol.Contracts
+﻿namespace MDPCommons
 {
     /// <summary>
     ///     the available MDP commands 

@@ -44,11 +44,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Contracts\IMDPBroker.cs" />
-    <Compile Include="Contracts\IMDPClient.cs" />
-    <Compile Include="Contracts\IMDPWorker.cs" />
-    <Compile Include="Contracts\MDPCommand.cs" />
-    <Compile Include="LogInfoEventArgs.cs" />
     <Compile Include="MDPBroker.cs" />
     <Compile Include="MDPClient.cs" />
     <Compile Include="MDPWorker.cs" />
@@ -60,6 +55,10 @@
     <ProjectReference Include="..\..\..\NetMQ\NetMQ.csproj">
       <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
       <Name>NetMQ</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MDPCommons\MDPCommons.csproj">
+      <Project>{ec5a112c-5652-4eaa-bee9-bf1a98f719c4}</Project>
+      <Name>MDPCommons</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
