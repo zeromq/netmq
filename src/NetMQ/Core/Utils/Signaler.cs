@@ -21,6 +21,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
@@ -104,8 +105,12 @@ namespace NetMQ.Core.Utils
 
         public bool WaitEvent(int timeout)
         {
+            int timeoutInMicroSeconds = (timeout >= 0)
+                ? timeout * 1000
+                : Timeout.Infinite;
+
             if (m_readSocket.Connected)
-                return m_readSocket.Poll(timeout*1000, SelectMode.SelectRead);
+                return m_readSocket.Poll(timeoutInMicroSeconds, SelectMode.SelectRead);
 
             return false;
         }
