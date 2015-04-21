@@ -94,7 +94,9 @@ namespace NetMQ.Tests
                 socket.Options.TcpKeepaliveInterval = TimeSpan.FromMilliseconds(100);
                 Assert.AreEqual(TimeSpan.FromMilliseconds(100), socket.Options.TcpKeepaliveInterval);
 
+#pragma warning disable 618
                 socket.Options.TcpAcceptFilter = "1.0.0.0:1234";
+#pragma warning restore 618
 //                Assert.AreEqual("1.0.0.0:1234", socket.Options.TcpAcceptFilter);
 
                 socket.Options.DelayAttachOnConnect = true;

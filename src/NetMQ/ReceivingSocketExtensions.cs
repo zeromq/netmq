@@ -24,7 +24,7 @@ namespace NetMQ
         public static readonly Encoding DefaultEncoding = Encoding.UTF8;
 
         /// <summary>Indicates an infinite timeout for receive operations.</summary>
-        public static readonly TimeSpan InfiniteTimeout = TimeSpan.FromTicks(-1);
+        public static readonly TimeSpan InfiniteTimeout = TimeSpan.FromMilliseconds(-1);
 
         /// <summary>
         /// Block until the next message arrives, then make the message's data available via <paramref name="msg"/>.

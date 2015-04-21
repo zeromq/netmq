@@ -41,7 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="MDPBrokerProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -55,6 +55,10 @@
     <ProjectReference Include="..\MajordomoProtocol\MajordomoProtocol.csproj">
       <Project>{a16ebccb-a575-4ba5-813d-c8ad925d5a59}</Project>
       <Name>MajordomoProtocol</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MDPCommons\MDPCommons.csproj">
+      <Project>{ec5a112c-5652-4eaa-bee9-bf1a98f719c4}</Project>
+      <Name>MDPCommons</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

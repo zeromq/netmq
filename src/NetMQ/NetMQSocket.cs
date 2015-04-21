@@ -254,7 +254,7 @@ namespace NetMQ
         {
             SelectItem[] items = { new SelectItem(SocketHandle, pollEvents) };
 
-            m_selector.Select(items, 1, (int)timeout.TotalMilliseconds);
+            m_selector.Select(items, 1, (long)timeout.TotalMilliseconds);
             return items[0].ResultEvent;
         }
 

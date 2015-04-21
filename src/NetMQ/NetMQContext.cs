@@ -61,7 +61,7 @@ namespace NetMQ
         public int MaxSockets
         {
             get { m_ctx.CheckDisposed(); return m_ctx.MaxSockets; }
-            set { m_ctx.CheckDisposed(); m_ctx.IOThreadCount = value; }
+            set { m_ctx.CheckDisposed(); m_ctx.MaxSockets = value; }
         }
 
         #region Socket Creation

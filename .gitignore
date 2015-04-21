@@ -35,3 +35,6 @@ _ReSharper*/
 
 # Ignore NUnit project files
 *.nunit
+
+# Ignore NuGet Packages
+/src/packages/

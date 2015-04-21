@@ -44,6 +44,9 @@
       <HintPath>..\packages\AsyncIO.0.1.17.0\lib\net40\AsyncIO.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="JetBrains.Annotations">
+      <HintPath>..\packages\JetBrains.Annotations.9.1.1\lib\net20\JetBrains.Annotations.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
@@ -181,7 +184,6 @@
     <Compile Include="Core\Utils\Poller.cs" />
     <Compile Include="Core\Utils\PollerBase.cs" />
     <Compile Include="Core\Utils\Proactor.cs" />
-    <Compile Include="JetBrains.Annotations.cs" />
     <Compile Include="Core\Patterns\Pub.cs" />
     <Compile Include="Core\Patterns\Pull.cs" />
     <Compile Include="Core\Patterns\Push.cs" />

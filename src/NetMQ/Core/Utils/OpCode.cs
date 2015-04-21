@@ -9,9 +9,8 @@ namespace NetMQ.Core.Utils
     {
         private static IntPtr s_codeBuffer;
         private static ulong s_size;
-        private static bool s_isArm;
 
-        public static void Open()
+        public static bool Open()
         {
             var p = (int)Environment.OSVersion.Platform;
 
@@ -22,12 +21,8 @@ namespace NetMQ.Core.Utils
             if ((p == 4) || (p == 128))
             {
                 // Unix
-                s_isArm = IsARMArchitecture();
-                if (s_isArm)
-                {
-                    Rdtsc = RdtscOnArm;
-                    return;
-                }
+                if (IsARMArchitecture()) return false;
+
                 Assembly assembly = Assembly.Load("Mono.Posix");
 
                 Type syscall = assembly.GetType("Mono.Unix.Native.Syscall");
@@ -62,8 +57,9 @@ namespace NetMQ.Core.Utils
 
             Marshal.Copy(rdtscCode, 0, s_codeBuffer, rdtscCode.Length);
 
-            Rdtsc = Marshal.GetDelegateForFunctionPointer(
-                s_codeBuffer, typeof(RdtscDelegate)) as RdtscDelegate;
+            Rdtsc = Marshal.GetDelegateForFunctionPointer(s_codeBuffer, typeof(RdtscDelegate)) as RdtscDelegate;
+
+            return true;
         }
 
         private static bool IsARMArchitecture()
@@ -91,7 +87,7 @@ namespace NetMQ.Core.Utils
 
             var p = (int)Environment.OSVersion.Platform;
             if ((p == 4) || (p == 128))
-            { 
+            {
                 // Unix
                 Assembly assembly =
                     Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, " +
@@ -100,18 +96,12 @@ namespace NetMQ.Core.Utils
                 Type syscall = assembly.GetType("Mono.Unix.Native.Syscall");
                 MethodInfo munmap = syscall.GetMethod("munmap");
                 munmap.Invoke(null, new object[] { s_codeBuffer, s_size });
-
             }
             else
-            { 
+            {
                 // Windows
                 NativeMethods.VirtualFree(s_codeBuffer, UIntPtr.Zero, FreeType.RELEASE);
             }
-        }
-
-        private static ulong RdtscOnArm()
-        {
-            return (ulong)Environment.TickCount;
         }
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
