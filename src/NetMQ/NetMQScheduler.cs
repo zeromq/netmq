@@ -24,7 +24,7 @@ namespace NetMQ
         private readonly NetMQSocket m_serverSocket;
         private readonly NetMQSocket m_clientSocket;
 
-        private readonly ThreadLocal<bool> m_schedulerThread;
+        private readonly ThreadLocal<bool> m_isSchedulerThread;
 
         private readonly ConcurrentQueue<Task> m_tasksQueue;
 
@@ -87,7 +87,7 @@ namespace NetMQ
             m_clientSocket = pushSocket;
             m_clientSocket.Connect(address);
 
-            m_schedulerThread = new ThreadLocal<bool>(() => false);
+            m_isSchedulerThread = new ThreadLocal<bool>(() => false);
 
             if (m_ownPoller)
             {
@@ -98,7 +98,7 @@ namespace NetMQ
         private void OnMessageFirstTime(object sender, NetMQSocketEventArgs e)
         {
             // set the current thread as the scheduler thread, this only happens the first time a message arrived and is important for the TryExecuteTaskInline
-            m_schedulerThread.Value = true;
+            m_isSchedulerThread.Value = true;
 
             // stop calling the OnMessageFirstTime and start calling OnMessage
             m_serverSocket.ReceiveReady -= m_currentMessageHandler;
@@ -146,7 +146,7 @@ namespace NetMQ
         /// </example>
         public bool CanExecuteTaskInline
         {
-            get { return m_schedulerThread.Value; }
+            get { return m_isSchedulerThread.Value; }
         }
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
@@ -198,7 +198,7 @@ namespace NetMQ
                 m_poller.CancelAndJoin();
                 m_poller.Dispose();
             }
-            m_schedulerThread.Dispose();
+            m_isSchedulerThread.Dispose();
         }
 
         private void DisposeSynced()
