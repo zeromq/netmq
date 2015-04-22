@@ -64,6 +64,7 @@
     <Compile Include="NetMQBeacon.cs" />
     <Compile Include="NetMQQueue.cs" />
     <Compile Include="NetMQProactor.cs" />
+    <Compile Include="NetMQPoller.cs" />
     <Compile Include="NetMQScheduler.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
