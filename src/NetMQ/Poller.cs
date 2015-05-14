@@ -12,7 +12,8 @@ namespace NetMQ
     /// The Poller class provides for managing a set of one or more sockets and being alerted when one of them has a message
     /// ready.
     /// </summary>
-    public class Poller : IDisposable
+    [Obsolete("Use NetMQPoller instead")]
+    public class Poller : IDisposable, ISocketPollableCollection
     {
         /// <summary>
         /// This is the list of sockets that this Poller is listening to.
@@ -353,7 +354,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// The non blocking version of PollTillCancelled, starting the PollTillCancelled on new thread. 
+        /// The non blocking version of PollTillCancelled, starting the PollTillCancelled on new thread.
         /// Will poll till Cancel or CancelAndJoin is called. This method is not blocking.
         /// </summary>
         public void PollTillCancelledNonBlocking()
@@ -707,5 +708,22 @@ namespace NetMQ
         }
 
         #endregion
+
+        #region ISocketPollableCollection members
+
+        // NOTE this interface provides an abstraction over the legacy Poller and newer NetMQPoller classes for use in NetMQMonitor
+
+        void ISocketPollableCollection.Add(ISocketPollable socket)
+        {
+            AddSocket(socket);
+        }
+
+        void ISocketPollableCollection.Remove(ISocketPollable socket)
+        {
+            RemoveSocket(socket);
+        }
+
+        #endregion
+
     }
 }

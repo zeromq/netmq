@@ -1,55 +1,25 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
-using NetMQ.Core;
 using NetMQ.Core.Utils;
+#if !NET35
+using NetMQ.Core;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+#endif
 
 namespace NetMQ
 {
-    public static class NetMQPollerDesign
-    {
-        public static void Design()
-        {
-            using (var context = NetMQContext.Create())
-            using (var socket1 = context.CreatePairSocket())
-            using (var socket2 = context.CreatePairSocket())
-            using (var socket3 = new Socket(AddressFamily.InterNetwork, SocketType.Raw, ProtocolType.IPv4))
-            {
-                var timer1 = new NetMQTimer(123);
-                var timer2 = new NetMQTimer(123);
-
-                Action<Socket> socketCallback = socket => { /* ... */ };
-
-                using (var poller = new NetMQPoller(context)
-                {
-                    socket1, socket2, timer1, timer2, { socket3, socketCallback }
-                })
-                {
-                    poller.Start();
-
-                    // from another thread
-                    poller.StopAsync();
-                    poller.Stop();
-
-                    // or simply
-                    poller.Stop();
-
-                    var task = new Task(() => socket1.Send(new byte[0]));
-                    task.Start(poller);
-                    task.Wait();
-                }
-            }
-        }
-    }
-
-    public sealed class NetMQPoller : TaskScheduler, IEnumerable, IDisposable
+    public sealed class NetMQPoller :
+#if !NET35
+        TaskScheduler,
+#endif
+        ISocketPollableCollection, IEnumerable, IDisposable
     {
         private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
@@ -61,11 +31,12 @@ namespace NetMQ
         private NetMQSocket[] m_pollact;
 
         private volatile bool m_isStopRequested;
-        private volatile int m_isDisposed;
         private volatile bool m_isPollSetDirty = true;
+        private int m_disposeState = (int)DisposeState.Undisposed;
 
         #region Scheduling
 
+#if !NET35
         private static int s_nextPollerId;
 
         private readonly NetMQSocket m_schedulerPullSocket;
@@ -106,8 +77,7 @@ namespace NetMQ
         {
             if (task == null)
                 throw new ArgumentNullException("task");
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
 
             return CanExecuteTaskInline && TryExecuteTask(task);
         }
@@ -127,8 +97,7 @@ namespace NetMQ
         {
             if (task == null)
                 throw new ArgumentNullException("task");
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
 
             m_tasksQueue.Enqueue(task);
 
@@ -139,12 +108,26 @@ namespace NetMQ
             }
         }
 
+        private void Run(Action action)
+        {
+            if (CanExecuteTaskInline)
+                action();
+            else
+                new Task(action).Start(this);
+        }
+#else
+        private void Run(Action action)
+        {
+            action();
+        }
+#endif
+
         #endregion
 
         public NetMQPoller([NotNull] NetMQContext context)
         {
             PollTimeout = TimeSpan.FromSeconds(1);
-
+#if !NET35
             var address = string.Format("{0}://poller-{1}", Address.InProcProtocol, m_pollerId);
 
             m_schedulerPullSocket = context.CreatePullSocket();
@@ -153,13 +136,11 @@ namespace NetMQ
 
             m_schedulerPullSocket.ReceiveReady += delegate
             {
-                Debug.Assert(m_isDisposed == 0);
+                Debug.Assert(m_disposeState != (int)DisposeState.Disposed);
                 Debug.Assert(IsStarted);
 
                 // Dequeue the 'wake' command
                 m_schedulerPullSocket.SkipFrame();
-
-                Debug.Assert(!m_tasksQueue.IsEmpty);
 
                 // Try to dequeue and execute all pending tasks
                 Task task;
@@ -171,6 +152,7 @@ namespace NetMQ
 
             m_schedulerPushSocket = context.CreatePushSocket();
             m_schedulerPushSocket.Connect(address);
+#endif
         }
 
         public bool IsStarted { get; private set; }
@@ -186,10 +168,9 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
 
-            var task = new Task(() =>
+            Run(() =>
             {
                 if (m_sockets.Contains(socket.Socket))
                     return;
@@ -199,21 +180,15 @@ namespace NetMQ
                 socket.Socket.EventsChanged += OnSocketEventsChanged;
                 m_isPollSetDirty = true;
             });
-            task.Start(this);
         }
 
         public void Add([NotNull] NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException("timer");
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
 
-            var task = new Task(() =>
-            {
-                m_timers.Add(timer);
-            });
-            task.Start(this);
+            Run(() => m_timers.Add(timer));
         }
 
         public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
@@ -222,64 +197,53 @@ namespace NetMQ
                 throw new ArgumentNullException("socket");
             if (callback == null)
                 throw new ArgumentNullException("callback");
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
 
-            var task = new Task(() =>
+            Run(() =>
             {
                 if (m_pollinSockets.ContainsKey(socket))
                     return;
                 m_pollinSockets.Add(socket, callback);
                 m_isPollSetDirty = true;
             });
-            task.Start(this);
         }
 
         public void Remove([NotNull] ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
 
-            var task = new Task(() =>
+            Run(() =>
             {
                 socket.Socket.EventsChanged -= OnSocketEventsChanged;
                 m_sockets.Remove(socket.Socket);
                 m_isPollSetDirty = true;
             });
-            task.Start(this);
         }
 
         public void Remove([NotNull] NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException("timer");
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
 
             timer.When = -1;
 
-            var task = new Task(() =>
-            {
-                m_timers.Remove(timer);
-            });
-            task.Start(this);
+            Run(() => m_timers.Remove(timer));
         }
 
         public void Remove([NotNull] Socket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
 
-            var task = new Task(() =>
+            Run(() =>
             {
                 m_pollinSockets.Remove(socket);
                 m_isPollSetDirty = true;
             });
-            task.Start(this);
         }
 
         #endregion
@@ -288,8 +252,7 @@ namespace NetMQ
 
         public void StartAsync()
         {
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
             if (IsStarted)
                 throw new InvalidOperationException("NetMQPoller is already started");
 
@@ -299,18 +262,16 @@ namespace NetMQ
 
         public void Start()
         {
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
             if (IsStarted)
                 throw new InvalidOperationException("NetMQPoller is already started");
 
+#if !NET35
             var oldSynchronisationContext = SynchronizationContext.Current;
-
             SynchronizationContext.SetSynchronizationContext(new NetMQSynchronizationContext(this));
-
-            m_isStopRequested = false;
-
             m_isSchedulerThread.Value = true;
+#endif
+            m_isStopRequested = false;
 
             m_stoppedEvent.Reset();
             IsStarted = true;
@@ -444,8 +405,10 @@ namespace NetMQ
                 finally
                 {
                     IsStarted = false;
+#if !NET35
                     m_isSchedulerThread.Value = false;
                     SynchronizationContext.SetSynchronizationContext(oldSynchronisationContext);
+#endif
                     m_stoppedEvent.Set();
                 }
             }
@@ -453,8 +416,7 @@ namespace NetMQ
 
         public void Stop()
         {
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
             if (!IsStarted)
                 throw new InvalidOperationException("Poller is not running");
 
@@ -465,8 +427,7 @@ namespace NetMQ
 
         public void StopAsync()
         {
-            if (m_isDisposed != 0)
-                throw new ObjectDisposedException("NetMQPoller");
+            CheckDisposed();
             if (!IsStarted)
                 throw new InvalidOperationException("Poller is not running");
             m_isStopRequested = true;
@@ -483,7 +444,9 @@ namespace NetMQ
 
         private void RebuildPollset()
         {
+#if !NET35
             Debug.Assert(m_isSchedulerThread.Value);
+#endif
 
             // Recreate the m_pollSet and m_pollact arrays.
             m_pollSet = new SelectItem[m_sockets.Count + m_pollinSockets.Count];
@@ -521,9 +484,22 @@ namespace NetMQ
 
         #region IDisposable
 
+        private enum DisposeState
+        {
+            Undisposed = 0,
+            Disposing = 1,
+            Disposed = 2
+        }
+
+        private void CheckDisposed()
+        {
+            if (m_disposeState == (int)DisposeState.Disposed)
+                throw new ObjectDisposedException("NetMQPoller");
+        }
+
         public void Dispose()
         {
-            if (Interlocked.CompareExchange(ref m_isDisposed, 1, 0) == 1)
+            if (Interlocked.CompareExchange(ref m_disposeState, (int)DisposeState.Disposing, 0) == (int)DisposeState.Disposing)
                 return;
 
             // If this poller is already started, signal the polling thread to stop
@@ -535,18 +511,24 @@ namespace NetMQ
                 Debug.Assert(!IsStarted);
             }
 
-            m_stoppedEvent.Dispose();
+            m_stoppedEvent.Close();
+
+#if !NET35
             m_schedulerPullSocket.Dispose();
             m_schedulerPushSocket.Dispose();
+#endif
 
             foreach (var socket in m_sockets)
                 socket.EventsChanged -= OnSocketEventsChanged;
+
+            m_disposeState = (int)DisposeState.Disposed;
         }
 
         #endregion
 
         #region Synchronisation context
 
+#if !NET35
         private sealed class NetMQSynchronizationContext : SynchronizationContext
         {
             private readonly NetMQPoller m_poller;
@@ -571,6 +553,7 @@ namespace NetMQ
                 task.Wait();
             }
         }
+#endif
 
         #endregion
     }

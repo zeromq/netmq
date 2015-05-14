@@ -81,6 +81,7 @@
     <Compile Include="NetMQMonitorTests.cs" />
     <Compile Include="NetMQProactorTests.cs" />
     <Compile Include="OutgoingSocketExtensionsTests.cs" />
+    <Compile Include="NetMQPollerTest.cs" />
     <Compile Include="ReceivingSocketExtensionsTests.cs" />
     <Compile Include="RouterTests.cs" />
     <Compile Include="SocketOptionsTests.cs" />

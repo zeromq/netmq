@@ -25,7 +25,7 @@ namespace NetMQ.Monitoring
     {
         [NotNull] private readonly NetMQSocket m_monitoringSocket;
         private readonly bool m_ownsMonitoringSocket;
-        [CanBeNull] private Poller m_attachedPoller;
+        [CanBeNull] private ISocketPollableCollection m_attachedPoller;
         private int m_cancel;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
@@ -242,7 +242,7 @@ namespace NetMQ.Monitoring
             }
         }
 
-        public void AttachToPoller([NotNull] Poller poller)
+        public void AttachToPoller([NotNull] ISocketPollableCollection poller)
         {
             if (poller == null)
                 throw new ArgumentNullException("poller");
@@ -252,7 +252,7 @@ namespace NetMQ.Monitoring
                 throw new InvalidOperationException("Already attached to a poller");
 
             InternalStart();
-            poller.AddSocket(m_monitoringSocket);
+            poller.Add(m_monitoringSocket);
         }
 
         public void DetachFromPoller()
@@ -260,7 +260,7 @@ namespace NetMQ.Monitoring
             if (m_attachedPoller == null)
                 throw new InvalidOperationException("Not attached to a poller");
 
-            m_attachedPoller.RemoveSocket(m_monitoringSocket);
+            m_attachedPoller.Remove(m_monitoringSocket);
             m_attachedPoller = null;
             InternalClose();
         }
