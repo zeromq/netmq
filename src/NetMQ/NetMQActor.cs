@@ -125,8 +125,8 @@ namespace NetMQ
         private readonly Thread m_shimThread;
         private readonly IShimHandler m_shimHandler;
 
-        private readonly EventDelegatorHelper<NetMQActorEventArgs> m_receiveEventDelegatorHelper;
-        private readonly EventDelegatorHelper<NetMQActorEventArgs> m_sendEventDelegatorHelper;
+        private readonly EventDelegator<NetMQActorEventArgs> m_receiveEvent;
+        private readonly EventDelegator<NetMQActorEventArgs> m_sendEvent;
 
         #region Creating Actor
 
@@ -137,11 +137,11 @@ namespace NetMQ
             m_self = context.CreatePairSocket();
             m_shim = context.CreatePairSocket();
 
-            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(
+            m_receiveEvent = new EventDelegator<NetMQActorEventArgs>(
                 () => m_self.ReceiveReady += OnReceive,
                 () => m_self.ReceiveReady -= OnReceive);
 
-            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs>(
+            m_sendEvent = new EventDelegator<NetMQActorEventArgs>(
                 () => m_self.SendReady += OnSend,
                 () => m_self.SendReady -= OnSend);
 
@@ -280,8 +280,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQActorEventArgs> ReceiveReady
         {
-            add { m_receiveEventDelegatorHelper.Event += value; }
-            remove { m_receiveEventDelegatorHelper.Event -= value; }
+            add { m_receiveEvent.Event += value; }
+            remove { m_receiveEvent.Event -= value; }
         }
 
         /// <summary>
@@ -289,8 +289,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQActorEventArgs> SendReady
         {
-            add { m_sendEventDelegatorHelper.Event += value; }
-            remove { m_sendEventDelegatorHelper.Event -= value; }
+            add { m_sendEvent.Event += value; }
+            remove { m_sendEvent.Event -= value; }
         }
 
         NetMQSocket ISocketPollable.Socket
@@ -300,12 +300,12 @@ namespace NetMQ
 
         private void OnReceive(object sender, NetMQSocketEventArgs e)
         {
-            m_receiveEventDelegatorHelper.Fire(this, new NetMQActorEventArgs(this));
+            m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
         }
 
         private void OnSend(object sender, NetMQSocketEventArgs e)
         {
-            m_sendEventDelegatorHelper.Fire(this, new NetMQActorEventArgs(this));
+            m_sendEvent.Fire(this, new NetMQActorEventArgs(this));
         }
 
         #endregion
