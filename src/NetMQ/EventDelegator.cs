@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -20,7 +21,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="registerToEvent">an Action to perform when the first handler is registered for the event</param>
         /// <param name="unregisterFromEvent">an Action to perform when the last handler is unregistered from the event</param>
-        public EventDelegator(Action registerToEvent, Action unregisterFromEvent)
+        public EventDelegator([NotNull] Action registerToEvent, [NotNull] Action unregisterFromEvent)
         {
             m_registerToEvent = registerToEvent;
             m_unregisterFromEvent = unregisterFromEvent;
@@ -49,7 +50,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="sender">the sender that the event-handler that gets notified of this event will receive</param>
         /// <param name="args">the subclass of EventArgs that the event-handler will receive</param>
-        public void Fire(object sender, T args)
+        public void Fire([NotNull] object sender, [NotNull] T args)
         {
             var temp = m_event;
             if (temp != null)
