@@ -600,24 +600,24 @@ namespace NetMQ.Core
                 // Attach local end of the pipe to this socket object.
                 AttachPipe(pipes[0]);
 
-                // If required, send the identity of the peer to the local socket.
+                // If required, send the identity of the local socket to the peer.
                 if (peer.Options.RecvIdentity)
                 {
                     var id = new Msg();
-                    id.InitPool(peer.Options.IdentitySize);
-                    id.Put(peer.Options.Identity, 0, peer.Options.IdentitySize);
+                    id.InitPool(m_options.IdentitySize);
+                    id.Put(m_options.Identity, 0, m_options.IdentitySize);
                     id.SetFlags(MsgFlags.Identity);
                     bool written = pipes[0].Write(ref id);
                     Debug.Assert(written);
                     pipes[0].Flush();
                 }
 
-                // If required, send the identity of the local socket to the peer.
+                // If required, send the identity of the peer to the local socket.
                 if (m_options.RecvIdentity)
                 {
                     var id = new Msg();
-                    id.InitPool(m_options.IdentitySize);
-                    id.Put(m_options.Identity, 0, m_options.IdentitySize);
+                    id.InitPool(peer.Options.IdentitySize);
+                    id.Put(peer.Options.Identity, 0, peer.Options.IdentitySize);
                     id.SetFlags(MsgFlags.Identity);
                     bool written = pipes[1].Write(ref id);
                     Debug.Assert(written);

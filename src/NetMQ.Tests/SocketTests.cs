@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -614,5 +615,89 @@ namespace NetMQ.Tests
                 pub.Unbind("tcp://*:" + port3);
             }
         }
+        
+        [Test]
+        public void InprocRouterDealerTest()
+        {
+            // The main thread simply starts several clients and a server, and then
+            // waits for the server to finish.
+            List<Thread> workers = new List<Thread>();
+            byte[] s_ReadyMsg = Encoding.UTF8.GetBytes("RDY");
+            Queue<byte[]> s_FreeWorkers = new Queue<byte[]>();
+
+            using (var context = NetMQContext.Create())
+            {
+                using (var backendsRouter = context.CreateRouterSocket())
+                {
+                    backendsRouter.Options.Identity = Guid.NewGuid().ToByteArray();
+                    backendsRouter.Bind("inproc://backend");
+
+                    backendsRouter.ReceiveReady += (o, e)=>
+                    {
+                        // Handle worker activity on backend
+                        while (e.Socket.HasIn)
+                        {
+                            var msg = e.Socket.ReceiveMessage(false);
+                            var idRouter = msg.Pop();
+                            // forget the empty frame
+                            if (msg.First.IsEmpty)
+                                msg.Pop();
+
+                            var id = msg.Pop();
+                            if (msg.First.IsEmpty)
+                                msg.Pop();
+
+                            if (msg.FrameCount == 1)
+                            {
+                                // worker send RDY message queue his Identity to the free workers queue
+                                if (s_ReadyMsg[0] ==msg[0].Buffer[0] &&
+                                    s_ReadyMsg[1] ==msg[0].Buffer[1] && 
+                                    s_ReadyMsg[2] ==msg[0].Buffer[2])
+                                {
+                                    lock (s_FreeWorkers)
+                                    {
+                                        s_FreeWorkers.Enqueue(id.Buffer);
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    Poller poller = new Poller();
+                    poller.AddSocket(backendsRouter);
+
+                    for (int i = 0; i < 2; i++)
+                    {
+                        var workerThread = new Thread((state) =>
+                            {
+                                byte[] routerId = (byte[])state;
+                                byte[] workerId = Guid.NewGuid().ToByteArray();
+                                using (var workerSocket = context.CreateDealerSocket())
+                                {
+                                    workerSocket.Options.Identity = workerId;
+                                    workerSocket.Connect("inproc://backend");
+                                    
+                                    var workerReadyMsg = new NetMQMessage();
+                                    workerReadyMsg.Append(workerId);
+                                    workerReadyMsg.AppendEmptyFrame();
+                                    workerReadyMsg.Append(s_ReadyMsg);
+                                    workerSocket.SendMessage(workerReadyMsg);
+                                    Thread.Sleep(1000);
+                                }
+                            });
+                        workerThread.IsBackground = true;
+                        workerThread.Name = "worker" + i;
+                        workerThread.Start(backendsRouter.Options.Identity);
+                        workers.Add(workerThread);
+                    }
+                    
+                    poller.PollTillCancelledNonBlocking();
+                    Thread.Sleep(1000);
+                    poller.CancelAndJoin();
+                    Assert.AreEqual(2, s_FreeWorkers.Count);
+                }
+            }
+        }
+
     }
 }
