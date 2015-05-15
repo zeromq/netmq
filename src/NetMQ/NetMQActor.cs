@@ -137,13 +137,19 @@ namespace NetMQ
             m_self = context.CreatePairSocket();
             m_shim = context.CreatePairSocket();
 
+            EventHandler<NetMQSocketEventArgs> onReceive = (sender, e) =>
+                m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
+
+            EventHandler<NetMQSocketEventArgs> onSend = (sender, e) =>
+                m_sendEvent.Fire(this, new NetMQActorEventArgs(this));
+
             m_receiveEvent = new EventDelegator<NetMQActorEventArgs>(
-                () => m_self.ReceiveReady += OnReceive,
-                () => m_self.ReceiveReady -= OnReceive);
+                () => m_self.ReceiveReady += onReceive,
+                () => m_self.ReceiveReady -= onReceive);
 
             m_sendEvent = new EventDelegator<NetMQActorEventArgs>(
-                () => m_self.SendReady += OnSend,
-                () => m_self.SendReady -= OnSend);
+                () => m_self.SendReady += onSend,
+                () => m_self.SendReady -= onSend);
 
             var random = new Random();
 
@@ -296,16 +302,6 @@ namespace NetMQ
         NetMQSocket ISocketPollable.Socket
         {
             get { return m_self; }
-        }
-
-        private void OnReceive(object sender, NetMQSocketEventArgs e)
-        {
-            m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
-        }
-
-        private void OnSend(object sender, NetMQSocketEventArgs e)
-        {
-            m_sendEvent.Fire(this, new NetMQActorEventArgs(this));
         }
 
         #endregion

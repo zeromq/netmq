@@ -65,13 +65,19 @@ namespace NetMQ.Actors
             m_self.Options.SendHighWatermark = 1000;
             m_self.Options.SendHighWatermark = 1000;
 
+            EventHandler<NetMQSocketEventArgs> onReceive = (sender, e) =>
+                m_receiveEvent.Fire(this, new NetMQActorEventArgs<T>(this));
+
+            EventHandler<NetMQSocketEventArgs> onSend = (sender, e) =>
+                m_sendEvent.Fire(this, new NetMQActorEventArgs<T>(this));
+
             m_receiveEvent = new EventDelegator<NetMQActorEventArgs<T>>(
-                () => m_self.ReceiveReady += OnReceive,
-                () => m_self.ReceiveReady -= OnReceive);
+                () => m_self.ReceiveReady += onReceive,
+                () => m_self.ReceiveReady -= onReceive);
 
             m_sendEvent = new EventDelegator<NetMQActorEventArgs<T>>(
-                () => m_self.SendReady += OnSend,
-                () => m_self.SendReady -= OnSend);
+                () => m_self.SendReady += onSend,
+                () => m_self.SendReady -= onSend);
 
             //now binding and connect pipe ends
             string endPoint = string.Empty;
@@ -142,16 +148,6 @@ namespace NetMQ.Actors
         NetMQSocket ISocketPollable.Socket
         {
             get { return m_self; }
-        }
-
-        private void OnReceive(object sender, NetMQSocketEventArgs e)
-        {
-            m_receiveEvent.Fire(this, new NetMQActorEventArgs<T>(this));
-        }
-
-        private void OnSend(object sender, NetMQSocketEventArgs e)
-        {
-            m_sendEvent.Fire(this, new NetMQActorEventArgs<T>(this));
         }
 
         private void CreateShimThread()

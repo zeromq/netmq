@@ -274,9 +274,12 @@ namespace NetMQ
         {
             m_actor = NetMQActor.Create(context, new Shim());
 
+            EventHandler<NetMQActorEventArgs> onReceive = (sender, e) =>
+                m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
+
             m_receiveEvent = new EventDelegator<NetMQBeaconEventArgs>(
-                () => m_actor.ReceiveReady += OnReceiveReady,
-                () => m_actor.ReceiveReady -= OnReceiveReady);
+                () => m_actor.ReceiveReady += onReceive,
+                () => m_actor.ReceiveReady -= onReceive);
         }
 
         /// <summary>
@@ -299,11 +302,6 @@ namespace NetMQ
         {
             add { m_receiveEvent.Event += value; }
             remove { m_receiveEvent.Event -= value; }
-        }
-
-        private void OnReceiveReady(object sender, NetMQActorEventArgs args)
-        {
-            m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
         }
 
         /// <summary>
