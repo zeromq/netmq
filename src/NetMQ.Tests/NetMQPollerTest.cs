@@ -25,7 +25,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var rep = context.CreateResponseSocket())
             using (var req = context.CreateRequestSocket())
-            using (var poller = new NetMQPoller(context) { rep })
+            using (var poller = new NetMQPoller { rep })
             {
                 poller.PollTimeout = PollTimeout;
 
@@ -42,7 +42,7 @@ namespace NetMQ.Tests
                     e.Socket.Send("World");
                 };
 
-                poller.StartAsync();
+                poller.RunAsync();
 
                 req.Send("Hello");
 
@@ -64,7 +64,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var rep = context.CreateResponseSocket())
             using (var req = context.CreateRequestSocket())
-            using (var poller = new NetMQPoller(context) { PollTimeout = PollTimeout })
+            using (var poller = new NetMQPoller { PollTimeout = PollTimeout })
             using (var repMonitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
             using (var reqMonitor = new NetMQMonitor(context, req, "inproc://req.inproc", SocketEvent.Connected))
             {
@@ -81,7 +81,7 @@ namespace NetMQ.Tests
 
                 reqMonitor.AttachToPoller(poller);
 
-                poller.StartAsync();
+                poller.RunAsync();
 
                 req.Connect("tcp://127.0.0.1:" + port);
                 req.Send("a");
@@ -108,7 +108,7 @@ namespace NetMQ.Tests
             using (var router2 = context.CreateRouterSocket())
             using (var dealer1 = context.CreateDealerSocket())
             using (var dealer2 = context.CreateDealerSocket())
-            using (var poller = new NetMQPoller(context) { router1 })
+            using (var poller = new NetMQPoller { router1 })
             {
                 poller.PollTimeout = PollTimeout;
 
@@ -141,7 +141,7 @@ namespace NetMQ.Tests
                     signal2.Set();
                 };
 
-                poller.StartAsync();
+                poller.RunAsync();
 
                 dealer1.Send("1");
                 Assert.IsTrue(signal1.WaitOne(300));
@@ -165,7 +165,7 @@ namespace NetMQ.Tests
             using (var dealer1 = context.CreateDealerSocket())
             using (var dealer2 = context.CreateDealerSocket())
             using (var dealer3 = context.CreateDealerSocket())
-            using (var poller = new NetMQPoller(context) { router1, router2 })
+            using (var poller = new NetMQPoller { router1, router2 })
             {
                 poller.PollTimeout = PollTimeout;
 
@@ -211,7 +211,7 @@ namespace NetMQ.Tests
                     signal3.Set();
                 };
 
-                poller.StartAsync();
+                poller.RunAsync();
 
                 dealer1.Send("1");
                 Assert.IsTrue(signal1.WaitOne(300));
@@ -240,7 +240,7 @@ namespace NetMQ.Tests
             using (var dealer2 = context.CreateDealerSocket())
             using (var dealer3 = context.CreateDealerSocket())
             using (var dealer4 = context.CreateDealerSocket())
-            using (var poller = new NetMQPoller(context) { router1, router2 })
+            using (var poller = new NetMQPoller { router1, router2 })
             {
                 poller.PollTimeout = PollTimeout;
 
@@ -303,7 +303,7 @@ namespace NetMQ.Tests
                     signal4.Set();
                 };
 
-                poller.StartAsync();
+                poller.RunAsync();
 
                 dealer1.Send("1");
                 Assert.IsTrue(signal1.WaitOne(300));
@@ -341,7 +341,7 @@ namespace NetMQ.Tests
             using (var dealer1 = context.CreateDealerSocket())
             using (var dealer2 = context.CreateDealerSocket())
             using (var dealer3 = context.CreateDealerSocket())
-            using (var poller = new NetMQPoller(context) { router1, router2, router3 })
+            using (var poller = new NetMQPoller { router1, router2, router3 })
             {
                 poller.PollTimeout = PollTimeout;
 
@@ -395,7 +395,7 @@ namespace NetMQ.Tests
                     e.Socket.SendMore(identity).Send("3");
                 };
 
-                Task pollerTask = Task.Factory.StartNew(poller.Start);
+                Task pollerTask = Task.Factory.StartNew(poller.Run);
 
                 // Send three messages. Only the first will be processed, as then handler removes
                 // the socket from the poller.
@@ -424,7 +424,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var router = context.CreateRouterSocket())
             using (var dealer = context.CreateDealerSocket())
-            using (var poller = new NetMQPoller(context) { router })
+            using (var poller = new NetMQPoller { router })
             {
                 poller.PollTimeout = PollTimeout;
 
@@ -459,7 +459,7 @@ namespace NetMQ.Tests
                 };
                 poller.Add(timer);
 
-                poller.StartAsync();
+                poller.RunAsync();
 
                 Thread.Sleep(150);
 
@@ -481,7 +481,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var router = context.CreateRouterSocket())
             using (var dealer = context.CreateDealerSocket())
-            using (var poller = new NetMQPoller(context) { router })
+            using (var poller = new NetMQPoller { router })
             {
                 poller.PollTimeout = PollTimeout;
 
@@ -508,7 +508,7 @@ namespace NetMQ.Tests
                     poller.Remove(timer);
                 };
 
-                poller.StartAsync();
+                poller.RunAsync();
 
                 Thread.Sleep(20);
 
@@ -542,10 +542,10 @@ namespace NetMQ.Tests
             };
 
             using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context) { timer })
+            using (var poller = new NetMQPoller { timer })
             {
                 poller.PollTimeout = PollTimeout;
-                poller.StartAsync();
+                poller.RunAsync();
 
                 Thread.Sleep(timerIntervalMillis * 6);
 
@@ -620,10 +620,10 @@ namespace NetMQ.Tests
             };
 
             using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context) { timer1, timer2 })
+            using (var poller = new NetMQPoller { timer1, timer2 })
             {
                 poller.PollTimeout = PollTimeout;
-                poller.StartAsync();
+                poller.RunAsync();
 
                 Assert.IsTrue(signal1.WaitOne(300));
                 Assert.IsTrue(signal2.WaitOne(300));
@@ -670,10 +670,10 @@ namespace NetMQ.Tests
             };
 
             using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context) { timer1, timer2 })
+            using (var poller = new NetMQPoller { timer1, timer2 })
             {
                 poller.PollTimeout = PollTimeout;
-                poller.StartAsync();
+                poller.RunAsync();
 
                 Thread.Sleep(timerIntervalMillis * 6);
 
@@ -724,10 +724,10 @@ namespace NetMQ.Tests
             };
 
             using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context) { timer })
+            using (var poller = new NetMQPoller { timer })
             {
                 poller.PollTimeout = PollTimeout;
-                poller.StartAsync();
+                poller.RunAsync();
 
                 Thread.Sleep(timerIntervalMillis * 6);
 
@@ -759,17 +759,17 @@ namespace NetMQ.Tests
 
             NetMQPoller poller;
             using (var context = NetMQContext.Create())
-            using (poller = new NetMQPoller(context) { timer })
+            using (poller = new NetMQPoller { timer })
             {
                 poller.PollTimeout = PollTimeout;
-                poller.StartAsync();
+                poller.RunAsync();
                 Assert.IsTrue(signal.WaitOne(500));
-                Assert.IsTrue(poller.IsStarted);
-                Assert.Throws<InvalidOperationException>(() => poller.Start());
+                Assert.IsTrue(poller.IsRunning);
+                Assert.Throws<InvalidOperationException>(() => poller.Run());
             }
 
-            Assert.IsFalse(poller.IsStarted);
-            Assert.Throws<ObjectDisposedException>(() => poller.Start());
+            Assert.IsFalse(poller.IsRunning);
+            Assert.Throws<ObjectDisposedException>(() => poller.Run());
             Assert.Throws<ObjectDisposedException>(() => poller.Stop());
             Assert.Throws<ObjectDisposedException>(() => poller.Add(timer));
             Assert.Throws<ObjectDisposedException>(() => poller.Remove(timer));
@@ -796,7 +796,7 @@ namespace NetMQ.Tests
 
                 var socketSignal = new ManualResetEvent(false);
 
-                using (var poller = new NetMQPoller(context) { PollTimeout = PollTimeout })
+                using (var poller = new NetMQPoller { PollTimeout = PollTimeout })
                 {
                     poller.Add(socket, s =>
                     {
@@ -808,7 +808,7 @@ namespace NetMQ.Tests
                         poller.Remove(socket);
                     });
 
-                    poller.StartAsync();
+                    poller.RunAsync();
 
                     // no message is waiting for the socket so it should fail
                     Assert.IsFalse(socketSignal.WaitOne(100));
@@ -841,10 +841,9 @@ namespace NetMQ.Tests
         {
             bool triggered = false;
 
-            using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context))
+            using (var poller = new NetMQPoller())
             {
-                poller.StartAsync();
+                poller.RunAsync();
 
                 var task = new Task(() => { triggered = true; });
                 task.Start(poller);
@@ -863,10 +862,9 @@ namespace NetMQ.Tests
             int runCount1 = 0;
             int runCount2 = 0;
 
-            using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context))
+            using (var poller = new NetMQPoller())
             {
-                poller.StartAsync();
+                poller.RunAsync();
 
                 var task = new Task(() =>
                 {
@@ -898,10 +896,9 @@ namespace NetMQ.Tests
 
             var allTasks = new ConcurrentBag<Task>();
 
-            using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context))
+            using (var poller = new NetMQPoller())
             {
-                poller.StartAsync();
+                poller.RunAsync();
 
                 Task t1 = Task.Factory.StartNew(() =>
                 {

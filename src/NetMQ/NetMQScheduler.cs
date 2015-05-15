@@ -9,6 +9,7 @@ using NetMQ.Sockets;
 
 namespace NetMQ
 {
+    [Obsolete("Use NetMQPoller instead")]
     public class NetMQScheduler : TaskScheduler, IDisposable
     {
         /// <summary>

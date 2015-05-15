@@ -124,20 +124,20 @@ namespace NetMQ
 
         #endregion
 
-        public NetMQPoller([NotNull] NetMQContext context)
+        public NetMQPoller()
         {
             PollTimeout = TimeSpan.FromSeconds(1);
 #if !NET35
             var address = string.Format("{0}://poller-{1}", Address.InProcProtocol, m_pollerId);
 
-            m_schedulerPullSocket = context.CreatePullSocket();
+            m_schedulerPullSocket = new NetMQ.Sockets.PullSocket();
             m_schedulerPullSocket.Options.Linger = TimeSpan.Zero;
             m_schedulerPullSocket.Bind(address);
 
             m_schedulerPullSocket.ReceiveReady += delegate
             {
                 Debug.Assert(m_disposeState != (int)DisposeState.Disposed);
-                Debug.Assert(IsStarted);
+                Debug.Assert(IsRunning);
 
                 // Dequeue the 'wake' command
                 m_schedulerPullSocket.SkipFrame();
@@ -150,12 +150,12 @@ namespace NetMQ
 
             m_sockets.Add(m_schedulerPullSocket);
 
-            m_schedulerPushSocket = context.CreatePushSocket();
+            m_schedulerPushSocket = new NetMQ.Sockets.PushSocket();
             m_schedulerPushSocket.Connect(address);
 #endif
         }
 
-        public bool IsStarted { get; private set; }
+        public bool IsRunning { get; private set; }
 
         /// <summary>
         /// Get or set the poll timeout.
@@ -250,20 +250,20 @@ namespace NetMQ
 
         #region Start / Stop
 
-        public void StartAsync()
+        public void RunAsync()
         {
             CheckDisposed();
-            if (IsStarted)
-                throw new InvalidOperationException("NetMQPoller is already started");
+            if (IsRunning)
+                throw new InvalidOperationException("NetMQPoller is already running");
 
-            var thread = new Thread(Start) { Name = "NetMQPollerThread" };
+            var thread = new Thread(Run) { Name = "NetMQPollerThread" };
             thread.Start();
         }
 
-        public void Start()
+        public void Run()
         {
             CheckDisposed();
-            if (IsStarted)
+            if (IsRunning)
                 throw new InvalidOperationException("NetMQPoller is already started");
 
 #if !NET35
@@ -274,7 +274,7 @@ namespace NetMQ
             m_isStopRequested = false;
 
             m_stoppedEvent.Reset();
-            IsStarted = true;
+            IsRunning = true;
             try
             {
                 // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barrier
@@ -404,7 +404,7 @@ namespace NetMQ
                 }
                 finally
                 {
-                    IsStarted = false;
+                    IsRunning = false;
 #if !NET35
                     m_isSchedulerThread.Value = false;
                     SynchronizationContext.SetSynchronizationContext(oldSynchronisationContext);
@@ -417,21 +417,21 @@ namespace NetMQ
         public void Stop()
         {
             CheckDisposed();
-            if (!IsStarted)
+            if (!IsRunning)
                 throw new InvalidOperationException("Poller is not running");
 
             m_isStopRequested = true;
             m_stoppedEvent.WaitOne();
-            Debug.Assert(!IsStarted);
+            Debug.Assert(!IsRunning);
         }
 
         public void StopAsync()
         {
             CheckDisposed();
-            if (!IsStarted)
+            if (!IsRunning)
                 throw new InvalidOperationException("Poller is not running");
             m_isStopRequested = true;
-            Debug.Assert(!IsStarted);
+            Debug.Assert(!IsRunning);
         }
 
         #endregion
@@ -504,11 +504,11 @@ namespace NetMQ
 
             // If this poller is already started, signal the polling thread to stop
             // and wait for it.
-            if (IsStarted)
+            if (IsRunning)
             {
                 m_isStopRequested = true;
                 m_stoppedEvent.WaitOne();
-                Debug.Assert(!IsStarted);
+                Debug.Assert(!IsRunning);
             }
 
             m_stoppedEvent.Close();

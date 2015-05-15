@@ -14,6 +14,7 @@ namespace NetMQ.Tests
 {
     // Note: you can have failures here if you execute these on a machine that has only one processor-core.
 
+    [Obsolete("Tests an obsolete type")]
     [TestFixture]
     public class PollerTests
     {

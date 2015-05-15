@@ -8,22 +8,24 @@ namespace NetMQ.Tests
         [Test]
         public void Simple()
         {
-
             ShimAction shimAction = shim =>
             {
                 shim.SignalOK();
 
                 while (true)
                 {
-                    NetMQMessage msg = shim.ReceiveMultipartMessage();
-
-                    string command = msg[0].ConvertToString();
+                    var msg = shim.ReceiveMultipartMessage();
+                    var command = msg[0].ConvertToString();
 
                     if (command == NetMQActor.EndShimMessage)
                         break;
 
                     if (command == "Hello")
+                    {
+                        Assert.AreEqual(2, msg.FrameCount);
+                        Assert.AreEqual("Hello", msg[1].ConvertToString());
                         shim.SendFrame("World");
+                    }
                 }
             };
 

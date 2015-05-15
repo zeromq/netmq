@@ -47,7 +47,7 @@ namespace NetMQ
 
         #region Nested class: Shim
 
-        private class Shim : IShimHandler
+        private sealed class Shim : IShimHandler
         {
             private NetMQSocket m_pipe;
             private Socket m_udpSocket;
@@ -58,21 +58,21 @@ namespace NetMQ
             private NetMQFrame m_transmit;
             private NetMQFrame m_filter;
             private NetMQTimer m_pingTimer;
-            private Poller m_poller;
+            private NetMQPoller m_poller;
 
             private void Configure([NotNull] string interfaceName, int port)
             {
                 // In case the beacon was configured twice
                 if (m_udpSocket != null)
                 {
-                    m_poller.RemovePollInSocket(m_udpSocket);
+                    m_poller.Remove(m_udpSocket);
                     m_udpSocket.Close();
                 }
 
                 m_udpPort = port;
                 m_udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-                m_poller.AddPollInSocket(m_udpSocket, OnUdpReady);
+                m_poller.Add(m_udpSocket, OnUdpReady);
 
                 // Ask operating system for broadcast permissions on socket
                 m_udpSocket.EnableBroadcast = true;
@@ -149,21 +149,17 @@ namespace NetMQ
 
                 m_pipe.ReceiveReady += OnPipeReady;
 
-                m_pingTimer = new NetMQTimer(0);
+                m_pingTimer = new NetMQTimer(interval: TimeSpan.Zero);
                 m_pingTimer.Elapsed += PingElapsed;
                 m_pingTimer.Enable = false;
 
-                m_poller = new Poller();
-                m_poller.AddSocket(m_pipe);
-                m_poller.AddTimer(m_pingTimer);
+                m_poller = new NetMQPoller { m_pipe, m_pingTimer };
 
-                m_poller.PollTillCancelled();
+                m_poller.Run();
 
                 // the beacon might never been configured
                 if (m_udpSocket != null)
-                {
                     m_udpSocket.Close();
-                }
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
@@ -232,7 +228,7 @@ namespace NetMQ
                         m_filter = null;
                         break;
                     case NetMQActor.EndShimMessage:
-                        m_poller.Cancel();
+                        m_poller.Stop();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -285,7 +281,7 @@ namespace NetMQ
 
         /// <summary>
         /// Create a new NetMQBeacon.
-        /// </summary>        
+        /// </summary>
         public NetMQBeacon()
         {
             m_actor = NetMQActor.Create(new Shim());
@@ -358,7 +354,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Publish beacon immediately and continue to publish when interval elapsed 
+        /// Publish beacon immediately and continue to publish when interval elapsed
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
@@ -373,7 +369,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Publish beacon immediately and continue to publish when interval elapsed 
+        /// Publish beacon immediately and continue to publish when interval elapsed
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
@@ -390,7 +386,7 @@ namespace NetMQ
         /// <summary>
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
-        /// <param name="transmit">Beacon to transmit</param>        
+        /// <param name="transmit">Beacon to transmit</param>
         public void Publish([NotNull] string transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
@@ -399,7 +395,7 @@ namespace NetMQ
         /// <summary>
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
-        /// <param name="transmit">Beacon to transmit</param>        
+        /// <param name="transmit">Beacon to transmit</param>
         public void Publish([NotNull] byte[] transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
