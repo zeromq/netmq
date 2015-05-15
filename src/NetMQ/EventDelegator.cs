@@ -5,10 +5,13 @@ using JetBrains.Annotations;
 namespace NetMQ
 {
     /// <summary>
-    /// EventDelegator is an internal utility-class that, for a given EventArgs type,
-    /// registers two Actions for it - one to execute when the first handler is added, and the other when the last handler is removed.
+    /// Facilitates a pattern whereby an event may be decorated with logic that transforms its arguments.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <remarks>
+    /// Use of this class requires providing actions that register and unregister a handler of the source
+    /// event that calls <see cref="Fire"/> with updated arguments in response.
+    /// </remarks>
+    /// <typeparam name="T">Argument type of the decorated event.</typeparam>
     internal class EventDelegator<T> where T : EventArgs
     {
         private readonly Action m_registerToEvent;
