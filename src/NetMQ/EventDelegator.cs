@@ -12,7 +12,7 @@ namespace NetMQ
     /// event that calls <see cref="Fire"/> with updated arguments in response.
     /// </remarks>
     /// <typeparam name="T">Argument type of the decorated event.</typeparam>
-    internal class EventDelegator<T> where T : EventArgs
+    internal class EventDelegator<T> : IDisposable where T : EventArgs
     {
         private readonly Action m_registerToEvent;
         private readonly Action m_unregisterFromEvent;
@@ -59,6 +59,15 @@ namespace NetMQ
             if (temp != null)
             {
                 temp(sender, args);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (m_counter != 0)
+            {
+                m_unregisterFromEvent();
+                m_counter = 0;
             }
         }
     }

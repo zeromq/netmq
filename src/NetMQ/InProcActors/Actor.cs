@@ -199,6 +199,8 @@ namespace NetMQ.Actors
 
             m_shimTask.Wait();
             m_self.Dispose();
+            m_sendEvent.Dispose();
+            m_receiveEvent.Dispose();
         }
 
         #region IOutgoingSocket

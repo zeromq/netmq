@@ -342,6 +342,8 @@ namespace NetMQ
 
             m_shimThread.Join();
             m_self.Dispose();
+            m_sendEvent.Dispose();
+            m_receiveEvent.Dispose();
         }
 
         #endregion

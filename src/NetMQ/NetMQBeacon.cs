@@ -480,6 +480,7 @@ namespace NetMQ
                 return;
 
             m_actor.Dispose();
+            m_receiveEvent.Dispose();
         }
     }
 }
