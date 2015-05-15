@@ -42,7 +42,7 @@ namespace NetMQ
             {
                 m_event -= value;
 
-                m_counter++;
+                m_counter--;
 
                 if (m_counter == 0)
                 {
