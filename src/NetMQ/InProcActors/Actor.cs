@@ -67,10 +67,11 @@ namespace NetMQ.Actors
 
             m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
                 () => m_self.ReceiveReady += OnReceive,
-                () => m_self.ReceiveReady += OnReceive);
+                () => m_self.ReceiveReady -= OnReceive);
+
             m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
-                () => m_self.SendReady += OnReceive,
-                () => m_self.SendReady += OnSend);
+                () => m_self.SendReady += OnSend,
+                () => m_self.SendReady -= OnSend);
 
             //now binding and connect pipe ends
             string endPoint = string.Empty;
