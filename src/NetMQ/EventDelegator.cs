@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace NetMQ
 {
@@ -31,23 +32,15 @@ namespace NetMQ
             {
                 m_event += value;
 
-                if (m_counter == 0)
-                {
+                if (Interlocked.Increment(ref m_counter) == 1)
                     m_registerToEvent();
-                }
-
-                m_counter++;
             }
             remove
             {
                 m_event -= value;
 
-                m_counter--;
-
-                if (m_counter == 0)
-                {
+                if (Interlocked.Decrement(ref m_counter) == 0)
                     m_unregisterFromEvent();
-                }
             }
         }
 
