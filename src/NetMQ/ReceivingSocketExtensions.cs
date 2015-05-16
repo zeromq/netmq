@@ -21,9 +21,11 @@ namespace NetMQ
         /// The <see cref="Encoding"/> used in string related methods that do
         /// not explicitly provide an encoding parameter.
         /// </summary>
+		[Obsolete("Use SendReceiveConstans.DefaultEncoding instead")]
         public static readonly Encoding DefaultEncoding = Encoding.UTF8;
 
         /// <summary>Indicates an infinite timeout for receive operations.</summary>
+		[Obsolete("Use SendReceiveConstans.InfiniteTimeout instead")]
         public static readonly TimeSpan InfiniteTimeout = TimeSpan.FromMilliseconds(-1);
 
         /// <summary>
@@ -37,7 +39,7 @@ namespace NetMQ
         /// <param name="msg">An object to receive the message's data into.</param>
         public static void Receive(this IReceivingSocket socket, ref Msg msg)
         {
-            var result = socket.TryReceive(ref msg, InfiniteTimeout);
+            var result = socket.TryReceive(ref msg, SendReceiveConstants.InfiniteTimeout);
             Debug.Assert(result);
         }
 
@@ -434,7 +436,7 @@ namespace NetMQ
         public static string ReceiveFrameString([NotNull] this IReceivingSocket socket)
         {
             bool more;
-            return socket.ReceiveFrameString(DefaultEncoding, out more);
+            return socket.ReceiveFrameString(SendReceiveConstants.DefaultEncoding, out more);
         }
 
         /// <summary>
@@ -447,7 +449,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveFrameString([NotNull] this IReceivingSocket socket, out bool more)
         {
-            return socket.ReceiveFrameString(DefaultEncoding, out more);
+            return socket.ReceiveFrameString(SendReceiveConstants.DefaultEncoding, out more);
         }
 
         /// <summary>
@@ -503,7 +505,7 @@ namespace NetMQ
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, out string frameString)
         {
             bool more;
-            return socket.TryReceiveFrameString(TimeSpan.Zero, DefaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(TimeSpan.Zero, SendReceiveConstants.DefaultEncoding, out frameString, out more);
         }
 
         /// <summary>
@@ -516,7 +518,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, out string frameString, out bool more)
         {
-            return socket.TryReceiveFrameString(TimeSpan.Zero, DefaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(TimeSpan.Zero, SendReceiveConstants.DefaultEncoding, out frameString, out more);
         }
 
         /// <summary>
@@ -562,7 +564,7 @@ namespace NetMQ
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, out string frameString)
         {
             bool more;
-            return socket.TryReceiveFrameString(timeout, DefaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(timeout, SendReceiveConstants.DefaultEncoding, out frameString, out more);
         }
 
         /// <summary>
@@ -576,7 +578,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, out string frameString, out bool more)
         {
-            return socket.TryReceiveFrameString(timeout, DefaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(timeout, SendReceiveConstants.DefaultEncoding, out frameString, out more);
         }
 
         /// <summary>
@@ -887,7 +889,7 @@ namespace NetMQ
         [NotNull]
         public static List<string> ReceiveMultipartStrings([NotNull] this IReceivingSocket socket, int expectedFrameCount = 4)
         {
-            return ReceiveMultipartStrings(socket, DefaultEncoding, expectedFrameCount);
+            return ReceiveMultipartStrings(socket, SendReceiveConstants.DefaultEncoding, expectedFrameCount);
         }
 
         /// <summary>
@@ -933,7 +935,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveMultipartStrings([NotNull] this IReceivingSocket socket, [CanBeNull] ref List<string> frames, int expectedFrameCount = 4)
         {
-            return TryReceiveMultipartStrings(socket, DefaultEncoding, ref frames, expectedFrameCount);
+            return TryReceiveMultipartStrings(socket, SendReceiveConstants.DefaultEncoding, ref frames, expectedFrameCount);
         }
 
         /// <summary>
@@ -969,7 +971,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveMultipartStrings([NotNull] this IReceivingSocket socket, TimeSpan timeout, [CanBeNull] ref List<string> frames, int expectedFrameCount = 4)
         {
-            return TryReceiveMultipartStrings(socket, timeout, DefaultEncoding, ref frames, expectedFrameCount);
+            return TryReceiveMultipartStrings(socket, timeout, SendReceiveConstants.DefaultEncoding, ref frames, expectedFrameCount);
         }
 
         /// <summary>

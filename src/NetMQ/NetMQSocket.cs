@@ -360,9 +360,37 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
         /// <exception cref="AgainException">The send operation timed out.</exception>
+        [Obsolete("Use Send(ref Msg, bool) or TrySend(ref Msg,TimeSpan, bool) instead.")]
         public virtual void Send(ref Msg msg, SendReceiveOptions options)
         {
-            m_socketHandle.Send(ref msg, options);
+            bool more = (options & SendReceiveOptions.SendMore) != 0;
+
+            // This legacy method adapts the newer nothrow API to the older AgainException one.
+            if ((options & SendReceiveOptions.DontWait) != 0)
+            {
+                // User specified DontWait, so use a zero timeout.
+                if (!m_socketHandle.TrySend(ref msg, TimeSpan.Zero, more))
+                    throw new AgainException();
+            }
+            else
+            {
+                // User is expecting to wait, however we must still consider the socket's (obsolete) SendTimeout.
+                if (!m_socketHandle.TrySend(ref msg, Options.SendTimeout, more))
+                    throw new AgainException();
+            }
+        }
+
+        /// <summary>
+        /// Send a message if one is available within <paramref name="timeout"/>.
+        /// </summary>
+        /// <param name="msg">An object with message's data to send.</param>
+        /// <param name="timeout">The maximum length of time to try and send a message. If <see cref="TimeSpan.Zero"/>, no
+        /// wait occurs.</param>
+        /// <param name="more">Indicate if another frame is expected after this frame</param>
+        /// <returns><c>true</c> if a message was sent, otherwise <c>false</c>.</returns>
+        public bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
+        {
+            return m_socketHandle.TrySend(ref msg, timeout, more);
         }
 
         #endregion

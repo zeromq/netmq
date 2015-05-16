@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using JetBrains.Annotations;
+using System.Diagnostics;
 
 namespace NetMQ
 {
@@ -9,6 +10,23 @@ namespace NetMQ
     /// </summary>
     public static class OutgoingSocketExtensions
     {
+
+		/// <summary>
+		/// Block until the message is can be sent.
+		/// </summary>
+		/// <remarks>
+		/// The call  blocks until the message can be sent and cannot be interrupted. 
+		/// Wether the message can be sent depends on the socket type.
+		/// </remarks>
+		/// <param name="socket">The socket to send the message on.</param>
+		/// <param name="msg">An object with message's data to send.</param>
+		/// <param name="more">Indicate if another frame is expected after this frame</param>
+		public static void Send(this IOutgoingSocket socket, ref Msg msg, bool more)
+		{
+			var result = socket.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, more);
+			Debug.Assert(result);
+		}
+			
         #region Sending Byte Array
 
         /// <summary>

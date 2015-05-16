@@ -161,7 +161,8 @@ namespace NetMQ.Actors
                         m_shim.Handler.RunPipeline(m_shim.Pipe);
                     }
                     catch (TerminatingException)
-                    {}
+                    {
+                    }
 
                     // Do not block, if the other end of the pipe is already deleted
                     m_shim.Pipe.Options.SendTimeout = TimeSpan.Zero;
@@ -171,7 +172,8 @@ namespace NetMQ.Actors
                         m_shim.Pipe.SignalOK();
                     }
                     catch (AgainException)
-                    {}
+                    {
+                    }
 
                     m_shim.Pipe.Dispose();
                 },
@@ -191,7 +193,8 @@ namespace NetMQ.Actors
                 m_self.WaitForSignal();
             }
             catch (AgainException)
-            {}
+            {
+            }
 
             m_shimTask.Wait();
             m_self.Dispose();
@@ -204,9 +207,17 @@ namespace NetMQ.Actors
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
         /// <exception cref="AgainException">The send operation timed out.</exception>
+        [Obsolete("Use Send(ref Msg,bool) or TrySend(ref Msg,TimeSpan,bool) instead.")]
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Send(ref msg, options);
+        }
+
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
+        public bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
+        {
+            return m_self.TrySend(ref msg, timeout, more);
         }
 
         #endregion
