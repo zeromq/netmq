@@ -74,6 +74,7 @@
     <Compile Include="BeaconTests.cs" />
     <Compile Include="ByteArraySegmentTests.cs" />
     <Compile Include="Core\YQueueTests.cs" />
+    <Compile Include="EventDelegatorTests.cs" />
     <Compile Include="ExceptionTests.cs" />
     <Compile Include="MockBufferPool.cs" />
     <Compile Include="MsgTests.cs" />

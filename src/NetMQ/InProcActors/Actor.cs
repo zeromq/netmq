@@ -42,8 +42,8 @@ namespace NetMQ.Actors
         private readonly PairSocket m_self;
         private readonly Shim<T> m_shim;
         private Task m_shimTask;
-        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_receiveEventDelegatorHelper;
-        private readonly EventDelegatorHelper<NetMQActorEventArgs<T>> m_sendEventDelegatorHelper;
+        private readonly EventDelegator<NetMQActorEventArgs<T>> m_receiveEvent;
+        private readonly EventDelegator<NetMQActorEventArgs<T>> m_sendEvent;
 
         [NotNull]
         private static string GetEndPointName()
@@ -65,12 +65,19 @@ namespace NetMQ.Actors
             m_self.Options.SendHighWatermark = 1000;
             m_self.Options.SendHighWatermark = 1000;
 
-            m_receiveEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
-                () => m_self.ReceiveReady += OnReceive,
-                () => m_self.ReceiveReady += OnReceive);
-            m_sendEventDelegatorHelper = new EventDelegatorHelper<NetMQActorEventArgs<T>>(
-                () => m_self.SendReady += OnReceive,
-                () => m_self.SendReady += OnSend);
+            EventHandler<NetMQSocketEventArgs> onReceive = (sender, e) =>
+                m_receiveEvent.Fire(this, new NetMQActorEventArgs<T>(this));
+
+            EventHandler<NetMQSocketEventArgs> onSend = (sender, e) =>
+                m_sendEvent.Fire(this, new NetMQActorEventArgs<T>(this));
+
+            m_receiveEvent = new EventDelegator<NetMQActorEventArgs<T>>(
+                () => m_self.ReceiveReady += onReceive,
+                () => m_self.ReceiveReady -= onReceive);
+
+            m_sendEvent = new EventDelegator<NetMQActorEventArgs<T>>(
+                () => m_self.SendReady += onSend,
+                () => m_self.SendReady -= onSend);
 
             //now binding and connect pipe ends
             string endPoint = string.Empty;
@@ -125,8 +132,8 @@ namespace NetMQ.Actors
         /// </summary>
         public event EventHandler<NetMQActorEventArgs<T>> ReceiveReady
         {
-            add { m_receiveEventDelegatorHelper.Event += value; }
-            remove { m_receiveEventDelegatorHelper.Event -= value; }
+            add { m_receiveEvent.Event += value; }
+            remove { m_receiveEvent.Event -= value; }
         }
 
         /// <summary>
@@ -134,23 +141,13 @@ namespace NetMQ.Actors
         /// </summary>
         public event EventHandler<NetMQActorEventArgs<T>> SendReady
         {
-            add { m_sendEventDelegatorHelper.Event += value; }
-            remove { m_sendEventDelegatorHelper.Event -= value; }
+            add { m_sendEvent.Event += value; }
+            remove { m_sendEvent.Event -= value; }
         }
 
         NetMQSocket ISocketPollable.Socket
         {
             get { return m_self; }
-        }
-
-        private void OnReceive(object sender, NetMQSocketEventArgs e)
-        {
-            m_receiveEventDelegatorHelper.Fire(this, new NetMQActorEventArgs<T>(this));
-        }
-
-        private void OnSend(object sender, NetMQSocketEventArgs e)
-        {
-            m_sendEventDelegatorHelper.Fire(this, new NetMQActorEventArgs<T>(this));
         }
 
         private void CreateShimThread()
@@ -198,6 +195,8 @@ namespace NetMQ.Actors
 
             m_shimTask.Wait();
             m_self.Dispose();
+            m_sendEvent.Dispose();
+            m_receiveEvent.Dispose();
         }
 
         #region IOutgoingSocket
