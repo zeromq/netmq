@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
-    <id>$id$</id>
-    <version>$version$-rc1</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
+    <id>NetMQ</id>
+    <version>$version$</version>
+    <title>NetMQ</title>
+    <authors>NetMQ</authors>
+    <owners>NetMQ</owners>
     <licenseUrl>https://github.com/zeromq/netmq/blob/master/COPYING.LESSER</licenseUrl>
     <projectUrl>https://github.com/zeromq/netmq</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQ.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
+    <description>A 100% native C# port of the lightweight high performance messaging library ZeroMQ</description>
     <releaseNotes>
       Features:
       * DotNet 3.5 support
@@ -33,6 +33,9 @@
     </releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>
+    <dependencies>
+      <dependency id="AsyncIO" version="0.1.17.0" />
+    </dependencies>
   </metadata>
   <files>
     <file src="bin\Release\NetMQ.dll" target="lib\net40\" />
