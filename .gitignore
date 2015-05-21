@@ -28,6 +28,7 @@ Thumbs.db
 obj/
 [Rr]elease*/
 _ReSharper*/
+*.DotSettings
 [Tt]est[Rr]esult*
 
 # Ignore MonoDevelop files
