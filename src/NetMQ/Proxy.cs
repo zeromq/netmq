@@ -19,7 +19,8 @@ namespace NetMQ
     {
         [NotNull] private readonly NetMQSocket m_frontend;
         [NotNull] private readonly NetMQSocket m_backend;
-        [CanBeNull] private readonly NetMQSocket m_control;
+        [CanBeNull] private readonly NetMQSocket m_controlIn;
+        [CanBeNull] private readonly NetMQSocket m_controlOut;
         [CanBeNull] private Poller m_poller;
         private readonly bool m_externalPoller;
 
@@ -36,10 +37,11 @@ namespace NetMQ
         /// </summary>
         /// <param name="frontend">the socket that messages will be forwarded from</param>
         /// <param name="backend">the socket that messages will be forwarded to</param>
-        /// <param name="control">this socket will have messages also sent to it - you can set this to null if not needed</param>
+        /// <param name="controlIn">this socket will have incoming messages also sent to it - you can set this to null if not needed</param>
+        /// <param name="controlOut">this socket will have outgoing messages also sent to it - you can set this to null if not needed</param>
         /// <param name="poller">an optional external poller to use within this proxy</param>
         /// <exception cref="InvalidOperationException"><paramref name="poller"/> is not <c>null</c> and either <paramref name="frontend"/> or <paramref name="backend"/> are not contained within it.</exception>
-        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, Poller poller = null)
+        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [NotNull] NetMQSocket controlIn, [NotNull] NetMQSocket controlOut, [CanBeNull] Poller poller = null)
         {
             if (poller != null)
             {
@@ -52,8 +54,22 @@ namespace NetMQ
 
             m_frontend = frontend;
             m_backend = backend;
-            m_control = control;
+            m_controlIn = controlIn;
+            m_controlOut = controlOut ?? controlIn;
         }
+
+        /// <summary>
+        /// Create a new instance of a Proxy (NetMQ.Proxy)
+        /// with the given sockets to serve as a front-end, a back-end, and a control socket.
+        /// </summary>
+        /// <param name="frontend">the socket that messages will be forwarded from</param>
+        /// <param name="backend">the socket that messages will be forwarded to</param>
+        /// <param name="control">this socket will have messages also sent to it - you can set this to null if not needed</param>
+        /// <param name="poller">an optional external poller to use within this proxy</param>
+        /// <exception cref="InvalidOperationException"><paramref name="poller"/> is not <c>null</c> and either <paramref name="frontend"/> or <paramref name="backend"/> are not contained within it.</exception>
+        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, [CanBeNull] Poller poller = null)
+            :this(frontend, backend, control, null, poller)
+        {}
 
         /// <summary>
         /// Start proxying messages between the front and back ends. Blocks, unless using an external <see cref="Poller"/>.
@@ -106,12 +122,12 @@ namespace NetMQ
 
         private void OnFrontendReady(object sender, NetMQSocketEventArgs e)
         {
-            ProxyBetween(m_frontend, m_backend, m_control);
+            ProxyBetween(m_frontend, m_backend, m_controlIn);
         }
 
         private void OnBackendReady(object sender, NetMQSocketEventArgs e)
         {
-            ProxyBetween(m_backend, m_frontend, m_control);
+            ProxyBetween(m_backend, m_frontend, m_controlOut);
         }
 
         private static void ProxyBetween(NetMQSocket from, NetMQSocket to, [CanBeNull] NetMQSocket control)

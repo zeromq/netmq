@@ -20,3 +20,4 @@ Contributors
 * Tobias Behr &mdash; [@tobi-tobsen](https://github.com/tobi-tobsen)
 * Tom Robinson &mdash; [@tjrobinson](https://github.com/tjrobinson)
 * Victor Baybekov &mdash; [@buybackoff](https://github.com/buybackoff)
+* Tobias Böhm &mdash; [@tobiasb](https://github.com/tobiasb)
