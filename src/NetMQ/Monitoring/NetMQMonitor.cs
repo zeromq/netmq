@@ -120,7 +120,7 @@ namespace NetMQ.Monitoring
         /// </summary>
         public event EventHandler<NetMQMonitorSocketEventArgs> Disconnected;
 
-        internal void Handle(object sender, NetMQSocketEventArgs socketEventArgs)
+        private void Handle(object sender, NetMQSocketEventArgs socketEventArgs)
         {
             var monitorEvent = MonitorEvent.Read(m_monitoringSocket.SocketHandle);
 
