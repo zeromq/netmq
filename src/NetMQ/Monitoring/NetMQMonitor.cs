@@ -11,7 +11,7 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitor : IDisposable
     {
-        private readonly bool m_isOwner;
+        private readonly bool m_ownsMonitoringSocket;
         private Poller m_attachedPoller;
 
         private int m_cancel;
@@ -30,7 +30,7 @@ namespace NetMQ.Monitoring
 
             MonitoringSocket.ReceiveReady += Handle;
 
-            m_isOwner = true;
+            m_ownsMonitoringSocket = true;
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace NetMQ.Monitoring
 
             MonitoringSocket.ReceiveReady += Handle;
 
-            m_isOwner = false;
+            m_ownsMonitoringSocket = false;
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace NetMQ.Monitoring
         public event EventHandler<NetMQMonitorErrorEventArgs> AcceptFailed;
 
         /// <summary>
-        /// Occurs when a connection was closed.		
+        /// Occurs when a connection was closed.
         /// </summary>
         public event EventHandler<NetMQMonitorSocketEventArgs> Closed;
 
@@ -116,7 +116,7 @@ namespace NetMQ.Monitoring
         public bool IsRunning { get; private set; }
 
         /// <summary>
-        /// How much time to wait on each poll iteration, the higher the number the longer it will take the poller to stop 
+        /// How much time to wait on each poll iteration, the higher the number the longer it will take the poller to stop
         /// </summary>
         public TimeSpan Timeout { get; set; }
 
@@ -284,7 +284,7 @@ namespace NetMQ.Monitoring
 
             m_isStoppedEvent.Close();
 
-            if (m_isOwner)
+            if (m_ownsMonitoringSocket)
             {
                 MonitoringSocket.Dispose();
             }
