@@ -53,6 +53,24 @@ namespace NetMQ.Monitoring
         }
 
         /// <summary>
+        /// The monitoring address.
+        /// </summary>
+        public string Endpoint { get; private set; }
+
+        /// <summary>
+        /// Get whether this monitor is currently running.
+        /// </summary>
+        /// <remarks>
+        /// This is set within <see cref="Start"/> and AttachToPoller, and cleared within DetachFromPoller.
+        /// </remarks>
+        public bool IsRunning { get; private set; }
+
+        /// <summary>
+        /// How much time to wait on each poll iteration, the higher the number the longer it will take the poller to stop
+        /// </summary>
+        public TimeSpan Timeout { get; set; }
+
+        /// <summary>
         /// Occurs when a connection is made to a socket.
         /// </summary>
         public event EventHandler<NetMQMonitorSocketEventArgs> Connected;
@@ -101,24 +119,6 @@ namespace NetMQ.Monitoring
         /// Occurs when the stream engine (TCP and IPC specific) detects a corrupted / broken session.
         /// </summary>
         public event EventHandler<NetMQMonitorSocketEventArgs> Disconnected;
-
-        /// <summary>
-        /// The monitoring address.
-        /// </summary>
-        public string Endpoint { get; private set; }
-
-        /// <summary>
-        /// Get whether this monitor is currently running.
-        /// </summary>
-        /// <remarks>
-        /// This is set within <see cref="Start"/> and AttachToPoller, and cleared within DetachFromPoller.
-        /// </remarks>
-        public bool IsRunning { get; private set; }
-
-        /// <summary>
-        /// How much time to wait on each poll iteration, the higher the number the longer it will take the poller to stop
-        /// </summary>
-        public TimeSpan Timeout { get; set; }
 
         internal void Handle(object sender, NetMQSocketEventArgs socketEventArgs)
         {
