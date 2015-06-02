@@ -305,6 +305,8 @@ namespace NetMQ.Monitoring
                 Stop();
             }
 
+            m_monitoringSocket.ReceiveReady -= Handle;
+
             m_isStoppedEvent.Close();
 
             if (m_ownsMonitoringSocket)
