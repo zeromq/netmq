@@ -123,7 +123,7 @@ namespace NetMQ.SimpleTests
 
         protected override long DoClient(NetMQSocket socket, int messageSize)
         {
-            var msg = new Msg();            
+            var msg = new Msg();
             var watch = Stopwatch.StartNew();
 
             for (int i = 0; i < Iterations; i++)

@@ -314,7 +314,7 @@ namespace MajordomoTests
                 // the task completes when the message exchange is done
                 Task.WaitAll (client01Task, client02Task, client03Task);
                 // cancel the broker
-                
+
                 cts.Cancel ();
 
                 Assert.That (log.Count, Is.EqualTo (4));
