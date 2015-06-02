@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Threading;
+#if !NET35
+using System.Threading.Tasks;
+#endif
 using AsyncIO;
 using JetBrains.Annotations;
 using NetMQ.Core;
@@ -260,6 +263,23 @@ namespace NetMQ.Monitoring
                 InternalClose();
             }
         }
+
+#if !NET35
+        /// <summary>
+        /// Start a background task for the monitoring operation.
+        /// </summary>
+        /// <returns></returns>
+        public Task StartAsync()
+        {
+            if (IsRunning)
+                throw new InvalidOperationException("Monitor already started");
+
+            if (m_attachedPoller != null)
+                throw new InvalidOperationException("Monitor attached to a poller");
+
+            return Task.Factory.StartNew(Start);
+        }
+#endif
 
         /// <summary>
         /// Stop monitoring. Blocks until monitoring completed.

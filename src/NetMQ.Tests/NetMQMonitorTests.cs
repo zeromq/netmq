@@ -31,12 +31,11 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
 
                 req.Connect("tcp://127.0.0.1:" + port);
-                req.Send("a");
 
+                req.Send("a");
                 rep.SkipFrame();
 
                 rep.Send("b");
-
                 req.SkipFrame();
 
                 Thread.Sleep(200);
@@ -51,6 +50,23 @@ namespace NetMQ.Tests
                 Assert.IsTrue(monitorTask.IsCompleted);
             }
         }
+
+#if !NET35
+        [Test]
+        public void StartAsync()
+        {
+            using (var context = NetMQContext.Create())
+            using (var rep = context.CreateResponseSocket())
+            using (var monitor = new NetMQMonitor(context, rep, "inproc://foo", SocketEvent.Closed))
+            {
+                var task = monitor.StartAsync();
+                Thread.Sleep(200);
+                Assert.AreEqual(TaskStatus.Running, task.Status);
+                monitor.Stop();
+                Assert.True(task.Wait(TimeSpan.FromMilliseconds(1000)));
+            }
+        }
+#endif
 
         [Test]
         public void NoHangWhenMonitoringUnboundInprocAddress()
@@ -93,12 +109,11 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
 
                 req.Connect("tcp://127.0.0.1:" + port);
-                req.Send("a");
 
+                req.Send("a");
                 rep.SkipFrame();
 
                 rep.Send("b");
-
                 req.SkipFrame();
 
                 Thread.Sleep(200);
