@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Monitoring;
@@ -48,6 +49,28 @@ namespace NetMQ.Tests
                 Thread.Sleep(200);
 
                 Assert.IsTrue(monitorTask.IsCompleted);
+            }
+        }
+
+        [Test]
+        public void NoHangWhenMonitoringUnboundInprocAddress()
+        {
+            using (var context = NetMQContext.Create())
+            using (var monitor = context.CreateMonitorSocket("inproc://unbound-inproc-address"))
+            {
+                var task = Task.Factory.StartNew(monitor.Start);
+                monitor.Stop();
+
+                try
+                {
+                    task.Wait(TimeSpan.FromMilliseconds(1000));
+                    Assert.Fail("Exception expected");
+                }
+                catch (AggregateException ex)
+                {
+                    Assert.AreEqual(1, ex.InnerExceptions.Count);
+                    Assert.IsTrue(ex.InnerExceptions.Single() is EndpointNotFoundException);
+                }
             }
         }
 

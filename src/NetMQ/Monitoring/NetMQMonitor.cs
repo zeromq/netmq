@@ -248,10 +248,10 @@ namespace NetMQ.Monitoring
             if (m_attachedPoller != null)
                 throw new InvalidOperationException("Monitor attached to a poller");
 
-            InternalStart();
-
             try
             {
+                InternalStart();
+
                 while (m_cancel == 0)
                 {
                     m_monitoringSocket.Poll(Timeout);
