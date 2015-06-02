@@ -7,14 +7,14 @@ namespace NetMQ.Monitoring
     /// <summary>
     /// This is an EventArgs that also contains a NetMQMonitor and a string Address.
     /// </summary>
-    public class NetMQMonitorEventArgs : EventArgs
+    public abstract class NetMQMonitorEventArgs : EventArgs
     {
         /// <summary>
         /// Create a new NetMQMonitorEventArgs that contains the given monitor and address.
         /// </summary>
         /// <param name="monitor">a NetMQMonitor for this to hold</param>
         /// <param name="address">a string address for this to hold</param>
-        public NetMQMonitorEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address)
+        protected NetMQMonitorEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address)
         {
             Monitor = monitor;
             Address = address;
