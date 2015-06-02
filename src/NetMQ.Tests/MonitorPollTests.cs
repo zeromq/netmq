@@ -107,7 +107,7 @@ namespace NetMQ.Tests
                 using (var req = context.CreateRequestSocket())
                 {
                     monitor = new NetMQMonitor(context, req, "inproc://#monitor", SocketEvent.All);
-                    Task.Factory.StartNew(() => monitor.Start());
+                    Task.Factory.StartNew(monitor.Start);
 
                     // Bug only occurs when monitoring a tcp socket
                     var port = res.BindRandomPort("tcp://127.0.0.1");
