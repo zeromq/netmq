@@ -9,6 +9,13 @@ namespace NetMQ.Monitoring
     /// <summary>
     /// Monitors a <see cref="NetMQSocket"/> for events, raising them via events.
     /// </summary>
+    /// <remarks>
+    /// To run a monitor instance, either:
+    /// <list type="bullet">
+    ///   <item>Call <see cref="Start"/> (blocking) and <see cref="Stop"/>, or</item>
+    ///   <item>Call <see cref="AttachToPoller"/> and <see cref="DetachFromPoller"/>.</item>
+    /// </list>
+    /// </remarks>
     public class NetMQMonitor : IDisposable
     {
         private readonly NetMQSocket m_monitoringSocket;
@@ -65,13 +72,18 @@ namespace NetMQ.Monitoring
         /// Get whether this monitor is currently running.
         /// </summary>
         /// <remarks>
-        /// This is set within <see cref="Start"/> and AttachToPoller, and cleared within DetachFromPoller.
+        /// Start the monitor running via either <see cref="Start"/> or <see cref="AttachToPoller"/>.
+        /// Stop the monitor via either <see cref="Stop"/> or <see cref="DetachFromPoller"/>.
         /// </remarks>
         public bool IsRunning { get; private set; }
 
         /// <summary>
-        /// How much time to wait on each poll iteration, the higher the number the longer it will take the poller to stop
+        /// Gets and sets the timeout interval for poll iterations when using <see cref="Start"/> and <see cref="Stop"/>.
         /// </summary>
+        /// <remarks>
+        /// The higher the number the longer it may take the to stop the monitor.
+        /// This value has no effect when the monitor is run via <see cref="AttachToPoller"/>.
+        /// </remarks>
         public TimeSpan Timeout { get; set; }
 
         #region Events
