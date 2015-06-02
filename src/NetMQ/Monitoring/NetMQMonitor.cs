@@ -41,7 +41,11 @@ namespace NetMQ.Monitoring
         /// </remarks>
         /// <param name="socket">The socket to monitor.</param>
         /// <param name="endpoint">a string denoting the endpoint which will be the monitoring address</param>
-        public NetMQMonitor([NotNull] NetMQSocket socket, [NotNull] string endpoint)
+        /// <param name="ownsSocket">
+        /// A flag indicating whether ownership of <paramref name="socket"/> is transferred to the monitor.
+        /// If <c>true</c>, disposing the monitor will also dispose <paramref name="socket"/>.
+        /// </param>
+        public NetMQMonitor([NotNull] NetMQSocket socket, [NotNull] string endpoint, bool ownsSocket = false)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -49,7 +53,7 @@ namespace NetMQ.Monitoring
 
             m_monitoringSocket.ReceiveReady += Handle;
 
-            m_ownsMonitoringSocket = false;
+            m_ownsMonitoringSocket = ownsSocket;
         }
 
         /// <summary>

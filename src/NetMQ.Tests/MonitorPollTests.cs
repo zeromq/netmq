@@ -125,5 +125,16 @@ namespace NetMQ.Tests
             }
             // NOTE If this test fails, it will hang because context.Dispose will block
         }
+
+        [Test]
+        public void CreateMonitorSocket_ShouldntHangContextDispose_GitHubIssue223()
+        {
+            var context = NetMQContext.Create();
+
+            using (context.CreateMonitorSocket("inproc://monitor1234"))
+            {}
+
+            Assert.True(Task.Factory.StartNew(() => context.Dispose()).Wait(1000));
+        }
     }
 }
