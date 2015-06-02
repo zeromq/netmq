@@ -7,7 +7,7 @@ using NetMQ.Core;
 namespace NetMQ.Monitoring
 {
     /// <summary>
-    /// Use this class when you want to monitor a socket.
+    /// Monitors a <see cref="NetMQSocket"/> for events, raising them via events.
     /// </summary>
     public class NetMQMonitor : IDisposable
     {
@@ -34,9 +34,12 @@ namespace NetMQ.Monitoring
         }
 
         /// <summary>
-        /// This constructor receives an already-created monitored socket. The other constructor is preferred; this one is here to support clrzmq signature
+        /// Initialises a monitor on <paramref name="socket"/> for a specified <paramref name="endpoint"/>.
         /// </summary>
-        /// <param name="socket">this will be the monitoring socket</param>
+        /// <remarks>
+        /// This constructor matches the signature used by clrzmq.
+        /// </remarks>
+        /// <param name="socket">The socket to monitor.</param>
         /// <param name="endpoint">a string denoting the endpoint which will be the monitoring address</param>
         public NetMQMonitor([NotNull] NetMQSocket socket, [NotNull] string endpoint)
         {
@@ -95,12 +98,12 @@ namespace NetMQ.Monitoring
         public event EventHandler<NetMQMonitorErrorEventArgs> CloseFailed;
 
         /// <summary>
-        /// Occurs when the stream engine (tcp and ipc specific) detects a corrupted / broken session.
+        /// Occurs when the stream engine (TCP and IPC specific) detects a corrupted / broken session.
         /// </summary>
         public event EventHandler<NetMQMonitorSocketEventArgs> Disconnected;
 
         /// <summary>
-        /// The monitoring address
+        /// The monitoring address.
         /// </summary>
         public string Endpoint { get; private set; }
 
@@ -111,8 +114,10 @@ namespace NetMQ.Monitoring
 
         /// <summary>
         /// Get whether this monitor is currently running.
-        /// This is set within Start and AttachToPoller, and cleared within DetachFromPoller.
         /// </summary>
+        /// <remarks>
+        /// This is set within <see cref="Start"/> and AttachToPoller, and cleared within DetachFromPoller.
+        /// </remarks>
         public bool IsRunning { get; private set; }
 
         /// <summary>
@@ -241,7 +246,7 @@ namespace NetMQ.Monitoring
         }
 
         /// <summary>
-        /// Stop the socket monitoring
+        /// Stop monitoring. Blocks until monitoring completed.
         /// </summary>
         /// <exception cref="InvalidOperationException">If this monitor is attached to a poller you must detach it first and not use the stop method.</exception>
         public void Stop()
