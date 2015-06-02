@@ -11,9 +11,9 @@ namespace NetMQ.Monitoring
     /// </summary>
     public class NetMQMonitor : IDisposable
     {
+        private readonly NetMQSocket m_monitoringSocket;
         private readonly bool m_ownsMonitoringSocket;
         private Poller m_attachedPoller;
-
         private int m_cancel;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
@@ -25,10 +25,10 @@ namespace NetMQ.Monitoring
 
             monitoredSocket.Monitor(endpoint, eventsToMonitor);
 
-            MonitoringSocket = context.CreatePairSocket();
-            MonitoringSocket.Options.Linger = TimeSpan.Zero;
+            m_monitoringSocket = context.CreatePairSocket();
+            m_monitoringSocket.Options.Linger = TimeSpan.Zero;
 
-            MonitoringSocket.ReceiveReady += Handle;
+            m_monitoringSocket.ReceiveReady += Handle;
 
             m_ownsMonitoringSocket = true;
         }
@@ -45,9 +45,9 @@ namespace NetMQ.Monitoring
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
-            MonitoringSocket = socket;
+            m_monitoringSocket = socket;
 
-            MonitoringSocket.ReceiveReady += Handle;
+            m_monitoringSocket.ReceiveReady += Handle;
 
             m_ownsMonitoringSocket = false;
         }
@@ -108,11 +108,6 @@ namespace NetMQ.Monitoring
         public string Endpoint { get; private set; }
 
         /// <summary>
-        /// Monitoring socket created by the init method
-        /// </summary>
-        internal NetMQSocket MonitoringSocket { get; private set; }
-
-        /// <summary>
         /// Get whether this monitor is currently running.
         /// </summary>
         /// <remarks>
@@ -127,7 +122,7 @@ namespace NetMQ.Monitoring
 
         internal void Handle(object sender, NetMQSocketEventArgs socketEventArgs)
         {
-            MonitorEvent monitorEvent = MonitorEvent.Read(MonitoringSocket.SocketHandle);
+            var monitorEvent = MonitorEvent.Read(m_monitoringSocket.SocketHandle);
 
             switch (monitorEvent.Event)
             {
@@ -179,14 +174,14 @@ namespace NetMQ.Monitoring
         {
             m_isStoppedEvent.Reset();
             IsRunning = true;
-            MonitoringSocket.Connect(Endpoint);
+            m_monitoringSocket.Connect(Endpoint);
         }
 
         private void InternalClose()
         {
             try
             {
-                MonitoringSocket.Disconnect(Endpoint);
+                m_monitoringSocket.Disconnect(Endpoint);
             }
             catch (Exception)
             {}
@@ -201,12 +196,12 @@ namespace NetMQ.Monitoring
         {
             InternalStart();
             m_attachedPoller = poller;
-            poller.AddSocket(MonitoringSocket);
+            poller.AddSocket(m_monitoringSocket);
         }
 
         public void DetachFromPoller()
         {
-            m_attachedPoller.RemoveSocket(MonitoringSocket);
+            m_attachedPoller.RemoveSocket(m_monitoringSocket);
             m_attachedPoller = null;
             InternalClose();
         }
@@ -236,7 +231,7 @@ namespace NetMQ.Monitoring
             {
                 while (m_cancel == 0)
                 {
-                    MonitoringSocket.Poll(Timeout);
+                    m_monitoringSocket.Poll(Timeout);
                 }
             }
             finally
@@ -291,7 +286,7 @@ namespace NetMQ.Monitoring
 
             if (m_ownsMonitoringSocket)
             {
-                MonitoringSocket.Dispose();
+                m_monitoringSocket.Dispose();
             }
         }
     }
