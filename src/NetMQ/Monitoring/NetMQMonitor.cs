@@ -18,9 +18,9 @@ namespace NetMQ.Monitoring
     /// </remarks>
     public class NetMQMonitor : IDisposable
     {
-        private readonly NetMQSocket m_monitoringSocket;
+        [NotNull] private readonly NetMQSocket m_monitoringSocket;
         private readonly bool m_ownsMonitoringSocket;
-        private Poller m_attachedPoller;
+        [CanBeNull] private Poller m_attachedPoller;
         private int m_cancel;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
@@ -34,7 +34,6 @@ namespace NetMQ.Monitoring
 
             m_monitoringSocket = context.CreatePairSocket();
             m_monitoringSocket.Options.Linger = TimeSpan.Zero;
-
             m_monitoringSocket.ReceiveReady += Handle;
 
             m_ownsMonitoringSocket = true;
@@ -57,7 +56,6 @@ namespace NetMQ.Monitoring
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
             m_monitoringSocket = socket;
-
             m_monitoringSocket.ReceiveReady += Handle;
 
             m_ownsMonitoringSocket = ownsSocket;
