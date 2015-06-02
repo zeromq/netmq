@@ -70,6 +70,8 @@ namespace NetMQ.Monitoring
         /// </summary>
         public TimeSpan Timeout { get; set; }
 
+        #region Events
+
         /// <summary>
         /// Occurs when a connection is made to a socket.
         /// </summary>
@@ -119,6 +121,8 @@ namespace NetMQ.Monitoring
         /// Occurs when the stream engine (TCP and IPC specific) detects a corrupted / broken session.
         /// </summary>
         public event EventHandler<NetMQMonitorSocketEventArgs> Disconnected;
+
+        #endregion
 
         private void Handle(object sender, NetMQSocketEventArgs socketEventArgs)
         {
@@ -216,14 +220,10 @@ namespace NetMQ.Monitoring
             Thread.MemoryBarrier();
 
             if (IsRunning)
-            {
                 throw new InvalidOperationException("Monitor already started");
-            }
 
             if (m_attachedPoller != null)
-            {
                 throw new InvalidOperationException("Monitor attached to a poller");
-            }
 
             InternalStart();
 
@@ -247,13 +247,13 @@ namespace NetMQ.Monitoring
         public void Stop()
         {
             if (m_attachedPoller != null)
-            {
                 throw new InvalidOperationException("Monitor attached to a poller, please detach from poller and don't use the stop method");
-            }
 
             Interlocked.Exchange(ref m_cancel, 1);
             m_isStoppedEvent.WaitOne();
         }
+
+        #region Dispose
 
         /// <summary>
         /// Release and dispose of any contained resources.
@@ -289,5 +289,7 @@ namespace NetMQ.Monitoring
                 m_monitoringSocket.Dispose();
             }
         }
+
+        #endregion
     }
 }
