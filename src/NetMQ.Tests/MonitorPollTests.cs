@@ -25,7 +25,7 @@ namespace NetMQ.Tests
 
                 monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
-                var pollerTask = Task.Factory.StartNew(monitor.Start);
+                var monitorTask = Task.Factory.StartNew(monitor.Start);
 
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
 
@@ -47,7 +47,7 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(200);
 
-                Assert.IsTrue(pollerTask.IsCompleted);
+                Assert.IsTrue(monitorTask.IsCompleted);
             }
         }
 
@@ -65,7 +65,7 @@ namespace NetMQ.Tests
 
                 monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
-                var pollerTask = Task.Factory.StartNew(monitor.Start);
+                var monitorTask = Task.Factory.StartNew(monitor.Start);
 
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
 
@@ -86,7 +86,7 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(200);
 
-                Assert.IsTrue(pollerTask.IsCompleted);
+                Assert.IsTrue(monitorTask.IsCompleted);
             }
         }
 
