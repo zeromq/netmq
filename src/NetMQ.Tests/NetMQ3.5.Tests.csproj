@@ -78,12 +78,12 @@
     <Compile Include="ExceptionTests.cs" />
     <Compile Include="MockBufferPool.cs" />
     <Compile Include="MsgTests.cs" />
+    <Compile Include="NetMQMonitorTests.cs" />
     <Compile Include="ReceivingSocketExtensionsTests.cs" />
     <Compile Include="RouterTests.cs" />
     <Compile Include="SocketOptionsTests.cs" />
     <Compile Include="XPubSubTests.cs" />
     <Compile Include="MessageTests.cs" />
-    <Compile Include="MonitorPollTests.cs" />
     <Compile Include="NetMQTestRunner.cs" />
     <Compile Include="NetworkOrderBitsConverterTests.cs" />
     <Compile Include="PgmTests.cs" />

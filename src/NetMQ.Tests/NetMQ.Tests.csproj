@@ -92,7 +92,7 @@
     <Compile Include="Devices\QueueDeviceTests.cs" />
     <Compile Include="Devices\StreamerDeviceTests.cs" />
     <Compile Include="MessageTests.cs" />
-    <Compile Include="MonitorPollTests.cs" />
+    <Compile Include="NetMQMonitorTests.cs" />
     <Compile Include="NetMQSchedulerTest.cs" />
     <Compile Include="NetMQTestRunner.cs" />
     <Compile Include="NetworkOrderBitsConverterTests.cs" />

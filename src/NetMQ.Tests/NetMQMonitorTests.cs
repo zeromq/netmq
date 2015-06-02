@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace NetMQ.Tests
 {
     [TestFixture]
-    public class MonitorPollTests
+    public class NetMQMonitorTests
     {
         [Test]
         public void Monitoring()
