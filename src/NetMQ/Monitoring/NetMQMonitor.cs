@@ -157,7 +157,7 @@ namespace NetMQ.Monitoring
                     InvokeEvent(Disconnected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg));
                     break;
                 default:
-                    throw new Exception("unknown event " + monitorEvent.Event.ToString());
+                    throw new Exception("unknown event " + monitorEvent.Event);
             }
         }
 
