@@ -49,6 +49,8 @@ namespace TitanicProtocolTests.TestEntities
             return request; // as echo service :-)
         }
 
+#pragma warning disable 67
         public event EventHandler<MDPLogEventArgs> LogInfoReady;
+#pragma warning restore 67
     }
 }

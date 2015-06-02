@@ -637,7 +637,7 @@ namespace NetMQ.Tests
                         // Handle worker activity on backend
                         while (e.Socket.HasIn)
                         {
-                            var msg = e.Socket.ReceiveMessage(false);
+                            var msg = e.Socket.ReceiveMultipartMessage();
                             var idRouter = msg.Pop();
                             // forget the empty frame
                             if (msg.First.IsEmpty)

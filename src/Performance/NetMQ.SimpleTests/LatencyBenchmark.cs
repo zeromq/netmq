@@ -144,7 +144,7 @@ namespace NetMQ.SimpleTests
 
             for (int i = 0; i < Iterations; i++)
             {
-                socket.Receive(ref msg, SendReceiveOptions.None);
+                socket.Receive(ref msg);
 
                 socket.Send(ref msg, SendReceiveOptions.None);
             }

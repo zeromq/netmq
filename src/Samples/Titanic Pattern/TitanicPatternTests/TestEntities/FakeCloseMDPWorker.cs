@@ -19,7 +19,9 @@ namespace TitanicProtocolTests.TestEntities
 
         public TimeSpan ReconnectDelay { get; set; }
 
+#pragma warning disable 67
         public event EventHandler<MDPLogEventArgs> LogInfoReady;
+#pragma warning restore 67
 
         public NetMQMessage Receive (NetMQMessage reply)
         {
