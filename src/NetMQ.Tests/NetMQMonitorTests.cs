@@ -16,7 +16,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var rep = context.CreateResponseSocket())
             using (var req = context.CreateRequestSocket())
-            using (var monitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
+            using (var monitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
             {
                 var listening = false;
                 var accepted = false;
@@ -57,7 +57,7 @@ namespace NetMQ.Tests
         {
             using (var context = NetMQContext.Create())
             using (var rep = context.CreateResponseSocket())
-            using (var monitor = new NetMQMonitor(context, rep, "inproc://foo", SocketEvent.Closed))
+            using (var monitor = new NetMQMonitor(context, rep, "inproc://foo", SocketEvents.Closed))
             {
                 var task = monitor.StartAsync();
                 Thread.Sleep(200);
@@ -96,7 +96,7 @@ namespace NetMQ.Tests
             using (var context = NetMQContext.Create())
             using (var req = context.CreateRequestSocket())
             using (var rep = context.CreateResponseSocket())
-            using (var monitor = new NetMQMonitor(context, req, "inproc://rep.inproc", SocketEvent.ConnectDelayed))
+            using (var monitor = new NetMQMonitor(context, req, "inproc://rep.inproc", SocketEvents.ConnectDelayed))
             {
                 var eventArrived = false;
 
@@ -144,7 +144,7 @@ namespace NetMQ.Tests
                 NetMQMonitor monitor;
                 using (var req = context.CreateRequestSocket())
                 {
-                    monitor = new NetMQMonitor(context, req, "inproc://#monitor", SocketEvent.All);
+                    monitor = new NetMQMonitor(context, req, "inproc://#monitor", SocketEvents.All);
                     Task.Factory.StartNew(monitor.Start);
 
                     // Bug only occurs when monitoring a tcp socket

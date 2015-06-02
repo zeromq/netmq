@@ -28,7 +28,12 @@ namespace NetMQ.Monitoring
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
 
+        [Obsolete("Use overload that takes SocketEvents (plural)")]
         public NetMQMonitor([NotNull] NetMQContext context, [NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvent eventsToMonitor)
+            : this(context, monitoredSocket, endpoint, (SocketEvents)eventsToMonitor)
+        {}
+
+        public NetMQMonitor([NotNull] NetMQContext context, [NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -152,35 +157,35 @@ namespace NetMQ.Monitoring
 
             switch (monitorEvent.Event)
             {
-                case SocketEvent.Connected:
-                    InvokeEvent(Connected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvent.Connected));
+                case SocketEvents.Connected:
+                    InvokeEvent(Connected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvents.Connected));
                     break;
-                case SocketEvent.ConnectDelayed:
-                    InvokeEvent(ConnectDelayed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg, SocketEvent.ConnectDelayed));
+                case SocketEvents.ConnectDelayed:
+                    InvokeEvent(ConnectDelayed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg, SocketEvents.ConnectDelayed));
                     break;
-                case SocketEvent.ConnectRetried:
-                    InvokeEvent(ConnectRetried, new NetMQMonitorIntervalEventArgs(this, monitorEvent.Addr, (int)monitorEvent.Arg, SocketEvent.ConnectRetried));
+                case SocketEvents.ConnectRetried:
+                    InvokeEvent(ConnectRetried, new NetMQMonitorIntervalEventArgs(this, monitorEvent.Addr, (int)monitorEvent.Arg, SocketEvents.ConnectRetried));
                     break;
-                case SocketEvent.Listening:
-                    InvokeEvent(Listening, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvent.Listening));
+                case SocketEvents.Listening:
+                    InvokeEvent(Listening, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvents.Listening));
                     break;
-                case SocketEvent.BindFailed:
-                    InvokeEvent(BindFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg, SocketEvent.BindFailed));
+                case SocketEvents.BindFailed:
+                    InvokeEvent(BindFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg, SocketEvents.BindFailed));
                     break;
-                case SocketEvent.Accepted:
-                    InvokeEvent(Accepted, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvent.Accepted));
+                case SocketEvents.Accepted:
+                    InvokeEvent(Accepted, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvents.Accepted));
                     break;
-                case SocketEvent.AcceptFailed:
-                    InvokeEvent(AcceptFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg, SocketEvent.AcceptFailed));
+                case SocketEvents.AcceptFailed:
+                    InvokeEvent(AcceptFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg, SocketEvents.AcceptFailed));
                     break;
-                case SocketEvent.Closed:
-                    InvokeEvent(Closed, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvent.Closed));
+                case SocketEvents.Closed:
+                    InvokeEvent(Closed, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvents.Closed));
                     break;
-                case SocketEvent.CloseFailed:
-                    InvokeEvent(CloseFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg, SocketEvent.CloseFailed));
+                case SocketEvents.CloseFailed:
+                    InvokeEvent(CloseFailed, new NetMQMonitorErrorEventArgs(this, monitorEvent.Addr, (ErrorCode)monitorEvent.Arg, SocketEvents.CloseFailed));
                     break;
-                case SocketEvent.Disconnected:
-                    InvokeEvent(Disconnected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvent.Disconnected));
+                case SocketEvents.Disconnected:
+                    InvokeEvent(Disconnected, new NetMQMonitorSocketEventArgs(this, monitorEvent.Addr, (AsyncSocket)monitorEvent.Arg, SocketEvents.Disconnected));
                     break;
                 default:
                     throw new Exception("unknown event " + monitorEvent.Event);

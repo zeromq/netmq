@@ -11,7 +11,7 @@ namespace NetMQ.Core
         private const int ValueInteger = 1;
         private const int ValueChannel = 2;
 
-        private readonly SocketEvent m_monitorEvent;
+        private readonly SocketEvents m_monitorEvent;
         private readonly string m_addr;
         [CanBeNull] private readonly Object m_arg;
         private readonly int m_flag;
@@ -26,19 +26,19 @@ namespace NetMQ.Core
                 s_sizeOfIntPtr = 8;
         }
 
-        public MonitorEvent(SocketEvent monitorEvent, [NotNull] string addr, ErrorCode arg)
+        public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, ErrorCode arg)
             : this(monitorEvent, addr, (int)arg)
         {}
 
-        public MonitorEvent(SocketEvent monitorEvent, [NotNull] string addr, int arg)
+        public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, int arg)
             : this(monitorEvent, addr, (object)arg)
         {}
 
-        public MonitorEvent(SocketEvent monitorEvent, [NotNull] string addr, AsyncSocket arg)
+        public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, AsyncSocket arg)
             : this(monitorEvent, addr, (object)arg)
         {}
 
-        private MonitorEvent(SocketEvent monitorEvent, [NotNull] string addr, [NotNull] Object arg)
+        private MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, [NotNull] Object arg)
         {
             m_monitorEvent = monitorEvent;
             m_addr = addr;
@@ -64,7 +64,7 @@ namespace NetMQ.Core
             get { return m_arg; }
         }
 
-        public SocketEvent Event
+        public SocketEvents Event
         {
             get { return m_monitorEvent; }
         }
@@ -72,7 +72,7 @@ namespace NetMQ.Core
         public void Write([NotNull] SocketBase s)
         {
             int size = 4 + 1 + m_addr.Length + 1; // event + len(addr) + addr + flag
-            
+
             if (m_flag == ValueInteger)
                 size += 4;
             else if (m_flag == ValueChannel)
@@ -121,7 +121,7 @@ namespace NetMQ.Core
             int pos = 0;
             ByteArraySegment data = msg.Data;
 
-            var @event = (SocketEvent)data.GetInteger(Endianness.Little, pos);
+            var @event = (SocketEvents)data.GetInteger(Endianness.Little, pos);
             pos += 4;
             var len = (int)data[pos++];
             string addr = data.GetString(len, pos);
@@ -135,8 +135,8 @@ namespace NetMQ.Core
             }
             else if (flag == ValueChannel)
             {
-                IntPtr value = s_sizeOfIntPtr == 4 
-                    ? new IntPtr(data.GetInteger(Endianness.Little, pos)) 
+                IntPtr value = s_sizeOfIntPtr == 4
+                    ? new IntPtr(data.GetInteger(Endianness.Little, pos))
                     : new IntPtr(data.GetLong(Endianness.Little, pos));
 
                 GCHandle handle = GCHandle.FromIntPtr(value);

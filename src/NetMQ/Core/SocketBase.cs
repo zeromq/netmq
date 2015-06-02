@@ -79,7 +79,7 @@ namespace NetMQ.Core
         private SocketBase m_monitorSocket;
 
         /// <summary>Bitmask of events being monitored.</summary>
-        private SocketEvent m_monitorEvents;
+        private SocketEvents m_monitorEvents;
 
         /// <summary>The tcp port that was bound to, if any.</summary>
         private int m_port;
@@ -1376,7 +1376,7 @@ namespace NetMQ.Core
         /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
         /// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="addr"/> is not supported.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void Monitor([CanBeNull] string addr, SocketEvent events)
+        public void Monitor([CanBeNull] string addr, SocketEvents events)
         {
             CheckContextTerminated();
 
@@ -1431,82 +1431,82 @@ namespace NetMQ.Core
 
         public void EventConnected([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
-            if ((m_monitorEvents & SocketEvent.Connected) == 0)
+            if ((m_monitorEvents & SocketEvents.Connected) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.Connected, addr, ch));
+            MonitorEvent(new MonitorEvent(SocketEvents.Connected, addr, ch));
         }
 
         public void EventConnectDelayed([NotNull] string addr, ErrorCode errno)
         {
-            if ((m_monitorEvents & SocketEvent.ConnectDelayed) == 0)
+            if ((m_monitorEvents & SocketEvents.ConnectDelayed) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.ConnectDelayed, addr, errno));
+            MonitorEvent(new MonitorEvent(SocketEvents.ConnectDelayed, addr, errno));
         }
 
         public void EventConnectRetried([NotNull] string addr, int interval)
         {
-            if ((m_monitorEvents & SocketEvent.ConnectRetried) == 0)
+            if ((m_monitorEvents & SocketEvents.ConnectRetried) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.ConnectRetried, addr, interval));
+            MonitorEvent(new MonitorEvent(SocketEvents.ConnectRetried, addr, interval));
         }
 
         public void EventListening([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
-            if ((m_monitorEvents & SocketEvent.Listening) == 0)
+            if ((m_monitorEvents & SocketEvents.Listening) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.Listening, addr, ch));
+            MonitorEvent(new MonitorEvent(SocketEvents.Listening, addr, ch));
         }
 
         public void EventBindFailed([NotNull] string addr, ErrorCode errno)
         {
-            if ((m_monitorEvents & SocketEvent.BindFailed) == 0)
+            if ((m_monitorEvents & SocketEvents.BindFailed) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.BindFailed, addr, errno));
+            MonitorEvent(new MonitorEvent(SocketEvents.BindFailed, addr, errno));
         }
 
         public void EventAccepted([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
-            if ((m_monitorEvents & SocketEvent.Accepted) == 0)
+            if ((m_monitorEvents & SocketEvents.Accepted) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.Accepted, addr, ch));
+            MonitorEvent(new MonitorEvent(SocketEvents.Accepted, addr, ch));
         }
 
         public void EventAcceptFailed([NotNull] string addr, ErrorCode errno)
         {
-            if ((m_monitorEvents & SocketEvent.AcceptFailed) == 0)
+            if ((m_monitorEvents & SocketEvents.AcceptFailed) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.AcceptFailed, addr, errno));
+            MonitorEvent(new MonitorEvent(SocketEvents.AcceptFailed, addr, errno));
         }
 
         public void EventClosed([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
-            if ((m_monitorEvents & SocketEvent.Closed) == 0)
+            if ((m_monitorEvents & SocketEvents.Closed) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.Closed, addr, ch));
+            MonitorEvent(new MonitorEvent(SocketEvents.Closed, addr, ch));
         }
 
         public void EventCloseFailed([NotNull] string addr, ErrorCode errno)
         {
-            if ((m_monitorEvents & SocketEvent.CloseFailed) == 0)
+            if ((m_monitorEvents & SocketEvents.CloseFailed) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.CloseFailed, addr, errno));
+            MonitorEvent(new MonitorEvent(SocketEvents.CloseFailed, addr, errno));
         }
 
         public void EventDisconnected([NotNull] string addr, [NotNull] AsyncSocket ch)
         {
-            if ((m_monitorEvents & SocketEvent.Disconnected) == 0)
+            if ((m_monitorEvents & SocketEvents.Disconnected) == 0)
                 return;
 
-            MonitorEvent(new MonitorEvent(SocketEvent.Disconnected, addr, ch));
+            MonitorEvent(new MonitorEvent(SocketEvents.Disconnected, addr, ch));
         }
 
         private void MonitorEvent([NotNull] MonitorEvent monitorEvent)

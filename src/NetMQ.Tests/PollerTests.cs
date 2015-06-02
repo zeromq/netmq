@@ -62,8 +62,8 @@ namespace NetMQ.Tests
             using (var rep = context.CreateResponseSocket())
             using (var req = context.CreateRequestSocket())
             using (var poller = new Poller { PollTimeout = TestPollTimeoutMillis })
-            using (var repMonitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvent.Accepted | SocketEvent.Listening))
-            using (var reqMonitor = new NetMQMonitor(context, req, "inproc://req.inproc", SocketEvent.Connected))
+            using (var repMonitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
+            using (var reqMonitor = new NetMQMonitor(context, req, "inproc://req.inproc", SocketEvents.Connected))
             {
                 repMonitor.Accepted += (s, e) => acceptedEvent.Set();
                 repMonitor.Listening += (s, e) => listeningEvent.Set();
