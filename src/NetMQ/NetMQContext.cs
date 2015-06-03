@@ -261,7 +261,7 @@ namespace NetMQ
                 throw new ArgumentException("Unable to monitor to an empty endpoint.", "endpoint");
             }
 
-            return new NetMQMonitor(CreatePairSocket(), endpoint);
+            return new NetMQMonitor(CreatePairSocket(), endpoint, ownsSocket: true);
         }
 
         #endregion

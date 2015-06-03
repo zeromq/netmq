@@ -126,7 +126,7 @@ namespace NetMQ.Tests
             {
                 pub.Options.Endian = Endianness.Little;
                 sub.Options.Endian = Endianness.Little;
-                
+
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
 
@@ -274,7 +274,7 @@ namespace NetMQ.Tests
         public void BindToLocal()
         {
             var validAliasesForLocalHost = new[] { "127.0.0.1", "localhost", Dns.GetHostName() };
-            
+
             foreach (var alias in validAliasesForLocalHost)
             {
                 using (var context = NetMQContext.Create())
@@ -444,7 +444,7 @@ namespace NetMQ.Tests
                 client.Send("1");
                 client.Send("2");
 
-                // make sure client is connected to both servers 
+                // make sure client is connected to both servers
                 server1.SkipFrame();
                 server2.SkipFrame();
 
@@ -556,10 +556,10 @@ namespace NetMQ.Tests
                 pub.Options.SendTimeout = TimeSpan.FromSeconds(2);
 
                 sub.Options.Linger = TimeSpan.FromSeconds(0);
-            
+
                 sub.Connect("tcp://localhost:12345");
                 sub.Subscribe("");
-                
+
 //                Thread.Sleep(1000);
 
                 pub.Bind("tcp://localhost:12345");
@@ -570,7 +570,7 @@ namespace NetMQ.Tests
                 for (var i = 0; i < 100; i++)
                 {
                     var sent = "msg-" + i;
-                    
+
                     pub.Send(sent);
 
                     string received;
@@ -582,7 +582,7 @@ namespace NetMQ.Tests
 
 //                Thread.Sleep(1000);
             }
-        }        
+        }
 
         [Test]
         public void BindRandomThenUnbind()
@@ -594,7 +594,7 @@ namespace NetMQ.Tests
 
                 pub.Unbind("tcp://localhost:" + port);
             }
-            
+
             using (var context = NetMQContext.Create())
             using (var pub = context.CreatePublisherSocket())
             {
@@ -602,7 +602,7 @@ namespace NetMQ.Tests
 
                 pub.Unbind("tcp://*:" + port);
             }
-            
+
             using (var context = NetMQContext.Create())
             using (var pub = context.CreatePublisherSocket())
             {
@@ -615,7 +615,7 @@ namespace NetMQ.Tests
                 pub.Unbind("tcp://*:" + port3);
             }
         }
-        
+
         [Test]
         public void InprocRouterDealerTest()
         {
@@ -637,7 +637,7 @@ namespace NetMQ.Tests
                         // Handle worker activity on backend
                         while (e.Socket.HasIn)
                         {
-                            var msg = e.Socket.ReceiveMessage(false);
+                            var msg = e.Socket.ReceiveMultipartMessage();
                             var idRouter = msg.Pop();
                             // forget the empty frame
                             if (msg.First.IsEmpty)
@@ -651,7 +651,7 @@ namespace NetMQ.Tests
                             {
                                 // worker send RDY message queue his Identity to the free workers queue
                                 if (s_ReadyMsg[0] ==msg[0].Buffer[0] &&
-                                    s_ReadyMsg[1] ==msg[0].Buffer[1] && 
+                                    s_ReadyMsg[1] ==msg[0].Buffer[1] &&
                                     s_ReadyMsg[2] ==msg[0].Buffer[2])
                                 {
                                     lock (s_FreeWorkers)
@@ -676,7 +676,7 @@ namespace NetMQ.Tests
                                 {
                                     workerSocket.Options.Identity = workerId;
                                     workerSocket.Connect("inproc://backend");
-                                    
+
                                     var workerReadyMsg = new NetMQMessage();
                                     workerReadyMsg.Append(workerId);
                                     workerReadyMsg.AppendEmptyFrame();
@@ -690,7 +690,7 @@ namespace NetMQ.Tests
                         workerThread.Start(backendsRouter.Options.Identity);
                         workers.Add(workerThread);
                     }
-                    
+
                     poller.PollTillCancelledNonBlocking();
                     Thread.Sleep(1000);
                     poller.CancelAndJoin();

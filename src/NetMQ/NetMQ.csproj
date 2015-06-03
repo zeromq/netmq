@@ -127,7 +127,7 @@
     <Compile Include="Core\Address.cs" />
     <Compile Include="Endianness.cs" />
     <Compile Include="SendReceiveOptions.cs" />
-    <Compile Include="SocketEvent.cs" />
+    <Compile Include="SocketEvents.cs" />
     <Compile Include="PollEvents.cs" />
     <Compile Include="Core\Utils\AtomicCounter.cs" />
     <Compile Include="Blob.cs" />
