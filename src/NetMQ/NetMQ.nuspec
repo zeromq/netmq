@@ -39,6 +39,8 @@
   </metadata>
   <files>
     <file src="bin\Release\NetMQ.dll" target="lib\net40\" />
+    <file src="bin\Release\NetMQ.xml" target="lib\net40\" />
     <file src="bin\3.5\Release\NetMQ.dll" target="lib\net35\" />
+    <file src="bin\3.5\Release\NetMQ.xml" target="lib\net35\" />
   </files>
 </package>
