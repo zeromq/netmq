@@ -225,6 +225,7 @@ namespace NetMQ.Core.Transports.Tcp
                 case SocketError.NoBufferSpaceAvailable:
                 case SocketError.TooManyOpenSockets:
                 {
+                    m_acceptedSocket.Dispose();
                     m_socket.EventAcceptFailed(m_endpoint, socketError.ToErrorCode());
 
                     Accept();
