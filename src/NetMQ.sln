@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ", "NetMQ\NetMQ.csproj", "{82934BAC-07FB-41AC-AE59-46FEE6026A40}"
 EndProject
@@ -123,22 +123,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicCommons", "Samples\T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6AB1E02C-7800-4934-AA7A-4161459E1278}"
 	ProjectSection(SolutionItems) = preProject
+		..\.gitattributes = ..\.gitattributes
+		..\.gitignore = ..\.gitignore
 		..\COPYING.LESSER = ..\COPYING.LESSER
 		..\mkdocs.yml = ..\mkdocs.yml
 		..\README.md = ..\README.md
-		..\.gitattributes = ..\.gitattributes
-		..\.gitignore = ..\.gitignore
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D7A0-489E-9530-0F972DAE1167}"
 	ProjectSection(SolutionItems) = preProject
-		..\mkdocs.yml = ..\mkdocs.yml
 		..\docs\actor.md = ..\docs\actor.md
 		..\docs\beacon.md = ..\docs\beacon.md
 		..\docs\devices.md = ..\docs\devices.md
 		..\docs\index.md = ..\docs\index.md
 		..\docs\introduction.md = ..\docs\introduction.md
 		..\docs\message.md = ..\docs\message.md
+		..\mkdocs.yml = ..\mkdocs.yml
 		..\docs\poller.md = ..\docs\poller.md
 		..\docs\pub-sub.md = ..\docs\pub-sub.md
 		..\docs\push-pull.md = ..\docs\push-pull.md
@@ -168,6 +168,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicWorkerExample", "Samples\Titanic Pattern\TitanicUsageExample\TitanicWorkerExample\TitanicWorkerExample.csproj", "{32B1FA88-2A00-41C9-AF28-1EB9F8BB51F3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDPCommons", "Samples\Majordomo\MDPCommons\MDPCommons.csproj", "{EC5A112C-5652-4EAA-BEE9-BF1A98F719C4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{F7BD07CA-5333-45E1-9786-247EE4B811DA}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
