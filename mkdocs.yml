@@ -1,31 +1,22 @@
 site_name: NetMQ
 
 pages:
-
-- ['index.md',                         'Home']
-
-- ['introduction.md',                  'Introduction']
-
-- ['receiving-sending.md', 'Concepts', 'Receiving and Sending']
-- ['message.md',           'Concepts', 'Messages']
-- ['transports.md',        'Concepts', 'Transports']
-
-- ['poller.md',            'Components', 'Poller']
-- ['actor.md',             'Components', 'Actor']
-- ['beacon.md',            'Components', 'Beacon']
-
-# - ['stream.md',            'Components', 'Stream']
-# - ['scheduler.md',         'Components', 'Scheduler']
-# - ['devices.md',           'Components', 'Devices']
-# - ['proxy.md',             'Components', 'Proxies']
-
-- ['request-response.md',  'Patterns', 'Request-Response']
-- ['pub-sub.md',           'Patterns', 'Pub-Sub']
-- ['push-pull.md',         'Patterns', 'Push-Pull']
-- ['router-dealer.md',     'Patterns', 'Router-Dealer']
-- ['xpub-xsub.md',         'Patterns', 'XSub-XPub']
-
-# - ['pair.md',              'Patterns', 'Pair']
+- Home: index.md
+- Introduction: introduction.md
+- Concepts:
+  - Receiving and Sending: receiving-sending.md
+  - Messages: message.md
+  - Transports: transports.md
+- Components:
+  - Poller: poller.md
+  - Actor: actor.md
+  - Beacon: beacon.md
+- Patterns:
+  - Request-Response: request-response.md
+  - Pub-Sub: pub-sub.md
+  - Push-Pull: push-pull.md
+  - Router-Dealer: router-dealer.md
+  - XSub-XPub: xpub-xsub.md
 
 theme: readthedocs
 repo_url: https://github.com/zeromq/netmq/
