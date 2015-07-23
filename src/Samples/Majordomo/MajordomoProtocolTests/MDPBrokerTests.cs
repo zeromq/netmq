@@ -98,7 +98,7 @@ namespace MajordomoTests
                 // start broker session
                 broker.Run (cts.Token);
                 // start echo task
-                Task.Run (() => new EchoWorker ().Run (workerSession), cts.Token);
+                Task.Run (() => EchoWorker.Run (workerSession), cts.Token);
                 // wait for everything to happen
                 await Task.Delay (500);
                 // cancel the tasks
@@ -125,7 +125,7 @@ namespace MajordomoTests
                 // start broker session
                 Task.Run (() => broker.RunSynchronous (cts.Token));
                 // start echo task
-                Task.Run (() => new EchoWorker ().Run (workerSession), cts.Token);
+                Task.Run (() => EchoWorker.Run (workerSession), cts.Token);
                 // wait for everything to happen
                 Thread.Sleep (500);
                 // cancel the tasks
@@ -157,9 +157,9 @@ namespace MajordomoTests
                 // start broker session
                 broker.Run (cts.Token);
                 // start echo task
-                Task.Run (() => new EchoWorker ().Run (worker1), cts.Token);
-                Task.Run (() => new EchoWorker ().Run (worker2), cts.Token);
-                Task.Run (() => new EchoWorker ().Run (worker3), cts.Token);
+                Task.Run (() => EchoWorker.Run (worker1), cts.Token);
+                Task.Run (() => EchoWorker.Run (worker2), cts.Token);
+                Task.Run (() => EchoWorker.Run (worker3), cts.Token);
                 // wait for everything to happen
                 await Task.Delay (1000);
                 // cancel the tasks
@@ -194,7 +194,7 @@ namespace MajordomoTests
                 // start broker session
                 broker.Run (cts.Token);
                 // start echo task
-                Task.Run (() => new EchoWorker ().Run (worker1), cts.Token);
+                Task.Run (() => EchoWorker.Run (worker1), cts.Token);
                 Task.Run (() => DoubleEchoWorker (worker2), cts.Token);
                 Task.Run (() => AddHelloWorker (worker3), cts.Token);
                 // wait for everything to happen
@@ -237,7 +237,7 @@ namespace MajordomoTests
                 // wait a little for broker to get started
                 await Task.Delay (250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => new EchoWorker ().Run (echoWorker, longHeartbeatInterval), cts.Token);
+                Task.Run (() => EchoWorker.Run (echoWorker, longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
                 await Task.Delay (250);
                 // get the task for simulating the client
@@ -298,7 +298,7 @@ namespace MajordomoTests
                 // wait a little for broker to get started
                 await Task.Delay (250);
                 // get the task for simulating the worker & start it
-                Task.Run (() => new EchoWorker ().Run (worker01, longHeartbeatInterval), cts.Token);
+                Task.Run (() => EchoWorker.Run (worker01, longHeartbeatInterval), cts.Token);
                 Task.Run (() => DoubleEchoWorker (worker02, longHeartbeatInterval), cts.Token);
                 Task.Run (() => AddHelloWorker (worker03, longHeartbeatInterval), cts.Token);
                 // wait a little for worker to get started & registered
@@ -613,7 +613,7 @@ namespace MajordomoTests
 
         // ======================= HELPER =========================
 
-        private void EchoClient (IMDPClient client, string serviceName)
+        private static void EchoClient (IMDPClient client, string serviceName)
         {
             var request = new NetMQMessage ();
             // set the request data
@@ -626,7 +626,7 @@ namespace MajordomoTests
             Assert.That (reply.First.ConvertToString (), Is.EqualTo ("Helo World!"));
         }
 
-        private void MultipleRequestWorker (IMDPWorker worker = null, string endpoint = null, int heartbeatinterval = 2500)
+        private static void MultipleRequestWorker (IMDPWorker worker = null, string endpoint = null, int heartbeatinterval = 2500)
         {
             var idW01 = new[] { (byte) 'W', (byte) '1' };
 
@@ -647,7 +647,7 @@ namespace MajordomoTests
             }
         }
 
-        private void MultipleRequestClient (string serviceName, string endpoint, IMDPClient client = null)
+        private static void MultipleRequestClient (string serviceName, string endpoint, IMDPClient client = null)
         {
             const int _NO_OF_RUNS = 100;
 
@@ -669,7 +669,7 @@ namespace MajordomoTests
             Assert.That (reply.All (r => r.First.ConvertToString () == "Helo World!"));
         }
 
-        private void DoubleEchoWorker (IMDPWorker worker, int heartbeatinterval = 2500)
+        private static void DoubleEchoWorker (IMDPWorker worker, int heartbeatinterval = 2500)
         {
             worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
             var request = worker.Receive (null);
@@ -685,7 +685,7 @@ namespace MajordomoTests
             var newrequest = worker.Receive (request);
         }
 
-        private void DoubleEchoClient (IMDPClient client, string serviceName)
+        private static void DoubleEchoClient (IMDPClient client, string serviceName)
         {
             const string _PAYLOAD = "Hello World";
             var request = new NetMQMessage ();
@@ -699,7 +699,7 @@ namespace MajordomoTests
             Assert.That (reply.First.ConvertToString (), Is.EqualTo (_PAYLOAD + " - " + _PAYLOAD));
         }
 
-        private void AddHelloWorker (IMDPWorker worker, int heartbeatinterval = 2500)
+        private static void AddHelloWorker (IMDPWorker worker, int heartbeatinterval = 2500)
         {
             worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
             // send the reply and wait for a request
@@ -716,7 +716,7 @@ namespace MajordomoTests
             var newrequest = worker.Receive (request);
         }
 
-        private void AddHelloClient (IMDPClient client, string serviceName)
+        private static void AddHelloClient (IMDPClient client, string serviceName)
         {
             const string _PAYLOAD = "Hello World";
             var request = new NetMQMessage ();
@@ -730,9 +730,9 @@ namespace MajordomoTests
             Assert.That (reply.First.ConvertToString (), Is.EqualTo (_PAYLOAD + " - HELLO"));
         }
 
-        class EchoWorker
+        static class EchoWorker
         {
-            public void Run (IMDPWorker worker, int heartbeatinterval = 2500)
+            public static void Run (IMDPWorker worker, int heartbeatinterval = 2500)
             {
                 worker.HeartbeatDelay = TimeSpan.FromMilliseconds (heartbeatinterval);
                 // send the reply and wait for a request

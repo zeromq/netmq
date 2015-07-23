@@ -232,7 +232,7 @@ namespace NetMQ.Security.V0_1
         /// </summary>
         /// <param name="hash">the hashing-algorithm to employ</param>
         /// <param name="message">the NetMQMessage whose frames are to be hashed</param>
-        private void Hash(HashAlgorithm hash, NetMQMessage message)
+        private static void Hash(HashAlgorithm hash, NetMQMessage message)
         {
             foreach (var frame in message)
             {

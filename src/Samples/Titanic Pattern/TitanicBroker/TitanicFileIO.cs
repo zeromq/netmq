@@ -394,7 +394,7 @@ namespace TitanicProtocol
         ///     reads the bytes a request entry consists of
         /// </summary>
         /// <returns>a sequence of those raw entries</returns>
-        private List<byte[]> ReadRawRequestEntries ([NotNull] FileStream f)
+        private static List<byte[]> ReadRawRequestEntries ([NotNull] FileStream f)
         {
             var entries = new List<byte[]> ();
             var target = new byte[_size_of_entry];
@@ -466,7 +466,7 @@ namespace TitanicProtocol
         /// <param name="f">FileStream</param>
         /// <param name="b">byte sequence to write</param>
         /// <param name="pos">the 0 based position from the beginning of the file</param>
-        private void WriteRequest ([NotNull] FileStream f, [NotNull] byte[] b, long pos)
+        private static void WriteRequest ([NotNull] FileStream f, [NotNull] byte[] b, long pos)
         {
             f.Seek (pos, SeekOrigin.Begin);
             f.Write (b, 0, b.Length);
@@ -477,7 +477,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="bytes">the raw request entry as byte sequence</param>
         /// <returns>the enbedded Guid</returns>
-        private Guid GetGuidFromStoredRequest ([NotNull] byte[] bytes)
+        private static Guid GetGuidFromStoredRequest ([NotNull] byte[] bytes)
         {
             var guid = new byte[16];
 
@@ -504,7 +504,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="bytes">sequence of bytes</param>
         /// <param name="b">byte to add</param>
-        private byte[] AddByteAtStart ([NotNull] byte[] bytes, byte b)
+        private static byte[] AddByteAtStart ([NotNull] byte[] bytes, byte b)
         {
             var target = new byte[bytes.Length + 1];
 

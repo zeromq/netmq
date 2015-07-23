@@ -675,7 +675,7 @@ namespace MajordomoProtocol
         /// 
         ///     CHANGES message!
         /// </summary>
-        private NetMQFrame UnWrap (NetMQMessage message)
+        private static NetMQFrame UnWrap (NetMQMessage message)
         {
             var frame = message.Pop ();
 
@@ -688,7 +688,7 @@ namespace MajordomoProtocol
         /// <summary>
         ///     adds an empty frame and a specified frame to a message
         /// </summary>
-        private NetMQMessage Wrap (NetMQFrame frame, NetMQMessage message)
+        private static NetMQMessage Wrap (NetMQFrame frame, NetMQMessage message)
         {
             var result = new NetMQMessage (message);
 
