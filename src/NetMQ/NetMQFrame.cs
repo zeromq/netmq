@@ -192,8 +192,7 @@ namespace NetMQ
                 throw new ArgumentNullException("frame");
             }
 
-            var copy = new NetMQFrame(new byte[frame.BufferSize]);
-            copy.MessageSize = frame.MessageSize;
+            var copy = new NetMQFrame(new byte[frame.BufferSize]) { MessageSize = frame.MessageSize };
 
             System.Buffer.BlockCopy(frame.Buffer, 0, copy.Buffer, 0, frame.BufferSize);
 

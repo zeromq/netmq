@@ -88,11 +88,13 @@ namespace NetMQ.Security.V0_1
             m_remoteHash = SHA256.Create();
 
             m_secureChannel = secureChannel;
-            SecurityParameters = new SecurityParameters();
-            SecurityParameters.Entity = connectionEnd;
-            SecurityParameters.CompressionAlgorithm = CompressionMethod.Null;
-            SecurityParameters.PRFAlgorithm = PRFAlgorithm.SHA256;
-            SecurityParameters.CipherType = CipherType.Block;
+            SecurityParameters = new SecurityParameters
+            {
+                Entity = connectionEnd,
+                CompressionAlgorithm = CompressionMethod.Null,
+                PRFAlgorithm = PRFAlgorithm.SHA256,
+                CipherType = CipherType.Block
+            };
 
             AllowedCipherSuites = new[]
             {
@@ -247,9 +249,8 @@ namespace NetMQ.Security.V0_1
 
         private void OnHelloRequest(OutgoingMessageBag outgoingMessages)
         {
-            var clientHelloMessage = new ClientHelloMessage();
+            var clientHelloMessage = new ClientHelloMessage { RandomNumber = new byte[RandomNumberLength] };
 
-            clientHelloMessage.RandomNumber = new byte[RandomNumberLength];
             m_rng.GetBytes(clientHelloMessage.RandomNumber);
 
             SecurityParameters.ClientRandom = clientHelloMessage.RandomNumber;
@@ -297,8 +298,7 @@ namespace NetMQ.Security.V0_1
 
         private void AddCertificateMessage(OutgoingMessageBag outgoingMessages)
         {
-            var certificateMessage = new CertificateMessage();
-            certificateMessage.Certificate = LocalCertificate;
+            var certificateMessage = new CertificateMessage { Certificate = LocalCertificate };
 
             NetMQMessage outgoingMessage = certificateMessage.ToNetMQMessage();
             HashLocalAndRemote(outgoingMessage);
@@ -308,8 +308,7 @@ namespace NetMQ.Security.V0_1
 
         private void AddServerHelloMessage(OutgoingMessageBag outgoingMessages, CipherSuite[] cipherSuites)
         {
-            var serverHelloMessage = new ServerHelloMessage();
-            serverHelloMessage.RandomNumber = new byte[RandomNumberLength];
+            var serverHelloMessage = new ServerHelloMessage { RandomNumber = new byte[RandomNumberLength] };
             m_rng.GetBytes(serverHelloMessage.RandomNumber);
 
             SecurityParameters.ServerRandom = serverHelloMessage.RandomNumber;
@@ -509,10 +508,10 @@ namespace NetMQ.Security.V0_1
                 label = ClientFinshedLabel;
             }
 
-            var finishedMessage = new FinishedMessage();
-
-            finishedMessage.VerifyData =
-                PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
+            var finishedMessage = new FinishedMessage
+            {
+                VerifyData = PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength)
+            };
 
             NetMQMessage outgoingMessage = finishedMessage.ToNetMQMessage();
             outgoingMessages.AddHandshakeMessage(outgoingMessage);

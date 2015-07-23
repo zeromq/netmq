@@ -39,9 +39,11 @@ namespace NetMQ.Security.V0_1
         {
             m_protocolVersion = protocolVersion;
 
-            SecurityParameters = new SecurityParameters();
-            SecurityParameters.BulkCipherAlgorithm = BulkCipherAlgorithm.Null;
-            SecurityParameters.MACAlgorithm = MACAlgorithm.Null;
+            SecurityParameters = new SecurityParameters
+            {
+                BulkCipherAlgorithm = BulkCipherAlgorithm.Null,
+                MACAlgorithm = MACAlgorithm.Null
+            };
 
             PRF = new SHA256PRF();
         }
@@ -100,15 +102,19 @@ namespace NetMQ.Security.V0_1
 
             if (SecurityParameters.BulkCipherAlgorithm == BulkCipherAlgorithm.AES)
             {
-                m_decryptionBulkAlgorithm = new AesCryptoServiceProvider();
-                m_decryptionBulkAlgorithm.Padding = PaddingMode.None;
-                m_decryptionBulkAlgorithm.KeySize = SecurityParameters.EncKeyLength * 8;
-                m_decryptionBulkAlgorithm.BlockSize = SecurityParameters.BlockLength * 8;
+                m_decryptionBulkAlgorithm = new AesCryptoServiceProvider
+                {
+                    Padding = PaddingMode.None,
+                    KeySize = SecurityParameters.EncKeyLength*8,
+                    BlockSize = SecurityParameters.BlockLength*8
+                };
 
-                m_encryptionBulkAlgorithm = new AesCryptoServiceProvider();
-                m_encryptionBulkAlgorithm.Padding = PaddingMode.None;
-                m_encryptionBulkAlgorithm.KeySize = SecurityParameters.EncKeyLength * 8;
-                m_encryptionBulkAlgorithm.BlockSize = SecurityParameters.BlockLength * 8;
+                m_encryptionBulkAlgorithm = new AesCryptoServiceProvider
+                {
+                    Padding = PaddingMode.None,
+                    KeySize = SecurityParameters.EncKeyLength*8,
+                    BlockSize = SecurityParameters.BlockLength*8
+                };
 
                 if (SecurityParameters.Entity == ConnectionEnd.Client)
                 {
