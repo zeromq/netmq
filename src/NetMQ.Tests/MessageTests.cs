@@ -209,6 +209,6 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(8, message[0].MessageSize);
             Assert.AreEqual(num, message[0].ConvertToInt64());
-        }
+        }        
     }
 }
