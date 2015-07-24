@@ -1268,8 +1268,7 @@ namespace NetMQ
 
                 var isMultiFrame = msg.HasMore;
                 while (msg.HasMore)
-                {
-                    msg.InitEmpty();
+                {                   
                     socket.Receive(ref msg);
                 }
 
@@ -1332,8 +1331,7 @@ namespace NetMQ
 
                 var isMultiFrame = msg.HasMore;
                 while (msg.HasMore)
-                {
-                    msg.InitEmpty();
+                {                   
                     socket.Receive(ref msg);
                 }
 
