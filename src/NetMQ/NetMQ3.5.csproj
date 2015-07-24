@@ -158,6 +158,7 @@
     <Compile Include="Poller.cs" />
     <Compile Include="PollEvents.cs" />
     <Compile Include="ReceivingSocketExtensions.cs" />
+    <Compile Include="SendReceiveConstants.cs" />
     <Compile Include="SendReceiveOptions.cs" />
     <Compile Include="SocketEvents.cs" />
     <Compile Include="Sockets\DealerSocket.cs" />
