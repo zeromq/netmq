@@ -54,18 +54,18 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                         string accountJson = msg[2].ConvertToString();
                         var account = JsonConvert.DeserializeObject<Account>(accountJson);
                         AmmendAccount(accountAction, account);
-                        shim.Send(JsonConvert.SerializeObject(account));
+                        shim.SendFrame(JsonConvert.SerializeObject(account));
                     }
                     else
                     {
-                        shim.Send("Error: invalid message to actor");
+                        shim.SendFrame("Error: invalid message to actor");
                     }
                 }
                 // You WILL need to decide what Exceptions should be caught here, this is for 
                 // demonstration purposes only, any unhandled fault will bubble up to caller's code.
                 catch (Exception e)
                 {
-                    shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
+                    shim.SendFrame(string.Format("Error: Exception occurred {0}", e.Message));
                 }
             }
         }

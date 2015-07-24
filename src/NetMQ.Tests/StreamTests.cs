@@ -24,12 +24,12 @@ namespace NetMQ.Tests
                         "\r\n" +
                         "Hello, World!";
 
-                client.SendMore(clientId).Send(request);
+                client.SendMoreFrame(clientId).SendFrame(request);
 
                 byte[] serverId = server.ReceiveFrameBytes();
                 Assert.AreEqual(request, server.ReceiveFrameString());
 
-                server.SendMore(serverId).Send(response);
+                server.SendMoreFrame(serverId).SendFrame(response);
 
                 CollectionAssert.AreEqual(clientId, client.ReceiveFrameBytes());
                 Assert.AreEqual(response, client.ReceiveFrameString());

@@ -50,7 +50,7 @@ namespace NetMQ
     /// <typeparam name="T">the type to use for the state-information object</typeparam>
     /// <param name="shim">the <seealso cref="PairSocket"/> that is the shim to execute this action</param>
     /// <param name="state">the state-information that the action will use</param>
-    public delegate void ShimAction<in T>(PairSocket shim,T state);
+    public delegate void ShimAction<in T>(PairSocket shim, T state);
 
     /// <summary>
     /// The Actor represents one end of a two-way pipe between 2 PairSocket(s). Where
@@ -232,16 +232,8 @@ namespace NetMQ
             {
             }
 
-            // Do not block, if the other end of the pipe is already deleted
-            m_shim.Options.SendTimeout = TimeSpan.Zero;
-
-            try
-            {
-                m_shim.SignalOK();
-            }
-            catch (AgainException)
-            {
-            }
+            // Do not block, if the other end of the pipe is already deleted            
+            m_shim.TrySignalOK();
 
             m_shim.Dispose();
         }
@@ -344,16 +336,9 @@ namespace NetMQ
             if (!disposing)
                 return;
 
-            // send destroy message to pipe
-            m_self.Options.SendTimeout = TimeSpan.Zero;
-            try
-            {
-                m_self.Send(EndShimMessage);
+            // send destroy message to pipe           
+            if (m_self.TrySendFrame(EndShimMessage))
                 m_self.ReceiveSignal();
-            }
-            catch (AgainException)
-            {
-            }
 
             m_shimThread.Join();
             m_self.Dispose();

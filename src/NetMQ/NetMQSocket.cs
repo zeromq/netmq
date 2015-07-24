@@ -388,7 +388,7 @@ namespace NetMQ
         /// wait occurs.</param>
         /// <param name="more">Indicate if another frame is expected after this frame</param>
         /// <returns><c>true</c> if a message was sent, otherwise <c>false</c>.</returns>
-        public bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
+        public virtual bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
         {
             return m_socketHandle.TrySend(ref msg, timeout, more);
         }

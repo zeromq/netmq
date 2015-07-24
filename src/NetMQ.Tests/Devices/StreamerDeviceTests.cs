@@ -32,7 +32,7 @@ namespace NetMQ.Tests.Devices
             const string value = "Hello World";
             var expected = value + " " + id;
             Console.WriteLine("({0}) Pushing: {1}", id, expected);
-            socket.Send(expected);
+            socket.SendFrame(expected);
         }
 
         protected override PullSocket CreateWorkerSocket(NetMQContext context)

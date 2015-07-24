@@ -26,9 +26,9 @@ namespace NetMQ.Tests
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
 
-                    client.Send("hello");
+                    client.SendFrame("hello");
                     Assert.AreEqual("hello", server.ReceiveFrameString());
-                    server.Send("reply");
+                    server.SendFrame("reply");
                     Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
@@ -60,9 +60,9 @@ namespace NetMQ.Tests
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
 
-                    client.Send("hello");
+                    client.SendFrame("hello");
                     Assert.AreEqual("hello", server.ReceiveFrameString());
-                    server.Send("reply");
+                    server.SendFrame("reply");
                     Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
@@ -143,9 +143,9 @@ namespace NetMQ.Tests
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
-                    client.Send("hello");
+                    client.SendFrame("hello");
                     Assert.AreEqual("hello", server.ReceiveFrameString());
-                    server.Send("reply");
+                    server.SendFrame("reply");
                     Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
@@ -178,9 +178,9 @@ namespace NetMQ.Tests
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
-                    client.Send("hello");
+                    client.SendFrame("hello");
                     Assert.AreEqual("hello", server.ReceiveFrameString());
-                    server.Send("reply");
+                    server.SendFrame("reply");
                     Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
@@ -195,9 +195,9 @@ namespace NetMQ.Tests
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
-                    client.Send("hello");
+                    client.SendFrame("hello");
                     Assert.AreEqual("hello", server.ReceiveFrameString());
-                    server.Send("reply");
+                    server.SendFrame("reply");
                     Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
@@ -224,9 +224,9 @@ namespace NetMQ.Tests
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
-                    client.Send("hello");
+                    client.SendFrame("hello");
                     Assert.AreEqual("hello", server.ReceiveFrameString());
-                    server.Send("reply");
+                    server.SendFrame("reply");
                     Assert.AreEqual("reply", client.ReceiveFrameString());
 
                     proxy.Stop(); // blocks until stopped
@@ -235,7 +235,7 @@ namespace NetMQ.Tests
                     {
                         poller.PollTillCancelledNonBlocking();
 
-                        client.Send("anyone there?");
+                        client.SendFrame("anyone there?");
 
                         // Should no longer receive any messages
                         Assert.IsFalse(server.TrySkipFrame(TimeSpan.FromMilliseconds(50)));
@@ -269,15 +269,15 @@ namespace NetMQ.Tests
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
 
-                    client.Send("hello");
+                    client.SendFrame("hello");
                     Assert.AreEqual("hello", server.ReceiveFrameString());
-                    server.Send("reply");
+                    server.SendFrame("reply");
                     Assert.AreEqual("reply", client.ReceiveFrameString());
 
                     // Now stop the external poller
                     poller.CancelAndJoin();
 
-                    client.Send("anyone there?");
+                    client.SendFrame("anyone there?");
 
                     // Should no longer receive any messages
                     Assert.IsFalse(server.TrySkipFrame(TimeSpan.FromMilliseconds(50)));

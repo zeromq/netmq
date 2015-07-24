@@ -56,9 +56,9 @@ namespace NetMQ.Devices
                 var data = args.Socket.ReceiveFrameBytes(out more);
 
                 if (more)
-                    BackendSocket.SendMore(data);
+                    BackendSocket.SendMoreFrame(data);
                 else
-                    BackendSocket.Send(data);
+                    BackendSocket.SendFrame(data);
             } while (more);
         }
     }

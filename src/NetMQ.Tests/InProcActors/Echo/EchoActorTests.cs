@@ -13,8 +13,8 @@ namespace NetMQ.Tests.InProcActors.Echo
             using (var context = NetMQContext.Create())
             using (var actor = NetMQActor.Create(context, new EchoShimHandler()))
             {
-                actor.SendMore("ECHO");
-                actor.Send(actorMessage);
+                actor.SendMoreFrame("ECHO");
+                actor.SendFrame(actorMessage);
 
                 Assert.AreEqual(
                     string.Format("ECHO BACK : {0}", actorMessage),
@@ -30,8 +30,8 @@ namespace NetMQ.Tests.InProcActors.Echo
             using (var context = NetMQContext.Create())
             using (var actor = NetMQActor.Create(context, new EchoShimHandler()))
             {
-                actor.SendMore(command);
-                actor.Send(actorMessage);
+                actor.SendMoreFrame(command);
+                actor.SendFrame(actorMessage);
 
                 Assert.AreEqual("Error: invalid message to actor", actor.ReceiveFrameString());
             }

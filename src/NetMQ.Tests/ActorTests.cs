@@ -24,13 +24,13 @@ namespace NetMQ.Tests
                             break;
 
                         if (command == "Hello")
-                            shim.Send("World");
+                            shim.SendFrame("World");
                     }
                 };
 
                 using (var actor = NetMQActor.Create(context, shimAction))
                 {
-                    actor.SendMore("Hello").Send("Hello");
+                    actor.SendMoreFrame("Hello").SendFrame("Hello");
 
                     Assert.AreEqual("World", actor.ReceiveFrameString());
                 }

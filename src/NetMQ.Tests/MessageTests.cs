@@ -91,7 +91,7 @@ namespace NetMQ.Tests
                 var clientOutgoingMessage = new NetMQMessage();
                 clientOutgoingMessage.Append("Hello");
 
-                client.SendMessage(clientOutgoingMessage);
+                client.SendMultipartMessage(clientOutgoingMessage);
 
                 NetMQMessage serverIncomingMessage = server.ReceiveMultipartMessage();
 
@@ -105,7 +105,7 @@ namespace NetMQ.Tests
                 serverOutgoingMessage.Append(serverIncomingMessage[0]);
                 serverOutgoingMessage.Append("World");
 
-                server.SendMessage(serverOutgoingMessage);
+                server.SendMultipartMessage(serverOutgoingMessage);
 
                 var incomingClientMessage = client.ReceiveMultipartMessage();
 
@@ -126,7 +126,7 @@ namespace NetMQ.Tests
 
                 const string testmessage = "Simple Messaging Test";
 
-                req.Send(testmessage);
+                req.SendFrame(testmessage);
 
                 var msg = router.ReceiveMultipartMessage();
                 Assert.AreEqual(3, msg.FrameCount);

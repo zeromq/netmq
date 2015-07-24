@@ -15,7 +15,7 @@ namespace NetMQ.Tests
                 var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
                 pushSocket.Connect("tcp://127.0.0.1:" + port);
 
-                pushSocket.Send("hello");
+                pushSocket.SendFrame("hello");
 
                 Assert.AreEqual("hello", pullSocket.ReceiveFrameString());
             }
@@ -31,7 +31,7 @@ namespace NetMQ.Tests
                 var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
                 pushSocket.Connect("tcp://127.0.0.1:" + port);
 
-                pushSocket.Send(new byte[300]);
+                pushSocket.SendFrame(new byte[300]);
 
                 Assert.AreEqual(300, pullSocket.ReceiveFrameString().Length);
             }

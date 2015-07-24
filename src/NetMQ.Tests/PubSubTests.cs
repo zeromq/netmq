@@ -20,7 +20,7 @@ namespace NetMQ.Tests
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
 
-                pub.SendMore("A").Send("Hello");
+                pub.SendMoreFrame("A").SendFrame("Hello");
 
                 CollectionAssert.AreEqual(
                     new[] {"A", "Hello"},
@@ -43,7 +43,7 @@ namespace NetMQ.Tests
                 Thread.Sleep(500);
 
                 // Send the topic only
-                pub.Send("A");
+                pub.SendFrame("A");
 
                 CollectionAssert.AreEqual(
                     new[] { "A" },
@@ -64,7 +64,7 @@ namespace NetMQ.Tests
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
 
-                pub.Send("Hello");
+                pub.SendFrame("Hello");
 
                 Assert.IsFalse(sub.TrySkipFrame());
             }
@@ -121,17 +121,17 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(500);
 
-                pub.SendMore("1").Send("A");
+                pub.SendMoreFrame("1").SendFrame("A");
 
                 CollectionAssert.AreEqual(new[] { "1", "A" }, sub1.ReceiveMultipartStrings());
                 Assert.IsFalse(sub2.TrySkipFrame());
 
-                pub.SendMore("2").Send("B");
+                pub.SendMoreFrame("2").SendFrame("B");
             
                 Assert.IsFalse(sub1.TrySkipFrame());
                 CollectionAssert.AreEqual(new[] { "2", "B" }, sub2.ReceiveMultipartStrings());
 
-                pub.SendMore("1&2").Send("C");
+                pub.SendMoreFrame("1&2").SendFrame("C");
 
                 CollectionAssert.AreEqual(new[] { "1&2", "C" }, sub1.ReceiveMultipartStrings());
                 CollectionAssert.AreEqual(new[] { "1&2", "C" }, sub2.ReceiveMultipartStrings());
@@ -163,13 +163,13 @@ namespace NetMQ.Tests
                 Thread.Sleep(500);
 
                 // Send from pub 1
-                pub1.SendMore("A").Send("Hello from the first publisher");
+                pub1.SendMoreFrame("A").SendFrame("Hello from the first publisher");
 
                 CollectionAssert.AreEqual(new[] { "A", "Hello from the first publisher" }, sub1.ReceiveMultipartStrings());
                 CollectionAssert.AreEqual(new[] { "A", "Hello from the first publisher" }, sub2.ReceiveMultipartStrings());
 
                 // Send from pub 2
-                pub2.SendMore("A").Send("Hello from the second publisher");
+                pub2.SendMoreFrame("A").SendFrame("Hello from the second publisher");
 
                 CollectionAssert.AreEqual(new[] { "A", "Hello from the second publisher" }, sub1.ReceiveMultipartStrings());
                 CollectionAssert.AreEqual(new[] { "A", "Hello from the second publisher" }, sub2.ReceiveMultipartStrings());
@@ -192,7 +192,7 @@ namespace NetMQ.Tests
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
 
-                pub.SendMore("A").Send("Hello");
+                pub.SendMoreFrame("A").SendFrame("Hello");
 
                 CollectionAssert.AreEqual(new[] { "A", "Hello" }, sub.ReceiveMultipartStrings());
 
@@ -200,7 +200,7 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(500);
 
-                pub.SendMore("A").Send("Hello again");
+                pub.SendMoreFrame("A").SendFrame("Hello again");
 
                 Assert.IsFalse(sub.TrySkipFrame());
             }

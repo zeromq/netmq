@@ -619,12 +619,40 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Transmit a status-signal over this socket.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="status">a byte that contains the status signal to send</param>
+        private static bool TrySignal([NotNull] this IOutgoingSocket socket, byte status)
+        {
+            long signalValue = 0x7766554433221100L + status;
+
+            Msg msg = new Msg();
+            msg.InitPool(8);
+            NetworkOrderBitsConverter.PutInt64(signalValue, msg.Data);
+
+            if (!socket.TrySend(ref msg, TimeSpan.Zero, false))
+            {
+                msg.Close();
+                return false;
+            }
+
+            msg.Close();
+            return true;
+        }
+
+        /// <summary>
         /// Transmit a specific status-signal over this socket that indicates OK.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         public static void SignalOK([NotNull] this IOutgoingSocket socket)
         {
             socket.Signal(0);
+        }
+
+        public static bool TrySignalOK([NotNull] this IOutgoingSocket socket)
+        {
+            return TrySignal(socket, 0);
         }
 
         /// <summary>
@@ -634,6 +662,11 @@ namespace NetMQ
         public static void SignalError([NotNull] this IOutgoingSocket socket)
         {
             socket.Signal(1);
+        }
+
+        public static bool TrySignalError([NotNull] this IOutgoingSocket socket)
+        {
+            return socket.TrySignal(1);
         }
 
         #endregion

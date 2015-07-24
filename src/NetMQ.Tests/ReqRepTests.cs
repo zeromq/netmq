@@ -19,11 +19,11 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort(address);
                 req.Connect(address + ":" + port);
 
-                req.Send("Hi");
+                req.SendFrame("Hi");
 
                 CollectionAssert.AreEqual(new[] { "Hi" }, rep.ReceiveMultipartStrings());
 
-                rep.Send("Hi2");
+                rep.SendFrame("Hi2");
 
                 CollectionAssert.AreEqual(new[] { "Hi2" }, req.ReceiveMultipartStrings());
             }
@@ -39,11 +39,11 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://localhost");
                 req.Connect("tcp://localhost:" + port);
 
-                req.Send("Hi");
+                req.SendFrame("Hi");
 
                 rep.SkipFrame();
 
-                Assert.Throws<FiniteStateMachineException>(() => req.Send("Hi2"));
+                Assert.Throws<FiniteStateMachineException>(() => req.SendFrame("Hi2"));
             }
         }
 
@@ -71,7 +71,7 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://localhost");
                 req.Connect("tcp://localhost:" + port);
 
-                Assert.Throws<FiniteStateMachineException>(() => rep.Send("1"));
+                Assert.Throws<FiniteStateMachineException>(() => rep.SendFrame("1"));
             }
         }
 
@@ -85,11 +85,11 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://localhost");
                 req.Connect("tcp://localhost:" + port);
 
-                req.SendMore("Hello").Send("World");
+                req.SendMoreFrame("Hello").SendFrame("World");
 
                 CollectionAssert.AreEqual(new[] { "Hello", "World" }, rep.ReceiveMultipartStrings());
 
-                rep.SendMore("Hello").Send("Back");
+                rep.SendMoreFrame("Hello").SendFrame("Back");
 
                 CollectionAssert.AreEqual(new[] { "Hello", "Back" }, req.ReceiveMultipartStrings());
             }
