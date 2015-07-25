@@ -124,10 +124,7 @@ namespace NetMQ
         /// Get whether the polling has started.
         /// This is set true at the beginning of the Start method, and cleared in the Stop method.
         /// </summary>
-        public bool IsStarted
-        {
-            get { return m_isStarted; }
-        }
+        public bool IsStarted => m_isStarted;
 
         /// <summary>
         /// Get or set the poll timeout in milliseconds.

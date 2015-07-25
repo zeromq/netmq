@@ -309,10 +309,7 @@ namespace NetMQ
             remove { m_sendEvent.Event -= value; }
         }
 
-        NetMQSocket ISocketPollable.Socket
-        {
-            get { return m_self; }
-        }
+        NetMQSocket ISocketPollable.Socket => m_self;
 
         #endregion
 

@@ -49,9 +49,6 @@ namespace NetMQ.Core.Transports.Ipc
 
         public IPEndPoint Address { get; private set; }
 
-        public string Protocol
-        {
-            get { return Core.Address.IpcProtocol; }
-        }
+        public string Protocol => Core.Address.IpcProtocol;
     }
 }

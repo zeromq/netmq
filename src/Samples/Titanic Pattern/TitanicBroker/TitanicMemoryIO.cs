@@ -43,7 +43,7 @@ namespace TitanicProtocol
         /// </summary>
         public string TitanicQueue { get { throw new InvalidOperationException ("In-Memory IO does not provide a file name for the titanic queue."); } }
 
-        internal int NumberOfRequests { get { return m_titanicQueue.Count; } }
+        internal int NumberOfRequests => m_titanicQueue.Count;
 
         /// <summary>
         ///     ctor

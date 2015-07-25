@@ -109,15 +109,9 @@ namespace NetMQ
         /// <summary>
         /// Get the underlying <see cref="SocketBase"/>.
         /// </summary>
-        internal SocketBase SocketHandle
-        {
-            get { return m_socketHandle; }
-        }
+        internal SocketBase SocketHandle => m_socketHandle;
 
-        NetMQSocket ISocketPollable.Socket
-        {
-            get { return this; }
-        }
+        NetMQSocket ISocketPollable.Socket => this;
 
         #region Bind, Unbind, Connect, Disconnect, Close
 
@@ -505,10 +499,7 @@ namespace NetMQ
         /// Get whether a message is waiting to be picked up (<c>true</c> if there is, <c>false</c> if there is none).
         /// </summary>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public bool HasIn
-        {
-            get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasIn(); }
-        }
+        public bool HasIn => GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasIn();
 
         /// <summary>
         /// Get whether a message is waiting to be sent.
@@ -517,10 +508,7 @@ namespace NetMQ
         /// This is <c>true</c> if at least one message is waiting to be sent, <c>false</c> if there is none.
         /// </remarks>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public bool HasOut
-        {
-            get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasOut(); }
-        }
+        public bool HasOut => GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasOut();
 
         /// <summary>
         /// Get the integer-value of the specified <see cref="ZmqSocketOption"/>.

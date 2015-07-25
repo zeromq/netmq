@@ -90,9 +90,6 @@ namespace NetMQ.Core.Transports.Pgm
                 : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
-        public string Protocol
-        {
-            get { return Core.Address.PgmProtocol; }
-        }
+        public string Protocol => Core.Address.PgmProtocol;
     }
 }

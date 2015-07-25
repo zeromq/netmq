@@ -11,10 +11,7 @@
         /// Get the part of the handshake-protocol that this HandshakeMessage represents
         /// - in this case, ServerHello.
         /// </summary>
-        public override HandshakeType HandshakeType
-        {
-            get { return HandshakeType.ServerHello; }
-        }
+        public override HandshakeType HandshakeType => HandshakeType.ServerHello;
 
         /// <summary>
         /// Get or set the Random-Number that is a part of the handshake-protocol, as a byte-array.

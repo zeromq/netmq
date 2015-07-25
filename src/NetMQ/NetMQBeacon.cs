@@ -290,10 +290,7 @@ namespace NetMQ
         /// <summary>
         /// Get the socket of the contained actor.
         /// </summary>
-        NetMQSocket ISocketPollable.Socket
-        {
-            get { return ((ISocketPollable)m_actor).Socket; }
-        }
+        NetMQSocket ISocketPollable.Socket => ((ISocketPollable)m_actor).Socket;
 
         /// <summary>
         /// This event occurs when at least one message may be received from the socket without blocking.

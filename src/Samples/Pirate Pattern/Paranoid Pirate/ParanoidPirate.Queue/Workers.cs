@@ -13,10 +13,7 @@ namespace ParanoidPirate.Queue
         /// <summary>
         /// true if there are workers available
         /// </summary>
-        public bool Available
-        {
-            get { return m_workers.Count > 0; }
-        }
+        public bool Available => m_workers.Count > 0;
 
         /// <summary>
         /// stores a worker for a LRU pattern

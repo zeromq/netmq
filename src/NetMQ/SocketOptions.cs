@@ -113,10 +113,7 @@ namespace NetMQ
         /// Gets whether the last frame received on the socket had the <em>more</em> flag set or not.
         /// </summary>
         /// <value><c>true</c> if receive more; otherwise, <c>false</c>.</value>
-        public bool ReceiveMore
-        {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.ReceiveMore); }
-        }
+        public bool ReceiveMore => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.ReceiveMore);
 
         /// <summary>
         /// Get or set the linger period for the specified socket,
@@ -271,10 +268,7 @@ namespace NetMQ
         /// </summary>
         [Obsolete("Use LastEndpoint instead")]
         [CanBeNull]
-        public string GetLastEndpoint
-        {
-            get { return LastEndpoint; }
-        }
+        public string GetLastEndpoint => LastEndpoint;
 
         /// <summary>
         /// Get the last endpoint bound for TCP and IPC transports.
@@ -285,10 +279,7 @@ namespace NetMQ
         /// will be 0.0.0.0 (for IPv4).
         /// </remarks>
         [CanBeNull]
-        public string LastEndpoint
-        {
-            get { return m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint); }
-        }
+        public string LastEndpoint => m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint);
 
         public bool RouterMandatory
         {

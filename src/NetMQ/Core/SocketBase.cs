@@ -191,10 +191,7 @@ namespace NetMQ.Core
         /// Return the Mailbox associated with this socket.
         /// </summary>
         [NotNull]
-        public Mailbox Mailbox
-        {
-            get { return m_mailbox; }
-        }
+        public Mailbox Mailbox => m_mailbox;
 
         /// <summary>
         /// Interrupt a blocking call if the socket is stuck in one.
@@ -1490,10 +1487,7 @@ namespace NetMQ.Core
         /// Get the Socket (Handle) - which is actually the Handle of the contained mailbox.
         /// </summary>
         [NotNull]
-        public Socket Handle
-        {
-            get { return m_mailbox.Handle; }
-        }
+        public Socket Handle => m_mailbox.Handle;
 
         /// <summary>
         /// Return a short bit of text that denotes the SocketType of this socket.

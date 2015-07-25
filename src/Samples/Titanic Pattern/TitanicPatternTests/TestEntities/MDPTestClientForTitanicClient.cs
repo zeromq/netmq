@@ -20,9 +20,9 @@ namespace TitanicProtocolTests.TestEntities
 
         public int Retries { get { throw new NotImplementedException (); } set { throw new NotImplementedException (); } }
 
-        public string Address { get { return "Fake Address"; } }
+        public string Address => "Fake Address";
 
-        public byte[] Identity { get { return Encoding.UTF8.GetBytes ("Fake Identity"); } }
+        public byte[] Identity => Encoding.UTF8.GetBytes ("Fake Identity");
 
         /// <remarks>
         ///  return messages can be:
