@@ -287,25 +287,32 @@ namespace NetMQ
         {
             var enumerator = frames.GetEnumerator();
 
-            // move to the first emlement, if false frames is empty
-            if (!enumerator.MoveNext())
+            try
             {
-                throw new ArgumentException("frames is empty", "frames");
+                // move to the first emlement, if false frames is empty
+                if (!enumerator.MoveNext())
+                {
+                    throw new ArgumentException("frames is empty", "frames");
+                }
+
+                var current = enumerator.Current;
+
+                // we always one item back to make sure we send the last frame without the more flag
+                while (enumerator.MoveNext())
+                {
+                    // this is a more frame
+                    socket.SendMoreFrame(current);
+
+                    current = enumerator.Current;
+                }
+
+                // sending the last frame
+                socket.SendFrame(current);
             }
-
-            var current = enumerator.Current;
-
-            // we always one item back to make sure we send the last frame without the more flag
-            while (enumerator.MoveNext())
+            finally
             {
-                // this is a more frame
-                socket.SendMoreFrame(current);
-
-                current = enumerator.Current;
+                enumerator.Dispose();
             }
-
-            // sending the last frame
-            socket.SendFrame(current);
         }
 
         #endregion
@@ -328,49 +335,57 @@ namespace NetMQ
         /// If frames cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="timeout">The maximum period of time to try to send a message.</param>
         /// <param name="frames">frames to transmit</param>       
         public static bool TrySendMultipartBytes([NotNull] this IOutgoingSocket socket, TimeSpan timeout,
             IEnumerable<byte[]> frames)
         {
             var enumerator = frames.GetEnumerator();
-
-            // move to the first emlement, if false frames is empty
-            if (!enumerator.MoveNext())
+            
+            try
             {
-                throw new ArgumentException("frames is empty", "frames");
-            }
+                // move to the first emlement, if false frames is empty
+                if (!enumerator.MoveNext())
+                {
+                    throw new ArgumentException("frames is empty", "frames");
+                }
 
-            var current = enumerator.Current;
+                var current = enumerator.Current;
 
-            // only the first frame need to be sent with a timeout
-            if (!enumerator.MoveNext())
-            {
-                return socket.TrySendFrame(timeout, current);
-            }
-            else
-            {
-                bool sentSuccessfully = socket.TrySendFrame(timeout, current, true);
+                // only the first frame need to be sent with a timeout
+                if (!enumerator.MoveNext())
+                {
+                    return socket.TrySendFrame(timeout, current);
+                }
+                else
+                {
+                    bool sentSuccessfully = socket.TrySendFrame(timeout, current, true);
 
-                if (!sentSuccessfully)
-                    return false;
-            }
+                    if (!sentSuccessfully)
+                        return false;
+                }
 
-            // fetching the second frame
-            current = enumerator.Current;
-
-            // we always one item back to make sure we send the last frame without the more flag
-            while (enumerator.MoveNext())
-            {
-                // this is a more frame
-                socket.SendMoreFrame(current);
-
+                // fetching the second frame
                 current = enumerator.Current;
+
+                // we always one item back to make sure we send the last frame without the more flag
+                while (enumerator.MoveNext())
+                {
+                    // this is a more frame
+                    socket.SendMoreFrame(current);
+
+                    current = enumerator.Current;
+                }
+
+                // sending the last frame
+                socket.SendFrame(current);
+
+                return true;
             }
-
-            // sending the last frame
-            socket.SendFrame(current);
-
-            return true;
+            finally
+            {
+                enumerator.Dispose();
+            }
         }
 
         #endregion
@@ -641,7 +656,7 @@ namespace NetMQ
                 throw new ArgumentException("message is empty", "message");
             else if (message.FrameCount == 1)
             {
-                return TrySendFrame(socket, timeout, message[0].Buffer, message[0].MessageSize);                
+                return TrySendFrame(socket, timeout, message[0].Buffer, message[0].MessageSize);
             }
             else
             {
@@ -712,7 +727,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>        
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
-        public static void SendFrameEmpty([NotNull] this IOutgoingSocket socket, bool more=false)
+        public static void SendFrameEmpty([NotNull] this IOutgoingSocket socket, bool more = false)
         {
             SendFrame(socket, s_empty, more);
         }
@@ -740,7 +755,7 @@ namespace NetMQ
         /// <param name="timeout">The maximum period of time to try to send a message.</param>        
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySendFrameEmpty([NotNull] this IOutgoingSocket socket,TimeSpan timeout, bool more = false)
+        public static bool TrySendFrameEmpty([NotNull] this IOutgoingSocket socket, TimeSpan timeout, bool more = false)
         {
             return TrySendFrame(socket, timeout, s_empty, more);
         }
