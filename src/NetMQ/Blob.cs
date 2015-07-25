@@ -19,6 +19,7 @@
 */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
 
@@ -127,6 +128,7 @@ namespace NetMQ
         /// Return an integer hash-code to use to uniquely identify this Blob object.
         /// </summary>
         /// <returns>the hash-code</returns>
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             if (m_hash == 0)
