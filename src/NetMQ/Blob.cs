@@ -135,7 +135,7 @@ namespace NetMQ
             {
                 foreach (byte b in m_buffer)
                 {
-                    m_hash = 31 * m_hash + b;
+                    m_hash = (31 * m_hash) ^ b;
                 }
             }
             return m_hash;
