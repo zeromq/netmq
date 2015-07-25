@@ -4,7 +4,7 @@ namespace NetMQ.Core.Transports
 {
     internal interface IDecoder
     {
-        void SetMsgSink([NotNull] IMsgSink msgSink);
+        void SetMsgSink([CanBeNull] IMsgSink msgSink);
 
         void GetBuffer(out ByteArraySegment data, out int size);
 
