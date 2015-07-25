@@ -24,11 +24,11 @@ namespace NetMQ.Tests.Devices
             {
                 if (i == received.Count - 1)
                 {
-                    socket.Send(received[i]);
+                    socket.SendFrame(received[i]);
                 }
                 else
                 {
-                    socket.SendMore(received[i]);
+                    socket.SendMoreFrame(received[i]);
                 }
             }
         }
@@ -38,7 +38,7 @@ namespace NetMQ.Tests.Devices
             const string value = "Hello World";
             var expected = value + " " + id;
             Console.WriteLine("Client: {0} sending: {1}", id, expected);
-            socket.Send(expected);
+            socket.SendFrame(expected);
 
             Thread.Sleep(Random.Next(1, 50));
 

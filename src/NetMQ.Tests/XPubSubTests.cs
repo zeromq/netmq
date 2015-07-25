@@ -18,7 +18,7 @@ namespace NetMQ.Tests
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
-                sub.Send(new byte[] { 1, (byte)'A' });
+                sub.SendFrame(new byte[] { 1, (byte)'A' });
 
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
@@ -28,8 +28,8 @@ namespace NetMQ.Tests
                 Assert.AreEqual(1, msg[0]);
                 Assert.AreEqual('A', msg[1]);
 
-                pub.SendMore("A");
-                pub.Send("Hello");
+                pub.SendMoreFrame("A");
+                pub.SendFrame("Hello");
 
                 bool more;
 
@@ -51,7 +51,7 @@ namespace NetMQ.Tests
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
 
                 sub.Connect("tcp://127.0.0.1:" + port);
-                sub.Send("Message from subscriber");
+                sub.SendFrame("Message from subscriber");
 
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
@@ -59,7 +59,7 @@ namespace NetMQ.Tests
                 var txt = pub.ReceiveFrameString();
                 Assert.AreEqual("Message from subscriber", txt);
 
-                sub.Send(new byte[] { });
+                sub.SendFrame(new byte[] { });
 
                 var msg = pub.ReceiveFrameBytes();
                 Assert.True(msg.Length == 0);
@@ -75,12 +75,12 @@ namespace NetMQ.Tests
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
-                sub.Send(new byte[] { 1 });
+                sub.SendFrame(new byte[] { 1 });
 
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
 
-                pub.Send("Hello");
+                pub.SendFrame("Hello");
 
                 bool more;
                 Assert.AreEqual("Hello", sub.ReceiveFrameString(out more));
@@ -101,7 +101,7 @@ namespace NetMQ.Tests
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
 
-                pub.Send("Hello");
+                pub.SendFrame("Hello");
 
                 Assert.IsFalse(sub.TrySkipFrame());
             }
@@ -120,19 +120,19 @@ namespace NetMQ.Tests
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
 
-                sub.Send(new byte[] { 1, (byte)'C' });
-                sub.Send(new byte[] { 1, (byte)'B' });
-                sub.Send(new byte[] { 1, (byte)'A' });
-                sub.Send(new byte[] { 1, (byte)'D' });
-                sub.Send(new byte[] { 1, (byte)'E' });
+                sub.SendFrame(new byte[] { 1, (byte)'C' });
+                sub.SendFrame(new byte[] { 1, (byte)'B' });
+                sub.SendFrame(new byte[] { 1, (byte)'A' });
+                sub.SendFrame(new byte[] { 1, (byte)'D' });
+                sub.SendFrame(new byte[] { 1, (byte)'E' });
 
                 Thread.Sleep(500);
 
-                sub.Send(new byte[] { 0, (byte)'C' });
-                sub.Send(new byte[] { 0, (byte)'B' });
-                sub.Send(new byte[] { 0, (byte)'A' });
-                sub.Send(new byte[] { 0, (byte)'D' });
-                sub.Send(new byte[] { 0, (byte)'E' });
+                sub.SendFrame(new byte[] { 0, (byte)'C' });
+                sub.SendFrame(new byte[] { 0, (byte)'B' });
+                sub.SendFrame(new byte[] { 0, (byte)'A' });
+                sub.SendFrame(new byte[] { 0, (byte)'D' });
+                sub.SendFrame(new byte[] { 0, (byte)'E' });
 
                 Thread.Sleep(500);
             }
@@ -149,20 +149,20 @@ namespace NetMQ.Tests
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
 
                 sub.Connect("tcp://127.0.0.1:" + port);
-                sub.Send(new byte[] { 1, (byte)'A' });
-                sub.Send(new byte[] { 1, (byte)'A', (byte)'B' });
-                sub.Send(new byte[] { 1, (byte)'B' });
-                sub.Send(new byte[] { 1, (byte)'C' });
+                sub.SendFrame(new byte[] { 1, (byte)'A' });
+                sub.SendFrame(new byte[] { 1, (byte)'A', (byte)'B' });
+                sub.SendFrame(new byte[] { 1, (byte)'B' });
+                sub.SendFrame(new byte[] { 1, (byte)'C' });
 
                 sub2.Connect("tcp://127.0.0.1:" + port);
-                sub2.Send(new byte[] { 1, (byte)'A' });
-                sub2.Send(new byte[] { 1, (byte)'A', (byte)'B' });
-                sub2.Send(new byte[] { 1, (byte)'C' });
+                sub2.SendFrame(new byte[] { 1, (byte)'A' });
+                sub2.SendFrame(new byte[] { 1, (byte)'A', (byte)'B' });
+                sub2.SendFrame(new byte[] { 1, (byte)'C' });
 
                 Thread.Sleep(500);
 
-                pub.SendMore("AB");
-                pub.Send("1");
+                pub.SendMoreFrame("AB");
+                pub.SendFrame("1");
 
                 Assert.AreEqual("AB", sub.ReceiveMultipartStrings().First(), "First subscriber is expected to receive the message");
 
@@ -194,8 +194,8 @@ namespace NetMQ.Tests
                 sub2.Connect("tcp://127.0.0.1:" + port2);
 
                 // should subscribe to both
-                sub.Send(new byte[] { 1, (byte)'A' });
-                sub2.Send(new byte[] { 1, (byte)'A' });
+                sub.SendFrame(new byte[] { 1, (byte)'A' });
+                sub2.SendFrame(new byte[] { 1, (byte)'A' });
 
                 Thread.Sleep(500);
 
@@ -238,8 +238,8 @@ namespace NetMQ.Tests
                 Assert.AreEqual('A', msg2[1]);
 
 
-                pub.SendMore("A");
-                pub.Send("Hello from the first publisher");
+                pub.SendMoreFrame("A");
+                pub.SendFrame("Hello from the first publisher");
 
                 bool more;
                 Assert.AreEqual("A", sub.ReceiveFrameString(out more));
@@ -259,8 +259,8 @@ namespace NetMQ.Tests
                 Assert.False(more);
 
 
-                pub2.SendMore("A");
-                pub2.Send("Hello from the second publisher");
+                pub2.SendMoreFrame("A");
+                pub2.SendFrame("Hello from the second publisher");
 
                 Assert.AreEqual("A", sub.ReceiveFrameString(out more));
                 Assert.IsTrue(more);
@@ -277,8 +277,8 @@ namespace NetMQ.Tests
                 Assert.False(more);
 
                 // send both to address and address2
-                sub.Send("Message from subscriber");
-                sub2.Send("Message from subscriber 2");
+                sub.SendFrame("Message from subscriber");
+                sub2.SendFrame("Message from subscriber 2");
 
                 Assert.AreEqual("Message from subscriber", pub.ReceiveFrameString());
                 Assert.AreEqual("Message from subscriber", pub2.ReceiveFrameString());
@@ -299,13 +299,13 @@ namespace NetMQ.Tests
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
-                sub.Send(new byte[] { 1, (byte)'A' });
+                sub.SendFrame(new byte[] { 1, (byte)'A' });
 
                 // let the subscriber connect to the publisher before sending a message
                 Thread.Sleep(500);
 
-                pub.SendMore("A");
-                pub.Send("Hello");
+                pub.SendMoreFrame("A");
+                pub.SendFrame("Hello");
 
                 bool more;
 
@@ -315,12 +315,12 @@ namespace NetMQ.Tests
                 Assert.AreEqual("Hello", sub.ReceiveFrameString(out more));
                 Assert.False(more);
 
-                sub.Send(new byte[] { 0, (byte)'A' });
+                sub.SendFrame(new byte[] { 0, (byte)'A' });
 
                 Thread.Sleep(500);
 
-                pub.SendMore("A");
-                pub.Send("Hello");
+                pub.SendMoreFrame("A");
+                pub.SendFrame("Hello");
 
                 string str;
                 Assert.IsFalse(sub.TryReceiveFrameString(out str));
@@ -339,14 +339,14 @@ namespace NetMQ.Tests
 
                 sub.Connect("inproc://manual");
 
-                sub.Send(new byte[] { 1, (byte)'A' });
+                sub.SendFrame(new byte[] { 1, (byte)'A' });
                 var subscription = pub.ReceiveFrameBytes();
 
                 Assert.AreEqual(subscription[1], (byte)'A');
 
                 pub.Subscribe("B");
-                pub.Send("A");
-                pub.Send("B");
+                pub.SendFrame("A");
+                pub.SendFrame("B");
 
                 Assert.AreEqual("B", sub.ReceiveFrameString());
             }

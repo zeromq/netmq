@@ -46,8 +46,8 @@ namespace NetMQ.Tests.Devices
             const string value = "Hello World";
             var expected = value + " " + id;
             Console.WriteLine("Client: {0} Publishing: {1}", id, expected);
-            socket.SendMore(Topic);
-            socket.Send(expected);
+            socket.SendMoreFrame(Topic);
+            socket.SendFrame(expected);
         }
 
         protected override SubscriberSocket CreateWorkerSocket(NetMQContext context)

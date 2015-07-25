@@ -123,22 +123,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanicCommons", "Samples\T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6AB1E02C-7800-4934-AA7A-4161459E1278}"
 	ProjectSection(SolutionItems) = preProject
+		..\.gitattributes = ..\.gitattributes
+		..\.gitignore = ..\.gitignore
 		..\COPYING.LESSER = ..\COPYING.LESSER
 		..\mkdocs.yml = ..\mkdocs.yml
 		..\README.md = ..\README.md
-		..\.gitattributes = ..\.gitattributes
-		..\.gitignore = ..\.gitignore
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D7A0-489E-9530-0F972DAE1167}"
 	ProjectSection(SolutionItems) = preProject
-		..\mkdocs.yml = ..\mkdocs.yml
 		..\docs\actor.md = ..\docs\actor.md
 		..\docs\beacon.md = ..\docs\beacon.md
 		..\docs\devices.md = ..\docs\devices.md
 		..\docs\index.md = ..\docs\index.md
 		..\docs\introduction.md = ..\docs\introduction.md
 		..\docs\message.md = ..\docs\message.md
+		..\mkdocs.yml = ..\mkdocs.yml
 		..\docs\poller.md = ..\docs\poller.md
 		..\docs\pub-sub.md = ..\docs\pub-sub.md
 		..\docs\push-pull.md = ..\docs\push-pull.md

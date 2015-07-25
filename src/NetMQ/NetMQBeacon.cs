@@ -126,7 +126,7 @@ namespace NetMQ
                     catch (Exception)
                     {}
 
-                    m_pipe.Send(hostname);
+                    m_pipe.SendFrame(hostname);
                 }
             }
 
@@ -198,7 +198,7 @@ namespace NetMQ
                 // If still a valid beacon, send on to the API
                 if (isValid)
                 {
-                    m_pipe.SendMore(peerName).Send(frame.Buffer, frame.MessageSize);
+                    m_pipe.SendMoreFrame(peerName).SendFrame(frame.Buffer, frame.MessageSize);
                 }
             }
 
@@ -334,7 +334,7 @@ namespace NetMQ
             message.Append(interfaceName);
             message.Append(port);
 
-            m_actor.SendMessage(message);
+            m_actor.SendMultipartMessage(message);
 
             Hostname = m_actor.ReceiveFrameString();
         }
@@ -351,7 +351,7 @@ namespace NetMQ
             message.Append(transmit);
             message.Append((int)interval.TotalMilliseconds);
 
-            m_actor.SendMessage(message);
+            m_actor.SendMultipartMessage(message);
         }
 
         /// <summary>
@@ -366,7 +366,7 @@ namespace NetMQ
             message.Append(transmit);
             message.Append((int)interval.TotalMilliseconds);
 
-            m_actor.SendMessage(message);
+            m_actor.SendMultipartMessage(message);
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace NetMQ
         /// </summary>
         public void Silence()
         {
-            m_actor.Send(SilenceCommand);
+            m_actor.SendFrame(SilenceCommand);
         }
 
         /// <summary>
@@ -401,7 +401,7 @@ namespace NetMQ
         /// <param name="filter">Beacon will be filtered by this</param>
         public void Subscribe([NotNull] string filter)
         {
-            m_actor.SendMore(SubscribeCommand).Send(filter);
+            m_actor.SendMoreFrame(SubscribeCommand).SendFrame(filter);
         }
 
         /// <summary>
@@ -409,7 +409,7 @@ namespace NetMQ
         /// </summary>
         public void Unsubscribe()
         {
-            m_actor.Send(UnsubscribeCommand);
+            m_actor.SendFrame(UnsubscribeCommand);
         }
 
         /// <summary>

@@ -248,6 +248,7 @@ namespace NetMQ
         /// A value of -1 means to block until the message is sent.
         /// TODO: May need to update this explanation.
         /// </summary>
+        [Obsolete("Pass a TimeSpan value directly to socket send methods instead.")]
         public TimeSpan SendTimeout
         {
             get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout); }

@@ -31,7 +31,7 @@ namespace NetMQ.Tests
 
                 sub.Subscribe("");
 
-                pub.Send("Hi");
+                pub.SendFrame("Hi");
 
                 bool more;
                 Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
@@ -51,7 +51,7 @@ namespace NetMQ.Tests
 
                 sub.Subscribe("");
 
-                pub.Send("Hi");
+                pub.SendFrame("Hi");
 
                 bool more;
                 Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
@@ -71,7 +71,7 @@ namespace NetMQ.Tests
 
                 sub.Subscribe("");
 
-                pub.Send("Hi");
+                pub.SendFrame("Hi");
 
                 bool more;
                 Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
@@ -98,7 +98,7 @@ namespace NetMQ.Tests
 
                 sub.Subscribe("");
 
-                pub.Send("Hi");
+                pub.SendFrame("Hi");
 
                 bool more;
                 Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
@@ -128,7 +128,7 @@ namespace NetMQ.Tests
 
                 sub.Subscribe("");
 
-                pub.Send("Hi");
+                pub.SendFrame("Hi");
 
                 bool more;
                 Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
@@ -157,7 +157,7 @@ namespace NetMQ.Tests
                 sub.Subscribe("");
                 sub2.Subscribe("");
 
-                pub.Send("Hi");
+                pub.SendFrame("Hi");
 
                 bool more;
                 Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
@@ -182,14 +182,14 @@ namespace NetMQ.Tests
 
                 sub.Subscribe("");
 
-                pub.Send("Hi");
+                pub.SendFrame("Hi");
 
                 bool more;
 
                 Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
 
-                pub2.Send("Hi2");
+                pub2.SendFrame("Hi2");
 
                 Assert.AreEqual("Hi2", sub.ReceiveFrameString(out more));
                 Assert.IsFalse(more);
@@ -235,7 +235,7 @@ namespace NetMQ.Tests
                     pub.Connect("pgm://224.0.0.1:5555");
 
                     for (int i = 0; i < 1000; i++)
-                        pub.Send(BitConverter.GetBytes(i));
+                        pub.SendFrame(BitConverter.GetBytes(i));
 
                     // if we close the socket before the subscriber receives all messages subscriber
                     // might miss messages, lets wait another second
@@ -268,7 +268,7 @@ namespace NetMQ.Tests
                 for (Int16 i = 0; i < 1600; i++)
                     Array.Copy(BitConverter.GetBytes(i), 0, data, i*2, 2);
 
-                pub.Send(data);
+                pub.SendFrame(data);
 
                 byte[] message = sub.ReceiveFrameBytes();
 

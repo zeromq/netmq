@@ -212,7 +212,7 @@ namespace NetMQ
             lock (m_syncObject)
             {
                 // awake the scheduler
-                m_clientSocket.Send("");
+                m_clientSocket.SendFrameEmpty();
             }
         }
     }

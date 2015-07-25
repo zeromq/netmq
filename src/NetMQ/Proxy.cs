@@ -147,10 +147,10 @@ namespace NetMQ
                 {
                     copy.Copy(ref msg);
 
-                    control.Send(ref copy, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
+                    control.Send(ref copy, more);
                 }
 
-                to.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
+                to.Send(ref msg, more);
 
                 if (!more)
                     break;

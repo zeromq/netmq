@@ -28,15 +28,18 @@ namespace NetMQ.Core
 
         public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, ErrorCode arg)
             : this(monitorEvent, addr, (int)arg)
-        {}
+        {
+        }
 
         public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, int arg)
             : this(monitorEvent, addr, (object)arg)
-        {}
+        {
+        }
 
         public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, AsyncSocket arg)
             : this(monitorEvent, addr, (object)arg)
-        {}
+        {
+        }
 
         private MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, [NotNull] Object arg)
         {
@@ -107,7 +110,7 @@ namespace NetMQ.Core
 
             var msg = new Msg();
             msg.InitGC((byte[])buffer, buffer.Size);
-            s.Send(ref msg, SendReceiveOptions.None);
+            s.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
         }
 
         [NotNull]
@@ -116,7 +119,7 @@ namespace NetMQ.Core
             var msg = new Msg();
             msg.InitEmpty();
 
-            s.Recv(ref msg);
+            s.TryRecv(ref msg, SendReceiveConstants.InfiniteTimeout);
 
             int pos = 0;
             ByteArraySegment data = msg.Data;
