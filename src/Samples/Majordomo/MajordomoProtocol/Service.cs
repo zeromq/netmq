@@ -18,7 +18,7 @@ namespace MajordomoProtocol
         /// <summary>
         /// The service name.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         ///     returns a readonly sequence of waiting workers - some of which may have expired

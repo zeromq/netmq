@@ -6,10 +6,10 @@ namespace NetMQ.Tests
     public class MockBufferPool : IBufferPool
     {
         public int TakeCallCount { get; private set; }
-        public List<int> TakeSize { get; private set; }
+        public List<int> TakeSize { get; }
         
         public int ReturnCallCount { get; private set; }
-        public List<byte[]> ReturnBuffer { get; private set; }
+        public List<byte[]> ReturnBuffer { get; }
 
         public MockBufferPool()
         {

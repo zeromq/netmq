@@ -13,7 +13,7 @@ namespace NetMQ
     [Serializable]
     public class NetMQException : Exception
     {
-        public ErrorCode ErrorCode { get; private set; }
+        public ErrorCode ErrorCode { get; }
 
         #region Exception contract & serialisation
 

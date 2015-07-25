@@ -105,7 +105,7 @@ namespace NetMQ.Security.V0_1
             VerifyCertificate = c => c.Verify();
         }
 
-        public SecurityParameters SecurityParameters { get; private set; }
+        public SecurityParameters SecurityParameters { get; }
 
         /// <summary>
         /// Get or set the array of allowed cipher-suites.

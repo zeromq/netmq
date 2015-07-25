@@ -40,13 +40,13 @@ namespace NetMQ.Core.Utils
             /// Get the Socket that this PollSet contains.
             /// </summary>
             [NotNull]
-            public Socket Socket { get; private set; }
+            public Socket Socket { get; }
 
             /// <summary>
             /// Get the IPollEvents object that has methods to signal when ready for reading or writing.
             /// </summary>
             [NotNull]
-            public IPollEvents Handler { get; private set; }
+            public IPollEvents Handler { get; }
 
             /// <summary>
             /// Get or set whether this PollSet is cancelled.

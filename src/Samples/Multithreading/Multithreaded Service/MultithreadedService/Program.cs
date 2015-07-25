@@ -123,7 +123,7 @@ namespace MultithreadedService
     public class Worker
     {
         public Guid WorkerId { get; private set; }
-        public NetMQContext Context { get; private set; }
+        public NetMQContext Context { get; }
 
         public Worker(Guid workerId, NetMQContext context)
         {

@@ -104,7 +104,7 @@ namespace NetMQ
         /// <summary>
         /// Get the <see cref="SocketOptions"/> of this socket.
         /// </summary>
-        public SocketOptions Options { get; private set; }
+        public SocketOptions Options { get; }
 
         /// <summary>
         /// Get the underlying <see cref="SocketBase"/>.

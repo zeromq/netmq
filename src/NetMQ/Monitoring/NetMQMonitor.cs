@@ -72,7 +72,7 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// The monitoring address.
         /// </summary>
-        public string Endpoint { get; private set; }
+        public string Endpoint { get; }
 
         /// <summary>
         /// Get whether this monitor is currently running.
