@@ -196,8 +196,7 @@ namespace NetMQ.Core
             }
 
             // Close the engine.
-            if (m_engine != null)
-                m_engine.Terminate();
+            m_engine?.Terminate();
         }
 
         /// <summary>
@@ -295,8 +294,7 @@ namespace NetMQ.Core
         /// </summary>
         public void Flush()
         {
-            if (m_pipe != null)
-                m_pipe.Flush();
+            m_pipe?.Flush();
         }
 
         /// <summary>
@@ -390,8 +388,7 @@ namespace NetMQ.Core
                 return;
             }
 
-            if (m_engine != null)
-                m_engine.ActivateIn();
+            m_engine?.ActivateIn();
         }
 
         public void Hiccuped(Pipe pipe)
@@ -467,8 +464,7 @@ namespace NetMQ.Core
             Detached();
 
             // Just in case there's only a delimiter in the pipe.
-            if (m_pipe != null)
-                m_pipe.CheckRead();
+            m_pipe?.CheckRead();
         }
 
         /// <summary>

@@ -125,9 +125,7 @@ namespace NetMQ
         /// <param name="sender">the sender to include within the event's event-args</param>
         internal void InvokeElapsed(object sender)
         {
-            var temp = Elapsed;
-            if (temp != null)
-                temp(sender, m_timerEventArgs);
+            Elapsed?.Invoke(sender, m_timerEventArgs);
         }
     }
 }

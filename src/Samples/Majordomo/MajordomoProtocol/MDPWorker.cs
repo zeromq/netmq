@@ -192,10 +192,7 @@ namespace MajordomoProtocol
         /// <param name="e">the wrapped logging information</param>
         protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
 
         /// <summary>

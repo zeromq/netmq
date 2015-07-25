@@ -540,10 +540,7 @@ namespace TitanicProtocol
 
         protected virtual void OnLogInfoReady (TitanicLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
     }
 }
