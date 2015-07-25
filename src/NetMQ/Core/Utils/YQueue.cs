@@ -94,7 +94,7 @@ namespace NetMQ.Core.Utils
         public YQueue(int chunkSize)
         {
             if (chunkSize < 2)
-                throw new ArgumentOutOfRangeException("chunkSize", "Should be no less than 2");
+                throw new ArgumentOutOfRangeException(nameof(chunkSize), "Should be no less than 2");
 
             m_chunkSize = chunkSize;
 

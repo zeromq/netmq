@@ -63,7 +63,7 @@ namespace NetMQ
         {
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException("length", "A non-negative value is expected.");
+                throw new ArgumentOutOfRangeException(nameof(length), "A non-negative value is expected.");
             }
 
             Buffer = new byte[length];
@@ -81,7 +81,7 @@ namespace NetMQ
             {
                 if (value < 0 || value > BufferSize)
                 {
-                    throw new ArgumentOutOfRangeException("value", "Expecting a non-negative value less than or equal to the buffer size.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Expecting a non-negative value less than or equal to the buffer size.");
                 }
 
                 m_messageSize = value;
@@ -120,7 +120,7 @@ namespace NetMQ
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException("buffer");
+                throw new ArgumentNullException(nameof(buffer));
             }
 
             var copy = new NetMQFrame(buffer.Length);
@@ -180,7 +180,7 @@ namespace NetMQ
         {
             if (frame == null)
             {
-                throw new ArgumentNullException("frame");
+                throw new ArgumentNullException(nameof(frame));
             }
 
             var copy = new NetMQFrame(new byte[frame.BufferSize]);

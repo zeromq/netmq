@@ -261,7 +261,7 @@ namespace NetMQ.Core
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException("value", value, "Must be zero or greater");
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Must be zero or greater");
                 lock (m_optSync)
                     m_ioThreadCount = value;
             }
@@ -273,7 +273,7 @@ namespace NetMQ.Core
             set
             {
                 if (value <= 0)
-                    throw new ArgumentOutOfRangeException("value", value, "Must be greater than zero");
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Must be greater than zero");
                 lock (m_optSync)
                     m_maxSockets = value;
             }

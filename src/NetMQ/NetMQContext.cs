@@ -117,7 +117,7 @@ namespace NetMQ
                 case ZmqSocketType.Stream:
                     return new StreamSocket(socketHandle);
                 default:
-                    throw new ArgumentOutOfRangeException("socketType");
+                    throw new ArgumentOutOfRangeException(nameof(socketType));
             }
         }
 
@@ -253,12 +253,12 @@ namespace NetMQ
         {
             if (endpoint == null)
             {
-                throw new ArgumentNullException("endpoint");
+                throw new ArgumentNullException(nameof(endpoint));
             }
 
             if (endpoint == string.Empty)
             {
-                throw new ArgumentException("Unable to monitor to an empty endpoint.", "endpoint");
+                throw new ArgumentException("Unable to monitor to an empty endpoint.", nameof(endpoint));
             }
 
             return new NetMQMonitor(CreatePairSocket(), endpoint, ownsSocket: true);

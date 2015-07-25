@@ -92,7 +92,7 @@ namespace NetMQ
         {
             if (sockets == null)
             {
-                throw new ArgumentNullException("sockets");
+                throw new ArgumentNullException(nameof(sockets));
             }
 
             foreach (var socket in sockets)
@@ -111,7 +111,7 @@ namespace NetMQ
         {
             if (timers == null)
             {
-                throw new ArgumentNullException("timers");
+                throw new ArgumentNullException(nameof(timers));
             }
 
             foreach (var timer in timers)
@@ -143,12 +143,12 @@ namespace NetMQ
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
             }
 
             if (callback == null)
             {
-                throw new ArgumentNullException("callback");
+                throw new ArgumentNullException(nameof(callback));
             }
 
             if (m_pollinSockets.ContainsKey(socket))
@@ -176,7 +176,7 @@ namespace NetMQ
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
             }
 
             if (m_disposed)
@@ -200,7 +200,7 @@ namespace NetMQ
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
             }
 
             if (m_sockets.Contains(socket.Socket))
@@ -230,7 +230,7 @@ namespace NetMQ
         {
             if (socket == null)
             {
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
             }
 
             if (m_disposed)
@@ -254,7 +254,7 @@ namespace NetMQ
         {
             if (timer == null)
             {
-                throw new ArgumentNullException("timer");
+                throw new ArgumentNullException(nameof(timer));
             }
 
             if (m_disposed)
@@ -275,7 +275,7 @@ namespace NetMQ
         {
             if (timer == null)
             {
-                throw new ArgumentNullException("timer");
+                throw new ArgumentNullException(nameof(timer));
             }
 
             if (m_disposed)

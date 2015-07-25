@@ -54,7 +54,7 @@ namespace NetMQ.Core.Utils
         public bool Select([NotNull] SelectItem[] items, int itemsCount, long timeout)
         {
             if (items == null)
-                throw new ArgumentNullException("items");
+                throw new ArgumentNullException(nameof(items));
 
             if (itemsCount == 0)
             {

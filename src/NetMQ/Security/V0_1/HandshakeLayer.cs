@@ -552,7 +552,7 @@ namespace NetMQ.Security.V0_1
                     SecurityParameters.RecordIVLength = 16;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("cipher");
+                    throw new ArgumentOutOfRangeException(nameof(cipher));
             }
 
             switch (cipher)
@@ -577,7 +577,7 @@ namespace NetMQ.Security.V0_1
                     SecurityParameters.MACLength = 32;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("cipher");
+                    throw new ArgumentOutOfRangeException(nameof(cipher));
             }
         }
 

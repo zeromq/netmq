@@ -102,7 +102,7 @@ namespace TitanicProtocol
         public void SaveRequestEntry (RequestEntry entry)
         {
             if (ReferenceEquals (entry, null))
-                throw new ArgumentNullException ("entry", "The RequestEntry to save must not be null!");
+                throw new ArgumentNullException (nameof(entry), "The RequestEntry to save must not be null!");
 
             m_titanicQueue.AddOrUpdate (entry.RequestId, entry, (id, e) => entry);
         }

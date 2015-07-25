@@ -85,10 +85,10 @@ namespace NetMQ.Devices
             m_isInitialized = false;
 
             if (frontendSocket == null)
-                throw new ArgumentNullException("frontendSocket");
+                throw new ArgumentNullException(nameof(frontendSocket));
 
             if (backendSocket == null)
-                throw new ArgumentNullException("backendSocket");
+                throw new ArgumentNullException(nameof(backendSocket));
 
             FrontendSocket = frontendSocket;
             BackendSocket = backendSocket;
