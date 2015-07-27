@@ -3,6 +3,9 @@ using System.Net.Sockets;
 using System.Text;
 using AsyncIO;
 using JetBrains.Annotations;
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace NetMQ.Core.Transports.Pgm
 {
