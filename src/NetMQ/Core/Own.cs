@@ -1,6 +1,6 @@
 /*
     Copyright (c) 2010-2011 250bpm s.r.o.
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2010-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
