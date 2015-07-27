@@ -174,10 +174,10 @@ namespace NetMQ.Core
 
 
         /// <summary>
-        /// Reads an item from the pipe. Returns false if there is no value.
-        /// available.
+        /// Attempts to read an item from the pipe.
         /// </summary>
-        public bool Read(out T value)
+        /// <returns><c>true</c> if the read succeeded, otherwise <c>false</c>.</returns>
+        public bool TryRead(out T value)
         {
             // Try to prefetch a value.
             if (!CheckRead())
