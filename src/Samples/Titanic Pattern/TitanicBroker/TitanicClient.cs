@@ -70,7 +70,7 @@ namespace TitanicProtocol
             if (string.IsNullOrWhiteSpace (serviceName))
                 throw new ArgumentNullException (nameof(serviceName), "The name of the service requested must not be empty or 'null'!");
 
-            Log (string.Format ("requesting service {0} to process {1}", serviceName, request));
+            Log ($"requesting service {serviceName} to process {request}");
 
             var count = 0;
             var requestId = Guid.Empty;
@@ -91,7 +91,7 @@ namespace TitanicProtocol
                 }
 
             }
-            Log (string.Format ("RequestId = {0}", requestId));
+            Log ($"RequestId = {requestId}");
 
             // 2. wait for reply
             var reply = Reply (requestId, retries, TimeSpan.FromMilliseconds (waitInBetween));
@@ -203,7 +203,7 @@ namespace TitanicProtocol
             // set requested service
             message.Push (serviceName);              // [service name][data]
 
-            Log (string.Format ("requesting: {0}", message));
+            Log ($"requesting: {message}");
 
             var reply = ServiceCall (m_client, TitanicOperation.Request, message);
 
@@ -294,7 +294,7 @@ namespace TitanicProtocol
             {
                 message.Push (requestId.ToString ());
 
-                Log (string.Format ("requesting reply for: {0}", message));
+                Log ($"requesting reply for: {message}");
 
                 var reply = ServiceCall (m_client, TitanicOperation.Reply, message);
 
@@ -385,7 +385,7 @@ namespace TitanicProtocol
             var message = new NetMQMessage ();
             message.Push (requestId.ToString ());
 
-            Log (string.Format ("request close: {0}", message));
+            Log ($"request close: {message}");
 
             ServiceCall (m_client, TitanicOperation.Close, message);
         }
@@ -403,7 +403,7 @@ namespace TitanicProtocol
             //      in goes -> [titanic operation][request id]
             var reply = session.Send (op.ToString (), message);
 
-            Log (string.Format ("received message: {0}", reply));
+            Log ($"received message: {reply}");
 
             if (ReferenceEquals (reply, null) || reply.IsEmpty)
                 return null; // went wrong - why? I don't care!

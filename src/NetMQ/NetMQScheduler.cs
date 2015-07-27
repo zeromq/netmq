@@ -54,7 +54,7 @@ namespace NetMQ
 
             var schedulerId = Interlocked.Increment(ref s_schedulerCounter);
 
-            var address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, schedulerId);
+            var address = $"{Address.InProcProtocol}://scheduler-{schedulerId}";
 
             m_serverSocket = context.CreatePullSocket();
             m_serverSocket.Options.Linger = TimeSpan.Zero;

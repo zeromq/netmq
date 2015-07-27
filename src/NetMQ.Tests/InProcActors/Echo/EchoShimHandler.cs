@@ -46,7 +46,7 @@ namespace NetMQ.Tests.InProcActors.Echo
 
                     if (command == "ECHO")
                     {
-                        shim.SendFrame(string.Format("ECHO BACK : {0}", msg[1].ConvertToString()));
+                        shim.SendFrame($"ECHO BACK : {msg[1].ConvertToString()}");
                     }
                     else
                     {
@@ -57,7 +57,7 @@ namespace NetMQ.Tests.InProcActors.Echo
                 // demonstration purposes only, any unhandled fault will bubble up to caller's code
                 catch (Exception e)
                 {
-                    shim.SendFrame(string.Format("Error: Exception occurred {0}", e.Message));
+                    shim.SendFrame($"Error: Exception occurred {e.Message}");
                 }
             }
         }

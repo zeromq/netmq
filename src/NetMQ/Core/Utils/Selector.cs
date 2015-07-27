@@ -126,7 +126,7 @@ namespace NetMQ.Core.Utils
                     string textOfListRead = StringLib.AsString(m_checkRead);
                     string textOfListWrite = StringLib.AsString(m_checkWrite);
                     string textOfListError = StringLib.AsString(m_checkError);
-                    string xMsg = string.Format("In Selector.Select, Socket.Select({0}, {1}, {2}, {3}) threw a SocketException: {4}", textOfListRead, textOfListWrite, textOfListError, currentTimeoutMicroSeconds, x.Message);
+                    string xMsg = $"In Selector.Select, Socket.Select({textOfListRead}, {textOfListWrite}, {textOfListError}, {currentTimeoutMicroSeconds}) threw a SocketException: {x.Message}";
                     Debug.WriteLine(xMsg);
                     throw new FaultException(innerException: x, message: xMsg);
 #else

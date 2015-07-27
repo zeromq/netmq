@@ -63,7 +63,7 @@ namespace NetMQ.Core.Patterns
             else if (optionValue is byte[])
                 topic = (byte[])optionValue;
             else
-                throw new InvalidException(string.Format("In Sub.XSetSocketOption({0},{1}), optionValue must be either a string or a byte-array.", option, (optionValue == null ? "null" : optionValue.ToString())));
+                throw new InvalidException($"In Sub.XSetSocketOption({option},{(optionValue == null ? "null" : optionValue.ToString())}), optionValue must be either a string or a byte-array.");
 
             // Create the subscription message.
             var msg = new Msg();
@@ -78,7 +78,7 @@ namespace NetMQ.Core.Patterns
 
                 if (!isMessageSent)
                 {
-                    string xMsg = string.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
+                    string xMsg = $"in Sub.XSetSocketOption({option}, {optionValue}), XSend returned false.";
                     // TODO: should we change the excepion that is thrown here as AgainException is obsolete?
 #pragma warning disable 618                    
                     throw new AgainException(innerException: null, message: xMsg);

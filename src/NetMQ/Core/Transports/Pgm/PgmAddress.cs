@@ -23,7 +23,7 @@ namespace NetMQ.Core.Transports.Pgm
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
             {
-                throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), delimiter ({2}) must be non-negative.", name, ip4Only, delimiter));
+                throw new InvalidException($"In PgmAddress.Resolve({name},{ip4Only}), delimiter ({delimiter}) must be non-negative.");
             }
 
             // Separate the address/port.
@@ -60,7 +60,7 @@ namespace NetMQ.Core.Transports.Pgm
                 port = Convert.ToInt32(portStr);
                 
                 if (port == 0)
-                    throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), portStr ({2}) must denote a valid nonzero integer.", name, ip4Only, portStr));
+                    throw new InvalidException($"In PgmAddress.Resolve({name},{ip4Only}), portStr ({portStr}) must denote a valid nonzero integer.");
             }
 
             if (addrStr == "*")
@@ -68,7 +68,7 @@ namespace NetMQ.Core.Transports.Pgm
 
             IPAddress ipAddress;
             if (!IPAddress.TryParse(addrStr, out ipAddress))
-                throw new InvalidException(string.Format("In PgmAddress.Resolve({0},{1}), addrStr ({2}) must be a valid IPAddress.", name, ip4Only, addrStr));
+                throw new InvalidException($"In PgmAddress.Resolve({name},{ip4Only}), addrStr ({addrStr}) must be a valid IPAddress.");
 
             Address = new IPEndPoint(ipAddress, port);
         }

@@ -48,8 +48,7 @@ namespace NetMQ.Actors
         [NotNull]
         private static string GetEndPointName()
         {
-            return string.Format("inproc://zactor-{0}-{1}",
-                s_rand.Next(0, 10000), s_rand.Next(0, 10000));
+            return $"inproc://zactor-{s_rand.Next(0, 10000)}-{s_rand.Next(0, 10000)}";
         }
 
         /// <summary>

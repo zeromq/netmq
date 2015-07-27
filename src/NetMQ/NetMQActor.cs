@@ -159,7 +159,7 @@ namespace NetMQ
             {
                 try
                 {
-                    endPoint = string.Format("inproc://NetMQActor-{0}-{1}", random.Next(0, 10000), random.Next(0, 10000));
+                    endPoint = $"inproc://NetMQActor-{random.Next(0, 10000)}-{random.Next(0, 10000)}";
                     m_self.Bind(endPoint);
                     break;
                 }

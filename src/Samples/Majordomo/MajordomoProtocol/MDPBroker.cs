@@ -161,9 +161,8 @@ namespace MajordomoProtocol
             }
             catch (Exception e)
             {
-                var error = string.Format ("The bind operation failed. Most likely because 'endpoint' ({0}) is malformed!",
-                                           m_endpoint);
-                error += string.Format ("\nMessage: {0}", e.Message);
+                var error = $"The bind operation failed. Most likely because 'endpoint' ({m_endpoint}) is malformed!";
+                error += $"\nMessage: {e.Message}";
                 throw new ApplicationException (error);
             }
 
@@ -172,7 +171,7 @@ namespace MajordomoProtocol
             var major = Assembly.GetExecutingAssembly ().GetName ().Version.Major;
             var minor = Assembly.GetExecutingAssembly ().GetName ().Version.Minor;
 
-            Log (string.Format ("MDP Broker/{0}.{1} is active at {2}", major, minor, m_endpoint));
+            Log ($"MDP Broker/{major}.{minor} is active at {m_endpoint}");
         }
 
         /// <summary>
@@ -306,7 +305,7 @@ namespace MajordomoProtocol
         {
             var msg = e.Socket.ReceiveMultipartMessage ();
 
-            DebugLog (string.Format ("Received: {0}", msg));
+            DebugLog ($"Received: {msg}");
 
             var senderFrame = msg.Pop ();               // [e][protocol header][service or command][data]
             var empty = msg.Pop ();                     // [protocol header][service or command][data]
@@ -355,7 +354,7 @@ namespace MajordomoProtocol
                         // service and a potential waiting list therein
                         RemoveWorker (m_knownWorkers.Find (w => w.Id == workerId));
 
-                        Log (string.Format ("READY out of sync. Removed worker {0}.", workerId));
+                        Log ($"READY out of sync. Removed worker {workerId}.");
                     }
                     else
                     {
@@ -368,9 +367,7 @@ namespace MajordomoProtocol
                         // now add the worker
                         AddWorker (worker, service);
 
-                        Log (string.Format ("READY processed. Worker {0} added to service {1}",
-                                            workerId,
-                                            serviceName));
+                        Log ($"READY processed. Worker {workerId} added to service {serviceName}");
                     }
                     break;
                 case MDPCommand.Reply:
@@ -386,10 +383,7 @@ namespace MajordomoProtocol
 
                         Socket.SendMessage (reply);
 
-                        DebugLog (string.Format ("REPLY from {0} received and send to {1} -> {2}",
-                                            workerId,
-                                            client.ConvertToString (),
-                                            message));
+                        DebugLog ($"REPLY from {workerId} received and send to {client.ConvertToString()} -> {message}");
                         // relist worker for further requests
                         AddWorker (worker, worker.Service);
                     }
@@ -400,7 +394,7 @@ namespace MajordomoProtocol
                         var worker = m_knownWorkers.Find (w => w.Id == workerId);
                         worker.Expiry = DateTime.UtcNow + m_heartbeatExpiry;
 
-                        DebugLog (string.Format ("HEARTBEAT from {0} received.", workerId));
+                        DebugLog ($"HEARTBEAT from {workerId} received.");
                     }
                     break;
                 default:
@@ -459,7 +453,7 @@ namespace MajordomoProtocol
                 // send to back to CLIENT(!)
                 Socket.SendMessage (reply);
 
-                DebugLog (string.Format ("MMI request processed. Answered {0}", reply));
+                DebugLog ($"MMI request processed. Answered {reply}");
             }
             else
             {
@@ -467,7 +461,7 @@ namespace MajordomoProtocol
                 var service = ServiceRequired (serviceName);
 
                 // a standard REQUEST received
-                DebugLog (string.Format ("Dispatching -> {0} to {1}", request, serviceName));
+                DebugLog ($"Dispatching -> {request} to {serviceName}");
 
                 // send to a worker offering the requested service
                 // will add command, header and worker adr envelope
@@ -520,14 +514,12 @@ namespace MajordomoProtocol
             {
                 m_knownWorkers.Add (worker);
 
-                DebugLog (string.Format ("added {0} to known worker.", worker.Id));
+                DebugLog ($"added {worker.Id} to known worker.");
             }
 
             service.AddWaitingWorker (worker);
 
-            DebugLog (string.Format ("added {0} to waiting worker in service {1}.",
-                                     worker.Id,
-                                     service.Name));
+            DebugLog ($"added {worker.Id} to waiting worker in service {service.Name}.");
 
             // get pending messages out
             ServiceDispatch (service, null);
@@ -546,14 +538,12 @@ namespace MajordomoProtocol
                 var service = m_services.Find (s => s.Equals (worker.Service));
                 service.DeleteWorker (worker);
 
-                DebugLog (string.Format ("removed worker {0} from service {1}",
-                                         worker.Id,
-                                         service.Name));
+                DebugLog ($"removed worker {worker.Id} from service {service.Name}");
             }
 
             m_knownWorkers.Remove (worker);
 
-            DebugLog (string.Format ("removed {0} from known worker.", worker.Id));
+            DebugLog ($"removed {worker.Id} from known worker.");
         }
 
         /// <summary>
@@ -573,7 +563,7 @@ namespace MajordomoProtocol
             // stack routing envelope
             var request = Wrap (worker.Identity, msg);
 
-            DebugLog (string.Format ("Sending {0}", request));
+            DebugLog ($"Sending {request}");
             // send to worker
             Socket.SendMessage (request);
         }
@@ -607,9 +597,7 @@ namespace MajordomoProtocol
         /// </summary>
         private void ServiceDispatch (Service service, NetMQMessage message)
         {
-            DebugLog (string.Format ("Service [{0}] dispatches -> {1}",
-                                     service.Name,
-                                     message == null ? "PURGING" : "message = " + message));
+            DebugLog ($"Service [{service.Name}] dispatches -> {(message == null ? "PURGING" : "message = " + message)}");
 
             // if message is 'null' just send pending requests
             if (!ReferenceEquals (message, null))
@@ -628,7 +616,7 @@ namespace MajordomoProtocol
                 {
                     var request = service.GetNextRequest ();
 
-                    DebugLog (string.Format ("Service Dispatch -> pending request {0} to {1}", request, worker.Id));
+                    DebugLog ($"Service Dispatch -> pending request {request} to {worker.Id}");
 
                     WorkerSend (worker, MDPCommand.Request, request);
                 }

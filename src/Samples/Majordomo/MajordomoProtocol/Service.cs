@@ -144,11 +144,7 @@ namespace MajordomoProtocol
 
         public override string ToString ()
         {
-            return string.Format ("Name = {0} / Worker {1} - Waiting {2} - Pending REQ {3}",
-                Name,
-                m_workers.Count,
-                m_waitingWorkers.Count,
-                m_pendingRequests.Count);
+            return $"Name = {Name} / Worker {m_workers.Count} - Waiting {m_waitingWorkers.Count} - Pending REQ {m_pendingRequests.Count}";
         }
 
         public override bool Equals (object obj)

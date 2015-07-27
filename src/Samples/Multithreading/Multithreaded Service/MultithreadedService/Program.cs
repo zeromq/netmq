@@ -57,7 +57,7 @@ namespace MultithreadedService
                 {
                     req.Connect("tcp://localhost:5555");
 
-                    byte[] message = Encoding.Unicode.GetBytes(string.Format("{0} Hello", clientId));
+                    byte[] message = Encoding.Unicode.GetBytes($"{clientId} Hello");
 
                     Console.WriteLine("Client {0} sent \"{0} Hello\"", clientId);
                     req.Send(message, message.Length);

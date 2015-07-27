@@ -63,7 +63,7 @@ namespace NetMQ.Core.Transports.Tcp
             // Find the ':' at end that separates address from the port number.
             int delimiter = name.LastIndexOf(':');
             if (delimiter < 0)
-                throw new InvalidException(string.Format("TcpAddress.Resolve, delimiter ({0}) must be non-negative.", delimiter));
+                throw new InvalidException($"TcpAddress.Resolve, delimiter ({delimiter}) must be non-negative.");
 
             // Separate the address/port.
             string addrStr = name.Substring(0, delimiter);
@@ -87,7 +87,7 @@ namespace NetMQ.Core.Transports.Tcp
                 port = Convert.ToInt32(portStr);
                 if (port == 0)
                 {
-                    throw new InvalidException(string.Format("TcpAddress.Resolve, port ({0}) must be a valid nonzero integer.", portStr));
+                    throw new InvalidException($"TcpAddress.Resolve, port ({portStr}) must be a valid nonzero integer.");
                 }
             }
 
@@ -111,7 +111,7 @@ namespace NetMQ.Core.Transports.Tcp
                               ip.AddressFamily == AddressFamily.InterNetworkV6);
 
                 if (ipAddress == null)
-                    throw new InvalidException(string.Format("TcpAddress.Resolve, unable to find an IP address for {0}", name));
+                    throw new InvalidException($"TcpAddress.Resolve, unable to find an IP address for {name}");
             }
 
             Address = new IPEndPoint(ipAddress, port);             

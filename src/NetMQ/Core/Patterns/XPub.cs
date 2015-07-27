@@ -248,7 +248,7 @@ namespace NetMQ.Core.Patterns
                     {
                         var bytes = optionValue as byte[];
                         if (bytes == null)
-                            throw new InvalidException(string.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
+                            throw new InvalidException($"In XPub.XSetSocketOption({option},{optionValue}), optionValue must be a byte-array.");
                         var welcomeBytes = new byte[bytes.Length];
                         bytes.CopyTo(welcomeBytes, 0);
                         m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);

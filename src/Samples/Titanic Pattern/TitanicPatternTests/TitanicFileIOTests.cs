@@ -27,11 +27,11 @@ namespace TitanicProtocolTests
 
             Directory.Exists (expectedDirectory)
                      .Should ()
-                     .BeTrue (string.Format ("because {0} should have been created!", expectedDirectory));
+                     .BeTrue ($"because {expectedDirectory} should have been created!");
 
             File.Exists (expectedFile)
                 .Should ()
-                .BeTrue (string.Format ("because {0} should have been created!", expectedFile));
+                .BeTrue ($"because {expectedFile} should have been created!");
         }
 
         [Test]
@@ -222,7 +222,7 @@ namespace TitanicProtocolTests
 
             var file = sut.TitanicQueue;
 
-            File.Exists (file).Should ().BeTrue (string.Format ("because {0} was created.", file));
+            File.Exists (file).Should ().BeTrue ($"because {file} was created.");
         }
 
         [Test]
@@ -401,7 +401,7 @@ namespace TitanicProtocolTests
                 sut.SaveNewRequestEntry (id); // -> fill titanic.queue
 
                 var message = new NetMQMessage ();
-                message.Push (string.Format ("Message #{0}", i));
+                message.Push ($"Message #{i}");
                 message.Push ("echo");
 
                 sut.SaveMessage (TitanicOperation.Request, id, message);

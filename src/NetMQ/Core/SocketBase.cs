@@ -420,7 +420,7 @@ namespace NetMQ.Core
                         bool addressRegistered = RegisterEndpoint(addr, endpoint);
 
                         if (!addressRegistered)
-                            throw new AddressAlreadyInUseException(string.Format("Cannot bind address ( {0} ) - already in use.", addr));
+                            throw new AddressAlreadyInUseException($"Cannot bind address ( {addr} ) - already in use.");
 
                         m_options.LastEndpoint = addr;
                         return;
@@ -458,9 +458,7 @@ namespace NetMQ.Core
                             m_port = listener.Port;
 
                             // Recreate the address string (localhost:1234) in case the port was system-assigned
-                            addr = string.Format("tcp://{0}:{1}",
-                                address.Substring(0, address.IndexOf(':')),
-                                m_port);
+                            addr = $"tcp://{address.Substring(0, address.IndexOf(':'))}:{m_port}";
                         }
                         catch (NetMQException ex)
                         {
@@ -515,7 +513,7 @@ namespace NetMQ.Core
                     }
                 default:
                     {
-                        throw new ArgumentException(string.Format("Address {0} has unsupported protocol: {1}", addr, protocol), nameof(addr));
+                        throw new ArgumentException($"Address {addr} has unsupported protocol: {protocol}", nameof(addr));
                     }
             }
         }
@@ -1337,7 +1335,7 @@ namespace NetMQ.Core
 
             // Event notification only supported over inproc://
             if (protocol != Address.InProcProtocol)
-                throw new ProtocolNotSupportedException(string.Format("In SocketBase.Monitor({0},), protocol must be inproc", addr));
+                throw new ProtocolNotSupportedException($"In SocketBase.Monitor({addr},), protocol must be inproc");
 
             // Register events to monitor
             m_monitorEvents = events;
