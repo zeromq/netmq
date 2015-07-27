@@ -1,4 +1,4 @@
-/*  
+/*
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
     Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
@@ -32,24 +32,24 @@ namespace NetMQ.Core
         /// Front of the queue points to the first prefetched item, back of
         /// the pipe points to last un-flushed item. Front is used only by
         /// reader thread, while back is used only by writer thread.
-        /// </summary> 
+        /// </summary>
         private readonly YQueue<T> m_queue;
 
         /// <summary>
         /// Points to the first un-flushed item. This variable is used
         /// exclusively by writer thread.
-        /// </summary> 
+        /// </summary>
         private int m_flushFromIndex;
 
         /// <summary>
         /// Points to the first un-prefetched item. This variable is used
         /// exclusively by reader thread.
-        /// </summary> 
+        /// </summary>
         private int m_readToIndex;
 
         /// <summary>
         /// Points to the first item to be flushed in the future.
-        /// </summary> 
+        /// </summary>
         private int m_flushToIndex;
 
 #if DEBUG
@@ -61,7 +61,7 @@ namespace NetMQ.Core
         /// Points past the last flushed item. If it is NULL,
         /// reader is asleep. This pointer should be always accessed using
         /// atomic operations.
-        /// </summary> 
+        /// </summary>
         private int m_lastAllowedToReadIndex;
 
         public YPipe(int qsize, string name)
@@ -78,7 +78,7 @@ namespace NetMQ.Core
         /// set to true the item is assumed to be continued by items
         /// subsequently written to the pipe. Incomplete items are never
         /// flushed down the stream.
-        /// </summary> 
+        /// </summary>
         public void Write(ref T value, bool incomplete)
         {
             // Place the value to the queue, add new terminator element.
@@ -93,8 +93,8 @@ namespace NetMQ.Core
 
         /// <summary>
         /// Pop an incomplete item from the pipe.
-        /// </summary> 
-        /// <returns>the element revoked if such item exists, <c>null</c> otherwise.</returns>  
+        /// </summary>
+        /// <returns>the element revoked if such item exists, <c>null</c> otherwise.</returns>
         public bool Unwrite(ref T value)
         {
             if (m_flushToIndex == m_queue.BackPos)
@@ -139,7 +139,7 @@ namespace NetMQ.Core
 
         /// <summary>
         /// Check whether item is available for reading.
-        /// </summary> 
+        /// </summary>
         public bool CheckRead()
         {
             // Was the value prefetched already? If so, return.
@@ -176,7 +176,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Reads an item from the pipe. Returns false if there is no value.
         /// available.
-        /// </summary> 
+        /// </summary>
         public bool Read(out T value)
         {
             // Try to prefetch a value.

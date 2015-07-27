@@ -91,10 +91,10 @@ namespace NetMQ.Core
         public int Load
         {
             get { return m_proactor.Load; }
-        }                  
-      
+        }
+
         protected override void ProcessStop()
-        {            
+        {
             m_proactor.Stop();
         }
 

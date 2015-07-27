@@ -1,9 +1,9 @@
-/*  
+/*
     Copyright (c) 2011 250bpm s.r.o.
     Copyright (c) 2011 Other contributors as noted in the AUTHORS file
-          
+
     This file is part of 0MQ.
-       
+
     0MQ is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
@@ -68,7 +68,7 @@ namespace NetMQ.Core
         {
             m_sockets = 0;
             m_terminating = false;
-            
+
             string name = "reaper-" + threadId;
             m_poller = new Utils.Poller(name);
 

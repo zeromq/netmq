@@ -1,4 +1,4 @@
-/*      
+/*
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
     Copyright (c) 2011 VMware, Inc.
@@ -15,7 +15,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -116,7 +116,7 @@ namespace NetMQ.Core
         /// <param name="pipe">the Pipe that is being removed</param>
         protected abstract void XTerminated([NotNull] Pipe pipe);
 
-        /// <summary>Throw <see cref="ObjectDisposedException"/> if this socket is already disposed.</summary>  
+        /// <summary>Throw <see cref="ObjectDisposedException"/> if this socket is already disposed.</summary>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
         public void CheckDisposed()
         {
@@ -461,8 +461,8 @@ namespace NetMQ.Core
                             m_port = listener.Port;
 
                             // Recreate the address string (localhost:1234) in case the port was system-assigned
-                            addr = string.Format("tcp://{0}:{1}", 
-                                address.Substring(0, address.IndexOf(':')), 
+                            addr = string.Format("tcp://{0}:{1}",
+                                address.Substring(0, address.IndexOf(':')),
                                 m_port);
                         }
                         catch (NetMQException ex)
@@ -583,11 +583,11 @@ namespace NetMQ.Core
 
                 // The total HWM for an inproc connection should be the sum of
                 // the binder's HWM and the connector's HWM.
-                var sndhwm = m_options.SendHighWatermark != 0 && peer.Options.ReceiveHighWatermark != 0 
+                var sndhwm = m_options.SendHighWatermark != 0 && peer.Options.ReceiveHighWatermark != 0
                     ? m_options.SendHighWatermark + peer.Options.ReceiveHighWatermark
                     : 0;
 
-                var rcvhwm = m_options.ReceiveHighWatermark != 0 && peer.Options.SendHighWatermark != 0 
+                var rcvhwm = m_options.ReceiveHighWatermark != 0 && peer.Options.SendHighWatermark != 0
                     ? m_options.ReceiveHighWatermark + peer.Options.SendHighWatermark
                     : 0;
 
@@ -643,7 +643,7 @@ namespace NetMQ.Core
 
             if (ioThread == null)
                 throw NetMQException.Create(ErrorCode.EmptyThread);
-            
+
             var paddr = new Address(protocol, address);
 
             // Resolve address (if needed by the protocol)
@@ -761,7 +761,7 @@ namespace NetMQ.Core
             {
                 if (UnregisterEndpoint(addr, this))
                     return;
-                
+
                 Pipe pipe;
                 if (!m_inprocs.TryGetValue(addr, out pipe))
                     throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
@@ -814,12 +814,12 @@ namespace NetMQ.Core
             if (isMessageSent)
                 return true;
 
-            // In case of non-blocking send we'll simply return false            
+            // In case of non-blocking send we'll simply return false
             if (timeout == TimeSpan.Zero)
                 return false;
 
             // Compute the time when the timeout should occur.
-            // If the timeout is infinite, don't care. 
+            // If the timeout is infinite, don't care.
             int timeoutMillis = (int)timeout.TotalMilliseconds;
             long end = timeoutMillis < 0 ? 0 : (Clock.NowMs() + timeoutMillis);
 
@@ -831,7 +831,7 @@ namespace NetMQ.Core
                 ProcessCommands(timeoutMillis, false);
 
                 isMessageSent = XSend(ref msg);
-                
+
                 if (isMessageSent)
                     break;
 
@@ -839,7 +839,7 @@ namespace NetMQ.Core
                     continue;
 
                 timeoutMillis = (int)(end - Clock.NowMs());
-                    
+
                 if (timeoutMillis <= 0)
                     return false;
             }
@@ -860,11 +860,11 @@ namespace NetMQ.Core
         ///   <item>Positive - return <c>false</c> after the corresponding duration if no message has become available</item>
         ///   <item>Negative - wait indefinitely, always returning <c>true</c></item>
         /// </list>
-        /// </remarks>        
+        /// </remarks>
         /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
         /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
         public bool TryRecv(ref Msg msg, TimeSpan timeout)
-        {            
+        {
             CheckContextTerminated();
 
             // Check whether message passed to the function is valid.
@@ -905,7 +905,7 @@ namespace NetMQ.Core
                 m_ticks = 0;
 
                 isMessageAvailable = XRecv(ref msg);
-                
+
                 if (!isMessageAvailable)
                     return false;
 
@@ -914,7 +914,7 @@ namespace NetMQ.Core
             }
 
             // Compute the time when the timeout should occur.
-            // If the timeout is infinite (negative), don't care. 
+            // If the timeout is infinite (negative), don't care.
             int timeoutMillis = (int)timeout.TotalMilliseconds;
             long end = timeoutMillis < 0 ? 0L : Clock.NowMs() + timeoutMillis;
 
@@ -1018,7 +1018,7 @@ namespace NetMQ.Core
                 // If we are asked not to wait, check whether we haven't processed
                 // commands recently, so that we can throttle the new commands.
 
-                // Get the CPU's tick counter. If 0, the counter is not available.								
+                // Get the CPU's tick counter. If 0, the counter is not available.
                 long tsc = Clock.Rdtsc();
 
                 // Optimised version of command processing - it doesn't have to check
