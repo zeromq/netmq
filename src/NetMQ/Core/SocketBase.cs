@@ -453,7 +453,7 @@ namespace NetMQ.Core
             {
                 case Address.TcpProtocol:
                     {
-                        var listener = new Transports.Tcp.TcpListener(ioThread, this, m_options);
+                        var listener = new TcpListener(ioThread, this, m_options);
 
                         try
                         {

@@ -21,9 +21,7 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Text;
-using NetMQ.Core.Transports.Tcp;
 
 namespace NetMQ.Core
 {
