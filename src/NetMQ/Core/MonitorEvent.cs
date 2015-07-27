@@ -36,7 +36,7 @@ namespace NetMQ.Core
         {
         }
 
-        public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, AsyncSocket arg)
+        public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, [NotNull] AsyncSocket arg)
             : this(monitorEvent, addr, (object)arg)
         {
         }
