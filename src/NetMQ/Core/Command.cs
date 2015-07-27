@@ -19,7 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using JetBrains.Annotations;
 
 namespace NetMQ.Core
@@ -35,7 +34,7 @@ namespace NetMQ.Core
         /// <param name="destination">a ZObject that denotes the destination for this command</param>
         /// <param name="type">the CommandType of the new command</param>
         /// <param name="arg">an Object to comprise the argument for the command (optional)</param>
-        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null) : this()
+        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] object arg = null) : this()
         {
             Destination = destination;
             CommandType = type;
@@ -53,7 +52,7 @@ namespace NetMQ.Core
         /// Get the argument to this command.
         /// </summary>
         [CanBeNull]
-        public Object Arg { get; private set; }
+        public object Arg { get; private set; }
 
         /// <summary>
         /// Override of ToString, which returns a string in the form [ command-type, destination ].

@@ -108,7 +108,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="t">the other object to compare against</param>
         /// <returns>true if equal</returns>
-        public override bool Equals([CanBeNull] Object t)
+        public override bool Equals([CanBeNull] object t)
         {
             var blob = t as Blob;
             if (blob != null)

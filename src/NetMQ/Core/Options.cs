@@ -279,7 +279,7 @@ namespace NetMQ.Core
         /// <param name="option">a ZmqSocketOption that specifies what to set</param>
         /// <param name="optionValue">an Object that is the value to set that option to</param>
         /// <exception cref="InvalidException">The option and optionValue must be valid.</exception>
-        public void SetSocketOption(ZmqSocketOption option, Object optionValue)
+        public void SetSocketOption(ZmqSocketOption option, object optionValue)
         {
             switch (option)
             {
@@ -411,7 +411,7 @@ namespace NetMQ.Core
         /// <param name="option">a ZmqSocketOption that specifies what to get</param>
         /// <returns>an Object that is the value of that option</returns>
         /// <exception cref="InvalidException">A valid option must be specified.</exception>
-        public Object GetSocketOption(ZmqSocketOption option)
+        public object GetSocketOption(ZmqSocketOption option)
         {
             switch (option)
             {

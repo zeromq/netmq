@@ -38,7 +38,7 @@ namespace NetMQ.Core
 {
     internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        [NotNull] private readonly Dictionary<String, Own> m_endpoints = new Dictionary<string, Own>();
+        [NotNull] private readonly Dictionary<string, Own> m_endpoints = new Dictionary<string, Own>();
 
         [NotNull] private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
 
@@ -281,7 +281,7 @@ namespace NetMQ.Core
         /// <param name="option">which option to set</param>
         /// <param name="optionValue">the value to set the option to</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void SetSocketOption(ZmqSocketOption option, Object optionValue)
+        public void SetSocketOption(ZmqSocketOption option, object optionValue)
         {
             CheckContextTerminated();
 
@@ -347,7 +347,7 @@ namespace NetMQ.Core
         /// If the Events option is specified, then process any outstanding commands, and return -1 if that throws a TerminatingException.
         ///     then return a PollEvents that is the bitwise-OR of the PollEvents.PollOut and PollEvents.PollIn flags.
         /// </remarks>
-        public Object GetSocketOptionX(ZmqSocketOption option)
+        public object GetSocketOptionX(ZmqSocketOption option)
         {
             CheckContextTerminated();
 

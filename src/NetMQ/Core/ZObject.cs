@@ -187,7 +187,7 @@ namespace NetMQ.Core
             SendCommand(new Command(destination, CommandType.ActivateWrite, msgsRead));
         }
 
-        protected void SendHiccup([NotNull] Pipe destination, [NotNull] Object pipe)
+        protected void SendHiccup([NotNull] Pipe destination, [NotNull] object pipe)
         {
             SendCommand(new Command(destination, CommandType.Hiccup, pipe));
         }
@@ -383,7 +383,7 @@ namespace NetMQ.Core
         /// is no longer available for writing to.
         /// </remarks>
         /// <exception cref="NotSupportedException">No supported on the ZObject class.</exception>
-        protected virtual void ProcessHiccup([NotNull] Object pipe)
+        protected virtual void ProcessHiccup([NotNull] object pipe)
         {
             throw new NotSupportedException();
         }

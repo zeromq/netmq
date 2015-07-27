@@ -34,7 +34,7 @@ namespace NetMQ.Core.Patterns.Utils
         private short m_count;
         private short m_liveNodes;
 
-        public delegate void TrieDelegate([NotNull] byte[] data, int size, [CanBeNull] Object arg);
+        public delegate void TrieDelegate([NotNull] byte[] data, int size, [CanBeNull] object arg);
 
         private Trie[] m_next;
 
@@ -274,12 +274,12 @@ namespace NetMQ.Core.Patterns.Utils
         }
 
         // Apply the function supplied to each subscription in the trie.
-        public void Apply([NotNull] TrieDelegate func, [CanBeNull] Object arg)
+        public void Apply([NotNull] TrieDelegate func, [CanBeNull] object arg)
         {
             ApplyHelper(null, 0, 0, func, arg);
         }
 
-        private void ApplyHelper([NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] TrieDelegate func, [CanBeNull] Object arg)
+        private void ApplyHelper([NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] TrieDelegate func, [CanBeNull] object arg)
         {
             // If this node is a subscription, apply the function.
             if (m_referenceCount > 0)

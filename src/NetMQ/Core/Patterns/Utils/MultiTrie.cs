@@ -38,7 +38,7 @@ namespace NetMQ.Core.Patterns.Utils
         private int m_liveNodes;
         private MultiTrie[] m_next;
 
-        public delegate void MultiTrieDelegate([CanBeNull] Pipe pipe, [CanBeNull] byte[] data, int size, [CanBeNull] Object arg);
+        public delegate void MultiTrieDelegate([CanBeNull] Pipe pipe, [CanBeNull] byte[] data, int size, [CanBeNull] object arg);
 
         public MultiTrie()
         {
@@ -145,12 +145,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="func"></param>
         /// <param name="arg"></param>
         /// <returns></returns>
-        public bool RemoveHelper([NotNull] Pipe pipe, [NotNull] MultiTrieDelegate func, [CanBeNull] Object arg)
+        public bool RemoveHelper([NotNull] Pipe pipe, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
         {
             return RemoveHelper(pipe, new byte[0], 0, 0, func, arg);
         }
 
-        private bool RemoveHelper([NotNull] Pipe pipe, [NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] MultiTrieDelegate func, [CanBeNull] Object arg)
+        private bool RemoveHelper([NotNull] Pipe pipe, [NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
         {
             // Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
@@ -394,7 +394,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <summary>
         /// Signal all the matching pipes.
         /// </summary>
-        public void Match([NotNull] byte[] data, int size, [NotNull] MultiTrieDelegate func, [CanBeNull] Object arg)
+        public void Match([NotNull] byte[] data, int size, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
         {
             MultiTrie current = this;
 
