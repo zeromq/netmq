@@ -1,6 +1,6 @@
 /*
     Copyright (c) 2010 250bpm s.r.o.
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2010-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -108,7 +108,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="t">the other object to compare against</param>
         /// <returns>true if equal</returns>
-        public override bool Equals([CanBeNull] Object t)
+        public override bool Equals([CanBeNull] object t)
         {
             var blob = t as Blob;
             if (blob != null)

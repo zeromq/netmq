@@ -13,7 +13,7 @@ namespace NetMQ.Core
 
         private readonly SocketEvents m_monitorEvent;
         private readonly string m_addr;
-        [CanBeNull] private readonly Object m_arg;
+        [CanBeNull] private readonly object m_arg;
         private readonly int m_flag;
 
         private static readonly int s_sizeOfIntPtr;
@@ -41,7 +41,7 @@ namespace NetMQ.Core
         {
         }
 
-        private MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, [NotNull] Object arg)
+        private MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, [NotNull] object arg)
         {
             m_monitorEvent = monitorEvent;
             m_addr = addr;
@@ -130,7 +130,7 @@ namespace NetMQ.Core
             string addr = data.GetString(len, pos);
             pos += len;
             var flag = (int)data[pos++];
-            Object arg = null;
+            object arg = null;
 
             if (flag == ValueInteger)
             {

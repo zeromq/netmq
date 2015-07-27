@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -24,7 +24,7 @@ using NetMQ.Core.Utils;
 
 namespace NetMQ.Core
 {
-    internal class IOThread : ZObject, IMailboxEvent
+    internal sealed class IOThread : ZObject, IMailboxEvent
     {
         /// <summary>
         /// I/O thread accesses incoming commands via this mailbox.
@@ -91,25 +91,19 @@ namespace NetMQ.Core
         public int Load
         {
             get { return m_proactor.Load; }
-        }                  
-      
+        }
+
         protected override void ProcessStop()
-        {            
+        {
             m_proactor.Stop();
         }
 
         public void Ready()
         {
-            while (true)
-            {
-                // Get the next command. If there is none, exit.
-                Command cmd = m_mailbox.Recv();
-                if (cmd == null)
-                    break;
-
-                // Process the command.
-                cmd.Destination.ProcessCommand(cmd);
-            }
+            // Process all available commands.
+            Command command;
+            while (m_mailbox.TryRecv(out command))
+                command.Destination.ProcessCommand(command);
         }
 
 #if DEBUG

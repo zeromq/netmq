@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
     
     This file is part of 0MQ.
 
@@ -187,7 +187,7 @@ namespace NetMQ.Core
             SendCommand(new Command(destination, CommandType.ActivateWrite, msgsRead));
         }
 
-        protected void SendHiccup([NotNull] Pipe destination, [NotNull] Object pipe)
+        protected void SendHiccup([NotNull] Pipe destination, [NotNull] object pipe)
         {
             SendCommand(new Command(destination, CommandType.Hiccup, pipe));
         }
@@ -383,7 +383,7 @@ namespace NetMQ.Core
         /// is no longer available for writing to.
         /// </remarks>
         /// <exception cref="NotSupportedException">No supported on the ZObject class.</exception>
-        protected virtual void ProcessHiccup([NotNull] Object pipe)
+        protected virtual void ProcessHiccup([NotNull] object pipe)
         {
             throw new NotSupportedException();
         }

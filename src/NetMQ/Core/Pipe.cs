@@ -2,7 +2,7 @@
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
     Copyright (c) 2011 VMware, Inc.
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -249,7 +249,7 @@ namespace NetMQ.Core
             if (m_inboundPipe.Probe().IsDelimiter)
             {
                 var msg = new Msg();
-                bool ok = m_inboundPipe.Read(out msg);
+                bool ok = m_inboundPipe.TryRead(out msg);
                 Debug.Assert(ok);
                 Delimit();
                 return false;
@@ -267,7 +267,7 @@ namespace NetMQ.Core
             if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
                 return false;
 
-            if (!m_inboundPipe.Read(out msg))
+            if (!m_inboundPipe.TryRead(out msg))
             {
                 m_inActive = false;
                 return false;
@@ -393,7 +393,7 @@ namespace NetMQ.Core
             Debug.Assert(m_outboundPipe != null);
             m_outboundPipe.Flush();
             var msg = new Msg();
-            while (m_outboundPipe.Read(out msg))
+            while (m_outboundPipe.TryRead(out msg))
             {
                 msg.Close();
             }
@@ -480,7 +480,7 @@ namespace NetMQ.Core
             // hand because msg_t doesn't have automatic destructor. Then deallocate
             // the ypipe itself.
             var msg = new Msg();
-            while (m_inboundPipe.Read(out msg))
+            while (m_inboundPipe.TryRead(out msg))
             {
                 msg.Close();
             }

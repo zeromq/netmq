@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2007-2012 iMatix Corporation
     Copyright (c) 2009-2011 250bpm s.r.o.
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -242,10 +242,11 @@ namespace NetMQ.Core
                 }
 
                 // Wait till reaper thread closes all the sockets.
-                Command cmd = m_termMailbox.Recv(-1);
+                Command command;
+                var found = m_termMailbox.TryRecv(-1, out command);
 
-                Debug.Assert(cmd != null);
-                Debug.Assert(cmd.CommandType == CommandType.Done);
+                Debug.Assert(found);
+                Debug.Assert(command.CommandType == CommandType.Done);
                 Monitor.Enter(m_slotSync);
                 Debug.Assert(m_sockets.Count == 0);
             }
