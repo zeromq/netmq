@@ -9,6 +9,8 @@ namespace NetMQ.Core
     /// </remarks>
     internal enum CommandType
     {
+        None = 0,
+
         /// <summary>
         /// Sent to I/O thread to let it know that it should
         /// terminate itself.

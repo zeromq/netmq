@@ -242,10 +242,11 @@ namespace NetMQ.Core
                 }
 
                 // Wait till reaper thread closes all the sockets.
-                Command cmd = m_termMailbox.Recv(-1);
+                Command command;
+                var found = m_termMailbox.TryRecv(-1, out command);
 
-                Debug.Assert(cmd != null);
-                Debug.Assert(cmd.CommandType == CommandType.Done);
+                Debug.Assert(found);
+                Debug.Assert(command.CommandType == CommandType.Done);
                 Monitor.Enter(m_slotSync);
                 Debug.Assert(m_sockets.Count == 0);
             }

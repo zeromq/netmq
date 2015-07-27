@@ -25,9 +25,9 @@ using JetBrains.Annotations;
 namespace NetMQ.Core
 {
     /// <summary>
-    /// This class defines the commands that can be sent between threads.
+    /// Defines a command sent between threads.
     /// </summary>
-    internal sealed class Command
+    internal struct Command
     {
         /// <summary>
         /// Create a new Command object for the given destination, type, and optional argument.
@@ -35,7 +35,7 @@ namespace NetMQ.Core
         /// <param name="destination">a ZObject that denotes the destination for this command</param>
         /// <param name="type">the CommandType of the new command</param>
         /// <param name="arg">an Object to comprise the argument for the command (optional)</param>
-        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null)
+        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null) : this()
         {
             Destination = destination;
             CommandType = type;

@@ -1007,11 +1007,12 @@ namespace NetMQ.Core
         /// <exception cref="TerminatingException">The Ctx context must not already be terminating.</exception>
         private void ProcessCommands(int timeout, bool throttle)
         {
-            Command cmd;
+            bool found;
+            Command command;
             if (timeout != 0)
             {
                 // If we are asked to wait, simply ask mailbox to wait.
-                cmd = m_mailbox.Recv(timeout);
+                found = m_mailbox.TryRecv(timeout, out command);
             }
             else
             {
@@ -1038,17 +1039,14 @@ namespace NetMQ.Core
                 }
 
                 // Check whether there are any commands pending for this thread.
-                cmd = m_mailbox.Recv(0);
+                found = m_mailbox.TryRecv(0, out command);
             }
 
             // Process all the commands available at the moment.
-            while (true)
+            while (found)
             {
-                if (cmd == null)
-                    break;
-
-                cmd.Destination.ProcessCommand(cmd);
-                cmd = m_mailbox.Recv(0);
+                command.Destination.ProcessCommand(command);
+                found = m_mailbox.TryRecv(0, out command);
             }
 
             CheckContextTerminated();

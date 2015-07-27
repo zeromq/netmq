@@ -93,12 +93,9 @@ namespace NetMQ.Core
             }
         }
 
-        [CanBeNull]
-        public Command Recv()
-        {            
-            Command cmd;
-            m_commandPipe.Read(out cmd);
-            return cmd;
+        public bool TryRecv(out Command command)
+        {
+            return m_commandPipe.Read(out command);
         }
 
         public void RaiseEvent()
@@ -210,39 +207,34 @@ namespace NetMQ.Core
         /// Receive and return a Command from the command-pipe.
         /// </summary>
         /// <param name="timeout">how long to wait for a command (in milliseconds) before returning</param>
-        /// <returns>the Command that was received</returns>
-        [CanBeNull]
-        public Command Recv(int timeout)
+        /// <param name="command"></param>
+        public bool TryRecv(int timeout, out Command command)
         {
-            Command cmd;
-            
             // Try to get the command straight away.
             if (m_active)
             {
-                m_commandPipe.Read(out cmd);
-                
-                if (cmd != null)
-                    return cmd;
+                if (m_commandPipe.Read(out command))
+                    return true;
 
                 // If there are no more commands available, switch into passive state.
                 m_active = false;
                 m_signaler.Recv();
             }
 
-
             // Wait for signal from the command sender.
-            bool rc = m_signaler.WaitEvent(timeout);
-            if (!rc)
-                return null;
+            if (!m_signaler.WaitEvent(timeout))
+            {
+                command = default(Command);
+                return false;
+            }
 
             // We've got the signal. Now we can switch into active state.
             m_active = true;
 
             // Get a command.
-            bool ok = m_commandPipe.Read(out cmd);
+            var ok = m_commandPipe.Read(out command);
             Debug.Assert(ok);
-
-            return cmd;
+            return ok;
         }
 
         /// <summary>
