@@ -100,16 +100,10 @@ namespace NetMQ.Core
 
         public void Ready()
         {
-            while (true)
-            {
-                // Get the next command. If there is none, exit.
-                Command command;
-                if (!m_mailbox.TryRecv(out command))
-                    break;
-
-                // Process the command.
+            // Process all available commands.
+            Command command;
+            while (m_mailbox.TryRecv(out command))
                 command.Destination.ProcessCommand(command);
-            }
         }
 
 #if DEBUG
