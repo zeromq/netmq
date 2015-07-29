@@ -11,7 +11,7 @@ namespace NetMQ
         /// </summary>
         public static readonly Encoding DefaultEncoding = Encoding.UTF8;
 
-        /// <summary>Indicates an infinite timeout for receive operations.</summary>
+        /// <summary>Indicates an infinite timeout for send and receive operations.</summary>
         public static readonly TimeSpan InfiniteTimeout = TimeSpan.FromMilliseconds(-1);
     }
 }

@@ -256,7 +256,7 @@ namespace NetMQ
         /// Transmit the given Msg over this actor's own socket.
         /// </summary>
         /// <param name="msg">the <c>Msg</c> to transmit</param>
-        // <param name="timeout">The maximum length of time to try and send a message. If <see cref="TimeSpan.Zero"/>, no
+        /// <param name="timeout">The maximum length of time to try and send a message. If <see cref="TimeSpan.Zero"/>, no
         /// wait occurs.</param>
         /// <param name="more">Indicate if another frame is expected after this frame</param>
         /// <returns><c>true</c> if a message was sent, otherwise <c>false</c>.</returns>

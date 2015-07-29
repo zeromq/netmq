@@ -511,7 +511,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Return the EndPoint that has the given address, and increments the seqnum of the associated socket.
         /// </summary>
-        /// <param name="address">the (string) address to match against the endpoints</param>
+        /// <param name="addr">the (string) address to match against the endpoints</param>
         /// <returns>the Endpoint that was found</returns>
         /// <exception cref="EndpointNotFoundException">The given address was not found in the list of endpoints.</exception>
         /// <remarks>

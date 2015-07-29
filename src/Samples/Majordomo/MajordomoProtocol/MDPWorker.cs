@@ -358,7 +358,7 @@ namespace MajordomoProtocol
         /// Prepend the message with an empty frame as separator and a frame
         /// </summary>
         /// <returns>new message with wrapped content</returns>
-        private NetMQMessage Wrap (NetMQMessage msg, NetMQFrame frame)
+        private static NetMQMessage Wrap (NetMQMessage msg, NetMQFrame frame)
         {
             var result = new NetMQMessage (msg);
 
@@ -372,7 +372,7 @@ namespace MajordomoProtocol
         /// Strip the message from the first frame and if empty the following frame as well
         /// </summary>
         /// <returns>the first frame of the message</returns>
-        private NetMQFrame Unwrap (NetMQMessage msg)
+        private static NetMQFrame Unwrap (NetMQMessage msg)
         {
             var result = msg.Pop ();
 

@@ -782,14 +782,12 @@ namespace NetMQ.Core
 
         /// <summary>
         /// Transmit the given Msg across the message-queueing system.
-        /// If the msg fails to immediately send, then - if DontWait is specified and no SendTimeout was set
-        /// then throw an AgainException.
         /// </summary>
-        /// <param name="msg">the Msg to transmit</param>
-        /// <param name="flags">a SendReceiveOptions: either don't specify DontWait, or set a timeout</param>
+        /// <param name="msg">The <see cref="Msg"/> to send.</param>
+        /// <param name="timeout">The timeout to wait before returning <c>false</c>. Pass <see cref="SendReceiveConstants.InfiniteTimeout"/> to disable timeout.</param>
+        /// <param name="more">Whether this message will contain another frame after this one.</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
-        /// <exception cref="AgainException">The send operation timed out.</exception>
         public bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
         {
             CheckContextTerminated();
@@ -857,8 +855,8 @@ namespace NetMQ.Core
         /// For <paramref name="timeout"/>, there are three categories of value:
         /// <list type="bullet">
         ///   <item><see cref="TimeSpan.Zero"/> - return <c>false</c> immediately if no message is available</item>
-        ///   <item>Positive - return <c>false</c> after the corresponding duration if no message has become available</item>
-        ///   <item>Negative - wait indefinitely, always returning <c>true</c></item>
+        ///   <item><see cref="SendReceiveConstants.InfiniteTimeout"/> (or a negative value) - wait indefinitely, always returning <c>true</c></item>
+        ///   <item>Any positive value - return <c>false</c> after the corresponding duration if no message has become available</item>
         /// </list>
         /// </remarks>
         /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
@@ -1125,7 +1123,7 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// Transmit the given message. The <see cref="Send"/> method calls this to do the actual sending.
+        /// Transmit the given message. The <see cref="TrySend"/> method calls this to do the actual sending.
         /// This abstract method gets overridden by the different socket types
         /// to provide their concrete implementation of sending messages.
         /// </summary>

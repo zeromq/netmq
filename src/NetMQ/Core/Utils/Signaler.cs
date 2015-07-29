@@ -49,8 +49,7 @@ namespace NetMQ.Core.Utils
                 listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
                 listener.Listen(1);
 
-                m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
-                m_writeSocket.NoDelay = true;
+                m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified) { NoDelay = true };
 
                 m_writeSocket.Connect(listener.LocalEndPoint);
                 m_readSocket = listener.Accept();

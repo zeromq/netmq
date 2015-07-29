@@ -25,7 +25,7 @@ using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns.Utils
 {
-    internal class Distribution
+    internal sealed class Distribution
     {
         /// <summary>
         /// List of outbound pipes.
