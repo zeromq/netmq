@@ -47,17 +47,17 @@ using (var client = context.CreateRequestSocket())
     client.Connect("tcp://localhost:5556");
 
     // Send a message from the client socket
-    client.Send("Hello");
+    client.SendFrame("Hello");
 
     // Receive the message from the server socket
-    string m1 = server.ReceiveString();
+    string m1 = server.ReceiveFrameString();
     Console.WriteLine("From Client: {0}", m1);
 
     // Send a response back from the server
-    server.Send("Hi Back");
+    server.SendFrame("Hi Back");
 
     // Receive the response from the client socket
-    string m2 = client.ReceiveString();
+    string m2 = client.ReceiveFrameString();
     Console.WriteLine("From Server: {0}", m2);
 }
 ```
