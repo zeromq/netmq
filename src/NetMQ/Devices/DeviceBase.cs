@@ -53,7 +53,7 @@ namespace NetMQ.Devices
 
         /// <summary>
         /// Create a new instance of the <see cref="DeviceBase"/> class.
-        /// </summary>		
+        /// </summary>
         /// <param name="frontendSocket">
         /// A <see cref="NetMQSocket"/> that will pass incoming messages to <paramref name="backendSocket"/>.
         /// </param>
@@ -70,7 +70,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Create a new instance of the <see cref="DeviceBase"/> class.
         /// </summary>
-        /// <param name="poller">the <see cref="Poller"/> to use for detecting when messages are available</param>		
+        /// <param name="poller">the <see cref="Poller"/> to use for detecting when messages are available</param>
         /// <param name="frontendSocket">
         /// A <see cref="NetMQSocket"/> that will pass incoming messages to <paramref name="backendSocket"/>.
         /// </param>
@@ -116,10 +116,10 @@ namespace NetMQ.Devices
         /// </summary>
         public void Run()
         {
+            IsRunning = true;
+
             if (m_pollerIsOwned && !m_poller.IsStarted)
                 m_poller.PollTillCancelled();
-
-            IsRunning = true;
         }
 
         /// <summary>
@@ -144,8 +144,8 @@ namespace NetMQ.Devices
         /// <summary>
         /// Stop the device and safely close the underlying sockets.
         /// </summary>
-        /// <param name="waitForCloseToComplete">If true, this method will block until the 
-        /// underlying poller is fully stopped. Defaults to true.</param>		
+        /// <param name="waitForCloseToComplete">If true, this method will block until the
+        /// underlying poller is fully stopped. Defaults to true.</param>
         public void Stop(bool waitForCloseToComplete = true)
         {
             if (m_pollerIsOwned && m_poller.IsStarted)
