@@ -116,10 +116,10 @@ namespace NetMQ.Devices
         /// </summary>
         public void Run()
         {
+            IsRunning = true;
+
             if (m_pollerIsOwned && !m_poller.IsStarted)
                 m_poller.PollTillCancelled();
-
-            IsRunning = true;
         }
 
         /// <summary>
