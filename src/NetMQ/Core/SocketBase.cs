@@ -38,7 +38,19 @@ namespace NetMQ.Core
 {
     internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        [NotNull] private readonly Dictionary<string, Own> m_endpoints = new Dictionary<string, Own>();
+        class Endpoint
+        {
+            public Endpoint(Own own, Pipe pipe)
+            {
+                Own = own;
+                Pipe = pipe;
+            }
+
+            public Own Own { get; private set; }
+            public Pipe Pipe { get; private set; }
+        }
+
+        [NotNull] private readonly Dictionary<string, Endpoint> m_endpoints = new Dictionary<string, Endpoint>();
 
         [NotNull] private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
 
@@ -473,7 +485,7 @@ namespace NetMQ.Core
                         }
 
                         m_options.LastEndpoint = listener.Address;
-                        AddEndpoint(addr, listener);
+                        AddEndpoint(addr, listener, null);
                         break;
                     }
                 case Address.PgmProtocol:
@@ -493,7 +505,7 @@ namespace NetMQ.Core
                         }
 
                         m_options.LastEndpoint = addr;
-                        AddEndpoint(addr, listener);
+                        AddEndpoint(addr, listener, null);
                         break;
                     }
                 case Address.IpcProtocol:
@@ -513,7 +525,7 @@ namespace NetMQ.Core
                         }
 
                         m_options.LastEndpoint = listener.Address;
-                        AddEndpoint(addr, listener);
+                        AddEndpoint(addr, listener,null);
                         break;
                     }
                 default:
@@ -682,6 +694,7 @@ namespace NetMQ.Core
             // PGM does not support subscription forwarding; ask for all data to be
             // sent to this pipe.
             bool icanhasall = protocol == Address.PgmProtocol || protocol == Address.EpgmProtocol;
+            Pipe newPipe = null;
 
             if (!m_options.DelayAttachOnConnect || icanhasall)
             {
@@ -693,6 +706,7 @@ namespace NetMQ.Core
 
                 // Attach local end of the pipe to the socket object.
                 AttachPipe(pipes[0], icanhasall);
+                newPipe = pipes[0];
 
                 // Attach remote end of the pipe to the session object later on.
                 session.AttachPipe(pipes[1]);
@@ -701,7 +715,7 @@ namespace NetMQ.Core
             // Save last endpoint URI
             m_options.LastEndpoint = paddr.ToString();
 
-            AddEndpoint(addr, session);
+            AddEndpoint(addr, session, newPipe);
         }
 
         /// <summary>
@@ -723,11 +737,11 @@ namespace NetMQ.Core
         /// <summary>
         /// Take ownership of the given <paramref name="endpoint"/> and register it against the given <paramref name="address"/>.
         /// </summary>
-        private void AddEndpoint([NotNull] string address, [NotNull] Own endpoint)
+        private void AddEndpoint([NotNull] string address, [NotNull] Own endpoint, Pipe pipe)
         {
             // Activate the session. Make it a child of this socket.
             LaunchChild(endpoint);
-            m_endpoints[address] = endpoint;
+            m_endpoints[address] = new Endpoint(endpoint, pipe);
         }
 
         /// <summary>
@@ -771,11 +785,14 @@ namespace NetMQ.Core
             }
             else
             {
-                Own endpoint;
+                Endpoint endpoint;
                 if (!m_endpoints.TryGetValue(addr, out endpoint))
                     throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
-                TermChild(endpoint);
+                if (endpoint.Pipe != null)
+                    endpoint.Pipe.Terminate(false);
+
+                TermChild(endpoint.Own);
                 m_endpoints.Remove(addr);
             }
         }

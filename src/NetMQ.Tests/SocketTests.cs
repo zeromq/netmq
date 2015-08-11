@@ -631,6 +631,39 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void ReconnectOnRouterBug()
+        {
+            using (var context = NetMQContext.Create())
+            {
+                using (var dealer = context.CreateDealerSocket())
+                {
+                    dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
+                    dealer.Bind("tcp://localhost:6667");
+
+                    using (var router = context.CreateRouterSocket())
+                    {
+                        router.Options.RouterMandatory = true;
+                        router.Connect("tcp://localhost:6667");
+                        Thread.Sleep(100);
+
+                        router.SendMoreFrame("dealer").SendFrame("Hello");
+                        var message = dealer.ReceiveFrameString();
+                        Assert.That(message == "Hello");
+
+                        router.Disconnect("tcp://localhost:6667");                                                
+                        Thread.Sleep(1000);
+                        router.Connect("tcp://localhost:6667");
+                        Thread.Sleep(100);
+
+                        router.SendMoreFrame("dealer").SendFrame("Hello");
+                        message = dealer.ReceiveFrameString();
+                        Assert.That(message == "Hello");
+                    }
+                }
+            }
+        }
+
+        [Test]
         public void InprocRouterDealerTest()
         {
             // The main thread simply starts several clients and a server, and then
