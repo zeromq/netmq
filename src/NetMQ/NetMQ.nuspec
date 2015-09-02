@@ -13,6 +13,7 @@
     <description>A 100% native C# port of the lightweight high performance messaging library ZeroMQ</description>
     <releaseNotes>
       Features:
+      * XML Comments
       * DotNet 3.5 support
       * Using IO Completion Port
       * Poller support native sockets
@@ -22,6 +23,12 @@
       * Refactoring of Poller methods
       * Refactoring of Actor
       * Improve router performance by using MurMurHash
+      * New Send and Receive API
+      * Disable TimeWait option
+      * 16bit methods to NetworkOrderBitsConverter
+      * Improve memory performance by converting a Command class to struct
+      * Serialisable exceptions
+
 
       Bug Fixes:
       * Exceptions are serializeable
@@ -30,6 +37,15 @@
       * Fix XSub subscriptions bug
       * Fix memory overflow issue
       * Fix bug in YPipe
+      * Fix Identity bug with InProc
+      * Fix Identity is sent on reconnect on Stream Socket
+      * Fix bug with ARM processor
+      * Fix setting Max Sockets bug
+      * Fix disposing leaked native sockets in TCPListener
+      * Fix CreateMonitorSocket causing NetMQContext.Dispose hang
+      * Fix Device.IsRunning is always false
+      * Fix Unbind of random port
+      * Fix proxy with external poller bug
     </releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>
