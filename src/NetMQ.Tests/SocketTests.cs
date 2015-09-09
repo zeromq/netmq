@@ -62,6 +62,8 @@ namespace NetMQ.Tests
                 dealer.Options.Linger = TimeSpan.Zero;
                 dealer.Connect("tcp://127.0.0.1:" + port);
 
+                Thread.Sleep(100);
+
                 Assert.IsTrue(dealer.TrySendFrame("1"));                                
                 Assert.IsFalse(dealer.TrySendFrame("2"));                                
             }
@@ -240,6 +242,41 @@ namespace NetMQ.Tests
                         Assert.AreEqual(largeMessage[j], recvMesage[j]);
                     }
                 }
+            }
+        }
+
+        [Test]
+        public void LargerBufferLength()
+        {
+            var largerBuffer = new byte[256];
+            {
+                largerBuffer[124] = 0xD;
+                largerBuffer[125] = 0xE;
+                largerBuffer[126] = 0xE;
+                largerBuffer[127] = 0xD;
+            }
+
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreatePublisherSocket())
+            using (var sub = context.CreateSubscriberSocket())
+            {
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("");
+
+                Thread.Sleep(100);
+
+                pub.SendFrame(largerBuffer, 128);
+
+                byte[] recvMesage = sub.ReceiveFrameBytes();
+
+                Assert.AreEqual(128, recvMesage.Length);
+                Assert.AreEqual(0xD, recvMesage[124]);
+                Assert.AreEqual(0xE, recvMesage[125]);
+                Assert.AreEqual(0xE, recvMesage[126]);
+                Assert.AreEqual(0xD, recvMesage[127]);
+
+                Assert.AreNotEqual(largerBuffer.Length, recvMesage.Length);
             }
         }
 
