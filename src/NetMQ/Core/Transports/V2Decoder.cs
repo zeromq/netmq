@@ -82,20 +82,20 @@ namespace NetMQ.Core.Transports
             m_tmpbuf.Reset();
 
             // The payload size is encoded as 64-bit unsigned integer.
-            // The most significant byte comes first.        
-
-            long msg_size = m_tmpbuf.GetLong(Endian, 0);
+            // The most significant byte comes first.
+            ulong msg_size = m_tmpbuf.GetUnsignedLong(Endian, 0);
 
             // Message size must not exceed the maximum allowed size.
             if (m_maxmsgsize >= 0)
-                if (msg_size > m_maxmsgsize)
+                if (msg_size > (ulong)m_maxmsgsize)
                 {
                     DecodingError();
                     return false;
                 }
 
+            // TODO: move this constant to a good place (0x7FFFFFC7)
             // Message size must fit within range of size_t data type.
-            if (msg_size > int.MaxValue)
+            if (msg_size > 0x7FFFFFC7)
             {
                 DecodingError();
                 return false;
