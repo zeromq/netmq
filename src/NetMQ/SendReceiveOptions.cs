@@ -8,6 +8,7 @@ namespace NetMQ
     /// or the SendMore bit, set.
     /// </summary>
     [Flags]
+    [Obsolete("New Receive/Send API doesn't use SendReceiveOptions")]
     public enum SendReceiveOptions
     {
         /// <summary>

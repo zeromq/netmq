@@ -81,6 +81,7 @@
     <Compile Include="MockBufferPool.cs" />
     <Compile Include="MsgTests.cs" />
     <Compile Include="NetMQMonitorTests.cs" />
+    <Compile Include="OutgoingSocketExtensionsTests.cs" />
     <Compile Include="ReceivingSocketExtensionsTests.cs" />
     <Compile Include="RouterTests.cs" />
     <Compile Include="SocketOptionsTests.cs" />

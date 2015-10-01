@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
 using JetBrains.Annotations;
+using NetMQ.Core;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using NetMQ.Core;
 
 namespace NetMQ
 {

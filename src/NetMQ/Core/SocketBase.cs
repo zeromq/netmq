@@ -1,8 +1,8 @@
-/*      
+/*
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
     Copyright (c) 2011 VMware, Inc.
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -15,7 +15,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -38,7 +38,19 @@ namespace NetMQ.Core
 {
     internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        [NotNull] private readonly Dictionary<String, Own> m_endpoints = new Dictionary<string, Own>();
+        class Endpoint
+        {
+            public Endpoint(Own own, Pipe pipe)
+            {
+                Own = own;
+                Pipe = pipe;
+            }
+
+            public Own Own { get; private set; }
+            public Pipe Pipe { get; private set; }
+        }
+
+        [NotNull] private readonly Dictionary<string, Endpoint> m_endpoints = new Dictionary<string, Endpoint>();
 
         [NotNull] private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
 
@@ -116,7 +128,7 @@ namespace NetMQ.Core
         /// <param name="pipe">the Pipe that is being removed</param>
         protected abstract void XTerminated([NotNull] Pipe pipe);
 
-        /// <summary>Throw <see cref="ObjectDisposedException"/> if this socket is already disposed.</summary>  
+        /// <summary>Throw <see cref="ObjectDisposedException"/> if this socket is already disposed.</summary>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
         public void CheckDisposed()
         {
@@ -281,7 +293,7 @@ namespace NetMQ.Core
         /// <param name="option">which option to set</param>
         /// <param name="optionValue">the value to set the option to</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void SetSocketOption(ZmqSocketOption option, Object optionValue)
+        public void SetSocketOption(ZmqSocketOption option, object optionValue)
         {
             CheckContextTerminated();
 
@@ -347,7 +359,7 @@ namespace NetMQ.Core
         /// If the Events option is specified, then process any outstanding commands, and return -1 if that throws a TerminatingException.
         ///     then return a PollEvents that is the bitwise-OR of the PollEvents.PollOut and PollEvents.PollIn flags.
         /// </remarks>
-        public Object GetSocketOptionX(ZmqSocketOption option)
+        public object GetSocketOptionX(ZmqSocketOption option)
         {
             CheckContextTerminated();
 
@@ -418,28 +430,28 @@ namespace NetMQ.Core
             switch (protocol)
             {
                 case Address.InProcProtocol:
-                {
-                    var endpoint = new Ctx.Endpoint(this, m_options);
-                    bool addressRegistered = RegisterEndpoint(addr, endpoint);
-
-                    if (!addressRegistered)
-                        throw new AddressAlreadyInUseException(string.Format("Cannot bind address ( {0} ) - already in use.", addr));
-
-                    m_options.LastEndpoint = addr;
-                    return;
-                }
-                case Address.PgmProtocol:
-                case Address.EpgmProtocol:
-                {
-                    if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
                     {
-                        // For convenience's sake, bind can be used interchangeable with
-                        // connect for PGM and EPGM transports.
-                        Connect(addr);
+                        var endpoint = new Ctx.Endpoint(this, m_options);
+                        bool addressRegistered = RegisterEndpoint(addr, endpoint);
+
+                        if (!addressRegistered)
+                            throw new AddressAlreadyInUseException(string.Format("Cannot bind address ( {0} ) - already in use.", addr));
+
+                        m_options.LastEndpoint = addr;
                         return;
                     }
-                    break;
-                }
+                case Address.PgmProtocol:
+                case Address.EpgmProtocol:
+                    {
+                        if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
+                        {
+                            // For convenience's sake, bind can be used interchangeable with
+                            // connect for PGM and EPGM transports.
+                            Connect(addr);
+                            return;
+                        }
+                        break;
+                    }
             }
 
             // Remaining transports require to be run in an I/O thread, so at this
@@ -452,74 +464,74 @@ namespace NetMQ.Core
             switch (protocol)
             {
                 case Address.TcpProtocol:
-                {
-                    var listener = new Transports.Tcp.TcpListener(ioThread, this, m_options);
-
-                    try
                     {
-                        listener.SetAddress(address);
-                        m_port = listener.Port;
+                        var listener = new TcpListener(ioThread, this, m_options);
 
-                        // Recreate the address string (localhost:1234) in case the port was system-assigned
-                        addr = string.Format("tcp://{0}:{1}", 
-                            address.Substring(0, address.IndexOf(':')), 
-                            m_port);
-                    }
-                    catch (NetMQException ex)
-                    {
-                        listener.Destroy();
-                        EventBindFailed(addr, ex.ErrorCode);
-                        throw;
-                    }
+                        try
+                        {
+                            listener.SetAddress(address);
+                            m_port = listener.Port;
 
-                    m_options.LastEndpoint = listener.Address;
-                    AddEndpoint(addr, listener);
-                    break;
-                }
+                            // Recreate the address string (localhost:1234) in case the port was system-assigned
+                            addr = string.Format("tcp://{0}:{1}",
+                                address.Substring(0, address.IndexOf(':')),
+                                m_port);
+                        }
+                        catch (NetMQException ex)
+                        {
+                            listener.Destroy();
+                            EventBindFailed(addr, ex.ErrorCode);
+                            throw;
+                        }
+
+                        m_options.LastEndpoint = listener.Address;
+                        AddEndpoint(addr, listener, null);
+                        break;
+                    }
                 case Address.PgmProtocol:
                 case Address.EpgmProtocol:
-                {
-                    var listener = new PgmListener(ioThread, this, m_options);
-
-                    try
                     {
-                        listener.Init(address);
-                    }
-                    catch (NetMQException ex)
-                    {
-                        listener.Destroy();
-                        EventBindFailed(addr, ex.ErrorCode);
-                        throw;
-                    }
+                        var listener = new PgmListener(ioThread, this, m_options);
 
-                    m_options.LastEndpoint = addr;
-                    AddEndpoint(addr, listener);
-                    break;
-                }
+                        try
+                        {
+                            listener.Init(address);
+                        }
+                        catch (NetMQException ex)
+                        {
+                            listener.Destroy();
+                            EventBindFailed(addr, ex.ErrorCode);
+                            throw;
+                        }
+
+                        m_options.LastEndpoint = addr;
+                        AddEndpoint(addr, listener, null);
+                        break;
+                    }
                 case Address.IpcProtocol:
-                {
-                    var listener = new IpcListener(ioThread, this, m_options);
-
-                    try
                     {
-                        listener.SetAddress(address);
-                        m_port = listener.Port;
-                    }
-                    catch (NetMQException ex)
-                    {
-                        listener.Destroy();
-                        EventBindFailed(addr, ex.ErrorCode);
-                        throw;
-                    }
+                        var listener = new IpcListener(ioThread, this, m_options);
 
-                    m_options.LastEndpoint = listener.Address;
-                    AddEndpoint(addr, listener);
-                    break;
-                }
+                        try
+                        {
+                            listener.SetAddress(address);
+                            m_port = listener.Port;
+                        }
+                        catch (NetMQException ex)
+                        {
+                            listener.Destroy();
+                            EventBindFailed(addr, ex.ErrorCode);
+                            throw;
+                        }
+
+                        m_options.LastEndpoint = listener.Address;
+                        AddEndpoint(addr, listener,null);
+                        break;
+                    }
                 default:
-                {
-                    throw new ArgumentException(string.Format("Address {0} has unsupported protocol: {1}", addr, protocol), "addr");
-                }
+                    {
+                        throw new ArgumentException(string.Format("Address {0} has unsupported protocol: {1}", addr, protocol), "addr");
+                    }
             }
         }
 
@@ -583,11 +595,11 @@ namespace NetMQ.Core
 
                 // The total HWM for an inproc connection should be the sum of
                 // the binder's HWM and the connector's HWM.
-                var sndhwm = m_options.SendHighWatermark != 0 && peer.Options.ReceiveHighWatermark != 0 
+                var sndhwm = m_options.SendHighWatermark != 0 && peer.Options.ReceiveHighWatermark != 0
                     ? m_options.SendHighWatermark + peer.Options.ReceiveHighWatermark
                     : 0;
 
-                var rcvhwm = m_options.ReceiveHighWatermark != 0 && peer.Options.SendHighWatermark != 0 
+                var rcvhwm = m_options.ReceiveHighWatermark != 0 && peer.Options.SendHighWatermark != 0
                     ? m_options.ReceiveHighWatermark + peer.Options.SendHighWatermark
                     : 0;
 
@@ -643,36 +655,36 @@ namespace NetMQ.Core
 
             if (ioThread == null)
                 throw NetMQException.Create(ErrorCode.EmptyThread);
-            
+
             var paddr = new Address(protocol, address);
 
             // Resolve address (if needed by the protocol)
             switch (protocol)
             {
                 case Address.TcpProtocol:
-                {
-                    paddr.Resolved = (new TcpAddress());
-                    paddr.Resolved.Resolve(address, m_options.IPv4Only);
-                    break;
-                }
+                    {
+                        paddr.Resolved = (new TcpAddress());
+                        paddr.Resolved.Resolve(address, m_options.IPv4Only);
+                        break;
+                    }
                 case Address.IpcProtocol:
-                {
-                    paddr.Resolved = (new IpcAddress());
-                    paddr.Resolved.Resolve(address, true);
-                    break;
-                }
+                    {
+                        paddr.Resolved = (new IpcAddress());
+                        paddr.Resolved.Resolve(address, true);
+                        break;
+                    }
                 case Address.PgmProtocol:
                 case Address.EpgmProtocol:
-                {
-                    if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
                     {
-                        Bind(addr);
-                        return;
+                        if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
+                        {
+                            Bind(addr);
+                            return;
+                        }
+                        paddr.Resolved = new PgmAddress();
+                        paddr.Resolved.Resolve(address, m_options.IPv4Only);
+                        break;
                     }
-                    paddr.Resolved = new PgmAddress();
-                    paddr.Resolved.Resolve(address, m_options.IPv4Only);
-                    break;
-                }
             }
 
             // Create session.
@@ -682,6 +694,7 @@ namespace NetMQ.Core
             // PGM does not support subscription forwarding; ask for all data to be
             // sent to this pipe.
             bool icanhasall = protocol == Address.PgmProtocol || protocol == Address.EpgmProtocol;
+            Pipe newPipe = null;
 
             if (!m_options.DelayAttachOnConnect || icanhasall)
             {
@@ -693,6 +706,7 @@ namespace NetMQ.Core
 
                 // Attach local end of the pipe to the socket object.
                 AttachPipe(pipes[0], icanhasall);
+                newPipe = pipes[0];
 
                 // Attach remote end of the pipe to the session object later on.
                 session.AttachPipe(pipes[1]);
@@ -701,7 +715,7 @@ namespace NetMQ.Core
             // Save last endpoint URI
             m_options.LastEndpoint = paddr.ToString();
 
-            AddEndpoint(addr, session);
+            AddEndpoint(addr, session, newPipe);
         }
 
         /// <summary>
@@ -723,11 +737,11 @@ namespace NetMQ.Core
         /// <summary>
         /// Take ownership of the given <paramref name="endpoint"/> and register it against the given <paramref name="address"/>.
         /// </summary>
-        private void AddEndpoint([NotNull] string address, [NotNull] Own endpoint)
+        private void AddEndpoint([NotNull] string address, [NotNull] Own endpoint, Pipe pipe)
         {
             // Activate the session. Make it a child of this socket.
             LaunchChild(endpoint);
-            m_endpoints[address] = endpoint;
+            m_endpoints[address] = new Endpoint(endpoint, pipe);
         }
 
         /// <summary>
@@ -761,7 +775,7 @@ namespace NetMQ.Core
             {
                 if (UnregisterEndpoint(addr, this))
                     return;
-                
+
                 Pipe pipe;
                 if (!m_inprocs.TryGetValue(addr, out pipe))
                     throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
@@ -771,26 +785,27 @@ namespace NetMQ.Core
             }
             else
             {
-                Own endpoint;
+                Endpoint endpoint;
                 if (!m_endpoints.TryGetValue(addr, out endpoint))
                     throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
-                TermChild(endpoint);
+                if (endpoint.Pipe != null)
+                    endpoint.Pipe.Terminate(false);
+
+                TermChild(endpoint.Own);
                 m_endpoints.Remove(addr);
             }
         }
 
         /// <summary>
         /// Transmit the given Msg across the message-queueing system.
-        /// If the msg fails to immediately send, then - if DontWait is specified and no SendTimeout was set
-        /// then throw an AgainException.
         /// </summary>
-        /// <param name="msg">the Msg to transmit</param>
-        /// <param name="flags">a SendReceiveOptions: either don't specify DontWait, or set a timeout</param>
+        /// <param name="msg">The <see cref="Msg"/> to send.</param>
+        /// <param name="timeout">The timeout to wait before returning <c>false</c>. Pass <see cref="SendReceiveConstants.InfiniteTimeout"/> to disable timeout.</param>
+        /// <param name="more">Whether this message will contain another frame after this one.</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
-        /// <exception cref="AgainException">The send operation timed out.</exception>
-        public void Send(ref Msg msg, SendReceiveOptions flags)
+        public bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
         {
             CheckContextTerminated();
 
@@ -805,59 +820,46 @@ namespace NetMQ.Core
             msg.ResetFlags(MsgFlags.More);
 
             // At this point we impose the flags on the message.
-            if ((flags & SendReceiveOptions.SendMore) > 0)
+            if (more)
                 msg.SetFlags(MsgFlags.More);
 
             // Try to send the message.
             bool isMessageSent = XSend(ref msg);
 
             if (isMessageSent)
-                return;
+                return true;
 
-            // In case of non-blocking send we'll simply propagate
-            // the error - including EAGAIN - up the stack.
-            bool isDontWaitSet = (flags & SendReceiveOptions.DontWait) > 0;
-            if (isDontWaitSet || m_options.SendTimeout == 0)
-            {
-#if DEBUG
-                string xMsg;
-                if (isDontWaitSet && m_options.SendTimeout == 0)
-                    xMsg = "SocketBase.Send failed, and DontWait is true AND SendTimeout is 0.";
-                else if (isDontWaitSet)
-                    xMsg = "SocketBase.Send failed and DontWait is specified.";
-                else
-                    xMsg = "SocketBase.Send failed and no SendTimeout is specified.";
-                throw new AgainException(innerException: null, message: xMsg);
-#else
-                throw new AgainException(innerException: null, message: "SocketBase.Send failed");
-#endif
-            }
+            // In case of non-blocking send we'll simply return false
+            if (timeout == TimeSpan.Zero)
+                return false;
 
             // Compute the time when the timeout should occur.
-            // If the timeout is infinite, don't care. 
-            int timeout = m_options.SendTimeout;
-            long end = timeout < 0 ? 0 : (Clock.NowMs() + timeout);
+            // If the timeout is infinite, don't care.
+            int timeoutMillis = (int)timeout.TotalMilliseconds;
+            long end = timeoutMillis < 0 ? 0 : (Clock.NowMs() + timeoutMillis);
 
             // Oops, we couldn't send the message. Wait for the next
             // command, process it and try to send the message again.
             // If timeout is reached in the meantime, return EAGAIN.
             while (true)
             {
-                ProcessCommands(timeout, false);
+                ProcessCommands(timeoutMillis, false);
 
                 isMessageSent = XSend(ref msg);
-                
+
                 if (isMessageSent)
                     break;
 
-                if (timeout <= 0)
+                if (timeoutMillis <= 0)
                     continue;
 
-                timeout = (int)(end - Clock.NowMs());
-                    
-                if (timeout <= 0)
-                    throw new AgainException(innerException: null, message: "SocketBase.Send failed and timeout <= 0");
+                timeoutMillis = (int)(end - Clock.NowMs());
+
+                if (timeoutMillis <= 0)
+                    return false;
             }
+
+            return true;
         }
 
         /// <summary>
@@ -870,53 +872,13 @@ namespace NetMQ.Core
         /// For <paramref name="timeout"/>, there are three categories of value:
         /// <list type="bullet">
         ///   <item><see cref="TimeSpan.Zero"/> - return <c>false</c> immediately if no message is available</item>
-        ///   <item>Positive - return <c>false</c> after the corresponding duration if no message has become available</item>
-        ///   <item>Negative - wait indefinitely, always returning <c>true</c></item>
+        ///   <item><see cref="SendReceiveConstants.InfiniteTimeout"/> (or a negative value) - wait indefinitely, always returning <c>true</c></item>
+        ///   <item>Any positive value - return <c>false</c> after the corresponding duration if no message has become available</item>
         /// </list>
         /// </remarks>
-        /// <exception cref="AgainException">if there is no message ready to be received, this exception is thrown if DontWait is set or no receive-timeout is specified</exception>
         /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
         /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
         public bool TryRecv(ref Msg msg, TimeSpan timeout)
-        {
-            return Recv(ref msg, timeout);
-        }
-
-        /// <summary>
-        /// Receive a frame into the given <paramref name="msg"/>.
-        /// </summary>
-        /// <param name="msg">the <c>Msg</c> to read the received message into</param>
-        /// <remarks>
-        /// This calls <c>Recv(Msg, TimeSpan)</c> with a TimeSpan value of -1 (ms).
-        /// </remarks>
-        /// <exception cref="AgainException">if there is no message ready to be received, this exception is thrown if DontWait is set or no receive-timeout is specified</exception>
-        /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
-        /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
-        public void Recv(ref Msg msg)
-        {
-            var res = Recv(ref msg, TimeSpan.FromMilliseconds(-1));
-
-            Debug.Assert(res);
-        }
-
-        /// <summary>
-        /// Receives a frame into <paramref name="msg"/> and returns <c>true</c> if successful, <c>false</c> if it timed out.
-        /// </summary>
-        /// <remarks>
-        /// For <paramref name="timeout"/>, there are three categories of value:
-        /// <list type="bullet">
-        ///   <item><see cref="TimeSpan.Zero"/> - return <c>false</c> immediately if no message is available</item>
-        ///   <item>Positive - return <c>false</c> after the corresponding duration if no message has become available</item>
-        ///   <item>Negative - wait indefinitely, always returning <c>true</c></item>
-        /// </list>
-        /// </remarks>
-        /// <param name="msg">Where to read the received message.</param>
-        /// <param name="timeout">Controls whether the call blocks, and for how long.</param>
-        /// <returns><c>true</c> if a message was received, or <c>false</c> if the receive timed out.</returns>
-        /// <exception cref="AgainException">if there is no message ready to be received, this exception is thrown if DontWait is set or no receive-timeout is specified</exception>
-        /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
-        /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
-        private bool Recv(ref Msg msg, TimeSpan timeout)
         {
             CheckContextTerminated();
 
@@ -958,7 +920,7 @@ namespace NetMQ.Core
                 m_ticks = 0;
 
                 isMessageAvailable = XRecv(ref msg);
-                
+
                 if (!isMessageAvailable)
                     return false;
 
@@ -967,7 +929,7 @@ namespace NetMQ.Core
             }
 
             // Compute the time when the timeout should occur.
-            // If the timeout is infinite (negative), don't care. 
+            // If the timeout is infinite (negative), don't care.
             int timeoutMillis = (int)timeout.TotalMilliseconds;
             long end = timeoutMillis < 0 ? 0L : Clock.NowMs() + timeoutMillis;
 
@@ -1060,18 +1022,19 @@ namespace NetMQ.Core
         /// <exception cref="TerminatingException">The Ctx context must not already be terminating.</exception>
         private void ProcessCommands(int timeout, bool throttle)
         {
-            Command cmd;
+            bool found;
+            Command command;
             if (timeout != 0)
             {
                 // If we are asked to wait, simply ask mailbox to wait.
-                cmd = m_mailbox.Recv(timeout);
+                found = m_mailbox.TryRecv(timeout, out command);
             }
             else
             {
                 // If we are asked not to wait, check whether we haven't processed
                 // commands recently, so that we can throttle the new commands.
 
-                // Get the CPU's tick counter. If 0, the counter is not available.								
+                // Get the CPU's tick counter. If 0, the counter is not available.
                 long tsc = Clock.Rdtsc();
 
                 // Optimised version of command processing - it doesn't have to check
@@ -1091,17 +1054,14 @@ namespace NetMQ.Core
                 }
 
                 // Check whether there are any commands pending for this thread.
-                cmd = m_mailbox.Recv(0);
+                found = m_mailbox.TryRecv(0, out command);
             }
 
             // Process all the commands available at the moment.
-            while (true)
+            while (found)
             {
-                if (cmd == null)
-                    break;
-
-                cmd.Destination.ProcessCommand(cmd);
-                cmd = m_mailbox.Recv(0);
+                command.Destination.ProcessCommand(command);
+                found = m_mailbox.TryRecv(0, out command);
             }
 
             CheckContextTerminated();
@@ -1180,7 +1140,7 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// Transmit the given message. The <see cref="Send"/> method calls this to do the actual sending.
+        /// Transmit the given message. The <see cref="TrySend"/> method calls this to do the actual sending.
         /// This abstract method gets overridden by the different socket types
         /// to provide their concrete implementation of sending messages.
         /// </summary>

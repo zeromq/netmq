@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2011 250bpm s.r.o.
     Copyright (c) 2011 VMware, Inc.
-    Copyright (c) 2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2011-2015 Other contributors as noted in the AUTHORS file
 
 
     This file is part of 0MQ.
@@ -25,7 +25,7 @@ using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns.Utils
 {
-    internal class Distribution
+    internal sealed class Distribution
     {
         /// <summary>
         /// List of outbound pipes.

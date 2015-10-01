@@ -2,7 +2,7 @@
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
     Copyright (c) 2011-2012 Spotify AB
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -34,7 +34,7 @@ namespace NetMQ.Core.Patterns.Utils
         private short m_count;
         private short m_liveNodes;
 
-        public delegate void TrieDelegate([NotNull] byte[] data, int size, [CanBeNull] Object arg);
+        public delegate void TrieDelegate([NotNull] byte[] data, int size, [CanBeNull] object arg);
 
         private Trie[] m_next;
 
@@ -274,12 +274,12 @@ namespace NetMQ.Core.Patterns.Utils
         }
 
         // Apply the function supplied to each subscription in the trie.
-        public void Apply([NotNull] TrieDelegate func, [CanBeNull] Object arg)
+        public void Apply([NotNull] TrieDelegate func, [CanBeNull] object arg)
         {
             ApplyHelper(null, 0, 0, func, arg);
         }
 
-        private void ApplyHelper([NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] TrieDelegate func, [CanBeNull] Object arg)
+        private void ApplyHelper([NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] TrieDelegate func, [CanBeNull] object arg)
         {
             // If this node is a subscription, apply the function.
             if (m_referenceCount > 0)

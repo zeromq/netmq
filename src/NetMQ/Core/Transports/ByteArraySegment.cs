@@ -215,6 +215,43 @@ namespace NetMQ.Core.Transports
         }
 
         /// <summary>
+        /// Return a 64-bit unsigned numeric value (ulong) that is read from the buffer, starting at the position marked by the offset plus the given index i,
+        /// based upon the given byte-ordering.
+        /// </summary>
+        /// <param name="endian">an Endianness to specify which byte-ordering to use to interpret the source bytes</param>
+        /// <param name="i">the index position beyond the offset to start reading the bytes</param>
+        /// <returns>an unsigend long that is read from the bytes of the buffer</returns>
+        public ulong GetUnsignedLong(Endianness endian, int i)
+        {
+            // we changed how NetMQ is serializing long to support zeromq, however we still want to support old releases of netmq
+            // so we check if the MSB is not zero, in case it not zero we need to reorder the bits
+            if (endian == Endianness.Big)
+            {
+                return
+                    (((ulong)m_innerBuffer[i + Offset]) << 56) |
+                    (((ulong)m_innerBuffer[i + Offset + 1]) << 48) |
+                    (((ulong)m_innerBuffer[i + Offset + 2]) << 40) |
+                    (((ulong)m_innerBuffer[i + Offset + 3]) << 32) |
+                    (((ulong)m_innerBuffer[i + Offset + 4]) << 24) |
+                    (((ulong)m_innerBuffer[i + Offset + 5]) << 16) |
+                    (((ulong)m_innerBuffer[i + Offset + 6]) << 8) |
+                    ((ulong)m_innerBuffer[i + Offset + 7]);
+            }
+            else
+            {
+                return
+                (((ulong)m_innerBuffer[i + Offset + 7]) << 56) |
+                (((ulong)m_innerBuffer[i + Offset + 6]) << 48) |
+                (((ulong)m_innerBuffer[i + Offset + 5]) << 40) |
+                (((ulong)m_innerBuffer[i + Offset + 4]) << 32) |
+                (((ulong)m_innerBuffer[i + Offset + 3]) << 24) |
+                (((ulong)m_innerBuffer[i + Offset + 2]) << 16) |
+                (((ulong)m_innerBuffer[i + Offset + 1]) << 8) |
+                ((ulong)m_innerBuffer[i + Offset + 0]);
+            }
+        }
+
+        /// <summary>
         /// Return a 32-bit integer that is read from the buffer, starting at the position marked by the offset plus the given index i,
         /// based upon the given byte-ordering.
         /// </summary>

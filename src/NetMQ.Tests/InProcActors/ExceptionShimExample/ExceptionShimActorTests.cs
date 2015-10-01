@@ -11,8 +11,8 @@ namespace NetMQ.Tests.InProcActors.ExceptionShimExample
             using (var context = NetMQContext.Create())
             using (var actor = NetMQActor.Create(context, new ExceptionShimHandler()))
             {
-                actor.SendMore("SOME_COMMAND");
-                actor.Send("Whatever");
+                actor.SendMoreFrame("SOME_COMMAND");
+                actor.SendFrame("Whatever");
 
                 Assert.AreEqual(
                     "Error: Exception occurred Actors Shim threw an Exception",

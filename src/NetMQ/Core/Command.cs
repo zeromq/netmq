@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -19,15 +19,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System;
 using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
     /// <summary>
-    /// This class defines the commands that can be sent between threads.
+    /// Defines a command sent between threads.
     /// </summary>
-    internal sealed class Command
+    internal struct Command
     {
         /// <summary>
         /// Create a new Command object for the given destination, type, and optional argument.
@@ -35,7 +34,7 @@ namespace NetMQ.Core
         /// <param name="destination">a ZObject that denotes the destination for this command</param>
         /// <param name="type">the CommandType of the new command</param>
         /// <param name="arg">an Object to comprise the argument for the command (optional)</param>
-        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] Object arg = null)
+        public Command([CanBeNull] ZObject destination, CommandType type, [CanBeNull] object arg = null) : this()
         {
             Destination = destination;
             CommandType = type;
@@ -53,7 +52,7 @@ namespace NetMQ.Core
         /// Get the argument to this command.
         /// </summary>
         [CanBeNull]
-        public Object Arg { get; private set; }
+        public object Arg { get; private set; }
 
         /// <summary>
         /// Override of ToString, which returns a string in the form [ command-type, destination ].

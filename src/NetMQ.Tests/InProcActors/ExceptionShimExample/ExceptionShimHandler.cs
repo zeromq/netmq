@@ -46,7 +46,7 @@ namespace NetMQ.Tests.InProcActors.ExceptionShimExample
                 //demonstration purposes only, any unhandled fault will bubble up to caller's code
                 catch (InvalidOperationException e)
                 {
-                    shim.Send(string.Format("Error: Exception occurred {0}", e.Message));
+                    shim.SendFrame(string.Format("Error: Exception occurred {0}", e.Message));
                 }
             }
         }

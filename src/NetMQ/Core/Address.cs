@@ -1,6 +1,6 @@
 /*
     Copyright (c) 2012 Spotify AB
-    Copyright (c) 2012 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2012-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 

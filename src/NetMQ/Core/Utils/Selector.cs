@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
-using System.Threading;
 using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
@@ -88,9 +87,9 @@ namespace NetMQ.Core.Utils
                     {
                         currentTimeoutMicroSeconds = 0;
                     }
-                    else if (currentTimeoutMicroSeconds > Int32.MaxValue)
+                    else if (currentTimeoutMicroSeconds > int.MaxValue)
                     {
-                        currentTimeoutMicroSeconds = Int32.MaxValue;
+                        currentTimeoutMicroSeconds = int.MaxValue;
                     }
                 }
 

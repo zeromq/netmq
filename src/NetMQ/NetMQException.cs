@@ -139,7 +139,9 @@ namespace NetMQ
             switch (errorCode)
             {
                 case ErrorCode.TryAgain:
+#pragma warning disable 618
                     return new AgainException(innerException, message);
+#pragma warning restore 618
                 case ErrorCode.ContextTerminated:
                     return new TerminatingException(innerException, message);
                 case ErrorCode.Invalid:
@@ -240,6 +242,7 @@ namespace NetMQ
     /// and is raised within Sub.XSetSocketOption if sending the queued-message fails.
     /// </summary>
     [Serializable]
+    [Obsolete("AgainException is obsolete, use TrySendFrame or TryReceive instead")]
     public class AgainException : NetMQException
     {
         /// <summary>

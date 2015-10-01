@@ -1,6 +1,6 @@
 /*
     Copyright (c) 2010 250bpm s.r.o.
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2010-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -19,6 +19,7 @@
 */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
 
@@ -108,7 +109,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="t">the other object to compare against</param>
         /// <returns>true if equal</returns>
-        public override bool Equals([CanBeNull] Object t)
+        public override bool Equals([CanBeNull] object t)
         {
             var blob = t as Blob;
             if (blob != null)
@@ -127,13 +128,14 @@ namespace NetMQ
         /// Return an integer hash-code to use to uniquely identify this Blob object.
         /// </summary>
         /// <returns>the hash-code</returns>
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             if (m_hash == 0)
             {
                 foreach (byte b in m_buffer)
                 {
-                    m_hash = 31 * m_hash + b;
+                    m_hash = (31 * m_hash) ^ b;
                 }
             }
             return m_hash;

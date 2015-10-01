@@ -15,7 +15,7 @@ namespace NetMQ.Tests
                 router.Options.RouterMandatory = true;
                 router.BindRandomPort("tcp://*");
 
-                Assert.Throws<HostUnreachableException>(() => router.SendMore("UNKNOWN").Send("Hello"));
+                Assert.Throws<HostUnreachableException>(() => router.SendMoreFrame("UNKNOWN").SendFrame("Hello"));
             }
         }
 

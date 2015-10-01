@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NetMQ.Core.Utils
 {
@@ -90,7 +89,7 @@ namespace NetMQ.Core.Utils
                     hash ^= k;
                 }
 
-                hash ^= (UInt32)data.Length;
+                hash ^= (uint)data.Length;
                 hash ^= hash >> 16;
                 hash *= 0x85ebca6b;
                 hash ^= hash >> 13;

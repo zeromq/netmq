@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -192,8 +193,7 @@ namespace NetMQ
                 throw new ArgumentNullException("frame");
             }
 
-            var copy = new NetMQFrame(new byte[frame.BufferSize]);
-            copy.MessageSize = frame.MessageSize;
+            var copy = new NetMQFrame(new byte[frame.BufferSize]) { MessageSize = frame.MessageSize };
 
             System.Buffer.BlockCopy(frame.Buffer, 0, copy.Buffer, 0, frame.BufferSize);
 
@@ -311,13 +311,14 @@ namespace NetMQ
         /// That is only computed the first time this method is called.
         /// </summary>
         /// <returns>an integer that represents the computed hash-code</returns>
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             if (m_hash == 0)
             {
                 foreach (var b in Buffer)
                 {
-                    m_hash = 31*m_hash + b;
+                    m_hash = (31*m_hash) ^ b;
                 }
             }
 

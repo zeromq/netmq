@@ -229,17 +229,11 @@ namespace NetMQ
                 m_shimHandler.Run(m_shim);
             }
             catch (TerminatingException)
-            {}
-
-            // Do not block, if the other end of the pipe is already deleted
-            m_shim.Options.SendTimeout = TimeSpan.Zero;
-
-            try
             {
-                m_shim.SignalOK();
             }
-            catch (AgainException)
-            {}
+
+            // Do not block, if the other end of the pipe is already deleted            
+            m_shim.TrySignalOK();
 
             m_shim.Dispose();
         }
@@ -252,9 +246,25 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
         /// <exception cref="AgainException">The send operation timed out.</exception>
+        [Obsolete("Use Send(ref Msg,bool) or TrySend(ref Msg,TimeSpan,bool) instead.")]
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
             m_self.Send(ref msg, options);
+        }
+
+        /// <summary>
+        /// Transmit the given Msg over this actor's own socket.
+        /// </summary>
+        /// <param name="msg">the <c>Msg</c> to transmit</param>
+        /// <param name="timeout">The maximum length of time to try and send a message. If <see cref="TimeSpan.Zero"/>, no
+        /// wait occurs.</param>
+        /// <param name="more">Indicate if another frame is expected after this frame</param>
+        /// <returns><c>true</c> if a message was sent, otherwise <c>false</c>.</returns>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
+        public bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
+        {
+            return m_self.TrySend(ref msg, timeout, more);
         }
 
         #region IReceivingSocket
@@ -326,15 +336,9 @@ namespace NetMQ
             if (!disposing)
                 return;
 
-            // send destroy message to pipe
-            m_self.Options.SendTimeout = TimeSpan.Zero;
-            try
-            {
-                m_self.Send(EndShimMessage);
+            // send destroy message to pipe           
+            if (m_self.TrySendFrame(EndShimMessage))
                 m_self.ReceiveSignal();
-            }
-            catch (AgainException)
-            {}
 
             m_shimThread.Join();
             m_self.Dispose();

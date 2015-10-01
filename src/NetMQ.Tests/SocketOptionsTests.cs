@@ -69,10 +69,12 @@ namespace NetMQ.Tests
 #pragma warning disable 618
                 socket.Options.ReceiveTimeout = TimeSpan.FromMilliseconds(100);
                 Assert.AreEqual(TimeSpan.FromMilliseconds(100), socket.Options.ReceiveTimeout);
-#pragma warning restore 618
+
 
                 socket.Options.SendTimeout = TimeSpan.FromMilliseconds(100);
                 Assert.AreEqual(TimeSpan.FromMilliseconds(100), socket.Options.SendTimeout);
+
+#pragma warning restore 618
 
                 socket.Options.IPv4Only = true;
                 Assert.AreEqual(true, socket.Options.IPv4Only);

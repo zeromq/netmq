@@ -10,7 +10,7 @@ namespace NetMQ.Core.Transports
         /// <summary>
         /// Set message producer.
         /// </summary>
-        void SetMsgSource([NotNull] IMsgSource msgSource);
+        void SetMsgSource([CanBeNull] IMsgSource msgSource);
 
         /// <summary>
         /// Get a ByteArraySegment of binary data. The data

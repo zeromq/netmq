@@ -11,7 +11,10 @@ namespace RouterPerformance
     {
         private static void Main()
         {
-            const int count = 1000000;
+            const int messageCount = 1000000;
+            const int dealerCount = 100;
+
+            Console.WriteLine("Sending {0} messages to {1} dealers", messageCount, dealerCount);
 
             //BufferPool.SetBufferManagerBufferPool(1024 * 1024 * 10, 1024);
 
@@ -23,11 +26,10 @@ namespace RouterPerformance
 
                 var dealers = new List<DealerSocket>();
                 var identities = new List<byte[]>();
-
                 var random = new Random();
-
                 var identity = new byte[50];
-                for (int i = 0; i < 100; i++)
+
+                for (var i = 0; i < dealerCount; i++)
                 {
                     var dealer = context.CreateDealerSocket();
 
@@ -41,24 +43,24 @@ namespace RouterPerformance
                     identities.Add(identity);
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                for (int i = 0; i < count; i++)
+                while (!Console.KeyAvailable)
                 {
-                    router.SendMore(identities[i%identities.Count]).Send("E");
+                    Thread.Sleep(500);
+
+                    var stopwatch = Stopwatch.StartNew();
+
+                    for (var i = 0; i < messageCount; i++)
+                        router.SendMoreFrame(identities[i%identities.Count]).SendFrame("E");
+
+                    stopwatch.Stop();
+
+                    Console.WriteLine("{0:N1} messages sent per second", messageCount/stopwatch.Elapsed.TotalSeconds);
                 }
-
-                stopwatch.Stop();
-
-                Console.WriteLine("{0:N1} in second", count/stopwatch.Elapsed.TotalSeconds);
-                Console.ReadLine();
 
                 foreach (var dealerSocket in dealers)
-                {
                     dealerSocket.Dispose();
-                }
             }
         }
     }

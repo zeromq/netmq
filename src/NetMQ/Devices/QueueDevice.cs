@@ -73,7 +73,7 @@
             {
                 args.Socket.Receive(ref msg);
                 more = msg.HasMore;
-                toSocket.Send(ref msg, more ? SendReceiveOptions.SendMore : SendReceiveOptions.None);
+                toSocket.Send(ref msg, more);
             }
             while (more);
 

@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2007-2012 iMatix Corporation
     Copyright (c) 2009-2011 250bpm s.r.o.
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -79,7 +79,10 @@ namespace NetMQ.Core.Patterns
                 if (!isMessageSent)
                 {
                     string xMsg = string.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
+                    // TODO: should we change the excepion that is thrown here as AgainException is obsolete?
+#pragma warning disable 618                    
                     throw new AgainException(innerException: null, message: xMsg);
+#pragma warning restore 618
                 }
             }
             finally

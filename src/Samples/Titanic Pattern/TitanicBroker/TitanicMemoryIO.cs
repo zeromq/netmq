@@ -261,7 +261,7 @@ namespace TitanicProtocol
 
         #endregion
 
-        private byte GetStateFromOperation (TitanicOperation op)
+        private static byte GetStateFromOperation (TitanicOperation op)
         {
             return op == TitanicOperation.Request ? RequestEntry.Is_Pending : RequestEntry.Is_Processed;
         }

@@ -17,8 +17,7 @@ namespace NetMQ.Tests.Security
         {
             X509Certificate2 certificate = new X509Certificate2("NetMQ.Testing.pfx", "1");
 
-            m_serverSecureChannel = new SecureChannel(ConnectionEnd.Server);
-            m_serverSecureChannel.Certificate = certificate;
+            m_serverSecureChannel = new SecureChannel(ConnectionEnd.Server) { Certificate = certificate };
 
             m_clientSecureChannel = new SecureChannel(ConnectionEnd.Client);
             m_clientSecureChannel.SetVerifyCertificate(c => true);

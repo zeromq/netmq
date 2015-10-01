@@ -1,6 +1,6 @@
 /*
     Copyright (c) 2010-2011 250bpm s.r.o.
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2010-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -49,8 +49,7 @@ namespace NetMQ.Core.Utils
                 listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
                 listener.Listen(1);
 
-                m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified);
-                m_writeSocket.NoDelay = true;
+                m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified) { NoDelay = true };
 
                 m_writeSocket.Connect(listener.LocalEndPoint);
                 m_readSocket = listener.Accept();
