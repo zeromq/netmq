@@ -737,9 +737,12 @@ namespace NetMQ
         /// Send more frame, another frame must be sent after this frame. Use to chain Send methods.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>        
-        public static void SendMoreFrameEmpty([NotNull] this IOutgoingSocket socket)
+        [NotNull]
+        public static IOutgoingSocket SendMoreFrameEmpty([NotNull] this IOutgoingSocket socket)
         {
             SendFrame(socket, s_empty, true);
+
+            return socket;
         }
 
         #endregion
