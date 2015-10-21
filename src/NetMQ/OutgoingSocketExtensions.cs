@@ -64,7 +64,8 @@ namespace NetMQ
         /// Send more frame, another frame must be sent after this frame. Use to chain Send methods.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>        
+        /// <param name="data">the byte-array of data to send</param>    
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>    
         [NotNull]
         public static IOutgoingSocket SendMoreFrame([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data)
         {
@@ -80,6 +81,7 @@ namespace NetMQ
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>        
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>   
         [NotNull]
         public static IOutgoingSocket SendMoreFrame([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length)
         {
@@ -450,6 +452,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="message">the string to send</param>   
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>   
         [NotNull]
         public static IOutgoingSocket SendMoreFrame([NotNull] this IOutgoingSocket socket, [NotNull] string message)
         {
@@ -736,10 +739,14 @@ namespace NetMQ
         /// Transmit an empty frame over this socket, block until frame is sent.
         /// Send more frame, another frame must be sent after this frame. Use to chain Send methods.
         /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>        
-        public static void SendMoreFrameEmpty([NotNull] this IOutgoingSocket socket)
+        /// <param name="socket">the IOutgoingSocket to transmit on</param> 
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>          
+        [NotNull]
+        public static IOutgoingSocket SendMoreFrameEmpty([NotNull] this IOutgoingSocket socket)
         {
             SendFrame(socket, s_empty, true);
+
+            return socket;
         }
 
         #endregion

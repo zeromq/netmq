@@ -229,7 +229,8 @@ namespace NetMQ.Tests
                 return true;
             });
 
-            socket.SendMoreFrameEmpty();
+            var returnedSocket = socket.SendMoreFrameEmpty();
+            Assert.AreEqual(returnedSocket, socket);
         }
 
         [Test]
