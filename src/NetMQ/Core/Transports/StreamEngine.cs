@@ -590,7 +590,7 @@ namespace NetMQ.Core.Transports
                                 if (m_greetingBytesRead < GreetingSize)
                                 {
                                     var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
-                                    BeginRead(greetingSegment, GreetingSize);
+                                    BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
                                 }
                                 else
                                 {
