@@ -655,6 +655,57 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void ResetTimer()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            {
+                const int timerIntervalMillis = 50;
+
+                var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
+
+                int count = 0;
+
+                timer1.Elapsed += (a, s) =>
+                {
+                    count++;
+                };
+
+                using (var poller = new Poller(timer1) {PollTimeout = TestPollTimeoutMillis})
+                using (var scheduler = new NetMQScheduler(context, poller))
+                {
+                    poller.PollTillCancelledNonBlocking();
+
+                    Thread.Sleep(timerIntervalMillis/2);
+
+                    // reset the timer
+                    new Task(timer1.EnableAndReset).Start(scheduler);
+
+                    Thread.Sleep((int)(timerIntervalMillis * 0.6));
+                    
+                    // it shouldn't have run
+                    Assert.AreEqual(0, count);
+
+                    Thread.Sleep((int)(timerIntervalMillis * 0.5));
+
+                    // it should have run once
+                    Assert.AreEqual(1, count);
+
+                    new Task(() =>
+                    {
+                        timer1.Enable = true;
+                        timer1.EnableAndReset();
+                    }).Start(scheduler);
+
+                    Thread.Sleep((int)(timerIntervalMillis *1.1));
+
+                    Assert.AreEqual(2, count);                
+
+                    poller.CancelAndJoin();
+                }                
+            }
+        }
+
+        [Test]
         public void ChangeTimerInterval()
         {
             int count = 0;
