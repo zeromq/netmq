@@ -662,6 +662,7 @@ namespace NetMQ.Tests
                 const int timerIntervalMillis = 50;
 
                 var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
+                var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis / 2));
 
                 int count = 0;
 
@@ -670,17 +671,17 @@ namespace NetMQ.Tests
                     count++;
                 };
 
-                using (var poller = new Poller(timer1) {PollTimeout = TestPollTimeoutMillis})
-                using (var scheduler = new NetMQScheduler(context, poller))
+                timer2.Elapsed += (sender, args) =>
+                {
+                    timer1.EnableAndReset();
+                    timer2.Enable = false;
+                };
+
+                using (var poller = new Poller(timer1, timer2) {PollTimeout = TestPollTimeoutMillis})                
                 {
                     poller.PollTillCancelledNonBlocking();
-
-                    Thread.Sleep(timerIntervalMillis/2);
-
-                    // reset the timer
-                    new Task(timer1.EnableAndReset).Start(scheduler);
-
-                    Thread.Sleep((int)(timerIntervalMillis * 0.6));
+                  
+                    Thread.Sleep((int)(timerIntervalMillis * 1.1));
                     
                     // it shouldn't have run
                     Assert.AreEqual(0, count);
@@ -688,18 +689,8 @@ namespace NetMQ.Tests
                     Thread.Sleep((int)(timerIntervalMillis * 0.5));
 
                     // it should have run once
-                    Assert.AreEqual(1, count);
-
-                    new Task(() =>
-                    {
-                        timer1.Enable = true;
-                        timer1.EnableAndReset();
-                    }).Start(scheduler);
-
-                    Thread.Sleep((int)(timerIntervalMillis *1.1));
-
-                    Assert.AreEqual(2, count);                
-
+                    Assert.AreEqual(1, count);                    
+                    
                     poller.CancelAndJoin();
                 }                
             }
