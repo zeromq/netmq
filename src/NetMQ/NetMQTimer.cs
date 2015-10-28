@@ -120,6 +120,17 @@ namespace NetMQ
         internal long When { get; set; }
 
         /// <summary>
+        /// Enable the timer and reset the interval
+        /// </summary>
+        public void EnableAndReset()
+        {
+            if (!Enable)
+                Enable = true;
+            else            
+                When = Clock.NowMs() + Interval;
+        }
+
+        /// <summary>
         /// If there are any subscribers - raise the Elapsed event.
         /// </summary>
         /// <param name="sender">the sender to include within the event's event-args</param>
