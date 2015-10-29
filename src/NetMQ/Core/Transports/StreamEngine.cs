@@ -806,7 +806,8 @@ namespace NetMQ.Core.Transports
                 socketError == SocketError.HostUnreachable ||
                 socketError == SocketError.ConnectionAborted ||
                 socketError == SocketError.TimedOut ||
-                socketError == SocketError.ConnectionReset)
+                socketError == SocketError.ConnectionReset ||
+                socketError == SocketError.AccessDenied)
                 return -1;
 
             throw NetMQException.Create(socketError);
@@ -844,7 +845,8 @@ namespace NetMQ.Core.Transports
                 socketError == SocketError.HostUnreachable ||
                 socketError == SocketError.ConnectionAborted ||
                 socketError == SocketError.TimedOut ||
-                socketError == SocketError.ConnectionReset)
+                socketError == SocketError.ConnectionReset ||
+                socketError == SocketError.AccessDenied)
                 return -1;
 
             throw NetMQException.Create(socketError);

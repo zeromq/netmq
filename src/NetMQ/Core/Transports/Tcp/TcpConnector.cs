@@ -225,7 +225,7 @@ namespace NetMQ.Core.Transports.Tcp
                 if (socketError == SocketError.ConnectionRefused || socketError == SocketError.TimedOut ||
                     socketError == SocketError.ConnectionAborted ||
                     socketError == SocketError.HostUnreachable || socketError == SocketError.NetworkUnreachable ||
-                    socketError == SocketError.NetworkDown)
+                    socketError == SocketError.NetworkDown || socketError == SocketError.AccessDenied)
                 {
                     AddReconnectTimer();
                 }
