@@ -394,11 +394,11 @@ namespace NetMQ.Core.Patterns.Utils
         /// <summary>
         /// Signal all the matching pipes.
         /// </summary>
-        public void Match([NotNull] byte[] data, int size, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        public void Match([NotNull] byte[] data, int offset, int size, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
         {
             MultiTrie current = this;
 
-            int index = 0;
+            int index = offset;
 
             while (true)
             {

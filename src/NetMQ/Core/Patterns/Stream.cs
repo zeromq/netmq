@@ -217,8 +217,8 @@ namespace NetMQ.Core.Patterns
                     // If there's no such pipe just silently ignore the message, unless
                     // mandatory is set.
 
-                    var identity = msg.Size == msg.Data.Length 
-                        ? msg.Data 
+                    var identity = msg.Count == msg.Array.Length 
+                        ? msg.Array 
                         : msg.CloneData();
 
                     Outpipe op;
@@ -255,7 +255,7 @@ namespace NetMQ.Core.Patterns
             // Push the message into the pipe. If there's no out pipe, just drop it.
             if (m_currentOut != null)
             {
-                if (msg.Size == 0)
+                if (msg.Count == 0)
                 {
                     m_currentOut.Terminate(false);
                     m_currentOut = null;

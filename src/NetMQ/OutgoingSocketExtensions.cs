@@ -54,7 +54,7 @@ namespace NetMQ
         {
             var msg = new Msg();
             msg.InitPool(length);
-            Buffer.BlockCopy(data, 0, msg.Data, 0, length);
+            Buffer.BlockCopy(data, 0, msg.Array, msg.Offset, length);
             socket.Send(ref msg, more);
             msg.Close();
         }
@@ -108,7 +108,7 @@ namespace NetMQ
         {
             var msg = new Msg();
             msg.InitPool(length);
-            Buffer.BlockCopy(data, 0, msg.Data, 0, length);
+            Buffer.BlockCopy(data, 0, msg.Array, 0, length);
 
             if (!socket.TrySend(ref msg, timeout, more))
             {
@@ -184,7 +184,7 @@ namespace NetMQ
             var msg = new Msg();
             msg.InitPool(length);
 
-            Buffer.BlockCopy(data, 0, msg.Data, 0, length);
+            Buffer.BlockCopy(data, 0, msg.Array, 0, length);
 
             socket.Send(ref msg, options);
 
@@ -440,7 +440,7 @@ namespace NetMQ
             msg.InitPool(SendReceiveConstants.DefaultEncoding.GetByteCount(message));
 
             // Encode the string into the buffer
-            SendReceiveConstants.DefaultEncoding.GetBytes(message, 0, message.Length, msg.Data, 0);
+            SendReceiveConstants.DefaultEncoding.GetBytes(message, 0, message.Length, msg.Array, 0);
 
             socket.Send(ref msg, more);
             msg.Close();
@@ -485,7 +485,7 @@ namespace NetMQ
             msg.InitPool(SendReceiveConstants.DefaultEncoding.GetByteCount(message));
 
             // Encode the string into the buffer
-            SendReceiveConstants.DefaultEncoding.GetBytes(message, 0, message.Length, msg.Data, 0);
+            SendReceiveConstants.DefaultEncoding.GetBytes(message, 0, message.Length, msg.Array, 0);
 
             if (!socket.TrySend(ref msg, timeout, more))
             {
@@ -537,7 +537,7 @@ namespace NetMQ
             msg.InitPool(encoding.GetByteCount(message));
 
             // Encode the string into the buffer
-            encoding.GetBytes(message, 0, message.Length, msg.Data, 0);
+            encoding.GetBytes(message, 0, message.Length, msg.Array, 0);
 
             socket.Send(ref msg, options);
 
@@ -799,7 +799,7 @@ namespace NetMQ
 
             Msg msg = new Msg();
             msg.InitPool(8);
-            NetworkOrderBitsConverter.PutInt64(signalValue, msg.Data);
+            NetworkOrderBitsConverter.PutInt64(signalValue, msg.Array);
 
             socket.Send(ref msg, false);
 
@@ -818,7 +818,7 @@ namespace NetMQ
 
             Msg msg = new Msg();
             msg.InitPool(8);
-            NetworkOrderBitsConverter.PutInt64(signalValue, msg.Data);
+            NetworkOrderBitsConverter.PutInt64(signalValue, msg.Array);
 
             if (!socket.TrySend(ref msg, TimeSpan.Zero, false))
             {

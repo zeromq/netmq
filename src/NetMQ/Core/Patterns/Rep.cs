@@ -110,7 +110,7 @@ namespace NetMQ.Core.Patterns
                     if (msg.HasMore)
                     {
                         // Empty message part delimits the traceback stack.
-                        bool bottom = (msg.Size == 0);
+                        bool bottom = (msg.Count == 0);
 
                         // Push it to the reply pipe.
                         isMessageAvailable = base.XSend(ref msg);

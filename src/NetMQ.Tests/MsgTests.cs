@@ -17,10 +17,10 @@ namespace NetMQ.Tests
         {
             var msg = new Msg();
 
-            Assert.AreEqual(0, msg.Size);
+            Assert.AreEqual(0, msg.Count);
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
             Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.IsNull(msg.Data);
+            Assert.IsNull(msg.Array);
             Assert.IsFalse(msg.HasMore);
             Assert.IsFalse(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
@@ -94,10 +94,10 @@ namespace NetMQ.Tests
             var msg = new Msg();
             msg.InitEmpty();
 
-            Assert.AreEqual(0, msg.Size);
+            Assert.AreEqual(0, msg.Count);
             Assert.AreEqual(MsgType.Empty, msg.MsgType);
             Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.IsNull(msg.Data);
+            Assert.IsNull(msg.Array);
             Assert.IsFalse(msg.HasMore);
             Assert.IsFalse(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
@@ -106,7 +106,7 @@ namespace NetMQ.Tests
             msg.Close();
  
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.IsNull(msg.Array);
         }
 
         [Test]
@@ -115,10 +115,10 @@ namespace NetMQ.Tests
             var msg = new Msg();
             msg.InitDelimiter();
 
-            Assert.AreEqual(0, msg.Size);
+            Assert.AreEqual(0, msg.Count);
             Assert.AreEqual(MsgType.Delimiter, msg.MsgType);
             Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.IsNull(msg.Data);
+            Assert.IsNull(msg.Array);
             Assert.IsFalse(msg.HasMore);
             Assert.IsTrue(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
@@ -127,7 +127,7 @@ namespace NetMQ.Tests
             msg.Close();
  
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.IsNull(msg.Array);
         }
 
         [Test]
@@ -137,10 +137,10 @@ namespace NetMQ.Tests
             var bytes = new byte[200];
             msg.InitGC(bytes, 100);
 
-            Assert.AreEqual(100, msg.Size);
+            Assert.AreEqual(100, msg.Count);
             Assert.AreEqual(MsgType.GC, msg.MsgType);
             Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.AreSame(bytes, msg.Data);
+            Assert.AreSame(bytes, msg.Array);
             Assert.IsFalse(msg.HasMore);
             Assert.IsFalse(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
@@ -149,7 +149,7 @@ namespace NetMQ.Tests
             msg.Close();
  
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.IsNull(msg.Array);
         }
 
         [Test]
@@ -167,11 +167,11 @@ namespace NetMQ.Tests
             Assert.AreEqual(1, pool.TakeCallCount);
             Assert.AreEqual(100, pool.TakeSize[0]);
 
-            Assert.AreEqual(100, msg.Size);
+            Assert.AreEqual(100, msg.Count);
             Assert.AreEqual(MsgType.Pool, msg.MsgType);
             Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.IsNotNull(msg.Data);
-            Assert.AreEqual(100, msg.Data.Length);
+            Assert.IsNotNull(msg.Array);
+            Assert.AreEqual(100, msg.Array.Length);
             Assert.IsFalse(msg.HasMore);
             Assert.IsFalse(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
@@ -179,7 +179,7 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(0, pool.ReturnCallCount);
 
-            var bytes = msg.Data;
+            var bytes = msg.Array;
 
             msg.Close();
 
@@ -187,7 +187,7 @@ namespace NetMQ.Tests
             Assert.AreSame(bytes, pool.ReturnBuffer[0]);
  
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.IsNull(msg.Array);
         }
 
         [Test, ExpectedException(typeof(FaultException), ExpectedMessage = "Cannot copy an uninitialised Msg.")]
@@ -222,13 +222,13 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(0, pool.ReturnCallCount);
             Assert.IsFalse(msg.IsInitialised);
-            Assert.IsNull(msg.Data);
+            Assert.IsNull(msg.Array);
 
             copy.Close();
 
             Assert.AreEqual(1, pool.ReturnCallCount);
             Assert.IsFalse(copy.IsInitialised);
-            Assert.IsNull(copy.Data);
+            Assert.IsNull(copy.Array);
         }
     }
 }

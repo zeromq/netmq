@@ -34,9 +34,9 @@ namespace remote_lat
 
                     req.Receive(ref msg);
 
-                    if (msg.Size != messageSize)
+                    if (msg.Count != messageSize)
                     {
-                        Console.WriteLine("message of incorrect size received. Received: {0} Expected: {1}", msg.Size, messageSize);
+                        Console.WriteLine("message of incorrect size received. Received: {0} Expected: {1}", msg.Count, messageSize);
                         return -1;
                     }
                 }

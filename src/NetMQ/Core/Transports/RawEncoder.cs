@@ -42,7 +42,8 @@ namespace NetMQ.Core.Transports
         private bool RawMessageSizeReady()
         {
             // Write message body into the buffer.
-            NextStep(m_inProgress.Data, m_inProgress.Size, RawMessageReadyState, !m_inProgress.HasMore);
+            NextStep(new ByteArraySegment(m_inProgress.Array, m_inProgress.Offset),
+                m_inProgress.Count, RawMessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 

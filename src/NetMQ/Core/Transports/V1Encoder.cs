@@ -63,7 +63,8 @@ namespace NetMQ.Core.Transports
         private bool SizeReady()
         {
             // Write message body into the buffer.
-            NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState, !m_inProgress.HasMore);
+            NextStep(new ByteArraySegment(m_inProgress.Array, m_inProgress.Offset),
+                m_inProgress.Count, MessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 
@@ -93,7 +94,7 @@ namespace NetMQ.Core.Transports
             }
 
             // Get the message size.
-            int size = m_inProgress.Size;
+            int size = m_inProgress.Count;
 
             // Account for the 'flags' byte.
             size++;

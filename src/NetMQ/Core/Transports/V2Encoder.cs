@@ -47,7 +47,8 @@ namespace NetMQ.Core.Transports
         private bool SizeReady()
         {
             // Write message body into the buffer.
-            NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState, !m_inProgress.HasMore);
+            NextStep(new ByteArraySegment(m_inProgress.Array, m_inProgress.Offset),
+                m_inProgress.Count, MessageReadyState, !m_inProgress.HasMore);
             return true;
         }
 
@@ -79,14 +80,14 @@ namespace NetMQ.Core.Transports
             int protocolFlags = 0;
             if (m_inProgress.HasMore)
                 protocolFlags |= V2Protocol.MoreFlag;
-            if (m_inProgress.Size > 255)
+            if (m_inProgress.Count > 255)
                 protocolFlags |= V2Protocol.LargeFlag;
             m_tmpbuf[0] = (byte)protocolFlags;
 
             // Encode the message length. For messages less then 256 bytes,
             // the length is encoded as 8-bit unsigned integer. For larger
             // messages, 64-bit unsigned integer in network byte order is used.
-            int size = m_inProgress.Size;
+            int size = m_inProgress.Count;
             if (size > 255)
             {
                 m_tmpbuf.PutLong(Endian, size, 1);

@@ -172,21 +172,20 @@ namespace NetMQ.Core.Patterns
         /// <returns><c>true</c> if the message was sent successfully</returns>
         protected override bool XSend(ref Msg msg)
         {
-            byte[] data = msg.Data;
-            int size = msg.Size;
+            int size = msg.Count;
 
-            if (size > 0 && data[0] == 1)
+            if (size > 0 && msg[0] == 1)
             {
                 // Process the subscription.
-                if (m_subscriptions.Add(data, 1, size - 1))
+                if (m_subscriptions.Add(msg.Array, msg.Offset + 1, size - 1))
                 {
                     m_distribution.SendToAll(ref msg);
                     return true;
                 }
             }
-            else if (size > 0 && data[0] == 0)
+            else if (size > 0 && msg[0] == 0)
             {
-                if (m_subscriptions.Remove(data, 1, size - 1))
+                if (m_subscriptions.Remove(msg.Array, msg.Offset + 1, size - 1))
                 {
                     m_distribution.SendToAll(ref msg);
                     return true;
@@ -309,7 +308,7 @@ namespace NetMQ.Core.Patterns
 
         private bool Match(Msg msg)
         {
-            return m_subscriptions.Check(msg.Data, msg.Size);
+            return m_subscriptions.Check(msg.Array, msg.Offset, msg.Count);
         }
     }
 }

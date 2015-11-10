@@ -25,7 +25,7 @@ namespace RouterPerformance
                 router.Bind("tcp://*:5555");
 
                 var dealers = new List<DealerSocket>();
-                var identities = new List<byte[]>();
+                var identities = new List<Msg>();
                 var random = new Random();
                 var identity = new byte[50];
 
@@ -40,7 +40,9 @@ namespace RouterPerformance
                     dealer.Connect("tcp://localhost:5555");
 
                     dealers.Add(dealer);
-                    identities.Add(identity);
+                    var msg = new Msg();
+                    msg.InitGC(identity, identity.Length);
+                    identities.Add(msg);
                 }
 
                 Thread.Sleep(500);
@@ -52,7 +54,14 @@ namespace RouterPerformance
                     var stopwatch = Stopwatch.StartNew();
 
                     for (var i = 0; i < messageCount; i++)
-                        router.SendMoreFrame(identities[i%identities.Count]).SendFrame("E");
+                    {
+                        var msg = identities[i%identities.Count];
+                        router.Send(ref msg, true);
+                        var msg2 = new Msg();
+                        msg2.InitPool(1);
+                        msg2.Put((byte) 'E');
+                        router.Send(ref msg2, false);
+                    }
 
                     stopwatch.Stop();
 
