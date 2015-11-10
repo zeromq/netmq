@@ -41,16 +41,16 @@ namespace NetMQ.Tests
                 if (count == 0)
                 {
                     Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Array.Length);
-                    Assert.AreEqual(1, msg.Array[0]);
+                    Assert.AreEqual(1, msg.Data.Length);
+                    Assert.AreEqual(1, msg.Data[0]);
                     Assert.IsTrue(more);
                     count++;
                 }
                 else
                 {
                     Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Array.Length);
-                    Assert.AreEqual(2, msg.Array[0]);
+                    Assert.AreEqual(1, msg.Data.Length);
+                    Assert.AreEqual(2, msg.Data[0]);
                     Assert.IsFalse(more);
                     count++;
                 }
@@ -72,16 +72,16 @@ namespace NetMQ.Tests
                 if (count == 0)
                 {
                     Assert.AreEqual(TimeSpan.FromSeconds(1), timeout);
-                    Assert.AreEqual(1, msg.Array.Length);
-                    Assert.AreEqual(1, msg.Array[0]);
+                    Assert.AreEqual(1, msg.Data.Length);
+                    Assert.AreEqual(1, msg.Data[0]);
                     Assert.IsTrue(more);
                     count++;
                 }
                 else
                 {
                     Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Array.Length);
-                    Assert.AreEqual(2, msg.Array[0]);
+                    Assert.AreEqual(1, msg.Data.Length);
+                    Assert.AreEqual(2, msg.Data[0]);
                     Assert.IsFalse(more);
                     count++;
                 }
@@ -102,8 +102,8 @@ namespace NetMQ.Tests
             {
 
                 Assert.AreEqual(TimeSpan.FromSeconds(1), timeout);
-                Assert.AreEqual(1, msg.Array.Length);
-                Assert.AreEqual(1, msg.Array[0]);
+                Assert.AreEqual(1, msg.Data.Length);
+                Assert.AreEqual(1, msg.Data[0]);
                 Assert.IsTrue(more);
                 count++;
 
@@ -124,16 +124,16 @@ namespace NetMQ.Tests
                 if (count == 0)
                 {
                     Assert.AreEqual(TimeSpan.FromSeconds(0), timeout);
-                    Assert.AreEqual(1, msg.Array.Length);
-                    Assert.AreEqual(1, msg.Array[0]);
+                    Assert.AreEqual(1, msg.Data.Length);
+                    Assert.AreEqual(1, msg.Data[0]);
                     Assert.IsTrue(more);
                     count++;
                 }
                 else
                 {
                     Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Array.Length);
-                    Assert.AreEqual(2, msg.Array[0]);
+                    Assert.AreEqual(1, msg.Data.Length);
+                    Assert.AreEqual(2, msg.Data[0]);
                     Assert.IsFalse(more);
                     count++;
                 }
@@ -155,16 +155,16 @@ namespace NetMQ.Tests
                 if (count == 0)
                 {
                     Assert.AreEqual(TimeSpan.FromSeconds(0), timeout);
-                    Assert.AreEqual(1, msg.Array.Length);
-                    Assert.AreEqual(1, msg.Array[0]);
+                    Assert.AreEqual(1, msg.Data.Length);
+                    Assert.AreEqual(1, msg.Data[0]);
                     Assert.IsTrue(more);
                     count++;
                 }
                 else
                 {
                     Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Array.Length);
-                    Assert.AreEqual(2, msg.Array[0]);
+                    Assert.AreEqual(1, msg.Data.Length);
+                    Assert.AreEqual(2, msg.Data[0]);
                     Assert.IsFalse(more);
                     count++;
                 }
@@ -188,8 +188,8 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.FromSeconds(0), timeout);
-                Assert.AreEqual(1, msg.Array.Length);
-                Assert.AreEqual(1, msg.Array[0]);
+                Assert.AreEqual(1, msg.Data.Length);
+                Assert.AreEqual(1, msg.Data[0]);
                 Assert.IsTrue(more);
                 count++;
 
@@ -210,7 +210,7 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.AreEqual(0, msg.Array.Length);                
+                Assert.AreEqual(0, msg.Data.Length);                
                 Assert.IsFalse(more);
                 return true;
             });
@@ -224,7 +224,7 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.AreEqual(0, msg.Array.Length);
+                Assert.AreEqual(0, msg.Data.Length);
                 Assert.IsTrue(more);
                 return true;
             });
@@ -239,7 +239,7 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
-                Assert.AreEqual(0, msg.Array.Length);
+                Assert.AreEqual(0, msg.Data.Length);
                 Assert.IsFalse(more);
                 return true;
             });
@@ -254,7 +254,7 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
-                Assert.AreEqual(0, msg.Array.Length);
+                Assert.AreEqual(0, msg.Data.Length);
                 Assert.IsFalse(more);
                 return false;
             });
@@ -268,9 +268,9 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.AreEqual(8, msg.Array.Length);
+                Assert.AreEqual(8, msg.Data.Length);
 
-                long value = NetworkOrderBitsConverter.ToInt64(msg.Array);
+                long value = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 Assert.AreEqual(0x7766554433221100L, value);
 
@@ -287,9 +287,9 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
-                Assert.AreEqual(8, msg.Array.Length);
+                Assert.AreEqual(8, msg.Data.Length);
 
-                long value = NetworkOrderBitsConverter.ToInt64(msg.Array);
+                long value = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 Assert.AreEqual(0x7766554433221100L, value);
 
@@ -306,9 +306,9 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
-                Assert.AreEqual(8, msg.Array.Length);
+                Assert.AreEqual(8, msg.Data.Length);
 
-                long value = NetworkOrderBitsConverter.ToInt64(msg.Array);
+                long value = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 Assert.AreEqual(0x7766554433221100L, value);
 

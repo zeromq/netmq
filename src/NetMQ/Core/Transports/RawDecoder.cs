@@ -34,8 +34,8 @@ namespace NetMQ.Core.Transports
             m_inProgress = new Msg();
             m_inProgress.InitPool(msgSize);
 
-            NextStep(new ByteArraySegment(m_inProgress.Array, m_inProgress.Offset),
-                m_inProgress.Count, RawMessageReadyState);
+            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
+                m_inProgress.Size, RawMessageReadyState);
 
             return true;
         }
@@ -52,7 +52,7 @@ namespace NetMQ.Core.Transports
 
         bool RawMessageReady()
         {
-            Debug.Assert(m_inProgress.Count != 0);
+            Debug.Assert(m_inProgress.Size != 0);
 
             // Message is completely read. Push it further and start reading
             // new message. (in_progress is a 0-byte message after this point.)
@@ -69,7 +69,7 @@ namespace NetMQ.Core.Transports
                     // NOTE: This is just to break out of process_buffer
                     // raw_message_ready should never get called in state machine w/o
                     // message_ready_size from stream_engine.    
-                    NextStep(new ByteArraySegment(m_inProgress.Array, m_inProgress.Offset),
+                    NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
                         1, RawMessageReadyState);
                 }
 

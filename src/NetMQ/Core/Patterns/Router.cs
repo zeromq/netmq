@@ -278,8 +278,8 @@ namespace NetMQ.Core.Patterns
                     // If there's no such pipe just silently ignore the message, unless
                     // mandatory is set.
 
-                    var identity = msg.Count == msg.Array.Length 
-                        ? msg.Array
+                    var identity = msg.Size == msg.Data.Length 
+                        ? msg.Data
                         : msg.CloneData();
 
                     Outpipe op;
@@ -326,7 +326,7 @@ namespace NetMQ.Core.Patterns
                 // Close the remote connection if user has asked to do so
                 // by sending zero length message.
                 // Pending messages in the pipe will be dropped (on receiving term-ack)
-                if (m_rawSocket && msg.Count == 0)
+                if (m_rawSocket && msg.Size == 0)
                 {
                     m_currentOut.Terminate(false);
                     msg.Close();
@@ -503,7 +503,7 @@ namespace NetMQ.Core.Patterns
                 if (!ok)
                     return false;
 
-                if (msg.Count == 0)
+                if (msg.Size == 0)
                 {
                     // Fall back on the auto-generation
                     identity = new byte[5];

@@ -28,9 +28,9 @@ namespace local_lat
                 for (int i = 0; i != roundtripCount; i++)
                 {
                     rep.Receive(ref msg);
-                    if (msg.Count != messageSize)
+                    if (msg.Size != messageSize)
                     {
-                        Console.WriteLine("message of incorrect size received. Received: " + msg.Count + " Expected: " + messageSize);
+                        Console.WriteLine("message of incorrect size received. Received: " + msg.Size + " Expected: " + messageSize);
                         return -1;
                     }
 

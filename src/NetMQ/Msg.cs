@@ -96,7 +96,7 @@ namespace NetMQ
         /// <summary>
         /// Get the number of bytes within the Data property.
         /// </summary>
-        public int Count { get; private set; }
+        public int Size { get; private set; }
 
         /// <summary>
         /// Gets the position of the first element in the Data property delimited by the message,
@@ -190,7 +190,7 @@ namespace NetMQ
         /// This value will be <c>null</c> if <see cref="MsgType"/> is <see cref="NetMQ.MsgType.Uninitialised"/>,
         /// <see cref="NetMQ.MsgType.Empty"/> or <see cref="NetMQ.MsgType.Delimiter"/>.
         /// </remarks>
-        public byte[] Array { get; private set; }
+        public byte[] Data { get; private set; }
 
         /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
         [Obsolete("Use the IsInitialised property instead")]
@@ -208,9 +208,9 @@ namespace NetMQ
         {
             MsgType = MsgType.Empty;
             Flags = MsgFlags.None;
-            Count = 0;
+            Size = 0;
             Offset = 0;
-            Array = null;
+            Data = null;
             m_refCount = null;
         }
 
@@ -222,8 +222,8 @@ namespace NetMQ
         {
             MsgType = MsgType.Pool;
             Flags = MsgFlags.None;
-            Array = BufferPool.Take(size);
-            Count = size;
+            Data = BufferPool.Take(size);
+            Size = size;
             Offset = 0;
             m_refCount = new AtomicCounter();
         }
@@ -237,8 +237,8 @@ namespace NetMQ
         {
             MsgType = MsgType.GC;
             Flags = MsgFlags.None;
-            Array = data;
-            Count = size;
+            Data = data;
+            Size = size;
             Offset = offset;
             m_refCount = null;
         }
@@ -270,13 +270,13 @@ namespace NetMQ
             {
                 // if not shared or reference counter drop to zero
                 if (!IsShared || m_refCount.Decrement() == 0)
-                    BufferPool.Return(Array);
+                    BufferPool.Return(Data);
 
                 m_refCount = null;
             }
 
             // Uninitialise the frame
-            Array = null;
+            Data = null;
             MsgType = MsgType.Uninitialised;
         }
 
@@ -328,7 +328,7 @@ namespace NetMQ
             {
                 m_refCount = null;
 
-                BufferPool.Return(Array);
+                BufferPool.Return(Data);
 
                 // TODO shouldn't we set the type to uninitialised, or call clear, here? the object has a null refCount, but other methods may try to use it
             }
@@ -340,7 +340,7 @@ namespace NetMQ
         /// <returns>a string that provides some detail about this Msg's state</returns>
         public override string ToString()
         {
-            return base.ToString() + "[" + MsgType + "," + Count + "," + Flags + "]";
+            return base.ToString() + "[" + MsgType + "," + Size + "," + Flags + "]";
         }
 
         /// <summary>
@@ -354,7 +354,7 @@ namespace NetMQ
             if (len == 0 || src == null)
                 return;
 
-            Buffer.BlockCopy(src, 0, Array, i, len);
+            Buffer.BlockCopy(src, 0, Data, i, len);
         }
 
         /// <summary>
@@ -363,7 +363,7 @@ namespace NetMQ
         /// <param name="b">the source byte to copy from</param>
         public void Put(byte b)
         {
-            Array[Offset + 0] = b;
+            Data[Offset + 0] = b;
         }
 
         /// <summary>
@@ -373,7 +373,7 @@ namespace NetMQ
         /// <param name="i">index within the internal Data array to copy that byte to</param>
         public void Put(byte b, int i)
         {
-            Array[Offset + i] = b;
+            Data[Offset + i] = b;
         }
 
         /// <summary>
@@ -383,8 +383,8 @@ namespace NetMQ
         /// <returns></returns>
         public byte this[int index]
         {
-            get { return Array[Offset + index]; }
-            set { Array[Offset + index] = value; }
+            get { return Data[Offset + index]; }
+            set { Data[Offset + index] = value; }
         }
 
         /// <summary>
@@ -444,10 +444,10 @@ namespace NetMQ
         /// <summary>Returns a new array containing the first <see cref="Size"/> bytes of <see cref="Data"/>.</summary>
         public byte[] CloneData()
         {
-            var data = new byte[Count];
+            var data = new byte[Size];
 
-            if (Count > 0)
-                Buffer.BlockCopy(Array, Offset, data, 0, Count);
+            if (Size > 0)
+                Buffer.BlockCopy(Data, Offset, data, 0, Size);
 
             return data;
         }

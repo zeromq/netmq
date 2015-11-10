@@ -132,7 +132,7 @@ namespace NetMQ.Core.Patterns
                 m_subscriptions.Add(null, 0, 0, pipe);
 
             // if welcome message was set, write one to the pipe.
-            if (m_welcomeMessage.Count > 0)
+            if (m_welcomeMessage.Size > 0)
             {
                 var copy = new Msg();
                 copy.InitEmpty();
@@ -158,7 +158,7 @@ namespace NetMQ.Core.Patterns
             while (pipe.Read(ref sub))
             {
                 // Apply the subscription to the trie.
-                int size = sub.Count;
+                int size = sub.Size;
                 if (size > 0 && (sub[0] == 0 || sub[0] == 1))
                 {
                     if (m_manual)
@@ -170,8 +170,8 @@ namespace NetMQ.Core.Patterns
                     else
                     {
                         var unique = sub[0] == 0 
-                            ? m_subscriptions.Remove(sub.Array, sub.Offset + 1, size - 1, pipe) 
-                            : m_subscriptions.Add(sub.Array, sub.Offset + 1, size - 1, pipe);
+                            ? m_subscriptions.Remove(sub.Data, sub.Offset + 1, size - 1, pipe) 
+                            : m_subscriptions.Add(sub.Data, sub.Offset + 1, size - 1, pipe);
 
                         // If the subscription is not a duplicate, store it so that it can be
                         // passed to used on next recv call.
@@ -290,7 +290,7 @@ namespace NetMQ.Core.Patterns
 
             // For the first part of multipart message, find the matching pipes.
             if (!m_more)
-                m_subscriptions.Match(msg.Array, msg.Offset, msg.Count, s_markAsMatching, this);
+                m_subscriptions.Match(msg.Data, msg.Offset, msg.Size, s_markAsMatching, this);
 
             // Send the message to all the pipes that were marked as matching
             // in the previous step.

@@ -483,8 +483,8 @@ namespace NetMQ
 
             more = msg.HasMore;
 
-            var str = msg.Count > 0
-                ? encoding.GetString(msg.Array, msg.Offset, msg.Count)
+            var str = msg.Size > 0
+                ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
                 : string.Empty;
 
             msg.Close();
@@ -615,8 +615,8 @@ namespace NetMQ
             {
                 more = msg.HasMore;
 
-                frameString = msg.Count > 0
-                    ? encoding.GetString(msg.Array, msg.Offset, msg.Count)
+                frameString = msg.Size > 0
+                    ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
                     : string.Empty;
 
                 msg.Close();
@@ -659,8 +659,8 @@ namespace NetMQ
 
             hasMore = msg.HasMore;
 
-            string data = msg.Count > 0
-                ? encoding.GetString(msg.Array, msg.Offset, msg.Count)
+            string data = msg.Size > 0
+                ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
                 : string.Empty;
 
             msg.Close();
@@ -911,7 +911,7 @@ namespace NetMQ
             do
             {
                 socket.Receive(ref msg);
-                frames.Add(encoding.GetString(msg.Array, msg.Offset, msg.Count));
+                frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
             }
             while (msg.HasMore);
 
@@ -1005,13 +1005,13 @@ namespace NetMQ
                 frames.Clear();
 
             // Add the frame
-            frames.Add(encoding.GetString(msg.Array, msg.Offset, msg.Count));
+            frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
 
             // Rinse and repeat...
             while (msg.HasMore)
             {
                 socket.Receive(ref msg);
-                frames.Add(encoding.GetString(msg.Array, msg.Offset, msg.Count));
+                frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
             }
 
             msg.Close();
@@ -1272,10 +1272,10 @@ namespace NetMQ
                     socket.Receive(ref msg);
                 }
 
-                if (isMultiFrame || msg.Count != 8)
+                if (isMultiFrame || msg.Size != 8)
                     continue;
 
-                var signalValue = NetworkOrderBitsConverter.ToInt64(msg.Array);
+                var signalValue = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 if ((signalValue & 0x7FFFFFFFFFFFFF00L) == 0x7766554433221100L)
                 {
@@ -1335,10 +1335,10 @@ namespace NetMQ
                     socket.Receive(ref msg);
                 }
 
-                if (isMultiFrame || msg.Count != 8)
+                if (isMultiFrame || msg.Size != 8)
                     continue;
 
-                var signalValue = NetworkOrderBitsConverter.ToInt64(msg.Array);
+                var signalValue = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 if ((signalValue & 0x7FFFFFFFFFFFFF00L) == 0x7766554433221100L)
                 {

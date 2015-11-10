@@ -124,7 +124,7 @@ namespace NetMQ.Core.Patterns
                 if (!isMessageAvailable)
                     return false;
 
-                if (!msg.HasMore || msg.Count != 0)
+                if (!msg.HasMore || msg.Size != 0)
                 {
                     while (true)
                     {
@@ -197,7 +197,7 @@ namespace NetMQ.Core.Patterns
                 switch (m_state)
                 {
                     case State.Bottom:
-                        if (msg.Flags == MsgFlags.More && msg.Count == 0)
+                        if (msg.Flags == MsgFlags.More && msg.Size == 0)
                         {
                             m_state = State.Body;
                             return base.PushMsg(ref msg);
