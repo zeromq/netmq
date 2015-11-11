@@ -233,8 +233,18 @@ namespace NetMQ
         /// </summary>
         /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
         /// <param name="size">the number of bytes that are in the data byte-array</param>
-        public void InitGC([NotNull] byte[] data, int size, int offset = 0)
+        public void InitGC([NotNull] byte[] data, int size)
         {
+            InitGC(data, 0, size);
+        }
+
+        /// <summary>
+        /// Initialise this Msg to be of MsgType.GC with the given data-buffer value.
+        /// </summary>
+        /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
+        /// <param name="offset">first byte in the data array</param>
+        /// <param name="size">the number of bytes that are in the data byte-array</param>
+        public void InitGC([NotNull] byte[] data, int offset, int size) {
             MsgType = MsgType.GC;
             Flags = MsgFlags.None;
             Data = data;
@@ -242,7 +252,6 @@ namespace NetMQ
             Offset = offset;
             m_refCount = null;
         }
-
 
         /// <summary>
         /// Set this Msg to be of type MsgType.Delimiter with no bits set within MsgFlags.
@@ -358,12 +367,25 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Copy the given byte-array data to this Msg's Data buffer.
+        /// </summary>
+        /// <param name="src">the source byte-array to copy from</param>
+        /// <param name="srcOffset">first byte in the source byte-array</param>
+        /// <param name="i">index within the internal Data array to copy that byte to</param>
+        /// <param name="len">the number of bytes to copy</param>
+        public void Put([CanBeNull] byte[] src, int srcOffset, int i, int len) {
+            if (len == 0 || src == null)
+                return;
+            Buffer.BlockCopy(src, srcOffset, Data, i, len);
+        }
+
+        /// <summary>
         /// Copy the given single byte to this Msg's Data buffer.
         /// </summary>
         /// <param name="b">the source byte to copy from</param>
         public void Put(byte b)
         {
-            Data[Offset + 0] = b;
+            Data[Offset] = b;
         }
 
         /// <summary>

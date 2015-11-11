@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using NetMQ;
 using NetMQ.Sockets;
+using System.Linq;
 
 namespace RouterPerformance
 {
@@ -35,13 +36,13 @@ namespace RouterPerformance
 
                     random.NextBytes(identity);
 
-                    dealer.Options.Identity = identity;
+                    dealer.Options.Identity = identity.Skip(10).ToArray();
                     dealer.Options.ReceiveHighWatermark = 0;
                     dealer.Connect("tcp://localhost:5555");
 
                     dealers.Add(dealer);
                     var msg = new Msg();
-                    msg.InitGC(identity, identity.Length);
+                    msg.InitGC(identity, 10, identity.Length); // test offsets
                     identities.Add(msg);
                 }
 
