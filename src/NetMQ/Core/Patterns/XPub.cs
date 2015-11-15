@@ -184,7 +184,14 @@ namespace NetMQ.Core.Patterns
                         // If the subscription is not a duplicate, store it so that it can be
                         // passed to used on next recv call.
                         if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
+                        {
                             m_pending.Enqueue(sub);
+                        }
+                        else
+                        {
+                            sub.Close();
+                        }
+
                     }
                 }
                 else if (m_broadcastEnabled && size > 0 && sub.HasMore && sub[0] == 2)
@@ -194,7 +201,6 @@ namespace NetMQ.Core.Patterns
                     sub.Offset = sub.Offset + 1;
                     sub.Size = sub.Size - 1;
                     m_pending.Enqueue(sub);
-                    //XSend(ref sub);
                 }
                 else // process message unrelated to sub/unsub
                 {
@@ -345,7 +351,7 @@ namespace NetMQ.Core.Patterns
             // If there is at least one 
             if (m_pending.Count == 0)
                 return false;
-
+            msg.Close();
             msg = m_pending.Dequeue();
             
             return true;
