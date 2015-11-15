@@ -194,12 +194,10 @@ namespace NetMQ.Core.Patterns
 
                     }
                 }
-                else if (m_broadcastEnabled && size > 0 && sub.HasMore && sub[0] == 2)
+                else if (m_broadcastEnabled && size > 0 && sub[0] == 2)
                 {
                     m_lastPipe = pipe;
                     m_lastPipeIsBroadcast = true;
-                    sub.Offset = sub.Offset + 1;
-                    sub.Size = sub.Size - 1;
                     m_pending.Enqueue(sub);
                 }
                 else // process message unrelated to sub/unsub
