@@ -484,7 +484,7 @@ namespace NetMQ
             more = msg.HasMore;
 
             var str = msg.Size > 0
-                ? encoding.GetString(msg.Data, 0, msg.Size)
+                ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
                 : string.Empty;
 
             msg.Close();
@@ -616,7 +616,7 @@ namespace NetMQ
                 more = msg.HasMore;
 
                 frameString = msg.Size > 0
-                    ? encoding.GetString(msg.Data, 0, msg.Size)
+                    ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
                     : string.Empty;
 
                 msg.Close();
@@ -660,7 +660,7 @@ namespace NetMQ
             hasMore = msg.HasMore;
 
             string data = msg.Size > 0
-                ? encoding.GetString(msg.Data, 0, msg.Size)
+                ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
                 : string.Empty;
 
             msg.Close();
@@ -911,7 +911,7 @@ namespace NetMQ
             do
             {
                 socket.Receive(ref msg);
-                frames.Add(encoding.GetString(msg.Data, 0, msg.Size));
+                frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
             }
             while (msg.HasMore);
 
@@ -1005,13 +1005,13 @@ namespace NetMQ
                 frames.Clear();
 
             // Add the frame
-            frames.Add(encoding.GetString(msg.Data, 0, msg.Size));
+            frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
 
             // Rinse and repeat...
             while (msg.HasMore)
             {
                 socket.Receive(ref msg);
-                frames.Add(encoding.GetString(msg.Data, 0, msg.Size));
+                frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
             }
 
             msg.Close();

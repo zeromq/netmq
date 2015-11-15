@@ -144,10 +144,43 @@ namespace NetMQ.Tests
             Assert.IsFalse(msg.HasMore);
             Assert.IsFalse(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
-            Assert.IsTrue(msg.IsInitialised);
-            
+            Assert.IsTrue(msg.IsInitialised);            
+
             msg.Close();
  
+            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
+            Assert.IsNull(msg.Data);
+        }
+
+
+        [Test]
+        public void InitGCOffset() {
+            var msg = new Msg();
+            var bytes = new byte[200];
+            msg.InitGC(bytes, 100, 50);
+
+            Assert.AreEqual(50, msg.Size);
+            Assert.AreEqual(MsgType.GC, msg.MsgType);
+            Assert.AreEqual(MsgFlags.None, msg.Flags);
+            Assert.AreSame(bytes, msg.Data);
+            Assert.IsFalse(msg.HasMore);
+            Assert.IsFalse(msg.IsDelimiter);
+            Assert.IsFalse(msg.IsIdentity);
+            Assert.IsTrue(msg.IsInitialised);
+
+            var src = new byte[100];
+            for (int i = 50; i < 100; i++) {
+                src[i] = (byte)i;
+            }
+            msg.Put(src[50]);
+            msg.Put(src[51], 1);
+            msg.Put(src, 52, 2, 48);
+            for (int i = 0; i < 50; i++) {
+                msg[i] = (byte)(i + 50);
+            }
+
+            msg.Close();
+
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
             Assert.IsNull(msg.Data);
         }

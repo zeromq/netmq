@@ -158,9 +158,8 @@ namespace NetMQ.Core.Patterns
             while (pipe.Read(ref sub))
             {
                 // Apply the subscription to the trie.
-                byte[] data = sub.Data;
                 int size = sub.Size;
-                if (size > 0 && (data[0] == 0 || data[0] == 1))
+                if (size > 0 && (sub[0] == 0 || sub[0] == 1))
                 {
                     if (m_manual)
                     {
@@ -170,9 +169,9 @@ namespace NetMQ.Core.Patterns
                     }
                     else
                     {
-                        var unique = data[0] == 0 
-                            ? m_subscriptions.Remove(data, 1, size - 1, pipe) 
-                            : m_subscriptions.Add(data, 1, size - 1, pipe);
+                        var unique = sub[0] == 0 
+                            ? m_subscriptions.Remove(sub.Data, sub.Offset + 1, size - 1, pipe) 
+                            : m_subscriptions.Add(sub.Data, sub.Offset + 1, size - 1, pipe);
 
                         // If the subscription is not a duplicate, store it so that it can be
                         // passed to used on next recv call.
@@ -291,7 +290,7 @@ namespace NetMQ.Core.Patterns
 
             // For the first part of multipart message, find the matching pipes.
             if (!m_more)
-                m_subscriptions.Match(msg.Data, msg.Size, s_markAsMatching, this);
+                m_subscriptions.Match(msg.Data, msg.Offset, msg.Size, s_markAsMatching, this);
 
             // Send the message to all the pipes that were marked as matching
             // in the previous step.

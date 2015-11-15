@@ -54,7 +54,7 @@ namespace NetMQ
         {
             var msg = new Msg();
             msg.InitPool(length);
-            Buffer.BlockCopy(data, 0, msg.Data, 0, length);
+            Buffer.BlockCopy(data, 0, msg.Data, msg.Offset, length);
             socket.Send(ref msg, more);
             msg.Close();
         }

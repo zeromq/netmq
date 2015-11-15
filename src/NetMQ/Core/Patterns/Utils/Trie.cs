@@ -236,12 +236,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="data"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public bool Check([NotNull] byte[] data, int size)
+        public bool Check([NotNull] byte[] data, int offset, int size)
         {
             // This function is on critical path. It deliberately doesn't use
             // recursion to get a bit better performance.
             Trie current = this;
-            int start = 0;
+            int start = offset;
             while (true)
             {
                 // We've found a corresponding subscription!

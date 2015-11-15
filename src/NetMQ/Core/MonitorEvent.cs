@@ -121,7 +121,7 @@ namespace NetMQ.Core
 
             s.TryRecv(ref msg, SendReceiveConstants.InfiniteTimeout);
 
-            int pos = 0;
+            int pos = msg.Offset;
             ByteArraySegment data = msg.Data;
 
             var @event = (SocketEvents)data.GetInteger(Endianness.Little, pos);
