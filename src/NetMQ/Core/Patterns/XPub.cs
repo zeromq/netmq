@@ -328,7 +328,11 @@ namespace NetMQ.Core.Patterns
             if (!msgMore)
             {
                 m_distribution.Unmatch();
-                if (m_broadcastEnabled) m_lastPipeIsBroadcast = false;
+                if (m_broadcastEnabled)
+                {
+                    m_lastPipeIsBroadcast = false;
+                    m_lastPipe = null;
+                }
             }
 
             m_more = msgMore;
