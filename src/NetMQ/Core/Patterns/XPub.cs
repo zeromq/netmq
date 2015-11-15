@@ -59,7 +59,10 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private bool m_manual;
 
+        private bool m_broadcastEnabled;
+
         private Pipe m_lastPipe;
+        private bool m_lastPipeIsBroadcast;
 
         private Msg m_welcomeMessage;
 
@@ -82,7 +85,11 @@ namespace NetMQ.Core.Patterns
             s_markAsMatching = (pipe, data, size, arg) =>
             {
                 var self = (XPub)arg;
-                self.m_distribution.Match(pipe);
+                // skip the sender of a broadcast message
+                if (!(self.m_broadcastEnabled && self.m_lastPipeIsBroadcast && self.m_lastPipe == pipe))
+                {
+                    self.m_distribution.Match(pipe);
+                }
             };
 
             s_sendUnsubscription = (pipe, data, size, arg) =>
@@ -157,6 +164,7 @@ namespace NetMQ.Core.Patterns
             var sub = new Msg();
             while (pipe.Read(ref sub))
             {
+                m_lastPipeIsBroadcast = false;
                 // Apply the subscription to the trie.
                 int size = sub.Size;
                 if (size > 0 && (sub[0] == 0 || sub[0] == 1))
@@ -179,12 +187,20 @@ namespace NetMQ.Core.Patterns
                             m_pending.Enqueue(sub.CloneData());
                     }
                 }
+                else if (m_broadcastEnabled && size > 0 && (sub[0] == 2))
+                {
+                    m_lastPipe = pipe;
+                    m_lastPipeIsBroadcast = true;
+                    sub.Offset = sub.Offset + 1;
+                    sub.Size = sub.Size - 1;
+                    XSend(ref sub);
+                }
                 else // process message unrelated to sub/unsub
                 {
                     m_pending.Enqueue(sub.CloneData());
                 }
 
-                sub.Close();
+                if(!m_lastPipeIsBroadcast) sub.Close();
             }
         }
 
@@ -219,6 +235,11 @@ namespace NetMQ.Core.Patterns
                     m_manual = true;
                     return true;
                 }
+                case ZmqSocketOption.XPublisherBroadcast:
+                    {
+                        m_broadcastEnabled = true;
+                        return true;
+                    }
                 case ZmqSocketOption.Subscribe:
                 {
                     if (m_manual && m_lastPipe != null)

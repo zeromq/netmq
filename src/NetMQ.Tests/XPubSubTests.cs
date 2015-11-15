@@ -373,6 +373,7 @@ namespace NetMQ.Tests
             }
         }
 
+
         [Test]
         public void ClearWelcomeMessage()
         {
@@ -392,6 +393,36 @@ namespace NetMQ.Tests
                 Assert.AreEqual(subscription[1], (byte)'W');
 
                 Assert.IsFalse(sub.TrySkipFrame());
+            }
+        }
+
+
+        [Test]
+        public void BroadcastEnabled() {
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreateXPublisherSocket())
+            using (var sub1 = context.CreateXSubscriberSocket())
+            using (var sub2 = context.CreateXSubscriberSocket()) {
+                pub.Bind("inproc://manual");
+                pub.Options.XPubBroadcast = true;
+
+                sub1.Connect("inproc://manual");
+                sub2.Connect("inproc://manual");
+
+                sub1.SendFrame(new byte[] { 1, (byte)'A' });
+                sub2.SendFrame(new byte[] { 1, (byte)'A' });
+
+                var payload = new[] {(byte)42};
+
+                var msg = new Msg();
+
+                sub1.SendFrame(new byte[] { 2, 42 });
+                var broadcast1 = sub2.ReceiveFrameBytes();
+                Assert.IsTrue(broadcast1.SequenceEqual(payload));
+                // this message SHOULD NOT be resent to sub1
+                Assert.IsFalse(sub1.TryReceive(ref msg, System.TimeSpan.FromSeconds(1)));
+
+
             }
         }
     }
