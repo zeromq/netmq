@@ -445,6 +445,17 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Increase Offset and decrease Size by the given count.
+        /// </summary>
+        /// <param name="count">Number of bytes to remove from a message</param>
+        public void TrimPrefix(int count)
+        {
+            if (count > Size || count < 0) throw new ArgumentOutOfRangeException("count", "Count should be between 0 and size");
+            Offset = Offset + count;
+            Size = Size - count;
+        }
+
+        /// <summary>
         /// Close this Msg and make it reference the given source Msg, and then clear the Msg to empty.
         /// </summary>
         /// <param name="src">the source-Msg to become</param>
