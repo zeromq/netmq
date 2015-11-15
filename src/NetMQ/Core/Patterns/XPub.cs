@@ -164,7 +164,6 @@ namespace NetMQ.Core.Patterns
             var sub = new Msg();
             while (pipe.Read(ref sub))
             {
-                m_lastPipeIsBroadcast = false;
                 // Apply the subscription to the trie.
                 int size = sub.Size;
                 if (size > 0 && (sub[0] == 0 || sub[0] == 1))
@@ -187,13 +186,14 @@ namespace NetMQ.Core.Patterns
                             m_pending.Enqueue(sub.CloneData());
                     }
                 }
-                else if (m_broadcastEnabled && size > 0 && (sub[0] == 2))
+                else if (m_broadcastEnabled && size > 0 && sub.HasMore && sub[0] == 2)
                 {
                     m_lastPipe = pipe;
                     m_lastPipeIsBroadcast = true;
                     sub.Offset = sub.Offset + 1;
                     sub.Size = sub.Size - 1;
-                    XSend(ref sub);
+                    m_pending.Enqueue(sub.CloneData());
+                    //XSend(ref sub);
                 }
                 else // process message unrelated to sub/unsub
                 {
@@ -237,7 +237,7 @@ namespace NetMQ.Core.Patterns
                 }
                 case ZmqSocketOption.XPublisherBroadcast:
                     {
-                        m_broadcastEnabled = true;
+                        m_broadcastEnabled = (bool)optionValue;
                         return true;
                     }
                 case ZmqSocketOption.Subscribe:
@@ -320,7 +320,10 @@ namespace NetMQ.Core.Patterns
             // If we are at the end of multipart message we can mark all the pipes
             // as non-matching.
             if (!msgMore)
+            {
                 m_distribution.Unmatch();
+                if (m_broadcastEnabled) m_lastPipeIsBroadcast = false;
+            }
 
             m_more = msgMore;
 
