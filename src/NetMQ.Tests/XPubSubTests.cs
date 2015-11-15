@@ -404,7 +404,6 @@ namespace NetMQ.Tests
             using (var pub = context.CreateXPublisherSocket())
             using (var sub1 = context.CreateXSubscriberSocket())
             using (var sub2 = context.CreateXSubscriberSocket())
-            using (var poller = new Poller())
             {
                 pub.Bind("inproc://manual");
                 pub.Options.XPubBroadcast = true;
@@ -441,12 +440,13 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void BroadcastDisabled() {
+        public void BroadcastDisabled() 
+        {
             using (var context = NetMQContext.Create())
             using (var pub = context.CreateXPublisherSocket())
             using (var sub1 = context.CreateXSubscriberSocket())
-            using (var sub2 = context.CreateXSubscriberSocket())
-            using (var poller = new Poller()) {
+            using (var sub2 = context.CreateXSubscriberSocket()) 
+            {
                 pub.Bind("inproc://manual");
                 pub.Options.XPubBroadcast = false;
                 
