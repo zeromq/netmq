@@ -59,7 +59,10 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private bool m_manual;
 
+        private bool m_broadcastEnabled;
+
         private Pipe m_lastPipe;
+        private bool m_lastPipeIsBroadcast;
 
         private Msg m_welcomeMessage;
 
@@ -72,7 +75,7 @@ namespace NetMQ.Core.Patterns
         /// List of pending (un)subscriptions, ie. those that were already
         /// applied to the trie, but not yet received by the user.
         /// </summary>
-        private readonly Queue<byte[]> m_pending;
+        private readonly Queue<Msg> m_pending;
 
         private static readonly MultiTrie.MultiTrieDelegate s_markAsMatching;
         private static readonly MultiTrie.MultiTrieDelegate s_sendUnsubscription;
@@ -82,7 +85,11 @@ namespace NetMQ.Core.Patterns
             s_markAsMatching = (pipe, data, size, arg) =>
             {
                 var self = (XPub)arg;
-                self.m_distribution.Match(pipe);
+                // skip the sender of a broadcast message
+                if (!(self.m_broadcastEnabled && self.m_lastPipeIsBroadcast && self.m_lastPipe == pipe))
+                {
+                    self.m_distribution.Match(pipe);
+                }
             };
 
             s_sendUnsubscription = (pipe, data, size, arg) =>
@@ -94,11 +101,12 @@ namespace NetMQ.Core.Patterns
                     // Place the unsubscription to the queue of pending (un)subscriptions
                     // to be retrieved by the user later on.
 
-                    var unsub = new byte[size + 1];
-                    unsub[0] = 0;
-                    Buffer.BlockCopy(data, 0, unsub, 1, size);
+                    var unsubMsg = new Msg();
+                    unsubMsg.InitPool(size + 1);
+                    unsubMsg[0] = 0;
+                    unsubMsg.Put(data, 1, size);
 
-                    self.m_pending.Enqueue(unsub);
+                    self.m_pending.Enqueue(unsubMsg);
                 }
             };
         }
@@ -113,7 +121,7 @@ namespace NetMQ.Core.Patterns
 
             m_subscriptions = new MultiTrie();
             m_distribution = new Distribution();
-            m_pending = new Queue<byte[]>();
+            m_pending = new Queue<Msg>();
         }
 
         /// <summary>
@@ -165,7 +173,7 @@ namespace NetMQ.Core.Patterns
                     {
                         m_lastPipe = pipe;
 
-                        m_pending.Enqueue(sub.CloneData());
+                        m_pending.Enqueue(sub);
                     }
                     else
                     {
@@ -176,15 +184,27 @@ namespace NetMQ.Core.Patterns
                         // If the subscription is not a duplicate, store it so that it can be
                         // passed to used on next recv call.
                         if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
-                            m_pending.Enqueue(sub.CloneData());
+                        {
+                            m_pending.Enqueue(sub);
+                        }
+                        else
+                        {
+                            sub.Close();
+                        }
+
                     }
+                }
+                else if (m_broadcastEnabled && size > 0 && sub[0] == 2)
+                {
+                    m_lastPipe = pipe;
+                    m_lastPipeIsBroadcast = true;
+                    m_pending.Enqueue(sub);
                 }
                 else // process message unrelated to sub/unsub
                 {
-                    m_pending.Enqueue(sub.CloneData());
+                    m_pending.Enqueue(sub);
                 }
 
-                sub.Close();
             }
         }
 
@@ -219,6 +239,11 @@ namespace NetMQ.Core.Patterns
                     m_manual = true;
                     return true;
                 }
+                case ZmqSocketOption.XPublisherBroadcast:
+                    {
+                        m_broadcastEnabled = (bool)optionValue;
+                        return true;
+                    }
                 case ZmqSocketOption.Subscribe:
                 {
                     if (m_manual && m_lastPipe != null)
@@ -299,7 +324,14 @@ namespace NetMQ.Core.Patterns
             // If we are at the end of multipart message we can mark all the pipes
             // as non-matching.
             if (!msgMore)
+            {
                 m_distribution.Unmatch();
+                if (m_broadcastEnabled)
+                {
+                    m_lastPipeIsBroadcast = false;
+                    m_lastPipe = null;
+                }
+            }
 
             m_more = msgMore;
 
@@ -321,14 +353,9 @@ namespace NetMQ.Core.Patterns
             // If there is at least one 
             if (m_pending.Count == 0)
                 return false;
-
             msg.Close();
-
-            byte[] first = m_pending.Dequeue();
-            msg.InitPool(first.Length);
-
-            msg.Put(first, 0, first.Length);
-
+            msg = m_pending.Dequeue();
+            
             return true;
         }
 

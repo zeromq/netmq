@@ -245,8 +245,15 @@ namespace NetMQ.Core
         /// This is an XPublisher-socket welcome-message.
         /// </summary>
         XPublisherWelcomeMessage = 43,
-        
+
+
         DisableTimeWait = 44,
+
+        /// <summary>
+        /// This applies only to XPub sockets.
+        /// If true, enable broadcast option on XPublishers
+        /// </summary>
+        XPublisherBroadcast = 45,
 
         /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.

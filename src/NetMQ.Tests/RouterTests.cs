@@ -2,11 +2,14 @@
 using NUnit.Framework;
 using System.Text;
 
-namespace NetMQ.Tests {
+namespace NetMQ.Tests 
+{
     [TestFixture]
-    public class RouterTests {
+    public class RouterTests 
+    {
         [Test]
-        public void Mandatory() {
+        public void Mandatory() 
+        {
             using (var context = NetMQContext.Create())
             using (var router = context.CreateRouterSocket()) {
                 router.Options.RouterMandatory = true;
@@ -17,7 +20,8 @@ namespace NetMQ.Tests {
         }
 
         [Test]
-        public void ReceiveReadyDot35Bug() {
+        public void ReceiveReadyDot35Bug() 
+        {
             // In .NET 3.5, we saw an issue where ReceiveReady would be raised every second despite nothing being received
 
             using (var context = NetMQContext.Create())
@@ -33,7 +37,8 @@ namespace NetMQ.Tests {
 
 
         [Test]
-        public void TwoMessagesFromRouterToDealer() {
+        public void TwoMessagesFromRouterToDealer() 
+        {
             using (var context = NetMQContext.Create())
             using (var poller = new Poller())
             using (var server = context.CreateRouterSocket())
