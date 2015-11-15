@@ -75,7 +75,8 @@ namespace NetMQ.Core.Patterns
         /// List of pending (un)subscriptions, ie. those that were already
         /// applied to the trie, but not yet received by the user.
         /// </summary>
-        private readonly Queue<Msg> m_pending;
+        private readonly Queue<Msg> m_pendingMessages;
+        private readonly Queue<Pipe> m_pendingPipes;
 
         private static readonly MultiTrie.MultiTrieDelegate s_markAsMatching;
         private static readonly MultiTrie.MultiTrieDelegate s_sendUnsubscription;
@@ -106,7 +107,7 @@ namespace NetMQ.Core.Patterns
                     unsubMsg[0] = 0;
                     unsubMsg.Put(data, 1, size);
 
-                    self.m_pending.Enqueue(unsubMsg);
+                    self.m_pendingMessages.Enqueue(unsubMsg);
                 }
             };
         }
@@ -121,7 +122,8 @@ namespace NetMQ.Core.Patterns
 
             m_subscriptions = new MultiTrie();
             m_distribution = new Distribution();
-            m_pending = new Queue<Msg>();
+            m_pendingMessages = new Queue<Msg>();
+            m_pendingPipes = new Queue<Pipe>();
         }
 
         /// <summary>
@@ -171,9 +173,8 @@ namespace NetMQ.Core.Patterns
                 {
                     if (m_manual)
                     {
-                        m_lastPipe = pipe;
-
-                        m_pending.Enqueue(sub);
+                        m_pendingMessages.Enqueue(sub);
+                        m_pendingPipes.Enqueue(pipe);
                     }
                     else
                     {
@@ -185,7 +186,7 @@ namespace NetMQ.Core.Patterns
                         // passed to used on next recv call.
                         if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
                         {
-                            m_pending.Enqueue(sub);
+                            m_pendingMessages.Enqueue(sub);
                         }
                         else
                         {
@@ -196,13 +197,12 @@ namespace NetMQ.Core.Patterns
                 }
                 else if (m_broadcastEnabled && size > 0 && sub[0] == 2)
                 {
-                    m_lastPipe = pipe;
-                    m_lastPipeIsBroadcast = true;
-                    m_pending.Enqueue(sub);
+                    m_pendingMessages.Enqueue(sub);
+                    m_pendingPipes.Enqueue(pipe);
                 }
                 else // process message unrelated to sub/unsub
                 {
-                    m_pending.Enqueue(sub);
+                    m_pendingMessages.Enqueue(sub);
                 }
 
             }
@@ -250,6 +250,7 @@ namespace NetMQ.Core.Patterns
                     {
                         var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes((string)optionValue);
                         m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
+                        m_lastPipe = null;
                         return true;
                     }
                     break;
@@ -260,6 +261,7 @@ namespace NetMQ.Core.Patterns
                     {
                         var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes((string)optionValue);
                         m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
+                        m_lastPipe = null;
                         return true;
                     }
                     break;
@@ -315,8 +317,9 @@ namespace NetMQ.Core.Patterns
 
             // For the first part of multipart message, find the matching pipes.
             if (!m_more)
+            {
                 m_subscriptions.Match(msg.Data, msg.Offset, msg.Size, s_markAsMatching, this);
-
+            }
             // Send the message to all the pipes that were marked as matching
             // in the previous step.
             m_distribution.SendToMatching(ref msg);
@@ -351,17 +354,30 @@ namespace NetMQ.Core.Patterns
         protected override bool XRecv(ref Msg msg)
         {
             // If there is at least one 
-            if (m_pending.Count == 0)
+            if (m_pendingMessages.Count == 0)
                 return false;
             msg.Close();
-            msg = m_pending.Dequeue();
-            
+            msg = m_pendingMessages.Dequeue();
+            // must check if m_lastPipe == null to avoid dequeue at the second frame of a broadcast message
+            if (m_pendingPipes.Count > 0 && m_lastPipe == null) 
+            {
+                if (m_broadcastEnabled && msg[0] == 2)
+                {
+                    m_lastPipeIsBroadcast = true;
+                    m_lastPipe = m_pendingPipes.Dequeue();
+                }
+                if (m_manual && (msg[0] == 0 || msg[0] == 1)) 
+                {
+                    m_lastPipeIsBroadcast = false;
+                    m_lastPipe = m_pendingPipes.Dequeue();
+                }
+            }
             return true;
         }
 
         protected override bool XHasIn()
         {
-            return m_pending.Count != 0;
+            return m_pendingMessages.Count != 0;
         }
     }
 }
