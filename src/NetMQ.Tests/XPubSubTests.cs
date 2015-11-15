@@ -427,7 +427,7 @@ namespace NetMQ.Tests
                 var message = pub.ReceiveFrameBytes();
 
                 Assert.AreEqual(2, topic[0]);
-                // we must ski the first byte if we have detected a broadcast message
+                // we must skip the first byte if we have detected a broadcast message
                 // the sender of this message is already marked for exclusion
                 // but the match logic in Send should work with normal topic.
                 topic = topic.Skip(1).ToArray();
