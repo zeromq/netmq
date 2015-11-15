@@ -201,7 +201,6 @@ namespace NetMQ.Core.Patterns
                     m_pending.Enqueue(sub);
                 }
 
-                if(!m_lastPipeIsBroadcast) sub.Close();
             }
         }
 
