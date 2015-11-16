@@ -165,11 +165,12 @@ namespace NetMQ.Core.Patterns
         {
             // There are some subscriptions waiting. Let's process them.
             var sub = new Msg();
+            var isBroadcast = false;
             while (pipe.Read(ref sub))
             {
                 // Apply the subscription to the trie.
                 int size = sub.Size;
-                if (size > 0 && (sub[0] == 0 || sub[0] == 1))
+                if (size > 0 && (sub[0] == 0 || sub[0] == 1) && !isBroadcast)
                 {
                     if (m_manual)
                     {
@@ -199,6 +200,7 @@ namespace NetMQ.Core.Patterns
                 {
                     m_pendingMessages.Enqueue(sub);
                     m_pendingPipes.Enqueue(pipe);
+                    isBroadcast = true;
                 }
                 else // process message unrelated to sub/unsub
                 {
