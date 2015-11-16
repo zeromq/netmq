@@ -236,7 +236,7 @@ namespace NetMQ.Core.Patterns
                 }
                 case ZmqSocketOption.XPublisherManual:
                 {
-                    m_manual = true;
+                    m_manual = (bool)optionValue;
                     return true;
                 }
                 case ZmqSocketOption.XPublisherBroadcast:
