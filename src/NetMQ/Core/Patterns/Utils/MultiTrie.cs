@@ -155,7 +155,7 @@ namespace NetMQ.Core.Patterns.Utils
             // Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
             {
-                func(null, buffer, bufferSize, arg);
+                func(pipe, buffer, bufferSize, arg);
                 m_pipes = null;
             }
 
