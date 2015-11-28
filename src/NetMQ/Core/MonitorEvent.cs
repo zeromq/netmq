@@ -56,21 +56,12 @@ namespace NetMQ.Core
         }
 
         [NotNull]
-        public string Addr
-        {
-            get { return m_addr; }
-        }
+        public string Addr => m_addr;
 
         [NotNull]
-        public object Arg
-        {
-            get { return m_arg; }
-        }
+        public object Arg => m_arg;
 
-        public SocketEvents Event
-        {
-            get { return m_monitorEvent; }
-        }
+        public SocketEvents Event => m_monitorEvent;
 
         public void Write([NotNull] SocketBase s)
         {

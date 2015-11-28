@@ -128,10 +128,10 @@ namespace NetMQ.Core
         }
 
         [NotNull]
-        public string Protocol { get; private set; }
+        public string Protocol { get; }
 
         [NotNull]
-        public string AddressString { get; private set; }
+        public string AddressString { get; }
 
         [CanBeNull]
         public IZAddress Resolved { get; set; }

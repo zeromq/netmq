@@ -93,8 +93,8 @@ namespace NetMQ.Tests
             using (var pub = context.CreatePublisherSocket())
             using (var sub = context.CreateSubscriberSocket())
             {
-                pub.Connect(string.Format("pgm://{0};224.0.0.1:5555", ip));
-                sub.Bind(string.Format("pgm://{0};224.0.0.1:5555", ip));
+                pub.Connect($"pgm://{ip};224.0.0.1:5555");
+                sub.Bind($"pgm://{ip};224.0.0.1:5555");
 
                 sub.Subscribe("");
 

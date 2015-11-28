@@ -43,10 +43,10 @@ namespace NetMQ.Core
 
         /// <summary>The destination to which the command should be applied.</summary>
         [CanBeNull]
-        public ZObject Destination { get; private set; }
+        public ZObject Destination { get; }
 
         /// <summary>The type of this command.</summary>
-        public CommandType CommandType { get; private set; }
+        public CommandType CommandType { get; }
 
         /// <summary>
         /// Get the argument to this command.

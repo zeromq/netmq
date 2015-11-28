@@ -13,7 +13,7 @@ namespace NetMQ.Tests
                 Value = value;
             }
 
-            public T Value { get; private set; }
+            public T Value { get; }
         }
 
         private event EventHandler<Args<int>> Source;

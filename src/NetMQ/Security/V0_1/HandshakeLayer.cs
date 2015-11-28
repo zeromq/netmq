@@ -107,7 +107,7 @@ namespace NetMQ.Security.V0_1
             VerifyCertificate = c => c.Verify();
         }
 
-        public SecurityParameters SecurityParameters { get; private set; }
+        public SecurityParameters SecurityParameters { get; }
 
         /// <summary>
         /// Get or set the array of allowed cipher-suites.
@@ -127,10 +127,7 @@ namespace NetMQ.Security.V0_1
         /// <summary>
         /// Get the Pseudo-Random number generating-Function (PRF) that is being used.
         /// </summary>
-        public IPRF PRF
-        {
-            get { return m_prf; }
-        }
+        public IPRF PRF => m_prf;
 
         /// <summary>
         /// This event signals a change to the cipher-suite.
@@ -554,7 +551,7 @@ namespace NetMQ.Security.V0_1
                     SecurityParameters.RecordIVLength = 16;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("cipher");
+                    throw new ArgumentOutOfRangeException(nameof(cipher));
             }
 
             switch (cipher)
@@ -579,7 +576,7 @@ namespace NetMQ.Security.V0_1
                     SecurityParameters.MACLength = 32;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("cipher");
+                    throw new ArgumentOutOfRangeException(nameof(cipher));
             }
         }
 
@@ -588,11 +585,7 @@ namespace NetMQ.Security.V0_1
         /// </summary>
         private void InvokeChangeCipherSuite()
         {
-            EventHandler temp = CipherSuiteChange;
-            if (temp != null)
-            {
-                temp(this, EventArgs.Empty);
-            }
+            CipherSuiteChange?.Invoke(this, EventArgs.Empty);
         }
 
         private void GenerateMasterSecret(byte[] preMasterSecret)

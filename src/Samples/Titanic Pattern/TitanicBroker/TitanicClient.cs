@@ -68,9 +68,9 @@ namespace TitanicProtocol
                                                            int waitInBetween = 2500)
         {
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
+                throw new ArgumentNullException (nameof(serviceName), "The name of the service requested must not be empty or 'null'!");
 
-            Log (string.Format ("requesting service {0} to process {1}", serviceName, request));
+            Log ($"requesting service {serviceName} to process {request}");
 
             var count = 0;
             var requestId = Guid.Empty;
@@ -91,7 +91,7 @@ namespace TitanicProtocol
                 }
 
             }
-            Log (string.Format ("RequestId = {0}", requestId));
+            Log ($"RequestId = {requestId}");
 
             // 2. wait for reply
             var reply = Reply (requestId, retries, TimeSpan.FromMilliseconds (waitInBetween));
@@ -124,7 +124,7 @@ namespace TitanicProtocol
                                                            int waitInBetween = 2500)
         {
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
+                throw new ArgumentNullException (nameof(serviceName), "The name of the service requested must not be empty or 'null'!");
 
             return GetResult (serviceName, Encoding.UTF8.GetBytes (request), retries, waitInBetween);
         }
@@ -146,7 +146,7 @@ namespace TitanicProtocol
                                                            int waitInBetween = 2500)
         {
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
+                throw new ArgumentNullException (nameof(serviceName), "The name of the service requested must not be empty or 'null'!");
 
             var reply = GetResult (serviceName, enc.GetBytes (request), retries, waitInBetween);
 
@@ -172,7 +172,7 @@ namespace TitanicProtocol
             where TOut : ITitanicConvert<TOut>, new ()
         {
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
+                throw new ArgumentNullException (nameof(serviceName), "The name of the service requested must not be empty or 'null'!");
 
             var reply = GetResult (serviceName, request.ConvertToBytes (), retries, waitInBetween);
             var result = new TOut ();
@@ -195,7 +195,7 @@ namespace TitanicProtocol
         public Guid Request (string serviceName, byte[] request)
         {
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
+                throw new ArgumentNullException (nameof(serviceName), "The name of the service requested must not be empty or 'null'!");
 
             var message = new NetMQMessage ();
             // set request data
@@ -203,7 +203,7 @@ namespace TitanicProtocol
             // set requested service
             message.Push (serviceName);              // [service name][data]
 
-            Log (string.Format ("requesting: {0}", message));
+            Log ($"requesting: {message}");
 
             var reply = ServiceCall (m_client, TitanicOperation.Request, message);
 
@@ -228,7 +228,7 @@ namespace TitanicProtocol
         public Guid Request (string serviceName, string request)
         {
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
+                throw new ArgumentNullException (nameof(serviceName), "The name of the service requested must not be empty or 'null'!");
 
             return Request (serviceName, Encoding.UTF8.GetBytes (request));
         }
@@ -246,7 +246,7 @@ namespace TitanicProtocol
         public Guid Request<T> (string serviceName, T request) where T : ITitanicConvert<T>
         {
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName", "The name of the service requested must not be empty or 'null'!");
+                throw new ArgumentNullException (nameof(serviceName), "The name of the service requested must not be empty or 'null'!");
 
             return Request (serviceName, request.ConvertToBytes ());
         }
@@ -283,7 +283,7 @@ namespace TitanicProtocol
         public Tuple<byte[], TitanicReturnCode> Reply (Guid requestId, int retries, TimeSpan waitBetweenRetries)
         {
             if (requestId == Guid.Empty)
-                throw new ArgumentNullException ("requestId", "The id of the request must not be empty!");
+                throw new ArgumentNullException (nameof(requestId), "The id of the request must not be empty!");
 
             var message = new NetMQMessage ();
             var rc = TitanicReturnCode.Failure;
@@ -294,7 +294,7 @@ namespace TitanicProtocol
             {
                 message.Push (requestId.ToString ());
 
-                Log (string.Format ("requesting reply for: {0}", message));
+                Log ($"requesting reply for: {message}");
 
                 var reply = ServiceCall (m_client, TitanicOperation.Reply, message);
 
@@ -322,7 +322,7 @@ namespace TitanicProtocol
         public Tuple<byte[], TitanicReturnCode> Reply (Guid requestId, TimeSpan waitFor)
         {
             if (requestId == Guid.Empty)
-                throw new ArgumentNullException ("requestId", "The id of the request must not be empty!");
+                throw new ArgumentNullException (nameof(requestId), "The id of the request must not be empty!");
 
             var retries = waitFor.Milliseconds > 5000 ? 8 : 4;
             var waitBetween = waitFor.Milliseconds / retries;
@@ -341,7 +341,7 @@ namespace TitanicProtocol
         public Tuple<T, TitanicReturnCode> Reply<T> (Guid requestId, TimeSpan waitFor) where T : ITitanicConvert<T>, new ()
         {
             if (requestId == Guid.Empty)
-                throw new ArgumentNullException ("requestId", "The id of the request must not be empty!");
+                throw new ArgumentNullException (nameof(requestId), "The id of the request must not be empty!");
 
             var reply = Reply (requestId, waitFor);
 
@@ -363,7 +363,7 @@ namespace TitanicProtocol
             where T : ITitanicConvert<T>, new ()
         {
             if (requestId == Guid.Empty)
-                throw new ArgumentNullException ("requestId", "The id of the request must not be empty!");
+                throw new ArgumentNullException (nameof(requestId), "The id of the request must not be empty!");
 
             var reply = Reply (requestId, retries, waitBetweenRetries);
 
@@ -385,7 +385,7 @@ namespace TitanicProtocol
             var message = new NetMQMessage ();
             message.Push (requestId.ToString ());
 
-            Log (string.Format ("request close: {0}", message));
+            Log ($"request close: {message}");
 
             ServiceCall (m_client, TitanicOperation.Close, message);
         }
@@ -403,7 +403,7 @@ namespace TitanicProtocol
             //      in goes -> [titanic operation][request id]
             var reply = session.Send (op.ToString (), message);
 
-            Log (string.Format ("received message: {0}", reply));
+            Log ($"received message: {reply}");
 
             if (ReferenceEquals (reply, null) || reply.IsEmpty)
                 return null; // went wrong - why? I don't care!
@@ -434,10 +434,7 @@ namespace TitanicProtocol
 
         protected virtual void OnLogInfoReady (TitanicLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
 
         private void RecreateClient ()

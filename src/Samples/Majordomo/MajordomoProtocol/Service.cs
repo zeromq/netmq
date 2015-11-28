@@ -18,7 +18,7 @@ namespace MajordomoProtocol
         /// <summary>
         /// The service name.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         ///     returns a readonly sequence of waiting workers - some of which may have expired
@@ -27,12 +27,12 @@ namespace MajordomoProtocol
         ///     we need to copy the array in order to allow the changing of it in an iteration
         ///     since we will change the list while iterating we must operate on a copy
         /// </remarks>
-        public IEnumerable<Worker> WaitingWorkers { get { return m_waitingWorkers.ToArray (); } }
+        public IEnumerable<Worker> WaitingWorkers => m_waitingWorkers.ToArray ();
 
         /// <summary>
         /// Returns a list of requests pending for being send to workers
         /// </summary>
-        public List<NetMQMessage> PendingRequests { get { return m_pendingRequests; } }
+        public List<NetMQMessage> PendingRequests => m_pendingRequests;
 
         /// <summary>
         /// Ctor for a service
@@ -144,11 +144,7 @@ namespace MajordomoProtocol
 
         public override string ToString ()
         {
-            return string.Format ("Name = {0} / Worker {1} - Waiting {2} - Pending REQ {3}",
-                Name,
-                m_workers.Count,
-                m_waitingWorkers.Count,
-                m_pendingRequests.Count);
+            return $"Name = {Name} / Worker {m_workers.Count} - Waiting {m_waitingWorkers.Count} - Pending REQ {m_pendingRequests.Count}";
         }
 
         public override bool Equals (object obj)

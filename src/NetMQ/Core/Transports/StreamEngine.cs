@@ -39,11 +39,11 @@ namespace NetMQ.Core.Transports
                 BytesTransferred = bytesTransferred;
             }
 
-            public Action Action { get; private set; }
+            public Action Action { get; }
 
-            public SocketError SocketError { get; private set; }
+            public SocketError SocketError { get; }
 
-            public int BytesTransferred { get; private set; }
+            public int BytesTransferred { get; }
         }
 
         /// <summary>
@@ -239,10 +239,8 @@ namespace NetMQ.Core.Transports
             m_state = State.Closed;
 
             // Disconnect from session object.
-            if (m_encoder != null)
-                m_encoder.SetMsgSource(null);
-            if (m_decoder != null)
-                m_decoder.SetMsgSink(null);
+            m_encoder?.SetMsgSource(null);
+            m_decoder?.SetMsgSink(null);
             m_session = null;
         }
 

@@ -203,10 +203,7 @@ namespace NetMQ.Core
         /// Return the Mailbox associated with this socket.
         /// </summary>
         [NotNull]
-        public Mailbox Mailbox
-        {
-            get { return m_mailbox; }
-        }
+        public Mailbox Mailbox => m_mailbox;
 
         /// <summary>
         /// Interrupt a blocking call if the socket is stuck in one.
@@ -435,7 +432,7 @@ namespace NetMQ.Core
                         bool addressRegistered = RegisterEndpoint(addr, endpoint);
 
                         if (!addressRegistered)
-                            throw new AddressAlreadyInUseException(string.Format("Cannot bind address ( {0} ) - already in use.", addr));
+                            throw new AddressAlreadyInUseException($"Cannot bind address ( {addr} ) - already in use.");
 
                         m_options.LastEndpoint = addr;
                         return;
@@ -473,9 +470,7 @@ namespace NetMQ.Core
                             m_port = listener.Port;
 
                             // Recreate the address string (localhost:1234) in case the port was system-assigned
-                            addr = string.Format("tcp://{0}:{1}",
-                                address.Substring(0, address.IndexOf(':')),
-                                m_port);
+                            addr = $"tcp://{address.Substring(0, address.IndexOf(':'))}:{m_port}";
                         }
                         catch (NetMQException ex)
                         {
@@ -530,7 +525,7 @@ namespace NetMQ.Core
                     }
                 default:
                     {
-                        throw new ArgumentException(string.Format("Address {0} has unsupported protocol: {1}", addr, protocol), "addr");
+                        throw new ArgumentException($"Address {addr} has unsupported protocol: {protocol}", nameof(addr));
                     }
             }
         }
@@ -758,7 +753,7 @@ namespace NetMQ.Core
 
             // Check whether endpoint address passed to the function is valid.
             if (addr == null)
-                throw new ArgumentNullException("addr");
+                throw new ArgumentNullException(nameof(addr));
 
             // Process pending commands, if any, since there could be pending unprocessed process_own()'s
             //  (from launch_child() for example) we're asked to terminate now.
@@ -1355,7 +1350,7 @@ namespace NetMQ.Core
 
             // Event notification only supported over inproc://
             if (protocol != Address.InProcProtocol)
-                throw new ProtocolNotSupportedException(string.Format("In SocketBase.Monitor({0},), protocol must be inproc", addr));
+                throw new ProtocolNotSupportedException($"In SocketBase.Monitor({addr},), protocol must be inproc");
 
             // Register events to monitor
             m_monitorEvents = events;
@@ -1505,10 +1500,7 @@ namespace NetMQ.Core
         /// Get the Socket (Handle) - which is actually the Handle of the contained mailbox.
         /// </summary>
         [NotNull]
-        public Socket Handle
-        {
-            get { return m_mailbox.Handle; }
-        }
+        public Socket Handle => m_mailbox.Handle;
 
         /// <summary>
         /// Return a short bit of text that denotes the SocketType of this socket.

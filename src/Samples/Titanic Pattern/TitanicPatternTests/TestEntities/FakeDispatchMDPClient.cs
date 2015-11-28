@@ -19,9 +19,9 @@ namespace TitanicProtocolTests.TestEntities
 
         public int Retries { get; set; }
 
-        public string Address { get { return "NO ADDRESS"; } }
+        public string Address => "NO ADDRESS";
 
-        public byte[] Identity { get { return Encoding.UTF8.GetBytes ("NO IDENTITY"); } }
+        public byte[] Identity => Encoding.UTF8.GetBytes ("NO IDENTITY");
 
         public NetMQMessage Send (string serviceName, NetMQMessage request)
         {

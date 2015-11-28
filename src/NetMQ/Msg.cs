@@ -114,20 +114,14 @@ namespace NetMQ
         /// which would indicate that this message is intended for use simply to mark a boundary
         /// between other parts of some unit of communication.
         /// </summary>
-        public bool IsDelimiter
-        {
-            get { return MsgType == MsgType.Delimiter; }
-        }
+        public bool IsDelimiter => MsgType == MsgType.Delimiter;
 
         /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
         /// <remarks>A newly constructed <see cref="Msg"/> is uninitialised, and can be initialised via one
         /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC"/>, or <see cref="InitPool"/>. 
         /// Calling <see cref="Close"/> will cause the <see cref="Msg"/> to become uninitialised again.</remarks>
         /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
-        public bool IsInitialised
-        {
-            get { return MsgType != MsgType.Uninitialised; }
-        }
+        public bool IsInitialised => MsgType != MsgType.Uninitialised;
 
         #endregion
 
@@ -141,27 +135,18 @@ namespace NetMQ
         /// <summary>
         /// Get the "Has-More" flag, which when set on a message-queue frame indicates that there are more frames to follow.
         /// </summary>
-        public bool HasMore
-        {
-            get { return (Flags & MsgFlags.More) == MsgFlags.More; }
-        }
+        public bool HasMore => (Flags & MsgFlags.More) == MsgFlags.More;
 
         /// <summary>
         /// Get whether the <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
         /// Only applies to pooled message types.
         /// </summary>
-        public bool IsShared
-        {
-            get { return (Flags & MsgFlags.Shared) != 0; }
-        }
+        public bool IsShared => (Flags & MsgFlags.Shared) != 0;
 
         /// <summary>
         /// Get whether the Identity bit is set on the Flags property.
         /// </summary>
-        public bool IsIdentity
-        {
-            get { return (Flags & MsgFlags.Identity) != 0; }
-        }
+        public bool IsIdentity => (Flags & MsgFlags.Identity) != 0;
 
         /// <summary>
         /// Set the indicated Flags bits.

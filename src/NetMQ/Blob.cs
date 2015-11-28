@@ -90,19 +90,13 @@ namespace NetMQ
         /// <summary>
         /// Get the length of the data-buffer (the number of bytes in the array).
         /// </summary>
-        public int Size
-        {
-            get { return m_buffer.Length; }
-        }
+        public int Size => m_buffer.Length;
 
         /// <summary>
         /// Get the data buffer contained by this Blob, as a byte-array.
         /// </summary>
         [NotNull]
-        public byte[] Data
-        {
-            get { return m_buffer; }
-        }
+        public byte[] Data => m_buffer;
 
         /// <summary>
         /// Return true if this Blob is equal to the given object.

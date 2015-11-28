@@ -61,10 +61,7 @@ namespace NetMQ.Core
         }
 
         [NotNull]
-        internal Proactor Proactor
-        {
-            get { return m_proactor; }
-        }
+        internal Proactor Proactor => m_proactor;
 
         public void Start()
         {
@@ -83,15 +80,9 @@ namespace NetMQ.Core
         }
 
         [NotNull]
-        public IMailbox Mailbox
-        {
-            get { return m_mailbox; }
-        }
+        public IMailbox Mailbox => m_mailbox;
 
-        public int Load
-        {
-            get { return m_proactor.Load; }
-        }
+        public int Load => m_proactor.Load;
 
         protected override void ProcessStop()
         {

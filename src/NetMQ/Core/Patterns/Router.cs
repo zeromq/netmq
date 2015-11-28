@@ -55,7 +55,7 @@ namespace NetMQ.Core.Patterns
             }
 
             [NotNull]
-            public Pipe Pipe { get; private set; }
+            public Pipe Pipe { get; }
 
             public bool Active;
         };

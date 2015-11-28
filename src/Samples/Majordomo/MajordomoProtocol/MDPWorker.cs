@@ -86,11 +86,11 @@ namespace MajordomoProtocol
             : this ()
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
-                throw new ArgumentNullException ("brokerAddress",
+                throw new ArgumentNullException (nameof(brokerAddress),
                                                  "The address of the broker must not be null, empty or whitespace!");
 
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName",
+                throw new ArgumentNullException (nameof(serviceName),
                                                  "The name of the service must not be null, empty or whitespace!");
             m_identity = identity;
             m_brokerAddress = brokerAddress;
@@ -192,10 +192,7 @@ namespace MajordomoProtocol
         /// <param name="e">the wrapped logging information</param>
         protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
 
         /// <summary>
@@ -214,7 +211,7 @@ namespace MajordomoProtocol
             // a request has arrived process it
             var request = m_worker.ReceiveMultipartMessage ();
 
-            Log (string.Format ("[WORKER] received {0}", request));
+            Log ($"[WORKER] received {request}");
 
             // make sure that we have no valid request yet!
             // if something goes wrong we'll return 'null'
@@ -282,7 +279,7 @@ namespace MajordomoProtocol
 
             var command = (MDPCommand) cmd.Buffer[0];
 
-            Log (string.Format ("[WORKER] received {0}/{1}", request, command));
+            Log ($"[WORKER] received {request}/{command}");
 
             return command;
         }
@@ -309,7 +306,7 @@ namespace MajordomoProtocol
 
             m_worker.Connect (m_brokerAddress);
 
-            Log (string.Format ("[WORKER] connected to broker at {0}", m_brokerAddress));
+            Log ($"[WORKER] connected to broker at {m_brokerAddress}");
 
             // signal that worker is connected
             m_connected = true;
@@ -349,7 +346,7 @@ namespace MajordomoProtocol
             // set MDP empty frame as separator
             msg.Push (NetMQFrame.Empty);                // [e][command][header][data]
 
-            Log (string.Format ("[WORKER] sending {0} to broker / Command {1}", msg, mdpCommand));
+            Log ($"[WORKER] sending {msg} to broker / Command {mdpCommand}");
 
             m_worker.SendMessage (msg);
         }

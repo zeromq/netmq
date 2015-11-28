@@ -34,7 +34,7 @@ namespace TitanicProtocolTests
                 var path = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory);
                 var queue = Path.Combine (path, _titanic_queue);
 
-                File.Exists (queue).Should ().BeTrue (string.Format ("because {0} should NOT have been created!", queue));
+                File.Exists (queue).Should ().BeTrue ($"because {queue} should NOT have been created!");
 
                 // clean up
                 File.Delete (queue);
@@ -56,7 +56,7 @@ namespace TitanicProtocolTests
 
                 try
                 {
-                    File.Exists (queue).Should ().BeTrue (string.Format ("because {0} should have been created!", queue));
+                    File.Exists (queue).Should ().BeTrue ($"because {queue} should have been created!");
                 }
                 finally
                 {
@@ -79,8 +79,8 @@ namespace TitanicProtocolTests
                 var path = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory);
                 var queue = Path.Combine (path, _titanic_queue);
 
-                Directory.Exists (path).Should ().BeTrue (string.Format ("because {0} should have been created!", path));
-                File.Exists (queue).Should ().BeTrue (string.Format ("because {0} should have been created!", queue));
+                Directory.Exists (path).Should ().BeTrue ($"because {path} should have been created!");
+                File.Exists (queue).Should ().BeTrue ($"because {queue} should have been created!");
 
                 // clean up
                 cts.Cancel ();
@@ -106,8 +106,8 @@ namespace TitanicProtocolTests
                 var t = Task.Factory.StartNew (() => sut.Run (), cts.Token);
                 t.Status.Should ().Be (TaskStatus.WaitingToRun, "because it should wait for a request!");
 
-                Directory.Exists (path).Should ().BeTrue (string.Format ("because {0} should have been created!", path));
-                File.Exists (queue).Should ().BeTrue (string.Format ("because {0} should have been created!", queue));
+                Directory.Exists (path).Should ().BeTrue ($"because {path} should have been created!");
+                File.Exists (queue).Should ().BeTrue ($"because {queue} should have been created!");
 
                 // clean up
                 cts.Cancel ();

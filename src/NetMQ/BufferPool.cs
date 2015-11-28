@@ -184,8 +184,7 @@ namespace NetMQ
         {
             var prior = Interlocked.Exchange(ref s_bufferPool, bufferPool);
 
-            if (prior != null)
-                prior.Dispose();
+            prior?.Dispose();
         }
 
         /// <summary>

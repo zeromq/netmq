@@ -160,10 +160,7 @@ namespace NetMQ
                 m_poller.PollTillCancelled();
 
                 // the beacon might never been configured
-                if (m_udpSocket != null)
-                {
-                    m_udpSocket.Close();
-                }
+                m_udpSocket?.Close();
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
@@ -177,14 +174,7 @@ namespace NetMQ
                 var frame = ReceiveUdpFrame(out peerName);
 
                 // If filter is set, check that beacon matches it
-                bool isValid = false;
-                if (m_filter != null)
-                {
-                    if (frame.MessageSize >= m_filter.MessageSize && Compare(frame, m_filter, m_filter.MessageSize))
-                    {
-                        isValid = true;
-                    }
-                }
+                var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);
 
                 // If valid, discard our own broadcasts, which UDP echoes to us
                 if (isValid && m_transmit != null)
@@ -290,10 +280,7 @@ namespace NetMQ
         /// <summary>
         /// Get the socket of the contained actor.
         /// </summary>
-        NetMQSocket ISocketPollable.Socket
-        {
-            get { return ((ISocketPollable)m_actor).Socket; }
-        }
+        NetMQSocket ISocketPollable.Socket => ((ISocketPollable)m_actor).Socket;
 
         /// <summary>
         /// This event occurs when at least one message may be received from the socket without blocking.

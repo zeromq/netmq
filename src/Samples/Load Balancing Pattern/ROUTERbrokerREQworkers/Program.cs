@@ -18,7 +18,7 @@ namespace ROUTERbrokerREQworkers
             using (var context = NetMQContext.Create())
             using (var client = context.CreateRouterSocket())
             {
-                string cnn = string.Format("tcp://localhost:{0}", PortNumber);
+                string cnn = $"tcp://localhost:{PortNumber}";
                 client.Bind(cnn);
                 Console.WriteLine("[B] Connect to {0}", cnn);
 
@@ -77,7 +77,7 @@ namespace ROUTERbrokerREQworkers
             {
                 // We use a string identity for ease here
                 string id = ZHelpers.SetID(worker, Encoding.Unicode);
-                string cnn = string.Format("tcp://localhost:{0}", portNumber);
+                string cnn = $"tcp://localhost:{portNumber}";
                 worker.Connect(cnn);
                 Console.WriteLine("[W] ID {0} connect to {1}", id, cnn);
 

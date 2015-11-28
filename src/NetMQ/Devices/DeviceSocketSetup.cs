@@ -47,7 +47,7 @@ namespace NetMQ.Devices
         internal DeviceSocketSetup([NotNull] NetMQSocket socket)
         {
             if (socket == null)
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
 
             m_socket = socket;
             m_socketInitializers = new List<Action<NetMQSocket>>();
@@ -65,7 +65,7 @@ namespace NetMQ.Devices
         public DeviceSocketSetup Bind([NotNull] string endpoint)
         {
             if (endpoint == null)
-                throw new ArgumentNullException("endpoint");
+                throw new ArgumentNullException(nameof(endpoint));
 
             m_bindings.Add(endpoint);
             return this;
@@ -81,7 +81,7 @@ namespace NetMQ.Devices
         public DeviceSocketSetup Connect([NotNull] string endpoint)
         {
             if (endpoint == null)
-                throw new ArgumentNullException("endpoint");
+                throw new ArgumentNullException(nameof(endpoint));
 
             m_connections.Add(endpoint);
             return this;
@@ -135,7 +135,7 @@ namespace NetMQ.Devices
 
                 if (sck == null)
                 {
-                    string xMsg = string.Format("DeviceSocketSetup.Subscribe, this socket type {0} does not support Subscription.", s.GetType());
+                    string xMsg = $"DeviceSocketSetup.Subscribe, this socket type {s.GetType()} does not support Subscription.";
                     throw new InvalidException(xMsg);
                 }
 
@@ -157,7 +157,7 @@ namespace NetMQ.Devices
 
                 if (sck == null)
                 {
-                    string xMsg = string.Format("DeviceSocketSetup.Subscribe, this socket type {0} does not support Subscription.", s.GetType());
+                    string xMsg = $"DeviceSocketSetup.Subscribe, this socket type {s.GetType()} does not support Subscription.";
                     throw new ArgumentException(xMsg);
                 }
 

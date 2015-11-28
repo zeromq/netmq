@@ -13,7 +13,7 @@ namespace NetMQ
     [Serializable]
     public class NetMQException : Exception
     {
-        public ErrorCode ErrorCode { get; private set; }
+        public ErrorCode ErrorCode { get; }
 
         #region Exception contract & serialisation
 
@@ -83,7 +83,7 @@ namespace NetMQ
 #if DEBUG
             if (errorCode == 0)
             {
-                var s = string.Format("(And within NetMQException.Create: Unanticipated error-code: {0})", error.ToString());
+                var s = $"(And within NetMQException.Create: Unanticipated error-code: {error.ToString()})";
                 return Create(errorCode: errorCode, message: s, innerException: innerException);
             }
 #endif

@@ -53,14 +53,14 @@ namespace TitanicProtocol
         /// </summary>
         private readonly string m_appDir;
 
-        public string TitanicDirectory { get { return m_appDir; } }
+        public string TitanicDirectory => m_appDir;
 
         /// <summary>
         ///     represents the filename of the queue of requests
         /// </summary>
         private readonly string m_titanicQueue;
 
-        public string TitanicQueue { get { return m_titanicQueue; } }
+        public string TitanicQueue => m_titanicQueue;
 
         /// <summary>
         ///     ctor - creation with all standard values
@@ -540,10 +540,7 @@ namespace TitanicProtocol
 
         protected virtual void OnLogInfoReady (TitanicLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
     }
 }

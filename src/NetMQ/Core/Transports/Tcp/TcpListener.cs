@@ -280,18 +280,12 @@ namespace NetMQ.Core.Transports.Tcp
         /// Get the bound address for use with wildcards
         /// </summary>
         [NotNull]
-        public virtual string Address
-        {
-            get { return m_address.ToString(); }
-        }
+        public virtual string Address => m_address.ToString();
 
         /// <summary>
         /// Get the port-number to listen on.
         /// </summary>
-        public virtual int Port
-        {
-            get { return m_port; }
-        }
+        public virtual int Port => m_port;
 
         /// <summary>
         /// This method would be called when a message Send operation has been completed - except in this case it simply throws a NotImplementedException.

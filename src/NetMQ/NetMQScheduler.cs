@@ -54,7 +54,7 @@ namespace NetMQ
 
             var schedulerId = Interlocked.Increment(ref s_schedulerCounter);
 
-            var address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, schedulerId);
+            var address = $"{Address.InProcProtocol}://scheduler-{schedulerId}";
 
             m_serverSocket = context.CreatePullSocket();
             m_serverSocket.Options.Linger = TimeSpan.Zero;
@@ -126,10 +126,7 @@ namespace NetMQ
         /// }
         /// </code>
         /// </example>
-        public bool CanExecuteTaskInline
-        {
-            get { return m_schedulerThread.Value; }
-        }
+        public bool CanExecuteTaskInline => m_schedulerThread.Value;
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
@@ -140,10 +137,7 @@ namespace NetMQ
         /// Get the maximum level of concurrency used in the scheduling.
         /// This is simply the value 1, and is not presently used anywhere within NetMQ.
         /// </summary>
-        public override int MaximumConcurrencyLevel
-        {
-            get { return 1; }
-        }
+        public override int MaximumConcurrencyLevel => 1;
 
         /// <summary>
         /// Release any contained resources.

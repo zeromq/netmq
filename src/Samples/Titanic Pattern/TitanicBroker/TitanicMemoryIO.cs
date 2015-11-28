@@ -16,7 +16,7 @@ namespace TitanicProtocol
     ///     this class handles the I/O for TITANIC
     ///     if allows to transparently write, read, find and delete entries
     ///     in memory (CocurrentQueue)
-    /// 
+    ///
     ///     it is fast but all information is lost in case this computer or
     ///     the process dies!
     /// </summary>
@@ -43,7 +43,7 @@ namespace TitanicProtocol
         /// </summary>
         public string TitanicQueue { get { throw new InvalidOperationException ("In-Memory IO does not provide a file name for the titanic queue."); } }
 
-        internal int NumberOfRequests { get { return m_titanicQueue.Count; } }
+        internal int NumberOfRequests => m_titanicQueue.Count;
 
         /// <summary>
         ///     ctor
@@ -102,7 +102,7 @@ namespace TitanicProtocol
         public void SaveRequestEntry (RequestEntry entry)
         {
             if (ReferenceEquals (entry, null))
-                throw new ArgumentNullException ("entry", "The RequestEntry to save must not be null!");
+                throw new ArgumentNullException (nameof(entry), "The RequestEntry to save must not be null!");
 
             m_titanicQueue.AddOrUpdate (entry.RequestId, entry, (id, e) => entry);
         }
@@ -250,7 +250,7 @@ namespace TitanicProtocol
         /// <param name="op">commands whether it is for a REQUEST or a REPLY</param>
         /// <param name="id">the GUID für the Request/Reply</param>
         /// <returns>
-        ///         true if it exists and false otherwise and if 'op' is not one 
+        ///         true if it exists and false otherwise and if 'op' is not one
         ///         of the aforementioned
         /// </returns>
         public bool ExistsMessage (TitanicOperation op, Guid id)
@@ -274,10 +274,7 @@ namespace TitanicProtocol
         /// <exception cref="Exception">A delegate callback throws an exception. </exception>
         protected virtual void OnLogInfoReady (TitanicLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
     }
 }

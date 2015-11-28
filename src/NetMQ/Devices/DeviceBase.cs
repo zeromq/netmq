@@ -44,12 +44,12 @@ namespace NetMQ.Devices
         /// <summary>
         /// Get a <see cref="DeviceSocketSetup"/> for configuring the frontend socket.
         /// </summary>
-        public DeviceSocketSetup FrontendSetup { get; private set; }
+        public DeviceSocketSetup FrontendSetup { get; }
 
         /// <summary>
         /// Get a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
         /// </summary>
-        public DeviceSocketSetup BackendSetup { get; private set; }
+        public DeviceSocketSetup BackendSetup { get; }
 
         /// <summary>
         /// Create a new instance of the <see cref="DeviceBase"/> class.
@@ -85,10 +85,10 @@ namespace NetMQ.Devices
             m_isInitialized = false;
 
             if (frontendSocket == null)
-                throw new ArgumentNullException("frontendSocket");
+                throw new ArgumentNullException(nameof(frontendSocket));
 
             if (backendSocket == null)
-                throw new ArgumentNullException("backendSocket");
+                throw new ArgumentNullException(nameof(backendSocket));
 
             FrontendSocket = frontendSocket;
             BackendSocket = backendSocket;

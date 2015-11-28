@@ -19,10 +19,7 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
         /// Get the part of the handshake-protocol that this HandshakeMessage represents
         /// - in this case a ClientHello.
         /// </summary>
-        public override HandshakeType HandshakeType
-        {
-            get { return HandshakeType.ClientHello; }
-        }
+        public override HandshakeType HandshakeType => HandshakeType.ClientHello;
 
         /// <summary>
         /// Get or set the list of CipherSuites that are indicated as being available in this phase of the handshake-protocol.

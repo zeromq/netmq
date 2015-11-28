@@ -37,12 +37,12 @@ namespace MajordomoProtocol
         /// <summary>
         ///     returns the address of the broker the client is connected to
         /// </summary>
-        public string Address { get { return m_brokerAddress; } }
+        public string Address => m_brokerAddress;
 
         /// <summary>
         ///     returns the name of the client
         /// </summary>
-        public byte[] Identity { get { return m_identity; } }
+        public byte[] Identity => m_identity;
 
         /// <summary>
         ///     if client has a log message available if fires this event
@@ -73,7 +73,7 @@ namespace MajordomoProtocol
             : this ()
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
-                throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
+                throw new ArgumentNullException (nameof(brokerAddress), "The broker address must not be null, empty or whitespace!");
 
             m_identity = identity;
             m_brokerAddress = brokerAddress;
@@ -87,7 +87,7 @@ namespace MajordomoProtocol
         public MDPClient (string brokerAddress, string identity)
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
-                throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
+                throw new ArgumentNullException (nameof(brokerAddress), "The broker address must not be null, empty or whitespace!");
 
             if (!string.IsNullOrWhiteSpace (identity))
                 m_identity = Encoding.UTF8.GetBytes (identity);
@@ -134,7 +134,7 @@ namespace MajordomoProtocol
             message.Push (serviceName);
             message.Push (m_mdpClient);
 
-            Log (string.Format ("[CLIENT INFO] sending {0} to service {1}", message, serviceName));
+            Log ($"[CLIENT INFO] sending {message} to service {serviceName}");
 
             var retiesLeft = Retries;
 
@@ -194,7 +194,7 @@ namespace MajordomoProtocol
 
             m_connected = true;
 
-            Log (string.Format ("[CLIENT] connecting to broker at {0}", m_brokerAddress));
+            Log ($"[CLIENT] connecting to broker at {m_brokerAddress}");
         }
 
         /// <summary>
@@ -210,7 +210,7 @@ namespace MajordomoProtocol
             // a message is available within the timeout period
             var reply = m_client.ReceiveMultipartMessage ();
 
-            Log (string.Format ("\n[CLIENT INFO] received the reply {0}\n", reply));
+            Log ($"\n[CLIENT INFO] received the reply {reply}\n");
 
             // in production code malformed messages should be handled smarter
             if (reply.FrameCount < 2)
@@ -219,13 +219,12 @@ namespace MajordomoProtocol
             var header = reply.Pop (); // [MDPHeader] <- [service name][reply] OR ['mmi.service'][return code]
 
             if (header.ConvertToString () != m_mdpClient)
-                throw new ApplicationException (string.Format ("[CLIENT INFO] MDP Version mismatch: {0}", header));
+                throw new ApplicationException ($"[CLIENT INFO] MDP Version mismatch: {header}");
 
             var service = reply.Pop (); // [service name or 'mmi.service'] <- [reply] OR [return code]
 
             if (service.ConvertToString () != m_serviceName)
-                throw new ApplicationException (string.Format ("[CLIENT INFO] answered by wrong service: {0}",
-                                                               service.ConvertToString ()));
+                throw new ApplicationException ($"[CLIENT INFO] answered by wrong service: {service.ConvertToString()}");
             // now set the value for the reply of the send method!
             m_reply = reply;        // [reply] OR [return code]
         }
@@ -242,10 +241,7 @@ namespace MajordomoProtocol
         /// <param name="e"></param>
         protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
 
         public void Dispose ()

@@ -9,7 +9,7 @@ namespace MajordomoProtocol
     internal class Worker
     {
         // the id of the worker as string
-        public string Id { get; private set; }
+        public string Id { get; }
         // identity of worker for routing
         public NetMQFrame Identity { get; private set; }
         // owing service if known
@@ -31,10 +31,7 @@ namespace MajordomoProtocol
 
         public override string ToString()
         {
-            return string.Format("Name = {0} / Service = {1} / Expires {2}",
-                Id,
-                Service.Name,
-                Expiry.ToShortTimeString());
+            return $"Name = {Id} / Service = {Service.Name} / Expires {Expiry.ToShortTimeString()}";
         }
 
         public override bool Equals(object obj)
