@@ -373,6 +373,7 @@ namespace NetMQ.Tests
             }
         }
 
+
         [Test]
         public void ClearWelcomeMessage()
         {
@@ -392,6 +393,101 @@ namespace NetMQ.Tests
                 Assert.AreEqual(subscription[1], (byte)'W');
 
                 Assert.IsFalse(sub.TrySkipFrame());
+            }
+        }
+
+
+        [Test]
+        public void BroadcastEnabled()
+        {
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreateXPublisherSocket())
+            using (var sub1 = context.CreateXSubscriberSocket())
+            using (var sub2 = context.CreateXSubscriberSocket())
+            {
+                pub.Bind("inproc://manual");
+                pub.Options.XPubBroadcast = true;
+                
+                sub1.Connect("inproc://manual");
+                sub2.Connect("inproc://manual");
+
+                sub1.SendFrame(new byte[] {1, (byte) 'A'});
+                sub2.SendFrame(new byte[] {1, (byte) 'A'});
+
+                var payload = new[] {(byte) 42};
+
+                var msg = new Msg();
+                msg.InitEmpty();
+
+                // add prefix 2 to the topic, this indicates a broadcast message and it will not be sent to sub1
+                sub1.SendFrame(new byte[] {2, (byte) 'A'}, true);
+                sub1.SendFrame(new byte[] {(byte) 42});
+                var subscription = pub.ReceiveFrameBytes();
+                var topic = pub.ReceiveFrameBytes();
+                var message = pub.ReceiveFrameBytes();
+
+                Assert.AreEqual(2, topic[0]);
+                // we must skip the first byte if we have detected a broadcast message
+                // the sender of this message is already marked for exclusion
+                // but the match logic in Send should work with normal topic.
+                topic = topic.Skip(1).ToArray();
+
+                pub.SendFrame(topic, true);
+                pub.SendFrame(message);
+                var broadcast2 = sub2.ReceiveFrameBytes();
+                Assert.IsTrue(broadcast2[0] == 65);
+                broadcast2 = sub2.ReceiveFrameBytes();
+                Assert.IsTrue(broadcast2.SequenceEqual(payload));
+                // this message SHOULD NOT be resent to sub1
+                var received = sub1.TryReceive(ref msg, System.TimeSpan.FromMilliseconds(500));
+                Assert.IsFalse(received);
+
+            }
+        }
+
+        [Test]
+        public void BroadcastDisabled() 
+        {
+            using (var context = NetMQContext.Create())
+            using (var pub = context.CreateXPublisherSocket())
+            using (var sub1 = context.CreateXSubscriberSocket())
+            using (var sub2 = context.CreateXSubscriberSocket()) 
+            {
+                pub.Bind("inproc://manual");
+                pub.Options.XPubBroadcast = false;
+                
+                sub1.Connect("inproc://manual");
+                sub2.Connect("inproc://manual");
+
+                Thread.Sleep(50);
+
+                sub1.SendFrame(new byte[] { 1, (byte)'A' });
+                sub2.SendFrame(new byte[] { 1, (byte)'A' });
+
+                var payload = new[] { (byte)42 };
+
+                var msg = new Msg();
+                msg.InitEmpty();
+
+                sub1.SendFrame(new byte[] { (byte)'A' }, true);
+                sub1.SendFrame(new byte[] { (byte)42 });
+                var subscription = pub.ReceiveFrameBytes();
+                var topic = pub.ReceiveFrameBytes();
+                var message = pub.ReceiveFrameBytes();
+
+                pub.SendFrame(topic, true);
+                pub.SendFrame(message);
+                var broadcast2 = sub2.ReceiveFrameBytes();
+                Assert.IsTrue(broadcast2[0] == 65);
+                broadcast2 = sub2.ReceiveFrameBytes();
+                Assert.IsTrue(broadcast2.SequenceEqual(payload));
+                // sub1 should receive a message normally
+                var broadcast1 = sub1.ReceiveFrameBytes();
+                Assert.IsTrue(broadcast1[0] == 65);
+                broadcast1 = sub1.ReceiveFrameBytes();
+                Assert.IsTrue(broadcast1.SequenceEqual(payload));
+                
+
             }
         }
     }

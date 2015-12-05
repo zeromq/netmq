@@ -168,7 +168,7 @@ Here is a small demo that use PGM, as well as `PublisherSocket` and `SubscriberS
 
         bool more;
         Console.WriteLine("sub1 received = '{0}'", sub1.ReceiveString(out more));
-        Console.WriteLine("sub2 received = '{0}'", sub1.ReceiveString(out more));
+        Console.WriteLine("sub2 received = '{0}'", sub2.ReceiveString(out more));
     }
 
 Which when run gives the following sort of output:

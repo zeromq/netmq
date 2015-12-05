@@ -34,7 +34,8 @@ namespace NetMQ.Core.Transports
             m_inProgress = new Msg();
             m_inProgress.InitPool(msgSize);
 
-            NextStep(m_inProgress.Data, m_inProgress.Size, RawMessageReadyState);
+            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
+                m_inProgress.Size, RawMessageReadyState);
 
             return true;
         }
@@ -68,7 +69,8 @@ namespace NetMQ.Core.Transports
                     // NOTE: This is just to break out of process_buffer
                     // raw_message_ready should never get called in state machine w/o
                     // message_ready_size from stream_engine.    
-                    NextStep(m_inProgress.Data, 1, RawMessageReadyState);
+                    NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
+                        1, RawMessageReadyState);
                 }
 
                 return isMessagedPushed;

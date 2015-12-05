@@ -155,7 +155,7 @@ namespace NetMQ.Core.Patterns.Utils
             // Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
             {
-                func(null, buffer, bufferSize, arg);
+                func(pipe, buffer, bufferSize, arg);
                 m_pipes = null;
             }
 
@@ -394,11 +394,11 @@ namespace NetMQ.Core.Patterns.Utils
         /// <summary>
         /// Signal all the matching pipes.
         /// </summary>
-        public void Match([NotNull] byte[] data, int size, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        public void Match([NotNull] byte[] data, int offset, int size, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
         {
             MultiTrie current = this;
 
-            int index = 0;
+            int index = offset;
 
             while (true)
             {

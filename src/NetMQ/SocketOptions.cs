@@ -383,6 +383,16 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.XpubVerbose, value); }
         }
 
+
+        /// <summary>
+        /// This applies only to publisher sockets.
+        /// Set whether to support broadcast functionality
+        /// </summary>
+        public bool XPubBroadcast {
+            set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherBroadcast, value); }
+        }
+
+
         public bool RouterRawSocket
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.RouterRawSocket, value); }

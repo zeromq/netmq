@@ -96,7 +96,13 @@ namespace NetMQ
         /// <summary>
         /// Get the number of bytes within the Data property.
         /// </summary>
-        public int Size { get; private set; }
+        public int Size { get; internal set; }
+
+        /// <summary>
+        /// Gets the position of the first element in the Data property delimited by the message,
+        //     relative to the start of the original array.
+        /// </summary>
+        public int Offset { get; internal set; }
 
         #region MsgType
 
@@ -203,6 +209,7 @@ namespace NetMQ
             MsgType = MsgType.Empty;
             Flags = MsgFlags.None;
             Size = 0;
+            Offset = 0;
             Data = null;
             m_refCount = null;
         }
@@ -217,6 +224,7 @@ namespace NetMQ
             Flags = MsgFlags.None;
             Data = BufferPool.Take(size);
             Size = size;
+            Offset = 0;
             m_refCount = new AtomicCounter();
         }
 
@@ -227,10 +235,21 @@ namespace NetMQ
         /// <param name="size">the number of bytes that are in the data byte-array</param>
         public void InitGC([NotNull] byte[] data, int size)
         {
+            InitGC(data, 0, size);
+        }
+
+        /// <summary>
+        /// Initialise this Msg to be of MsgType.GC with the given data-buffer value.
+        /// </summary>
+        /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
+        /// <param name="offset">first byte in the data array</param>
+        /// <param name="size">the number of bytes that are in the data byte-array</param>
+        public void InitGC([NotNull] byte[] data, int offset, int size) {
             MsgType = MsgType.GC;
             Flags = MsgFlags.None;
             Data = data;
             Size = size;
+            Offset = offset;
             m_refCount = null;
         }
 
@@ -337,7 +356,7 @@ namespace NetMQ
         /// Copy the given byte-array data to this Msg's Data buffer.
         /// </summary>
         /// <param name="src">the source byte-array to copy from</param>
-        /// <param name="i">offset within the source to start copying from</param>
+        /// <param name="i">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
         public void Put([CanBeNull] byte[] src, int i, int len)
         {
@@ -348,12 +367,25 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Copy the given byte-array data to this Msg's Data buffer.
+        /// </summary>
+        /// <param name="src">the source byte-array to copy from</param>
+        /// <param name="srcOffset">first byte in the source byte-array</param>
+        /// <param name="i">index within the internal Data array to copy that byte to</param>
+        /// <param name="len">the number of bytes to copy</param>
+        public void Put([CanBeNull] byte[] src, int srcOffset, int i, int len) {
+            if (len == 0 || src == null)
+                return;
+            Buffer.BlockCopy(src, srcOffset, Data, i, len);
+        }
+
+        /// <summary>
         /// Copy the given single byte to this Msg's Data buffer.
         /// </summary>
         /// <param name="b">the source byte to copy from</param>
         public void Put(byte b)
         {
-            Data[0] = b;
+            Data[Offset] = b;
         }
 
         /// <summary>
@@ -363,7 +395,7 @@ namespace NetMQ
         /// <param name="i">index within the internal Data array to copy that byte to</param>
         public void Put(byte b, int i)
         {
-            Data[i] = b;
+            Data[Offset + i] = b;
         }
 
         /// <summary>
@@ -373,8 +405,8 @@ namespace NetMQ
         /// <returns></returns>
         public byte this[int index]
         {
-            get { return Data[index]; }
-            set { Data[index] = value; }
+            get { return Data[Offset + index]; }
+            set { Data[Offset + index] = value; }
         }
 
         /// <summary>
@@ -413,6 +445,17 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Increase Offset and decrease Size by the given count.
+        /// </summary>
+        /// <param name="count">Number of bytes to remove from a message</param>
+        public void TrimPrefix(int count)
+        {
+            if (count > Size || count < 0) throw new ArgumentOutOfRangeException("count", "Count should be between 0 and size");
+            Offset = Offset + count;
+            Size = Size - count;
+        }
+
+        /// <summary>
         /// Close this Msg and make it reference the given source Msg, and then clear the Msg to empty.
         /// </summary>
         /// <param name="src">the source-Msg to become</param>
@@ -437,7 +480,7 @@ namespace NetMQ
             var data = new byte[Size];
 
             if (Size > 0)
-                Buffer.BlockCopy(Data, 0, data, 0, Size);
+                Buffer.BlockCopy(Data, Offset, data, 0, Size);
 
             return data;
         }

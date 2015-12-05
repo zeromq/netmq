@@ -590,7 +590,7 @@ namespace NetMQ.Core.Transports
                                 if (m_greetingBytesRead < GreetingSize)
                                 {
                                     var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
-                                    BeginRead(greetingSegment, GreetingSize);
+                                    BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
                                 }
                                 else
                                 {
@@ -806,7 +806,8 @@ namespace NetMQ.Core.Transports
                 socketError == SocketError.HostUnreachable ||
                 socketError == SocketError.ConnectionAborted ||
                 socketError == SocketError.TimedOut ||
-                socketError == SocketError.ConnectionReset)
+                socketError == SocketError.ConnectionReset ||
+                socketError == SocketError.AccessDenied)
                 return -1;
 
             throw NetMQException.Create(socketError);
@@ -844,7 +845,8 @@ namespace NetMQ.Core.Transports
                 socketError == SocketError.HostUnreachable ||
                 socketError == SocketError.ConnectionAborted ||
                 socketError == SocketError.TimedOut ||
-                socketError == SocketError.ConnectionReset)
+                socketError == SocketError.ConnectionReset ||
+                socketError == SocketError.AccessDenied)
                 return -1;
 
             throw NetMQException.Create(socketError);

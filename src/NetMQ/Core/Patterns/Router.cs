@@ -279,7 +279,7 @@ namespace NetMQ.Core.Patterns
                     // mandatory is set.
 
                     var identity = msg.Size == msg.Data.Length 
-                        ? msg.Data 
+                        ? msg.Data
                         : msg.CloneData();
 
                     Outpipe op;

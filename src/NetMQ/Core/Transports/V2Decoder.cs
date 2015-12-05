@@ -72,7 +72,8 @@ namespace NetMQ.Core.Transports
             m_inProgress.InitPool(m_tmpbuf[0]);
 
             m_inProgress.SetFlags(m_msgFlags);
-            NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState);
+            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
+                m_inProgress.Size, MessageReadyState);
 
             return true;
         }
@@ -107,7 +108,8 @@ namespace NetMQ.Core.Transports
             m_inProgress.InitPool((int)msg_size);
 
             m_inProgress.SetFlags(m_msgFlags);
-            NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState);
+            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
+                m_inProgress.Size, MessageReadyState);
 
             return true;
         }

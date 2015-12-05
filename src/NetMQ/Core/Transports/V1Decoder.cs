@@ -185,7 +185,8 @@ namespace NetMQ.Core.Transports
 
             m_inProgress.SetFlags((MsgFlags)first & MsgFlags.More);
 
-            NextStep(m_inProgress.Data, m_inProgress.Size, MessageReadyState);
+            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
+                m_inProgress.Size, MessageReadyState);
 
             return true;
         }
