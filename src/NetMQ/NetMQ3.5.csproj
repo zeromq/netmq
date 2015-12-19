@@ -131,6 +131,7 @@
     <Compile Include="Core\Utils\Signaler.cs" />
     <Compile Include="Core\Utils\SocketUtility.cs" />
     <Compile Include="Core\Utils\StringLib.cs" />
+    <Compile Include="Core\Utils\Switch.cs" />
     <Compile Include="Core\Utils\YQueue.cs" />
     <Compile Include="Core\YPipe.cs" />
     <Compile Include="Core\ZmqSocketOption.cs" />
