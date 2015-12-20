@@ -49,14 +49,9 @@ namespace NetMQ
         private int m_cancel;
 
         /// <summary>
-        /// This ManualResetEvent is used for blocking until this Poller is actually stopped.
+        /// Switch indicate if the poller is on or off.
         /// </summary>
-        private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(false);
-
-        /// <summary>
-        /// This flag indicates whether this Poller has started.
-        /// </summary>
-        private bool m_isStarted;
+        private readonly Switch m_switch = new Switch(false);
 
         /// <summary>
         /// When true, this indicates that there may be fresh socket-events to be polled-for.
@@ -126,7 +121,7 @@ namespace NetMQ
         /// </summary>
         public bool IsStarted
         {
-            get { return m_isStarted; }
+            get { return m_switch.Status; }
         }
 
         /// <summary>
@@ -331,6 +326,7 @@ namespace NetMQ
         {
             var thread = new Thread(PollTillCancelled);
             thread.Start();
+            m_switch.WaitForOn();
         }
 
         /// <summary>
@@ -454,7 +450,7 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is disposed");
             }
 
-            if (m_isStarted)
+            if (m_switch.Status)
             {
                 throw new InvalidOperationException("Poller is started");
             }
@@ -462,8 +458,7 @@ namespace NetMQ
             if (Thread.CurrentThread.Name == null)
                 Thread.CurrentThread.Name = "NetMQPollerThread";
 
-            m_isStoppedEvent.Reset();
-            m_isStarted = true;
+            m_switch.SwitchOn();
             try
             {
                 // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barrier
@@ -598,8 +593,7 @@ namespace NetMQ
                 }
                 finally
                 {
-                    m_isStarted = false;
-                    m_isStoppedEvent.Set();
+                    m_switch.SwitchOff();
                 }
             }
         }
@@ -618,16 +612,14 @@ namespace NetMQ
                 throw new ObjectDisposedException("Poller is already disposed");
             }
 
-            if (m_isStarted)
+            if (m_switch.Status)
             {
                 Interlocked.Exchange(ref m_cancel, 1);
 
                 if (waitForCloseToComplete)
                 {
-                    m_isStoppedEvent.WaitOne();
-                }
-
-                m_isStarted = false;
+                    m_switch.WaitForOff();
+                }                
             }
             else
             {
@@ -672,11 +664,11 @@ namespace NetMQ
             {
                 // If this poller is already started, signal the polling thread to stop
                 // and wait for it.
-                if (m_isStarted)
+                if (m_switch.Status)
                     Cancel(true);
 
                 m_disposed = true;
-                m_isStoppedEvent.Close();
+                m_switch.Dispose();
             }
         }
 
