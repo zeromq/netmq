@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using NetMQ.Core.Utils;
 using NetMQ.Sockets;
+using System.Collections;
 
 namespace NetMQ
 {
@@ -24,7 +25,7 @@ namespace NetMQ
     /// Multi producer singler consumer queue which you can poll on with a Poller.
     /// </summary>
     /// <typeparam name="T">Type of the item in queue</typeparam>
-    public class NetMQQueue<T> : IDisposable, ISocketPollable
+    public class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>, IEnumerator<T>
     {
         static byte[] s_empty = new byte[0];
         private static int s_sequence = 0;
@@ -145,6 +146,46 @@ namespace NetMQ
             }            
             msg.Close();        
         }
+
+        #region IENumerator methods
+
+        public void Reset()
+        {
+            current = 0;
+        }
+
+        public bool MoveNext()
+        {
+            if (m_queue.Count == 0 || m_queue.Count <= current)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public object Current
+        {
+            get { return m_queue.ElementAt(current); }
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return m_queue.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        int current;
+
+        T IEnumerator<T>.Current
+        {
+            get { return m_queue.ElementAt(current); }
+        }
+
+        #endregion
 
         /// <summary>
         /// Dispose the queue.
