@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -243,6 +243,24 @@ namespace NetMQ
         }
 
         /// <summary>
+        ///  Delete all sockets from this Poller's list.
+        /// </summary>
+        /// <param name="disposeSockets">whether to dispose the socket also</param>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
+        public void RemoveAllSockets()
+        {
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            foreach(var socket in m_sockets)
+            {
+                RemoveSocket(socket);
+            }
+        }
+
+        /// <summary>
         /// Add the given timer to this Poller's list.
         /// </summary>
         /// <param name="timer">the NetMQTimer to add to the list</param>
@@ -286,6 +304,23 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Remove all timers from this Poller's list.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
+        public void RemoveAllTimers()
+        {
+            if (m_disposed)
+            {
+                throw new ObjectDisposedException("Poller is disposed");
+            }
+
+            foreach(NetMQTimer timer in m_timers)
+            {
+                RemoveTimer(timer);
+            }
+        }
+
+        /// <summary>
         /// Cancel the poller job when PollTillCancelled is called
         /// </summary>
         public void Cancel()
@@ -325,6 +360,7 @@ namespace NetMQ
         public void PollTillCancelledNonBlocking()
         {
             var thread = new Thread(PollTillCancelled);
+            thread.IsBackground = true;
             thread.Start();
             m_switch.WaitForOn();
         }
