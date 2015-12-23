@@ -25,7 +25,7 @@ namespace NetMQ
     /// Multi producer singler consumer queue which you can poll on with a Poller.
     /// </summary>
     /// <typeparam name="T">Type of the item in queue</typeparam>
-    public class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>, IEnumerator<T>
+    public class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
     {
         static byte[] s_empty = new byte[0];
         private static int s_sequence = 0;
@@ -149,25 +149,6 @@ namespace NetMQ
 
         #region IENumerator methods
 
-        public void Reset()
-        {
-            current = 0;
-        }
-
-        public bool MoveNext()
-        {
-            if (m_queue.Count == 0 || m_queue.Count <= current)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public object Current
-        {
-            get { return m_queue.ElementAt(current); }
-        }
-
         public IEnumerator<T> GetEnumerator()
         {
             return m_queue.GetEnumerator();
@@ -175,14 +156,7 @@ namespace NetMQ
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
-        }
-
-        int current;
-
-        T IEnumerator<T>.Current
-        {
-            get { return m_queue.ElementAt(current); }
+            yield return GetEnumerator();
         }
 
         #endregion
