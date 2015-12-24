@@ -245,7 +245,6 @@ namespace NetMQ
         /// <summary>
         ///  Delete all sockets from this Poller's list.
         /// </summary>
-        /// <param name="disposeSockets">whether to dispose the socket also</param>
         /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
         public void RemoveAllSockets()
         {
@@ -360,7 +359,6 @@ namespace NetMQ
         public void PollTillCancelledNonBlocking()
         {
             var thread = new Thread(PollTillCancelled);
-            thread.IsBackground = true;
             thread.Start();
             m_switch.WaitForOn();
         }
