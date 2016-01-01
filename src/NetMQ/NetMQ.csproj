@@ -51,6 +51,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Utils\Switch.cs" />
     <Compile Include="DnsEndPoint.cs" />
     <Compile Include="NetMQActor.cs" />
     <Compile Include="EventDelegator.cs" />
