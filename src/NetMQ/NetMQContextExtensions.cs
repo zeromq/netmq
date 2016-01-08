@@ -17,10 +17,10 @@ namespace NetMQ
         /// <param name="requestMessage">The request message</param>
         /// <param name="numTries">The number of times to try</param>
         /// <param name="requestTimeout">The timeout for each request</param>
-        /// <param name="reportToConsole">Set to true to report progress to Console</param>
+        /// <param name="progressReporter">Set to true to report progress to Console</param>
         /// <returns>the response message, or null if not successful</returns>
         public static NetMQMessage RequestResponseMultipartMessageWithRetry([NotNull] this NetMQContext context, [NotNull] string address,
-            [NotNull] NetMQMessage requestMessage, int numTries, TimeSpan requestTimeout, bool reportToConsole = false)
+            [NotNull] NetMQMessage requestMessage, int numTries, TimeSpan requestTimeout, IProgress<string> progressReporter = null)
         {
             var responseMessage = new NetMQMessage();
             var requestSocket = GetNewRequestSocket(context, address);
@@ -28,22 +28,22 @@ namespace NetMQ
             {
                 while (numTries-- > 0)
                 {
-                    if (reportToConsole)
+                    if (progressReporter != null)
                     {
-                        Console.WriteLine("C: Sending message");
+                        progressReporter.Report("Sending message");
                     }
                     requestSocket.SendMultipartMessage(requestMessage);
                     if (requestSocket.TryReceiveMultipartMessage(requestTimeout, ref responseMessage))
                     {
+                        if (progressReporter != null)
+                        {
+                            progressReporter.Report("Server replied OK");
+                        }
                         return responseMessage;
                     }
-                    if (reportToConsole)
+                    if (progressReporter != null)
                     {
-                        Console.WriteLine("C: No response from server, retrying...");
-                    }
-                    if (responseMessage != null && responseMessage.FrameCount > 0)
-                    {
-                        var debug = 1;
+                        progressReporter.Report("No response from server, retrying...");
                     }
 
                     // Try again. The Lazy Pirate pattern is to destroy the socket and create a new one.
@@ -55,9 +55,9 @@ namespace NetMQ
             {
                 TerminateSocket(requestSocket, address);
             }
-            if (reportToConsole)
+            if (progressReporter != null)
             {
-                Console.WriteLine("C: Server seems to be offline, abandoning");
+                progressReporter.Report("Server seems to be offline, abandoning");
             }
             return null;
         }

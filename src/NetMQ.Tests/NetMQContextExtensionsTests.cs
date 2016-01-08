@@ -116,8 +116,9 @@ namespace NetMQ.Tests
                         }
                     }
                 }, cts.Token);
+                var progressReporter = new Progress<string>(r => Console.WriteLine("C: " + r));
                 var responseMessage = context.RequestResponseMultipartMessageWithRetry(addressWithPort, requestMessage,
-                    numTries, requestTimeout, true);
+                    numTries, requestTimeout, progressReporter);
                 //cts.Cancel();
                 Assert.IsNotNull(responseMessage);
                 Assert.AreEqual(responseMessage.FrameCount, 1);

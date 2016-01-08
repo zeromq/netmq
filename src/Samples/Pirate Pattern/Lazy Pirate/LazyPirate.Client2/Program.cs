@@ -16,6 +16,7 @@ namespace LazyPirate.Client2
         static void Main(string[] args)
         {
             Console.Title = "NetMQ LazyPirate Client 2";
+            var progressReporter = new Progress<string>(r => Console.WriteLine("C: " + r));
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
             using (var context = NetMQContext.Create())
@@ -23,16 +24,11 @@ namespace LazyPirate.Client2
                 while (true)
                 {
                     var responseMessage = context.RequestResponseMultipartMessageWithRetry(ServerEndpoint, requestMessage, RequestRetries,
-                        TimeSpan.FromMilliseconds(RequestTimeout), true);
+                        TimeSpan.FromMilliseconds(RequestTimeout), progressReporter);
                     if (responseMessage != null)
                     {
                         var strReply = responseMessage.First.ConvertToString();
-                        Console.WriteLine("C: Server replied OK ({0})", strReply);
-                    }
-                    else
-                    {
-                        Console.WriteLine("C: Server seems to be offline, abandoning");
-                        break;
+                        Console.WriteLine("C: Server replied with ({0})", strReply);
                     }
                 }
             }

@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NET40</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -77,6 +77,7 @@
     <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
     <Compile Include="Poller.cs" />
+    <Compile Include="Progress.cs" />
     <Compile Include="ReceivingSocketExtensions.cs" />
     <Compile Include="Security\NetMQSecurityException.cs">
       <SubType>Code</SubType>
