@@ -77,6 +77,13 @@ You can also help us by:
 * Writing tutorials in the github wiki
 * Writing about the project in your blog (and add a pull request with a link to your blog at the bottom of this page)
 
+## Consulting and Support
+Name | Email | Website | Info
+-----|-------|---------|-----
+Doron Somech | somdoron@gmail.com | http://somdoron.com | Founder and maintianer of NetMQ, expertise in Fintech and high performance scalable systems.
+
+If you are providing support and consulting for NetMQ please make a pull request and add yourself to the list.
+
 ## Important note on backward compatibility 
 
 Since version 3.3.07 NetMQ changed the number serialization from Little Endian to Big Endian to be compatible with ZeroMQ.
