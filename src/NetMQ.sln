@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ", "NetMQ\NetMQ.csproj", "{82934BAC-07FB-41AC-AE59-46FEE6026A40}"
 EndProject
@@ -175,7 +175,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{F7BD07
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.QueuePerformance", "NetMQ.QueuePerformance\NetMQ.QueuePerformance.csproj", "{138E2AA0-F26E-4175-9758-1A5EA0699162}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyPirate.Client2", "Samples\Pirate Pattern\Lazy Pirate\LazyPirate.Client2\LazyPirate.Client2.csproj", "{AC999819-265C-497A-8113-ADB8AC940CAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyPirate.Server2", "Samples\Pirate Pattern\Lazy Pirate\LazyPirate.Server2\LazyPirate.Server2.csproj", "{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -722,6 +727,38 @@ Global
 		{138E2AA0-F26E-4175-9758-1A5EA0699162}.Release|x64.Build.0 = Release|Any CPU
 		{138E2AA0-F26E-4175-9758-1A5EA0699162}.Release|x86.ActiveCfg = Release|Any CPU
 		{138E2AA0-F26E-4175-9758-1A5EA0699162}.Release|x86.Build.0 = Release|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Debug|x64.Build.0 = Debug|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Debug|x86.Build.0 = Debug|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|x64.ActiveCfg = Release|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|x64.Build.0 = Release|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|x86.ActiveCfg = Release|Any CPU
+		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|x86.Build.0 = Release|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Debug|x64.Build.0 = Debug|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Debug|x86.Build.0 = Debug|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Release|x64.ActiveCfg = Release|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Release|x64.Build.0 = Release|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Release|x86.ActiveCfg = Release|Any CPU
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -783,5 +820,7 @@ Global
 		{32B1FA88-2A00-41C9-AF28-1EB9F8BB51F3} = {6E473EBF-8344-4EC4-B66B-D6349B6F0F5F}
 		{EC5A112C-5652-4EAA-BEE9-BF1A98F719C4} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 		{138E2AA0-F26E-4175-9758-1A5EA0699162} = {1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}
+		{AC999819-265C-497A-8113-ADB8AC940CAC} = {8F3B82AB-A6CE-4685-A846-83209A10A12B}
+		{DAA4CA53-A4C4-4A1B-857D-41562668DA0A} = {4DA03FE0-FA2B-4B71-B95C-60BD14359D40}
 	EndGlobalSection
 EndGlobal
