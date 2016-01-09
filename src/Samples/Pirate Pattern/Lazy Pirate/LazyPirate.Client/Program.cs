@@ -5,6 +5,9 @@ using NetMQ.Sockets;
 
 namespace LazyPirate.Client
 {
+    /// <summary>
+    /// Run both LazyPirate.Server and LazyPirate.Client simultaneously to see the demonstration of this pattern.
+    /// </summary>
     internal static class Program
     {
         private const int RequestTimeout = 2500;

@@ -16,7 +16,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NET40</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -24,7 +24,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;NET40</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\NetMQ.XML</DocumentationFile>
@@ -61,7 +61,6 @@
     <Compile Include="ISocketPollable.cs" />
     <Compile Include="IReceivingSocket.cs" />
     <Compile Include="NetMQBeacon.cs" />
-    <Compile Include="NetMQContextExtensions.cs" />
     <Compile Include="NetMQQueue.cs" />
     <Compile Include="NetMQScheduler.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
@@ -75,7 +74,6 @@
     <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
     <Compile Include="Poller.cs" />
-    <Compile Include="Progress.cs" />
     <Compile Include="ReceivingSocketExtensions.cs" />
     <Compile Include="Security\NetMQSecurityException.cs">
       <SubType>Code</SubType>

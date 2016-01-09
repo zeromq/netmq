@@ -173,6 +173,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.QueuePerformance", "N
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyPirate.Client2", "Samples\Pirate Pattern\Lazy Pirate\LazyPirate.Client2\LazyPirate.Client2.csproj", "{AC999819-265C-497A-8113-ADB8AC940CAC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyPirate.Server2", "Samples\Pirate Pattern\Lazy Pirate\LazyPirate.Server2\LazyPirate.Server2.csproj", "{3193ADF3-D394-44A1-B44D-F53616886A1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -734,6 +736,22 @@ Global
 		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|x64.Build.0 = Release|Any CPU
 		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|x86.ActiveCfg = Release|Any CPU
 		{AC999819-265C-497A-8113-ADB8AC940CAC}.Release|x86.Build.0 = Release|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Debug|x64.Build.0 = Debug|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Debug|x86.Build.0 = Debug|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Release|x64.ActiveCfg = Release|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Release|x64.Build.0 = Release|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Release|x86.ActiveCfg = Release|Any CPU
+		{3193ADF3-D394-44A1-B44D-F53616886A1E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -796,5 +814,6 @@ Global
 		{EC5A112C-5652-4EAA-BEE9-BF1A98F719C4} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 		{138E2AA0-F26E-4175-9758-1A5EA0699162} = {1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}
 		{AC999819-265C-497A-8113-ADB8AC940CAC} = {8F3B82AB-A6CE-4685-A846-83209A10A12B}
+		{3193ADF3-D394-44A1-B44D-F53616886A1E} = {8F3B82AB-A6CE-4685-A846-83209A10A12B}
 	EndGlobalSection
 EndGlobal

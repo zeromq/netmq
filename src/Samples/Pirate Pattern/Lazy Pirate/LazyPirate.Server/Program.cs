@@ -40,7 +40,7 @@ namespace LazyPirate.Server
                     }
 
                     Console.WriteLine("S: Normal request ({0})", Encoding.Unicode.GetString(request));
-                    server.Send(request);
+                    server.SendFrame(request);
                 }
             }
         }
