@@ -20,6 +20,20 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
         private bool m_isClosed;
+        private bool m_fromGlobalContext;
+
+        /// <summary>
+        /// Create a new NetMQSocket with the given <see cref="ZmqSocketType"/>.
+        /// </summary>
+        /// <param name="socketType">Type of socket to create</param>
+        internal NetMQSocket(ZmqSocketType socketType)
+        {
+            m_socketHandle = Global.CreateSocket(socketType);
+            m_selector = new Selector();
+            Options = new SocketOptions(this);
+            m_socketEventArgs = new NetMQSocketEventArgs(this);
+            m_fromGlobalContext = true;
+        }
 
         /// <summary>
         /// Create a new NetMQSocket with the given <see cref="SocketBase"/>.
@@ -31,6 +45,7 @@ namespace NetMQ
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
             m_socketEventArgs = new NetMQSocketEventArgs(this);
+            m_fromGlobalContext = false;
         }
 
         #region Events
@@ -205,6 +220,11 @@ namespace NetMQ
 
             m_socketHandle.CheckDisposed();
             m_socketHandle.Close();
+
+            if (m_fromGlobalContext)
+            {
+                Global.ReleaseSocket();
+            }
         }
 
         #endregion

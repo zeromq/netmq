@@ -11,6 +11,14 @@ namespace NetMQ.Sockets
     public class SubscriberSocket : NetMQSocket
     {
         /// <summary>
+        /// Create a new SubscriberSocket.
+        /// </summary>
+        public SubscriberSocket() : base(ZmqSocketType.Sub)
+        {
+            
+        }
+
+        /// <summary>
         /// Create a new SubscriberSocket based upon the given SocketBase.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>

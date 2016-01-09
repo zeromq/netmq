@@ -10,6 +10,14 @@ namespace NetMQ.Sockets
     public class PushSocket : NetMQSocket
     {
         /// <summary>
+        /// Create new PushSocket
+        /// </summary>
+        public PushSocket() : base(ZmqSocketType.Push)
+        {
+            
+        }
+
+        /// <summary>
         /// Create a new PushSocket based upon the given SocketBase.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>

@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 // ReSharper disable ExceptionNotDocumented
@@ -783,5 +784,23 @@ namespace NetMQ.Tests
             }
         }
 
+        [Test]
+        public void ContextFree()
+        {
+            using (DealerSocket server = new DealerSocket())
+            {
+                using (DealerSocket client = new DealerSocket())
+                {
+                    server.Bind("tcp://127.0.0.1:5555");
+                    client.Connect("tcp://127.0.0.1:5555");
+
+                    client.SendFrame("Hello");
+
+                    Assert.AreEqual("Hello", server.ReceiveFrameString());
+                }
+            }
+
+            Assert.IsFalse(Global.IsRunning);
+        }
     }
 }

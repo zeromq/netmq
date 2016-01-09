@@ -9,6 +9,13 @@ namespace NetMQ.Sockets
     public class DealerSocket : NetMQSocket
     {
         /// <summary>
+        /// Create a new DealerSocket.
+        /// </summary>
+        public DealerSocket() :  base(ZmqSocketType.Dealer)
+        {            
+        }
+
+        /// <summary>
         /// Create a new DealerSocket based upon the given SocketBase.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>
