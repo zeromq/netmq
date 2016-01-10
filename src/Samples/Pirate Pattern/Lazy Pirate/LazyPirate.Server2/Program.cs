@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
 using NetMQ;
 
-namespace LazyPirate.Server
+namespace LazyPirate.Server2
 {
     internal static class Program
     {
         private static void Main()
         {
-            Console.Title = "NetMQ LazyPirate Server";
+            Console.Title = "NetMQ LazyPirate Server 2";
 
             const string serverEndpoint = "tcp://127.0.0.1:5555";
 
@@ -25,7 +24,7 @@ namespace LazyPirate.Server
 
                 while (true)
                 {
-                    byte[] request = server.ReceiveFrameBytes();
+                    var request = server.ReceiveFrameString();
                     cycles++;
 
                     if (cycles > 3 && random.Next(0, 10) == 0)
@@ -39,7 +38,7 @@ namespace LazyPirate.Server
                         Thread.Sleep(1000);
                     }
 
-                    Console.WriteLine("S: Normal request ({0})", Encoding.Unicode.GetString(request));
+                    Console.WriteLine("S: Normal request ({0})", request);
                     server.SendFrame(request);
                 }
             }
