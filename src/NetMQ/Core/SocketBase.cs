@@ -962,18 +962,38 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// Close this socket. Mark it as disposed, and send ownership of it to the reaper thread to
+        /// Close this socket. 
+        /// If blocking, method will block until closing is complete
+        /// If not blocking, mark it as disposed, and send ownership of it to the reaper thread to
         /// attend to the rest of it's shutdown process.
         /// </summary>
-        public void Close()
+        public void Close(bool block)
         {
-            // Mark the socket as disposed
-            m_disposed = true;
+            // Synchronize close, we will wait until closing is complete
+            if (block)
+            {
+                // Process commands before closing the socket
+                ProcessCommands(0, false);
 
-            // Transfer the ownership of the socket from this application thread
-            // to the reaper thread which will take care of the rest of shutdown
-            // process.
-            SendReap(this);
+                // Mark the socket as disposed
+                m_disposed = true;
+
+                Terminate();
+                while (!CheckDestroy(false))
+                {
+                    ProcessCommands(-1, false);
+                }
+            }
+            else
+            {
+                // Mark the socket as disposed
+                m_disposed = true;
+
+                // Transfer the ownership of the socket from this application thread
+                // to the reaper thread which will take care of the rest of shutdown
+                // process.
+                SendReap(this);
+            }
         }
 
         /// <summary>
@@ -1009,7 +1029,7 @@ namespace NetMQ.Core
             // Initialise the termination and check whether it can be deallocated
             // immediately.
             Terminate();
-            CheckDestroy();
+            CheckDestroy(true);
         }
 
         /// <summary>
@@ -1099,10 +1119,13 @@ namespace NetMQ.Core
             // Doing this we make sure that no new pipes from other sockets (inproc)
             // will be initiated.
             UnregisterEndpoints(this);
+                        
+            //  Ask all attached pipes to dispose.
+            foreach (var pipe in m_pipes)
+            {
+                pipe.Terminate(false);
+            }
 
-            // Ask all attached pipes to terminate.
-            for (int i = 0; i != m_pipes.Count; ++i)
-                m_pipes[i].Terminate(false);
             RegisterTermAcks(m_pipes.Count);
 
             // Continue the termination process immediately.
@@ -1218,7 +1241,7 @@ namespace NetMQ.Core
             }
             finally
             {
-                CheckDestroy();
+                CheckDestroy(true);
             }
         }
 
@@ -1245,22 +1268,29 @@ namespace NetMQ.Core
         /// To be called after processing commands or invoking any command
         /// handlers explicitly. If required, it will deallocate the socket.
         /// </summary>
-        private void CheckDestroy()
+        private bool CheckDestroy(bool reaper)
         {
             // If the object was already marked as destroyed, finish the deallocation.
             if (m_destroyed)
             {
                 // Remove the socket from the reaper's poller.
-                m_poller.RemoveHandle(m_handle);
+                if (reaper)                                    
+                    m_poller.RemoveHandle(m_handle);
+                
                 // Remove the socket from the context.
                 DestroySocket(this);
 
                 // Notify the reaper about the fact.
-                SendReaped();
+                if (reaper)                    
+                    SendReaped();
 
                 // Deallocate.
                 base.ProcessDestroy();
+
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>
@@ -1269,7 +1299,7 @@ namespace NetMQ.Core
         /// When called upon an instance of SocketBase, this simply calls XReadActivated.
         /// </summary>
         /// <param name="pipe">the pipe to indicate is ready for reading</param>
-        public void ReadActivated(Pipe pipe)
+        void Pipe.IPipeEvents.ReadActivated(Pipe pipe)
         {
             XReadActivated(pipe);
         }
@@ -1278,12 +1308,12 @@ namespace NetMQ.Core
         /// When called upon an instance of SocketBase, this simply calls XWriteActivated.
         /// </summary>
         /// <param name="pipe">the pipe to indicate is ready for writing</param>
-        public void WriteActivated(Pipe pipe)
+        void Pipe.IPipeEvents.WriteActivated(Pipe pipe)
         {
             XWriteActivated(pipe);
         }
 
-        public void Hiccuped(Pipe pipe)
+        void Pipe.IPipeEvents.Hiccuped(Pipe pipe)
         {
             if (m_options.DelayAttachOnConnect)
                 pipe.Terminate(false);
@@ -1296,7 +1326,7 @@ namespace NetMQ.Core
         /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
         /// </summary>
         /// <param name="pipe">the pipe that was terminated</param>
-        public void Terminated(Pipe pipe)
+        void Pipe.IPipeEvents.Terminated(Pipe pipe)
         {
             // Notify the specific socket type about the pipe termination.
             XTerminated(pipe);
@@ -1486,7 +1516,7 @@ namespace NetMQ.Core
         {
             if (m_monitorSocket != null)
             {
-                m_monitorSocket.Close();
+                m_monitorSocket.Close(true);
                 m_monitorSocket = null;
                 m_monitorEvents = 0;
             }

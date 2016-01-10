@@ -65,9 +65,9 @@ namespace NetMQ.Core
         PipeTerm,
 
         /// <summary>
-        /// Pipe writer acknowledges pipe_term command.
+        /// Sent by pipe to itself to complete the termination
         /// </summary>
-        PipeTermAck,
+        PipeCompleteTerm,
 
         /// <summary>
         /// Sent by I/O object to the socket to request the shutdown of

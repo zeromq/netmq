@@ -120,14 +120,10 @@ namespace NetMQ.Core
             Active,
             /// <summary> Delimited means that delimiter was read from pipe before term command was received. </summary>
             Delimited,
-            /// <summary> Pending means that term command was already received from the peer but there are still pending messages to read. </summary>
-            Pending,
-            /// <summary> Terminating means that all pending messages were already read and all we are waiting for is ack from the peer. </summary>
-            Terminating,
-            /// <summary> Terminated means that 'terminate' was explicitly called by the user. </summary>
-            Terminated,
-            /// <summary> Double_terminated means that user called 'terminate' and then we've got term command from the peer as well. </summary>
-            DoubleTerminated
+            /// <summary> WaitingForDelimiter means that term command was already received from the peer but there are still pending messages to read. </summary>
+            WaitingForDelimiter,            
+            Closed,
+            WaitingForCompleteClose
         }
 
         private State m_state;
@@ -234,7 +230,7 @@ namespace NetMQ.Core
         /// <returns> Returns <c>true</c> if there is at least one message to read in the pipe; <c>false</c> otherwise. </returns>
         public bool CheckRead()
         {
-            if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
+            if (!m_inActive || (m_state != State.Active && m_state != State.WaitingForDelimiter))
                 return false;
 
             // Check if there's an item in the pipe.
@@ -251,7 +247,7 @@ namespace NetMQ.Core
                 var msg = new Msg();
                 bool ok = m_inboundPipe.TryRead(out msg);
                 Debug.Assert(ok);
-                Delimit();
+                ProcessDelimit();
                 return false;
             }
 
@@ -264,7 +260,7 @@ namespace NetMQ.Core
         /// <returns>true if a message is read from the pipe, false if pipe is terminated or no messages are available</returns>
         public bool Read(ref Msg msg)
         {
-            if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
+            if (!m_inActive || (m_state != State.Active && m_state != State.WaitingForDelimiter))
                 return false;
 
             if (!m_inboundPipe.TryRead(out msg))
@@ -276,7 +272,7 @@ namespace NetMQ.Core
             // If delimiter was read, start termination process of the pipe.
             if (msg.IsDelimiter)
             {
-                Delimit();
+                ProcessDelimit();
                 return false;
             }
 
@@ -352,17 +348,18 @@ namespace NetMQ.Core
         public void Flush()
         {
             // The peer does not exist anymore at this point.
-            if (m_state == State.Terminating)
-                return;
-
-            if (m_outboundPipe != null && !m_outboundPipe.Flush())
-                SendActivateRead(m_peer);
+            if (m_state != State.Closed)
+            {
+                if (m_outboundPipe != null && !m_outboundPipe.Flush())
+                    SendActivateRead(m_peer);
+            }
         }
 
         protected override void ProcessActivateRead()
         {
-            if (m_inActive || (m_state != State.Active && m_state != State.Pending))
+            if (m_inActive || (m_state != State.Active && m_state != State.WaitingForDelimiter))
                 return;
+
             m_inActive = true;
             m_sink.ReadActivated(this);
         }
@@ -374,6 +371,7 @@ namespace NetMQ.Core
 
             if (m_outActive || m_state != State.Active)
                 return;
+
             m_outActive = true;
             m_sink.WriteActivated(this);
         }
@@ -388,13 +386,21 @@ namespace NetMQ.Core
         /// </remarks>
         protected override void ProcessHiccup(object pipe)
         {
+            // Do nothing if pipe is not active
+            if (m_state != State.Active)
+                return;
+
             // Destroy old out-pipe. Note that the read end of the pipe was already
             // migrated to this thread.
             Debug.Assert(m_outboundPipe != null);
             m_outboundPipe.Flush();
+
             var msg = new Msg();
             while (m_outboundPipe.TryRead(out msg))
             {
+                if (!msg.HasMore)
+                    m_numberOfMessagesWritten--;
+
                 msg.Close();
             }
 
@@ -408,89 +414,11 @@ namespace NetMQ.Core
                 m_sink.Hiccuped(this);
         }
 
-        protected override void ProcessPipeTerm()
-        {
-            // This is the simple case of peer-induced termination. If there are no
-            // more pending messages to read, or if the pipe was configured to drop
-            // pending messages, we can move directly to the terminating state.
-            // Otherwise we'll hang up in pending state till all the pending messages
-            // are sent.
-            if (m_state == State.Active)
-            {
-                if (!m_delay)
-                {
-                    m_state = State.Terminating;
-                    m_outboundPipe = null;
-                    SendPipeTermAck(m_peer);
-                }
-                else
-                    m_state = State.Pending;
-                return;
-            }
-
-            // Delimiter happened to arrive before the term command. Now we have the
-            // term command as well, so we can move straight to terminating state.
-            if (m_state == State.Delimited)
-            {
-                m_state = State.Terminating;
-                m_outboundPipe = null;
-                SendPipeTermAck(m_peer);
-                return;
-            }
-
-            // This is the case where both ends of the pipe are closed in parallel.
-            // We simply reply to the request by ack and continue waiting for our
-            // own ack.
-            if (m_state == State.Terminated)
-            {
-                m_state = State.DoubleTerminated;
-                m_outboundPipe = null;
-                SendPipeTermAck(m_peer);
-                return;
-            }
-
-            // pipe_term is invalid in other states.
-            Debug.Assert(false);
-        }
+        #region Closing
 
         /// <summary>
-        /// Process the pipe-termination ack.
-        /// </summary>
-        protected override void ProcessPipeTermAck()
-        {
-            // Notify the user that all the references to the pipe should be dropped.
-            Debug.Assert(m_sink != null);
-            m_sink.Terminated(this);
-
-            // In terminating and double_terminated states there's nothing to do.
-            // Simply deallocate the pipe. In terminated state we have to ack the
-            // peer before deallocating this side of the pipe. All the other states
-            // are invalid.
-            if (m_state == State.Terminated)
-            {
-                m_outboundPipe = null;
-                SendPipeTermAck(m_peer);
-            }
-            else
-                Debug.Assert(m_state == State.Terminating || m_state == State.DoubleTerminated);
-
-            // We'll deallocate the inbound pipe, the peer will deallocate the outbound
-            // pipe (which is an inbound pipe from its point of view).
-            // First, delete all the unread messages in the pipe. We have to do it by
-            // hand because msg_t doesn't have automatic destructor. Then deallocate
-            // the ypipe itself.
-            var msg = new Msg();
-            while (m_inboundPipe.TryRead(out msg))
-            {
-                msg.Close();
-            }
-
-            m_inboundPipe = null;
-        }
-
-        /// <summary>
-        /// Ask pipe to terminate. The termination will happen asynchronously
-        /// and user will be notified about actual deallocation by 'terminated'
+        /// Ask pipe to close. The close will happen asynchronously
+        /// and user will be notified about actual deallocation by 'closed'
         /// event.
         /// </summary>
         /// <param name="delay">if set to <c>true</c>, the pending messages will be processed
@@ -501,40 +429,49 @@ namespace NetMQ.Core
             m_delay = delay;
 
             // If terminate was already called, we can ignore the duplicate invocation.
-            if (m_state == State.Terminated || m_state == State.DoubleTerminated)
-                return;
-
-            // If the pipe is in the phase of async termination, it's going to
-            // closed anyway. No need to do anything special here.
-            if (m_state == State.Terminating)
+            if (m_state == State.Closed)
                 return;
 
             if (m_state == State.Active)
             {
-                // The simple sync termination case. Ask the peer to terminate and wait
-                // for the ack.
+                if (m_outboundPipe != null)
+                {
+                    // Drop any unfinished outbound messages.
+                    Rollback();
+
+                    // Write the delimiter into the pipe. Note that watermarks are not
+                    // checked; thus the delimiter can be written even when the pipe is full.
+                    var msg = new Msg();
+                    msg.InitDelimiter();
+                    m_outboundPipe.Write(ref msg, false);
+                    Flush();
+                }
+
+                // The simple sync close case. Ask the peer to close
                 SendPipeTerm(m_peer);
-                m_state = State.Terminated;
+
+                // Sending a message to self to complete the close process
+                SendPipeCompleteTerm(this);
+                m_state = State.WaitingForCompleteClose;
             }
-            else if (m_state == State.Pending && !m_delay)
+            else if (m_state == State.WaitingForDelimiter && !m_delay)
             {
                 // There are still pending messages available, but the user calls
-                // 'terminate'. We can act as if all the pending messages were read.
-                m_outboundPipe = null;
-                SendPipeTermAck(m_peer);
-                m_state = State.Terminating;
+                // 'terminate'. We can act as if all the pending messages were read.                
+                SendPipeCompleteTerm(this);
+                m_state = State.WaitingForCompleteClose;
             }
-            else if (m_state == State.Pending)
+            else if (m_state == State.WaitingForDelimiter)
             {
                 // If there are pending messages still available, do nothing.
-            }
+            }            
             else if (m_state == State.Delimited)
             {
-                // We've already got delimiter, but not term command yet. We can ignore
-                // the delimiter and ack synchronously terminate as if we were in
-                // active state.
-                SendPipeTerm(m_peer);
-                m_state = State.Terminated;
+                // Nothing to do, waiting for the close command
+            }
+            else if (m_state == State.WaitingForCompleteClose)
+            {
+                // Nothing to do, waiting for complete close command
             }
             else
             {
@@ -544,21 +481,82 @@ namespace NetMQ.Core
 
             // Stop outbound flow of messages.
             m_outActive = false;
+        }       
 
-            if (m_outboundPipe != null)
+        /// <summary>
+        /// Handles the delimiter read from the pipe.
+        /// </summary>
+        private void ProcessDelimit()
+        {
+            if (m_state == State.Active)
             {
-                // Drop any unfinished outbound messages.
-                Rollback();
-
-                // Write the delimiter into the pipe. Note that watermarks are not
-                // checked; thus the delimiter can be written even when the pipe is full.
-
-                var msg = new Msg();
-                msg.InitDelimiter();
-                m_outboundPipe.Write(ref msg, false);
-                Flush();
+                m_state = State.Delimited;
             }
+            else if (m_state == State.WaitingForDelimiter)
+            {
+                // We cannot complete close now as we are receiving a message, lets send a message to ourself to complete the process later
+                SendPipeCompleteTerm(this);
+                m_state = State.WaitingForCompleteClose;
+            }
+            else
+            {
+                // Delimiter in any other state is invalid.
+                Debug.Assert(false);
+            }
+        }      
+
+        protected override void ProcessPipeTerm()
+        {
+            // This is the simple case of peer-induced termination. If there are no
+            // more pending messages to read, or if the pipe was configured to drop
+            // pending messages, we can move directly to the terminating state.
+            // Otherwise we'll hang up in pending state till all the pending messages
+            // are sent.
+            if (m_state == State.Active)
+            {
+                if (m_delay)
+                    m_state = State.WaitingForDelimiter;
+                else
+                {
+                    // Sending a message to self to complete the close process
+                    SendPipeCompleteTerm(this);
+                    m_state = State.WaitingForCompleteClose;
+                }                    
+            }
+            // Delimiter happened to arrive before the term command. Now we have the
+            // term command as well, so we can move straight to terminating state.
+            else if (m_state == State.Delimited)
+            {
+                // Sending a message to self to complete the close process
+                SendPipeCompleteTerm(this);
+                m_state = State.WaitingForCompleteClose;
+            }                    
         }
+
+        protected override void ProcessPipeCompleteTerm()
+        {
+            if (m_state == State.WaitingForCompleteClose)
+            {
+                m_outboundPipe = null;
+                m_state = State.Closed;
+
+                //  We'll deallocate the inbound pipe, the peer will deallocate the outbound
+                //  pipe (which is an inbound pipe from its point of view).
+                //  Delete all the unread messages in the pipe. We have to do it by
+                //  hand because Frame need to release buffer pool memory. 
+                Msg msg;
+                while (m_inboundPipe.TryRead(out msg))
+                {
+                    msg.Close();
+                }
+
+                // Notify the user that all the references to the pipe should be dropped.
+                Debug.Assert(m_sink != null);
+                m_sink.Terminated(this);
+            }
+        }      
+
+        #endregion
 
         /// <summary>
         /// Compute an appropriate low watermark from the given high-watermark.
@@ -592,30 +590,7 @@ namespace NetMQ.Core
                 : (highWatermark + 1)/2;
 
             return result;
-        }
-
-        /// <summary>
-        /// Handles the delimiter read from the pipe.
-        /// </summary>
-        private void Delimit()
-        {
-            if (m_state == State.Active)
-            {
-                m_state = State.Delimited;
-                return;
-            }
-
-            if (m_state == State.Pending)
-            {
-                m_outboundPipe = null;
-                SendPipeTermAck(m_peer);
-                m_state = State.Terminating;
-                return;
-            }
-
-            // Delimiter in any other state is invalid.
-            Debug.Assert(false);
-        }
+        }       
 
         /// <summary>
         /// Temporarily disconnects the inbound message stream and drops

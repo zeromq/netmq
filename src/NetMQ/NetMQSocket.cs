@@ -21,6 +21,7 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
         private bool m_isClosed;
+        private bool m_fromGlobalContext;
 
         internal enum DefaultAction
         {
@@ -36,6 +37,7 @@ namespace NetMQ
         /// <param name="defaultAction"></param>
         internal NetMQSocket(ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
         {
+            m_fromGlobalContext = true;
             m_socketHandle = NetMQConfig.Context.CreateSocket(socketType);
             m_selector = new Selector();
             Options = new SocketOptions(this);
@@ -77,6 +79,7 @@ namespace NetMQ
         /// <param name="socketHandle">a SocketBase object to assign to the new socket</param>
         internal NetMQSocket([NotNull] SocketBase socketHandle)
         {
+            m_fromGlobalContext = false;
             m_selector = new Selector();
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
@@ -254,7 +257,9 @@ namespace NetMQ
             m_isClosed = true;
 
             m_socketHandle.CheckDisposed();
-            m_socketHandle.Close();
+
+            // We only block if the socket is using the global context
+            m_socketHandle.Close(block: m_fromGlobalContext);
         }
 
         #endregion

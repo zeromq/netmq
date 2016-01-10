@@ -510,7 +510,8 @@ namespace NetMQ.Core
             // TODO: Should this go into pipe_t::terminate ?
             // In case there's no engine and there's only delimiter in the
             // pipe it wouldn't be ever read. Thus we check for it explicitly.
-            m_pipe.CheckRead();
+            if (m_engine == null && m_pipe != null)
+                m_pipe.CheckRead();
         }
 
         /// <summary>
