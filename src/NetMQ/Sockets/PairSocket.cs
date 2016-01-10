@@ -8,6 +8,14 @@ namespace NetMQ.Sockets
     public class PairSocket : NetMQSocket
     {
         /// <summary>
+        /// Create a new PairSocket.
+        /// </summary>
+        public PairSocket() : base(ZmqSocketType.Pair)
+        {
+            
+        }
+
+        /// <summary>
         /// Create a new PairSocket based upon the given SocketBase.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>

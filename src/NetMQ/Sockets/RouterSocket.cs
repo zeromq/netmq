@@ -8,11 +8,18 @@ namespace NetMQ.Sockets
     public class RouterSocket : NetMQSocket
     {
         /// <summary>
+        /// Create a new RouterSocket.
+        /// </summary>
+        public RouterSocket() : base(ZmqSocketType.Router)
+        {
+            
+        }
+
+        /// <summary>
         /// Create a new RouterSocket based upon the given SocketBase.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>
-        internal RouterSocket(SocketBase socketHandle)
-            : base(socketHandle)
+        internal RouterSocket(SocketBase socketHandle) : base(socketHandle)
         {
         }
     }

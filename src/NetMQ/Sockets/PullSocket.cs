@@ -10,6 +10,14 @@ namespace NetMQ.Sockets
     public class PullSocket : NetMQSocket
     {
         /// <summary>
+        /// Create a new PullSocket.
+        /// </summary>
+        public PullSocket() : base(ZmqSocketType.Pull)
+        {
+            
+        }
+
+        /// <summary>
         /// Create a new PullSocket based upon the given SocketBase.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>
