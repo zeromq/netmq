@@ -39,18 +39,17 @@ namespace NetMQ.Sockets
         /// <summary>
         /// Try to send request message and return the response as a message, or return null if not successful
         /// </summary>
-        /// <param name="context">The <paramref cref="NetMQContext"/></param>
         /// <param name="address">a string denoting the address to connect to</param>
         /// <param name="requestMessage">The request message</param>
         /// <param name="numTries">The number of times to try</param>
         /// <param name="requestTimeout">The timeout for each request</param>
         /// <param name="progressPublisher">Report topics: Failure, Retry, Send, Success</param>
         /// <returns>the response message, or null if not successful</returns>
-        public static NetMQMessage RequestResponseMultipartMessageWithRetry([NotNull] NetMQContext context, [NotNull] string address,
-            [NotNull] NetMQMessage requestMessage, int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
+        public static NetMQMessage RequestResponseMultipartMessageWithRetry([NotNull] string address, [NotNull] NetMQMessage requestMessage, 
+            int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
         {
             var responseMessage = new NetMQMessage();
-            var requestSocket = GetNewRequestSocket(context, address);
+            var requestSocket = GetNewRequestSocket(address);
             try
             {
                 while (numTries-- > 0)
@@ -75,7 +74,7 @@ namespace NetMQ.Sockets
 
                     // Try again. The Lazy Pirate pattern is to destroy the socket and create a new one.
                     TerminateSocket(requestSocket, address);
-                    requestSocket = GetNewRequestSocket(context, address);
+                    requestSocket = GetNewRequestSocket(address);
                 }
             }
             finally
@@ -92,17 +91,16 @@ namespace NetMQ.Sockets
         /// <summary>
         /// Try to send request string and return the response string, or return null if not successful
         /// </summary>
-        /// <param name="context">The <paramref cref="NetMQContext"/></param>
         /// <param name="address">a string denoting the address to connect to</param>
         /// <param name="requestString">The request string</param>
         /// <param name="numTries">The number of times to try</param>
         /// <param name="requestTimeout">The timeout for each request</param>
         /// <param name="progressPublisher">Report topics: Failure, Retry, Send, Success</param>
         /// <returns>the response message, or null if not successful</returns>
-        public static string RequestResponseStringWithRetry([NotNull] NetMQContext context, [NotNull] string address,
-            [NotNull] string requestString, int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
+        public static string RequestResponseStringWithRetry([NotNull] string address, [NotNull] string requestString, 
+            int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
         {
-            var requestSocket = GetNewRequestSocket(context, address);
+            var requestSocket = GetNewRequestSocket(address);
             try
             {
                 while (numTries-- > 0)
@@ -128,7 +126,7 @@ namespace NetMQ.Sockets
 
                     // Try again. The Lazy Pirate pattern is to destroy the socket and create a new one.
                     TerminateSocket(requestSocket, address);
-                    requestSocket = GetNewRequestSocket(context, address);
+                    requestSocket = GetNewRequestSocket(address);
                 }
             }
             finally
@@ -142,9 +140,9 @@ namespace NetMQ.Sockets
             return null;
         }
 
-        private static RequestSocket GetNewRequestSocket(NetMQContext context, string address)
+        private static RequestSocket GetNewRequestSocket(string address)
         {
-            var requestSocket = context.CreateRequestSocket();
+            var requestSocket = new RequestSocket();
             requestSocket.Connect(address);
             requestSocket.Options.Linger = TimeSpan.Zero;
             return requestSocket;

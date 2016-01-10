@@ -20,13 +20,12 @@ namespace NetMQ.Tests
             var requestTimeout = TimeSpan.FromMilliseconds(100);
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
-            using (var context = NetMQContext.Create())
-            using (var progressPublisher = context.CreatePublisherSocket())
+            using (var progressPublisher = new PublisherSocket())
             {
                 progressPublisher.Bind("tcp://127.0.0.1:5556");
                 Task.Factory.StartNew(() =>
                 {
-                    using (var progressSubscriber = context.CreateSubscriberSocket())
+                    using (var progressSubscriber = new SubscriberSocket())
                     {
                         progressSubscriber.Connect("tcp://127.0.0.1:5556");
                         progressSubscriber.SubscribeToAnyTopic();
@@ -39,7 +38,7 @@ namespace NetMQ.Tests
                 });
                 Task.Factory.StartNew(() =>
                 {
-                    using (var rep = context.CreateResponseSocket())
+                    using (var rep = new ResponseSocket())
                     {
                         rep.Bind(address);
                         while (true)
@@ -52,7 +51,7 @@ namespace NetMQ.Tests
                         }
                     }
                 });
-                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(context, address, requestMessage, numTries, requestTimeout);
+                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
                 Assert.AreEqual(1, responseMessage.FrameCount);
                 var responseString = responseMessage.First.ConvertToString();
                 Assert.AreEqual("Hi", responseString);
@@ -67,13 +66,12 @@ namespace NetMQ.Tests
             var requestTimeout = TimeSpan.FromMilliseconds(100);
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
-            using (var context = NetMQContext.Create())
-            using (var progressPublisher = context.CreatePublisherSocket())
+            using (var progressPublisher = new PublisherSocket())
             {
                 progressPublisher.Bind("tcp://127.0.0.1:5556");
                 Task.Factory.StartNew(() =>
                 {
-                    using (var progressSubscriber = context.CreateSubscriberSocket())
+                    using (var progressSubscriber = new SubscriberSocket())
                     {
                         progressSubscriber.Connect("tcp://127.0.0.1:5556");
                         progressSubscriber.SubscribeToAnyTopic();
@@ -86,7 +84,7 @@ namespace NetMQ.Tests
                 });
                 Task.Factory.StartNew(() =>
                 {
-                    using (var rep = context.CreateResponseSocket())
+                    using (var rep = new ResponseSocket())
                     {
                         rep.Bind(address);
                         while (true)
@@ -99,7 +97,7 @@ namespace NetMQ.Tests
                         }
                     }
                 });
-                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(context, address, requestMessage, numTries, requestTimeout);
+                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
                 Assert.IsNull(responseMessage);
             }
         }
@@ -113,13 +111,12 @@ namespace NetMQ.Tests
             var requestTimeout = TimeSpan.FromMilliseconds(timeoutMsec);
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
-            using (var context = NetMQContext.Create())
-            using (var progressPublisher = context.CreatePublisherSocket())
+            using (var progressPublisher = new PublisherSocket())
             {
                 progressPublisher.Bind("tcp://127.0.0.1:5556");
                 Task.Factory.StartNew(() =>
                 {
-                    using (var progressSubscriber = context.CreateSubscriberSocket())
+                    using (var progressSubscriber = new SubscriberSocket())
                     {
                         progressSubscriber.Connect("tcp://127.0.0.1:5556");
                         progressSubscriber.SubscribeToAnyTopic();
@@ -132,7 +129,7 @@ namespace NetMQ.Tests
                 });
                 Task.Factory.StartNew(() =>
                 {
-                    using (var rep = context.CreateResponseSocket())
+                    using (var rep = new ResponseSocket())
                     {
                         rep.Bind(address);
                         while (true)
@@ -159,7 +156,7 @@ namespace NetMQ.Tests
                         }
                     }
                 });
-                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(context, address, requestMessage, numTries, requestTimeout, progressPublisher);
+                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout, progressPublisher);
                 Assert.IsNotNull(responseMessage);
                 Assert.AreEqual(1, responseMessage.FrameCount);
                 var responseString = responseMessage.First.ConvertToString();
@@ -176,11 +173,9 @@ namespace NetMQ.Tests
             var requestTimeout = TimeSpan.FromMilliseconds(timeoutMsec);
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
-            using (var context = NetMQContext.Create())
-            {
                 Task.Factory.StartNew(() =>
                 {
-                    using (var rep = context.CreateResponseSocket())
+                    using (var rep = new ResponseSocket())
                     {
                         rep.Bind(address);
                         while (true)
@@ -207,13 +202,11 @@ namespace NetMQ.Tests
                         }
                     }
                 });
-                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(context, address, requestMessage,
-                    numTries, requestTimeout);
+                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
                 Assert.IsNotNull(responseMessage);
                 Assert.AreEqual(1, responseMessage.FrameCount);
                 var responseString = responseMessage.First.ConvertToString();
                 Assert.AreEqual("Hi", responseString);
-            }
         }
 
         [Test]
@@ -223,13 +216,12 @@ namespace NetMQ.Tests
             const int numTries = 3;
             const string requestString = "Hi";
             var requestTimeout = TimeSpan.FromMilliseconds(100);
-            using (var context = NetMQContext.Create())
-            using (var progressPublisher = context.CreatePublisherSocket())
+            using (var progressPublisher = new PublisherSocket())
             {
                 progressPublisher.Bind("tcp://127.0.0.1:5556");
                 Task.Factory.StartNew(() =>
                 {
-                    using (var progressSubscriber = context.CreateSubscriberSocket())
+                    using (var progressSubscriber = new SubscriberSocket())
                     {
                         progressSubscriber.Connect("tcp://127.0.0.1:5556");
                         progressSubscriber.SubscribeToAnyTopic();
@@ -242,7 +234,7 @@ namespace NetMQ.Tests
                 });
                 Task.Factory.StartNew(() =>
                 {
-                    using (var rep = context.CreateResponseSocket())
+                    using (var rep = new ResponseSocket())
                     {
                         rep.Bind(address);
                         while (true)
@@ -255,7 +247,7 @@ namespace NetMQ.Tests
                         }
                     }
                 });
-                var responseString = RequestSocket.RequestResponseStringWithRetry(context, address, requestString, numTries, requestTimeout, progressPublisher);
+                var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout, progressPublisher);
                 Assert.AreEqual(requestString, responseString);
             }
         }
@@ -267,13 +259,12 @@ namespace NetMQ.Tests
             const int numTries = 3;
             var requestTimeout = TimeSpan.FromMilliseconds(100);
             const string requestString = "Hi";
-            using (var context = NetMQContext.Create())
-            using (var progressPublisher = context.CreatePublisherSocket())
+            using (var progressPublisher = new PublisherSocket())
             {
                 progressPublisher.Bind("tcp://127.0.0.1:5556");
                 Task.Factory.StartNew(() =>
                 {
-                    using (var progressSubscriber = context.CreateSubscriberSocket())
+                    using (var progressSubscriber = new SubscriberSocket())
                     {
                         progressSubscriber.Connect("tcp://127.0.0.1:5556");
                         progressSubscriber.SubscribeToAnyTopic();
@@ -286,7 +277,7 @@ namespace NetMQ.Tests
                 });
                 Task.Factory.StartNew(() =>
                 {
-                    using (var rep = context.CreateResponseSocket())
+                    using (var rep = new ResponseSocket())
                     {
                         rep.Bind(address);
                         while (true)
@@ -298,7 +289,7 @@ namespace NetMQ.Tests
                         }
                     }
                 });
-                var responseMessage = RequestSocket.RequestResponseStringWithRetry(context, address, requestString, numTries, requestTimeout);
+                var responseMessage = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout);
                 Assert.IsNull(responseMessage);
             }
         }
@@ -311,13 +302,12 @@ namespace NetMQ.Tests
             const int timeoutMsec = 100;
             var requestTimeout = TimeSpan.FromMilliseconds(timeoutMsec);
             const string requestString = "Hi";
-            using (var context = NetMQContext.Create())
-            using (var progressPublisher = context.CreatePublisherSocket())
+            using (var progressPublisher = new PublisherSocket())
             {
                 progressPublisher.Bind("tcp://127.0.0.1:5556");
                 Task.Factory.StartNew(() =>
                 {
-                    using (var progressSubscriber = context.CreateSubscriberSocket())
+                    using (var progressSubscriber = new SubscriberSocket())
                     {
                         progressSubscriber.Connect("tcp://127.0.0.1:5556");
                         progressSubscriber.SubscribeToAnyTopic();
@@ -330,7 +320,7 @@ namespace NetMQ.Tests
                 });
                 Task.Factory.StartNew(() =>
                 {
-                    using (var rep = context.CreateResponseSocket())
+                    using (var rep = new ResponseSocket())
                     {
                         rep.Bind(address);
                         while (true)
@@ -357,8 +347,7 @@ namespace NetMQ.Tests
                         }
                     }
                 });
-                var responseString = RequestSocket.RequestResponseStringWithRetry(context, address, requestString,
-                    numTries, requestTimeout, progressPublisher);
+                var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout, progressPublisher);
                 Assert.IsNotNull(responseString);
                 Assert.AreEqual(requestString, responseString);
             }
@@ -372,11 +361,9 @@ namespace NetMQ.Tests
             const int timeoutMsec = 100;
             var requestTimeout = TimeSpan.FromMilliseconds(timeoutMsec);
             const string requestString = "Hi";
-            using (var context = NetMQContext.Create())
-            {
                 Task.Factory.StartNew(() =>
                 {
-                    using (var rep = context.CreateResponseSocket())
+                    using (var rep = new ResponseSocket())
                     {
                         rep.Bind(address);
                         while (true)
@@ -403,10 +390,9 @@ namespace NetMQ.Tests
                         }
                     }
                 });
-                var responseString = RequestSocket.RequestResponseStringWithRetry(context, address, requestString, numTries, requestTimeout);
+                var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout);
                 Assert.IsNotNull(responseString);
                 Assert.AreEqual(requestString, responseString);
-            }
         }
     }
 }

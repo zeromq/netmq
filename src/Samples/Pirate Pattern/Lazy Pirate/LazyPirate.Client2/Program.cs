@@ -23,25 +23,24 @@ namespace LazyPirate.Client2
             var requestRetries = 10;
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
-            using (var context = NetMQContext.Create())
-            using (var progressPublisher = context.CreatePublisherSocket())
+            using (var progressPublisher = new PublisherSocket())
             {
                 const string pubSubAddress = "tcp://127.0.0.1:5556";
                 progressPublisher.Bind(pubSubAddress);
-                SubscriberContinuousLoop(context, pubSubAddress, requestString);
+                SubscriberContinuousLoop(pubSubAddress, requestString);
                 while (true)
                 {
-                    var responseString = RequestSocket.RequestResponseMultipartMessageWithRetry(context, serverAddress, requestMessage, 
+                    var responseString = RequestSocket.RequestResponseMultipartMessageWithRetry(serverAddress, requestMessage, 
                         requestRetries, requestTimeout, progressPublisher);
                 }
             }
         }
 
-        private static void SubscriberContinuousLoop(NetMQContext context, string pubSubAddress, string requestString)
+        private static void SubscriberContinuousLoop(string pubSubAddress, string requestString)
         {
             Task.Factory.StartNew(() =>
             {
-                using (var progressSubscriber = context.CreateSubscriberSocket())
+                using (var progressSubscriber = new SubscriberSocket())
                 {
                     progressSubscriber.Connect(pubSubAddress);
                     progressSubscriber.SubscribeToAnyTopic();
