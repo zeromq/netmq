@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="Core\Utils\Switch.cs" />
     <Compile Include="DnsEndPoint.cs" />
+    <Compile Include="Global.cs" />
     <Compile Include="NetMQActor.cs" />
     <Compile Include="EventDelegator.cs" />
     <Compile Include="InProcActors\Actor.cs" />

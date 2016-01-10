@@ -11,6 +11,15 @@ namespace NetMQ.Sockets
     public class RequestSocket : NetMQSocket
     {
         /// <summary>
+        /// Create a new RequestSocket.
+        /// </summary>
+
+        public RequestSocket() : base(ZmqSocketType.Req)
+        {
+            
+        }
+
+        /// <summary>
         /// Create a new RequestSocket based upon the given SocketBase.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>

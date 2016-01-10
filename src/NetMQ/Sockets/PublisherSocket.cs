@@ -10,6 +10,14 @@ namespace NetMQ.Sockets
     public class PublisherSocket : NetMQSocket
     {
         /// <summary>
+        /// Create a new PublisherSocket.
+        /// </summary>
+        public PublisherSocket() : base(ZmqSocketType.Pub)
+        {
+            
+        }
+
+        /// <summary>
         /// Create a new PublisherSocket based upon the given SocketBase.
         /// </summary>
         /// <param name="socketHandle">the SocketBase to create the new socket from</param>
