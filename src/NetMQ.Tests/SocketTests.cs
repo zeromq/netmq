@@ -798,9 +798,7 @@ namespace NetMQ.Tests
 
                     Assert.AreEqual("Hello", server.ReceiveFrameString());
                 }
-            }
-
-            Assert.IsFalse(Global.IsRunning);
+            }            
         }
     }
 }
