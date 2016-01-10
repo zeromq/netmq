@@ -150,8 +150,7 @@ namespace NetMQ.Sockets
 
         private static void TerminateSocket(NetMQSocket requestSocket, string address)
         {
-            requestSocket.Disconnect(address);
-            requestSocket.Close();
+            requestSocket.Dispose();
         }
     }
 }
