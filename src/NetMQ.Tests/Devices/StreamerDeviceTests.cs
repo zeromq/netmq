@@ -9,8 +9,8 @@ namespace NetMQ.Tests.Devices
     {
         protected override void SetupTest()
         {
-            CreateDevice = c => new StreamerDevice(c, Frontend, Backend);
-            CreateClientSocket = c => c.CreatePushSocket();
+            CreateDevice = () => new StreamerDevice(Frontend, Backend);
+            CreateClientSocket = () => new PushSocket();
         }
 
         protected override void DoWork(NetMQSocket socket)
@@ -35,9 +35,9 @@ namespace NetMQ.Tests.Devices
             socket.SendFrame(expected);
         }
 
-        protected override PullSocket CreateWorkerSocket(NetMQContext context)
+        protected override PullSocket CreateWorkerSocket()
         {
-            return context.CreatePullSocket();
+            return new PullSocket();
         }
     }
 

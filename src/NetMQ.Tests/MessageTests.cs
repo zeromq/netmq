@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -80,10 +81,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void RouterDealerMessaging()
-        {
-            using (var context = NetMQContext.Create())
-            using (var server = context.CreateRouterSocket())
-            using (var client = context.CreateDealerSocket())
+        {            
+            using (var server = new RouterSocket())
+            using (var client = new DealerSocket())
             {
                 int port = server.BindRandomPort("tcp://127.0.0.1");
                 client.Connect("tcp://127.0.0.1:" + port);
@@ -116,10 +116,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void Issue52_ReqToRouterBug()
-        {
-            using (var context = NetMQContext.Create())
-            using (var router = context.CreateRouterSocket())
-            using (var req = context.CreateRequestSocket())
+        {            
+            using (var router = new RouterSocket())
+            using (var req = new RequestSocket())
             {
                 router.Bind("inproc://example");
                 req.Connect("inproc://example");

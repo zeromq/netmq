@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Monitoring;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -12,11 +13,10 @@ namespace NetMQ.Tests
     {
         [Test]
         public void Monitoring()
-        {
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var req = context.CreateRequestSocket())
-            using (var monitor = new NetMQMonitor(context, rep, "inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
+        {            
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
+            using (var monitor = new NetMQMonitor(rep, "inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
             {
                 var listening = false;
                 var accepted = false;
@@ -32,10 +32,10 @@ namespace NetMQ.Tests
 
                 req.Connect("tcp://127.0.0.1:" + port);
 
-                req.Send("a");
+                req.SendFrame("a");
                 rep.SkipFrame();
 
-                rep.Send("b");
+                rep.SendFrame("b");
                 req.SkipFrame();
 
                 Thread.Sleep(200);
@@ -54,10 +54,9 @@ namespace NetMQ.Tests
 #if !NET35
         [Test]
         public void StartAsync()
-        {
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var monitor = new NetMQMonitor(context, rep, "inproc://foo", SocketEvents.Closed))
+        {          
+            using (var rep = new ResponseSocket())
+            using (var monitor = new NetMQMonitor(rep, "inproc://foo", SocketEvents.Closed))
             {
                 var task = monitor.StartAsync();
                 Thread.Sleep(200);
@@ -70,9 +69,8 @@ namespace NetMQ.Tests
 
         [Test]
         public void NoHangWhenMonitoringUnboundInprocAddress()
-        {
-            using (var context = NetMQContext.Create())
-            using (var monitor = context.CreateMonitorSocket("inproc://unbound-inproc-address"))
+        {                        
+            using (var monitor = new NetMQMonitor(new PairSocket(), "inproc://unbound-inproc-address", ownsSocket: true))
             {
                 var task = Task.Factory.StartNew(monitor.Start);
                 monitor.Stop();
@@ -92,11 +90,10 @@ namespace NetMQ.Tests
 
         [Test]
         public void ErrorCodeTest()
-        {
-            using (var context = NetMQContext.Create())
-            using (var req = context.CreateRequestSocket())
-            using (var rep = context.CreateResponseSocket())
-            using (var monitor = new NetMQMonitor(context, req, "inproc://rep.inproc", SocketEvents.ConnectDelayed))
+        {            
+            using (var req = new RequestSocket())
+            using (var rep = new ResponseSocket())
+            using (var monitor = new NetMQMonitor(req, "inproc://rep.inproc", SocketEvents.ConnectDelayed))
             {
                 var eventArrived = false;
 
@@ -110,10 +107,10 @@ namespace NetMQ.Tests
 
                 req.Connect("tcp://127.0.0.1:" + port);
 
-                req.Send("a");
+                req.SendFrame("a");
                 rep.SkipFrame();
 
-                rep.Send("b");
+                rep.SendFrame("b");
                 req.SkipFrame();
 
                 Thread.Sleep(200);
@@ -137,23 +134,22 @@ namespace NetMQ.Tests
             // When we dispose of the monitor
             // Then our monitor is Faulted with a EndpointNotFoundException
             // And monitor can't be stopped or disposed
-
-            using (var context = NetMQContext.Create())
-            using (var res = context.CreateResponseSocket())
+            
+            using (var res = new ResponseSocket())
             {
                 NetMQMonitor monitor;
-                using (var req = context.CreateRequestSocket())
+                using (var req = new RequestSocket())
                 {
-                    monitor = new NetMQMonitor(context, req, "inproc://#monitor", SocketEvents.All);
+                    monitor = new NetMQMonitor(req, "inproc://#monitor", SocketEvents.All);
                     Task.Factory.StartNew(monitor.Start);
 
                     // Bug only occurs when monitoring a tcp socket
                     var port = res.BindRandomPort("tcp://127.0.0.1");
                     req.Connect("tcp://127.0.0.1:" + port);
 
-                    req.Send("question");
+                    req.SendFrame("question");
                     Assert.That(res.ReceiveFrameString(), Is.EqualTo("question"));
-                    res.Send("response");
+                    res.SendFrame("response");
                     Assert.That(req.ReceiveFrameString(), Is.EqualTo("response"));
                 }
                 Thread.Sleep(100);
@@ -162,17 +158,6 @@ namespace NetMQ.Tests
                 Assert.That(completed, Is.True);
             }
             // NOTE If this test fails, it will hang because context.Dispose will block
-        }
-
-        [Test]
-        public void CreateMonitorSocket_ShouldntHangContextDispose_GitHubIssue223()
-        {
-            var context = NetMQContext.Create();
-
-            using (context.CreateMonitorSocket("inproc://monitor1234"))
-            {}
-
-            Assert.True(Task.Factory.StartNew(() => context.Dispose()).Wait(1000));
-        }
+        }        
     }
 }

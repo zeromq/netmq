@@ -7,9 +7,8 @@ namespace NetMQ.Tests.InProcActors.ExceptionShimExample
     {
         [Test]
         public void ShimExceptionTest()
-        {
-            using (var context = NetMQContext.Create())
-            using (var actor = NetMQActor.Create(context, new ExceptionShimHandler()))
+        {            
+            using (var actor = NetMQActor.Create(new ExceptionShimHandler()))
             {
                 actor.SendMoreFrame("SOME_COMMAND");
                 actor.SendFrame("Whatever");

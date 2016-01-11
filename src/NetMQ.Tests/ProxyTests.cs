@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -9,10 +10,9 @@ namespace NetMQ.Tests
     {
         [Test]
         public void SendAndReceive()
-        {
-            using (var context = NetMQContext.Create())
-            using (var front = context.CreateRouterSocket())
-            using (var back = context.CreateDealerSocket())
+        {            
+            using (var front = new RouterSocket())
+            using (var back = new DealerSocket())
             {
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
@@ -20,8 +20,8 @@ namespace NetMQ.Tests
                 var proxy = new Proxy(front, back);
                 Task.Factory.StartNew(proxy.Start);
 
-                using (var client = context.CreateRequestSocket())
-                using (var server = context.CreateResponseSocket())
+                using (var client = new RequestSocket())
+                using (var server = new ResponseSocket())
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
@@ -38,12 +38,11 @@ namespace NetMQ.Tests
 
         [Test]
         public void ControlSocketObservedMessages()
-        {
-            using (var context = NetMQContext.Create())
-            using (var front = context.CreateRouterSocket())
-            using (var back = context.CreateDealerSocket())
-            using (var controlPush = context.CreatePushSocket())
-            using (var controlPull = context.CreatePullSocket())
+        {            
+            using (var front = new RouterSocket())
+            using (var back = new DealerSocket())
+            using (var controlPush = new PushSocket())
+            using (var controlPull = new PullSocket())
             {
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
@@ -54,8 +53,8 @@ namespace NetMQ.Tests
                 var proxy = new Proxy(front, back, controlPush);
                 Task.Factory.StartNew(proxy.Start);
 
-                using (var client = context.CreateRequestSocket())
-                using (var server = context.CreateResponseSocket())
+                using (var client = new RequestSocket())
+                using (var server = new ResponseSocket())
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
@@ -80,14 +79,13 @@ namespace NetMQ.Tests
 
         [Test]
         public void SeparateControlSocketsObservedMessages()
-        {
-            using (var context = NetMQContext.Create())
-            using (var front = context.CreateRouterSocket())
-            using (var back = context.CreateDealerSocket())
-            using (var controlInPush = context.CreatePushSocket())
-            using (var controlInPull = context.CreatePullSocket())
-            using (var controlOutPush = context.CreatePushSocket())
-            using (var controlOutPull = context.CreatePullSocket())
+        {            
+            using (var front = new RouterSocket())
+            using (var back = new DealerSocket())
+            using (var controlInPush = new PushSocket())
+            using (var controlInPull = new PullSocket())
+            using (var controlOutPush = new PushSocket())
+            using (var controlOutPull = new PullSocket())
             {
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
@@ -100,15 +98,15 @@ namespace NetMQ.Tests
                 var proxy = new Proxy(front, back, controlInPush, controlOutPush);
                 Task.Factory.StartNew(proxy.Start);
 
-                using (var client = context.CreateRequestSocket())
-                using (var server = context.CreateResponseSocket())
+                using (var client = new RequestSocket())
+                using (var server = new ResponseSocket())
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
 
-                    client.Send("hello");
+                    client.SendFrame("hello");
                     Assert.AreEqual("hello", server.ReceiveFrameString());
-                    server.Send("reply");
+                    server.SendFrame("reply");
                     Assert.AreEqual("reply", client.ReceiveFrameString());
                 }
 
@@ -126,10 +124,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void StartAndStopStateValidation()
-        {
-            using (var context = NetMQContext.Create())
-            using (var front = context.CreateRouterSocket())
-            using (var back = context.CreateDealerSocket())
+        {            
+            using (var front = new RouterSocket())
+            using (var back = new DealerSocket())
             {
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
@@ -138,8 +135,8 @@ namespace NetMQ.Tests
                 Task.Factory.StartNew(proxy.Start);
 
                 // Send a message through to ensure the proxy has started
-                using (var client = context.CreateRequestSocket())
-                using (var server = context.CreateResponseSocket())
+                using (var client = new RequestSocket())
+                using (var server = new ResponseSocket())
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
@@ -161,10 +158,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void StartAgainAfterStop()
-        {
-            using (var context = NetMQContext.Create())
-            using (var front = context.CreateRouterSocket())
-            using (var back = context.CreateDealerSocket())
+        {            
+            using (var front = new RouterSocket())
+            using (var back = new DealerSocket())
             {
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
@@ -173,8 +169,8 @@ namespace NetMQ.Tests
                 Task.Factory.StartNew(proxy.Start);
 
                 // Send a message through to ensure the proxy has started
-                using (var client = context.CreateRequestSocket())
-                using (var server = context.CreateResponseSocket())
+                using (var client = new RequestSocket())
+                using (var server = new ResponseSocket())
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
@@ -190,8 +186,8 @@ namespace NetMQ.Tests
                 Task.Factory.StartNew(proxy.Start);
 
                 // Send a message through to ensure the proxy has started
-                using (var client = context.CreateRequestSocket())
-                using (var server = context.CreateResponseSocket())
+                using (var client = new RequestSocket())
+                using (var server = new ResponseSocket())
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
@@ -207,10 +203,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void StoppingProxyDisengagesFunctionality()
-        {
-            using (var context = NetMQContext.Create())
-            using (var front = context.CreateRouterSocket())
-            using (var back = context.CreateDealerSocket())
+        {            
+            using (var front = new RouterSocket())
+            using (var back = new DealerSocket())
             {
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
@@ -219,8 +214,8 @@ namespace NetMQ.Tests
                 Task.Factory.StartNew(proxy.Start);
 
                 // Send a message through to ensure the proxy has started
-                using (var client = context.CreateRequestSocket())
-                using (var server = context.CreateResponseSocket())
+                using (var client = new RequestSocket())
+                using (var server = new ResponseSocket())
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");
@@ -248,10 +243,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void TestProxySendAndReceiveWithExternalPoller()
-        {
-            using (var context = NetMQContext.Create())
-            using (var front = context.CreateRouterSocket())
-            using (var back = context.CreateDealerSocket())
+        {            
+            using (var front = new RouterSocket())
+            using (var back = new DealerSocket())
             using (var poller = new Poller(front, back))
             {
                 front.Bind("inproc://frontend");
@@ -263,8 +257,8 @@ namespace NetMQ.Tests
 
                 proxy.Start();
 
-                using (var client = context.CreateRequestSocket())
-                using (var server = context.CreateResponseSocket())
+                using (var client = new RequestSocket())
+                using (var server = new ResponseSocket())
                 {
                     client.Connect("inproc://frontend");
                     server.Connect("inproc://backend");

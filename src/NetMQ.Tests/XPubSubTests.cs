@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using NUnit.Framework;
+using NetMQ.Sockets;
 
 // ReSharper disable ExceptionNotDocumented
 
@@ -11,10 +12,9 @@ namespace NetMQ.Tests
     {
         [Test]
         public void TopicPubSub()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -43,10 +43,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void Census()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
 
@@ -68,10 +67,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void SimplePubSub()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -90,10 +88,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void NotSubscribed()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -112,10 +109,9 @@ namespace NetMQ.Tests
         /// </summary>
         [Test]
         public void MultipleSubscriptions()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -140,11 +136,10 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultipleSubscribers()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
-            using (var sub2 = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
+            using (var sub2 = new XSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
 
@@ -173,12 +168,11 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultiplePublishers()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var pub2 = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
-            using (var sub2 = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var pub2 = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
+            using (var sub2 = new XSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 var port2 = pub2.BindRandomPort("tcp://127.0.0.1");
@@ -292,10 +286,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void Unsubscribe()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -329,10 +322,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void Manual()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
             {
                 pub.Bind("inproc://manual");
                 pub.Options.ManualPublisher = true;
@@ -354,10 +346,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void WelcomeMessage()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new SubscriberSocket())
             {
                 pub.Bind("inproc://welcome");
                 pub.SetWelcomeMessage("W");
@@ -376,10 +367,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void ClearWelcomeMessage()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub = context.CreateSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub = new SubscriberSocket())
             {
                 pub.Bind("inproc://welcome");
                 pub.SetWelcomeMessage("W");
@@ -399,11 +389,10 @@ namespace NetMQ.Tests
 
         [Test]
         public void BroadcastEnabled()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub1 = context.CreateXSubscriberSocket())
-            using (var sub2 = context.CreateXSubscriberSocket())
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub1 = new XSubscriberSocket())
+            using (var sub2 = new XSubscriberSocket())
             {
                 pub.Bind("inproc://manual");
                 pub.Options.XPubBroadcast = true;
@@ -447,11 +436,10 @@ namespace NetMQ.Tests
 
         [Test]
         public void BroadcastDisabled() 
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreateXPublisherSocket())
-            using (var sub1 = context.CreateXSubscriberSocket())
-            using (var sub2 = context.CreateXSubscriberSocket()) 
+        {            
+            using (var pub = new XPublisherSocket())
+            using (var sub1 = new XSubscriberSocket())
+            using (var sub2 = new XSubscriberSocket()) 
             {
                 pub.Bind("inproc://manual");
                 pub.Options.XPubBroadcast = false;
