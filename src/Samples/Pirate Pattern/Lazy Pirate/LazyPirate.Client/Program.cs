@@ -22,43 +22,40 @@ namespace LazyPirate.Client
         {
             Console.Title = "NetMQ LazyPirate Client";
 
-            using (var context = NetMQContext.Create())
+            RequestSocket client = CreateServerSocket();
+
+            while (s_retriesLeft > 0)
             {
-                RequestSocket client = CreateServerSocket(context);
+                s_sequence++;
+                Console.WriteLine("C: Sending ({0})", s_sequence);
+                client.SendFrame(Encoding.Unicode.GetBytes(s_sequence.ToString()));
+                s_expectReply = true;
 
-                while (s_retriesLeft > 0)
+                while (s_expectReply)
                 {
-                    s_sequence++;
-                    Console.WriteLine("C: Sending ({0})", s_sequence);
-                    client.Send(Encoding.Unicode.GetBytes(s_sequence.ToString()));
-                    s_expectReply = true;
+                    bool result = client.Poll(TimeSpan.FromMilliseconds(RequestTimeout));
 
-                    while (s_expectReply)
+                    if (result)
+                        continue;
+
+                    s_retriesLeft--;
+
+                    if (s_retriesLeft == 0)
                     {
-                        bool result = client.Poll(TimeSpan.FromMilliseconds(RequestTimeout));
-
-                        if (result)
-                            continue;
-
-                        s_retriesLeft--;
-
-                        if (s_retriesLeft == 0)
-                        {
-                            Console.WriteLine("C: Server seems to be offline, abandoning");
-                            break;
-                        }
-                            
-                        Console.WriteLine("C: No response from server, retrying...");
-
-                        TerminateClient(client);
-
-                        client = CreateServerSocket(context);
-                        client.Send(Encoding.Unicode.GetBytes(s_sequence.ToString()));
+                        Console.WriteLine("C: Server seems to be offline, abandoning");
+                        break;
                     }
-                }
 
-                TerminateClient(client);
+                    Console.WriteLine("C: No response from server, retrying...");
+
+                    TerminateClient(client);
+
+                    client = CreateServerSocket();
+                    client.SendFrame(Encoding.Unicode.GetBytes(s_sequence.ToString()));
+                }
             }
+
+            TerminateClient(client);
         }
 
         private static void TerminateClient(NetMQSocket client)
@@ -67,11 +64,11 @@ namespace LazyPirate.Client
             client.Close();
         }
 
-        private static RequestSocket CreateServerSocket(NetMQContext context)
+        private static RequestSocket CreateServerSocket()
         {
             Console.WriteLine("C: Connecting to server...");
 
-            var client = context.CreateRequestSocket();
+            var client = new RequestSocket();
             client.Connect(ServerEndpoint);
             client.Options.Linger = TimeSpan.Zero;
             client.ReceiveReady += ClientOnReceiveReady;

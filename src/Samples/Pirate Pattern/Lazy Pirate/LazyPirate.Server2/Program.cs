@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace LazyPirate.Server2
 {
@@ -14,8 +15,7 @@ namespace LazyPirate.Server2
 
             var random = new Random();
 
-            using (var context = NetMQContext.Create())
-            using (var server = context.CreateResponseSocket())
+            using (var server = new ResponseSocket())
             {
                 Console.WriteLine("S: Binding address {0}", serverEndpoint);
                 server.Bind(serverEndpoint);
