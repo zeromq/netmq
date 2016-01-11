@@ -147,6 +147,7 @@
     <Compile Include="NetMQActor.cs" />
     <Compile Include="NetMQBeacon.cs" />
     <Compile Include="NetMQConfig.cs" />
+    <Compile Include="NetMQProactor.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
     <Compile Include="ErrorPollingException.cs" />
