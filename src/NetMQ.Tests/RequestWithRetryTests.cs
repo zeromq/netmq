@@ -28,7 +28,7 @@ namespace NetMQ.Tests
             {
                 progressSubscriber.SubscribeToAnyTopic();
                 var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
-                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+                    Console.WriteLine("C: {0} {1:ss.fff}", message[0].ConvertToString(), DateTime.Now));
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
@@ -68,11 +68,11 @@ namespace NetMQ.Tests
             {
                 progressSubscriber.SubscribeToAnyTopic();
                 var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
-                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+                    Console.WriteLine("C: {0} {1:ss.fff}", message[0].ConvertToString(), DateTime.Now));
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message.First.ConvertToString(),
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
                         DateTime.Now);                    
                 });
 
@@ -102,13 +102,13 @@ namespace NetMQ.Tests
             {
                 progressSubscriber.SubscribeToAnyTopic();
                 var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
-                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+                    Console.WriteLine("C: {0} {1:ss.fff}", message[0].ConvertToString(), DateTime.Now));
 
                 int attempt = 0;
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[1].ConvertToString(),
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
                         DateTime.Now);
 
                     attempt++;
@@ -147,11 +147,11 @@ namespace NetMQ.Tests
             {
                 progressSubscriber.SubscribeToAnyTopic();
                 var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
-                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+                    Console.WriteLine("C: {0} {1:ss.fff}", message[0].ConvertToString(), DateTime.Now));
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message.First.ConvertToString(),
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
                         DateTime.Now);
                 });
 
@@ -179,13 +179,13 @@ namespace NetMQ.Tests
             {
                 progressSubscriber.SubscribeToAnyTopic();
                 var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
-                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+                    Console.WriteLine("C: {0} {1:ss.fff}", message[0].ConvertToString(), DateTime.Now));
 
                 int attempt = 0;
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[1].ConvertToString(),
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
                         DateTime.Now);
 
                     attempt++;

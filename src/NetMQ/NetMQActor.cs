@@ -220,6 +220,7 @@ namespace NetMQ
         /// <param name="context">the context for this actor to live within</param>
         /// <param name="shimHandler">an <c>IShimHandler</c> that provides the Run method</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
+        [Obsolete("Use non context version")]
         [NotNull]
         public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
         {
@@ -233,6 +234,7 @@ namespace NetMQ
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perfrom</param>
         /// <param name="state">the state-information - of the generic type T</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
+        [Obsolete("Use non context version")]
         [NotNull]
         public static NetMQActor Create<T>([NotNull] NetMQContext context, [NotNull] ShimAction<T> action, T state)
         {
@@ -245,6 +247,7 @@ namespace NetMQ
         /// <param name="context">the context for this actor to live within</param>
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
+        [Obsolete("Use non context version")]
         [NotNull]
         public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] ShimAction action)
         {

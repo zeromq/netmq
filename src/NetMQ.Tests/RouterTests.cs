@@ -1,6 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 using System.Text;
+using NetMQ.Sockets;
 
 namespace NetMQ.Tests 
 {
@@ -9,9 +10,8 @@ namespace NetMQ.Tests
     {
         [Test]
         public void Mandatory() 
-        {
-            using (var context = NetMQContext.Create())
-            using (var router = context.CreateRouterSocket()) {
+        {            
+            using (var router = new RouterSocket()) {
                 router.Options.RouterMandatory = true;
                 router.BindRandomPort("tcp://*");
 
@@ -23,9 +23,8 @@ namespace NetMQ.Tests
         public void ReceiveReadyDot35Bug() 
         {
             // In .NET 3.5, we saw an issue where ReceiveReady would be raised every second despite nothing being received
-
-            using (var context = NetMQContext.Create())
-            using (var server = context.CreateRouterSocket()) {
+            
+            using (var server = new RouterSocket()) {
                 server.BindRandomPort("tcp://127.0.0.1");
                 server.ReceiveReady += (s, e) => {
                     Assert.Fail("Should not receive");
@@ -38,11 +37,10 @@ namespace NetMQ.Tests
 
         [Test]
         public void TwoMessagesFromRouterToDealer() 
-        {
-            using (var context = NetMQContext.Create())
+        {            
             using (var poller = new Poller())
-            using (var server = context.CreateRouterSocket())
-            using (var client = context.CreateDealerSocket()) {
+            using (var server = new RouterSocket())
+            using (var client = new DealerSocket()) {
                 var port = server.BindRandomPort("tcp://*");
                 client.Connect("tcp://127.0.0.1:" + port);
                 poller.AddSocket(client);

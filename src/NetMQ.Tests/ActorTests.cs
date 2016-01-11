@@ -8,32 +8,30 @@ namespace NetMQ.Tests
         [Test]
         public void Simple()
         {
-            using (var context = NetMQContext.Create())
+
+            ShimAction shimAction = shim =>
             {
-                ShimAction shimAction = shim =>
+                shim.SignalOK();
+
+                while (true)
                 {
-                    shim.SignalOK();
+                    NetMQMessage msg = shim.ReceiveMultipartMessage();
 
-                    while (true)
-                    {
-                        NetMQMessage msg = shim.ReceiveMultipartMessage();
+                    string command = msg[0].ConvertToString();
 
-                        string command = msg[0].ConvertToString();
+                    if (command == NetMQActor.EndShimMessage)
+                        break;
 
-                        if (command == NetMQActor.EndShimMessage)
-                            break;
-
-                        if (command == "Hello")
-                            shim.SendFrame("World");
-                    }
-                };
-
-                using (var actor = NetMQActor.Create(context, shimAction))
-                {
-                    actor.SendMoreFrame("Hello").SendFrame("Hello");
-
-                    Assert.AreEqual("World", actor.ReceiveFrameString());
+                    if (command == "Hello")
+                        shim.SendFrame("World");
                 }
+            };
+
+            using (var actor = NetMQActor.Create(shimAction))
+            {
+                actor.SendMoreFrame("Hello").SendFrame("Hello");
+
+                Assert.AreEqual("World", actor.ReceiveFrameString());
             }
         }
     }

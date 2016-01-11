@@ -29,8 +29,7 @@ namespace NetMQ
     {
         static byte[] s_empty = new byte[0];
         private static int s_sequence = 0;
-
-        private readonly NetMQContext m_context;
+        
         private readonly PairSocket m_writer;
         private readonly PairSocket m_reader;
         private readonly ConcurrentQueue<T> m_queue;
@@ -42,12 +41,11 @@ namespace NetMQ
         /// </summary>
         /// <param name="context">NetMQContext must be provided to the queue</param>
         /// <param name="capacity">The capacity of the queue, use zero for unlimited</param>
-        public NetMQQueue(NetMQContext context, int capacity = 0)
+        public NetMQQueue(int capacity = 0)
         {
-            m_context = context;
             m_queue = new ConcurrentQueue<T>();
-            m_writer = m_context.CreatePairSocket();
-            m_reader = m_context.CreatePairSocket();
+            m_writer = new PairSocket();
+            m_reader = new PairSocket();
 
             if (capacity != 0)
             {

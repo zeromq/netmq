@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -11,10 +12,9 @@ namespace NetMQ.Tests
         [TestCase("tcp://127.0.0.1")]
         [TestCase("tcp://unknownhostname", ExpectedException = typeof(SocketException))]
         public void SimpleReqRep(string address)
-        {
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var req = context.CreateRequestSocket())
+        {            
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
             {
                 var port = rep.BindRandomPort(address);
                 req.Connect(address + ":" + port);
@@ -31,10 +31,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void SendingTwoRequestsInaRow()
-        {
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var req = context.CreateRequestSocket())
+        {            
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
             {
                 var port = rep.BindRandomPort("tcp://localhost");
                 req.Connect("tcp://localhost:" + port);
@@ -49,10 +48,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void ReceiveBeforeSending()
-        {
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var req = context.CreateRequestSocket())
+        {            
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
             {
                 var port = rep.BindRandomPort("tcp://localhost");
                 req.Connect("tcp://localhost:" + port);
@@ -63,10 +61,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void SendMessageInResponeBeforeReceiving()
-        {
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var req = context.CreateRequestSocket())
+        {            
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
             {
                 var port = rep.BindRandomPort("tcp://localhost");
                 req.Connect("tcp://localhost:" + port);
@@ -77,10 +74,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void SendMultipartMessage()
-        {
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var req = context.CreateRequestSocket())
+        {            
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
             {
                 var port = rep.BindRandomPort("tcp://localhost");
                 req.Connect("tcp://localhost:" + port);

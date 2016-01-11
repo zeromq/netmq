@@ -12,14 +12,14 @@ namespace NetMQ.Tests.Devices
 
         protected override void SetupTest()
         {
-            CreateDevice = c =>
+            CreateDevice = () =>
             {
-                var device = new ForwarderDevice(c, Frontend, Backend);
+                var device = new ForwarderDevice(Frontend, Backend);
                 device.FrontendSetup.Subscribe(Topic);
                 return device;
             };
 
-            CreateClientSocket = c => c.CreatePublisherSocket();
+            CreateClientSocket = () => new PublisherSocket();
         }
 
         protected override void WorkerSocketAfterConnect(SubscriberSocket socket)
@@ -50,9 +50,9 @@ namespace NetMQ.Tests.Devices
             socket.SendFrame(expected);
         }
 
-        protected override SubscriberSocket CreateWorkerSocket(NetMQContext context)
+        protected override SubscriberSocket CreateWorkerSocket()
         {
-            return context.CreateSubscriberSocket();
+            return new SubscriberSocket();
         }
     }
 

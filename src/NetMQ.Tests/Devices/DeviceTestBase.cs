@@ -14,14 +14,13 @@ namespace NetMQ.Tests.Devices
         protected const string Backend = "inproc://back.addr";
 
         protected readonly Random Random = new Random();
-
-        private NetMQContext m_context;
+        
         protected TDevice Device;
 
-        protected Func<NetMQContext, TDevice> CreateDevice;
+        protected Func<TDevice> CreateDevice;
 
-        protected Func<NetMQContext, NetMQSocket> CreateClientSocket;
-        protected abstract TWorkerSocket CreateWorkerSocket(NetMQContext context);
+        protected Func<NetMQSocket> CreateClientSocket;
+        protected abstract TWorkerSocket CreateWorkerSocket();
 
         protected int WorkerReceiveCount;
 
@@ -37,22 +36,15 @@ namespace NetMQ.Tests.Devices
             m_workerDone = new ManualResetEvent(false);
             m_workerCancellationSource = new CancellationTokenSource();
             m_workerCancellationToken = m_workerCancellationSource.Token;
-
-            m_context = NetMQContext.Create();
+            
             SetupTest();
-            Device = CreateDevice(m_context);
+            Device = CreateDevice();
             Device.Start();
 
             StartWorker();
         }
 
-        protected abstract void SetupTest();
-
-        [TearDown]
-        protected void TearDown()
-        {
-            m_context.Dispose();
-        }
+        protected abstract void SetupTest();       
 
         protected abstract void DoWork(NetMQSocket socket);
 
@@ -62,7 +54,7 @@ namespace NetMQ.Tests.Devices
         {
             Task.Factory.StartNew(() =>
             {
-                using (var socket = CreateWorkerSocket(m_context))
+                using (var socket = CreateWorkerSocket())
                 {
                     socket.Connect(Backend);
                     WorkerSocketAfterConnect(socket);
@@ -101,7 +93,7 @@ namespace NetMQ.Tests.Devices
         {
             Task.Factory.StartNew(() =>
             {
-                using (var client = CreateClientSocket(m_context))
+                using (var client = CreateClientSocket())
                 {
                     client.Connect(Frontend);
 

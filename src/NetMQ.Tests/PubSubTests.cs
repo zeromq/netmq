@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -8,10 +9,9 @@ namespace NetMQ.Tests
     {
         [Test]
         public void TopicPubSub()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreatePublisherSocket())
-            using (var sub = context.CreateSubscriberSocket())
+        {            
+            using (var pub = new PublisherSocket())
+            using (var sub = new SubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -30,10 +30,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void SimplePubSub()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreatePublisherSocket())
-            using (var sub = context.CreateSubscriberSocket())
+        {            
+            using (var pub = new PublisherSocket())
+            using (var sub = new SubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -53,10 +52,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void NotSubscribed()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreatePublisherSocket())
-            using (var sub = context.CreateSubscriberSocket())
+        {            
+            using (var pub = new PublisherSocket())
+            using (var sub = new SubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -75,10 +73,9 @@ namespace NetMQ.Tests
         /// </summary>
         [Test]
         public void MultipleSubscriptions()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreatePublisherSocket())
-            using (var sub = context.CreateSubscriberSocket())
+        {            
+            using (var pub = new PublisherSocket())
+            using (var sub = new SubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);
@@ -102,11 +99,10 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultipleSubscribersOnDifferentTopics()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreatePublisherSocket())
-            using (var sub1 = context.CreateSubscriberSocket())
-            using (var sub2 = context.CreateSubscriberSocket())
+        {            
+            using (var pub = new PublisherSocket())
+            using (var sub1 = new SubscriberSocket())
+            using (var sub2 = new SubscriberSocket())
             {
                 var port = pub.BindRandomPort("tcp://127.0.0.1");
 
@@ -140,12 +136,11 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultiplePublishersAndSubscribersOnSameTopic()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub1 = context.CreatePublisherSocket())
-            using (var pub2 = context.CreatePublisherSocket())
-            using (var sub1 = context.CreateSubscriberSocket())
-            using (var sub2 = context.CreateSubscriberSocket())
+        {            
+            using (var pub1 = new PublisherSocket())
+            using (var pub2 = new PublisherSocket())
+            using (var sub1 = new SubscriberSocket())
+            using (var sub2 = new SubscriberSocket())
             {
                 int port1 = pub1.BindRandomPort("tcp://127.0.0.1");
                 int port2 = pub2.BindRandomPort("tcp://127.0.0.1");
@@ -179,10 +174,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void Unsubscribe()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pub = context.CreatePublisherSocket())
-            using (var sub = context.CreateSubscriberSocket())
+        {            
+            using (var pub = new PublisherSocket())
+            using (var sub = new SubscriberSocket())
             {
                 int port = pub.BindRandomPort("tcp://127.0.0.1");
                 sub.Connect("tcp://127.0.0.1:" + port);

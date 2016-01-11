@@ -9,9 +9,8 @@ namespace NetMQ.Tests.InProcActors.Echo
         [TestCase("NetMQ Is quite awesome")]
         [TestCase("Agreed sockets on steroids with isotopes")]
         public void EchoActorSendReceiveTests(string actorMessage)
-        {
-            using (var context = NetMQContext.Create())
-            using (var actor = NetMQActor.Create(context, new EchoShimHandler()))
+        {            
+            using (var actor = NetMQActor.Create(new EchoShimHandler()))
             {
                 actor.SendMoreFrame("ECHO");
                 actor.SendFrame(actorMessage);
@@ -26,9 +25,8 @@ namespace NetMQ.Tests.InProcActors.Echo
         public void BadCommandTests(string command)
         {
             const string actorMessage = "whatever";
-
-            using (var context = NetMQContext.Create())
-            using (var actor = NetMQActor.Create(context, new EchoShimHandler()))
+            
+            using (var actor = NetMQActor.Create(new EchoShimHandler()))
             {
                 actor.SendMoreFrame(command);
                 actor.SendFrame(actorMessage);

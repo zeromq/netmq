@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using NetMQ.Sockets;
+using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -7,10 +8,9 @@ namespace NetMQ.Tests
     {
         [Test]
         public void SimplePushPull()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pullSocket = context.CreatePullSocket())
-            using (var pushSocket = context.CreatePushSocket())
+        {            
+            using (var pullSocket = new PullSocket())
+            using (var pushSocket = new PushSocket())
             {
                 var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
                 pushSocket.Connect("tcp://127.0.0.1:" + port);
@@ -23,10 +23,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void EmptyMessage()
-        {
-            using (var context = NetMQContext.Create())
-            using (var pullSocket = context.CreatePullSocket())
-            using (var pushSocket = context.CreatePushSocket())
+        {            
+            using (var pullSocket = new PullSocket())
+            using (var pushSocket = new PushSocket())
             {
                 var port = pullSocket.BindRandomPort("tcp://127.0.0.1");
                 pushSocket.Connect("tcp://127.0.0.1:" + port);

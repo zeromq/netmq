@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AsyncIO;
 using JetBrains.Annotations;
 using NetMQ.Core;
+using NetMQ.Sockets;
 
 namespace NetMQ.Monitoring
 {
@@ -33,6 +34,7 @@ namespace NetMQ.Monitoring
             : this(context, monitoredSocket, endpoint, (SocketEvents)eventsToMonitor)
         {}
 
+        [Obsolete("Use non context version")]
         public NetMQMonitor([NotNull] NetMQContext context, [NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
         {
             Endpoint = endpoint;
@@ -41,6 +43,20 @@ namespace NetMQ.Monitoring
             monitoredSocket.Monitor(endpoint, eventsToMonitor);
 
             m_monitoringSocket = context.CreatePairSocket();
+            m_monitoringSocket.Options.Linger = TimeSpan.Zero;
+            m_monitoringSocket.ReceiveReady += Handle;
+
+            m_ownsMonitoringSocket = true;
+        }
+
+        public NetMQMonitor([NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
+        {
+            Endpoint = endpoint;
+            Timeout = TimeSpan.FromSeconds(0.5);
+
+            monitoredSocket.Monitor(endpoint, eventsToMonitor);
+
+            m_monitoringSocket = new PairSocket();
             m_monitoringSocket.Options.Linger = TimeSpan.Zero;
             m_monitoringSocket.ReceiveReady += Handle;
 

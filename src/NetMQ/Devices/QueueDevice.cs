@@ -1,4 +1,7 @@
-﻿namespace NetMQ.Devices
+﻿using System;
+using NetMQ.Sockets;
+
+namespace NetMQ.Devices
 {
     /// <summary>
     /// A shared queue that collects requests from a set of clients and distributes
@@ -19,6 +22,7 @@
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
+        [Obsolete("Use non context version")]
         public QueueDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress, DeviceMode mode = DeviceMode.Threaded)
             : base(context.CreateRouterSocket(), context.CreateDealerSocket(), mode)
         {
@@ -34,12 +38,40 @@
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
+        [Obsolete("Use non context version")]
         public QueueDevice(NetMQContext context, Poller poller, string frontendBindAddress, string backendBindAddress, DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreateRouterSocket(), context.CreateDealerSocket(), mode)
         {
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueDevice"/> class.
+        /// </summary>        
+        /// <param name="poller">The <see cref="Poller"/> to use.</param>
+        /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
+        /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
+        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>        
+        public QueueDevice(Poller poller, string frontendBindAddress, string backendBindAddress, DeviceMode mode = DeviceMode.Threaded)
+            : base(poller, new RouterSocket(), new DealerSocket(), mode)
+        {
+            FrontendSetup.Bind(frontendBindAddress);
+            BackendSetup.Bind(backendBindAddress);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueDevice"/> class.
+        /// </summary>        
+        /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
+        /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
+        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
+        public QueueDevice(string frontendBindAddress, string backendBindAddress, DeviceMode mode = DeviceMode.Threaded)
+            : base(new RouterSocket(), new DealerSocket(), mode)
+        {
+            FrontendSetup.Bind(frontendBindAddress);
+            BackendSetup.Bind(backendBindAddress);
+        }        
 
         /// <summary>
         /// This override of FrontendHandler receives data from the socket contained within args,

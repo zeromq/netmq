@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
 
+using NetMQ.Sockets;
+
 namespace NetMQ.Tests
 {
     [TestFixture]
@@ -7,10 +9,9 @@ namespace NetMQ.Tests
     {
         [Test]
         public void StreamToStream()
-        {
-            using (var context = NetMQContext.Create())
-            using (var server = context.CreateStreamSocket())
-            using (var client = context.CreateStreamSocket())
+        {            
+            using (var server = new StreamSocket())
+            using (var client = new StreamSocket())
             {
                 var port = server.BindRandomPort("tcp://*");
                 client.Connect("tcp://127.0.0.1:" + port);

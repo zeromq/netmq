@@ -12,9 +12,8 @@ namespace NetMQ.Tests
     {
         [Test]
         public void EnqueueDequeue()
-        {
-            using (NetMQContext context = NetMQContext.Create())
-            using (NetMQQueue<int> queue = new NetMQQueue<int>(context))
+        {            
+            using (NetMQQueue<int> queue = new NetMQQueue<int>())
             {
                 queue.Enqueue(1);
 
@@ -24,9 +23,8 @@ namespace NetMQ.Tests
 
         [Test]
         public void TryDequeue()
-        {
-            using (NetMQContext context = NetMQContext.Create())
-            using (NetMQQueue<int> queue = new NetMQQueue<int>(context))
+        {            
+            using (NetMQQueue<int> queue = new NetMQQueue<int>())
             {
                 int result;
                 Assert.IsFalse(queue.TryDequeue(out result, TimeSpan.FromMilliseconds(100)));
@@ -40,9 +38,8 @@ namespace NetMQ.Tests
 
         [Test]
         public void WithPoller()
-        {
-            using (NetMQContext context = NetMQContext.Create())
-            using (NetMQQueue<int> queue = new NetMQQueue<int>(context))
+        {            
+            using (NetMQQueue<int> queue = new NetMQQueue<int>())
             {
                 Poller poller = new Poller();
                 poller.AddSocket(queue);

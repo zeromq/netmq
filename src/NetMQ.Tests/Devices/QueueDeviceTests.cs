@@ -11,8 +11,8 @@ namespace NetMQ.Tests.Devices
     {
         protected override void SetupTest()
         {
-            CreateDevice = c => new QueueDevice(c, Frontend, Backend);
-            CreateClientSocket = c => c.CreateRequestSocket();
+            CreateDevice = () => new QueueDevice(Frontend, Backend);
+            CreateClientSocket = () => new RequestSocket();
             //CreateWorkerSocket = c => c.CreateResponseSocket();
         }
 
@@ -48,9 +48,9 @@ namespace NetMQ.Tests.Devices
             Console.WriteLine("Client: {0} received: {1}", id, response[0]);
         }
 
-        protected override ResponseSocket CreateWorkerSocket(NetMQContext context)
+        protected override ResponseSocket CreateWorkerSocket()
         {
-            return context.CreateResponseSocket();
+            return new ResponseSocket();
         }
     }
 

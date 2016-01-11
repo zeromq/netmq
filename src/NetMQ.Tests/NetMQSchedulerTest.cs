@@ -12,9 +12,8 @@ namespace NetMQ.Tests
         public void OneTask()
         {
             bool triggered = false;
-
-            using (var context = NetMQContext.Create())
-            using (var scheduler = new NetMQScheduler(context))
+            
+            using (var scheduler = new NetMQScheduler())
             {
                 var task = new Task(() => { triggered = true; });
                 task.Start(scheduler);
@@ -32,9 +31,8 @@ namespace NetMQ.Tests
 
             int runCount1 = 0;
             int runCount2 = 0;
-
-            using (var context = NetMQContext.Create())
-            using (var scheduler = new NetMQScheduler(context))
+            
+            using (var scheduler = new NetMQScheduler())
             {
                 var task = new Task(() =>
                 {
@@ -62,10 +60,9 @@ namespace NetMQ.Tests
         public void ExternalPoller()
         {
             bool triggered = false;
-
-            using (var context = NetMQContext.Create())
+            
             using (var poller = new Poller())
-            using (var scheduler = new NetMQScheduler(context, poller))
+            using (var scheduler = new NetMQScheduler(poller))
             {
                 poller.PollTillCancelledNonBlocking();
 
@@ -79,10 +76,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void CanDisposeSchedulerWhenPollerExternalAndCancelled()
-        {
-            using (var context = NetMQContext.Create())
+        {         
             using (var poller = new Poller())
-            using (var scheduler = new NetMQScheduler(context, poller))
+            using (var scheduler = new NetMQScheduler(poller))
             {
                 poller.PollTillCancelledNonBlocking();
 
@@ -102,9 +98,8 @@ namespace NetMQ.Tests
             int count2 = 0;
 
             var allTasks = new ConcurrentBag<Task>();
-
-            using (var context = NetMQContext.Create())
-            using (var scheduler = new NetMQScheduler(context))
+            
+            using (var scheduler = new NetMQScheduler())
             {
                 Task t1 = Task.Factory.StartNew(() =>
                 {

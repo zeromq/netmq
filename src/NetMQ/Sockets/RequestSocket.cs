@@ -18,7 +18,7 @@ namespace NetMQ.Sockets
         /// <example><code>var socket = new RequestSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>  
         public RequestSocket(string connectionString = null) : base(ZmqSocketType.Req, connectionString, DefaultAction.Connect)
         {
-            
+
         }
 
         /// <summary>
@@ -47,46 +47,45 @@ namespace NetMQ.Sockets
         /// <param name="requestTimeout">The timeout for each request</param>
         /// <param name="progressPublisher">Report topics: Failure, Retry, Send, Success</param>
         /// <returns>the response message, or null if not successful</returns>
-        public static NetMQMessage RequestResponseMultipartMessageWithRetry([NotNull] string address, [NotNull] NetMQMessage requestMessage, 
+        public static NetMQMessage RequestResponseMultipartMessageWithRetry([NotNull] string address, [NotNull] NetMQMessage requestMessage,
             int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
         {
             var responseMessage = new NetMQMessage();
-            var requestSocket = GetNewRequestSocket(address);
-            try
+
+            while (numTries-- > 0)
             {
-                while (numTries-- > 0)
+                using (var requestSocket = new RequestSocket(address))
                 {
                     if (progressPublisher != null)
                     {
                         progressPublisher.SendFrame(ProgressTopic.Send.ToString());
                     }
+
                     requestSocket.SendMultipartMessage(requestMessage);
+
                     if (requestSocket.TryReceiveMultipartMessage(requestTimeout, ref responseMessage))
                     {
                         if (progressPublisher != null)
                         {
                             progressPublisher.SendFrame(ProgressTopic.Success.ToString());
                         }
+
                         return responseMessage;
                     }
+
                     if (progressPublisher != null)
                     {
                         progressPublisher.SendFrame(ProgressTopic.Retry.ToString());
-                    }
-
-                    // Try again. The Lazy Pirate pattern is to destroy the socket and create a new one.
-                    TerminateSocket(requestSocket, address);
-                    requestSocket = GetNewRequestSocket(address);
+                    }                    
                 }
             }
-            finally
-            {
-                TerminateSocket(requestSocket, address);
-            }
+
+
             if (progressPublisher != null)
             {
                 progressPublisher.SendFrame(ProgressTopic.Failure.ToString());
             }
+
             return null;
         }
 
@@ -99,19 +98,20 @@ namespace NetMQ.Sockets
         /// <param name="requestTimeout">The timeout for each request</param>
         /// <param name="progressPublisher">Report topics: Failure, Retry, Send, Success</param>
         /// <returns>the response message, or null if not successful</returns>
-        public static string RequestResponseStringWithRetry([NotNull] string address, [NotNull] string requestString, 
+        public static string RequestResponseStringWithRetry([NotNull] string address, [NotNull] string requestString,
             int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
         {
-            var requestSocket = GetNewRequestSocket(address);
-            try
+            while (numTries-- > 0)
             {
-                while (numTries-- > 0)
+                using (var requestSocket = new RequestSocket(address))
                 {
                     if (progressPublisher != null)
                     {
                         progressPublisher.SendFrame(ProgressTopic.Send.ToString());
                     }
+
                     requestSocket.SendFrame(requestString);
+
                     string frameString;
                     if (requestSocket.TryReceiveFrameString(requestTimeout, out frameString))
                     {
@@ -119,40 +119,22 @@ namespace NetMQ.Sockets
                         {
                             progressPublisher.SendFrame(ProgressTopic.Success.ToString());
                         }
+
                         return frameString;
                     }
                     if (progressPublisher != null)
                     {
                         progressPublisher.SendFrame(ProgressTopic.Retry.ToString());
                     }
-
-                    // Try again. The Lazy Pirate pattern is to destroy the socket and create a new one.
-                    TerminateSocket(requestSocket, address);
-                    requestSocket = GetNewRequestSocket(address);
                 }
             }
-            finally
-            {
-                TerminateSocket(requestSocket, address);
-            }
+
             if (progressPublisher != null)
             {
                 progressPublisher.SendFrame(ProgressTopic.Failure.ToString());
             }
+
             return null;
-        }
-
-        private static RequestSocket GetNewRequestSocket(string address)
-        {
-            var requestSocket = new RequestSocket();
-            requestSocket.Connect(address);
-            requestSocket.Options.Linger = TimeSpan.Zero;
-            return requestSocket;
-        }
-
-        private static void TerminateSocket(NetMQSocket requestSocket, string address)
-        {
-            requestSocket.Dispose();
         }
     }
 }

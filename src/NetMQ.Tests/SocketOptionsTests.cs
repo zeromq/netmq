@@ -1,4 +1,5 @@
 ﻿using System;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -8,9 +9,8 @@ namespace NetMQ.Tests
     {
         [Test]
         public void DefaultValues()
-        {
-            using (var context = NetMQContext.Create())
-            using (var socket = context.CreateRouterSocket())
+        {            
+            using (var socket = new RouterSocket())
             {
                 Assert.IsNull(socket.Options.Identity);
 //                Assert.IsNull(socket.Options.TcpAcceptFilter);
@@ -20,9 +20,8 @@ namespace NetMQ.Tests
 
         [Test]
         public void GetAndSetAllProperties()
-        {
-            using (var context = NetMQContext.Create())
-            using (var socket = context.CreateRouterSocket())
+        {            
+            using (var socket = new RouterSocket())
             {
                 socket.Options.Affinity = 1L;
                 Assert.AreEqual(1L, socket.Options.Affinity);
@@ -114,9 +113,8 @@ namespace NetMQ.Tests
                 socket.Options.DisableTimeWait = true;
                 Assert.IsTrue(socket.Options.DisableTimeWait);
             }
-
-            using (var context = NetMQContext.Create())
-            using (var socket = context.CreateXPublisherSocket())
+            
+            using (var socket = new XPublisherSocket())
             {
                 socket.Options.XPubVerbose = true;
 //                Assert.AreEqual(true, socket.Options.XPubVerbose);

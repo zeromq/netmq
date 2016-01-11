@@ -13,10 +13,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void SimplePublishSubscribe()
-        {
-            using (var context = NetMQContext.Create())
-            using (var speaker = new NetMQBeacon(context))
-            using (var listener = new NetMQBeacon(context))
+        {            
+            using (var speaker = new NetMQBeacon())
+            using (var listener = new NetMQBeacon())
             {
                 speaker.Configure(9999);
                 Console.WriteLine(speaker.Hostname);
@@ -37,10 +36,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void Silence()
-        {
-            using (var context = NetMQContext.Create())
-            using (var speaker = new NetMQBeacon(context))
-            using (var listener = new NetMQBeacon(context))
+        {            
+            using (var speaker = new NetMQBeacon())
+            using (var listener = new NetMQBeacon())
             {
                 speaker.Configure(9999);
 
@@ -62,10 +60,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void Unsubscribe()
-        {
-            using (var context = NetMQContext.Create())
-            using (var speaker = new NetMQBeacon(context))
-            using (var listener = new NetMQBeacon(context))
+        {            
+            using (var speaker = new NetMQBeacon())
+            using (var listener = new NetMQBeacon())
             {
                 speaker.Configure(9999);
 
@@ -87,10 +84,9 @@ namespace NetMQ.Tests
 
         [Test]        
         public void SubscribeToDifferentTopic()
-        {
-            using (var context = NetMQContext.Create())
-            using (var speaker = new NetMQBeacon(context))
-            using (var listener = new NetMQBeacon(context))
+        {            
+            using (var speaker = new NetMQBeacon())
+            using (var listener = new NetMQBeacon())
             {
                 speaker.Configure(9999);
 
@@ -108,10 +104,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void Polling()
-        {
-            using (var context = NetMQContext.Create())
-            using (var speaker = new NetMQBeacon(context))
-            using (var listener = new NetMQBeacon(context))
+        {            
+            using (var speaker = new NetMQBeacon())
+            using (var listener = new NetMQBeacon())
             {
                 speaker.Configure(9999);
                 Console.WriteLine(speaker.Hostname);
@@ -149,18 +144,16 @@ namespace NetMQ.Tests
 
         [Test]
         public void NeverConfigured()
-        {
-            using (var context = NetMQContext.Create())
-            using (new NetMQBeacon(context))
+        {            
+            using (new NetMQBeacon())
             {}
         }
 
         [Test]
         public void ConfigureTwice()
-        {
-            using (var context = NetMQContext.Create())
-            using (var speaker = new NetMQBeacon(context))
-            using (var listener = new NetMQBeacon(context))
+        {            
+            using (var speaker = new NetMQBeacon())
+            using (var listener = new NetMQBeacon())
             {
                 speaker.Configure(5555);
                 speaker.Configure(9999);
@@ -182,10 +175,9 @@ namespace NetMQ.Tests
 
         [Test]
         public void BothSpeakerAndListener()
-        {
-            using (var context = NetMQContext.Create())
-            using (var beacon1 = new NetMQBeacon(context))
-            using (var beacon2 = new NetMQBeacon(context))
+        {            
+            using (var beacon1 = new NetMQBeacon())
+            using (var beacon2 = new NetMQBeacon())
             {
                 beacon1.Configure(9999);
                 beacon1.Publish("H1", s_publishInterval);
