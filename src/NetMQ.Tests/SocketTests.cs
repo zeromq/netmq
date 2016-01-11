@@ -787,18 +787,90 @@ namespace NetMQ.Tests
         [Test]
         public void ContextFree()
         {
-            using (DealerSocket server = new DealerSocket())
+            using (DealerSocket server = new DealerSocket("@tcp://127.0.0.1:5555"))
             {
-                using (DealerSocket client = new DealerSocket())
-                {
-                    server.Bind("tcp://127.0.0.1:5555");
-                    client.Connect("tcp://127.0.0.1:5555");
-
+                using (DealerSocket client = new DealerSocket(">tcp://127.0.0.1:5555"))
+                {                    
                     client.SendFrame("Hello");
 
                     Assert.AreEqual("Hello", server.ReceiveFrameString());
                 }
             }            
         }
+
+        [Test]
+        public void ConnectionStringDefault()
+        {
+            using (ResponseSocket response = new ResponseSocket("tcp://127.0.0.1:5555"))
+            {
+                using (RequestSocket request = new RequestSocket("tcp://127.0.0.1:5555"))
+                {
+                    request.SendFrame("Hello");
+
+                    Assert.AreEqual("Hello", response.ReceiveFrameString());
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectionStringSpecifyDefault()
+        {
+            using (ResponseSocket response = new ResponseSocket("@tcp://127.0.0.1:5555"))
+            {
+                using (RequestSocket request = new RequestSocket(">tcp://127.0.0.1:5555"))
+                {
+                    request.SendFrame("Hello");
+
+                    Assert.AreEqual("Hello", response.ReceiveFrameString());
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectionStringSpecifyNonDefault()
+        {
+            using (ResponseSocket response = new ResponseSocket(">tcp://127.0.0.1:5555"))
+            {
+                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:5555"))
+                {
+                    request.SendFrame("Hello");
+
+                    Assert.AreEqual("Hello", response.ReceiveFrameString());
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectionStringWithWhiteSpace()
+        {
+            using (ResponseSocket response = new ResponseSocket(" >tcp://127.0.0.1:5555 "))
+            {
+                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:5555, "))
+                {
+                    request.SendFrame("Hello");
+
+                    Assert.AreEqual("Hello", response.ReceiveFrameString());
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectionStringMultipleAddresses()
+        {
+            using (DealerSocket server1 = new DealerSocket("@tcp://127.0.0.1:5555"))
+            using (DealerSocket server2 = new DealerSocket("@tcp://127.0.0.1:5556,@tcp://127.0.0.1:5557"))
+            using (DealerSocket client = new DealerSocket("tcp://127.0.0.1:5555,tcp://127.0.0.1:5556,tcp://127.0.0.1:5557"))
+            {
+                // send three helloes
+                client.SendFrame("Hello");
+                client.SendFrame("Hello");
+                client.SendFrame("Hello");
+
+                Assert.AreEqual("Hello", server1.ReceiveFrameString());
+                Assert.AreEqual("Hello", server2.ReceiveFrameString());
+                Assert.AreEqual("Hello", server2.ReceiveFrameString());
+            }
+        }
+
     }
 }

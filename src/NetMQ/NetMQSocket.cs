@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using JetBrains.Annotations;
 using NetMQ.Core;
 using NetMQ.Core.Utils;
@@ -20,12 +21,18 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
         private bool m_isClosed;
+
+        internal enum DefaultAction
+        {
+            Connect,
+            Bind
+        }
         
         /// <summary>
         /// Create a new NetMQSocket with the given <see cref="ZmqSocketType"/>.
         /// </summary>
         /// <param name="socketType">Type of socket to create</param>
-        internal NetMQSocket(ZmqSocketType socketType)
+        internal NetMQSocket(ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
         {
             m_socketHandle = NetMQConfig.Context.CreateSocket(socketType);
             m_selector = new Selector();
@@ -33,6 +40,33 @@ namespace NetMQ
             m_socketEventArgs = new NetMQSocketEventArgs(this);
 
             Options.Linger = NetMQConfig.Linger;
+
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                var endpoints =
+                    connectionString.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(a => a.Trim()).Where(a=> !string.IsNullOrEmpty(a));
+
+                foreach (string endpoint in endpoints)
+                {                    
+                    if (endpoint[0] == '@')
+                    {
+                        Bind(endpoint.Substring(1));
+                    }
+                    else if (endpoint[0] == '>')
+                    {
+                        Connect(endpoint.Substring(1));
+                    }
+                    else if (defaultAction == DefaultAction.Connect)
+                    {
+                        Connect(endpoint);
+                    }
+                    else
+                    {
+                        Bind(endpoint);
+                    }
+                }
+            }
         }
 
         /// <summary>

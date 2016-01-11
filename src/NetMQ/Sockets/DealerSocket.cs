@@ -9,9 +9,12 @@ namespace NetMQ.Sockets
     public class DealerSocket : NetMQSocket
     {
         /// <summary>
-        /// Create a new DealerSocket.
-        /// </summary>
-        public DealerSocket() :  base(ZmqSocketType.Dealer)
+        /// Create a new DealerSocket and attach socket to zero or more endpoints.               
+        /// </summary>                
+        /// <param name="connectionString">List of NetMQ endpoints, seperated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
+        /// Default action is connect (if endpoint doesn't start with '@' or '>')</param>
+        /// <example><code>var socket = new DealerSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>                 
+        public DealerSocket(string connectionString = null) : base(ZmqSocketType.Dealer, connectionString, DefaultAction.Connect)
         {            
         }
 

@@ -11,9 +11,12 @@ namespace NetMQ.Sockets
     public class SubscriberSocket : NetMQSocket
     {
         /// <summary>
-        /// Create a new SubscriberSocket.
-        /// </summary>
-        public SubscriberSocket() : base(ZmqSocketType.Sub)
+        /// Create a new SubscriberSocket and attach socket to zero or more endpoints.               
+        /// </summary>                
+        /// <param name="connectionString">List of NetMQ endpoints, seperated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
+        /// Default action is connect (if endpoint doesn't start with '@' or '>')</param>
+        /// <example><code>var socket = new SubscriberSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>  
+        public SubscriberSocket(string connectionString = null) : base(ZmqSocketType.Sub, connectionString, DefaultAction.Connect)
         {
             
         }
