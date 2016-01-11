@@ -13,41 +13,38 @@ namespace NetMQ.QueuePerformance
         {
             int count = 10000000;
 
-            using (NetMQContext context = NetMQContext.Create())
+            NetMQQueue<int> queue = new NetMQQueue<int>();
+
+            var task = Task.Factory.StartNew(() =>
             {
-                NetMQQueue<int> queue = new NetMQQueue<int>(context);
+                queue.Dequeue();
 
-                var task = Task.Factory.StartNew(() =>
-                {
-                    queue.Dequeue();
-
-                    Stopwatch stopwatch = Stopwatch.StartNew();
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        queue.Dequeue();
-                    }
-
-                    stopwatch.Stop();
-
-                    Console.WriteLine("Dequeueing items per second: {0:N0}", count /stopwatch.Elapsed.TotalSeconds);
-                });
-
-                queue.Enqueue(-1);
-
-                Stopwatch writeStopwatch = Stopwatch.StartNew();
+                Stopwatch stopwatch = Stopwatch.StartNew();
 
                 for (int i = 0; i < count; i++)
                 {
-                    queue.Enqueue(i);
+                    queue.Dequeue();
                 }
 
-                writeStopwatch.Stop();
+                stopwatch.Stop();
 
-                Console.WriteLine("Enqueueing items per second: {0:N0}", count/writeStopwatch.Elapsed.TotalSeconds);
+                Console.WriteLine("Dequeueing items per second: {0:N0}", count / stopwatch.Elapsed.TotalSeconds);
+            });
 
-                task.Wait();
+            queue.Enqueue(-1);
+
+            Stopwatch writeStopwatch = Stopwatch.StartNew();
+
+            for (int i = 0; i < count; i++)
+            {
+                queue.Enqueue(i);
             }
+
+            writeStopwatch.Stop();
+
+            Console.WriteLine("Enqueueing items per second: {0:N0}", count / writeStopwatch.Elapsed.TotalSeconds);
+
+            task.Wait();
         }
     }
 }
