@@ -21,50 +21,34 @@ namespace NetMQ.Tests
             var requestTimeout = TimeSpan.FromMilliseconds(100);
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
-            var cts = new CancellationTokenSource();
-            var progressPublisher = new PublisherSocket();
-            progressPublisher.Bind(pubAddress);
-            try
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    using (var progressSubscriber = new SubscriberSocket())
-                    {
-                        progressSubscriber.Connect(pubAddress);
-                        progressSubscriber.SubscribeToAnyTopic();
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            var topic = progressSubscriber.ReceiveFrameString();
-                            Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                Task.Factory.StartNew(() =>
-                {
-                    using (var rep = new ResponseSocket())
-                    {
-                        rep.Bind(address);
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for message at {0:ss.fff}", DateTime.Now);
-                            var message = rep.ReceiveFrameString();
 
-                            Console.WriteLine("ResponseEcho sending message:{0} at {1:ss.fff}", message, DateTime.Now);
-                            rep.SendFrame(message);
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
-                cts.Cancel();
-                Assert.IsNotNull(responseMessage);
-                Assert.AreEqual(1, responseMessage.FrameCount);
-                var responseString = responseMessage.First.ConvertToString();
-                Assert.AreEqual("Hi", responseString);
-            }
-            finally
+            using (var progressPublisher = new PublisherSocket(pubAddress))
+            using (var progressSubscriber = new SubscriberSocket(pubAddress))
+            using (var server = new ResponseSocket(address))
             {
-                cts.Dispose();
-                progressPublisher.Dispose();
+                progressSubscriber.SubscribeToAnyTopic();
+                var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
+                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+
+                var serverProactor = new NetMQProactor(server, (socket, message) =>
+                {
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message.First.ConvertToString(),
+                        DateTime.Now);
+
+                    // reply same message
+                    socket.SendMultipartMessage(message);
+                });
+
+                using (serverProactor)
+                using (progressProactor)
+                {
+                    var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address,
+                        requestMessage, numTries, requestTimeout, progressPublisher);
+                    Assert.IsNotNull(responseMessage);
+                    Assert.AreEqual(1, responseMessage.FrameCount);
+                    var responseString = responseMessage.First.ConvertToString();
+                    Assert.AreEqual("Hi", responseString);
+                }
             }
         }
 
@@ -77,422 +61,149 @@ namespace NetMQ.Tests
             var requestTimeout = TimeSpan.FromMilliseconds(100);
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
-            var cts = new CancellationTokenSource();
-            var progressPublisher = new PublisherSocket();
-            progressPublisher.Bind(pubAddress);
-            try
+
+            using (var progressPublisher = new PublisherSocket(pubAddress))
+            using (var progressSubscriber = new SubscriberSocket(pubAddress))
+            using (var server = new RouterSocket(address))
             {
-                Task.Factory.StartNew(() =>
+                progressSubscriber.SubscribeToAnyTopic();
+                var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
+                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+
+                var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    using (var progressSubscriber = new SubscriberSocket())
-                    {
-                        progressSubscriber.Connect(pubAddress);
-                        progressSubscriber.SubscribeToAnyTopic();
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            var topic = progressSubscriber.ReceiveFrameString();
-                            Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                Task.Factory.StartNew(() =>
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message.First.ConvertToString(),
+                        DateTime.Now);                    
+                });
+
+                using (serverProactor)
+                using (progressProactor)
                 {
-                    using (var rep = new ResponseSocket())
-                    {
-                        rep.Bind(address);
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for message at {0:ss.fff}", DateTime.Now);
-                            rep.ReceiveFrameString();
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
-                cts.Cancel();
-                Assert.IsNull(responseMessage);
-            }
-            finally
-            {
-                cts.Dispose();
-                progressPublisher.Dispose();
+                    var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage,
+                        numTries, requestTimeout, progressPublisher);
+                    Assert.IsNull(responseMessage);
+                }
             }
         }
 
         [Test]
         public void RequestResponseMultipartMessageWithRetrySucceedsNotOnFirstTry()
         {
-            const string address = "tcp://127.0.0.1:50003";
-            const string pubAddress = "tcp://127.0.0.1:60003";
+            const string address = "tcp://127.0.0.1:50001";
+            const string pubAddress = "tcp://127.0.0.1:60001";
             const int numTries = 5;
             var requestTimeout = TimeSpan.FromMilliseconds(100);
             var requestMessage = new NetMQMessage(1);
             requestMessage.Append("Hi");
-            var cts = new CancellationTokenSource();
-            var progressPublisher = new PublisherSocket();
-            progressPublisher.Bind(pubAddress);
-            try
+
+            using (var progressPublisher = new PublisherSocket(pubAddress))
+            using (var progressSubscriber = new SubscriberSocket(pubAddress))
+            using (var server = new RouterSocket(address))
             {
-                Task.Factory.StartNew(() =>
+                progressSubscriber.SubscribeToAnyTopic();
+                var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
+                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+
+                int attempt = 0;
+
+                var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    using (var progressSubscriber = new SubscriberSocket())
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[1].ConvertToString(),
+                        DateTime.Now);
+
+                    attempt++;
+
+                    if (attempt > 1)
                     {
-                        progressSubscriber.Connect(pubAddress);
-                        progressSubscriber.SubscribeToAnyTopic();
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            var topic = progressSubscriber.ReceiveFrameString();
-                            Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                Task.Factory.StartNew(() =>
+                        // reply same message
+                        socket.SendMultipartMessage(message);
+                    }                    
+                });
+
+                using (serverProactor)
+                using (progressProactor)
                 {
-                    using (var rep = new ResponseSocket())
-                    {
-                        rep.Bind(address);
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for message {0:ss:fff}", DateTime.Now);
-                            var message = rep.ReceiveMultipartMessage();
-                            Console.WriteLine("ResponseEcho received message {0:ss:fff}", DateTime.Now);
-
-                            // Force retry
-                            Thread.Sleep(TimeSpan.FromMilliseconds(requestTimeout.TotalMilliseconds * 2));
-
-                            rep.TrySendMultipartMessage(message);
-
-                            // Now allow success
-                            while (!cts.Token.IsCancellationRequested)
-                            {
-                                Console.WriteLine("ResponseEcho waiting for message2 {0:ss:fff}", DateTime.Now);
-                                message = rep.ReceiveMultipartMessage();
-                                Console.WriteLine("ResponseEcho received message2 {0:ss:fff}", DateTime.Now);
-
-                                Console.WriteLine("ResponseEcho sending message2 {0} at {1:ss:fff}", message.First.ConvertToString(), DateTime.Now);
-                                rep.TrySendMultipartMessage(message);
-                            }
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout, progressPublisher);
-                cts.Cancel();
-                Assert.IsNotNull(responseMessage);
-                Assert.AreEqual(1, responseMessage.FrameCount);
-                var responseString = responseMessage.First.ConvertToString();
-                Assert.AreEqual("Hi", responseString);
-            }
-            finally
-            {
-                cts.Dispose();
-                progressPublisher.Dispose();
-            }
-        }
-
-        [Test]
-        public void RequestResponseMultipartMessageWithRetrySucceedsNotOnFirstTryNullProgressPublisher()
-        {
-            const string address = "tcp://127.0.0.1:50004";
-            const int numTries = 5;
-            var requestTimeout = TimeSpan.FromMilliseconds(100);
-            var requestMessage = new NetMQMessage(1);
-            requestMessage.Append("Hi");
-            var cts = new CancellationTokenSource();
-            try
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    using (var rep = new ResponseSocket())
-                    {
-                        rep.Bind(address);
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for message {0:ss:fff}", DateTime.Now);
-                            var message = rep.ReceiveMultipartMessage();
-                            Console.WriteLine("ResponseEcho received message {0:ss:fff}", DateTime.Now);
-
-                            // Force retry
-                            Thread.Sleep(TimeSpan.FromMilliseconds(requestTimeout.TotalMilliseconds * 2));
-
-                            rep.TrySendMultipartMessage(message);
-
-                            // Now allow success
-                            while (!cts.Token.IsCancellationRequested)
-                            {
-                                Console.WriteLine("ResponseEcho waiting for message2 {0:ss:fff}", DateTime.Now);
-                                message = rep.ReceiveMultipartMessage();
-                                Console.WriteLine("ResponseEcho received message2 {0:ss:fff}", DateTime.Now);
-
-                                Console.WriteLine("ResponseEcho sending message2 {0} at {1:ss:fff}", message.First.ConvertToString(), DateTime.Now);
-                                rep.TrySendMultipartMessage(message);
-                            }
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
-                cts.Cancel();
-                Assert.IsNotNull(responseMessage);
-                Assert.AreEqual(1, responseMessage.FrameCount);
-                var responseString = responseMessage.First.ConvertToString();
-                Assert.AreEqual("Hi", responseString);
-            }
-            finally
-            {
-                cts.Dispose();
-            }
-        }
-
-        [Test]
-        public void RequestResponseStringWithRetrySucceedsFirstTryNullProgressPublisher()
-        {
-            const string address = "tcp://127.0.0.1:50005";
-            const int numTries = 5;
-            const string requestString = "Hi";
-            var requestTimeout = TimeSpan.FromMilliseconds(100);
-            var cts = new CancellationTokenSource();
-            try
-            {
-                using (var rep = new ResponseSocket())
-                {
-                    rep.Bind(address);
-                    Task.Factory.StartNew(() =>
-                    {
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for string at {0:ss.fff}", DateTime.Now);
-                            var message = rep.ReceiveFrameString();
-
-                            Console.WriteLine("ResponseEcho sending string:{0} at {1:ss.fff}", message, DateTime.Now);
-                            rep.SendFrame(message);
-                        }
-                    }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                    var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout);
-                    cts.Cancel();
-                    Assert.AreEqual(requestString, responseString);
+                    var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address,
+                        requestMessage, numTries, requestTimeout, progressPublisher);
+                    Assert.IsNotNull(responseMessage);
+                    Assert.AreEqual(1, responseMessage.FrameCount);
+                    var responseString = responseMessage.First.ConvertToString();
+                    Assert.AreEqual("Hi", responseString);
                 }
             }
-            finally
-            {
-                cts.Dispose();
-            }
-        }
-        
-        [Test]
-        public void RequestResponseStringWithRetrySucceedsFirstTry()
-        {
-            const string address = "tcp://127.0.0.1:50006";
-            const string pubAddress = "tcp://127.0.0.1:60006";
-            const int numTries = 5;
-            const string requestString = "Hi";
-            var requestTimeout = TimeSpan.FromMilliseconds(100);
-            var cts = new CancellationTokenSource();
-            var progressPublisher = new PublisherSocket();
-            progressPublisher.Bind(pubAddress);
-            try
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    using (var progressSubscriber = new SubscriberSocket())
-                    {
-                        progressSubscriber.Connect(pubAddress);
-                        progressSubscriber.SubscribeToAnyTopic();
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            var topic = progressSubscriber.ReceiveFrameString();
-                            Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                using (var rep = new ResponseSocket())
-                {
-                    rep.Bind(address);
-                    Task.Factory.StartNew(() =>
-                    {
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for string at {0:ss.fff}", DateTime.Now);
-                            var message = rep.ReceiveFrameString();
-
-                            Console.WriteLine("ResponseEcho sending string:{0} at {1:ss.fff}", message, DateTime.Now);
-                            rep.SendFrame(message);
-                        }
-                    }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout, progressPublisher);
-                cts.Cancel();
-                Assert.AreEqual(requestString, responseString);
-                }
-            }
-            finally
-            {
-                cts.Dispose();
-                progressPublisher.Dispose();
-            }
-        }
-
+        }        
+     
         [Test]
         public void RequestResponseStringWithRetryFails()
         {
-            const string address = "tcp://127.0.0.1:50007";
-            const string pubAddress = "tcp://127.0.0.1:60007";
+            const string address = "tcp://127.0.0.1:50002";
+            const string pubAddress = "tcp://127.0.0.1:60002";
             const int numTries = 5;
-            const string requestString = "Hi";
-            var requestTimeout = TimeSpan.FromMilliseconds(100);
-            var cts = new CancellationTokenSource();
-            var progressPublisher = new PublisherSocket();
-            progressPublisher.Bind(pubAddress);
-            try
+            var requestTimeout = TimeSpan.FromMilliseconds(100);            
+
+            using (var progressPublisher = new PublisherSocket(pubAddress))
+            using (var progressSubscriber = new SubscriberSocket(pubAddress))
+            using (var server = new RouterSocket(address))
             {
-                Task.Factory.StartNew(() =>
+                progressSubscriber.SubscribeToAnyTopic();
+                var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
+                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+
+                var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    using (var progressSubscriber = new SubscriberSocket())
-                    {
-                        progressSubscriber.Connect(pubAddress);
-                        progressSubscriber.SubscribeToAnyTopic();
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            var topic = progressSubscriber.ReceiveFrameString();
-                            Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                Task.Factory.StartNew(() =>
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message.First.ConvertToString(),
+                        DateTime.Now);
+                });
+
+                using (serverProactor)
+                using (progressProactor)
                 {
-                    using (var rep = new ResponseSocket())
-                    {
-                        rep.Bind(address);
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for string at {0:ss.fff}", DateTime.Now);
-                            var message = rep.ReceiveFrameString();
-
-                            //Console.WriteLine("ResponseEcho sending string:{0} at {1:ss.fff}", message, DateTime.Now);
-                            //rep.SendFrame(message);
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-                    ;
-                var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout, progressPublisher);
-                cts.Cancel();
-                Assert.IsNull(responseString);
+                    var responseMessage = RequestSocket.RequestResponseStringWithRetry(address, "Hi",
+                        numTries, requestTimeout, progressPublisher);
+                    Assert.IsNull(responseMessage);
+                }
             }
-            finally
-            {
-                cts.Dispose();
-                progressPublisher.Dispose();
-            }
-        }
-
-        [Test]
-        public void RequestResponseStringWithRetrySucceedsNotOnFirstTryNullProgressPublisher()
-        {
-            const string address = "tcp://127.0.0.1:50008";
-            const int numTries = 5;
-            const string requestString = "Hi";
-            var requestTimeout = TimeSpan.FromMilliseconds(100);
-            var cts = new CancellationTokenSource();
-            try
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    using (var rep = new ResponseSocket())
-                    {
-                        rep.Bind(address);
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for string {0:ss:fff}", DateTime.Now);
-                            var message = rep.ReceiveFrameString();
-                            Console.WriteLine("ResponseEcho received string {0:ss:fff}", DateTime.Now);
-
-                            // Force retry
-                            Thread.Sleep(TimeSpan.FromMilliseconds(requestTimeout.TotalMilliseconds * 2));
-
-                            rep.TrySendFrame(message);
-
-                            // Now allow success
-                            while (!cts.Token.IsCancellationRequested)
-                            {
-                                Console.WriteLine("ResponseEcho waiting for string4 {0:ss:fff}", DateTime.Now);
-                                message = rep.ReceiveFrameString();
-                                Console.WriteLine("ResponseEcho received string4 {0:ss:fff}", DateTime.Now);
-
-                                Console.WriteLine("ResponseEcho sending string5 {0} at {1:ss:fff}", message, DateTime.Now);
-                                rep.TrySendFrame(message);
-                            }
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout);
-                cts.Cancel();
-                Assert.AreEqual(requestString, responseString);
-            }
-            finally
-            {
-                cts.Dispose();
-            }
-        }
+        }        
 
         [Test]
         public void RequestResponseStringWithRetrySucceedsNotOnFirstTry()
         {
-            const string address = "tcp://127.0.0.1:50009";
-            const string pubAddress = "tcp://127.0.0.1:60009";
-            const int numTries = 10;
-            const string requestString = "Hi";
-            var requestTimeout = TimeSpan.FromMilliseconds(100);
-            var cts = new CancellationTokenSource();
-            var progressPublisher = new PublisherSocket();
-            progressPublisher.Bind(pubAddress);
-            try
+            const string address = "tcp://127.0.0.1:50001";
+            const string pubAddress = "tcp://127.0.0.1:60001";
+            const int numTries = 5;
+            var requestTimeout = TimeSpan.FromMilliseconds(100);            
+
+            using (var progressPublisher = new PublisherSocket(pubAddress))
+            using (var progressSubscriber = new SubscriberSocket(pubAddress))
+            using (var server = new RouterSocket(address))
             {
-                Task.Factory.StartNew(() =>
+                progressSubscriber.SubscribeToAnyTopic();
+                var progressProactor = new NetMQProactor(progressSubscriber, (socket, message) =>
+                    Console.WriteLine("C: {0} {1:ss.fff}", message.Pop().ConvertToString(), DateTime.Now));
+
+                int attempt = 0;
+
+                var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    using (var progressSubscriber = new SubscriberSocket())
+                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[1].ConvertToString(),
+                        DateTime.Now);
+
+                    attempt++;
+
+                    if (attempt > 1)
                     {
-                        progressSubscriber.Connect(pubAddress);
-                        progressSubscriber.SubscribeToAnyTopic();
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            var topic = progressSubscriber.ReceiveFrameString();
-                            Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
-                        }
+                        // reply same message
+                        socket.SendMultipartMessage(message);
                     }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                Task.Factory.StartNew(() =>
+                });
+
+                using (serverProactor)
+                using (progressProactor)
                 {
-                    using (var rep = new ResponseSocket())
-                    {
-                        rep.Bind(address);
-                        while (!cts.Token.IsCancellationRequested)
-                        {
-                            Console.WriteLine("ResponseEcho waiting for string {0:ss:fff}", DateTime.Now);
-                            var message = rep.ReceiveFrameString();
-                            Console.WriteLine("ResponseEcho received string {0:ss:fff}", DateTime.Now);
-
-                            // Force retry
-                            Thread.Sleep(TimeSpan.FromMilliseconds(requestTimeout.TotalMilliseconds * 2));
-
-                            rep.TrySendFrame(message);
-
-                            // Now allow success
-                            while (!cts.Token.IsCancellationRequested)
-                            {
-                                Console.WriteLine("ResponseEcho waiting for string4 {0:ss:fff}", DateTime.Now);
-                                message = rep.ReceiveFrameString();
-                                Console.WriteLine("ResponseEcho received string4 {0:ss:fff}", DateTime.Now);
-
-                                Console.WriteLine("ResponseEcho sending string5 {0} at {1:ss:fff}", message, DateTime.Now);
-                                rep.TrySendFrame(message);
-                            }
-                        }
-                    }
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout, progressPublisher);
-                cts.Cancel();
-                Assert.AreEqual(requestString, responseString);
-            }
-            finally
-            {
-                cts.Dispose();
-                progressPublisher.Dispose();
+                    var responseMessage = RequestSocket.RequestResponseStringWithRetry(address,
+                        "Hi", numTries, requestTimeout, progressPublisher);                                     
+                    Assert.AreEqual("Hi", responseMessage);
+                }
             }
         }
 
