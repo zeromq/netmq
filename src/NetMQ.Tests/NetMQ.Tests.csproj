@@ -84,10 +84,10 @@
     <Compile Include="InProcActors\Echo\EchoActorTests.cs" />
     <Compile Include="MockBufferPool.cs" />
     <Compile Include="MsgTests.cs" />
-    <Compile Include="RequestWithRetryTests.cs" />
     <Compile Include="NetMQQueueTests.cs" />
     <Compile Include="OutgoingSocketExtensionsTests.cs" />
     <Compile Include="ReceivingSocketExtensionsTests.cs" />
+    <Compile Include="RequestWithRetryTests.cs" />
     <Compile Include="RouterTests.cs" />
     <Compile Include="XPubSubTests.cs" />
     <Compile Include="Devices\DeviceTestBase.cs" />
