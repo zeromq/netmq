@@ -63,6 +63,7 @@
     <Compile Include="IReceivingSocket.cs" />
     <Compile Include="NetMQBeacon.cs" />
     <Compile Include="NetMQQueue.cs" />
+    <Compile Include="NetMQProactor.cs" />
     <Compile Include="NetMQScheduler.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
