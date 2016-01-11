@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NetMQ.Core;
+using NetMQ.Sockets;
 
 namespace NetMQ
 {
@@ -36,7 +37,24 @@ namespace NetMQ
         /// </summary>
         /// <param name="context">the NetMQContext to create this NetMQScheduler within</param>
         /// <param name="poller">(optional)the Poller for this Net to use</param>
-        public NetMQScheduler([NotNull] NetMQContext context, [CanBeNull] Poller poller = null)
+        [Obsolete("Use non context version")]
+        public NetMQScheduler([NotNull] NetMQContext context, [CanBeNull] Poller poller = null) : 
+            this(poller, context.CreatePushSocket(), context.CreatePullSocket())
+        {
+            
+        }
+
+        /// <summary>
+        /// Create a new NetMQScheduler object within the given context, and optionally using the given poller.
+        /// </summary>        
+        /// <param name="poller">(optional)the Poller for this Net to use</param>        
+        public NetMQScheduler([CanBeNull] Poller poller = null) :
+            this(poller, new PushSocket(), new PullSocket())
+        {
+
+        }
+
+        private NetMQScheduler(Poller poller, PushSocket pushSocket, PullSocket pullSocket)
         {
             if (poller == null)
             {
@@ -56,7 +74,7 @@ namespace NetMQ
 
             var address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, schedulerId);
 
-            m_serverSocket = context.CreatePullSocket();
+            m_serverSocket = pullSocket;
             m_serverSocket.Options.Linger = TimeSpan.Zero;
             m_serverSocket.Bind(address);
 
@@ -66,7 +84,7 @@ namespace NetMQ
 
             m_poller.AddSocket(m_serverSocket);
 
-            m_clientSocket = context.CreatePushSocket();
+            m_clientSocket = pushSocket;
             m_clientSocket.Connect(address);
 
             m_schedulerThread = new ThreadLocal<bool>(() => false);

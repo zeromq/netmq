@@ -27,6 +27,7 @@ namespace NetMQ
     /// </code>
     /// You should create and use exactly one context in your process.
     /// </remarks>   
+    [Obsolete("NetMQContext is obsolete, you can create sockets with new keyword, like new DealerSocket")]
     public class NetMQContext : IDisposable
     {
         private readonly Ctx m_ctx;

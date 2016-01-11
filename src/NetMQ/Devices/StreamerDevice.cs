@@ -1,3 +1,6 @@
+using System;
+using NetMQ.Sockets;
+
 namespace NetMQ.Devices
 {
     /// <summary>
@@ -17,6 +20,7 @@ namespace NetMQ.Devices
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
+        [Obsolete("Use non context version")]
         public StreamerDevice(NetMQContext context, string frontendBindAddress, string backendBindAddress,
                               DeviceMode mode = DeviceMode.Threaded)
             : base(context.CreatePullSocket(), context.CreatePushSocket(), mode)
@@ -33,9 +37,39 @@ namespace NetMQ.Devices
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>		
+        [Obsolete("Use non context version")]
         public StreamerDevice(NetMQContext context, Poller poller, string frontendBindAddress, string backendBindAddress,
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreatePullSocket(), context.CreatePushSocket(), mode)
+        {
+            FrontendSetup.Bind(frontendBindAddress);
+            BackendSetup.Bind(backendBindAddress);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
+        /// </summary>        
+        /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
+        /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
+        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
+        public StreamerDevice(string frontendBindAddress, string backendBindAddress,
+                              DeviceMode mode = DeviceMode.Threaded)
+            : base(new PullSocket(), new PushSocket(), mode)
+        {
+            FrontendSetup.Bind(frontendBindAddress);
+            BackendSetup.Bind(backendBindAddress);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
+        /// </summary>        
+        /// <param name="poller">The <see cref="Poller"/> to use.</param>
+        /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
+        /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
+        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>		
+        public StreamerDevice(Poller poller, string frontendBindAddress, string backendBindAddress,
+            DeviceMode mode = DeviceMode.Threaded)
+            : base(poller, new PullSocket(), new PushSocket(), mode)
         {
             FrontendSetup.Bind(frontendBindAddress);
             BackendSetup.Bind(backendBindAddress);
