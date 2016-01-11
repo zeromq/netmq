@@ -38,7 +38,7 @@ namespace NetMQ.Tests
                             Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 Task.Factory.StartNew(() =>
                 {
                     using (var rep = new ResponseSocket())
@@ -53,7 +53,7 @@ namespace NetMQ.Tests
                             rep.SendFrame(message);
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
                 cts.Cancel();
                 Assert.IsNotNull(responseMessage);
@@ -94,7 +94,7 @@ namespace NetMQ.Tests
                             Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 Task.Factory.StartNew(() =>
                 {
                     using (var rep = new ResponseSocket())
@@ -106,7 +106,7 @@ namespace NetMQ.Tests
                             rep.ReceiveFrameString();
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
                 cts.Cancel();
                 Assert.IsNull(responseMessage);
@@ -144,7 +144,7 @@ namespace NetMQ.Tests
                             Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 Task.Factory.StartNew(() =>
                 {
                     using (var rep = new ResponseSocket())
@@ -173,7 +173,7 @@ namespace NetMQ.Tests
                             }
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout, progressPublisher);
                 cts.Cancel();
                 Assert.IsNotNull(responseMessage);
@@ -227,7 +227,7 @@ namespace NetMQ.Tests
                             }
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address, requestMessage, numTries, requestTimeout);
                 cts.Cancel();
                 Assert.IsNotNull(responseMessage);
@@ -264,7 +264,7 @@ namespace NetMQ.Tests
                             Console.WriteLine("ResponseEcho sending string:{0} at {1:ss.fff}", message, DateTime.Now);
                             rep.SendFrame(message);
                         }
-                    }, cts.Token);
+                    }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                     var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout);
                     cts.Cancel();
                     Assert.AreEqual(requestString, responseString);
@@ -301,7 +301,7 @@ namespace NetMQ.Tests
                             Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 using (var rep = new ResponseSocket())
                 {
                     rep.Bind(address);
@@ -315,7 +315,7 @@ namespace NetMQ.Tests
                             Console.WriteLine("ResponseEcho sending string:{0} at {1:ss.fff}", message, DateTime.Now);
                             rep.SendFrame(message);
                         }
-                    }, cts.Token);
+                    }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout, progressPublisher);
                 cts.Cancel();
                 Assert.AreEqual(requestString, responseString);
@@ -353,7 +353,7 @@ namespace NetMQ.Tests
                             Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 Task.Factory.StartNew(() =>
                 {
                     using (var rep = new ResponseSocket())
@@ -368,7 +368,7 @@ namespace NetMQ.Tests
                             //rep.SendFrame(message);
                         }
                     }
-                }, cts.Token)
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default)
                     ;
                 var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout, progressPublisher);
                 cts.Cancel();
@@ -419,7 +419,7 @@ namespace NetMQ.Tests
                             }
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout);
                 cts.Cancel();
                 Assert.AreEqual(requestString, responseString);
@@ -455,7 +455,7 @@ namespace NetMQ.Tests
                             Console.WriteLine("C: {0} {1:ss.fff}", topic, DateTime.Now);
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 Task.Factory.StartNew(() =>
                 {
                     using (var rep = new ResponseSocket())
@@ -484,7 +484,7 @@ namespace NetMQ.Tests
                             }
                         }
                     }
-                }, cts.Token);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 var responseString = RequestSocket.RequestResponseStringWithRetry(address, requestString, numTries, requestTimeout, progressPublisher);
                 cts.Cancel();
                 Assert.AreEqual(requestString, responseString);
