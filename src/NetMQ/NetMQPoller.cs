@@ -261,7 +261,7 @@ namespace NetMQ
         {
             CheckDisposed();
             if (IsRunning)
-                throw new InvalidOperationException("NetMQPoller is already started");
+                throw new InvalidOperationException("NetMQPoller is already running");
 
 #if !NET35
             var oldSynchronisationContext = SynchronizationContext.Current;
@@ -414,7 +414,7 @@ namespace NetMQ
         {
             CheckDisposed();
             if (!IsRunning)
-                throw new InvalidOperationException("Poller is not running");
+                throw new InvalidOperationException("NetMQPoller is not running");
 
             m_isStopRequested = true;
             m_stoppedEvent.WaitOne();
@@ -425,7 +425,7 @@ namespace NetMQ
         {
             CheckDisposed();
             if (!IsRunning)
-                throw new InvalidOperationException("Poller is not running");
+                throw new InvalidOperationException("NetMQPoller is not running");
             m_isStopRequested = true;
             Debug.Assert(!IsRunning);
         }
