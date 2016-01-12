@@ -3,6 +3,8 @@ using NUnit.Framework;
 using System.Text;
 using NetMQ.Sockets;
 
+// ReSharper disable AccessToDisposedClosure
+
 namespace NetMQ.Tests
 {
     [TestFixture]
@@ -36,13 +38,12 @@ namespace NetMQ.Tests
         [Test]
         public void TwoMessagesFromRouterToDealer()
         {
-            using (var poller = new Poller())
             using (var server = new RouterSocket())
             using (var client = new DealerSocket())
+            using (var poller = new NetMQPoller { client })
             {
                 var port = server.BindRandomPort("tcp://*");
                 client.Connect("tcp://127.0.0.1:" + port);
-                poller.AddSocket(client);
                 var cnt = 0;
                 client.ReceiveReady += (sender, e) =>
                 {
@@ -54,7 +55,7 @@ namespace NetMQ.Tests
                     cnt++;
                     if (cnt == 2)
                     {
-                        poller.Cancel();
+                        poller.Stop();
                     }
                 };
                 byte[] clientId = Encoding.Unicode.GetBytes("ClientId");
@@ -76,8 +77,8 @@ namespace NetMQ.Tests
                 server.SendMoreFrame(serverId).SendFrame(response);
                 server.SendMoreFrame(serverId).SendFrame(response);
 
-                poller.PollTimeout = 1000;
-                poller.PollTillCancelled();
+                poller.PollTimeout = TimeSpan.FromSeconds(1);
+                poller.Run();
             }
         }
     }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NetMQ.Sockets;
 using NUnit.Framework;
 
+// ReSharper disable AccessToDisposedClosure
 // ReSharper disable ExceptionNotDocumented
 
 namespace NetMQ.Tests
@@ -643,9 +644,8 @@ namespace NetMQ.Tests
         {
             // The main thread simply starts several clients and a server, and then
             // waits for the server to finish.
-            List<Thread> workers = new List<Thread>();
-            byte[] s_ReadyMsg = Encoding.UTF8.GetBytes("RDY");
-            Queue<byte[]> s_FreeWorkers = new Queue<byte[]>();
+            var readyMsg = Encoding.UTF8.GetBytes("RDY");
+            var freeWorkers = new Queue<byte[]>();
 
             using (var backendsRouter = new RouterSocket())
             {
@@ -654,13 +654,13 @@ namespace NetMQ.Tests
 
                 backendsRouter.ReceiveReady += (o, e) =>
                 {
-                        // Handle worker activity on backend
-                        while (e.Socket.HasIn)
+                    // Handle worker activity on backend
+                    while (e.Socket.HasIn)
                     {
                         var msg = e.Socket.ReceiveMultipartMessage();
                         var idRouter = msg.Pop();
-                            // forget the empty frame
-                            if (msg.First.IsEmpty)
+                        // forget the empty frame
+                        if (msg.First.IsEmpty)
                             msg.Pop();
 
                         var id = msg.Pop();
@@ -669,14 +669,14 @@ namespace NetMQ.Tests
 
                         if (msg.FrameCount == 1)
                         {
-                                // worker send RDY message queue his Identity to the free workers queue
-                                if (s_ReadyMsg[0] == msg[0].Buffer[0] &&
-                                s_ReadyMsg[1] == msg[0].Buffer[1] &&
-                                s_ReadyMsg[2] == msg[0].Buffer[2])
+                            // worker send RDY message queue his Identity to the free workers queue
+                            if (readyMsg[0] == msg[0].Buffer[0] &&
+                                readyMsg[1] == msg[0].Buffer[1] &&
+                                readyMsg[2] == msg[0].Buffer[2])
                             {
-                                lock (s_FreeWorkers)
+                                lock (freeWorkers)
                                 {
-                                    s_FreeWorkers.Enqueue(id.Buffer);
+                                    freeWorkers.Enqueue(id.Buffer);
                                 }
                             }
                         }
@@ -700,7 +700,7 @@ namespace NetMQ.Tests
                                 var workerReadyMsg = new NetMQMessage();
                                 workerReadyMsg.Append(workerId);
                                 workerReadyMsg.AppendEmptyFrame();
-                                workerReadyMsg.Append(s_ReadyMsg);
+                                workerReadyMsg.Append(readyMsg);
                                 workerSocket.SendMultipartMessage(workerReadyMsg);
                                 Thread.Sleep(1000);
                             }
@@ -708,13 +708,12 @@ namespace NetMQ.Tests
                     workerThread.IsBackground = true;
                     workerThread.Name = "worker" + i;
                     workerThread.Start(backendsRouter.Options.Identity);
-                    workers.Add(workerThread);
                 }
 
                 poller.PollTillCancelledNonBlocking();
                 Thread.Sleep(1000);
                 poller.CancelAndJoin();
-                Assert.AreEqual(2, s_FreeWorkers.Count);
+                Assert.AreEqual(2, freeWorkers.Count);
             }
         }
 

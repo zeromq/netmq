@@ -10,7 +10,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void SendAndReceive()
-        {            
+        {
             using (var front = new RouterSocket())
             using (var back = new DealerSocket())
             {
@@ -38,7 +38,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void ControlSocketObservedMessages()
-        {            
+        {
             using (var front = new RouterSocket())
             using (var back = new DealerSocket())
             using (var controlPush = new PushSocket())
@@ -79,7 +79,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void SeparateControlSocketsObservedMessages()
-        {            
+        {
             using (var front = new RouterSocket())
             using (var back = new DealerSocket())
             using (var controlInPush = new PushSocket())
@@ -124,7 +124,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void StartAndStopStateValidation()
-        {            
+        {
             using (var front = new RouterSocket())
             using (var back = new DealerSocket())
             {
@@ -158,7 +158,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void StartAgainAfterStop()
-        {            
+        {
             using (var front = new RouterSocket())
             using (var back = new DealerSocket())
             {
@@ -203,7 +203,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void StoppingProxyDisengagesFunctionality()
-        {            
+        {
             using (var front = new RouterSocket())
             using (var back = new DealerSocket())
             {
@@ -226,16 +226,14 @@ namespace NetMQ.Tests
 
                     proxy.Stop(); // blocks until stopped
 
-                    using (var poller = new Poller(front, back))
+                    using (var poller = new NetMQPoller { front, back })
                     {
-                        poller.PollTillCancelledNonBlocking();
+                        poller.RunAsync();
 
                         client.SendFrame("anyone there?");
 
                         // Should no longer receive any messages
                         Assert.IsFalse(server.TrySkipFrame(TimeSpan.FromMilliseconds(50)));
-
-                        poller.CancelAndJoin();
                     }
                 }
             }
@@ -243,17 +241,17 @@ namespace NetMQ.Tests
 
         [Test]
         public void TestProxySendAndReceiveWithExternalPoller()
-        {            
+        {
             using (var front = new RouterSocket())
             using (var back = new DealerSocket())
-            using (var poller = new Poller(front, back))
+            using (var poller = new NetMQPoller { front, back })
             {
                 front.Bind("inproc://frontend");
                 back.Bind("inproc://backend");
 
                 var proxy = new Proxy(front, back, null, poller);
 
-                poller.PollTillCancelledNonBlocking();
+                poller.RunAsync();
 
                 proxy.Start();
 
@@ -269,7 +267,7 @@ namespace NetMQ.Tests
                     Assert.AreEqual("reply", client.ReceiveFrameString());
 
                     // Now stop the external poller
-                    poller.CancelAndJoin();
+                    poller.Stop();
 
                     client.SendFrame("anyone there?");
 

@@ -37,24 +37,17 @@ namespace NetMQ.Tests
         public void WithPoller()
         {
             using (var queue = new NetMQQueue<int>())
+            using (var poller = new NetMQPoller { queue })
             {
-                var poller = new Poller();
-                poller.AddSocket(queue);
-
                 var manualResetEvent = new ManualResetEvent(false);
 
-                queue.ReceiveReady += (sender, args) =>
-                {
-                    manualResetEvent.Set();
-                };
+                queue.ReceiveReady += (sender, args) => { manualResetEvent.Set(); };
 
-                poller.PollTillCancelledNonBlocking();
+                poller.RunAsync();
 
                 Assert.IsFalse(manualResetEvent.WaitOne(100));
                 queue.Enqueue(1);
                 Assert.IsTrue(manualResetEvent.WaitOne(100));
-
-                poller.CancelAndJoin();
             }
         }
     }
