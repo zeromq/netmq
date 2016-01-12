@@ -1,10 +1,12 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
+    [Obsolete("Tests an obsolete type")]
     [TestFixture]
     public class NetMQSchedulerTest
     {
@@ -39,7 +41,7 @@ namespace NetMQ.Tests
                     threadId1 = Thread.CurrentThread.ManagedThreadId;
                     runCount1++;
                 });
-                
+
                 var task2 = task.ContinueWith(t =>
                 {
                     threadId2 = Thread.CurrentThread.ManagedThreadId;
