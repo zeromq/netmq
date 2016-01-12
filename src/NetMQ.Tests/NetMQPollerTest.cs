@@ -841,7 +841,7 @@ namespace NetMQ.Tests
         {
             bool triggered = false;
 
-            using (var poller = new NetMQPoller())
+            using (var poller = new NetMQPoller { PollTimeout = PollTimeout })
             {
                 poller.RunAsync();
 
@@ -862,7 +862,7 @@ namespace NetMQ.Tests
             int runCount1 = 0;
             int runCount2 = 0;
 
-            using (var poller = new NetMQPoller())
+            using (var poller = new NetMQPoller { PollTimeout = PollTimeout })
             {
                 poller.RunAsync();
 
@@ -896,7 +896,7 @@ namespace NetMQ.Tests
 
             var allTasks = new ConcurrentBag<Task>();
 
-            using (var poller = new NetMQPoller())
+            using (var poller = new NetMQPoller { PollTimeout = PollTimeout })
             {
                 poller.RunAsync();
 
