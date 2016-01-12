@@ -332,7 +332,6 @@ namespace NetMQ
                     }
                     else
                     {
-                        // Don't pass anything less than 0 to sleep or risk an out of range exception or worse - infinity. Do not sleep on 0 from original code.
                         if (timeout > 0)
                         {
                             //TODO: Do we really want to simply sleep and return, doing nothing during this interval?
