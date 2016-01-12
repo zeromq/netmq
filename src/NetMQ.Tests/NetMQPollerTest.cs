@@ -10,6 +10,8 @@ using NUnit.Framework;
 using System.Collections.Concurrent;
 #endif
 
+// ReSharper disable AccessToDisposedClosure
+
 namespace NetMQ.Tests
 {
     [TestFixture]
