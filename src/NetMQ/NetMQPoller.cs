@@ -104,7 +104,7 @@ namespace NetMQ
             lock (m_schedulerPushSocket)
             {
                 // awake the scheduler
-                m_schedulerPushSocket.Send("");
+                m_schedulerPushSocket.SendFrameEmpty();
             }
         }
 

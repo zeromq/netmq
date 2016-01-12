@@ -39,12 +39,12 @@ namespace NetMQ.Tests
                     Assert.AreEqual("Hello", e.Socket.ReceiveFrameString(out more));
                     Assert.False(more);
 
-                    e.Socket.Send("World");
+                    e.Socket.SendFrame("World");
                 };
 
                 poller.RunAsync();
 
-                req.Send("Hello");
+                req.SendFrame("Hello");
 
                 bool more2;
                 Assert.AreEqual("World", req.ReceiveFrameString(out more2));
@@ -84,11 +84,11 @@ namespace NetMQ.Tests
                 poller.RunAsync();
 
                 req.Connect("tcp://127.0.0.1:" + port);
-                req.Send("a");
+                req.SendFrame("a");
 
                 rep.SkipFrame();
 
-                rep.Send("b");
+                rep.SendFrame("b");
 
                 req.SkipFrame();
 
@@ -143,9 +143,9 @@ namespace NetMQ.Tests
 
                 poller.RunAsync();
 
-                dealer1.Send("1");
+                dealer1.SendFrame("1");
                 Assert.IsTrue(signal1.WaitOne(300));
-                dealer2.Send("2");
+                dealer2.SendFrame("2");
                 Assert.IsTrue(signal1.WaitOne(300));
 
                 poller.Stop();
@@ -213,11 +213,11 @@ namespace NetMQ.Tests
 
                 poller.RunAsync();
 
-                dealer1.Send("1");
+                dealer1.SendFrame("1");
                 Assert.IsTrue(signal1.WaitOne(300));
-                dealer2.Send("2");
+                dealer2.SendFrame("2");
                 Assert.IsTrue(signal2.WaitOne(300));
-                dealer3.Send("3");
+                dealer3.SendFrame("3");
                 Assert.IsTrue(signal3.WaitOne(300));
 
                 poller.Stop();
@@ -305,14 +305,14 @@ namespace NetMQ.Tests
 
                 poller.RunAsync();
 
-                dealer1.Send("1");
+                dealer1.SendFrame("1");
                 Assert.IsTrue(signal1.WaitOne(300));
-                dealer2.Send("2");
+                dealer2.SendFrame("2");
                 Assert.IsTrue(signal2.WaitOne(300));
-                dealer3.Send("3");
-                dealer4.Send("4");
-                dealer2.Send("2");
-                dealer1.Send("1");
+                dealer3.SendFrame("3");
+                dealer4.SendFrame("4");
+                dealer2.SendFrame("2");
+                dealer1.SendFrame("1");
                 Assert.IsTrue(signal3.WaitOne(300));
                 Assert.IsTrue(signal4.WaitOne(300));
 
@@ -380,8 +380,8 @@ namespace NetMQ.Tests
                     // message
                     e.Socket.SkipFrame();
 
-                    e.Socket.SendMore(identity);
-                    e.Socket.Send("2");
+                    e.Socket.SendMoreFrame(identity);
+                    e.Socket.SendFrame("2");
                 };
 
                 router3.ReceiveReady += (s, e) =>
@@ -392,23 +392,23 @@ namespace NetMQ.Tests
                     // message
                     e.Socket.SkipFrame();
 
-                    e.Socket.SendMore(identity).Send("3");
+                    e.Socket.SendMoreFrame(identity).SendFrame("3");
                 };
 
                 Task pollerTask = Task.Factory.StartNew(poller.Run);
 
                 // Send three messages. Only the first will be processed, as then handler removes
                 // the socket from the poller.
-                dealer1.Send("Hello");
-                dealer1.Send("Hello2");
-                dealer1.Send("Hello3");
+                dealer1.SendFrame("Hello");
+                dealer1.SendFrame("Hello2");
+                dealer1.SendFrame("Hello3");
 
                 // making sure the socket defined before the one cancelled still works
-                dealer2.Send("1");
+                dealer2.SendFrame("1");
                 Assert.AreEqual("2", dealer2.ReceiveFrameString());
 
                 // making sure the socket defined after the one cancelled still works
-                dealer3.Send("1");
+                dealer3.SendFrame("1");
                 Assert.AreEqual("3", dealer3.ReceiveFrameString());
 
                 poller.Stop();
@@ -463,7 +463,7 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(150);
 
-                dealer.Send("hello");
+                dealer.SendFrame("hello");
 
                 Thread.Sleep(300);
 
@@ -512,7 +512,7 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(20);
 
-                dealer.Send("hello");
+                dealer.SendFrame("hello");
 
                 Thread.Sleep(300);
 
@@ -814,14 +814,14 @@ namespace NetMQ.Tests
                     Assert.IsFalse(socketSignal.WaitOne(100));
 
                     // sending a message back to the socket
-                    streamServer.SendMore(identity).Send("a");
+                    streamServer.SendMoreFrame(identity).SendFrame("a");
 
                     Assert.IsTrue(socketSignal.WaitOne(100));
 
                     socketSignal.Reset();
 
                     // sending a message back to the socket
-                    streamServer.SendMore(identity).Send("a");
+                    streamServer.SendMoreFrame(identity).SendFrame("a");
 
                     // we remove the native socket so it should fail
                     Assert.IsFalse(socketSignal.WaitOne(100));
