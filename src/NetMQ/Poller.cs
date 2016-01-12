@@ -13,7 +13,7 @@ namespace NetMQ
     /// ready.
     /// </summary>
     [Obsolete("Use NetMQPoller instead")]
-    public class Poller : IDisposable, ISocketPollableCollection
+    public class Poller : INetMQPoller, ISocketPollableCollection, IDisposable
     {
         /// <summary>
         /// This is the list of sockets that this Poller is listening to.
@@ -725,5 +725,43 @@ namespace NetMQ
 
         #endregion
 
+        #region INetMQPoller members
+
+        void INetMQPoller.Run()
+        {
+            PollTillCancelled();
+        }
+
+        void INetMQPoller.RunAsync()
+        {
+            PollTillCancelledNonBlocking();
+        }
+
+        void INetMQPoller.Stop()
+        {
+            CancelAndJoin();
+        }
+
+        void INetMQPoller.StopAsync()
+        {
+            Cancel();
+        }
+
+        bool INetMQPoller.Contains(NetMQSocket socket)
+        {
+            return ContainsSocket(socket);
+        }
+
+        void INetMQPoller.Add(ISocketPollable socket)
+        {
+            AddSocket(socket);
+        }
+
+        bool INetMQPoller.IsRunning
+        {
+            get { return IsStarted; }
+        }
+
+        #endregion
     }
 }

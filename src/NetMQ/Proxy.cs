@@ -11,7 +11,7 @@ namespace NetMQ
     /// This class must be explicitly started by calling <see cref="Start"/>. If an external <see cref="Poller"/> has been specified,
     /// then that call will block until <see cref="Stop"/> is called.
     /// <para/>
-    /// If using an external <see cref="Poller"/>, ensure the front and back end sockets have been added to it.
+    /// If using an external <see cref="NetMQPoller"/>, ensure the front and back end sockets have been added to it.
     /// <para/>
     /// Users of this class must call <see cref="Stop"/> when messages should no longer be proxied.
     /// </remarks>
@@ -21,7 +21,7 @@ namespace NetMQ
         [NotNull] private readonly NetMQSocket m_backend;
         [CanBeNull] private readonly NetMQSocket m_controlIn;
         [CanBeNull] private readonly NetMQSocket m_controlOut;
-        [CanBeNull] private Poller m_poller;
+        [CanBeNull] private INetMQPoller m_poller;
         private readonly bool m_externalPoller;
 
         private int m_state = StateStopped;
@@ -41,11 +41,11 @@ namespace NetMQ
         /// <param name="controlOut">this socket will have outgoing messages also sent to it - you can set this to null if not needed</param>
         /// <param name="poller">an optional external poller to use within this proxy</param>
         /// <exception cref="InvalidOperationException"><paramref name="poller"/> is not <c>null</c> and either <paramref name="frontend"/> or <paramref name="backend"/> are not contained within it.</exception>
-        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket controlIn, [CanBeNull] NetMQSocket controlOut, [CanBeNull] Poller poller = null)
+        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket controlIn, [CanBeNull] NetMQSocket controlOut, [CanBeNull] INetMQPoller poller = null)
         {
             if (poller != null)
             {
-                if (!poller.ContainsSocket(backend) || !poller.ContainsSocket(frontend))
+                if (!poller.Contains(backend) || !poller.Contains(frontend))
                     throw new InvalidOperationException("When using an external poller, both the frontend and backend sockets must be added to it.");
 
                 m_externalPoller = true;
@@ -67,7 +67,7 @@ namespace NetMQ
         /// <param name="control">this socket will have messages also sent to it - you can set this to null if not needed</param>
         /// <param name="poller">an optional external poller to use within this proxy</param>
         /// <exception cref="InvalidOperationException"><paramref name="poller"/> is not <c>null</c> and either <paramref name="frontend"/> or <paramref name="backend"/> are not contained within it.</exception>
-        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, [CanBeNull] Poller poller = null)
+        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, [CanBeNull] INetMQPoller poller = null)
             : this(frontend, backend, control, null, poller)
         {}
 
@@ -93,7 +93,7 @@ namespace NetMQ
             {
                 m_poller = new Poller(m_frontend, m_backend);
                 m_state = StateStarted;
-                m_poller.PollTillCancelled();
+                m_poller.Run();
             }
         }
 
@@ -110,7 +110,7 @@ namespace NetMQ
 
             if (!m_externalPoller)
             {
-                m_poller.CancelAndJoin();
+                m_poller.Stop();
                 m_poller = null;
             }
 

@@ -19,7 +19,7 @@ namespace NetMQ
 #if !NET35
         TaskScheduler,
 #endif
-        ISocketPollableCollection, IEnumerable, IDisposable
+        INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
     {
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
@@ -494,6 +494,11 @@ namespace NetMQ
 
             // Mark this as NOT having any fresh events to attend to, as yet.
             m_isPollSetDirty = false;
+        }
+
+        public bool Contains(NetMQSocket socket)
+        {
+            return m_sockets.Contains(socket);
         }
 
         #region IEnumerable

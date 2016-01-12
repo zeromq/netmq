@@ -140,6 +140,7 @@
     <Compile Include="Endianness.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="EventDelegator.cs" />
+    <Compile Include="INetMQPoller.cs" />
     <Compile Include="InterfaceCollection.cs" />
     <Compile Include="ISocketPollable.cs" />
     <Compile Include="IReceivingSocket.cs" />
