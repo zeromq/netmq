@@ -21,9 +21,9 @@ namespace NetMQ
 #endif
         ISocketPollableCollection, IEnumerable, IDisposable
     {
-        private readonly IList<NetMQSocket> m_sockets = new List<NetMQSocket>();
+        private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
-        private readonly IDictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
+        private readonly Dictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
         private readonly ManualResetEvent m_stoppedEvent = new ManualResetEvent(false);
         private readonly Selector m_selector = new Selector();
 
