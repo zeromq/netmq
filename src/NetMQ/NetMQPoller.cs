@@ -161,7 +161,7 @@ namespace NetMQ
 
         #region Add / Remove
 
-        public void Add([NotNull] ISocketPollable socket)
+        public void Add(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
@@ -205,7 +205,7 @@ namespace NetMQ
             });
         }
 
-        public void Remove([NotNull] ISocketPollable socket)
+        public void Remove(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
