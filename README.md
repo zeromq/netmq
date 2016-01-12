@@ -80,7 +80,7 @@ You can also help us by:
 ## Consulting and Support
 Name | Email | Website | Info
 -----|-------|---------|-----
-Doron Somech | somdoron@gmail.com | http://somdoron.com | Founder and maintianer of NetMQ, expertise in Fintech and high performance scalable systems.
+Doron Somech | somdoron@gmail.com | http://somdoron.com | Founder and maintainer of NetMQ, expertise in Fintech and high performance scalable systems.
 
 If you are providing support and consulting for NetMQ please make a pull request and add yourself to the list.
 
