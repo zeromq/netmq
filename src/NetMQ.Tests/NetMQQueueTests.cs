@@ -9,8 +9,8 @@ namespace NetMQ.Tests
     {
         [Test]
         public void EnqueueDequeue()
-        {            
-            using (NetMQQueue<int> queue = new NetMQQueue<int>())
+        {
+            using (var queue = new NetMQQueue<int>())
             {
                 queue.Enqueue(1);
 
@@ -20,8 +20,8 @@ namespace NetMQ.Tests
 
         [Test]
         public void TryDequeue()
-        {            
-            using (NetMQQueue<int> queue = new NetMQQueue<int>())
+        {
+            using (var queue = new NetMQQueue<int>())
             {
                 int result;
                 Assert.IsFalse(queue.TryDequeue(out result, TimeSpan.FromMilliseconds(100)));
@@ -35,13 +35,13 @@ namespace NetMQ.Tests
 
         [Test]
         public void WithPoller()
-        {            
-            using (NetMQQueue<int> queue = new NetMQQueue<int>())
+        {
+            using (var queue = new NetMQQueue<int>())
             {
-                Poller poller = new Poller();
+                var poller = new Poller();
                 poller.AddSocket(queue);
 
-                ManualResetEvent manualResetEvent = new ManualResetEvent(false);
+                var manualResetEvent = new ManualResetEvent(false);
 
                 queue.ReceiveReady += (sender, args) =>
                 {

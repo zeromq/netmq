@@ -14,7 +14,7 @@ namespace NetMQ.Tests
         public void OneTask()
         {
             bool triggered = false;
-            
+
             using (var scheduler = new NetMQScheduler())
             {
                 var task = new Task(() => { triggered = true; });
@@ -28,12 +28,12 @@ namespace NetMQ.Tests
         [Test]
         public void ContinueWith()
         {
-            int threadId1 = 0;
-            int threadId2 = 1;
+            var threadId1 = 0;
+            var threadId2 = 1;
 
-            int runCount1 = 0;
-            int runCount2 = 0;
-            
+            var runCount1 = 0;
+            var runCount2 = 0;
+
             using (var scheduler = new NetMQScheduler())
             {
                 var task = new Task(() =>
@@ -61,8 +61,8 @@ namespace NetMQ.Tests
         [Test]
         public void ExternalPoller()
         {
-            bool triggered = false;
-            
+            var triggered = false;
+
             using (var poller = new Poller())
             using (var scheduler = new NetMQScheduler(poller))
             {
@@ -78,7 +78,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void CanDisposeSchedulerWhenPollerExternalAndCancelled()
-        {         
+        {
             using (var poller = new Poller())
             using (var scheduler = new NetMQScheduler(poller))
             {
@@ -96,16 +96,16 @@ namespace NetMQ.Tests
         [Test]
         public void TwoThreads()
         {
-            int count1 = 0;
-            int count2 = 0;
+            var count1 = 0;
+            var count2 = 0;
 
             var allTasks = new ConcurrentBag<Task>();
-            
+
             using (var scheduler = new NetMQScheduler())
             {
-                Task t1 = Task.Factory.StartNew(() =>
+                var t1 = Task.Factory.StartNew(() =>
                 {
-                    for (int i = 0; i < 100; i++)
+                    for (var i = 0; i < 100; i++)
                     {
                         var task = new Task(() => { count1++; });
                         allTasks.Add(task);
@@ -113,9 +113,9 @@ namespace NetMQ.Tests
                     }
                 });
 
-                Task t2 = Task.Factory.StartNew(() =>
+                var t2 = Task.Factory.StartNew(() =>
                 {
-                    for (int i = 0; i < 100; i++)
+                    for (var i = 0; i < 100; i++)
                     {
                         var task = new Task(() => { count2++; });
                         allTasks.Add(task);
