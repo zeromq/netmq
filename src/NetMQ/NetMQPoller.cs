@@ -157,9 +157,6 @@ namespace NetMQ
 
         public bool IsRunning { get; private set; }
 
-        /// <summary>
-        /// Get or set the poll timeout.
-        /// </summary>
         public TimeSpan PollTimeout { get; set; }
 
         #region Add / Remove
