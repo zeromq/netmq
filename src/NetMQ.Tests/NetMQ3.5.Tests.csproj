@@ -112,7 +112,6 @@
     <None Include="NetMQ.Testing.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
     <None Include="packages.NetMQ3.5.Tests.config" />
   </ItemGroup>
   <ItemGroup>
