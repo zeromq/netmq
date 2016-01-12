@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NetMQ.Tests
 {
-    public class MockBufferPool : IBufferPool
+    public sealed class MockBufferPool : IBufferPool
     {
         public int TakeCallCount { get; private set; }
         public List<int> TakeSize { get; private set; }
@@ -40,13 +40,7 @@ namespace NetMQ.Tests
             ReturnBuffer.Add(buffer);
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
+        void IDisposable.Dispose()
         {
         }
     }
