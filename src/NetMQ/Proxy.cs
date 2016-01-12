@@ -130,7 +130,7 @@ namespace NetMQ
             ProxyBetween(m_backend, m_frontend, m_controlOut);
         }
 
-        private static void ProxyBetween(NetMQSocket from, NetMQSocket to, [CanBeNull] NetMQSocket control)
+        private static void ProxyBetween(IReceivingSocket from, IOutgoingSocket to, [CanBeNull] IOutgoingSocket control)
         {
             var msg = new Msg();
             msg.InitEmpty();
