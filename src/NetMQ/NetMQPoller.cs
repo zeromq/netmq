@@ -327,16 +327,13 @@ namespace NetMQ
                     {
                         isItemAvailable = m_selector.Select(m_pollSet, m_pollSet.Length, timeout);
                     }
-                    else
+                    else if (timeout > 0)
                     {
-                        if (timeout > 0)
-                        {
-                            //TODO: Do we really want to simply sleep and return, doing nothing during this interval?
-                            //TODO: Should a large value be passed it will sleep for a month literally.
-                            //      Solution should be different, but sleep is more natural here than in selector (timers are not selector concern).
-                            Debug.Assert(timeout <= int.MaxValue);
-                            Thread.Sleep((int)timeout);
-                        }
+                        //TODO: Do we really want to simply sleep and return, doing nothing during this interval?
+                        //TODO: Should a large value be passed it will sleep for a month literally.
+                        //      Solution should be different, but sleep is more natural here than in selector (timers are not selector concern).
+                        Debug.Assert(timeout <= int.MaxValue);
+                        Thread.Sleep((int)timeout);
                     }
 
                     // Get the expected end time in case we time out. This looks redundant but, unfortunately,
