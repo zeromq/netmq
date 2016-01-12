@@ -30,7 +30,7 @@ namespace NetMQ.Tests
 
     [TestFixture]
     public class OutgoingSocketExtensionsTests
-    {       
+    {
         [Test]
         public void SendMultipartBytesTest()
         {
@@ -210,7 +210,7 @@ namespace NetMQ.Tests
             OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.AreEqual(0, msg.Data.Length);                
+                Assert.AreEqual(0, msg.Data.Length);
                 Assert.IsFalse(more);
                 return true;
             });

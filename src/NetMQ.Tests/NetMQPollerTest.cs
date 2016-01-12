@@ -862,8 +862,7 @@ namespace NetMQ.Tests
         [Test]
         public void SetsCurrentTaskScheduler()
         {
-            using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context) { PollTimeout = PollTimeout })
+            using (var poller = new NetMQPoller { PollTimeout = PollTimeout })
             {
                 poller.RunAsync();
 
@@ -876,8 +875,7 @@ namespace NetMQ.Tests
         [Test]
         public void CanExecuteTaskInline()
         {
-            using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context) { PollTimeout = PollTimeout })
+            using (var poller = new NetMQPoller { PollTimeout = PollTimeout })
             {
                 Assert.IsFalse(poller.CanExecuteTaskInline);
 

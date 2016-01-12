@@ -18,7 +18,7 @@ namespace NetMQ.Tests
     {
         [Test, ExpectedException(typeof(AgainException)), Obsolete]
         public void CheckReceiveAgainException()
-        {            
+        {
             using (var router = new RouterSocket())
             {
                 router.BindRandomPort("tcp://127.0.0.1");
@@ -29,7 +29,7 @@ namespace NetMQ.Tests
 
         [Test, ExpectedException(typeof(AgainException))]
         public void CheckSendAgainException()
-        {            
+        {
             using (var router = new RouterSocket())
             using (var dealer = new DealerSocket())
             {
@@ -49,7 +49,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void CheckSendTryAgain()
-        {         
+        {
             using (var router = new RouterSocket())
             using (var dealer = new DealerSocket())
             {
@@ -69,7 +69,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void LargeMessage()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -91,7 +91,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void ReceiveMessageWithTimeout()
-        {            
+        {
             {
                 var pubSync = new AutoResetEvent(false);
                 var payload = new byte[300];
@@ -138,7 +138,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void LargeMessageLittleEndian()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -165,7 +165,7 @@ namespace NetMQ.Tests
         [Test]
         public void TestKeepAlive()
         {
-            // there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system            
+            // there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             {
@@ -211,7 +211,7 @@ namespace NetMQ.Tests
             {
                 largeMessage[i] = (byte)(i % 256);
             }
-            
+
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -248,7 +248,7 @@ namespace NetMQ.Tests
                 largerBuffer[126] = 0xE;
                 largerBuffer[127] = 0xD;
             }
-           
+
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -274,7 +274,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void RawSocket()
-        {            
+        {
             using (var router = new RouterSocket())
             using (var clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
@@ -305,7 +305,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void BindRandom()
-        {            
+        {
             using (var randomDealer = new DealerSocket())
             using (var connectingDealer = new DealerSocket())
             {
@@ -324,7 +324,7 @@ namespace NetMQ.Tests
             var validAliasesForLocalHost = new[] { "127.0.0.1", "localhost", Dns.GetHostName() };
 
             foreach (var alias in validAliasesForLocalHost)
-            {                
+            {
                 using (var localDealer = new DealerSocket())
                 using (var connectingDealer = new DealerSocket())
                 {
@@ -341,7 +341,7 @@ namespace NetMQ.Tests
 
         [Test, Category("IPv6")]
         public void Ipv6ToIpv4()
-        {            
+        {
             using (var localDealer = new DealerSocket())
             using (NetMQSocket connectingDealer = new DealerSocket())
             {
@@ -358,7 +358,7 @@ namespace NetMQ.Tests
 
         [Test, Category("IPv6")]
         public void Ipv6ToIpv6()
-        {            
+        {
             using (var localDealer = new DealerSocket())
             using (var connectingDealer = new DealerSocket())
             {
@@ -376,7 +376,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void HasInTest()
-        {           
+        {
             using (var server = new RouterSocket())
             using (var client = new DealerSocket())
             {
@@ -413,7 +413,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void DisposeImmediately()
-        {            
+        {
             using (var server = new DealerSocket())
             {
                 server.BindRandomPort("tcp://*");
@@ -422,7 +422,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void HasOutTest()
-        {            
+        {
             using (var server = new DealerSocket())
             {
                 using (var client = new DealerSocket())
@@ -451,7 +451,7 @@ namespace NetMQ.Tests
 
         [Test, TestCase("tcp"), TestCase("inproc")]
         public void Disconnect(string protocol)
-        {            
+        {
             using (var server1 = new DealerSocket())
             using (var server2 = new DealerSocket())
             using (var client = new DealerSocket())
@@ -503,7 +503,7 @@ namespace NetMQ.Tests
 
         [Test, TestCase("tcp"), TestCase("inproc")]
         public void Unbind(string protocol)
-        {            
+        {
             using (var server = new DealerSocket())
             {
                 string address1, address2;
@@ -608,7 +608,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void ReconnectOnRouterBug()
-        {            
+        {
             {
                 using (var dealer = new DealerSocket())
                 {
@@ -688,7 +688,7 @@ namespace NetMQ.Tests
 
                 for (int i = 0; i < 2; i++)
                 {
-                    var workerThread = new Thread((state) =>
+                    var workerThread = new Thread(state =>
                         {
                             byte[] routerId = (byte[])state;
                             byte[] workerId = Guid.NewGuid().ToByteArray();
@@ -716,7 +716,7 @@ namespace NetMQ.Tests
                 poller.CancelAndJoin();
                 Assert.AreEqual(2, s_FreeWorkers.Count);
             }
-        }       
+        }
 
         [Test]
         public void ConnectionStringDefault()
@@ -791,6 +791,5 @@ namespace NetMQ.Tests
                 Assert.AreEqual("Hello", server2.ReceiveFrameString());
             }
         }
-
     }
 }

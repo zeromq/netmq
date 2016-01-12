@@ -30,7 +30,7 @@ namespace NetMQ
             m_receiveSocket = receiveSocket;
             m_handler = handler;
             m_actor = NetMQActor.Create(Run);
-        }        
+        }
 
         /// <summary>
         /// Stop the proactor. Provided socket will not be disposed.
@@ -45,7 +45,7 @@ namespace NetMQ
             shim.ReceiveReady += OnShimReady;
             m_receiveSocket.ReceiveReady += OnSocketReady;
             m_poller = new Poller(m_receiveSocket, shim);
-            
+
             shim.SignalOK();
             m_poller.PollTillCancelled();
 
@@ -66,6 +66,6 @@ namespace NetMQ
             NetMQMessage message = m_receiveSocket.ReceiveMultipartMessage();
 
             m_handler(m_receiveSocket, message);
-        }       
+        }
     }
 }

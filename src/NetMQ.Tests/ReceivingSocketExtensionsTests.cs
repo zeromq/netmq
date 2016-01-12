@@ -82,7 +82,7 @@ namespace NetMQ.Tests
             var expected2 = PushFrame("World");
 
             byte[] actual1 = m_socket.Receive();
-            
+
             Assert.AreEqual(SendReceiveOptions.None, m_socket.LastOptions);
 
             byte[] actual2 = m_socket.Receive();
@@ -145,7 +145,7 @@ namespace NetMQ.Tests
             Assert.AreEqual(SendReceiveOptions.None, m_socket.LastOptions);
 
             byte[] actual2 = m_socket.Receive(out hasMore);
-            
+
             Assert.IsFalse(hasMore);
             Assert.AreEqual(SendReceiveOptions.None, m_socket.LastOptions);
 
@@ -189,7 +189,7 @@ namespace NetMQ.Tests
             Assert.AreEqual(SendReceiveOptions.DontWait, m_socket.LastOptions);
 
             byte[] actual2 = m_socket.Receive(SendReceiveOptions.DontWait, out hasMore);
-            
+
             Assert.IsFalse(hasMore);
             Assert.AreEqual(SendReceiveOptions.DontWait, m_socket.LastOptions);
 

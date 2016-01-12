@@ -865,8 +865,8 @@ namespace NetMQ
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            return result.HasIn() 
-                ? socket.ReceiveString(encoding) 
+            return result.HasIn()
+                ? socket.ReceiveString(encoding)
                 : null;
         }
 
@@ -904,10 +904,10 @@ namespace NetMQ
         public static List<string> ReceiveMultipartStrings([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, int expectedFrameCount = 4)
         {
             var frames = new List<string>(expectedFrameCount);
-            
+
             var msg = new Msg();
             msg.InitEmpty();
-            
+
             do
             {
                 socket.Receive(ref msg);
@@ -1239,8 +1239,8 @@ namespace NetMQ
         {
             var result = socket.Poll(PollEvents.PollIn, timeout);
 
-            return result.HasIn() 
-                ? socket.ReceiveMessage() 
+            return result.HasIn()
+                ? socket.ReceiveMessage()
                 : null;
         }
 
@@ -1268,7 +1268,7 @@ namespace NetMQ
 
                 var isMultiFrame = msg.HasMore;
                 while (msg.HasMore)
-                {                   
+                {
                     socket.Receive(ref msg);
                 }
 
@@ -1331,7 +1331,7 @@ namespace NetMQ
 
                 var isMultiFrame = msg.HasMore;
                 while (msg.HasMore)
-                {                   
+                {
                     socket.Receive(ref msg);
                 }
 

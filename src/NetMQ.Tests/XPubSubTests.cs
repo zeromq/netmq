@@ -12,7 +12,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void TopicPubSub()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
             {
@@ -43,7 +43,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void Census()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
             {
@@ -67,7 +67,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void SimplePubSub()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
             {
@@ -88,7 +88,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void NotSubscribed()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
             {
@@ -109,7 +109,7 @@ namespace NetMQ.Tests
         /// </summary>
         [Test]
         public void MultipleSubscriptions()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
             {
@@ -136,7 +136,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultipleSubscribers()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
             using (var sub2 = new XSubscriberSocket())
@@ -165,10 +165,9 @@ namespace NetMQ.Tests
             }
         }
 
-
         [Test]
         public void MultiplePublishers()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var pub2 = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
@@ -204,7 +203,7 @@ namespace NetMQ.Tests
                 Assert.AreEqual('A', msg2[1]);
 
 
-                // Next two blocks (pub(2).Receive) will hang without XPub verbose option: 
+                // Next two blocks (pub(2).Receive) will hang without XPub verbose option:
                 // sub and sub2 both have sent `.Send(new byte[] { 1, (byte)'A' });` messages
                 // which are the same, so XPub will discard the second message for .Receive()
                 // because it is normally used to pass topics upstream.
@@ -218,7 +217,7 @@ namespace NetMQ.Tests
                 // pub.Options.XPubVerbose = true;
                 // pub2.Options.XPubVerbose = true;
                 // Note that resending sub2.Send(..) here wont help because XSub won't resent existing subs to XPub - quite sane behavior
-                // Comment out the verbose options and the next 8 lines and the test will 
+                // Comment out the verbose options and the next 8 lines and the test will
                 // still pass, even with non-unique messages from subscribers (see the bottom of the test)
 
                 msg = pub.ReceiveFrameString();
@@ -240,7 +239,7 @@ namespace NetMQ.Tests
                 Assert.IsTrue(more);
                 Assert.AreEqual("Hello from the first publisher", sub.ReceiveFrameString(out more));
                 Assert.False(more);
-                // this returns the result of the latest 
+                // this returns the result of the latest
                 // connect - address2, not the source of the message
                 // This is documented here: http://api.zeromq.org/3-2:zmq-getsockopt
                 //var ep = sub2.Options.LastEndpoint;
@@ -286,7 +285,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void Unsubscribe()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
             {
@@ -322,7 +321,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void Manual()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new XSubscriberSocket())
             {
@@ -346,7 +345,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void WelcomeMessage()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -364,10 +363,9 @@ namespace NetMQ.Tests
             }
         }
 
-
         [Test]
         public void ClearWelcomeMessage()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -386,17 +384,16 @@ namespace NetMQ.Tests
             }
         }
 
-
         [Test]
         public void BroadcastEnabled()
-        {            
+        {
             using (var pub = new XPublisherSocket())
             using (var sub1 = new XSubscriberSocket())
             using (var sub2 = new XSubscriberSocket())
             {
                 pub.Bind("inproc://manual");
                 pub.Options.XPubBroadcast = true;
-                
+
                 sub1.Connect("inproc://manual");
                 sub2.Connect("inproc://manual");
 
@@ -430,20 +427,19 @@ namespace NetMQ.Tests
                 // this message SHOULD NOT be resent to sub1
                 var received = sub1.TryReceive(ref msg, System.TimeSpan.FromMilliseconds(500));
                 Assert.IsFalse(received);
-
             }
         }
 
         [Test]
-        public void BroadcastDisabled() 
-        {            
+        public void BroadcastDisabled()
+        {
             using (var pub = new XPublisherSocket())
             using (var sub1 = new XSubscriberSocket())
-            using (var sub2 = new XSubscriberSocket()) 
+            using (var sub2 = new XSubscriberSocket())
             {
                 pub.Bind("inproc://manual");
                 pub.Options.XPubBroadcast = false;
-                
+
                 sub1.Connect("inproc://manual");
                 sub2.Connect("inproc://manual");
 
@@ -474,8 +470,6 @@ namespace NetMQ.Tests
                 Assert.IsTrue(broadcast1[0] == 65);
                 broadcast1 = sub1.ReceiveFrameBytes();
                 Assert.IsTrue(broadcast1.SequenceEqual(payload));
-                
-
             }
         }
     }

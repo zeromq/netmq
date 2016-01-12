@@ -102,9 +102,9 @@ namespace NetMQ.Tests
             Assert.IsFalse(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
             Assert.IsTrue(msg.IsInitialised);
-            
+
             msg.Close();
- 
+
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
             Assert.IsNull(msg.Data);
         }
@@ -123,9 +123,9 @@ namespace NetMQ.Tests
             Assert.IsTrue(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
             Assert.IsTrue(msg.IsInitialised);
-            
+
             msg.Close();
- 
+
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
             Assert.IsNull(msg.Data);
         }
@@ -144,17 +144,18 @@ namespace NetMQ.Tests
             Assert.IsFalse(msg.HasMore);
             Assert.IsFalse(msg.IsDelimiter);
             Assert.IsFalse(msg.IsIdentity);
-            Assert.IsTrue(msg.IsInitialised);            
+            Assert.IsTrue(msg.IsInitialised);
 
             msg.Close();
- 
+
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
             Assert.IsNull(msg.Data);
         }
 
 
         [Test]
-        public void InitGCOffset() {
+        public void InitGCOffset()
+        {
             var msg = new Msg();
             var bytes = new byte[200];
             msg.InitGC(bytes, 100, 50);
@@ -218,7 +219,7 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(1, pool.ReturnCallCount);
             Assert.AreSame(bytes, pool.ReturnBuffer[0]);
- 
+
             Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
             Assert.IsNull(msg.Data);
         }

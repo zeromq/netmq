@@ -7,7 +7,7 @@ namespace NetMQ.Tests
     {
         public int TakeCallCount { get; private set; }
         public List<int> TakeSize { get; private set; }
-        
+
         public int ReturnCallCount { get; private set; }
         public List<byte[]> ReturnBuffer { get; private set; }
 

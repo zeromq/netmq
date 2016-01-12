@@ -82,7 +82,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]        
+        [Test]
         public void SubscribeToDifferentTopic()
         {            
             using (var speaker = new NetMQBeacon())

@@ -654,7 +654,7 @@ namespace NetMQ
                 if (waitForCloseToComplete)
                 {
                     m_switch.WaitForOff();
-                }                
+                }
             }
             else
             {

@@ -11,12 +11,11 @@ namespace NetMQ
     /// </summary>
     public static class OutgoingSocketExtensions
     {
-
         /// <summary>
         /// Block until the message is can be sent.
         /// </summary>
         /// <remarks>
-        /// The call  blocks until the message can be sent and cannot be interrupted. 
+        /// The call  blocks until the message can be sent and cannot be interrupted.
         /// Wether the message can be sent depends on the socket type.
         /// </remarks>
         /// <param name="socket">The socket to send the message on.</param>
@@ -36,7 +35,7 @@ namespace NetMQ
         /// Transmit a byte-array of data over this socket, block until frame is sent.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>        
+        /// <param name="data">the byte-array of data to send</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         public static void SendFrame([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, bool more = false)
         {
@@ -64,8 +63,8 @@ namespace NetMQ
         /// Send more frame, another frame must be sent after this frame. Use to chain Send methods.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>    
-        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>    
+        /// <param name="data">the byte-array of data to send</param>
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
         public static IOutgoingSocket SendMoreFrame([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data)
         {
@@ -79,9 +78,9 @@ namespace NetMQ
         /// Send more frame, another frame must be sent after this frame. Use to chain Send methods.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>        
+        /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
-        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>   
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
         public static IOutgoingSocket SendMoreFrame([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length)
         {
@@ -100,7 +99,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="timeout">The maximum period of time to try to send a message.</param>
-        /// <param name="data">the byte-array of data to send</param>        
+        /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
@@ -126,7 +125,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="timeout">The maximum period of time to try to send a message.</param>
-        /// <param name="data">the byte-array of data to send</param>                
+        /// <param name="data">the byte-array of data to send</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrame([NotNull] this IOutgoingSocket socket, TimeSpan timeout, [NotNull] byte[] data, bool more = false)
@@ -142,8 +141,8 @@ namespace NetMQ
         /// Attempt to transmit a single frame on <paramref cref="socket"/>.
         /// If message cannot be sent immediately, return <c>false</c>.
         /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>        
-        /// <param name="data">the byte-array of data to send</param>                
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="data">the byte-array of data to send</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrame([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data,
@@ -156,9 +155,9 @@ namespace NetMQ
         /// Attempt to transmit a single frame on <paramref cref="socket"/>.
         /// If message cannot be sent immediately, return <c>false</c>.
         /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>        
-        /// <param name="data">the byte-array of data to send</param>            
-        /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>    
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="data">the byte-array of data to send</param>
+        /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrame([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length,
@@ -273,7 +272,7 @@ namespace NetMQ
         /// Send multiple frames on <paramref cref="socket"/>, blocking until all frames are sent.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="frames">frames to transmit</param>                
+        /// <param name="frames">frames to transmit</param>
         public static void SendMultipartBytes([NotNull] this IOutgoingSocket socket, params byte[][] frames)
         {
             SendMultipartBytes(socket, (IEnumerable<byte[]>)frames);
@@ -283,7 +282,7 @@ namespace NetMQ
         /// Send multiple frames on <paramref cref="socket"/>, blocking until all frames are sent.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="frames">frames to transmit</param>   
+        /// <param name="frames">frames to transmit</param>
         public static void SendMultipartBytes([NotNull] this IOutgoingSocket socket, IEnumerable<byte[]> frames)
         {
             var enumerator = frames.GetEnumerator();
@@ -325,7 +324,7 @@ namespace NetMQ
         /// If frames cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="frames">frames to transmit</param>          
+        /// <param name="frames">frames to transmit</param>
         public static bool TrySendMultipartBytes([NotNull] this IOutgoingSocket socket, TimeSpan timeout, params byte[][] frames)
         {
             return TrySendMultipartBytes(socket, timeout, (IEnumerable<byte[]>)frames);
@@ -337,12 +336,12 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="timeout">The maximum period of time to try to send a message.</param>
-        /// <param name="frames">frames to transmit</param>       
+        /// <param name="frames">frames to transmit</param>
         public static bool TrySendMultipartBytes([NotNull] this IOutgoingSocket socket, TimeSpan timeout,
             IEnumerable<byte[]> frames)
         {
             var enumerator = frames.GetEnumerator();
-            
+
             try
             {
                 // move to the first emlement, if false frames is empty
@@ -398,7 +397,7 @@ namespace NetMQ
         /// If frames cannot be sent immediatly, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="frames">frames to transmit</param>       
+        /// <param name="frames">frames to transmit</param>
         public static bool TrySendMultipartBytes([NotNull] this IOutgoingSocket socket, params byte[][] frames)
         {
             return TrySendMultipartBytes(socket, TimeSpan.Zero, (IEnumerable<byte[]>)frames);
@@ -409,7 +408,7 @@ namespace NetMQ
         /// If frames cannot be sent immediatly, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="frames">frames to transmit</param>      
+        /// <param name="frames">frames to transmit</param>
         public static bool TrySendMultipartBytes([NotNull] this IOutgoingSocket socket, IEnumerable<byte[]> frames)
         {
             return TrySendMultipartBytes(socket, TimeSpan.Zero, frames);
@@ -427,7 +426,7 @@ namespace NetMQ
         /// Transmit a string over this socket, block until frame is sent.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">the string to send</param>        
+        /// <param name="message">the string to send</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         public static void SendFrame([NotNull] this IOutgoingSocket socket, [NotNull] string message, bool more = false)
         {
@@ -451,8 +450,8 @@ namespace NetMQ
         /// Send more frame, another frame must be sent after this frame. Use to chain Send methods.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">the string to send</param>   
-        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>   
+        /// <param name="message">the string to send</param>
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
         public static IOutgoingSocket SendMoreFrame([NotNull] this IOutgoingSocket socket, [NotNull] string message)
         {
@@ -471,7 +470,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="timeout">The maximum period of time to try to send a message.</param>
-        /// <param name="message">the string to send</param>                
+        /// <param name="message">the string to send</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrame([NotNull] this IOutgoingSocket socket, TimeSpan timeout, [NotNull] string message, bool more = false)
@@ -505,8 +504,8 @@ namespace NetMQ
         /// Attempt to transmit a single string frame on <paramref cref="socket"/>.
         // If message cannot be sent immediately, return <c>false</c>.
         /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>        
-        /// <param name="message">the string to send</param>                
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="message">the string to send</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrame([NotNull] this IOutgoingSocket socket, [NotNull] string message, bool more = false)
@@ -628,7 +627,7 @@ namespace NetMQ
         /// Send multiple message on <paramref cref="socket"/>, blocking until all entire message is sent.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">message to transmit</param>   
+        /// <param name="message">message to transmit</param>
         public static void SendMultipartMessage([NotNull] this IOutgoingSocket socket, [NotNull] NetMQMessage message)
         {
             if (message.FrameCount == 0)
@@ -651,7 +650,7 @@ namespace NetMQ
         /// If message cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">message to transmit</param>     
+        /// <param name="message">message to transmit</param>
         public static bool TrySendMultipartMessage([NotNull] this IOutgoingSocket socket, TimeSpan timeout, [NotNull] NetMQMessage message)
         {
             if (message.FrameCount == 0)
@@ -686,7 +685,7 @@ namespace NetMQ
         /// If frames cannot be sent immediatly, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">message to transmit</param>     
+        /// <param name="message">message to transmit</param>
         public static bool TrySendMultipartMessage([NotNull] this IOutgoingSocket socket, [NotNull] NetMQMessage message)
         {
             return TrySendMultipartMessage(socket, TimeSpan.Zero, message);
@@ -727,7 +726,7 @@ namespace NetMQ
         /// <summary>
         /// Transmit an empty frame over this socket, block until frame is sent.
         /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>        
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         public static void SendFrameEmpty([NotNull] this IOutgoingSocket socket, bool more = false)
         {
@@ -739,8 +738,8 @@ namespace NetMQ
         /// Transmit an empty frame over this socket, block until frame is sent.
         /// Send more frame, another frame must be sent after this frame. Use to chain Send methods.
         /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param> 
-        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>          
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         [NotNull]
         public static IOutgoingSocket SendMoreFrameEmpty([NotNull] this IOutgoingSocket socket)
         {
@@ -758,7 +757,7 @@ namespace NetMQ
         /// If message cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="timeout">The maximum period of time to try to send a message.</param>        
+        /// <param name="timeout">The maximum period of time to try to send a message.</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrameEmpty([NotNull] this IOutgoingSocket socket, TimeSpan timeout, bool more = false)
@@ -774,7 +773,7 @@ namespace NetMQ
         /// Attempt to transmit an empty frame on <paramref cref="socket"/>.
         /// If message cannot be sent immediately, return <c>false</c>.
         /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>        
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrameEmpty([NotNull] this IOutgoingSocket socket, bool more = false)
@@ -843,7 +842,7 @@ namespace NetMQ
         /// Attempt to transmit a specific status-signal over this socket that indicates OK.
         /// If signal cannot be sent immediately, return <c>false</c>.
         /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>        
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
         public static bool TrySignalOK([NotNull] this IOutgoingSocket socket)
         {
             return TrySignal(socket, 0);

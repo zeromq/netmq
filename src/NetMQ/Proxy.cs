@@ -68,7 +68,7 @@ namespace NetMQ
         /// <param name="poller">an optional external poller to use within this proxy</param>
         /// <exception cref="InvalidOperationException"><paramref name="poller"/> is not <c>null</c> and either <paramref name="frontend"/> or <paramref name="backend"/> are not contained within it.</exception>
         public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, [CanBeNull] Poller poller = null)
-            :this(frontend, backend, control, null, poller)
+            : this(frontend, backend, control, null, poller)
         {}
 
         /// <summary>

@@ -3,15 +3,16 @@ using NUnit.Framework;
 using System.Text;
 using NetMQ.Sockets;
 
-namespace NetMQ.Tests 
+namespace NetMQ.Tests
 {
     [TestFixture]
-    public class RouterTests 
+    public class RouterTests
     {
         [Test]
-        public void Mandatory() 
-        {            
-            using (var router = new RouterSocket()) {
+        public void Mandatory()
+        {
+            using (var router = new RouterSocket())
+            {
                 router.Options.RouterMandatory = true;
                 router.BindRandomPort("tcp://*");
 
@@ -20,38 +21,39 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void ReceiveReadyDot35Bug() 
+        public void ReceiveReadyDot35Bug()
         {
             // In .NET 3.5, we saw an issue where ReceiveReady would be raised every second despite nothing being received
-            
-            using (var server = new RouterSocket()) {
+            using (var server = new RouterSocket())
+            {
                 server.BindRandomPort("tcp://127.0.0.1");
-                server.ReceiveReady += (s, e) => {
-                    Assert.Fail("Should not receive");
-                };
+                server.ReceiveReady += (s, e) => Assert.Fail("Should not receive");
 
                 Assert.IsFalse(server.Poll(TimeSpan.FromMilliseconds(1500)));
             }
         }
 
-
         [Test]
-        public void TwoMessagesFromRouterToDealer() 
-        {            
+        public void TwoMessagesFromRouterToDealer()
+        {
             using (var poller = new Poller())
             using (var server = new RouterSocket())
-            using (var client = new DealerSocket()) {
+            using (var client = new DealerSocket())
+            {
                 var port = server.BindRandomPort("tcp://*");
                 client.Connect("tcp://127.0.0.1:" + port);
                 poller.AddSocket(client);
                 var cnt = 0;
-                client.ReceiveReady += (object sender, NetMQSocketEventArgs e) => {
+                client.ReceiveReady += (sender, e) =>
+                {
                     var strs = e.Socket.ReceiveMultipartStrings();
-                    foreach (var str in strs) {
+                    foreach (var str in strs)
+                    {
                         Console.WriteLine(str);
                     }
                     cnt++;
-                    if (cnt == 2) {
+                    if (cnt == 2)
+                    {
                         poller.Cancel();
                     }
                 };
@@ -78,6 +80,5 @@ namespace NetMQ.Tests
                 poller.PollTillCancelled();
             }
         }
-
     }
 }
