@@ -21,3 +21,4 @@ Contributors
 * Tom Robinson &mdash; [@tjrobinson](https://github.com/tjrobinson)
 * Victor Baybekov &mdash; [@buybackoff](https://github.com/buybackoff)
 * Tobias Böhm &mdash; [@tobiasb](https://github.com/tobiasb)
+* Dale Brubaker &mdash; [@dalebrubaker](https://github.com/dalebrubaker)
