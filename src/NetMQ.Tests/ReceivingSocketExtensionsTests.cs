@@ -11,8 +11,10 @@ namespace NetMQ.Tests
     {
         private readonly Queue<byte[]> m_frames = new Queue<byte[]>();
 
+        [Obsolete]
         public SendReceiveOptions LastOptions { get; private set; }
 
+        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         public void Receive(ref Msg msg, SendReceiveOptions options)
         {
             LastOptions = options;

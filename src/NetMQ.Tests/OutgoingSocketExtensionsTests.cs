@@ -14,6 +14,7 @@ namespace NetMQ.Tests
             m_action = action;
         }
 
+        [Obsolete("Use Send(ref Msg, bool) or TrySend(ref Msg,TimeSpan, bool) instead.")]
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
 
