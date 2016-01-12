@@ -72,7 +72,7 @@ namespace NetMQ
         {}
 
         /// <summary>
-        /// Start proxying messages between the front and back ends. Blocks, unless using an external <see cref="Poller"/>.
+        /// Start proxying messages between the front and back ends. Blocks, unless using an external <see cref="NetMQPoller"/>.
         /// </summary>
         /// <exception cref="InvalidOperationException">The proxy has already been started.</exception>
         public void Start()
@@ -91,14 +91,14 @@ namespace NetMQ
             }
             else
             {
-                m_poller = new Poller(m_frontend, m_backend);
+                m_poller = new NetMQPoller(TODO) { m_frontend, m_backend };
                 m_state = StateStarted;
                 m_poller.Run();
             }
         }
 
         /// <summary>
-        /// Stops the proxy, blocking until the underlying <see cref="Poller"/> has completed.
+        /// Stops the proxy, blocking until the underlying <see cref="NetMQPoller"/> has completed.
         /// </summary>
         /// <exception cref="InvalidOperationException">The proxy has not been started.</exception>
         public void Stop()
