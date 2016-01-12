@@ -82,11 +82,18 @@ namespace NetMQ
             return CanExecuteTaskInline && TryExecuteTask(task);
         }
 
+        /// <summary>
+        /// Returns 1, as <see cref="NetMQPoller"/> runs a single thread and all tasks must execute on that thread.
+        /// </summary>
         public override int MaximumConcurrencyLevel
         {
             get { return 1; }
         }
 
+        /// <summary>
+        /// Not supported.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown.</exception>
         protected override IEnumerable<Task> GetScheduledTasks()
         {
             // this is not supported, also it's only important for debug purposes and doesn't get called in real time.
@@ -155,8 +162,19 @@ namespace NetMQ
 #endif
         }
 
+        /// <summary>
+        /// Get whether this object is currently polling its sockets and timers.
+        /// </summary>
         public bool IsRunning { get; private set; }
 
+        /// <summary>
+        /// Gets and sets the amount of time the internal poll operation should wait before timing out.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to one second.
+        /// <para />
+        /// This can impact the time taken to dispose this <see cref="NetMQPoller"/>.
+        /// </remarks>
         public TimeSpan PollTimeout { get; set; }
 
         #region Add / Remove
@@ -247,6 +265,9 @@ namespace NetMQ
 
         #region Start / Stop
 
+        /// <summary>
+        /// Runs the poller in a background thread, returning immediately.
+        /// </summary>
         public void RunAsync()
         {
             CheckDisposed();
@@ -257,6 +278,9 @@ namespace NetMQ
             thread.Start();
         }
 
+        /// <summary>
+        /// Runs the poller on the caller's thread. Only returns when <see cref="Stop"/> or <see cref="StopAsync"/> are called from another thread.
+        /// </summary>
         public void Run()
         {
             CheckDisposed();
@@ -407,6 +431,9 @@ namespace NetMQ
             }
         }
 
+        /// <summary>
+        /// Stops the poller, blocking until stopped.
+        /// </summary>
         public void Stop()
         {
             CheckDisposed();
@@ -418,6 +445,9 @@ namespace NetMQ
             Debug.Assert(!IsRunning);
         }
 
+        /// <summary>
+        /// Stops the poller, returning immediately and most likely before the poller has actually stopped.
+        /// </summary>
         public void StopAsync()
         {
             CheckDisposed();
@@ -468,6 +498,8 @@ namespace NetMQ
 
         #region IEnumerable
 
+        /// <summary>This class only implements <see cref="IEnumerable"/> in order to support collection initialiser syntax.</summary>
+        /// <returns>An empty enumerator.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             yield break;
@@ -490,6 +522,9 @@ namespace NetMQ
                 throw new ObjectDisposedException("NetMQPoller");
         }
 
+        /// <summary>
+        /// Stops and disposes the poller. The poller may not be used once disposed.
+        /// </summary>
         public void Dispose()
         {
             if (Interlocked.CompareExchange(ref m_disposeState, (int)DisposeState.Disposing, 0) == (int)DisposeState.Disposing)
