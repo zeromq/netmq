@@ -216,7 +216,7 @@
     <Compile Include="ZmqSocketType.cs" />
     <Compile Include="Core\ZmqSocketOption.cs" />
     <Compile Include="Core\ZObject.cs" />
-    <None Include="packages.config" />
+    <None Include="packages.NetMQ.config" />
     <Compile Include="SendReceiveConstants.cs" />
   </ItemGroup>
   <ItemGroup />
