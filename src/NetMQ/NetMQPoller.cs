@@ -128,7 +128,7 @@ namespace NetMQ
         {
             PollTimeout = TimeSpan.FromSeconds(1);
 #if !NET35
-            var address = string.Format("{0}://poller-{1}", Address.InProcProtocol, m_pollerId);
+            var address = string.Format("{0}://netmqpoller-{1}", Address.InProcProtocol, m_pollerId);
 
             m_schedulerPullSocket = new NetMQ.Sockets.PullSocket();
             m_schedulerPullSocket.Options.Linger = TimeSpan.Zero;
