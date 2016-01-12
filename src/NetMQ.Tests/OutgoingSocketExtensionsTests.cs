@@ -5,11 +5,11 @@ namespace NetMQ.Tests
 {
     internal delegate bool TrySendDelegate(ref Msg msg, TimeSpan timeout, bool more);
 
-    internal class OutgoingSocketMock : IOutgoingSocket
+    internal class MockOutgoingSocket : IOutgoingSocket
     {
         private readonly TrySendDelegate m_action;
 
-        public OutgoingSocketMock(TrySendDelegate action)
+        public MockOutgoingSocket(TrySendDelegate action)
         {
             m_action = action;
         }
@@ -34,7 +34,7 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 if (count == 0)
                 {
@@ -65,7 +65,7 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 if (count == 0)
                 {
@@ -96,7 +96,7 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
 
                 Assert.AreEqual(TimeSpan.FromSeconds(1), timeout);
@@ -117,7 +117,7 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 if (count == 0)
                 {
@@ -148,7 +148,7 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 if (count == 0)
                 {
@@ -183,7 +183,7 @@ namespace NetMQ.Tests
         {
             int count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.FromSeconds(0), timeout);
                 Assert.AreEqual(1, msg.Data.Length);
@@ -205,7 +205,7 @@ namespace NetMQ.Tests
         [Test]
         public void SendFrameEmpty()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
                 Assert.AreEqual(0, msg.Data.Length);
@@ -219,7 +219,7 @@ namespace NetMQ.Tests
         [Test]
         public void SendMoreFrameEmpty()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
                 Assert.AreEqual(0, msg.Data.Length);
@@ -234,7 +234,7 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendFrameEmpty()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
                 Assert.AreEqual(0, msg.Data.Length);
@@ -249,7 +249,7 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendFrameEmptyFailed()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
                 Assert.AreEqual(0, msg.Data.Length);
@@ -263,7 +263,7 @@ namespace NetMQ.Tests
         [Test]
         public void SignalTest()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
                 Assert.AreEqual(8, msg.Data.Length);
@@ -282,7 +282,7 @@ namespace NetMQ.Tests
         [Test]
         public void TrySignalTest()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
                 Assert.AreEqual(8, msg.Data.Length);
@@ -301,7 +301,7 @@ namespace NetMQ.Tests
         [Test]
         public void TrySignalFailedTest()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            MockOutgoingSocket socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
                 Assert.AreEqual(8, msg.Data.Length);
