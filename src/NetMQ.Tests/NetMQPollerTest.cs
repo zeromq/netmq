@@ -847,11 +847,47 @@ namespace NetMQ.Tests
             {
                 poller.RunAsync();
 
-                var task = new Task(() => { triggered = true; });
+                var task = new Task(() =>
+                {
+                    triggered = true;
+                    Assert.IsTrue(poller.CanExecuteTaskInline, "Should be on NetMQPoller thread");
+                });
                 task.Start(poller);
                 task.Wait();
 
                 Assert.IsTrue(triggered);
+            }
+        }
+
+        [Test]
+        public void SetsCurrentTaskScheduler()
+        {
+            using (var context = NetMQContext.Create())
+            using (var poller = new NetMQPoller(context) { PollTimeout = PollTimeout })
+            {
+                poller.RunAsync();
+
+                var task = new Task(() => Assert.AreSame(TaskScheduler.Current, poller));
+                task.Start(poller);
+                task.Wait();
+            }
+        }
+
+        [Test]
+        public void CanExecuteTaskInline()
+        {
+            using (var context = NetMQContext.Create())
+            using (var poller = new NetMQPoller(context) { PollTimeout = PollTimeout })
+            {
+                Assert.IsFalse(poller.CanExecuteTaskInline);
+
+                poller.RunAsync();
+
+                Assert.IsFalse(poller.CanExecuteTaskInline);
+
+                var task = new Task(() => Assert.IsTrue(poller.CanExecuteTaskInline));
+                task.Start(poller);
+                task.Wait();
             }
         }
 
