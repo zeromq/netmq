@@ -3,8 +3,6 @@ using NetMQ.Sockets;
 
 namespace NetMQ
 {
-    public delegate void OnMessageHandler(NetMQSocket socket, NetMQMessage message);
-
     /// <summary>
     /// Class to quickly handle incoming messages of socket.
     /// New thread is created to handle the messages. Call dispose to stop the thread.
