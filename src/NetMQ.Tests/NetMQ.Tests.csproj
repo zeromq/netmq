@@ -42,11 +42,11 @@
       <HintPath>..\packages\AsyncIO.0.1.17.0\lib\net40\AsyncIO.dll</HintPath>
     </Reference>
     <Reference Include="JetBrains.Annotations">
-      <HintPath>..\packages\JetBrains.Annotations.9.1.1\lib\net20\JetBrains.Annotations.dll</HintPath>
+      <HintPath>..\packages\JetBrains.Annotations.10.0.0\lib\net20\JetBrains.Annotations.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="nunit-console-runner">
       <HintPath>..\Lib\nunit-console-runner.dll</HintPath>
@@ -87,6 +87,7 @@
     <Compile Include="NetMQProactorTests.cs" />
     <Compile Include="NetMQQueueTests.cs" />
     <Compile Include="OutgoingSocketExtensionsTests.cs" />
+    <Compile Include="NetMQPollerTest.cs" />
     <Compile Include="ReceivingSocketExtensionsTests.cs" />
     <Compile Include="RequestWithRetryTests.cs" />
     <Compile Include="RouterTests.cs" />
@@ -129,7 +130,7 @@
     <None Include="NetMQ.Testing.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
+    <None Include="packages.NetMQ.Tests.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

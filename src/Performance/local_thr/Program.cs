@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace local_thr
 {
@@ -18,8 +19,7 @@ namespace local_thr
             int messageSize = int.Parse(args[1]);
             int messageCount = int.Parse(args[2]);
 
-            using (var context = NetMQContext.Create())
-            using (var pullSocket = context.CreatePullSocket())
+            using (var pullSocket = new PullSocket())
             {
                 pullSocket.Bind(bindTo);
 

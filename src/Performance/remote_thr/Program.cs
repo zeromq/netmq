@@ -1,5 +1,6 @@
 ﻿using System;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace remote_thr
 {
@@ -17,8 +18,7 @@ namespace remote_thr
             int messageSize = int.Parse(args[1]);
             int messageCount = int.Parse(args[2]);
 
-            using (var context = NetMQContext.Create())
-            using (var push = context.CreatePushSocket())
+            using (var push = new PushSocket())
             {
                 push.Connect(connectTo);
 
@@ -26,7 +26,7 @@ namespace remote_thr
                 {
                     var msg = new Msg();
                     msg.InitPool(messageSize);
-                    push.Send(ref msg, SendReceiveOptions.None);
+                    push.Send(ref msg, more: false);
                     msg.Close();
                 }
             }

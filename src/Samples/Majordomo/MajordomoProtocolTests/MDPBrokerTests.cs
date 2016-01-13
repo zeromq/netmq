@@ -730,7 +730,7 @@ namespace MajordomoTests
             Assert.That (reply.First.ConvertToString (), Is.EqualTo (_PAYLOAD + " - HELLO"));
         }
 
-        static class EchoWorker
+        private static class EchoWorker
         {
             public static void Run (IMDPWorker worker, int heartbeatinterval = 2500)
             {

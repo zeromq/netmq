@@ -33,8 +33,7 @@ namespace NetMQ.SimpleTests
 
         private void ConsumerThread()
         {
-            using (var context = NetMQContext.Create())
-            using (var socket = CreateConsumerSocket(context))
+            using (var socket = CreateConsumerSocket())
             {
                 socket.Bind("tcp://*:9091");
 
@@ -56,8 +55,7 @@ namespace NetMQ.SimpleTests
 
         private void ProducerThread()
         {
-            using (var context = NetMQContext.Create())
-            using (var socket = CreateProducerSocket(context))
+            using (var socket = CreateProducerSocket())
             {
                 socket.Connect("tcp://127.0.0.1:9091");
 
@@ -66,8 +64,8 @@ namespace NetMQ.SimpleTests
             }
         }
 
-        [NotNull] protected abstract PushSocket CreateProducerSocket([NotNull] NetMQContext context);
-        [NotNull] protected abstract PullSocket CreateConsumerSocket([NotNull] NetMQContext context);
+        [NotNull] protected abstract PushSocket CreateProducerSocket();
+        [NotNull] protected abstract PullSocket CreateConsumerSocket();
 
         protected abstract void Produce([NotNull] PushSocket socket, int messageSize);
         protected abstract void Consume([NotNull] PullSocket socket, int messageSize);
@@ -80,14 +78,14 @@ namespace NetMQ.SimpleTests
             TestName = "Push/Pull Throughput Benchmark";
         }
 
-        protected override PushSocket CreateProducerSocket(NetMQContext context)
+        protected override PushSocket CreateProducerSocket()
         {
-            return context.CreatePushSocket();
+            return new PushSocket();
         }
 
-        protected override PullSocket CreateConsumerSocket(NetMQContext context)
+        protected override PullSocket CreateConsumerSocket()
         {
-            return context.CreatePullSocket();
+            return new PullSocket();
         }
 
         protected override void Produce(PushSocket socket, int messageSize)
@@ -96,7 +94,7 @@ namespace NetMQ.SimpleTests
             msg[messageSize/2] = 0x42;
 
             for (int i = 0; i < MsgCount; i++)
-                socket.Send(msg);
+                socket.SendFrame(msg);
         }
 
         protected override void Consume(PullSocket socket, int messageSize)
@@ -117,26 +115,26 @@ namespace NetMQ.SimpleTests
             TestName = "Push/Pull Throughput Benchmark (reusing Msg)";
         }
 
-        protected override PushSocket CreateProducerSocket(NetMQContext context)
+        protected override PushSocket CreateProducerSocket()
         {
-            return context.CreatePushSocket();
+            return new PushSocket();
         }
 
-        protected override PullSocket CreateConsumerSocket(NetMQContext context)
+        protected override PullSocket CreateConsumerSocket()
         {
-            return context.CreatePullSocket();
+            return new PullSocket();
         }
 
         protected override void Produce(PushSocket socket, int messageSize)
         {
             var msg = new Msg();
-            
+
             for (int i = 0; i < MsgCount; i++)
             {
                 msg.InitGC(new byte[messageSize], messageSize);
                 msg.Data[messageSize / 2] = 0x42;
 
-                socket.Send(ref msg, SendReceiveOptions.None);
+                socket.Send(ref msg, more: false);
 
                 msg.Close();
             }

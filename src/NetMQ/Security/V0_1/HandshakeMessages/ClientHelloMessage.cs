@@ -8,7 +8,7 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
     /// and overrides SetFromNetMQMessage and ToNetMQMessage to read/write those
     /// from the frames of a NetMQMessage.
     /// </summary>
-    class ClientHelloMessage : HandshakeMessage
+    internal class ClientHelloMessage : HandshakeMessage
     {
         /// <summary>
         /// Get or set the Random-Number that is a part of the handshake-protocol, as a byte-array.

@@ -3,19 +3,16 @@ Pollers
 
 ## Motivation 1: Efficiency
 
-There are many use cases for the `Poller`. First let's look at a simple server:
+There are many use cases for the `NetMQPoller`. First let's look at a simple server:
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var rep = context.CreateResponseSocket())
+    using (var rep = new ResponseSocket("@tcp://*:5002"))
     {
-        rep.Bind("tcp://*:5002");
-
         // process requests, forever...
         while (true)
         {
             // receive a request message
-            var msg = rep.ReceiveString();
+            var msg = rep.ReceiveFrameString();
 
             // send a canned response
             rep.Send("Response");
@@ -27,13 +24,9 @@ This server will happily process responses indefinitely.
 What now if we wanted to have one thread handling two different response sockets?
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var rep1 = context.CreateResponseSocket())
-    using (var rep2 = context.CreateResponseSocket())
+    using (var rep1 = new ResponseSocket("@tcp://*:5001"))
+    using (var rep2 = new ResponseSocket("@tcp://*:5002"))
     {
-        rep1.Bind("tcp://*:5001");
-        rep2.Bind("tcp://*:5002");
-
         while (true)
         {
             // Hmmm....
@@ -65,24 +58,17 @@ For ZeroMQ/NetMQ to give great performance, some restrictions exist on how we ca
 
 For example, consider socket A with a service loop in thread A, and socket B with a service loop in thread B. It would be invalid to receive a message from socket A (on thread A) and then attempt to send it on socket B. The socket is not threadsafe, and so attempts to use is simultaneously from threads A and B would cause errors.
 
-In fact the pattern described here is known as a [proxy](proxy), and one is built into NetMQ. At this point you may not be surprised to learn that it is powered by a `Poller`.
+In fact the pattern described here is known as a [proxy](proxy), and one is built into NetMQ. At this point you may not be surprised to learn that it is powered by a `NetMQPoller`.
 
 ## Example: ReceiveReady
 
 Let's use a `Poller` to easily service two sockets from a single thread:
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var rep1 = context.CreateResponseSocket())
-    using (var rep2 = context.CreateResponseSocket())
-    using (var poller = new Poller())
+    using (var rep1 = new ResponseSocket("@tcp://*:5001"))
+    using (var rep2 = new ResponseSocket("@tcp://*:5002"))
+    using (var poller = new NetMQPoller { rep1, rep2 })
     {
-        rep1.Bind("tcp://*:5001");
-        rep2.Bind("tcp://*:5002");
-
-        poller.AddSocket(rep1);
-        poller.AddSocket(rep2);
-
         // these event will be raised by the Poller
         rep1.ReceiveReady += (s, a) =>
         {
@@ -100,12 +86,12 @@ Let's use a `Poller` to easily service two sockets from a single thread:
         };
 
         // start polling (on this thread)
-        poller.PollTillCancelled();
+        poller.Run();
     }
 
-This code sets up two sockets and bind them to different addresses. It then adds those sockets to a `Poller` using `AddSocket(NetMQSocket)`. Event handlers are attached to each socket's `ReceiveReady` event. Finally the poller is started via `PollTillCancelled()`, which blocks until&mdash;well, it's in the name.
+This code sets up two sockets and bind them to different addresses. It then adds those sockets to a `NetMQPoller` using the collection initialiser (you could also call `Add(NetMQSocket)`). Event handlers are attached to each socket's `ReceiveReady` event. Finally the poller is started via `Run()`, which blocks until `Stop` is called on the poller.
 
-Internally, the `Poller` solves the problem described above in an optimal fashion.
+Internally, the `NetMQPoller` solves the problem described above in an optimal fashion.
 
 ## Example: SendReady
 
@@ -115,38 +101,31 @@ Internally, the `Poller` solves the problem described above in an optimal fashio
 
 Pollers have an additional feature: timers.
 
-If you wish to perform some operation periodically, and need that operation to be performed on a thread which is allowed to use one or more sockets, you can add a `NetMQTimer` to the `Poller` along with the sockets you wish to use.
+If you wish to perform some operation periodically, and need that operation to be performed on a thread which is allowed to use one or more sockets, you can add a `NetMQTimer` to the `NetMQPoller` along with the sockets you wish to use.
 
 This code sample will publish a message every second to all connected peers.
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var pub = context.CreatePublisherSocket())
-    using (var poller = new Poller())
+    var timer = new NetMQTimer(TimeSpan.FromSeconds(1));
+
+    using (var pub = new PublisherSocket("@tcp://*:5001"))
+    using (var poller = new NetMQPoller { pub, timer })
     {
-        pub.Bind("tcp://*:5001");
-
         pub.ReceiveReady += (s, a) => { /* ... */ };
-
-        poller.AddSocket(pub);
-
-        var timer = new NetMQTimer(TimeSpan.FromSeconds(1));
 
         timer.Elapsed += (s, a) =>
         {
             pub.Send("Beep!");
         };
 
-        poller.AddTimer(timer);
-
-        poller.PollTillCancelled();
+        poller.Run();
     }
 
 ## Adding/removing sockets/timers
 
 Sockets and timers may be safely added and removed from the poller while it is running.
 
-Note that implementations of `ISocketPollable` include `NetMQSocket`, `NetMQActor` and `NetMQBeacon`. Therefore a `Poller` can observe any of these types.
+Note that implementations of `ISocketPollable` include `NetMQSocket`, `NetMQActor` and `NetMQBeacon`. Therefore a `NetMQPoller` can observe any of these types.
 
 * `AddSocket(ISocketPollable)`
 * `RemoveSocket(ISocketPollable)`
@@ -157,25 +136,21 @@ Note that implementations of `ISocketPollable` include `NetMQSocket`, `NetMQActo
 
 ## Controlling polling
 
-So far we've seen `PollTillCancelled`. This devotes the calling thread to polling activity until the poller is cancelled, either from a socket/timer event handler, or from another thread.
+So far we've seen `Run`. This devotes the calling thread to polling activity until the poller is cancelled, either from a socket/timer event handler, or from another thread.
 
-If you wish to continue using the calling thread for other actions, you may call `PollTillCancelledNonBlocking` instead, which calls `PollTillCancelled` in a new thread.
+If you wish to continue using the calling thread for other actions, you may call `RunAsync` instead, which calls `Run` in a new thread.
 
-To cancel a poller, use either `Cancel` or `CancelAndJoin`. The latter waits until the poller's loop has completely exited before returning, and may be necessary during graceful teardown of an application.
+To stop a poller, use either `Stop` or `StopAsync`. The latter waits until the poller's loop has completely exited before returning, and may be necessary during graceful teardown of an application.
 
 ## A more complex example
 
-Let's see a more involved example that uses much of what we've seen so far. We'll remove a `ResponseSocket` from the `Poller` once it receives its first message after which `ReceiveReady` will not fire for that socket, even if messages are available.
+Let's see a more involved example that uses much of what we've seen so far. We'll remove a `ResponseSocket` from the `NetMQPoller` once it receives its first message after which `ReceiveReady` will not fire for that socket, even if messages are available.
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var rep = context.CreateResponseSocket())
-    using (var req = context.CreateRequestSocket())
-    using (var poller = new Poller())
+    using (var rep = new ResponseSocket("@tcp://127.0.0.1:5002"))
+    using (var req = new RequestSocket(">tcp://127.0.0.1:5002"))
+    using (var poller = new NetMQPoller { rep })
     {
-        rep.Bind("tcp://127.0.0.1:5002");
-        req.Connect("tcp://127.0.0.1:5002");
-
         // this event will be raised by the Poller
         rep.ReceiveReady += (s, a) =>
         {
@@ -188,21 +163,18 @@ Let's see a more involved example that uses much of what we've seen so far. We'l
             poller.RemoveSocket(a.Socket);
         };
 
-        // add the socket to the poller
-        poller.AddSocket(rep);
-
         // start the poller
-        poller.PollTillCancelledNonBlocking();
+        poller.RunAsync();
 
         // send a request
-        req.Send("Hello");
+        req.SendFrame("Hello");
 
         bool more2;
-        string messageBack = req.ReceiveString(out more2);
+        string messageBack = req.ReceiveFrameString(out more2);
         Console.WriteLine("messageBack = {0}", messageBack);
 
         // SEND ANOTHER MESSAGE
-        req.Send("Hello Again");
+        req.SendFrame("Hello Again");
 
         // give the message a chance to be processed (though it won't be)
         Thread.Sleep(1000);
@@ -214,7 +186,7 @@ Which when run gives this output now.
     messageIn = Hello
     messageBack = World
 
-See how the `Hello Again` message was not received? This is due to the `ResponseSocket` being removed from the `Poller` during processing of the first message in the `ReceiveReady` event handler.
+See how the `Hello Again` message was not received? This is due to the `ResponseSocket` being removed from the `NetMQPoller` during processing of the first message in the `ReceiveReady` event handler.
 
 ## Further Reading
 

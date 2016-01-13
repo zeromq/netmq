@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace WeatherUpdateClient
 {
@@ -18,8 +19,7 @@ namespace WeatherUpdateClient
 
             Console.WriteLine("Collecting updates for weather service for zipcode {0}...", zipToSubscribeTo);
 
-            using (var context = NetMQContext.Create())
-            using (var subscriber = context.CreateSubscriberSocket())
+            using (var subscriber = new SubscriberSocket())
             {
                 subscriber.Connect("tcp://127.0.0.1:5556");
                 subscriber.Subscribe(zipToSubscribeTo.ToString(CultureInfo.InvariantCulture));

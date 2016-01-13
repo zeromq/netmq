@@ -11,7 +11,7 @@ namespace NetMQ.Security.V0_1
     /// <remarks>
     /// See http://technet.microsoft.com/en-us/library/cc781476(v=ws.10).aspx
     /// </remarks>
-    class RecordLayer : IDisposable
+    internal class RecordLayer : IDisposable
     {
         private const string KeyExpansion = "key expansion";
 

@@ -242,7 +242,7 @@ namespace NetMQ
     /// and is raised within Sub.XSetSocketOption if sending the queued-message fails.
     /// </summary>
     [Serializable]
-    [Obsolete("AgainException is obsolete, use TrySendFrame or TryReceive instead")]
+    [Obsolete("AgainException is obsolete. Use TrySendFrame or TryReceive return values instead of catching this exception.")]
     public class AgainException : NetMQException
     {
         /// <summary>

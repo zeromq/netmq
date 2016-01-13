@@ -5,7 +5,7 @@
     /// It holds a RandomNumber and a <see cref="CipherSuite"/>, both of which are gleaned from
     /// a NetMQMessage in the override of SetFromNetMQMessage.
     /// </summary>
-    class ServerHelloMessage : HandshakeMessage
+    internal class ServerHelloMessage : HandshakeMessage
     {
         /// <summary>
         /// Get the part of the handshake-protocol that this HandshakeMessage represents

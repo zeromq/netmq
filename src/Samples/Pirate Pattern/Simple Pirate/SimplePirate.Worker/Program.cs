@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace SimplePirate.Worker
 {
@@ -12,8 +13,7 @@ namespace SimplePirate.Worker
 
         private static void Main()
         {
-            using (var context = NetMQContext.Create())
-            using (var worker = context.CreateRequestSocket())
+            using (var worker = new RequestSocket())
             {
                 var random = new Random(DateTime.Now.Millisecond);
                 var guid = Guid.NewGuid();
@@ -29,13 +29,13 @@ namespace SimplePirate.Worker
                     worker.ReceiveFrameBytes(); // empty
                     byte[] request = worker.ReceiveFrameBytes();
 
-                    worker.SendMore(address);
-                    worker.SendMore(Encoding.Unicode.GetBytes(""));
-                    worker.Send(Encoding.Unicode.GetBytes(Encoding.Unicode.GetString(request) + " WORLD!"));
+                    worker.SendMoreFrame(address);
+                    worker.SendMoreFrame(Encoding.Unicode.GetBytes(""));
+                    worker.SendFrame(Encoding.Unicode.GetBytes(Encoding.Unicode.GetString(request) + " WORLD!"));
                 };
 
                 Console.WriteLine("W: {0} worker ready", guid);
-                worker.Send(Encoding.Unicode.GetBytes(LRUReady));
+                worker.SendFrame(Encoding.Unicode.GetBytes(LRUReady));
 
                 var cycles = 0;
                 while (true)

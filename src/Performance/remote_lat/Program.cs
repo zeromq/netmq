@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace remote_lat
 {
@@ -18,8 +19,7 @@ namespace remote_lat
             int messageSize = int.Parse(args[1]);
             int roundtripCount = int.Parse(args[2]);
 
-            using (var context = NetMQContext.Create())
-            using (var req = context.CreateRequestSocket())
+            using (var req = new RequestSocket())
             {
                 req.Connect(connectTo);
 
@@ -30,7 +30,7 @@ namespace remote_lat
 
                 for (int i = 0; i != roundtripCount; i++)
                 {
-                    req.Send(ref msg, SendReceiveOptions.None);
+                    req.Send(ref msg, more: false);
 
                     req.Receive(ref msg);
 

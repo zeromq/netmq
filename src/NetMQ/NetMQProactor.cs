@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NetMQ.Sockets;
 
 namespace NetMQ
 {
-    public delegate void OnMessageHandler(NetMQSocket socket, NetMQMessage message);
-
     /// <summary>
     /// Class to quickly handle incoming messages of socket.
     /// New thread is created to handle the messages. Call dispose to stop the thread.
@@ -15,10 +10,10 @@ namespace NetMQ
     /// </summary>
     public class NetMQProactor : IDisposable
     {
-        private NetMQActor m_actor;
-        private NetMQSocket m_receiveSocket;
+        private readonly NetMQActor m_actor;
+        private readonly NetMQSocket m_receiveSocket;
         private readonly Action<NetMQSocket, NetMQMessage> m_handler;
-        private Poller m_poller;
+        private NetMQPoller m_poller;
 
         /// <summary>
         /// Create NetMQProactor and start dedicate thread to handle incoming messages.
@@ -30,7 +25,7 @@ namespace NetMQ
             m_receiveSocket = receiveSocket;
             m_handler = handler;
             m_actor = NetMQActor.Create(Run);
-        }        
+        }
 
         /// <summary>
         /// Stop the proactor. Provided socket will not be disposed.
@@ -40,14 +35,14 @@ namespace NetMQ
             m_actor.Dispose();
         }
 
-        void Run(PairSocket shim)
+        private void Run(PairSocket shim)
         {
             shim.ReceiveReady += OnShimReady;
             m_receiveSocket.ReceiveReady += OnSocketReady;
-            m_poller = new Poller(m_receiveSocket, shim);
-            
+            m_poller = new NetMQPoller { m_receiveSocket, shim };
+
             shim.SignalOK();
-            m_poller.PollTillCancelled();
+            m_poller.Run();
 
             m_receiveSocket.ReceiveReady -= OnSocketReady;
         }
@@ -57,7 +52,7 @@ namespace NetMQ
             string commad = e.Socket.ReceiveFrameString();
             if (commad == NetMQActor.EndShimMessage)
             {
-                m_poller.Cancel();
+                m_poller.Stop();
             }
         }
 
@@ -66,6 +61,6 @@ namespace NetMQ
             NetMQMessage message = m_receiveSocket.ReceiveMultipartMessage();
 
             m_handler(m_receiveSocket, message);
-        }       
+        }
     }
 }

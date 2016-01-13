@@ -7,7 +7,7 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
     /// It holds a Certificate, and overrides SetFromNetMQMessage and ToNetMQMessage to read/write the certificate
     /// from the frames of a NetMQMessage.
     /// </summary>
-    class CertificateMessage : HandshakeMessage
+    internal class CertificateMessage : HandshakeMessage
     {
         /// <summary>
         /// Get the part of the handshake-protocol that this HandshakeMessage represents

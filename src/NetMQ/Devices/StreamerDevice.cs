@@ -33,12 +33,12 @@ namespace NetMQ.Devices
         /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
         /// </summary>
         /// <param name="context">The <see cref="NetMQContext"/> to use when creating the sockets.</param>
-        /// <param name="poller">The <see cref="Poller"/> to use.</param>
+        /// <param name="poller">The <see cref="INetMQPoller"/> to use.</param>
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
-        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>		
+        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
         [Obsolete("Use non context version")]
-        public StreamerDevice(NetMQContext context, Poller poller, string frontendBindAddress, string backendBindAddress,
+        public StreamerDevice(NetMQContext context, INetMQPoller poller, string frontendBindAddress, string backendBindAddress,
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreatePullSocket(), context.CreatePushSocket(), mode)
         {
@@ -48,7 +48,7 @@ namespace NetMQ.Devices
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
-        /// </summary>        
+        /// </summary>
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
@@ -62,12 +62,12 @@ namespace NetMQ.Devices
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
-        /// </summary>        
-        /// <param name="poller">The <see cref="Poller"/> to use.</param>
+        /// </summary>
+        /// <param name="poller">The <see cref="INetMQPoller"/> to use.</param>
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
-        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>		
-        public StreamerDevice(Poller poller, string frontendBindAddress, string backendBindAddress,
+        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
+        public StreamerDevice(INetMQPoller poller, string frontendBindAddress, string backendBindAddress,
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, new PullSocket(), new PushSocket(), mode)
         {

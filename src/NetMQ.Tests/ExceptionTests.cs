@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using NUnit.Framework;
@@ -9,7 +10,7 @@ namespace NetMQ.Tests
     [TestFixture]
     public class ExceptionTests
     {
-        [Test]
+        [Test, Obsolete]
         public void Serialisation()
         {
             RoundTrip(NetMQException.Create("Hello", ErrorCode.BaseErrorNumber));
@@ -48,7 +49,7 @@ namespace NetMQ.Tests
             Assert.AreEqual("Hello", before.Message);
         }
 
-        [Test]
+        [Test, Obsolete]
         public void AgainException()
         {
             var before = new AgainException("Hello");

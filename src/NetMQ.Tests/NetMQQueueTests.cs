@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using NUnit.Framework;
 
@@ -12,8 +9,8 @@ namespace NetMQ.Tests
     {
         [Test]
         public void EnqueueDequeue()
-        {            
-            using (NetMQQueue<int> queue = new NetMQQueue<int>())
+        {
+            using (var queue = new NetMQQueue<int>())
             {
                 queue.Enqueue(1);
 
@@ -23,8 +20,8 @@ namespace NetMQ.Tests
 
         [Test]
         public void TryDequeue()
-        {            
-            using (NetMQQueue<int> queue = new NetMQQueue<int>())
+        {
+            using (var queue = new NetMQQueue<int>())
             {
                 int result;
                 Assert.IsFalse(queue.TryDequeue(out result, TimeSpan.FromMilliseconds(100)));
@@ -38,26 +35,19 @@ namespace NetMQ.Tests
 
         [Test]
         public void WithPoller()
-        {            
-            using (NetMQQueue<int> queue = new NetMQQueue<int>())
+        {
+            using (var queue = new NetMQQueue<int>())
+            using (var poller = new NetMQPoller { queue })
             {
-                Poller poller = new Poller();
-                poller.AddSocket(queue);
+                var manualResetEvent = new ManualResetEvent(false);
 
-                ManualResetEvent manualResetEvent = new ManualResetEvent(false);
+                queue.ReceiveReady += (sender, args) => { manualResetEvent.Set(); };
 
-                queue.ReceiveReady += (sender, args) =>
-                {
-                    manualResetEvent.Set();
-                };
-
-                poller.PollTillCancelledNonBlocking();
+                poller.RunAsync();
 
                 Assert.IsFalse(manualResetEvent.WaitOne(100));
                 queue.Enqueue(1);
                 Assert.IsTrue(manualResetEvent.WaitOne(100));
-
-                poller.CancelAndJoin();
             }
         }
     }

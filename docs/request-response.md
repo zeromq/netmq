@@ -28,24 +28,20 @@ Here is a small example where the `RequestSocket` and `ResponseSocket`s are both
 Example:
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var responseSocket = context.CreateResponseSocket())
-    using (var requestSocket = context.CreateRequestSocket())
+    using (var responseSocket = new ResponseSocket("@tcp://*:5555"))
+    using (var requestSocket = new RequestSocket(">tcp://localhost:5555"))
     {
-        responseSocket.Bind("tcp://*:5555");
-        requestSocket.Connect("tcp://localhost:5555");
-
         Console.WriteLine("requestSocket : Sending 'Hello'");
-        requestSocket.Send("Hello");
+        requestSocket.SendFrame("Hello");
 
-        var message = responseSocket.ReceiveString();
+        var message = responseSocket.ReceiveFrameString();
 
         Console.WriteLine("responseSocket : Server Received '{0}'", message);
 
         Console.WriteLine("responseSocket Sending 'World'");
-        responseSocket.Send("World");
+        responseSocket.SendFrame("World");
 
-        message = requestSocket.ReceiveString();
+        message = requestSocket.ReceiveFrameString();
         Console.WriteLine("requestSocket : Received '{0}'", message);
 
         Console.ReadLine();

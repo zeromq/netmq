@@ -66,7 +66,6 @@ to discover one another, configured only via a shared port number.
             }
         }
 
-        private readonly NetMQContext m_context;
         private readonly int m_broadcastPort;
 
         private NetMQActor m_actor;
@@ -74,25 +73,24 @@ to discover one another, configured only via a shared port number.
         private PublisherSocket m_publisher;
         private SubscriberSocket m_subscriber;
         private NetMQBeacon m_beacon;
-        private Poller m_poller;
+        private NetMQPoller m_poller;
         private PairSocket m_shim;
         private Dictionary<NodeKey, DateTime> m_nodes;
 
-        private Bus(NetMQContext context, int broadcastPort)
+        private Bus(int broadcastPort)
         {
             m_nodes = new Dictionary<NodeKey, DateTime>();
-            m_context = context;
             m_broadcastPort = broadcastPort;
-            m_actor = NetMQActor.Create(context, RunActor);
+            m_actor = NetMQActor.Create(RunActor);
         }
 
         /// <summary>
         /// Creates a new message bus actor. All communication with the bus is
         /// through the returned <see cref="NetMQActor"/>.
         /// </summary>
-        public static NetMQActor Create(NetMQContext context, int broadcastPort)
+        public static NetMQActor Create(int broadcastPort)
         {
-            Bus node = new Bus(context, broadcastPort);
+            Bus node = new Bus(broadcastPort);
             return node.m_actor;
         }
 
@@ -102,9 +100,9 @@ to discover one another, configured only via a shared port number.
             m_shim = shim;
 
             // create all subscriber, publisher and beacon
-            using (m_subscriber = m_context.CreateSubscriberSocket())
-            using (m_publisher = m_context.CreatePublisherSocket())
-            using (m_beacon = new NetMQBeacon(m_context))
+            using (m_subscriber = new SubscriberSocket())
+            using (m_publisher = new PublisherSocket())
+            using (m_beacon = new NetMQBeacon())
             {
                 // listen to actor commands
                 m_shim.ReceiveReady += OnShimReady;
@@ -131,20 +129,19 @@ to discover one another, configured only via a shared port number.
                 // listen to incoming beacons
                 m_beacon.ReceiveReady += OnBeaconReady;
 
-                // Create and configure the poller with all sockets
-                m_poller = new Poller(m_shim, m_subscriber, m_beacon);
-
                 // Create a timer to clear dead nodes
                 NetMQTimer timer = new NetMQTimer(TimeSpan.FromSeconds(1));
                 timer.Elapsed += ClearDeadNodes;
-                m_poller.AddTimer(timer);
+
+                // Create and configure the poller with all sockets and the timer
+                m_poller = new NetMQPoller { m_shim, m_subscriber, m_beacon, timer };
 
                 // signal the actor that we finished with configuration and
                 // ready to work
                 m_shim.SignalOK();
 
                 // polling until cancelled
-                m_poller.PollTillCancelled();
+                m_poller.Run();
             }
         }
 
@@ -157,7 +154,7 @@ to discover one another, configured only via a shared port number.
             if (command == NetMQActor.EndShimMessage)
             {
                 // we cancel the socket which dispose and exist the shim
-                m_poller.Cancel();
+                m_poller.Stop();
             }
             else if (command == PublishCommand)
             {
@@ -224,37 +221,34 @@ to discover one another, configured only via a shared port number.
 A node on the bus might resemble:
 
     :::csharp
-    using (NetMQContext context = NetMQContext.Create())
+    // create a bus using broadcast port 9999
+    var actor = Bus.Create(9999);
+
+    // beacons publish every second, so wait a little longer than that to
+    // let all the other nodes connect to our new node
+    Thread.Sleep(1100);
+
+    // publish a hello message
+    // note we can use NetMQSocket send and receive extension methods
+    actor.SendMoreFrame(Bus.PublishCommand).SendFrame("Hello?");
+
+    // receive messages from other nodes on the bus
+    while (true)
     {
-        // create a bus using broadcast port 9999
-        var actor = Bus.Create(context, 9999);
+        string message = actor.ReceiveFrameString();
 
-        // beacons publish every second, so wait a little longer than that to
-        // let all the other nodes connect to our new node
-        Thread.Sleep(1100);
-
-        // publish a hello message
-        // note we can use NetMQSocket send and receive extension methods
-        actor.SendMore(Bus.PublishCommand).Send("Hello?");
-
-        // receive messages from other nodes on the bus
-        while (true)
+        if (message == "Hello?")
         {
-            string message = actor.ReceiveString();
+            // another node is saying hello
+            Console.WriteLine(message);
 
-            if (message == "Hello?")
-            {
-                // another node is saying hello
-                Console.WriteLine(message);
-
-                // send back a welcome message
-                actor.SendMore(Bus.PublishCommand).Send("Welcome!");
-            }
-            else
-            {
-                // it's probably a welcome message
-                Console.WriteLine(message);
-            }
+            // send back a welcome message
+            actor.SendMoreFrame(Bus.PublishCommand).SendFrame("Welcome!");
+        }
+        else
+        {
+            // it's probably a welcome message
+            Console.WriteLine(message);
         }
     }
 

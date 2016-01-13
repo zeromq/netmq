@@ -17,32 +17,28 @@ namespace MultithreadedService
         {
             Console.Title = "NetMQ Multi-threaded Service";
 
-            using (var context = NetMQContext.Create())
+            var queue = new QueueDevice("tcp://localhost:5555", "tcp://localhost:5556", DeviceMode.Threaded);
+
+            var source = new CancellationTokenSource();
+            s_token = source.Token;
+
+            for (int threadId = 0; threadId < 10; threadId++)
+                Task.Factory.StartNew(WorkerRoutine, s_token);
+
+            queue.Start();
+
+            var clientThreads = new List<Task>();
+            for (int threadId = 0; threadId < 1000; threadId++)
             {
-                //var queue = new QueueDevice(context, "tcp://localhost:5555", "inproc://workers", DeviceMode.Threaded);
-                var queue = new QueueDevice(context, "tcp://localhost:5555", "tcp://localhost:5556", DeviceMode.Threaded);
-
-                var source = new CancellationTokenSource();
-                s_token = source.Token;
-
-                for (int threadId = 0; threadId < 10; threadId++)
-                    Task.Factory.StartNew(() => WorkerRoutine(new Worker(Guid.NewGuid(), context)), s_token);
-
-                queue.Start();
-
-                var clientThreads = new List<Task>();
-                for (int threadId = 0; threadId < 1000; threadId++)
-                {
-                    int id = threadId;
-                    clientThreads.Add(Task.Factory.StartNew(() => ClientRoutine(id)));
-                }
-
-                Task.WaitAll(clientThreads.ToArray());
-
-                source.Cancel();
-
-                queue.Stop();
+                int id = threadId;
+                clientThreads.Add(Task.Factory.StartNew(() => ClientRoutine(id)));
             }
+
+            Task.WaitAll(clientThreads.ToArray());
+
+            source.Cancel();
+
+            queue.Stop();
 
             Console.WriteLine("Press ENTER to exit...");
             Console.ReadLine();
@@ -52,15 +48,14 @@ namespace MultithreadedService
         {
             try
             {
-                using (var context = NetMQContext.Create())
-                using (var req = context.CreateRequestSocket())
+                using (var req = new RequestSocket())
                 {
                     req.Connect("tcp://localhost:5555");
 
                     byte[] message = Encoding.Unicode.GetBytes(string.Format("{0} Hello", clientId));
 
                     Console.WriteLine("Client {0} sent \"{0} Hello\"", clientId);
-                    req.Send(message, message.Length);
+                    req.SendFrame(message, message.Length);
 
                     var response = req.ReceiveFrameString(Encoding.Unicode);
                     Console.WriteLine("Client {0} received \"{1}\"", clientId, response);
@@ -72,13 +67,11 @@ namespace MultithreadedService
             }
         }
 
-        private static void WorkerRoutine(object workerContext)
+        private static void WorkerRoutine()
         {
             try
             {
-                var thisWorkerContext = (Worker)workerContext;
-
-                using (ResponseSocket rep = thisWorkerContext.Context.CreateResponseSocket())
+                using (ResponseSocket rep = new ResponseSocket())
                 {
                     rep.Options.Identity = Encoding.Unicode.GetBytes(Guid.NewGuid().ToString());
                     rep.Connect("tcp://localhost:5556");
@@ -110,25 +103,13 @@ namespace MultithreadedService
                 byte[] response =
                     Encoding.Unicode.GetBytes(Encoding.Unicode.GetString(message) + " World from worker " + Encoding.Unicode.GetString(rep.Options.Identity));
 
-                rep.Send(response, response.Length, SendReceiveOptions.DontWait);
+                rep.TrySendFrame(response, response.Length);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Exception on RepOnReceiveReady: {0}", ex.Message);
                 throw;
             }
-        }
-    }
-
-    public class Worker
-    {
-        public Guid WorkerId { get; private set; }
-        public NetMQContext Context { get; private set; }
-
-        public Worker(Guid workerId, NetMQContext context)
-        {
-            WorkerId = workerId;
-            Context = context;
         }
     }
 }

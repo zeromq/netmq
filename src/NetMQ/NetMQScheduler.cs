@@ -9,8 +9,11 @@ using NetMQ.Sockets;
 
 namespace NetMQ
 {
+    [Obsolete("Use NetMQPoller instead")]
     public class NetMQScheduler : TaskScheduler, IDisposable
     {
+        private static int s_schedulerCounter;
+
         /// <summary>
         /// True if we own m_poller (that is, it was created within the NetMQScheduler constructor
         /// as opposed to being passed-in from the caller).
@@ -19,16 +22,14 @@ namespace NetMQ
 
         private readonly Poller m_poller;
 
-        private static int s_schedulerCounter;
-
         private readonly NetMQSocket m_serverSocket;
         private readonly NetMQSocket m_clientSocket;
 
-        private readonly ThreadLocal<bool> m_schedulerThread;
+        private readonly ThreadLocal<bool> m_isSchedulerThread;
 
-        private readonly ConcurrentQueue<Task> m_tasksQueue;
+        private readonly ConcurrentQueue<Task> m_tasksQueue = new ConcurrentQueue<Task>();
 
-        private readonly object m_syncObject;
+        private readonly object m_syncObject = new object();
 
         private EventHandler<NetMQSocketEventArgs> m_currentMessageHandler;
 
@@ -67,12 +68,9 @@ namespace NetMQ
                 m_poller = poller;
             }
 
-            m_tasksQueue = new ConcurrentQueue<Task>();
-            m_syncObject = new object();
-
-            var schedulerId = Interlocked.Increment(ref s_schedulerCounter);
-
-            var address = string.Format("{0}://scheduler-{1}", Address.InProcProtocol, schedulerId);
+            var address = string.Format("{0}://scheduler-{1}",
+                Address.InProcProtocol,
+                Interlocked.Increment(ref s_schedulerCounter));
 
             m_serverSocket = pullSocket;
             m_serverSocket.Options.Linger = TimeSpan.Zero;
@@ -87,7 +85,7 @@ namespace NetMQ
             m_clientSocket = pushSocket;
             m_clientSocket.Connect(address);
 
-            m_schedulerThread = new ThreadLocal<bool>(() => false);
+            m_isSchedulerThread = new ThreadLocal<bool>(() => false);
 
             if (m_ownPoller)
             {
@@ -98,7 +96,7 @@ namespace NetMQ
         private void OnMessageFirstTime(object sender, NetMQSocketEventArgs e)
         {
             // set the current thread as the scheduler thread, this only happens the first time a message arrived and is important for the TryExecuteTaskInline
-            m_schedulerThread.Value = true;
+            m_isSchedulerThread.Value = true;
 
             // stop calling the OnMessageFirstTime and start calling OnMessage
             m_serverSocket.ReceiveReady -= m_currentMessageHandler;
@@ -111,7 +109,7 @@ namespace NetMQ
         private void OnMessage(object sender, NetMQSocketEventArgs e)
         {
             // remove the awake command from the queue
-            m_serverSocket.ReceiveFrameBytes();
+            m_serverSocket.SkipFrame();
 
             Task task;
 
@@ -146,8 +144,10 @@ namespace NetMQ
         /// </example>
         public bool CanExecuteTaskInline
         {
-            get { return m_schedulerThread.Value; }
+            get { return m_isSchedulerThread.Value; }
         }
+
+        #region Task scheduler
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
@@ -162,6 +162,31 @@ namespace NetMQ
         {
             get { return 1; }
         }
+
+        /// <summary>
+        /// Return a collection of the scheduled Tasks.  (Not supported - for debug purposes only)
+        /// </summary>
+        /// <returns></returns>
+        protected override IEnumerable<Task> GetScheduledTasks()
+        {
+            // this is not supported, also it's only important for debug purposes and doesn't get called in real time.
+            throw new NotSupportedException();
+        }
+
+        protected override void QueueTask(Task task)
+        {
+            m_tasksQueue.Enqueue(task);
+
+            lock (m_syncObject)
+            {
+                // awake the scheduler
+                m_clientSocket.SendFrameEmpty();
+            }
+        }
+
+        #endregion
+
+        #region Disposal
 
         /// <summary>
         /// Release any contained resources.
@@ -198,7 +223,7 @@ namespace NetMQ
                 m_poller.CancelAndJoin();
                 m_poller.Dispose();
             }
-            m_schedulerThread.Dispose();
+            m_isSchedulerThread.Dispose();
         }
 
         private void DisposeSynced()
@@ -213,25 +238,6 @@ namespace NetMQ
             m_clientSocket.Dispose();
         }
 
-        /// <summary>
-        /// Return a collection of the scheduled Tasks.  (Not supported - for debug purposes only)
-        /// </summary>
-        /// <returns></returns>
-        protected override IEnumerable<Task> GetScheduledTasks()
-        {
-            // this is not supported, also it's only important for debug purposes and doesn't get called in real time.
-            throw new NotSupportedException();
-        }
-
-        protected override void QueueTask(Task task)
-        {
-            m_tasksQueue.Enqueue(task);
-
-            lock (m_syncObject)
-            {
-                // awake the scheduler
-                m_clientSocket.SendFrameEmpty();
-            }
-        }
+        #endregion
     }
 }

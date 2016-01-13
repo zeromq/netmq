@@ -10,7 +10,7 @@ namespace NetMQ.Devices
     /// Generally used to bridge networks. E.g. read on TCP unicast and forward on multicast.
     /// This device is part of the publish-subscribe pattern. The frontend speaks to publishers
     /// and the backend speaks to subscribers.
-    /// In order to use the <see cref="ForwarderDevice"/> please make sure you subscribe the FrontendSocket 
+    /// In order to use the <see cref="ForwarderDevice"/> please make sure you subscribe the FrontendSocket
     /// using the <see cref="DeviceBase.FrontendSetup"/>.
     /// </remarks>
     /// <example>
@@ -18,7 +18,7 @@ namespace NetMQ.Devices
     /// var device = new ForwarderDevice(ctx,
     ///     "inproc://frontend",
     ///     "inproc://backend");
-    /// 
+    ///
     /// device.FrontendSetup.Subscribe("topic");
     /// </code>
     /// </example>
@@ -44,12 +44,12 @@ namespace NetMQ.Devices
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
         /// </summary>
         /// <param name="context">The <see cref="NetMQContext"/> to use when creating the sockets.</param>
-        /// <param name="poller">The <see cref="Poller"/> to use.</param>
+        /// <param name="poller">The <see cref="INetMQPoller"/> to use.</param>
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
-        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>		
+        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
         [Obsolete("Use non context version")]
-        public ForwarderDevice(NetMQContext context, Poller poller, string frontendBindAddress, string backendBindAddress,
+        public ForwarderDevice(NetMQContext context, INetMQPoller poller, string frontendBindAddress, string backendBindAddress,
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, context.CreateSubscriberSocket(), context.CreatePublisherSocket(), mode)
         {
@@ -59,7 +59,7 @@ namespace NetMQ.Devices
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
-        /// </summary>        
+        /// </summary>
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
         /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
@@ -73,12 +73,12 @@ namespace NetMQ.Devices
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
-        /// </summary>        
-        /// <param name="poller">The <see cref="Poller"/> to use.</param>
+        /// </summary>
+        /// <param name="poller">The <see cref="INetMQPoller"/> to use.</param>
         /// <param name="frontendBindAddress">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddress">The endpoint used to bind the backend socket.</param>
-        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>		
-        public ForwarderDevice(Poller poller, string frontendBindAddress, string backendBindAddress,
+        /// <param name="mode">The <see cref="DeviceMode"/> for the device.</param>
+        public ForwarderDevice(INetMQPoller poller, string frontendBindAddress, string backendBindAddress,
             DeviceMode mode = DeviceMode.Threaded)
             : base(poller, new SubscriberSocket(), new PublisherSocket(), mode)
         {

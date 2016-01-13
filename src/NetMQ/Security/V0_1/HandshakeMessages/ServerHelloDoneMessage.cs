@@ -3,7 +3,7 @@
     /// <summary>
     /// The ServerHelloDoneMessage is a HandshakeMessage with a HandshakeType of ServerHelloDone.
     /// </summary>
-    class ServerHelloDoneMessage : HandshakeMessage
+    internal class ServerHelloDoneMessage : HandshakeMessage
     {
         /// <summary>
         /// Get the part of the handshake-protocol that this HandshakeMessage represents

@@ -6,16 +6,16 @@ using TitanicProtocol;
 
 namespace TitanicBrokerProcess
 {
-    class TitanicBrokerMain
+    internal class TitanicBrokerMain
     {
-        const ConsoleColor _broker = ConsoleColor.Cyan;
-        const ConsoleColor _request = ConsoleColor.Yellow;
-        const ConsoleColor _reply = ConsoleColor.White;
-        const ConsoleColor _close = ConsoleColor.Red;
-        const ConsoleColor _dispatch = ConsoleColor.Green;
-        const ConsoleColor _service_call = ConsoleColor.DarkGreen;
+        private const ConsoleColor _broker = ConsoleColor.Cyan;
+        private const ConsoleColor _request = ConsoleColor.Yellow;
+        private const ConsoleColor _reply = ConsoleColor.White;
+        private const ConsoleColor _close = ConsoleColor.Red;
+        private const ConsoleColor _dispatch = ConsoleColor.Green;
+        private const ConsoleColor _service_call = ConsoleColor.DarkGreen;
 
-        static void Main (string[] args)
+        private static void Main (string[] args)
         {
             var verbose = args.Length > 0 && args[0] == "-v";
 
@@ -51,7 +51,7 @@ namespace TitanicBrokerProcess
         }
 
         // print coloured according to message producer
-        static void PrintMessage (string msg)
+        private static void PrintMessage (string msg)
         {
             var original = Console.ForegroundColor;
 

@@ -36,20 +36,16 @@ Here is what we are trying to achieve :
                 // Sends batch of tasks to workers via that socket
                 Console.WriteLine("====== VENTILATOR ======");
 
-                using (var ctx = NetMQContext.Create())
-                using (var sender = ctx.CreatePushSocket())
-                using (var sink = ctx.CreatePushSocket())
+                using (var sender = new PushSocket("@tcp://*:5557"))
+                using (var sink = new PushSocket(">tcp://localhost:5558"))
                 {
-                    sender.Bind("tcp://*:5557");
-                    sink.Connect("tcp://localhost:5558");
-
                     Console.WriteLine("Press enter when worker are ready");
                     Console.ReadLine();
 
                     //the first message it "0" and signals start of batch
                     //see the Sink.csproj Program.cs file for where this is used
                     Console.WriteLine("Sending start of batch to Sink");
-                    sink.Send("0");
+                    sink.SendFrame("0");
 
                     Console.WriteLine("Sending tasks to workers");
 
@@ -67,7 +63,7 @@ Here is what we are trying to achieve :
                         int workload = rand.Next(0, 100);
                         totalMs += workload;
                         Console.WriteLine("Workload : {0}", workload);
-                        sender.Send(workload.ToString());
+                        sender.SendFrame(workload.ToString());
                     }
                     Console.WriteLine("Total expected cost : {0} msec", totalMs);
                     Console.WriteLine("Press Enter to quit");
@@ -97,38 +93,27 @@ Here is what we are trying to achieve :
                 // Sends results to Sink via that socket
                 Console.WriteLine("====== WORKER ======");
 
-                using (NetMQContext ctx = NetMQContext.Create())
+                using (var receiver = new PullSocket(">tcp://localhost:5557"))
+                using (var sender = new PushSocket(">tcp://localhost:5558"))
                 {
-                    //socket to receive messages on
-                    using (var receiver = ctx.CreatePullSocket())
+                    //process tasks forever
+                    while (true)
                     {
-                        receiver.Connect("tcp://localhost:5557");
+                        //workload from the vetilator is a simple delay
+                        //to simulate some work being done, see
+                        //Ventilator.csproj Proram.cs for the workload sent
+                        //In real life some more meaningful work would be done
+                        string workload = receiver.ReceiveFrameString();
 
-                        //socket to send messages on
-                        using (var sender = ctx.CreatePushSocket())
-                        {
-                            sender.Connect("tcp://localhost:5558");
+                        //simulate some work being done
+                        Thread.Sleep(int.Parse(workload));
 
-                            //process tasks forever
-                            while (true)
-                            {
-                                //workload from the vetilator is a simple delay
-                                //to simulate some work being done, see
-                                //Ventilator.csproj Proram.cs for the workload sent
-                                //In real life some more meaningful work would be done
-                                string workload = receiver.ReceiveString();
-
-                                //simulate some work being done
-                                Thread.Sleep(int.Parse(workload));
-
-                                //send results to sink, sink just needs to know worker
-                                //is done, message content is not important, just the precence of
-                                //a message means worker is done.
-                                //See Sink.csproj Proram.cs
-                                Console.WriteLine("Sending to Sink");
-                                sender.Send(string.Empty);
-                            }
-                        }
+                        //send results to sink, sink just needs to know worker
+                        //is done, message content is not important, just the precence of
+                        //a message means worker is done.
+                        //See Sink.csproj Proram.cs
+                        Console.WriteLine("Sending to Sink");
+                        sender.SendFrame(string.Empty);
                     }
                 }
             }
@@ -155,39 +140,33 @@ Here is what we are trying to achieve :
                 // Collects results from workers via that socket
                 Console.WriteLine("====== SINK ======");
 
-                using (NetMQContext ctx = NetMQContext.Create())
+                //socket to receive messages on
+                using (var receiver = new PullSocket("@tcp://localhost:5558"))
                 {
-                    //socket to receive messages on
-                    using (var receiver = ctx.CreatePullSocket())
+                    //wait for start of batch (see Ventilator.csproj Program.cs)
+                    var startOfBatchTrigger = receiver.ReceiveFrameString();
+                    Console.WriteLine("Seen start of batch");
+
+                    //Start our clock now
+                    var watch = Stopwatch.StartNew();
+
+                    for (int taskNumber = 0; taskNumber < 100; taskNumber++)
                     {
-                        receiver.Bind("tcp://localhost:5558");
-
-                        //wait for start of batch (see Ventilator.csproj Program.cs)
-                        var startOfBatchTrigger = receiver.ReceiveString();
-                        Console.WriteLine("Seen start of batch");
-
-                        //Start our clock now
-                        Stopwatch watch = new Stopwatch();
-                        watch.Start();
-
-                        for (int taskNumber = 0; taskNumber < 100; taskNumber++)
+                        var workerDoneTrigger = receiver.ReceiveFrameString();
+                        if (taskNumber % 10 == 0)
                         {
-                            var workerDoneTrigger = receiver.ReceiveString();
-                            if (taskNumber % 10 == 0)
-                            {
-                                Console.Write(":");
-                            }
-                            else
-                            {
-                                Console.Write(".");
-                            }
+                            Console.Write(":");
                         }
-                        watch.Stop();
-                        //Calculate and report duration of batch
-                        Console.WriteLine();
-                        Console.WriteLine("Total elapsed time {0} msec", watch.ElapsedMilliseconds);
-                        Console.ReadLine();
+                        else
+                        {
+                            Console.Write(".");
+                        }
                     }
+                    watch.Stop();
+                    //Calculate and report duration of batch
+                    Console.WriteLine();
+                    Console.WriteLine("Total elapsed time {0} msec", watch.ElapsedMilliseconds);
+                    Console.ReadLine();
                 }
             }
         }

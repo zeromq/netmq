@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace NetMQ.Core.Utils
 {
-    class Switch : IDisposable
+    internal class Switch : IDisposable
     {
         private ManualResetEvent m_offEvent;
         private ManualResetEvent m_onEvent;

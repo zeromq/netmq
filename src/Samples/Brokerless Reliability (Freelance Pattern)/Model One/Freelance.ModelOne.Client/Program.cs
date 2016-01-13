@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace Freelance.ModelOne.Client
 {
@@ -13,49 +14,46 @@ namespace Freelance.ModelOne.Client
         {
             var endpoints = new List<string>
             {
-                "tcp://*** Add your first endpoint ***", 
+                "tcp://*** Add your first endpoint ***",
                 "tcp://*** Add your second endpoint ***"
             };
 
-            using (var context = NetMQContext.Create())
+            if (endpoints.Count == 1)
             {
-                if (endpoints.Count == 1)
+                for (int i = 0; i < MaxRetries; i++)
                 {
-                    for (int i = 0; i < MaxRetries; i++)
-                    {
-                        if (TryRequest(context, endpoints[0], string.Format("Hello from endpoint {0}", endpoints[0])))
-                            break;
-                    }
+                    if (TryRequest(endpoints[0], string.Format("Hello from endpoint {0}", endpoints[0])))
+                        break;
                 }
-                else if (endpoints.Count > 1)
+            }
+            else if (endpoints.Count > 1)
+            {
+                foreach (string endpoint in endpoints)
                 {
-                    foreach (string endpoint in endpoints)
-                    {
-                        if (TryRequest(context, endpoint, string.Format("Hello from endpoint {0}", endpoint)))
-                            break;
-                    }
+                    if (TryRequest(endpoint, string.Format("Hello from endpoint {0}", endpoint)))
+                        break;
                 }
-                else
-                {
-                    Console.WriteLine("No endpoints");
-                }
+            }
+            else
+            {
+                Console.WriteLine("No endpoints");
             }
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
 
-        private static bool TryRequest(NetMQContext context, string endpoint, string requestString)
+        private static bool TryRequest(string endpoint, string requestString)
         {
             Console.WriteLine("Trying echo service at {0}", endpoint);
 
-            using (var client = context.CreateRequestSocket())
+            using (var client = new RequestSocket())
             {
                 client.Options.Linger = TimeSpan.Zero;
 
                 client.Connect(endpoint);
-                
-                client.Send(requestString);
+
+                client.SendFrame(requestString);
                 client.ReceiveReady += ClientOnReceiveReady;
                 bool pollResult = client.Poll(TimeSpan.FromMilliseconds(RequestTimeout));
                 client.ReceiveReady -= ClientOnReceiveReady;

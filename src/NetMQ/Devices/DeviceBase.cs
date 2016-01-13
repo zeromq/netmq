@@ -22,7 +22,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// This is the Poller which will handle socket coordination.
         /// </summary>
-        private readonly Poller m_poller;
+        private readonly INetMQPoller m_poller;
 
         /// <summary>
         /// This holds the IDevice and provides a platform-neutral way to call it's Run method,
@@ -62,7 +62,7 @@ namespace NetMQ.Devices
         /// </param>
         /// <param name="mode">the <see cref="DeviceMode"/> (either Blocking or Threaded) for this device</param>
         protected DeviceBase(NetMQSocket frontendSocket, NetMQSocket backendSocket, DeviceMode mode)
-            : this(new Poller(), frontendSocket, backendSocket, mode)
+            : this(new NetMQPoller(), frontendSocket, backendSocket, mode)
         {
             m_pollerIsOwned = true;
         }
@@ -70,7 +70,7 @@ namespace NetMQ.Devices
         /// <summary>
         /// Create a new instance of the <see cref="DeviceBase"/> class.
         /// </summary>
-        /// <param name="poller">the <see cref="Poller"/> to use for detecting when messages are available</param>
+        /// <param name="poller">the <see cref="INetMQPoller"/> to use for detecting when messages are available</param>
         /// <param name="frontendSocket">
         /// A <see cref="NetMQSocket"/> that will pass incoming messages to <paramref name="backendSocket"/>.
         /// </param>
@@ -80,7 +80,7 @@ namespace NetMQ.Devices
         /// <param name="mode">the <see cref="DeviceMode"/> (either Blocking or Threaded) for this device</param>
         /// <exception cref="ArgumentNullException">frontendSocket must not be null.</exception>
         /// <exception cref="ArgumentNullException">backendSocket must not be null.</exception>
-        protected DeviceBase(Poller poller, [NotNull] NetMQSocket frontendSocket, [NotNull] NetMQSocket backendSocket, DeviceMode mode)
+        protected DeviceBase(INetMQPoller poller, [NotNull] NetMQSocket frontendSocket, [NotNull] NetMQSocket backendSocket, DeviceMode mode)
         {
             m_isInitialized = false;
 
@@ -101,8 +101,8 @@ namespace NetMQ.Devices
             FrontendSocket.ReceiveReady += FrontendHandler;
             BackendSocket.ReceiveReady += BackendHandler;
 
-            m_poller.AddSocket(FrontendSocket);
-            m_poller.AddSocket(BackendSocket);
+            m_poller.Add(FrontendSocket);
+            m_poller.Add(BackendSocket);
 
             m_runner = mode == DeviceMode.Blocking
                 ? new DeviceRunner(this)
@@ -118,8 +118,8 @@ namespace NetMQ.Devices
         {
             IsRunning = true;
 
-            if (m_pollerIsOwned && !m_poller.IsStarted)
-                m_poller.PollTillCancelled();
+            if (m_pollerIsOwned && !m_poller.IsRunning)
+                m_poller.Run();
         }
 
         /// <summary>
@@ -148,12 +148,12 @@ namespace NetMQ.Devices
         /// underlying poller is fully stopped. Defaults to true.</param>
         public void Stop(bool waitForCloseToComplete = true)
         {
-            if (m_pollerIsOwned && m_poller.IsStarted)
+            if (m_pollerIsOwned && m_poller.IsRunning)
             {
                 if (waitForCloseToComplete)
-                    m_poller.CancelAndJoin();
+                    m_poller.Stop();
                 else
-                    m_poller.Cancel();
+                    m_poller.StopAsync();
             }
 
             FrontendSocket.Close();

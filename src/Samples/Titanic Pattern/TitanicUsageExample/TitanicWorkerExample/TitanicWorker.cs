@@ -4,14 +4,14 @@ using NetMQ;
 
 namespace TitanicWorkerExample
 {
-    class TitanicWorker
+    internal class TitanicWorker
     {
         /// <summary>
         ///     usage:  TitanicWorkerExample [-v]
         /// 
         ///     implements a MDPWorker API usage
         /// </summary>
-        static void Main (string[] args)
+        private static void Main (string[] args)
         {
             const string service_name = "echo";
             var verbose = args.Length == 1 && args[0] == "-v";

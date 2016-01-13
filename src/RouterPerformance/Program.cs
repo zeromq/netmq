@@ -19,8 +19,7 @@ namespace RouterPerformance
 
             //BufferPool.SetBufferManagerBufferPool(1024 * 1024 * 10, 1024);
 
-            using (var context = NetMQContext.Create())
-            using (var router = context.CreateRouterSocket())
+            using (var router = new RouterSocket())
             {
                 router.Options.SendHighWatermark = 0;
                 router.Bind("tcp://*:5555");
@@ -32,12 +31,16 @@ namespace RouterPerformance
 
                 for (var i = 0; i < dealerCount; i++)
                 {
-                    var dealer = context.CreateDealerSocket();
-
                     random.NextBytes(identity);
+                    var dealer = new DealerSocket
+                    {
+                        Options =
+                        {
+                            Identity = identity.Skip(10).ToArray(),
+                            ReceiveHighWatermark = 0
+                        }
+                    };
 
-                    dealer.Options.Identity = identity.Skip(10).ToArray();
-                    dealer.Options.ReceiveHighWatermark = 0;
                     dealer.Connect("tcp://localhost:5555");
 
                     dealers.Add(dealer);

@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using NetMQ;
 
 using MDPCommons;
+using NetMQ.Sockets;
 
 namespace MajordomoProtocol
 {
@@ -22,9 +23,9 @@ namespace MajordomoProtocol
     ///     it routes requests from clients to waiting workers offering the service the client has requested
     ///     as soon as they become available
     ///     also allows service discovery by clients via a special request 'mmi.service'
-    /// 
+    ///
     ///     Services can/must be requested with a request, a.k.a. data to process
-    /// 
+    ///
     ///          CLIENT     CLIENT       CLIENT     CLIENT
     ///         "Coffee"    "Water"     "Coffee"    "Tea"
     ///            |           |            |         |
@@ -36,7 +37,7 @@ namespace MajordomoProtocol
     ///                  |           |           |
     ///                "Tea"     "Coffee"     "Water"
     ///                WORKER     WORKER       WORKER
-    /// 
+    ///
     /// </summary>
     public class MDPBroker : IMDPBroker
     {
@@ -61,9 +62,8 @@ namespace MajordomoProtocol
         public static readonly string MDPClientHeader = "MDPC01";
         public static readonly string MDPWorkerHeader = "MDPW01";
 
-        private readonly NetMQContext m_ctx;                    // the NetMQ Context the broker uses
         private readonly List<Service> m_services;              // list of known services
-        private readonly List<Worker> m_knownWorkers;           // list of all known workers, regardless of service offered 
+        private readonly List<Worker> m_knownWorkers;           // list of all known workers, regardless of service offered
 
         private string m_endpoint;                              // the endpoint the broker binds to
         private int m_heartbeatLiveliness;                      // indicates the 'liveliness' of a worker
@@ -86,7 +86,7 @@ namespace MajordomoProtocol
         public TimeSpan HeartbeatInterval { get { return m_heartbeatInterval; } }
 
         /// <summary>
-        ///     after so many heartbeat cycles a worker is deemed to dead 
+        ///     after so many heartbeat cycles a worker is deemed to dead
         ///     initially set to 3 max. 5 is reasonable
         /// </summary>
         public int HeartbeatLiveliness
@@ -117,8 +117,7 @@ namespace MajordomoProtocol
         /// </summary>
         private MDPBroker ()
         {
-            m_ctx = NetMQContext.Create ();
-            Socket = m_ctx.CreateRouterSocket ();
+            Socket = new RouterSocket ();
             m_services = new List<Service> ();
             m_knownWorkers = new List<Worker> ();
             m_heartbeatInterval = TimeSpan.FromMilliseconds (2500); // otherwise the expiry would be 0(!)
@@ -197,7 +196,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     run the broker - if not bound to endpoint automatically binds to known endpoint 
+        ///     run the broker - if not bound to endpoint automatically binds to known endpoint
         /// </summary>
         /// <param name="token">CancellationToken to cancel the method</param>
         /// <exception cref="InvalidOperationException">Can't start same broker more than once!</exception>
@@ -211,7 +210,7 @@ namespace MajordomoProtocol
 
             m_isRunning = true;
 
-            using (var poller = new Poller ())
+            using (var poller = new NetMQPoller ())
             {
                 Socket.ReceiveReady += ProcessReceivedMessage;
                 // get timer for scheduling heartbeat
@@ -219,20 +218,20 @@ namespace MajordomoProtocol
                 // send every 'HeartbeatInterval' a heartbeat to all not expired workers
                 timer.Elapsed += (s, e) => SendHeartbeat ();
 
-                poller.AddSocket (Socket);
-                poller.AddTimer (timer);
+                poller.Add (Socket);
+                poller.Add (timer);
 
                 Log ("Starting to listen for incoming messages ...");
 
-                // start the poller and wait for the return, which will happen once token is 
+                // start the poller and wait for the return, which will happen once token is
                 // signalling Cancel(!)
-                await Task.Factory.StartNew (poller.PollTillCancelled, token);
+                await Task.Factory.StartNew (poller.Run, token);
 
                 Log ("... Stopped!");
 
                 // clean up
-                poller.RemoveTimer (timer);
-                poller.RemoveSocket (Socket);
+                poller.Remove (timer);
+                poller.Remove (Socket);
                 // unregister event handler
                 Socket.ReceiveReady -= ProcessReceivedMessage;
             }
@@ -241,7 +240,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     run the broker - if not bound to endpoint automatically binds to known endpoint 
+        ///     run the broker - if not bound to endpoint automatically binds to known endpoint
         /// </summary>
         /// <param name="token">CancellationToken to cancel the method</param>
         /// <exception cref="InvalidOperationException">Can't start same broker more than once!</exception>
@@ -255,7 +254,7 @@ namespace MajordomoProtocol
 
             m_isRunning = true;
 
-            using (var poller = new Poller ())
+            using (var poller = new NetMQPoller ())
             {
                 Socket.ReceiveReady += ProcessReceivedMessage;
                 // get timer for scheduling heartbeat
@@ -263,20 +262,20 @@ namespace MajordomoProtocol
                 // send every 'HeartbeatInterval' a heartbeat to all not expired workers
                 timer.Elapsed += (s, e) => SendHeartbeat ();
 
-                poller.AddSocket (Socket);
-                poller.AddTimer (timer);
+                poller.Add (Socket);
+                poller.Add (timer);
 
                 Log ("Starting to listen for incoming messages ...");
 
-                // start the poller and wait for the return, which will happen once token is 
+                // start the poller and wait for the return, which will happen once token is
                 // signalling Cancel(!)
-                Task.Factory.StartNew (poller.PollTillCancelled, token).Wait ();
+                Task.Factory.StartNew (poller.Run, token).Wait ();
 
                 Log ("... Stopped!");
 
                 // clean up
-                poller.RemoveTimer (timer);
-                poller.RemoveSocket (Socket);
+                poller.Remove (timer);
+                poller.Remove (Socket);
                 // unregister event handler
                 Socket.ReceiveReady -= ProcessReceivedMessage;
             }
@@ -329,7 +328,7 @@ namespace MajordomoProtocol
         /// <param name="message">the message sent</param>
         public void ProcessWorkerMessage ([NotNull] NetMQFrame sender, [NotNull] NetMQMessage message)
         {
-            // should be 
+            // should be
             // READY        [mdp command][service name]
             // REPLY        [mdp command][client adr][e][reply]
             // HEARTBEAT    [mdp command]
@@ -351,7 +350,7 @@ namespace MajordomoProtocol
                     if (workerIsKnown)
                     {
                         // then it is not the first command in session -> WRONG
-                        // if the worker is know to a service, remove it from that 
+                        // if the worker is know to a service, remove it from that
                         // service and a potential waiting list therein
                         RemoveWorker (m_knownWorkers.Find (w => w.Id == workerId));
 
@@ -377,14 +376,14 @@ namespace MajordomoProtocol
                     if (workerIsKnown)
                     {
                         var worker = m_knownWorkers.Find (w => w.Id == workerId);
-                        // remove the client return envelope and insert the protocol header 
+                        // remove the client return envelope and insert the protocol header
                         // and service name then rewrap the envelope
                         var client = UnWrap (message);                  // [reply]
                         message.Push (worker.Service.Name);             // [service name][reply]
                         message.Push (MDPClientHeader);                 // [protocol header][service name][reply]
                         var reply = Wrap (client, message);             // [client adr][e][protocol header][service name][reply]
 
-                        Socket.SendMessage (reply);
+                        Socket.SendMultipartMessage (reply);
 
                         DebugLog (string.Format ("REPLY from {0} received and send to {1} -> {2}",
                                             workerId,
@@ -417,7 +416,7 @@ namespace MajordomoProtocol
         public void ProcessClientMessage ([NotNull] NetMQFrame sender, [NotNull] NetMQMessage message)
         {
             // should be
-            // REQUEST      [service name][request] OR 
+            // REQUEST      [service name][request] OR
             // DISCOVER     ['mmi.service'][service to discover]
             if (message.FrameCount < 2)
                 throw new ArgumentException ("The message is malformed!");
@@ -449,15 +448,15 @@ namespace MajordomoProtocol
                 request.Append (serviceName);                   // [CLIENT ADR][e] <- ['mmi.service']
                 request.Append (rc);                            // [CLIENT ADR][e]['mmi.service'] <- [return code]
 
-                // remove client return envelope and insert 
-                // protocol header and service name, 
+                // remove client return envelope and insert
+                // protocol header and service name,
                 // then rewrap envelope
                 var client = UnWrap (request);                  // ['mmi.service'][return code]
                 request.Push (MDPClientHeader);                 // [protocol header]['mmi.service'][return code]
                 var reply = Wrap (client, request);             // [CLIENT ADR][e][protocol header]['mmi.service'][return code]
 
                 // send to back to CLIENT(!)
-                Socket.SendMessage (reply);
+                Socket.SendMultipartMessage (reply);
 
                 DebugLog (string.Format ("MMI request processed. Answered {0}", reply));
             }
@@ -557,7 +556,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     sends a message to a specific worker with a specific command 
+        ///     sends a message to a specific worker with a specific command
         ///     and add an option option
         /// </summary>
         private void WorkerSend (Worker worker, MDPCommand command, NetMQMessage message, string option = null)
@@ -575,11 +574,11 @@ namespace MajordomoProtocol
 
             DebugLog (string.Format ("Sending {0}", request));
             // send to worker
-            Socket.SendMessage (request);
+            Socket.SendMultipartMessage (request);
         }
 
         /// <summary>
-        ///     locates service by name or creates new service if there 
+        ///     locates service by name or creates new service if there
         ///     is no service available with that name
         /// </summary>
         /// <param name="serviceName">the service requested</param>
@@ -596,12 +595,12 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     sends as much pending requests as there are waiting workers 
+        ///     sends as much pending requests as there are waiting workers
         ///     of the specified service by
         ///     a) add the request to the pending requests within this service
         ///        if there is a message
         ///     b) remove all expired workers of this service
-        ///     c) while there are waiting workers 
+        ///     c) while there are waiting workers
         ///             get the next pending request
         ///             send to the worker
         /// </summary>
@@ -672,7 +671,7 @@ namespace MajordomoProtocol
 
         /// <summary>
         ///     returns the first frame and deletes the next frame if it is empty
-        /// 
+        ///
         ///     CHANGES message!
         /// </summary>
         private static NetMQFrame UnWrap (NetMQMessage message)
@@ -714,7 +713,6 @@ namespace MajordomoProtocol
             if (disposing)
             {
                 Socket.Dispose ();
-                m_ctx.Dispose ();
             }
             // get rid of unmanaged resources
         }

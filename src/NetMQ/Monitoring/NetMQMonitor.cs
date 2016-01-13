@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 #if !NET35
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace NetMQ.Monitoring
     {
         [NotNull] private readonly NetMQSocket m_monitoringSocket;
         private readonly bool m_ownsMonitoringSocket;
-        [CanBeNull] private Poller m_attachedPoller;
+        [CanBeNull] private ISocketPollableCollection m_attachedPoller;
         private int m_cancel;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
@@ -241,16 +242,25 @@ namespace NetMQ.Monitoring
             }
         }
 
-        public void AttachToPoller([NotNull] Poller poller)
+        public void AttachToPoller([NotNull] ISocketPollableCollection poller)
         {
+            if (poller == null)
+                throw new ArgumentNullException("poller");
+            if (IsRunning)
+                throw new InvalidOperationException("Monitor already started");
+            if (Interlocked.CompareExchange(ref m_attachedPoller, poller, null) != null)
+                throw new InvalidOperationException("Already attached to a poller");
+
             InternalStart();
-            m_attachedPoller = poller;
-            poller.AddSocket(m_monitoringSocket);
+            poller.Add(m_monitoringSocket);
         }
 
         public void DetachFromPoller()
         {
-            m_attachedPoller.RemoveSocket(m_monitoringSocket);
+            if (m_attachedPoller == null)
+                throw new InvalidOperationException("Not attached to a poller");
+
+            m_attachedPoller.Remove(m_monitoringSocket);
             m_attachedPoller = null;
             InternalClose();
         }

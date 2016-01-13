@@ -27,7 +27,7 @@ namespace NetMQ
     /// <typeparam name="T">Type of the item in queue</typeparam>
     public class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
     {
-        static byte[] s_empty = new byte[0];
+        private static byte[] s_empty = new byte[0];
         private static int s_sequence = 0;
         
         private readonly PairSocket m_writer;

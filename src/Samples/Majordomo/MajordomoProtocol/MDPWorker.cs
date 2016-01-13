@@ -4,18 +4,18 @@ using System.Threading;
 using NetMQ;
 
 using MDPCommons;
+using NetMQ.Sockets;
 
 
 namespace MajordomoProtocol
 {
     public class MDPWorker : IMDPWorker
     {
-        // Majordomo protocol header 
+        // Majordomo protocol header
         private readonly string m_mdpWorker = MDPBroker.MDPWorkerHeader;
 
         private const int _heartbeat_liveliness = 3;// indicates the remaining "live" for the worker
 
-        private readonly NetMQContext m_ctx;
         private readonly string m_brokerAddress;    // the broker address to connect to
         private readonly string m_serviceName;      // the name of the service the worker offers
         private NetMQSocket m_worker;               // the worker socket itself -MDP requires to use DEALER
@@ -54,8 +54,6 @@ namespace MajordomoProtocol
         /// </summary>
         private MDPWorker ()
         {
-            m_ctx = NetMQContext.Create ();
-
             HeartbeatDelay = TimeSpan.FromMilliseconds (2500);
             ReconnectDelay = TimeSpan.FromMilliseconds (2500);
             m_exit = false;
@@ -63,7 +61,7 @@ namespace MajordomoProtocol
         }
 
         /// <summary>
-        ///     creates worker with standard parameter and 
+        ///     creates worker with standard parameter and
         ///     set the broker's address and the service name for the worker
         /// </summary>
         /// <param name="brokerAddress">the address the worker can connect to the broker at</param>
@@ -77,7 +75,7 @@ namespace MajordomoProtocol
         ///     HeartbeatDelay == 2500 milliseconds
         ///     ReconnectDelay == 2500 milliseconds
         ///     Verbose == false
-        ///     
+        ///
         ///     the worker will try to connect <c>connectionRetries</c> cycles to establish a
         ///     connection to the broker, within each cycle he tries it 3 times with <c>ReconnectDelay</c>
         ///     delay between each cycle
@@ -105,7 +103,7 @@ namespace MajordomoProtocol
         /// <param name="reply">the reply to send</param>
         /// <returns>the request to process</returns>
         /// <remarks>
-        ///     if it is the initial call to Receive - reply must be <c>null</c> in order to 
+        ///     if it is the initial call to Receive - reply must be <c>null</c> in order to
         ///     send READY and subsequently wait for a request.
         ///     reply == <c>null</c> will bypass the sending of a message!
         /// </remarks>
@@ -150,7 +148,7 @@ namespace MajordomoProtocol
                     if (--m_liveliness == 0)
                     {
                         // if we tried it _HEARTBEAT_LIVELINESS * m_connectionRetries times without
-                        // success therefor we deem the broker dead or the communication broken 
+                        // success therefor we deem the broker dead or the communication broken
                         // and abandon the worker
                         if (--m_retriesLeft < 0)
                         {
@@ -180,7 +178,6 @@ namespace MajordomoProtocol
                 Log ("[WORKER] abandoning worker due to request!");
 
             m_worker.Dispose ();
-            m_ctx.Dispose ();
 
             return null;
         }
@@ -228,7 +225,7 @@ namespace MajordomoProtocol
             {
                 case MDPCommand.Request:
                     // the message is [client adr][e][request]
-                    // save as many addresses as there are until we hit an empty frame 
+                    // save as many addresses as there are until we hit an empty frame
                     // - for simplicity assume it is just one
                     m_returnIdentity = Unwrap (request);
                     // set the class variable in order to return the request to caller
@@ -299,7 +296,7 @@ namespace MajordomoProtocol
                 m_worker.Dispose ();
             }
 
-            m_worker = m_ctx.CreateDealerSocket ();
+            m_worker = new DealerSocket ();
             // set identity if provided
             if (m_identity != null && m_identity.Length > 0)
                 m_worker.Options.Identity = m_identity;
@@ -351,7 +348,7 @@ namespace MajordomoProtocol
 
             Log (string.Format ("[WORKER] sending {0} to broker / Command {1}", msg, mdpCommand));
 
-            m_worker.SendMessage (msg);
+            m_worker.SendMultipartMessage (msg);
         }
 
         /// <summary>
@@ -404,8 +401,6 @@ namespace MajordomoProtocol
 
             if (!ReferenceEquals (m_worker, null))
                 m_worker.Dispose ();
-
-            m_ctx.Dispose ();
         }
     }
 }

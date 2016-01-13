@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace ParanoidPirate.Queue
 {
@@ -7,7 +9,7 @@ namespace ParanoidPirate.Queue
     {
         /// <summary>
         /// ParanoidPirate.Queue [-v]
-        /// 
+        ///
         /// Does load-balancing with heartbeating on worker tasks to detect
         /// crashed, blocked or slow running worker tasks    .
         /// </summary>
@@ -26,10 +28,9 @@ namespace ParanoidPirate.Queue
 
             var verbose = args.Length > 0 && args[0] == "-v";
 
-            using (var context = NetMQContext.Create())
-            using (var frontend = context.CreateRouterSocket())
-            using (var backend = context.CreateRouterSocket())
-            using (var poller = new Poller())
+            using (var frontend = new RouterSocket())
+            using (var backend = new RouterSocket())
+            using (var poller = new NetMQPoller())
             {
                 frontend.Bind(Commons.QueueFrontend);
                 backend.Bind(Commons.QueueBackend);
@@ -58,7 +59,7 @@ namespace ParanoidPirate.Queue
                         if (verbose)
                             Console.WriteLine("[QUEUE -> WORKER] sending {0}", msg);
 
-                        backend.SendMessage(msg);
+                        backend.SendMultipartMessage(msg);
                     }
                 };
 
@@ -80,7 +81,7 @@ namespace ParanoidPirate.Queue
                     if (msg.FrameCount == 1)
                     {
                         var data = msg[0].ConvertToString();
-                        // the message is either READY or HEARTBEAT or corrupted 
+                        // the message is either READY or HEARTBEAT or corrupted
                         switch (data)
                         {
                             case Commons.PPPHeartbeat:
@@ -101,7 +102,7 @@ namespace ParanoidPirate.Queue
                         if (verbose)
                             Console.WriteLine("[QUEUE -> CLIENT] sending {0}", msg);
 
-                        frontend.SendMessage(msg);
+                        frontend.SendMultipartMessage(msg);
                     }
                 };
 
@@ -119,7 +120,7 @@ namespace ParanoidPirate.Queue
 
                         Console.WriteLine("[QUEUE -> WORKER] sending heartbeat!");
 
-                        backend.SendMessage(heartbeat);
+                        backend.SendMultipartMessage(heartbeat);
                     }
                     // restart timer
                     e.Timer.Enable = true;
@@ -130,22 +131,14 @@ namespace ParanoidPirate.Queue
                 if (verbose)
                     Console.WriteLine("[QUEUE] Start listening!");
 
-                poller.AddSocket(frontend);
-                poller.AddSocket(backend);
+                poller.Add(frontend);
+                poller.Add(backend);
 
-                poller.PollTillCancelledNonBlocking();
+                poller.RunAsync();
 
                 // hit CRTL+C to stop the while loop
                 while (!exit)
-                {}
-
-                // Cleanup
-                poller.RemoveTimer(timer);
-                // stop the poler task
-                poller.CancelAndJoin();
-                // remove the sockets - Dispose is called automatically
-                poller.RemoveSocket(frontend);
-                poller.RemoveSocket(backend);
+                    Thread.Sleep(100);
             }
         }
 

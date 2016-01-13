@@ -6,7 +6,7 @@ namespace NetMQ.Security.V0_1
     /// This class contains a list of NetMQMessages,
     /// and a SecureChannel to use when adding protocol messages to it.
     /// </summary>
-    class OutgoingMessageBag
+    internal class OutgoingMessageBag
     {
         private readonly SecureChannel m_secureChannel;
         private readonly IList<NetMQMessage> m_messages;

@@ -4,6 +4,7 @@ using System.Text;
 using NetMQ;
 
 using MDPCommons;
+using NetMQ.Sockets;
 
 namespace MajordomoProtocol
 {
@@ -14,7 +15,6 @@ namespace MajordomoProtocol
     {
         private readonly string m_mdpClient = MDPBroker.MDPClientHeader;
 
-        private readonly NetMQContext m_ctx;
         private NetMQSocket m_client;           // the socket to communicate with the broker
 
         private readonly string m_brokerAddress;
@@ -29,7 +29,7 @@ namespace MajordomoProtocol
         public TimeSpan Timeout { get; set; }
 
         /// <summary>
-        ///     sets or gets the number of tries before the communication 
+        ///     sets or gets the number of tries before the communication
         ///     is deemed to be lost
         /// </summary>
         public int Retries { get; set; }
@@ -57,7 +57,6 @@ namespace MajordomoProtocol
         /// </summary>
         private MDPClient ()
         {
-            m_ctx = NetMQContext.Create ();
             m_client = null;
             Timeout = TimeSpan.FromMilliseconds (2500);
             Retries = 3;
@@ -97,8 +96,8 @@ namespace MajordomoProtocol
 
         /// <summary>
         ///     send a request to a broker for a specific service and receive the reply
-        /// 
-        ///     if the reply is not available within a specified time 
+        ///
+        ///     if the reply is not available within a specified time
         ///     the client deems the connection as lost and reconnects
         ///     for a specified number of times. if no reply is available
         ///     throughout this procedure the client abandons
@@ -142,7 +141,7 @@ namespace MajordomoProtocol
             {
                 // beware of an exception if broker has not picked up the message at all
                 // because one can not send multiple times! it is strict REQ -> REP -> REQ ...
-                m_client.SendMessage (message);
+                m_client.SendMultipartMessage (message);
 
                 // Poll -> see ReceiveReady for event handling
                 if (m_client.Poll (Timeout))
@@ -162,7 +161,6 @@ namespace MajordomoProtocol
             Log ("[CLIENT ERROR] permanent error, abandoning!");
 
             m_client.Dispose ();
-            m_ctx.Dispose ();
 
             return null;
         }
@@ -179,10 +177,7 @@ namespace MajordomoProtocol
             if (!ReferenceEquals (m_client, null))
                 m_client.Dispose ();
 
-            if (ReferenceEquals (m_ctx, null))
-                throw new ApplicationException ("NetMQContext does not exist!");
-
-            m_client = m_ctx.CreateRequestSocket ();
+            m_client = new RequestSocket ();
 
             if (m_identity != null)
                 m_client.Options.Identity = m_identity;
@@ -262,8 +257,6 @@ namespace MajordomoProtocol
             // m_client might not have been created yet!
             if (!ReferenceEquals (m_client, null))
                 m_client.Dispose ();
-
-            m_ctx.Dispose ();
         }
     }
 }

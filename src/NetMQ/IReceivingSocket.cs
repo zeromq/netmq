@@ -32,13 +32,13 @@ namespace NetMQ
         /// </remarks>
         /// <param name="msg">An object to receive the message's data into.</param>
         /// <param name="options">A set of flags that control receipt. Only <see cref="SendReceiveOptions.None"/> and
-        /// <see cref="SendReceiveOptions.DontWait"/> have any effect. <see cref="SendReceiveOptions.SendMore"/> makes 
+        /// <see cref="SendReceiveOptions.DontWait"/> have any effect. <see cref="SendReceiveOptions.SendMore"/> makes
         /// no sense here and is ignored.</param>
         /// <exception cref="AgainException">No message was available within the allowed timeout period. Try again.
         /// </exception>
         [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
         void Receive(ref Msg msg, SendReceiveOptions options);
-        
+
         /// <summary>
         /// Receive a message if one is available within <paramref name="timeout"/>.
         /// </summary>

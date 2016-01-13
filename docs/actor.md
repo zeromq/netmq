@@ -199,14 +199,8 @@ Anyway here is the `Actor` code:
     {
         public class ShimHandler : IShimHandler<object>
         {
-            private readonly NetMQContext context;
             private PairSocket shim;
             private Poller poller;
-
-            public ShimHandler(NetMQContext context)
-            {
-                this.context = context;
-            }
 
             public void Initialise(object state)
             {
@@ -218,9 +212,8 @@ Anyway here is the `Actor` code:
                 shim.ReceiveReady += OnShimReady;
                 shim.SignalOK();
 
-                poller = new Poller();
-                poller.AddSocket(shim);
-                poller.Start();
+                poller = new NetMQPoller { shim };
+                poller.Run();
             }
 
             private void OnShimReady(object sender, NetMQSocketEventArgs e)
@@ -231,7 +224,7 @@ Anyway here is the `Actor` code:
                 {
                     case ActorKnownMessages.END_PIPE:
                         Console.WriteLine("Actor received END_PIPE message");
-                        poller.Stop(false);
+                        poller.Stop();
                         break;
                     case "AmmendAccount":
                         Console.WriteLine("Actor received AmmendAccount message");
@@ -265,19 +258,13 @@ Anyway here is the `Actor` code:
         }
 
         private Actor<object> actor;
-        private readonly NetMQContext context;
-
-        public AccountActioner(NetMQContext context)
-        {
-            this.context = context;
-        }
 
         public void Start()
         {
             if (actor != null)
                 return;
 
-            actor = new Actor<object>(context, new ShimHandler(context), null);
+            actor = new Actor<object>(new ShimHandler(), null);
         }
 
         public void Stop()
@@ -318,10 +305,8 @@ You would communicate with this `Actor` code using something like the following.
     {
         static void Main(string[] args)
         {
-            var context = NetMQContext.Create();
-
             // CommandActioner uses an NetMq.Actor internally
-            var accountActioner = new AccountActioner(context);
+            var accountActioner = new AccountActioner();
 
             var account = new Account(1, "Doron Semech", "112233", 0);
             PrintAccount(account);

@@ -4,8 +4,8 @@ namespace NetMQ.Core.Transports
 {
     internal class RawEncoder : EncoderBase
     {
-        IMsgSource m_msgSource;
-        Msg m_inProgress;
+        private IMsgSource m_msgSource;
+        private Msg m_inProgress;
 
         private const int RawMessageSizeReadyState = 1;
         private const int RawMessageReadyState = 2;

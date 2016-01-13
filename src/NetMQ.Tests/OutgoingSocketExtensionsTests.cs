@@ -1,22 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
     internal delegate bool TrySendDelegate(ref Msg msg, TimeSpan timeout, bool more);
 
-    internal class OutgoingSocketMock : IOutgoingSocket
+    internal class MockOutgoingSocket : IOutgoingSocket
     {
         private readonly TrySendDelegate m_action;
 
-        public OutgoingSocketMock(TrySendDelegate action)
+        public MockOutgoingSocket(TrySendDelegate action)
         {
             m_action = action;
         }
 
+        [Obsolete("Use Send(ref Msg, bool) or TrySend(ref Msg,TimeSpan, bool) instead.")]
         public void Send(ref Msg msg, SendReceiveOptions options)
         {
 
@@ -30,13 +28,13 @@ namespace NetMQ.Tests
 
     [TestFixture]
     public class OutgoingSocketExtensionsTests
-    {       
+    {
         [Test]
         public void SendMultipartBytesTest()
         {
-            int count = 0;
+            var count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 if (count == 0)
                 {
@@ -65,9 +63,9 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendMultipartBytesWithTimeoutTest()
         {
-            int count = 0;
+            var count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 if (count == 0)
                 {
@@ -96,9 +94,9 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendMultipartBytesWithTimeoutTestFailed()
         {
-            int count = 0;
+            var count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
 
                 Assert.AreEqual(TimeSpan.FromSeconds(1), timeout);
@@ -117,9 +115,9 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendMultipartBytesTest()
         {
-            int count = 0;
+            var count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 if (count == 0)
                 {
@@ -148,9 +146,9 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendMultipartMessageTest()
         {
-            int count = 0;
+            var count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 if (count == 0)
                 {
@@ -172,7 +170,7 @@ namespace NetMQ.Tests
                 return true;
             });
 
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(new byte[] {1});
             message.Append(new byte[] {2});
 
@@ -183,9 +181,9 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendMultipartMessageFailed()
         {
-            int count = 0;
+            var count = 0;
 
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.FromSeconds(0), timeout);
                 Assert.AreEqual(1, msg.Data.Length);
@@ -196,7 +194,7 @@ namespace NetMQ.Tests
                 return false;
             });
 
-            NetMQMessage message = new NetMQMessage();
+            var message = new NetMQMessage();
             message.Append(new byte[] { 1 });
             message.Append(new byte[] { 2 });
 
@@ -207,10 +205,10 @@ namespace NetMQ.Tests
         [Test]
         public void SendFrameEmpty()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.AreEqual(0, msg.Data.Length);                
+                Assert.AreEqual(0, msg.Data.Length);
                 Assert.IsFalse(more);
                 return true;
             });
@@ -221,7 +219,7 @@ namespace NetMQ.Tests
         [Test]
         public void SendMoreFrameEmpty()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
                 Assert.AreEqual(0, msg.Data.Length);
@@ -236,7 +234,7 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendFrameEmpty()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
                 Assert.AreEqual(0, msg.Data.Length);
@@ -251,7 +249,7 @@ namespace NetMQ.Tests
         [Test]
         public void TrySendFrameEmptyFailed()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
                 Assert.AreEqual(0, msg.Data.Length);
@@ -265,12 +263,12 @@ namespace NetMQ.Tests
         [Test]
         public void SignalTest()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
                 Assert.AreEqual(8, msg.Data.Length);
 
-                long value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 Assert.AreEqual(0x7766554433221100L, value);
 
@@ -284,12 +282,12 @@ namespace NetMQ.Tests
         [Test]
         public void TrySignalTest()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
                 Assert.AreEqual(8, msg.Data.Length);
 
-                long value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 Assert.AreEqual(0x7766554433221100L, value);
 
@@ -303,12 +301,12 @@ namespace NetMQ.Tests
         [Test]
         public void TrySignalFailedTest()
         {
-            OutgoingSocketMock socket = new OutgoingSocketMock((ref Msg msg, TimeSpan timeout, bool more) =>
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.AreEqual(TimeSpan.Zero, timeout);
                 Assert.AreEqual(8, msg.Data.Length);
 
-                long value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
 
                 Assert.AreEqual(0x7766554433221100L, value);
 

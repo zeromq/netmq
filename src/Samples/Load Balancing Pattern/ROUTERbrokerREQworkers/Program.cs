@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace ROUTERbrokerREQworkers
 {
@@ -15,8 +16,7 @@ namespace ROUTERbrokerREQworkers
         {
             var workers = new List<Thread>(WorkersCount);
 
-            using (var context = NetMQContext.Create())
-            using (var client = context.CreateRouterSocket())
+            using (var client = new RouterSocket())
             {
                 string cnn = string.Format("tcp://localhost:{0}", PortNumber);
                 client.Bind(cnn);
@@ -38,11 +38,11 @@ namespace ROUTERbrokerREQworkers
                     string ready = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", ready);
 
-                    client.SendMore(address);
+                    client.SendMoreFrame(address);
                     //Console.WriteLine("[B] Message sent: {0}", address);
-                    client.SendMore("");
+                    client.SendMoreFrame("");
                     //Console.WriteLine("[B] Message sent: {0}", "");
-                    client.Send("This is the workload");
+                    client.SendFrame("This is the workload");
                     //Console.WriteLine("[B] Message sent: {0}", "This is the workload");
                 }
 
@@ -56,11 +56,11 @@ namespace ROUTERbrokerREQworkers
                     string ready = client.ReceiveFrameString();
                     //Console.WriteLine("[B] Message received: {0}", ready);
 
-                    client.SendMore(address);
+                    client.SendMoreFrame(address);
                     //Console.WriteLine("[B] Message sent: {0}", address);
-                    client.SendMore("");
+                    client.SendMoreFrame("");
                     //Console.WriteLine("[B] Message sent: {0}", "");
-                    client.Send("END");
+                    client.SendFrame("END");
                     //Console.WriteLine("[B] Message sent: {0}", "END");
                 }
             }
@@ -72,8 +72,7 @@ namespace ROUTERbrokerREQworkers
         {
             var random = new Random(DateTime.Now.Millisecond);
 
-            using (var context = NetMQContext.Create())
-            using (var worker = context.CreateRequestSocket())
+            using (var worker = new RequestSocket())
             {
                 // We use a string identity for ease here
                 string id = ZHelpers.SetID(worker, Encoding.Unicode);
@@ -87,7 +86,7 @@ namespace ROUTERbrokerREQworkers
                 while (!end)
                 {
                     // Tell the router we're ready for work
-                    worker.Send("Ready");
+                    worker.SendFrame("Ready");
                     //Console.WriteLine("[W] Message sent: {0}", msg);
 
                     // Get workload from router, until finished

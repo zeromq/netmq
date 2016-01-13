@@ -151,7 +151,7 @@ namespace NetMQ.Tests
         public void SpecifyEncoding()
         {
             var frame = new NetMQFrame("Hello", Encoding.UTF32);
-            
+
             // size should be 4 times the string length because of using utf32
             Assert.AreEqual(20, frame.MessageSize);
 
@@ -185,7 +185,7 @@ namespace NetMQ.Tests
         [Test]
         public void AppendInt64()
         {
-            const long num = (long)int.MaxValue + 1;            
+            const long num = (long)int.MaxValue + 1;
 
             var message = new NetMQMessage();
 
@@ -199,7 +199,7 @@ namespace NetMQ.Tests
         [Test]
         public void PushInt64()
         {
-            const long num = (long)int.MaxValue + 1;            
+            const long num = (long)int.MaxValue + 1;
 
             var message = new NetMQMessage();
 
@@ -208,6 +208,6 @@ namespace NetMQ.Tests
 
             Assert.AreEqual(8, message[0].MessageSize);
             Assert.AreEqual(num, message[0].ConvertToInt64());
-        }        
+        }
     }
 }

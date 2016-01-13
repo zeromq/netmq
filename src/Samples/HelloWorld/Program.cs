@@ -1,5 +1,6 @@
 ﻿using System;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace HelloWorld
 {
@@ -9,18 +10,14 @@ namespace HelloWorld
         {
             Console.Title = "NetMQ HelloWorld";
 
-            using (var context = NetMQContext.Create())
-            using (var server = context.CreateResponseSocket())
-            using (var client = context.CreateRequestSocket())
+            using (var server = new ResponseSocket("@tcp://localhost:5556"))
+            using (var client = new RequestSocket("tcp://localhost:5556"))
             {
-                server.Bind("tcp://localhost:5556");
-                client.Connect("tcp://localhost:5556");
-
-                client.Send("Hello");
+                client.SendFrame("Hello");
 
                 Console.WriteLine("From Client: {0}", server.ReceiveFrameString());
 
-                server.Send("Hi Back");
+                server.SendFrame("Hi Back");
 
                 Console.WriteLine("From Server: {0}", client.ReceiveFrameString());
 

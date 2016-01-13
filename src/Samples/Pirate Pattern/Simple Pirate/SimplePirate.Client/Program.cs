@@ -19,47 +19,44 @@ namespace SimplePirate.Client
         {
             _retriesLeft = RequestRetries;
 
-            using (var context = NetMQContext.Create())
+            var client = CreateServerSocket();
+
+            int sequence = 0;
+
+            while (_retriesLeft > 0)
             {
-                var client = CreateServerSocket(context);
+                sequence++;
+                _strSequenceSent = sequence.ToString() + " HELLO";
+                Console.WriteLine("C: Sending ({0})", _strSequenceSent);
+                client.SendFrame(Encoding.Unicode.GetBytes(_strSequenceSent));
+                _expectReply = true;
 
-                int sequence = 0;
-
-                while (_retriesLeft > 0)
+                while (_expectReply)
                 {
-                    sequence++;
-                    _strSequenceSent = sequence.ToString() + " HELLO";
-                    Console.WriteLine("C: Sending ({0})", _strSequenceSent);
-                    client.Send(Encoding.Unicode.GetBytes(_strSequenceSent));
-                    _expectReply = true;
+                    bool result = client.Poll(TimeSpan.FromMilliseconds(RequestTimeout));
 
-                    while (_expectReply)
+                    if (!result)
                     {
-                        bool result = client.Poll(TimeSpan.FromMilliseconds(RequestTimeout));
+                        _retriesLeft--;
 
-                        if (!result)
+                        if (_retriesLeft == 0)
                         {
-                            _retriesLeft--;
+                            Console.WriteLine("C: Server seems to be offline, abandoning");
+                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine("C: No response from server, retrying..");
 
-                            if (_retriesLeft == 0)
-                            {
-                                Console.WriteLine("C: Server seems to be offline, abandoning");
-                                break;
-                            }
-                            else
-                            {
-                                Console.WriteLine("C: No response from server, retrying..");
+                            TerminateClient(client);
 
-                                TerminateClient(client);
-
-                                client = CreateServerSocket(context);
-                                client.Send(Encoding.Unicode.GetBytes(_strSequenceSent));
-                            }
+                            client = CreateServerSocket();
+                            client.SendFrame(Encoding.Unicode.GetBytes(_strSequenceSent));
                         }
                     }
                 }
-                TerminateClient(client);
             }
+            TerminateClient(client);
         }
 
         private static void TerminateClient(RequestSocket client)
@@ -68,14 +65,19 @@ namespace SimplePirate.Client
             client.Close();
         }
 
-        private static RequestSocket CreateServerSocket(NetMQContext context)
+        private static RequestSocket CreateServerSocket()
         {
             Console.WriteLine("C: Connecting to server...");
 
-            var client = context.CreateRequestSocket();
-            client.Options.Linger = TimeSpan.Zero;
-            Guid guid = Guid.NewGuid();
-            client.Options.Identity = Encoding.Unicode.GetBytes(guid.ToString());
+            var guid = Guid.NewGuid();
+            var client = new RequestSocket
+            {
+                Options =
+                {
+                    Linger = TimeSpan.Zero,
+                    Identity = Encoding.Unicode.GetBytes(guid.ToString())
+                }
+            };
             client.Connect(ServerEndpoint);
             client.ReceiveReady += ClientOnReceiveReady;
 

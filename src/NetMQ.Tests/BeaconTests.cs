@@ -13,7 +13,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void SimplePublishSubscribe()
-        {            
+        {
             using (var speaker = new NetMQBeacon())
             using (var listener = new NetMQBeacon())
             {
@@ -36,7 +36,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void Silence()
-        {            
+        {
             using (var speaker = new NetMQBeacon())
             using (var listener = new NetMQBeacon())
             {
@@ -60,7 +60,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void Unsubscribe()
-        {            
+        {
             using (var speaker = new NetMQBeacon())
             using (var listener = new NetMQBeacon())
             {
@@ -82,9 +82,9 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]        
+        [Test]
         public void SubscribeToDifferentTopic()
-        {            
+        {
             using (var speaker = new NetMQBeacon())
             using (var listener = new NetMQBeacon())
             {
@@ -104,7 +104,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void Polling()
-        {            
+        {
             using (var speaker = new NetMQBeacon())
             using (var listener = new NetMQBeacon())
             {
@@ -127,31 +127,31 @@ namespace NetMQ.Tests
                     manualResetEvent.Set();
                 };
 
-                using (var poller = new Poller(listener) { PollTimeout = 10})
+                using (var poller = new NetMQPoller { listener })
                 {
-                    poller.PollTillCancelledNonBlocking();
+                    poller.PollTimeout = TimeSpan.FromMilliseconds(10);
+
+                    poller.RunAsync();
 
                     manualResetEvent.WaitOne();
 
                     Console.WriteLine(peerName);
 
                     Assert.AreEqual("Hello", message);
-
-                    poller.CancelAndJoin();
                 }
             }
         }
 
         [Test]
         public void NeverConfigured()
-        {            
+        {
             using (new NetMQBeacon())
             {}
         }
 
         [Test]
         public void ConfigureTwice()
-        {            
+        {
             using (var speaker = new NetMQBeacon())
             using (var listener = new NetMQBeacon())
             {
@@ -175,7 +175,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void BothSpeakerAndListener()
-        {            
+        {
             using (var beacon1 = new NetMQBeacon())
             using (var beacon2 = new NetMQBeacon())
             {

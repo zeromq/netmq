@@ -38,7 +38,7 @@ namespace NetMQ.Core
 {
     internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        class Endpoint
+        private class Endpoint
         {
             public Endpoint(Own own, Pipe pipe)
             {
@@ -140,7 +140,7 @@ namespace NetMQ.Core
         /// Throw <see cref="TerminatingException"/> if the message-queueing system has started terminating.
         /// </summary>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void CheckContextTerminated()
+        private void CheckContextTerminated()
         {
             if (m_isStopped)
                 throw new TerminatingException(innerException: null, message: "CheckContextTerminated - yes, is terminated.");

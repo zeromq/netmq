@@ -5,6 +5,8 @@ using NetMQ.Sockets;
 
 namespace NetMQ
 {
+    #region IShimHandler
+
     /// <summary>
     /// An IShimHandler provides a Run(PairSocket) method.
     /// </summary>
@@ -16,6 +18,10 @@ namespace NetMQ
         /// <param name="shim"></param>
         void Run([NotNull] PairSocket shim);
     }
+
+    #endregion
+
+    #region NetMQActorEventArgs
 
     /// <summary>
     /// This is an EventArgs that provides an Actor property.
@@ -38,6 +44,10 @@ namespace NetMQ
         public NetMQActor Actor { get; private set; }
     }
 
+    #endregion
+
+    #region Delegates
+
     /// <summary>
     /// This delegate represents the action for this actor to execute.
     /// </summary>
@@ -51,6 +61,8 @@ namespace NetMQ
     /// <param name="shim">the <seealso cref="PairSocket"/> that is the shim to execute this action</param>
     /// <param name="state">the state-information that the action will use</param>
     public delegate void ShimAction<in T>(PairSocket shim, T state);
+
+    #endregion
 
     /// <summary>
     /// The Actor represents one end of a two-way pipe between 2 PairSocket(s). Where
@@ -67,7 +79,7 @@ namespace NetMQ
 
         #region Action shim handlers
 
-        private class ActionShimHandler<T> : IShimHandler
+        private sealed class ActionShimHandler<T> : IShimHandler
         {
             private readonly ShimAction<T> m_action;
             private readonly T m_state;
@@ -78,7 +90,7 @@ namespace NetMQ
             /// </summary>
             /// <param name="action">a ShimAction of type T that comprises the action to perform</param>
             /// <param name="state">the state-information</param>
-            public ActionShimHandler(ShimAction<T> action, T state)
+            public ActionShimHandler([NotNull] ShimAction<T> action, T state)
             {
                 m_action = action;
                 m_state = state;
@@ -88,13 +100,13 @@ namespace NetMQ
             /// Perform the action upon the given shim, using our state-information.
             /// </summary>
             /// <param name="shim">a <see cref="PairSocket"/> that is the shim to perform the action upon</param>
-            public void Run([NotNull] PairSocket shim)
+            public void Run(PairSocket shim)
             {
                 m_action(shim, m_state);
             }
         }
 
-        private class ActionShimHandler : IShimHandler
+        private sealed class ActionShimHandler : IShimHandler
         {
             private readonly ShimAction m_action;
 
@@ -102,7 +114,7 @@ namespace NetMQ
             /// Create a new ActionShimHandler with a given action to operate upon that type.
             /// </summary>
             /// <param name="action">a ShimAction that comprises the action to perform</param>
-            public ActionShimHandler(ShimAction action)
+            public ActionShimHandler([NotNull] ShimAction action)
             {
                 m_action = action;
             }
@@ -111,7 +123,7 @@ namespace NetMQ
             /// Perform the action upon the given shim, using our state-information.
             /// </summary>
             /// <param name="shim">a <see cref="PairSocket"/> that is the shim to perform the action upon</param>
-            public void Run([NotNull] PairSocket shim)
+            public void Run(PairSocket shim)
             {
                 m_action(shim);
             }
@@ -129,7 +141,7 @@ namespace NetMQ
         private readonly EventDelegator<NetMQActorEventArgs> m_sendEvent;
 
         #region Creating Actor
-        
+
         private NetMQActor(PairSocket self, PairSocket shim, [NotNull] IShimHandler shimHandler)
         {
             m_shimHandler = shimHandler;
@@ -153,25 +165,27 @@ namespace NetMQ
 
             var random = new Random();
 
-            //now binding and connect pipe ends
+            // Bind and connect pipe ends
+            string actorName;
             string endPoint;
             while (true)
             {
                 try
                 {
-                    endPoint = string.Format("inproc://NetMQActor-{0}-{1}", random.Next(0, 10000), random.Next(0, 10000));
+                    actorName = string.Format("NetMQActor-{0}-{1}", random.Next(0, 10000), random.Next(0, 10000));
+                    endPoint = string.Format("inproc://{0}", actorName);
                     m_self.Bind(endPoint);
                     break;
                 }
                 catch (AddressAlreadyInUseException)
                 {
-                    // In case address already in use we continue searching for an address
+                    // Loop around and try another random address
                 }
             }
 
             m_shim.Connect(endPoint);
 
-            m_shimThread = new Thread(RunShim);
+            m_shimThread = new Thread(RunShim) { Name = actorName };
             m_shimThread.Start();
 
             // Mandatory handshake for new actor so that constructor returns only
@@ -181,8 +195,8 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create a new <c>NetMQActor</c> with the given shimHandler.
-        /// </summary>        
+        /// Create a new <see cref="NetMQActor"/> with the given shimHandler.
+        /// </summary>
         /// <param name="shimHandler">an <c>IShimHandler</c> that provides the Run method</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
@@ -192,8 +206,8 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create a new <c>NetMQActor</c> with the action, and state-information.
-        /// </summary>        
+        /// Create a new <see cref="NetMQActor"/> with the action, and state-information.
+        /// </summary>
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perfrom</param>
         /// <param name="state">the state-information - of the generic type T</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
@@ -204,8 +218,8 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create a new <c>NetMQActor</c> with the given <see cref="ShimAction"/>.
-        /// </summary>        
+        /// Create a new <see cref="NetMQActor"/> with the given <see cref="ShimAction"/>.
+        /// </summary>
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
@@ -215,7 +229,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Create a new <c>NetMQActor</c> with the given context and shimHandler.
+        /// Create a new <see cref="NetMQActor"/> with the given context and shimHandler.
         /// </summary>
         /// <param name="context">the context for this actor to live within</param>
         /// <param name="shimHandler">an <c>IShimHandler</c> that provides the Run method</param>
@@ -269,7 +283,7 @@ namespace NetMQ
             {
             }
 
-            // Do not block, if the other end of the pipe is already deleted            
+            // Do not block, if the other end of the pipe is already deleted
             m_shim.TrySignalOK();
 
             m_shim.Dispose();
@@ -373,7 +387,7 @@ namespace NetMQ
             if (!disposing)
                 return;
 
-            // send destroy message to pipe           
+            // send destroy message to pipe
             if (m_self.TrySendFrame(EndShimMessage))
                 m_self.ReceiveSignal();
 
