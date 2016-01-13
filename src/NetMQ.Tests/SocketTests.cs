@@ -684,8 +684,7 @@ namespace NetMQ.Tests
                     }
                 };
 
-                Poller poller = new Poller();
-                poller.AddSocket(backendsRouter);
+                var poller = new NetMQPoller { backendsRouter };
 
                 for (int i = 0; i < 2; i++)
                 {
@@ -711,9 +710,9 @@ namespace NetMQ.Tests
                     workerThread.Start(backendsRouter.Options.Identity);
                 }
 
-                poller.PollTillCancelledNonBlocking();
+                poller.RunAsync();
                 Thread.Sleep(1000);
-                poller.CancelAndJoin();
+                poller.Stop();
                 Assert.AreEqual(2, freeWorkers.Count);
             }
         }
