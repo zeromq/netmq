@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Core.Utils;
+using NetMQ.Sockets;
 #if !NET35
 using NetMQ.Core;
 using System.Collections.Concurrent;
@@ -22,17 +23,17 @@ namespace NetMQ
         TaskScheduler,
 #endif
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
-    {
+    {        
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
         private readonly Dictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
         private readonly Switch m_switch = new Switch(false);
         private readonly Selector m_selector = new Selector();
+        private readonly StopSignaler m_stopSignaler = new StopSignaler();
 
         private SelectItem[] m_pollSet;
         private NetMQSocket[] m_pollact;
-
-        private volatile bool m_isStopRequested;
+        
         private volatile bool m_isPollSetDirty = true;
         private int m_disposeState = (int)DisposeState.Undisposed;
 
@@ -130,8 +131,9 @@ namespace NetMQ
         #endregion
 
         public NetMQPoller()
-        {
-            PollTimeout = TimeSpan.FromSeconds(1);
+        {                     
+            m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
+
 #if !NET35
 
             m_tasksQueue.ReceiveReady += delegate
@@ -154,17 +156,7 @@ namespace NetMQ
         /// </summary>
         public bool IsRunning {
             get { return m_switch.Status; }
-        }
-
-        /// <summary>
-        /// Gets and sets the amount of time the internal poll operation should wait before timing out.
-        /// </summary>
-        /// <remarks>
-        /// Defaults to one second.
-        /// <para />
-        /// This can impact the time taken to dispose this <see cref="NetMQPoller"/>.
-        /// </remarks>
-        public TimeSpan PollTimeout { get; set; }
+        }      
 
         #region Add / Remove
 
@@ -285,7 +277,7 @@ namespace NetMQ
             SynchronizationContext.SetSynchronizationContext(new NetMQSynchronizationContext(this));
             m_isSchedulerThread.Value = true;
 #endif
-            m_isStopRequested = false;
+            m_stopSignaler.Reset();
 
             m_switch.SwitchOn();
             try
@@ -302,15 +294,15 @@ namespace NetMQ
                 }
 
                 // Run until stop is requested
-                while (!m_isStopRequested)
+                while (!m_stopSignaler.IsStopRequested)
                 {
                     if (m_isPollSetDirty)
                         RebuildPollset();
 
                     var pollStart = Clock.NowMs();
 
-                    // Calculate tickless timer by adding the timeout to the current point-in-time.
-                    long tickless = pollStart + (long)PollTimeout.TotalMilliseconds;
+                    // Set tickless to infinity
+                    long tickless = pollStart + (long) int.MaxValue;
 
                     // Find the When-value of the earliest timer..
                     foreach (var timer in m_timers)
@@ -433,7 +425,8 @@ namespace NetMQ
             if (!IsRunning)
                 throw new InvalidOperationException("NetMQPoller is not running");
 
-            m_isStopRequested = true;
+            // Signal the poller to stop
+            m_stopSignaler.RequestStop();
 
             // If 'stop' was requested from the scheduler thread, we cannot block
 #if NET35
@@ -455,7 +448,7 @@ namespace NetMQ
             CheckDisposed();
             if (!IsRunning)
                 throw new InvalidOperationException("NetMQPoller is not running");
-            m_isStopRequested = true;
+            m_stopSignaler.RequestStop();
         }
 
         #endregion
@@ -535,13 +528,13 @@ namespace NetMQ
             // and wait for it.
             if (IsRunning)
             {
-                m_isStopRequested = true;
+                m_stopSignaler.RequestStop();
                 m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
             }
 
             m_switch.Dispose();
-
+            m_stopSignaler.Dispose();            
 #if !NET35
             m_tasksQueue.Dispose();
 #endif
