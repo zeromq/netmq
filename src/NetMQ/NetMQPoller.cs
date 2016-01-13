@@ -43,10 +43,8 @@ namespace NetMQ
 #if !NET35
         private static int s_nextPollerId;
 
-        private readonly NetMQSocket m_schedulerPullSocket;
-        private readonly NetMQSocket m_schedulerPushSocket;
-        private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);
-        private readonly ConcurrentQueue<Task> m_tasksQueue = new ConcurrentQueue<Task>();
+        private readonly NetMQQueue<Task> m_tasksQueue = new NetMQQueue<Task>();
+        private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);        
         private readonly int m_pollerId = Interlocked.Increment(ref s_nextPollerId);
 
         /// <summary>
@@ -110,13 +108,7 @@ namespace NetMQ
                 throw new ArgumentNullException("task");
             CheckDisposed();
 
-            m_tasksQueue.Enqueue(task);
-
-            lock (m_schedulerPushSocket)
-            {
-                // awake the scheduler
-                m_schedulerPushSocket.SendFrameEmpty();
-            }
+            m_tasksQueue.Enqueue(task);            
         }
 
         private void Run(Action action)
@@ -139,30 +131,19 @@ namespace NetMQ
         {
             PollTimeout = TimeSpan.FromSeconds(1);
 #if !NET35
-            var address = string.Format("{0}://netmqpoller-{1}", Address.InProcProtocol, m_pollerId);
 
-            m_schedulerPullSocket = new NetMQ.Sockets.PullSocket();
-            m_schedulerPullSocket.Options.Linger = TimeSpan.Zero;
-            m_schedulerPullSocket.Bind(address);
-
-            m_schedulerPullSocket.ReceiveReady += delegate
+            m_tasksQueue.ReceiveReady += delegate
             {
                 Debug.Assert(m_disposeState != (int)DisposeState.Disposed);
-                Debug.Assert(IsRunning);
-
-                // Dequeue the 'wake' command
-                m_schedulerPullSocket.SkipFrame();
+                Debug.Assert(IsRunning);                
 
                 // Try to dequeue and execute all pending tasks
                 Task task;
-                while (m_tasksQueue.TryDequeue(out task))
+                while (m_tasksQueue.TryDequeue(out task, TimeSpan.Zero))
                     TryExecuteTask(task);
-            };
+            };         
 
-            m_sockets.Add(m_schedulerPullSocket);
-
-            m_schedulerPushSocket = new NetMQ.Sockets.PushSocket();
-            m_schedulerPushSocket.Connect(address);
+            m_sockets.Add(((ISocketPollable)m_tasksQueue).Socket);            
 #endif
         }
 
@@ -558,8 +539,7 @@ namespace NetMQ
             m_stoppedEvent.Close();
 
 #if !NET35
-            m_schedulerPullSocket.Dispose();
-            m_schedulerPushSocket.Dispose();
+            m_tasksQueue.Dispose();
 #endif
 
             foreach (var socket in m_sockets)
