@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 using MajordomoProtocol;
 using MDPCommons;
 
 using NetMQ;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace MajordomoTests
@@ -28,12 +28,14 @@ namespace MajordomoTests
         [Test]
         public void ctor_InvalidBrokerAddress_ShouldThrowApplicationException ()
         {
+            // ReSharper disable once ObjectCreationAsStatement
             Assert.Throws<ArgumentNullException> (() => new MDPWorker (string.Empty, "test"));
         }
 
         [Test]
         public void ctor_invalidServerName_ShouldThrowApplicationException ()
         {
+            // ReSharper disable once ObjectCreationAsStatement
             Assert.Throws<ArgumentNullException> (() => new MDPWorker ("tcp://127.0.0.1:5555", "   "));
         }
 
@@ -44,9 +46,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string> ();
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create ())
-            using (var broker = context.CreateRouterSocket ())
-            using (var poller = new Poller ())
+            using (var broker = new RouterSocket ())
+            using (var poller = new NetMQPoller ())
             using (var session = new MDPWorker (hostAddress, "test", new[] { (byte) '1' }))
             {
                 broker.Bind (hostAddress);
@@ -75,19 +76,16 @@ namespace MajordomoTests
                     // push worker address
                     reply.Push (msg[0]);
                     // send reply which is a request for the worker
-                    e.Socket.SendMessage (reply);
+                    e.Socket.SendMultipartMessage (reply);
                 };
 
-                poller.AddSocket (broker);
-                Task.Factory.StartNew (poller.PollTillCancelled);
+                poller.Add (broker);
+                poller.RunAsync ();
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
                 // initialise the worker - broker protocol
                 session.Receive (null);
-
-                poller.CancelAndJoin ();
-                poller.RemoveSocket (broker);
 
                 Assert.That (loggingMessages.Count, Is.EqualTo (5));
                 Assert.That (loggingMessages[0], Is.EqualTo ("[WORKER] connected to broker at tcp://localhost:5557"));
@@ -104,17 +102,16 @@ namespace MajordomoTests
             var loggingMessages = new List<string> ();
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create ())
-            using (var broker = context.CreateRouterSocket ())
-            using (var poller = new Poller ())
+            using (var broker = new RouterSocket ())
+            using (var poller = new NetMQPoller ())
             using (var session = new MDPWorker (hostAddress, "test"))
             {
                 broker.Bind (hostAddress);
                 // we need to pick up any message in order to avoid errors but don't answer
                 broker.ReceiveReady += (s, e) => e.Socket.ReceiveMultipartMessage ();
 
-                poller.AddSocket (broker);
-                Task.Factory.StartNew (poller.PollTillCancelled);
+                poller.Add (broker);
+                poller.RunAsync ();
 
                 // speed up the test
                 session.HeartbeatDelay = TimeSpan.FromMilliseconds (250);
@@ -124,8 +121,7 @@ namespace MajordomoTests
                 // initialise the worker - broker protocol
                 session.Receive (null);
 
-                poller.CancelAndJoin ();
-                poller.RemoveSocket (broker);
+                poller.Stop ();
 
                 Assert.That (loggingMessages.Count (m => m.Contains ("retrying")), Is.EqualTo (3));
                 // 3 times retrying and 1 time initial connecting
@@ -141,9 +137,8 @@ namespace MajordomoTests
 
             // setup the counter socket for communication
 
-            using (var context = NetMQContext.Create ())
-            using (var broker = context.CreateRouterSocket ())
-            using (var poller = new Poller ())
+            using (var broker = new RouterSocket ())
+            using (var poller = new NetMQPoller ())
             using (var session = new MDPWorker (hostAddress, "test"))
             {
                 broker.Bind (hostAddress);
@@ -172,11 +167,11 @@ namespace MajordomoTests
                     // push worker address
                     reply.Push (msg[0]);
                     // send reply which is a request for the worker
-                    e.Socket.SendMessage (reply);
+                    e.Socket.SendMultipartMessage (reply);
                 };
 
-                poller.AddSocket (broker);
-                Task.Factory.StartNew (poller.PollTillCancelled);
+                poller.Add (broker);
+                poller.RunAsync ();
 
                 try
                 {
@@ -186,9 +181,6 @@ namespace MajordomoTests
                 {
                     Assert.That (ex.Message, Is.EqualTo ("Invalid protocol header received!"));
                 }
-
-                poller.CancelAndJoin ();
-                poller.RemoveSocket (broker);
             }
         }
 
@@ -198,9 +190,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create ())
-            using (var broker = context.CreateRouterSocket ())
-            using (var poller = new Poller ())
+            using (var broker = new RouterSocket ())
+            using (var poller = new NetMQPoller ())
             using (var session = new MDPWorker (hostAddress, "test"))
             {
                 broker.Bind (hostAddress);
@@ -229,11 +220,11 @@ namespace MajordomoTests
                     // push worker address
                     reply.Push (msg[0]);
                     // send reply which is a request for the worker
-                    e.Socket.SendMessage (reply);
+                    e.Socket.SendMultipartMessage (reply);
                 };
 
-                poller.AddSocket (broker);
-                Task.Factory.StartNew (poller.PollTillCancelled);
+                poller.Add (broker);
+                poller.RunAsync ();
 
                 try
                 {
@@ -243,9 +234,6 @@ namespace MajordomoTests
                 {
                     Assert.That (ex.Message, Is.EqualTo ("First frame must be an empty frame!"));
                 }
-
-                poller.CancelAndJoin ();
-                poller.RemoveSocket (broker);
             }
         }
 
@@ -257,9 +245,8 @@ namespace MajordomoTests
             var first = true;
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create ())
-            using (var broker = context.CreateRouterSocket ())
-            using (var poller = new Poller ())
+            using (var broker = new RouterSocket ())
+            using (var poller = new NetMQPoller ())
             using (var session = new MDPWorker (hostAddress, "test", Encoding.ASCII.GetBytes ("Worker"), 2))
             {
                 broker.Bind (hostAddress);
@@ -294,13 +281,13 @@ namespace MajordomoTests
                     // push worker address
                     reply.Push (msg[0]);
                     // send reply which is a request for the worker
-                    e.Socket.SendMessage (reply);
+                    e.Socket.SendMultipartMessage (reply);
                 };
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
 
-                poller.AddSocket (broker);
-                Task.Factory.StartNew (poller.PollTillCancelled);
+                poller.Add (broker);
+                poller.RunAsync ();
 
                 session.HeartbeatDelay = TimeSpan.FromMilliseconds (250);
                 session.ReconnectDelay = TimeSpan.FromMilliseconds (250);
@@ -309,9 +296,6 @@ namespace MajordomoTests
 
                 Assert.That (loggingMessages.Count (m => m.Contains ("[WORKER ERROR] invalid command received")), Is.EqualTo (1));
                 Assert.That (loggingMessages.Count (m => m.Contains ("abandoning")), Is.EqualTo (1));
-
-                poller.CancelAndJoin ();
-                poller.RemoveSocket (broker);
             }
         }
 
@@ -321,9 +305,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create ())
-            using (var broker = context.CreateRouterSocket ())
-            using (var poller = new Poller ())
+            using (var broker = new RouterSocket ())
+            using (var poller = new NetMQPoller ())
             using (var session = new MDPWorker (hostAddress, "test"))
             {
                 broker.Bind (hostAddress);
@@ -350,11 +333,11 @@ namespace MajordomoTests
                     // push worker address
                     reply.Push (msg[0]);
                     // send reply which is a request for the worker
-                    e.Socket.SendMessage (reply);
+                    e.Socket.SendMultipartMessage (reply);
                 };
 
-                poller.AddSocket (broker);
-                Task.Factory.StartNew (poller.PollTillCancelled);
+                poller.Add (broker);
+                poller.RunAsync ();
 
                 try
                 {
@@ -364,9 +347,6 @@ namespace MajordomoTests
                 {
                     Assert.That (ex.Message, Is.EqualTo ("Malformed request received!"));
                 }
-
-                poller.CancelAndJoin ();
-                poller.RemoveSocket (broker);
             }
         }
 
@@ -377,9 +357,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string> ();
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create ())
-            using (var broker = context.CreateRouterSocket ())
-            using (var poller = new Poller ())
+            using (var broker = new RouterSocket ())
+            using (var poller = new NetMQPoller ())
             using (var session = new MDPWorker (hostAddress, "test", new[] { (byte) 'W', (byte) '1' }))
             {
                 broker.Bind (hostAddress);
@@ -400,7 +379,7 @@ namespace MajordomoTests
                         request.Push (NetMQFrame.Empty); // [e][header][command][client adr][e][request]
                         request.Push (msg[0]); // [worker adr][e][header][command][client adr][e][request]
                         // send reply which is a request for the worker
-                        e.Socket.SendMessage (request);
+                        e.Socket.SendMultipartMessage (request);
                     }
 
                     if (msg[3].Buffer[0] == (byte) MDPCommand.Reply)
@@ -427,12 +406,12 @@ namespace MajordomoTests
                         // push worker address
                         reply.Push (msg[0]);
                         // send reply which is a request for the worker
-                        e.Socket.SendMessage (reply);
+                        e.Socket.SendMultipartMessage (reply);
                     }
                 };
 
-                poller.AddSocket (broker);
-                Task.Factory.StartNew (poller.PollTillCancelled);
+                poller.Add (broker);
+                poller.RunAsync ();
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add (e.Info);
@@ -442,8 +421,7 @@ namespace MajordomoTests
                 // just echo the request
                 session.Receive (workerRequest);
 
-                poller.CancelAndJoin ();
-                poller.RemoveSocket (broker);
+                poller.Stop ();
 
                 Assert.That (loggingMessages.Count, Is.EqualTo (8));
                 Assert.That (loggingMessages[0], Is.EqualTo ("[WORKER] connected to broker at tcp://localhost:5557"));

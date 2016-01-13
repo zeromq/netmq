@@ -1,5 +1,6 @@
 ﻿using System;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace WeatherUpdateServer
 {
@@ -10,14 +11,13 @@ namespace WeatherUpdateServer
             Console.Title = "NetMQ Weather Update Server";
 
             bool stopRequested = false;
- 
+
             // Wire up the CTRL+C handler
             Console.CancelKeyPress += (sender, e) => stopRequested = true;
 
             Console.WriteLine("Publishing weather updates...");
 
-            using (var context = NetMQContext.Create())
-            using (var publisher = context.CreatePublisherSocket())
+            using (var publisher = new PublisherSocket())
             {
                 publisher.Bind("tcp://127.0.0.1:5556");
 
@@ -29,7 +29,7 @@ namespace WeatherUpdateServer
                     int temperature = rng.Next(-80, 135);
                     int relhumidity = rng.Next(0, 90);
 
-                    publisher.Send(string.Format("{0} {1} {2}", zipcode, temperature, relhumidity));
+                    publisher.SendFrame(string.Format("{0} {1} {2}", zipcode, temperature, relhumidity));
                 }
             }
         }

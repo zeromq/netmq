@@ -1,5 +1,6 @@
 ﻿using System;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace local_lat
 {
@@ -17,8 +18,7 @@ namespace local_lat
             int messageSize = int.Parse(args[1]);
             int roundtripCount = int.Parse(args[2]);
 
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
+            using (var rep = new ResponseSocket())
             {
                 rep.Bind(bindTo);
 
@@ -34,7 +34,7 @@ namespace local_lat
                         return -1;
                     }
 
-                    rep.Send(ref msg, SendReceiveOptions.None);
+                    rep.Send(ref msg, more: false);
                 }
 
                 msg.Close();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace ExtendedRequestReply
 {
@@ -10,8 +11,7 @@ namespace ExtendedRequestReply
 
         private static void Main()
         {
-            using (var context = NetMQContext.Create())
-            using (var worker = context.CreateResponseSocket())
+            using (var worker = new ResponseSocket())
             {
                 worker.Connect(WorkerEndpoint);
 
@@ -21,8 +21,8 @@ namespace ExtendedRequestReply
                     Console.WriteLine("Processing Message {0}", msg.Last.ConvertToString());
 
                     Thread.Sleep(500);
-                    
-                    worker.Send(msg.Last.ConvertToString());
+
+                    worker.SendFrame(msg.Last.ConvertToString());
                 }
             }
         }

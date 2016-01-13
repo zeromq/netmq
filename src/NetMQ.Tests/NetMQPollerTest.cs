@@ -570,8 +570,7 @@ namespace NetMQ.Tests
 
             // NOTE if the PollTimeout here is less than the timer period, it won't fire during PollOnce -- is this by design?
 
-            using (var context = NetMQContext.Create())
-            using (var poller = new NetMQPoller(context) { timer })
+            using (var poller = new NetMQPoller { timer })
             {
                 poller.PollTimeout = TimeSpan.FromSeconds(1);
 

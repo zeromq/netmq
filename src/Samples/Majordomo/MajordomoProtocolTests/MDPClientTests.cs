@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using MajordomoProtocol;
 using NetMQ;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace MajordomoTests
@@ -25,12 +25,14 @@ namespace MajordomoTests
         [Test]
         public void ctor_NoBrokerAddress_ShouldReturnMDPClient()
         {
+            // ReSharper disable once ObjectCreationAsStatement
             Assert.Throws<ArgumentNullException>(() => new MDPClient(string.Empty));
         }
 
         [Test]
         public void ctor_WhitespaceBrokerAddress_ShouldReturnMDPClient()
         {
+            // ReSharper disable once ObjectCreationAsStatement
             Assert.Throws<ArgumentNullException>(() => new MDPClient("   "));
         }
 
@@ -41,9 +43,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create())
-            using (var broker = context.CreateRouterSocket())
-            using (var poller = new Poller())
+            using (var broker = new RouterSocket())
+            using (var poller = new NetMQPoller())
             using (var session = new MDPClient(hostAddress))
             {
                 broker.Bind(hostAddress);
@@ -62,11 +63,11 @@ namespace MajordomoTests
                     var request = msg.Last.ConvertToString(); // get the request string
                     msg.RemoveFrame(msg.Last); // remove the request frame
                     msg.Append(new NetMQFrame(request + " OK")); // append the reply frame
-                    e.Socket.SendMessage(msg);
+                    e.Socket.SendMultipartMessage(msg);
                 };
 
-                poller.AddSocket(broker);
-                Task.Factory.StartNew(poller.PollTillCancelled);
+                poller.Add(broker);
+                poller.RunAsync();
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
                 // well formed message
@@ -74,8 +75,7 @@ namespace MajordomoTests
                 // correct call
                 var reply = session.Send("echo", requestMessage);
 
-                poller.CancelAndJoin();
-                poller.RemoveSocket(broker);
+                poller.Stop();
 
                 Assert.That(reply.FrameCount, Is.EqualTo(1));
                 Assert.That(reply.First.ConvertToString(), Is.EqualTo("REQUEST OK"));
@@ -147,9 +147,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create())
-            using (var broker = context.CreateRouterSocket())
-            using (var poller = new Poller())
+            using (var broker = new RouterSocket())
+            using (var poller = new NetMQPoller())
             using (var session = new MDPClient(hostAddress))
             {
                 broker.Bind(hostAddress);
@@ -160,8 +159,8 @@ namespace MajordomoTests
                     e.Socket.ReceiveMultipartMessage();
                 };
 
-                poller.AddSocket(broker);
-                Task.Factory.StartNew(poller.PollTillCancelled);
+                poller.Add(broker);
+                poller.RunAsync();
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
@@ -170,8 +169,7 @@ namespace MajordomoTests
                 // wrong service name
                 session.Send("xyz", requestMessage);
 
-                poller.CancelAndJoin();
-                poller.RemoveSocket(broker);
+                poller.Stop();
 
                 Assert.That(loggingMessages.Count, Is.EqualTo(7));
                 Assert.That(loggingMessages[6], Is.EqualTo("[CLIENT ERROR] permanent error, abandoning!"));
@@ -185,9 +183,8 @@ namespace MajordomoTests
             var loggingMessages = new List<string>();
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create())
-            using (var broker = context.CreateRouterSocket())
-            using (var poller = new Poller())
+            using (var broker = new RouterSocket())
+            using (var poller = new NetMQPoller())
             using (var session = new MDPClient(hostAddress))
             {
                 broker.Bind(hostAddress);
@@ -203,11 +200,11 @@ namespace MajordomoTests
                     // REQUEST socket will strip the his address + empty frame
                     // ROUTER has to add the address prelude in order to identify the correct socket(!)
                     // [REQ ADR][EMPTY]["MDPC01"]["echo"]["REQUEST"]
-                    e.Socket.SendMessage(msg);
+                    e.Socket.SendMultipartMessage(msg);
                 };
 
-                poller.AddSocket(broker);
-                Task.Factory.StartNew(poller.PollTillCancelled);
+                poller.Add(broker);
+                poller.RunAsync();
 
                 // set the event handler to receive the logging messages
                 session.LogInfoReady += (s, e) => loggingMessages.Add(e.Info);
@@ -216,8 +213,7 @@ namespace MajordomoTests
                 // correct call
                 session.Send("echo", requestMessage);
 
-                poller.CancelAndJoin();
-                poller.RemoveSocket(broker);
+                poller.Stop();
 
                 Assert.That(loggingMessages.Count, Is.EqualTo(3));
                 Assert.That(loggingMessages[0], Is.EqualTo("[CLIENT] connecting to broker at tcp://localhost:5555"));
@@ -232,9 +228,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create())
-            using (var broker = context.CreateRouterSocket())
-            using (var poller = new Poller())
+            using (var broker = new RouterSocket())
+            using (var poller = new NetMQPoller())
             using (var session = new MDPClient(hostAddress))
             {
                 broker.Bind(hostAddress);
@@ -257,11 +252,11 @@ namespace MajordomoTests
                     msg.Push(NetMQFrame.Empty);
                     msg.Push(clientAddress); // reinsert the client's address
 
-                    e.Socket.SendMessage(msg);
+                    e.Socket.SendMultipartMessage(msg);
                 };
 
-                poller.AddSocket(broker);
-                Task.Factory.StartNew(poller.PollTillCancelled);
+                poller.Add(broker);
+                poller.RunAsync();
 
                 // well formed message
                 var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
@@ -274,9 +269,6 @@ namespace MajordomoTests
                 {
                     Assert.That(ex.Message, Is.StringContaining("MDP Version mismatch"));
                 }
-
-                poller.CancelAndJoin();
-                poller.RemoveSocket(broker);
             }
         }
 
@@ -286,9 +278,8 @@ namespace MajordomoTests
             const string hostAddress = "tcp://localhost:5555";
 
             // setup the counter socket for communication
-            using (var context = NetMQContext.Create())
-            using (var broker = context.CreateRouterSocket())
-            using (var poller = new Poller())
+            using (var broker = new RouterSocket())
+            using (var poller = new NetMQPoller())
             using (var session = new MDPClient(hostAddress))
             {
                 broker.Bind(hostAddress);
@@ -313,11 +304,11 @@ namespace MajordomoTests
                     msg.Push(NetMQFrame.Empty);
                     msg.Push(clientAddress); // reinsert the client's address
 
-                    e.Socket.SendMessage(msg);
+                    e.Socket.SendMultipartMessage(msg);
                 };
 
-                poller.AddSocket(broker);
-                Task.Factory.StartNew(poller.PollTillCancelled);
+                poller.Add(broker);
+                poller.RunAsync();
 
                 // well formed message
                 var requestMessage = new NetMQMessage(new[] { new NetMQFrame("REQUEST") });
@@ -330,9 +321,6 @@ namespace MajordomoTests
                 {
                     Assert.That(ex.Message, Is.EqualTo("[CLIENT INFO] answered by wrong service: NoService"));
                 }
-
-                poller.CancelAndJoin();
-                poller.RemoveSocket(broker);
             }
         }
     }

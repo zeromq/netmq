@@ -13,7 +13,7 @@ namespace InterBrokerRouter
         private readonly byte m_id;
 
         /// <summary>
-        /// This client will connect its <see cref="RequestSocket"/> to the frontend <see cref="RouterSocket"/> of the broker and 
+        /// This client will connect its <see cref="RequestSocket"/> to the frontend <see cref="RouterSocket"/> of the broker and
         /// its <see cref="PushSocket"/> to the broker's <see cref="PullSocket"/> as monitor.
         /// It will send a messages and wait at most 10 seconds for an answer before sending an error message via monitor.
         /// If an answer is received it will send a success message via monitor.
@@ -40,10 +40,9 @@ namespace InterBrokerRouter
             // a flag to signal that an answer has arrived
             bool messageAnswered = false;
             // we use a poller because we have a socket and a timer to monitor
-            using (var clientPoller = new Poller())
-            using (var context = NetMQContext.Create())
-            using (var client = context.CreateRequestSocket())
-            using (var monitor = context.CreatePushSocket())
+            using (var clientPoller = new NetMQPoller())
+            using (var client = new RequestSocket())
+            using (var monitor = new PushSocket())
             {
                 client.Connect(m_localFrontendAddress);
                 monitor.Connect(m_monitorAddress);
@@ -65,12 +64,12 @@ namespace InterBrokerRouter
                     else
                     {
                         var msg = string.Format("[CLIENT {0}] ERR - EXIT - lost message {1}", m_id, messageId);
-                        // send an error message 
-                        monitor.Send(msg);
+                        // send an error message
+                        monitor.SendFrame(msg);
 
                         // if poller is started than stop it
-                        if (clientPoller.IsStarted)
-                            clientPoller.CancelAndJoin();
+                        if (clientPoller.IsRunning)
+                            clientPoller.Stop();
                         // mark the required exit
                         exit = true;
                     }
@@ -87,7 +86,7 @@ namespace InterBrokerRouter
                     if (reply.FrameCount == 0)
                     {
                         // something went wrong
-                        monitor.Send(string.Format("[CLIENT {0}] Received an empty message!", m_id));
+                        monitor.SendFrame(string.Format("[CLIENT {0}] Received an empty message!", m_id));
                         // mark the exit flag to ensure the exit
                         exit = true;
                     }
@@ -100,18 +99,18 @@ namespace InterBrokerRouter
                             sb.Append("[" + frame.ConvertToString() + "]");
 
                         // send the success message
-                        monitor.Send(string.Format("[CLIENT {0}] Received answer {1}",
+                        monitor.SendFrame(string.Format("[CLIENT {0}] Received answer {1}",
                             m_id,
                             sb.ToString()));
                     }
                 };
 
-                // add socket & timer to poller 
-                clientPoller.AddSocket(client);
-                clientPoller.AddTimer(timer);
+                // add socket & timer to poller
+                clientPoller.Add(client);
+                clientPoller.Add(timer);
 
                 // start poller in another thread to allow the continued processing
-                clientPoller.PollTillCancelledNonBlocking();
+                clientPoller.RunAsync();
 
                 // if true the message has been answered
                 // the 0th message is always answered
@@ -137,13 +136,13 @@ namespace InterBrokerRouter
                         msg.Push(NetMQFrame.Empty);
                         msg.Push(clientId);
 
-                        client.SendMessage(msg);
+                        client.SendMultipartMessage(msg);
                     }
                 }
 
                 // stop poller if needed
-                if (clientPoller.IsStarted)
-                    clientPoller.CancelAndJoin();
+                if (clientPoller.IsRunning)
+                    clientPoller.Stop();
             }
         }
     }

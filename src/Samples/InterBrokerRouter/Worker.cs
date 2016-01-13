@@ -28,8 +28,7 @@ namespace InterBrokerRouter
         {
             var rnd = new Random(m_id);
 
-            using (var context = NetMQContext.Create())
-            using (var worker = context.CreateRequestSocket())
+            using (var worker = new RequestSocket())
             {
                 worker.Connect(m_localBackendAddress);
 
@@ -44,7 +43,7 @@ namespace InterBrokerRouter
                 msg.Push(new[] { m_id });
 
                 // and send to broker
-                worker.SendMessage(msg);
+                worker.SendMultipartMessage(msg);
 
                 while (true)
                 {
@@ -65,7 +64,7 @@ namespace InterBrokerRouter
                     // simulate working for an arbitrary time < 2s
                     Thread.Sleep(rnd.Next(2000));
                     // simply send back what we received
-                    worker.SendMessage(request);
+                    worker.SendMultipartMessage(request);
                 }
             }
         }

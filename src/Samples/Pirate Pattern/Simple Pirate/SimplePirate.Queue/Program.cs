@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace SimplePirate.Queue
 {
@@ -13,9 +14,8 @@ namespace SimplePirate.Queue
 
         private static void Main()
         {
-            using (var context = NetMQContext.Create())
-            using (var frontend = context.CreateRouterSocket())
-            using (var backend = context.CreateRouterSocket())
+            using (var frontend = new RouterSocket())
+            using (var backend = new RouterSocket())
             {
                 // For Clients
                 Console.WriteLine("Q: Binding frontend {0}", FrontendEndpoint);
@@ -57,9 +57,9 @@ namespace SimplePirate.Queue
 
                         byte[] reply = e.Socket.ReceiveFrameBytes();
 
-                        frontend.SendMore(clientAddress);
-                        frontend.SendMore("");
-                        frontend.Send(reply);
+                        frontend.SendMoreFrame(clientAddress);
+                        frontend.SendMoreFrame("");
+                        frontend.SendFrame(reply);
                     }
                 };
 
@@ -77,11 +77,11 @@ namespace SimplePirate.Queue
                     try
                     {
                         byte[] deq = workerQueue.Dequeue();
-                        backend.SendMore(deq);
-                        backend.SendMore(Encoding.Unicode.GetBytes(""));
-                        backend.SendMore(clientAddr);
-                        backend.SendMore(Encoding.Unicode.GetBytes(""));
-                        backend.Send(request);
+                        backend.SendMoreFrame(deq);
+                        backend.SendMoreFrame(Encoding.Unicode.GetBytes(""));
+                        backend.SendMoreFrame(clientAddr);
+                        backend.SendMoreFrame(Encoding.Unicode.GetBytes(""));
+                        backend.SendFrame(request);
                     }
                     catch (Exception ex)
                     {

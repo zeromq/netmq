@@ -19,14 +19,14 @@ namespace TitanicProtocol
     ///     <para>+ writes messages to disc to ensure that none gets lost</para>
     ///     <para>+ good for sporadically connecting clients/workers</para>
     ///     <para>+ it uses the Majordomo Protocol</para>
-    /// 
+    ///
     ///     <para>it implements this broker asynchronous and handles all administrative work</para>
     ///     <para>if Run is called it automatically will Connect to the endpoint given</para>
     ///     <para>it however allows to alter that endpoint via Bind</para>
     ///     <para>it registers any worker with its service</para>
     ///     <para>it routes requests from clients to waiting workers offering the service the client has requested
     ///     as soon as they become available</para>
-    /// 
+    ///
     ///     <para>every client communicates with TITANIC and sends requests or a request for a reply
     ///     Titanic answers with either a GUID identifying the request or with a reply for a request
     ///     according to the transfered GUID</para>
@@ -35,12 +35,12 @@ namespace TitanicProtocol
     ///         titanic.request -> storing the request and returning an GUID
     ///         titanic.reply   -> fetching a reply if one exists for an GUID and returning it
     ///         titanic.close   -> confirming that a reply has been stored and processed
-    /// 
+    ///
     ///     <para>every request is answered with a GUID by Titanic to the client and if a client asks for the result
     ///     of his request he must send this GUID to identify the respective request/answer</para>
-    /// 
+    ///
     ///     <para>Services can/must be requested with a request, a.k.a. data to process</para>
-    /// 
+    ///
     ///          CLIENT           CLIENT          CLIENT            CLIENT
     ///         "titanic,        "titanic,       "titanic,          "titanic,
     ///     give me Coffee"    give me Water"  give me Coffee"     give me Tea"
@@ -55,7 +55,7 @@ namespace TitanicProtocol
     ///                        |           |           |
     ///                      "Tea"     "Coffee"     "Water"
     ///                      WORKER     WORKER       WORKER
-    /// 
+    ///
     /// </summary>
     public class TitanicBroker : ITitanicBroker
     {
@@ -96,7 +96,7 @@ namespace TitanicProtocol
 
         /// <summary>
         ///     ctor with broker ip
-        /// 
+        ///
         ///         but does NOT create any directory or file
         /// </summary>
         /// <param name="endpoint">the ip address of the broker as string may include a port
@@ -114,7 +114,7 @@ namespace TitanicProtocol
         /// <summary>
         ///     <para>is the main thread of the broker</para>
         ///     <para>it spawns threads handling titanic operations</para>
-        ///     <para>it receives GUID from Titanic Request Service and dispatches the requests 
+        ///     <para>it receives GUID from Titanic Request Service and dispatches the requests
         ///     to available workers via MDPBroker</para>
         ///     <para>it also manages the appropriate changes in the file system as well as in queue</para>
         /// </summary>
@@ -133,9 +133,8 @@ namespace TitanicProtocol
                          [CanBeNull] IMDPWorker closeWorker = null,
                          [CanBeNull] IMDPClient serviceCallClient = null)
         {
-            using (var ctx = NetMQContext.Create ())
-            using (var pipeStart = ctx.CreatePairSocket ())
-            using (var pipeEnd = ctx.CreatePairSocket ())
+            using (var pipeStart = new PairSocket ())
+            using (var pipeEnd = new PairSocket ())
             using (var cts = new CancellationTokenSource ())
             {
                 // set up the inter thread communication pipe
@@ -194,7 +193,7 @@ namespace TitanicProtocol
 
         /// <summary>
         ///     process a titanic request according to TITANIC Protocol
-        ///     
+        ///
         ///     <para>it connects via provided PAIR socket to main thread</para>
         ///     <para>write request to disk and return the GUID to client</para>
         ///     sends the GUID of the request back via the pipe for further processing
@@ -229,7 +228,7 @@ namespace TitanicProtocol
                     Log (string.Format ("[TITANIC REQUEST] sending through pipe: {0}", requestId));
 
                     // send GUID through message queue to main thread
-                    pipe.Send (requestId.ToString ());
+                    pipe.SendFrame (requestId.ToString ());
                     // return GUID via reply message via worker.Receive call
                     reply = new NetMQMessage ();
                     // [Guid]
@@ -244,7 +243,7 @@ namespace TitanicProtocol
 
         /// <summary>
         ///     process any titanic reply request by a client
-        ///     
+        ///
         ///     <para>will send an OK, PENDING or UNKNOWN as result of the request for the reply</para>
         /// </summary>
         internal void ProcessTitanicReply ([CanBeNull] IMDPWorker mdpWorker = null)
@@ -257,7 +256,7 @@ namespace TitanicProtocol
 
                 while (true)
                 {
-                    // initiate the communication to MDP Broker with sending a 'null', 
+                    // initiate the communication to MDP Broker with sending a 'null',
                     // since there is no initial reply everytime thereafter the reply will be send
                     var request = worker.Receive (reply);
 
@@ -373,15 +372,15 @@ namespace TitanicProtocol
         /// <summary>
         ///     carry out the actual call to the worker via a broker in order
         ///     to process the request and get the reply which we wait for
-        /// 
+        ///
         ///     <para>it creates a MDPClient and requests from MDPBroker the service.
         ///     if that service exists it uses the returned worker address and issues
         ///     a request with the appropriate data and waits for the reply</para>
         /// </summary>
         /// <param name="serviceName">the service's name requested</param>
         /// <param name="request">request to process by worker</param>
-        /// <param name="serviceClient">mdp client handling the forwarding of requests 
-        ///             to service offering mdp worker via mdp broker and collecting 
+        /// <param name="serviceClient">mdp client handling the forwarding of requests
+        ///             to service offering mdp worker via mdp broker and collecting
         ///             the replies from the mdp worker</param>
         /// <returns><c>true</c> if successfull and <c>false</c> otherwise</returns>
         private NetMQMessage ServiceCall ([NotNull] string serviceName, [NotNull] NetMQMessage request, [CanBeNull]IMDPClient serviceClient = null)
@@ -414,7 +413,7 @@ namespace TitanicProtocol
                                     request));
 
                 //! shall this information be available for request? Unknown or Pending
-                //! so TitanicRequest could utilize this information 
+                //! so TitanicRequest could utilize this information
 
                 return null;
             }

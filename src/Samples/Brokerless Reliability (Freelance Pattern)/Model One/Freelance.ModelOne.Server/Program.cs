@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace Freelance.ModelOne.Server
 {
@@ -12,8 +13,7 @@ namespace Freelance.ModelOne.Server
 
         private static void Main()
         {
-            using (var context = NetMQContext.Create())
-            using (var response = context.CreateResponseSocket())
+            using (var response = new ResponseSocket())
             {
                 string address = GetComputerLanIP();
 
@@ -33,7 +33,7 @@ namespace Freelance.ModelOne.Server
                         }
 
                         Console.WriteLine("Msg received! {0}", msg);
-                        response.Send(msg, false, hasMore);
+                        response.SendFrame(msg, hasMore);
 
                         Thread.Sleep(1000);
                     }

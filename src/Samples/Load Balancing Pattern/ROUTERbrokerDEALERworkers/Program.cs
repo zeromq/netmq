@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NetMQ;
+using NetMQ.Sockets;
 
 namespace ROUTERbrokerDEALERworkers
 {
@@ -16,8 +17,7 @@ namespace ROUTERbrokerDEALERworkers
             var random = new Random(DateTime.Now.Millisecond);
             var workers = new List<Thread>(new[] { new Thread(WorkerTaskA), new Thread(WorkerTaskB) });
 
-            using (var context = NetMQContext.Create())
-            using (var client = context.CreateRouterSocket())
+            using (var client = new RouterSocket())
             {
                 client.Bind(string.Format("tcp://localhost:{0}", PortNumber));
 
@@ -32,17 +32,17 @@ namespace ROUTERbrokerDEALERworkers
                 for (int taskNumber = 0; taskNumber < 1000; taskNumber++)
                 {
                     // Send two message parts, first the address…
-                    client.SendMore(random.Next(3) > 0 ? Encoding.Unicode.GetBytes("A") : Encoding.Unicode.GetBytes("B"));
+                    client.SendMoreFrame(random.Next(3) > 0 ? Encoding.Unicode.GetBytes("A") : Encoding.Unicode.GetBytes("B"));
 
                     // And then the workload
-                    client.Send("This is the workload");
+                    client.SendFrame("This is the workload");
                 }
 
-                client.SendMore(Encoding.Unicode.GetBytes("A"));
-                client.Send("END");
+                client.SendMoreFrame(Encoding.Unicode.GetBytes("A"));
+                client.SendFrame("END");
 
-                client.SendMore(Encoding.Unicode.GetBytes("B"));
-                client.Send("END");
+                client.SendMoreFrame(Encoding.Unicode.GetBytes("B"));
+                client.SendFrame("END");
             }
 
             Console.ReadKey();
@@ -50,8 +50,7 @@ namespace ROUTERbrokerDEALERworkers
 
         private static void WorkerTaskA(object portNumber)
         {
-            using (var context = NetMQContext.Create())
-            using (var worker = context.CreateDealerSocket())
+            using (var worker = new DealerSocket())
             {
                 worker.Options.Identity = Encoding.Unicode.GetBytes("A");
                 worker.Connect(string.Format("tcp://localhost:{0}", portNumber));
@@ -80,8 +79,7 @@ namespace ROUTERbrokerDEALERworkers
 
         private static void WorkerTaskB(object portNumber)
         {
-            using (var context = NetMQContext.Create())
-            using (var worker = context.CreateDealerSocket())
+            using (var worker = new DealerSocket())
             {
                 worker.Options.Identity = Encoding.Unicode.GetBytes("B");
                 worker.Connect(string.Format("tcp://localhost:{0}", portNumber));

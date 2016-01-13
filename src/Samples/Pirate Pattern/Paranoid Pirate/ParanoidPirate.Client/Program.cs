@@ -14,10 +14,10 @@ namespace ParanoidPirate.Client
 
         /// <summary>
         ///     ParanoidPirate.Client [-v]
-        /// 
+        ///
         ///     implements a skeleton client of a Paranoid Pirate Pattern
-        /// 
-        ///     upon start it creates a REQ socket 
+        ///
+        ///     upon start it creates a REQ socket
         ///     send out a message with a sequence number
         ///     wait for a specified timespan for an answer
         ///     if the answer has not been received within that timeframe
@@ -34,55 +34,52 @@ namespace ParanoidPirate.Client
             var verbose = args.Length > 0 && args[0] == "-v";
             var clientId = args.Length > 1 ? args[1] : "SoleClient";
 
-            using (var context = NetMQContext.Create())
+            // create the REQ socket and connect to QUEUE frontend
+            // and hook up ReceiveReady event handler
+            var client = CreateSocket(clientId);
+
+            if (verbose)
+                Console.WriteLine("[Client] Connected to Queue.");
+
+            while (s_retriesLeft > 0)
             {
-                // create the REQ socket and connect to QUEUE frontend 
-                // and hook up ReceiveReady event handler
-                var client = CreateSocket(context, clientId);
+                s_sequence++;
 
-                if (verbose)
-                    Console.WriteLine("[Client] Connected to Queue.");
+                Console.WriteLine("[Client] Sending ({0})", s_sequence);
 
-                while (s_retriesLeft > 0)
+                client.SendFrame(Encoding.Unicode.GetBytes(s_sequence.ToString()));
+
+                s_expectReply = true;
+
+                while (s_expectReply)
                 {
-                    s_sequence++;
+                    if (client.Poll(TimeSpan.FromMilliseconds(Commons.RequestClientTimeout)))
+                        continue;
 
-                    Console.WriteLine("[Client] Sending ({0})", s_sequence);
+                    // QUEUE has not answered in time
+                    s_retriesLeft--;
 
-                    client.Send(Encoding.Unicode.GetBytes(s_sequence.ToString()));
-
-                    s_expectReply = true;
-
-                    while (s_expectReply)
+                    if (s_retriesLeft == 0)
                     {
-                        if (client.Poll(TimeSpan.FromMilliseconds(Commons.RequestClientTimeout)))
-                            continue;
-
-                        // QUEUE has not answered in time
-                        s_retriesLeft--;
-
-                        if (s_retriesLeft == 0)
-                        {
-                            Console.WriteLine("[Client - ERROR] Server seems to be offline, abandoning!");
-                            break;
-                        }
-
-                        Console.WriteLine("[Client - ERROR] No response from server, retrying...");
-
-                        client.Disconnect(Commons.QueueFrontend);
-                        client.Close();
-                        client.Dispose();
-
-                        client = CreateSocket(context, clientId);
-                        // resend sequence message
-                        client.Send(Encoding.Unicode.GetBytes(s_sequence.ToString()));
+                        Console.WriteLine("[Client - ERROR] Server seems to be offline, abandoning!");
+                        break;
                     }
-                }
 
-                // clean up!
-                client.Disconnect(Commons.QueueFrontend);
-                client.Dispose();
+                    Console.WriteLine("[Client - ERROR] No response from server, retrying...");
+
+                    client.Disconnect(Commons.QueueFrontend);
+                    client.Close();
+                    client.Dispose();
+
+                    client = CreateSocket(clientId);
+                    // resend sequence message
+                    client.SendFrame(Encoding.Unicode.GetBytes(s_sequence.ToString()));
+                }
             }
+
+            // clean up!
+            client.Disconnect(Commons.QueueFrontend);
+            client.Dispose();
 
             Console.Write("I am done! To exits press any key!");
         }
@@ -90,15 +87,19 @@ namespace ParanoidPirate.Client
         /// <summary>
         ///     just to create the REQ socket
         /// </summary>
-        /// <param name="context">current NetMQContext</param>
         /// <param name="id">the name for the client</param>
         /// <returns>the connected REQ socket</returns>
-        private static RequestSocket CreateSocket(NetMQContext context, string id)
+        private static RequestSocket CreateSocket(string id)
         {
-            var client = context.CreateRequestSocket();
+            var client = new RequestSocket
+            {
+                Options =
+                {
+                    Identity = Encoding.UTF8.GetBytes(id),
+                    Linger = TimeSpan.Zero
+                }
+            };
 
-            client.Options.Identity = Encoding.UTF8.GetBytes(id);
-            client.Options.Linger = TimeSpan.Zero;
             // set the event to be called upon arrival of a message
             client.ReceiveReady += OnClientReceiveReady;
             client.Connect(Commons.QueueFrontend);
@@ -108,7 +109,7 @@ namespace ParanoidPirate.Client
 
         /// <summary>
         ///     handles the ReceiveReady event
-        ///     
+        ///
         ///     get the message and validates that the send data is correct
         ///     prints an appropriate message on screen in either way
         /// </summary>

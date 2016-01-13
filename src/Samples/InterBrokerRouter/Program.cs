@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using NetMQ;
 using NetMQ.Sockets;
 
@@ -22,8 +21,8 @@ namespace InterBrokerRouter
 
         /// <summary>
         ///     the broker setting up the cluster
-        /// 
-        /// 
+        ///
+        ///
         ///          State 2 ---+         +--- State n
         ///                     |         |
         ///                     +----+----+
@@ -33,9 +32,9 @@ namespace InterBrokerRouter
         ///     client n ---+   +----+----+    +--- worker n
         ///                     |         |
         ///                  BROKER 2   BROKER n
-        /// 
+        ///
         ///     BROKER 2 and n are not included and must be setup separately
-        /// 
+        ///
         ///     A minimum of two address must be supplied
         /// </summary>
         /// <param name="args">[0] = this broker's address
@@ -45,24 +44,24 @@ namespace InterBrokerRouter
         /// <remarks>
         ///     since "inproc://" is not working in NetMQ we use "tcp://"
         ///     for each broker we need 5 ports which for this example are
-        ///     assigned as follows (in true life it should be configurable whether 
+        ///     assigned as follows (in true life it should be configurable whether
         ///     they are ports or tcp/ip addresses)
-        /// 
+        ///
         ///     this brokers address => local frontend binds to     tcp://127.0.0.1:5555
         ///                             cloud frontend binds to                    :5556
         ///                             local backend binds to                     :5557
         ///                             state backend binds to                     :5558
         ///                             monitor PULL binds to                      :5559
-        /// 
+        ///
         ///     the sockets are connected as follows
-        /// 
+        ///
         ///               this broker's monitor PUSH connects to    tcp://127.0.0.1:5559
-        /// 
+        ///
         ///                         (if peer's address and port is  tcp://127.0.0.1:5575)
-        ///             
+        ///
         ///               this broker's cloud backend connects to                  :5576
         ///               this broker's state frontend connects to                 :5578
-        /// 
+        ///
         ///     this scheme is fix in this example
         /// </remarks>
         public static void Main(string[] args)
@@ -112,14 +111,13 @@ namespace InterBrokerRouter
             var monitorAddress = baseAddress + (myPort + 4);
 
             // create the context and all the sockets
-            using (var context = NetMQContext.Create())
-            using (var localFrontend = context.CreateRouterSocket())
-            using (var localBackend = context.CreateRouterSocket())
-            using (var cloudFrontend = context.CreateRouterSocket())
-            using (var cloudBackend = context.CreateRouterSocket())
-            using (var stateBackend = context.CreatePublisherSocket())
-            using (var stateFrontend = context.CreateSubscriberSocket())
-            using (var monitor = context.CreatePullSocket())
+            using (var localFrontend = new RouterSocket())
+            using (var localBackend = new RouterSocket())
+            using (var cloudFrontend = new RouterSocket())
+            using (var cloudBackend = new RouterSocket())
+            using (var stateBackend = new PublisherSocket())
+            using (var stateFrontend = new SubscriberSocket())
+            using (var monitor = new PullSocket())
             {
                 // give every socket an unique identity, e.g. LocalFrontend[Port]
                 SetIdentities(myPort,
@@ -201,7 +199,7 @@ namespace InterBrokerRouter
                         var msg = Wrap(worker, request);
                         // send message to the worker
                         // [worker adr][empty][client adr][empty][data]
-                        localBackend.SendMessage(msg);
+                        localBackend.SendMultipartMessage(msg);
                     }
                     else
                     {
@@ -212,7 +210,7 @@ namespace InterBrokerRouter
                         // wrap message with peer's address
                         var msg = Wrap(peer, request);
                         // [peer adr][empty][client adr][empty][data]
-                        cloudBackend.SendMessage(msg);
+                        cloudBackend.SendMultipartMessage(msg);
                     }
                 };
 
@@ -243,9 +241,9 @@ namespace InterBrokerRouter
                         // if the adr (first frame) is any of the clients send the REPLY there
                         // and send it to the peer otherwise
                         if (clients.Any(n => AreSame(n, msg.First)))
-                            localFrontend.SendMessage(msg);
+                            localFrontend.SendMultipartMessage(msg);
                         else
-                            cloudFrontend.SendMessage(msg);
+                            cloudFrontend.SendMultipartMessage(msg);
                     }
                 };
 
@@ -271,14 +269,14 @@ namespace InterBrokerRouter
                     if (clients.Any(n => AreSame(n, msg.First)))
                     {
                         // [client adr][empty][message id]
-                        localFrontend.SendMessage(msg);
+                        localFrontend.SendMultipartMessage(msg);
                     }
                     else
                     {
                         // add the peers address to the request
                         var request = Wrap(peerAdr, msg);
                         // [peer adr][empty][peer client adr][empty][message id]
-                        cloudFrontend.SendMessage(request);
+                        cloudFrontend.SendMultipartMessage(request);
                     }
                 };
 
@@ -302,7 +300,7 @@ namespace InterBrokerRouter
                     // if the address is any of the local clients it is a REPLY
                     // and a REQ otherwise
                     if (clients.Any(n => AreSame(n, msg.First)))
-                        localFrontend.SendMessage(msg);
+                        localFrontend.SendMultipartMessage(msg);
                     else
                     {
                         // in order to know which per to send back the peers adr must be added again
@@ -314,7 +312,7 @@ namespace InterBrokerRouter
                         var workerAdr = workerQueue.Dequeue();
                         // wrap the message with the worker address and send
                         var request = Wrap(workerAdr, original);
-                        localBackend.SendMessage(request);
+                        localBackend.SendMultipartMessage(request);
                     }
                 };
 
@@ -335,7 +333,7 @@ namespace InterBrokerRouter
                         msg.Append(data);
                         var stateMessage = Wrap(Encoding.UTF8.GetBytes(me), msg);
                         // publish info
-                        stateBackend.SendMessage(stateMessage);
+                        stateBackend.SendMultipartMessage(stateMessage);
                     }
 
                     // restart the timer
@@ -360,7 +358,8 @@ namespace InterBrokerRouter
                     workerTasks[i].Start();
                 }
 
-                var sockets = new NetMQSocket[]
+                // create poller and add sockets & timer
+                var poller = new NetMQPoller
                 {
                     localFrontend,
                     localBackend,
@@ -368,25 +367,21 @@ namespace InterBrokerRouter
                     cloudBackend,
                     stateFrontend,
                     stateBackend,
-                    monitor
+                    monitor,
+                    timer
                 };
 
-                // create poller and add sockets & timer
-                var poller = new Poller(sockets);
-
-                poller.AddTimer(timer);
-
                 // start monitoring the sockets
-                Task.Factory.StartNew(poller.PollTillCancelled);
+                poller.RunAsync();
 
                 // we wait for a CTRL+C to exit
                 while (s_keepRunning)
-                {}
+                    Thread.Sleep(100);
 
                 Console.WriteLine("Ctrl-C encountered! Exiting the program!");
 
-                if (poller.IsStarted)
-                    poller.CancelAndJoin();
+                if (poller.IsRunning)
+                    poller.Stop();
 
                 poller.Dispose();
             }
@@ -429,9 +424,9 @@ namespace InterBrokerRouter
         ///     get the identity of the sending socket
         ///     we hereby assume that the message has the following
         ///     sequence of frames and strips that off the message
-        /// 
+        ///
         ///     [identity][empty][data]
-        /// 
+        ///
         ///     whereby [data] cold be a wrapped message itself!
         /// </summary>
         /// <param name="msg"></param>

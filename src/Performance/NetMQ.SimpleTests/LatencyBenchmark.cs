@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using JetBrains.Annotations;
+using NetMQ.Sockets;
 
 namespace NetMQ.SimpleTests
 {
@@ -32,8 +33,7 @@ namespace NetMQ.SimpleTests
 
         private void ClientThread()
         {
-            using (var context = NetMQContext.Create())
-            using (var socket = CreateClientSocket(context))
+            using (var socket = CreateClientSocket())
             {
                 socket.Connect("tcp://127.0.0.1:9000");
 
@@ -53,8 +53,7 @@ namespace NetMQ.SimpleTests
 
         private void ServerThread()
         {
-            using (var context = NetMQContext.Create())
-            using (var socket = CreateServerSocket(context))
+            using (var socket = CreateServerSocket())
             {
                 socket.Bind("tcp://*:9000");
 
@@ -65,8 +64,8 @@ namespace NetMQ.SimpleTests
             }
         }
 
-        [NotNull] protected abstract NetMQSocket CreateClientSocket([NotNull] NetMQContext context);
-        [NotNull] protected abstract NetMQSocket CreateServerSocket([NotNull] NetMQContext context);
+        [NotNull] protected abstract NetMQSocket CreateClientSocket();
+        [NotNull] protected abstract NetMQSocket CreateServerSocket();
 
         protected abstract long DoClient([NotNull] NetMQSocket socket, int messageSize);
         protected abstract void DoServer([NotNull] NetMQSocket socket, int messageSize);
@@ -87,7 +86,7 @@ namespace NetMQ.SimpleTests
 
             for (int i = 0; i < Iterations; i++)
             {
-                socket.Send(msg);
+                socket.SendFrame(msg);
                 socket.SkipFrame(); // ignore response
             }
 
@@ -99,18 +98,18 @@ namespace NetMQ.SimpleTests
             for (int i = 0; i < Iterations; i++)
             {
                 byte[] message = socket.ReceiveFrameBytes();
-                socket.Send(message);
+                socket.SendFrame(message);
             }
         }
 
-        protected override NetMQSocket CreateClientSocket(NetMQContext context)
+        protected override NetMQSocket CreateClientSocket()
         {
-            return context.CreateRequestSocket();
+            return new RequestSocket();
         }
 
-        protected override NetMQSocket CreateServerSocket(NetMQContext context)
+        protected override NetMQSocket CreateServerSocket()
         {
-            return context.CreateResponseSocket();
+            return new ResponseSocket();
         }
     }
 
@@ -129,7 +128,7 @@ namespace NetMQ.SimpleTests
             for (int i = 0; i < Iterations; i++)
             {
                 msg.InitGC(new byte[messageSize], messageSize);
-                socket.Send(ref msg, SendReceiveOptions.None);
+                socket.Send(ref msg, more: false);
                 socket.Receive(ref msg);
                 msg.Close();
             }
@@ -139,25 +138,25 @@ namespace NetMQ.SimpleTests
 
         protected override void DoServer(NetMQSocket socket, int messageSize)
         {
-            Msg msg  = new Msg();
+            var msg  = new Msg();
             msg.InitEmpty();
 
             for (int i = 0; i < Iterations; i++)
             {
                 socket.Receive(ref msg);
 
-                socket.Send(ref msg, SendReceiveOptions.None);
+                socket.Send(ref msg, more: false);
             }
         }
 
-        protected override NetMQSocket CreateClientSocket(NetMQContext context)
+        protected override NetMQSocket CreateClientSocket()
         {
-            return context.CreateRequestSocket();
+            return new RequestSocket();
         }
 
-        protected override NetMQSocket CreateServerSocket(NetMQContext context)
+        protected override NetMQSocket CreateServerSocket()
         {
-            return context.CreateResponseSocket();
+            return new ResponseSocket();
         }
     }
 }
