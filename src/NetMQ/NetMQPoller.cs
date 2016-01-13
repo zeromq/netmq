@@ -454,7 +454,6 @@ namespace NetMQ
             if (!IsRunning)
                 throw new InvalidOperationException("NetMQPoller is not running");
             m_isStopRequested = true;
-            Debug.Assert(!IsRunning);
         }
 
         #endregion
