@@ -287,7 +287,7 @@ namespace NetMQ.Core
         /// terminating. Just add the number of events to wait for, and when the event occurs - call <see cref="UnregisterTermAck"/>.
         /// When the number of pending termination-acknowledgements reaches zero, this object will be deallocated.
         /// </remarks>
-        public void RegisterTermAcks(int count)
+        protected void RegisterTermAcks(int count)
         {
             m_termAcks += count;
         }
@@ -301,7 +301,7 @@ namespace NetMQ.Core
         /// terminating. Just add the number of events to wait for, and when the event occurs - call UnregisterTermAck.
         /// When the number of pending termination-acknowledgements reaches zero, this object will be deallocated.
         /// </remarks>
-        public void UnregisterTermAck()
+        protected void UnregisterTermAck()
         {
             Debug.Assert(m_termAcks > 0);
             m_termAcks--;
