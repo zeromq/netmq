@@ -34,6 +34,10 @@ namespace NetMQ
         private volatile bool m_isPollSetDirty = true;
         private int m_disposeState = (int)DisposeState.Undisposed;
 
+#if NET35
+        private Thread m_pollerThread;
+#endif
+
         #region Scheduling
 
 #if !NET35
@@ -287,7 +291,9 @@ namespace NetMQ
             if (IsRunning)
                 throw new InvalidOperationException("NetMQPoller is already running");
 
-#if !NET35
+#if NET35
+            m_pollerThread = Thread.CurrentThread;
+#else
             var oldSynchronisationContext = SynchronizationContext.Current;
             SynchronizationContext.SetSynchronizationContext(new NetMQSynchronizationContext(this));
             m_isSchedulerThread.Value = true;
@@ -422,7 +428,9 @@ namespace NetMQ
                 finally
                 {
                     IsRunning = false;
-#if !NET35
+#if NET35
+                    m_pollerThread = null;
+#else
                     m_isSchedulerThread.Value = false;
                     SynchronizationContext.SetSynchronizationContext(oldSynchronisationContext);
 #endif
@@ -441,8 +449,17 @@ namespace NetMQ
                 throw new InvalidOperationException("NetMQPoller is not running");
 
             m_isStopRequested = true;
-            m_stoppedEvent.WaitOne();
-            Debug.Assert(!IsRunning);
+
+            // If 'stop' was requested from the scheduler thread, we cannot block
+#if NET35
+            if (m_pollerThread != Thread.CurrentThread)
+#else
+            if (!m_isSchedulerThread.Value)
+#endif
+            {
+                m_stoppedEvent.WaitOne();
+                Debug.Assert(!IsRunning);
+            }
         }
 
         /// <summary>
