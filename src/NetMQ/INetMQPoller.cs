@@ -10,6 +10,5 @@ namespace NetMQ
         bool IsRunning { get; }
 
         void Add(ISocketPollable socket);
-        bool Contains(NetMQSocket socket);
     }
 }

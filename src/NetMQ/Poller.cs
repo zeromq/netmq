@@ -747,11 +747,6 @@ namespace NetMQ
             Cancel();
         }
 
-        bool INetMQPoller.Contains(NetMQSocket socket)
-        {
-            return ContainsSocket(socket);
-        }
-
         void INetMQPoller.Add(ISocketPollable socket)
         {
             AddSocket(socket);

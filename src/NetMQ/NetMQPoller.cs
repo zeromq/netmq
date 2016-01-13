@@ -512,11 +512,6 @@ namespace NetMQ
             m_isPollSetDirty = false;
         }
 
-        public bool Contains(NetMQSocket socket)
-        {
-            return m_sockets.Contains(socket);
-        }
-
         #region IEnumerable
 
         /// <summary>This class only implements <see cref="IEnumerable"/> in order to support collection initialiser syntax.</summary>

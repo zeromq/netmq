@@ -40,14 +40,10 @@ namespace NetMQ
         /// <param name="controlIn">this socket will have incoming messages also sent to it - you can set this to null if not needed</param>
         /// <param name="controlOut">this socket will have outgoing messages also sent to it - you can set this to null if not needed</param>
         /// <param name="poller">an optional external poller to use within this proxy</param>
-        /// <exception cref="InvalidOperationException"><paramref name="poller"/> is not <c>null</c> and either <paramref name="frontend"/> or <paramref name="backend"/> are not contained within it.</exception>
         public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket controlIn, [CanBeNull] NetMQSocket controlOut, [CanBeNull] INetMQPoller poller = null)
         {
             if (poller != null)
             {
-                if (!poller.Contains(backend) || !poller.Contains(frontend))
-                    throw new InvalidOperationException("When using an external poller, both the frontend and backend sockets must be added to it.");
-
                 m_externalPoller = true;
                 m_poller = poller;
             }
