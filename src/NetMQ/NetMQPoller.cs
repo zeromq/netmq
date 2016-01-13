@@ -7,11 +7,14 @@ using System.Net.Sockets;
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Core.Utils;
+using NetMQ.Sockets;
 #if !NET35
 using NetMQ.Core;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 #endif
+
+using Switch = NetMQ.Core.Utils.Switch;
 
 namespace NetMQ
 {
@@ -20,17 +23,17 @@ namespace NetMQ
         TaskScheduler,
 #endif
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
-    {
+    {        
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
         private readonly Dictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
-        private readonly ManualResetEvent m_stoppedEvent = new ManualResetEvent(false);
+        private readonly Switch m_switch = new Switch(false);
         private readonly Selector m_selector = new Selector();
+        private readonly StopSignaler m_stopSignaler = new StopSignaler();
 
         private SelectItem[] m_pollSet;
         private NetMQSocket[] m_pollact;
-
-        private volatile bool m_isStopRequested;
+        
         private volatile bool m_isPollSetDirty = true;
         private int m_disposeState = (int)DisposeState.Undisposed;
 
@@ -43,10 +46,8 @@ namespace NetMQ
 #if !NET35
         private static int s_nextPollerId;
 
-        private readonly NetMQSocket m_schedulerPullSocket;
-        private readonly NetMQSocket m_schedulerPushSocket;
-        private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);
-        private readonly ConcurrentQueue<Task> m_tasksQueue = new ConcurrentQueue<Task>();
+        private readonly NetMQQueue<Task> m_tasksQueue = new NetMQQueue<Task>();
+        private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);        
         private readonly int m_pollerId = Interlocked.Increment(ref s_nextPollerId);
 
         /// <summary>
@@ -110,13 +111,7 @@ namespace NetMQ
                 throw new ArgumentNullException("task");
             CheckDisposed();
 
-            m_tasksQueue.Enqueue(task);
-
-            lock (m_schedulerPushSocket)
-            {
-                // awake the scheduler
-                m_schedulerPushSocket.SendFrameEmpty();
-            }
+            m_tasksQueue.Enqueue(task);            
         }
 
         private void Run(Action action)
@@ -136,50 +131,32 @@ namespace NetMQ
         #endregion
 
         public NetMQPoller()
-        {
-            PollTimeout = TimeSpan.FromSeconds(1);
+        {                     
+            m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
+
 #if !NET35
-            var address = string.Format("{0}://netmqpoller-{1}", Address.InProcProtocol, m_pollerId);
 
-            m_schedulerPullSocket = new NetMQ.Sockets.PullSocket();
-            m_schedulerPullSocket.Options.Linger = TimeSpan.Zero;
-            m_schedulerPullSocket.Bind(address);
-
-            m_schedulerPullSocket.ReceiveReady += delegate
+            m_tasksQueue.ReceiveReady += delegate
             {
                 Debug.Assert(m_disposeState != (int)DisposeState.Disposed);
-                Debug.Assert(IsRunning);
-
-                // Dequeue the 'wake' command
-                m_schedulerPullSocket.SkipFrame();
+                Debug.Assert(IsRunning);                
 
                 // Try to dequeue and execute all pending tasks
                 Task task;
-                while (m_tasksQueue.TryDequeue(out task))
+                while (m_tasksQueue.TryDequeue(out task, TimeSpan.Zero))
                     TryExecuteTask(task);
-            };
+            };         
 
-            m_sockets.Add(m_schedulerPullSocket);
-
-            m_schedulerPushSocket = new NetMQ.Sockets.PushSocket();
-            m_schedulerPushSocket.Connect(address);
+            m_sockets.Add(((ISocketPollable)m_tasksQueue).Socket);            
 #endif
         }
 
         /// <summary>
         /// Get whether this object is currently polling its sockets and timers.
         /// </summary>
-        public bool IsRunning { get; private set; }
-
-        /// <summary>
-        /// Gets and sets the amount of time the internal poll operation should wait before timing out.
-        /// </summary>
-        /// <remarks>
-        /// Defaults to one second.
-        /// <para />
-        /// This can impact the time taken to dispose this <see cref="NetMQPoller"/>.
-        /// </remarks>
-        public TimeSpan PollTimeout { get; set; }
+        public bool IsRunning {
+            get { return m_switch.Status; }
+        }      
 
         #region Add / Remove
 
@@ -280,6 +257,8 @@ namespace NetMQ
 
             var thread = new Thread(Run) { Name = "NetMQPollerThread" };
             thread.Start();
+
+            m_switch.WaitForOn();
         }
 
         /// <summary>
@@ -298,10 +277,9 @@ namespace NetMQ
             SynchronizationContext.SetSynchronizationContext(new NetMQSynchronizationContext(this));
             m_isSchedulerThread.Value = true;
 #endif
-            m_isStopRequested = false;
+            m_stopSignaler.Reset();
 
-            m_stoppedEvent.Reset();
-            IsRunning = true;
+            m_switch.SwitchOn();
             try
             {
                 // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barrier
@@ -316,15 +294,15 @@ namespace NetMQ
                 }
 
                 // Run until stop is requested
-                while (!m_isStopRequested)
+                while (!m_stopSignaler.IsStopRequested)
                 {
                     if (m_isPollSetDirty)
                         RebuildPollset();
 
                     var pollStart = Clock.NowMs();
 
-                    // Calculate tickless timer by adding the timeout to the current point-in-time.
-                    long tickless = pollStart + (long)PollTimeout.TotalMilliseconds;
+                    // Set tickless to infinity
+                    long tickless = pollStart + (long) int.MaxValue;
 
                     // Find the When-value of the earliest timer..
                     foreach (var timer in m_timers)
@@ -427,14 +405,13 @@ namespace NetMQ
                 }
                 finally
                 {
-                    IsRunning = false;
 #if NET35
                     m_pollerThread = null;
 #else
                     m_isSchedulerThread.Value = false;
                     SynchronizationContext.SetSynchronizationContext(oldSynchronisationContext);
 #endif
-                    m_stoppedEvent.Set();
+                    m_switch.SwitchOff();
                 }
             }
         }
@@ -448,7 +425,8 @@ namespace NetMQ
             if (!IsRunning)
                 throw new InvalidOperationException("NetMQPoller is not running");
 
-            m_isStopRequested = true;
+            // Signal the poller to stop
+            m_stopSignaler.RequestStop();
 
             // If 'stop' was requested from the scheduler thread, we cannot block
 #if NET35
@@ -457,7 +435,7 @@ namespace NetMQ
             if (!m_isSchedulerThread.Value)
 #endif
             {
-                m_stoppedEvent.WaitOne();
+                m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
             }
         }
@@ -470,7 +448,7 @@ namespace NetMQ
             CheckDisposed();
             if (!IsRunning)
                 throw new InvalidOperationException("NetMQPoller is not running");
-            m_isStopRequested = true;
+            m_stopSignaler.RequestStop();
         }
 
         #endregion
@@ -550,16 +528,15 @@ namespace NetMQ
             // and wait for it.
             if (IsRunning)
             {
-                m_isStopRequested = true;
-                m_stoppedEvent.WaitOne();
+                m_stopSignaler.RequestStop();
+                m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
             }
 
-            m_stoppedEvent.Close();
-
+            m_switch.Dispose();
+            m_stopSignaler.Dispose();            
 #if !NET35
-            m_schedulerPullSocket.Dispose();
-            m_schedulerPushSocket.Dispose();
+            m_tasksQueue.Dispose();
 #endif
 
             foreach (var socket in m_sockets)

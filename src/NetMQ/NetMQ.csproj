@@ -49,6 +49,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Utils\StopSignaler.cs" />
     <Compile Include="Core\Utils\Switch.cs" />
     <Compile Include="DnsEndPoint.cs" />
     <Compile Include="NetMQConfig.cs" />

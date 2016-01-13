@@ -128,9 +128,7 @@ namespace NetMQ.Tests
                 };
 
                 using (var poller = new NetMQPoller { listener })
-                {
-                    poller.PollTimeout = TimeSpan.FromMilliseconds(10);
-
+                {                    
                     poller.RunAsync();
 
                     manualResetEvent.WaitOne();

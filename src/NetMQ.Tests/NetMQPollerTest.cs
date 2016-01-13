@@ -18,9 +18,7 @@ namespace NetMQ.Tests
     [TestFixture]
     public class NetMQPollerTest
     {
-        #region Socket polling tests
-
-        private static readonly TimeSpan s_pollTimeout = TimeSpan.FromMilliseconds(10);
+        #region Socket polling tests        
 
         [Test]
         public void ResponsePoll()
@@ -28,9 +26,7 @@ namespace NetMQ.Tests
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             using (var poller = new NetMQPoller { rep })
-            {
-                poller.PollTimeout = s_pollTimeout;
-
+            {                
                 int port = rep.BindRandomPort("tcp://127.0.0.1");
 
                 req.Connect("tcp://127.0.0.1:" + port);
@@ -65,12 +61,10 @@ namespace NetMQ.Tests
 
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
-            using (var poller = new NetMQPoller { PollTimeout = s_pollTimeout })
+            using (var poller = new NetMQPoller())
             using (var repMonitor = new NetMQMonitor(rep, "inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
             using (var reqMonitor = new NetMQMonitor(req, "inproc://req.inproc", SocketEvents.Connected))
-            {
-                poller.PollTimeout = s_pollTimeout;
-
+            {                
                 repMonitor.Accepted += (s, e) => acceptedEvent.Set();
                 repMonitor.Listening += (s, e) => listeningEvent.Set();
 
@@ -109,9 +103,7 @@ namespace NetMQ.Tests
             using (var dealer1 = new DealerSocket())
             using (var dealer2 = new DealerSocket())
             using (var poller = new NetMQPoller { router1 })
-            {
-                poller.PollTimeout = s_pollTimeout;
-
+            {                
                 int port1 = router1.BindRandomPort("tcp://127.0.0.1");
                 int port2 = router2.BindRandomPort("tcp://127.0.0.1");
 
@@ -165,9 +157,7 @@ namespace NetMQ.Tests
             using (var dealer2 = new DealerSocket())
             using (var dealer3 = new DealerSocket())
             using (var poller = new NetMQPoller { router1, router2 })
-            {
-                poller.PollTimeout = s_pollTimeout;
-
+            {                
                 int port1 = router1.BindRandomPort("tcp://127.0.0.1");
                 int port2 = router2.BindRandomPort("tcp://127.0.0.1");
                 int port3 = router3.BindRandomPort("tcp://127.0.0.1");
@@ -239,9 +229,7 @@ namespace NetMQ.Tests
             using (var dealer3 = new DealerSocket())
             using (var dealer4 = new DealerSocket())
             using (var poller = new NetMQPoller { router1, router2 })
-            {
-                poller.PollTimeout = s_pollTimeout;
-
+            {                
                 int port1 = router1.BindRandomPort("tcp://127.0.0.1");
                 int port2 = router2.BindRandomPort("tcp://127.0.0.1");
                 int port3 = router3.BindRandomPort("tcp://127.0.0.1");
@@ -339,9 +327,7 @@ namespace NetMQ.Tests
             using (var dealer2 = new DealerSocket())
             using (var dealer3 = new DealerSocket())
             using (var poller = new NetMQPoller { router1, router2, router3 })
-            {
-                poller.PollTimeout = s_pollTimeout;
-
+            {                
                 int port1 = router1.BindRandomPort("tcp://127.0.0.1");
                 int port2 = router2.BindRandomPort("tcp://127.0.0.1");
                 int port3 = router3.BindRandomPort("tcp://127.0.0.1");
@@ -421,9 +407,7 @@ namespace NetMQ.Tests
             using (var router = new RouterSocket())
             using (var dealer = new DealerSocket())
             using (var poller = new NetMQPoller { router })
-            {
-                poller.PollTimeout = s_pollTimeout;
-
+            {                
                 int port = router.BindRandomPort("tcp://127.0.0.1");
 
                 dealer.Connect("tcp://127.0.0.1:" + port);
@@ -477,9 +461,7 @@ namespace NetMQ.Tests
             using (var router = new RouterSocket())
             using (var dealer = new DealerSocket())
             using (var poller = new NetMQPoller { router })
-            {
-                poller.PollTimeout = s_pollTimeout;
-
+            {                
                 int port = router.BindRandomPort("tcp://127.0.0.1");
 
                 dealer.Connect("tcp://127.0.0.1:" + port);
@@ -537,8 +519,7 @@ namespace NetMQ.Tests
             };
 
             using (var poller = new NetMQPoller { timer })
-            {
-                poller.PollTimeout = s_pollTimeout;
+            {                
                 poller.RunAsync();
 
                 Thread.Sleep(timerIntervalMillis * 6);
@@ -613,8 +594,7 @@ namespace NetMQ.Tests
             };
 
             using (var poller = new NetMQPoller { timer1, timer2 })
-            {
-                poller.PollTimeout = s_pollTimeout;
+            {                
                 poller.RunAsync();
 
                 Assert.IsTrue(signal1.WaitOne(300));
@@ -662,8 +642,7 @@ namespace NetMQ.Tests
             };
 
             using (var poller = new NetMQPoller { timer1, timer2 })
-            {
-                poller.PollTimeout = s_pollTimeout;
+            {                
                 poller.RunAsync();
 
                 Thread.Sleep(timerIntervalMillis * 6);
@@ -715,8 +694,7 @@ namespace NetMQ.Tests
             };
 
             using (var poller = new NetMQPoller { timer })
-            {
-                poller.PollTimeout = s_pollTimeout;
+            {                
                 poller.RunAsync();
 
                 Thread.Sleep(timerIntervalMillis * 6);
@@ -749,8 +727,7 @@ namespace NetMQ.Tests
 
             NetMQPoller poller;
             using (poller = new NetMQPoller { timer })
-            {
-                poller.PollTimeout = s_pollTimeout;
+            {                
                 poller.RunAsync();
                 Assert.IsTrue(signal.WaitOne(500));
                 Assert.IsTrue(poller.IsRunning);
@@ -784,7 +761,7 @@ namespace NetMQ.Tests
 
                 var socketSignal = new ManualResetEvent(false);
 
-                using (var poller = new NetMQPoller { PollTimeout = s_pollTimeout })
+                using (var poller = new NetMQPoller())
                 {
                     poller.Add(socket, s =>
                     {
@@ -829,7 +806,7 @@ namespace NetMQ.Tests
         {
             bool triggered = false;
 
-            using (var poller = new NetMQPoller { PollTimeout = s_pollTimeout })
+            using (var poller = new NetMQPoller())
             {
                 poller.RunAsync();
 
@@ -848,7 +825,7 @@ namespace NetMQ.Tests
         [Test]
         public void SetsCurrentTaskScheduler()
         {
-            using (var poller = new NetMQPoller { PollTimeout = s_pollTimeout })
+            using (var poller = new NetMQPoller())
             {
                 poller.RunAsync();
 
@@ -861,7 +838,7 @@ namespace NetMQ.Tests
         [Test]
         public void CanExecuteTaskInline()
         {
-            using (var poller = new NetMQPoller { PollTimeout = s_pollTimeout })
+            using (var poller = new NetMQPoller())
             {
                 Assert.IsFalse(poller.CanExecuteTaskInline);
 
@@ -884,7 +861,7 @@ namespace NetMQ.Tests
             int runCount1 = 0;
             int runCount2 = 0;
 
-            using (var poller = new NetMQPoller { PollTimeout = s_pollTimeout })
+            using (var poller = new NetMQPoller())
             {
                 poller.RunAsync();
 
@@ -918,7 +895,7 @@ namespace NetMQ.Tests
 
             var allTasks = new ConcurrentBag<Task>();
 
-            using (var poller = new NetMQPoller { PollTimeout = s_pollTimeout })
+            using (var poller = new NetMQPoller())
             {
                 poller.RunAsync();
 

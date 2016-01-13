@@ -77,7 +77,6 @@ namespace NetMQ.Tests
                 server.SendMoreFrame(serverId).SendFrame(response);
                 server.SendMoreFrame(serverId).SendFrame(response);
 
-                poller.PollTimeout = TimeSpan.FromSeconds(1);
                 poller.Run();
             }
         }
