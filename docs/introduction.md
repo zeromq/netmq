@@ -17,25 +17,10 @@ The philosophy of ZeroMQ starts with the _zero_. The zero is for zero broker (Ze
 
 More generally, "zero" refers to the culture of minimalism that permeates the project. We add power by removing complexity rather than by exposing new functionality.
 
+
 ## Getting the library
 
 You can get NetMQ library from [NuGet](https://nuget.org/packages/NetMQ/).
-
-
-## Context
-
-The `NetMQContext` is used to create _all_ sockets. Therefore any NetMQ code should start by calling `NetMQContext.Create()` to create an instance.
-
-`NetMQContext` is `IDisposable` so can be used within a `using` block:
-
-    :::csharp
-    using (var context = NetMQContext.Create())
-    {
-        // code in here. exit this block to dispose the context,
-        // only when communication is no longer required
-    }
-
-You should create and use exactly _one_ context in your process. Technically, the context is the container for all sockets in process, and acts as the transport for inproc sockets (the fastest way to connect the threads in process). If at runtime a process has two contexts, these are like separate NetMQ instances. If that's explicitly what you want, okay, but otherwise you should have _one context only_.
 
 
 ## Sending and receiving
@@ -50,14 +35,13 @@ So let's start with some code, the "Hello world" example (of course).
 ### Server
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var server = context.CreateResponseSocket())
+    using (var server = new ResponseSocket())
     {
         server.Bind("tcp://*:5555");
 
         while (true)
         {
-            var message = server.ReceiveString();
+            var message = server.ReceiveFrameString();
 
             Console.WriteLine("Received {0}", message);
 
@@ -65,7 +49,7 @@ So let's start with some code, the "Hello world" example (of course).
             Thread.Sleep(100);
 
             Console.WriteLine("Sending World");
-            server.Send("World");
+            server.SendFrame("World");
         }
     }
 
@@ -76,17 +60,16 @@ You can also see that we have zero configuration, we are just sending strings. N
 ### Client
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var client = context.CreateRequestSocket())
+    using (var client = new RequestSocket())
     {
         client.Connect("tcp://localhost:5555");
 
         for (int i = 0; i < 10; i++)
         {
             Console.WriteLine("Sending Hello");
-            client.Send("Hello");
+            client.SendFrame("Hello");
 
-            var message = client.ReceiveString();
+            var message = client.ReceiveFrameString();
             Console.WriteLine("Received {0}", message);
         }
     }
@@ -95,18 +78,14 @@ The client create a socket of type request, connect and start sending messages.
 
 Both the `Send` and `Receive` methods are blocking (by default). For the receive it is simple: if there are no messages the method will block. For sending it is more complicated and depends on the socket type. For request sockets, if the high watermark is reached or no peer is connected the method will block.
 
-You can however call receive or send with the `DontWait` flag to avoid the waiting, make sure to wrap the send or receive with try and catch the `AgainException`, like so:
+You can however call `TrySend` and `TryReceive` to avoid the waiting. The operation returns `false` if it would have blocked.
 
     :::csharp
-    try
-    {
-        var message = client.ReceiveString(SendReceiveOptions.DontWait);
+    string message;
+    if (client.TryReceiveFrameString(out message))
         Console.WriteLine("Received {0}", message);
-    }
-    catch (AgainException ex)
-    {
-        Console.WriteLine(ex);
-    }
+    else
+        Console.WriteLine("No message received");
 
 
 ## Bind vs Connect

@@ -36,16 +36,9 @@ There are also a few blog posts available, which you can read about here:
 Here is a simple example:
 
 ```csharp
-using (var context = NetMQContext.Create())
-using (var server = context.CreateResponseSocket())
-using (var client = context.CreateRequestSocket())
+using (var server = new ResponseSocket("@tcp://localhost:5556")) // bind
+using (var client = new RequestSocket(">tcp://localhost:5556"))  // connect
 {
-    // Bind the server to a local TCP address
-    server.Bind("tcp://localhost:5556");
-
-    // Connect the client to the server
-    client.Connect("tcp://localhost:5556");
-
     // Send a message from the client socket
     client.SendFrame("Hello");
 

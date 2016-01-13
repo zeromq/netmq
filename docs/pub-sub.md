@@ -20,7 +20,7 @@ A publisher must include the topic in the message's' first frame, prior to the m
 
     :::csharp
     // send a message on the 'status' topic
-    pub.SendMore("status").Send("All is well");
+    pub.SendMoreFrame("status").SendFrame("All is well");
 
 Subscribers specify which topics they are interested in via the `Subscribe` method of `SubscriberSocket`:
 
@@ -72,8 +72,7 @@ Time for an example. This example is very simple, and follows these rules.
             {
                 Random rand = new Random(50);
 
-                using (var context = NetMQContext.Create())
-                using (var pubSocket = context.CreatePublisherSocket())
+                using (var pubSocket = new PublisherSocket())
                 {
                     Console.WriteLine("Publisher socket binding...");
                     pubSocket.Options.SendHighWatermark = 1000;
@@ -86,13 +85,13 @@ Time for an example. This example is very simple, and follows these rules.
                         {
                             var msg = "TopicA msg-" + i;
                             Console.WriteLine("Sending message : {0}", msg);
-                            pubSocket.SendMore("TopicA").Send(msg);
+                            pubSocket.SendMoreFrame("TopicA").SendFrame(msg);
                         }
                         else
                         {
                             var msg = "TopicB msg-" + i;
                             Console.WriteLine("Sending message : {0}", msg);
-                            pubSocket.SendMore("TopicB").Send(msg);
+                            pubSocket.SendMoreFrame("TopicB").SendFrame(msg);
                         }
 
                         Thread.Sleep(500);
@@ -133,8 +132,7 @@ Time for an example. This example is very simple, and follows these rules.
                 string topic = args[0] == "All" ? "" : args[0];
                 Console.WriteLine("Subscriber started for Topic : {0}", topic);
 
-                using (var context = NetMQContext.Create())
-                using (var subSocket = context.CreateSubscriberSocket())
+                using (var subSocket = new SubscriberSocket())
                 {
                     subSocket.Options.ReceiveHighWatermark = 1000;
                     subSocket.Connect("tcp://localhost:12345");
@@ -142,8 +140,8 @@ Time for an example. This example is very simple, and follows these rules.
                     Console.WriteLine("Subscriber socket connecting...");
                     while (true)
                     {
-                        string messageTopicReceived = subSocket.ReceiveString();
-                        string messageReceived = subSocket.ReceiveString();
+                        string messageTopicReceived = subSocket.ReceiveFrameString();
+                        string messageReceived = subSocket.ReceiveFrameString();
                         Console.WriteLine(messageReceived);
                     }
                 }

@@ -4,29 +4,25 @@ Message Structure
 So if you have come here after looking at some of the introductory material, you may have come across an example or two, maybe even a "hello world" example resembling:
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var server = context.CreateResponseSocket())
-    using (var client = context.CreateRequestSocket())
+    using (var server = new ResponseSocket("@tcp://127.0.0.1:5556"))
+    using (var client = new RequestSocket(">tcp://127.0.0.1:5556"))
     {
-        server.Bind("tcp://127.0.0.1:5556");
-        client.Connect("tcp://127.0.0.1:5556");
-
         client.Send("Hello");
 
-        string fromClientMessage = server.ReceiveString();
+        string fromClientMessage = server.ReceiveFrameString();
 
         Console.WriteLine("From Client: {0}", fromClientMessage);
 
-        server.Send("Hi Back");
+        server.SendFrame("Hi Back");
 
-        string fromServerMessage = client.ReceiveString();
+        string fromServerMessage = client.ReceiveFrameString();
 
         Console.WriteLine("From Server: {0}", fromServerMessage);
 
         Console.ReadLine();
     }
 
-Where you may have noticed (or perhaps not) that the NetMQ socket(s) have a `RecieveString()` method. This is good, and extremely useful, but you may be fooled into thinking this is what you should be using all the time.
+Where you may have noticed (or perhaps not) that the NetMQ socket(s) have a `ReceiveFrameString()` method. This is good, and extremely useful, but you may be fooled into thinking this is what you should be using all the time.
 
 Truth is ZeroMQ, and therefore NetMQ are really frame based, which implies some form of protocol. Some of you may balk at this prospect, and may curse, and think damm it, I am not a protocol designer I was not expecting to get my hands that dirty.
 
@@ -66,13 +62,13 @@ Here is a simple example where we create a new message containing two frames, ea
 
 ### Sending frame by frame
 
-Another way of sending multipart messages is to use `SendMore` extension methods. This doesn't have as many overloads as `SendMessage` but it allows you to send `byte[]` and `string` data quite easily. Here is an example with identical behaviour to that we have just seen:
+Another way of sending multipart messages is to use `SendMoreFrame` extension methods. This doesn't have as many overloads as `SendMessage` but it allows you to send `byte[]` and `string` data quite easily. Here is an example with identical behaviour to that we have just seen:
 
     :::csharp
-    server.SendMore("IAmFrame0")
-          .Send("IAmFrame1");
+    server.SendMoreFrame("IAmFrame0")
+          .SendFrame("IAmFrame1");
 
-To send more than two frames, chain together multiple `SendMore` calls. Just be sure to always end the chain with `Send`!
+To send more than two frames, chain together multiple `SendMoreFrame` calls. Just be sure to always end the chain with `SendFrame`!
 
 
 ## Reading multipart messages
@@ -83,18 +79,18 @@ Reading multiple frames can also be done in two ways.
 
 You can read frames from the socket one by one. The out-param `more` will tell you whether or not this is the last frame in the message.
 
-You may use the NetMQ convenience `ReceiveString(out more)` method multiple times, where you would need to know if there was more than one message part to read, which you would need to track in a bool variable. This is shown below
+You may use the NetMQ convenience `ReceiveFrameString(out more)` method multiple times, where you would need to know if there was more than one message part to read, which you would need to track in a bool variable. This is shown below
 
     :::csharp
     // server sends a message with two frames
-    server.SendMore("A")
-          .Send("Hello");
+    server.SendMoreFrame("A")
+          .SendFrame("Hello");
 
     // client receives all frames in the message, one by one
     bool more = true;
     while (more)
     {
-        string frame = client.ReceiveString(out more);
+        string frame = client.ReceiveFrameString(out more);
         Console.WriteLine("frame={0}", frame);
         Console.WriteLine("more={0}", more);
     }
@@ -109,10 +105,10 @@ This loop would execute twice. The first time, `more` will be set `true`. The se
 
 ### Reading entire messages
 
-An easier way is to use the `ReceiveMessage()` method which gives you an object containing all the frames of the message.
+An easier way is to use the `ReceiveMultipartMessage()` method which gives you an object containing all the frames of the message.
 
     :::csharp
-    NetMQMessage message = client.ReceiveMessage();
+    NetMQMessage message = client.ReceiveMultipartMessage();
     Console.WriteLine("message.FrameCount={0}", message.FrameCount);
     Console.WriteLine("message[0]={0}", message[0].ConvertToString());
     Console.WriteLine("message[1]={0}", message[1].ConvertToString());
@@ -127,9 +123,9 @@ The output of which would be:
 Other approaches exist, including:
 
     :::csharp
-    IEnumerable<string> framesAsStrings = client.ReceiveStringMessages();
+    IEnumerable<string> framesAsStrings = client.ReceiveMultipartStrings();
 
-    IEnumerable<byte[]> framesAsByteArrays = client.ReceiveMessages();
+    IEnumerable<byte[]> framesAsByteArrays = client.ReceiveMultipartBytes();
 
 
 ## A Full Example
@@ -137,23 +133,18 @@ Other approaches exist, including:
 Just to solidify this information here is a complete example showing everything we have discussed above:
 
     :::csharp
-    using (NetMQContext ctx = NetMQContext.Create())
-    using (var server = ctx.CreateResponseSocket())
-    using (var client = ctx.CreateRequestSocket())
+    using (var server = new ResponseSocket("@tcp://127.0.0.1:5556"))
+    using (var client = new RequestSocket(">tcp://127.0.0.1:5556"))
     {
-        // connect the sockets
-        server.Bind("tcp://127.0.0.1:5556");
-        client.Connect("tcp://127.0.0.1:5556");
-
         // client sends message consisting of two frames
         Console.WriteLine("Client sending")
-        client.SendMore("A").Send("Hello");
+        client.SendMoreFrame("A").SendFrame("Hello");
 
         // server receives frames
         bool more = true;
         while (more)
         {
-            string frame = server.ReceiveString(out more);
+            string frame = server.ReceiveFrameString(out more);
             Console.WriteLine("Server received frame={0} more={1}",
                 frame, more);
         }
@@ -166,10 +157,10 @@ Just to solidify this information here is a complete example showing everything 
         msg.Append("Server");
 
         Console.WriteLine("Server sending");
-        server.SendMessage(msg);
+        server.SendMultipartMessage(msg);
 
         // client receives the message
-        msg = client.ReceiveMessage();
+        msg = client.ReceiveMultipartMessage();
         Console.WriteLine("Client received {0} frames", msg.FrameCount)
         foreach (var frame in msg)
             Console.WriteLine("Frame={0}", frame.ConvertToString());

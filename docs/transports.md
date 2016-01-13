@@ -19,23 +19,22 @@ TCP is the most commonly used protocol. As such, most example code will use TCP.
 Here is another trivial example:
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var server = context.CreateResponseSocket())
-    using (var client = context.CreateRequestSocket())
+    using (var server = new ResponseSocket())
+    using (var client = new CreateRequestSocket())
     {
         server.Bind("tcp://*:5555");
         client.Connect("tcp://localhost:5555");
 
         Console.WriteLine("Sending Hello");
-        client.Send("Hello");
+        client.SendFrame("Hello");
 
-        var message = server.ReceiveString();
+        var message = server.ReceiveFrameString();
         Console.WriteLine("Received {0}", message);
 
         Console.WriteLine("Sending World");
-        server.Send("World");
+        server.SendFrame("World");
 
-        message = client.ReceiveString();
+        message = client.ReceiveFrameString();
         Console.WriteLine("Received {0}", message);
     }
 
@@ -63,7 +62,7 @@ This is made up of three parts:
 
 ## InProc
 
-InProc (in-process) allows you to connect sockets running with the same process, or more precisely, within the same `NetMQContext`. This is actually quite useful, and you may do this for several reasons:
+InProc (in-process) allows you to connect sockets running with the same process. This is actually quite useful, and you may do this for several reasons:
 
 + To do away with shared state/locks. When you send data down the wire (socket) there is no shared state to worry about. Each end of the socket will have its own copy.
 + Being able to communicate between very disparate parts of a system.
@@ -75,9 +74,8 @@ NetMQ comes with several components that use InProc, such the as [Actor model](a
 For now let's demonstrate a simple InProc arrangement by sending a string (for simplicity) between two threads.
 
     :::csharp
-    using (var context = NetMQContext.Create())
-    using (var end1 = context.CreatePairSocket())
-    using (var end2 = context.CreatePairSocket())
+    using (var end1 = new PairSocket())
+    using (var end2 = new PairSocket())
     {
         end1.Bind("inproc://inproc-demo");
         end2.Connect("inproc://inproc-demo");
@@ -86,12 +84,12 @@ For now let's demonstrate a simple InProc arrangement by sending a string (for s
         {
             Console.WriteLine("ThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
             Console.WriteLine("Sending hello down the inproc pipeline");
-            end1.Send("Hello");
+            end1.SendFrame("Hello");
         });
         var end2Task = Task.Run(() =>
         {
             Console.WriteLine("ThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
-            var message = end2.ReceiveString();
+            var message = end2.ReceiveFrameString();
             Console.WriteLine(message);
         });
         Task.WaitAll(new[] { end1Task, end2Task });
@@ -115,7 +113,7 @@ Notice the format of the address string passed to `Bind()` and `Connect()`. For 
 This is made up of two parts:
 
 1. The protocol (`inproc`)
-2. The identifier (`inproc-demo` which can be any string, uniquely identified within the scope of the `NetMQContext`)
+2. The identifier (`inproc-demo` which can be any string, uniquely identified within the scope of the process)
 
 
 ## PGM
@@ -144,10 +142,9 @@ Here is a small demo that use PGM, as well as `PublisherSocket` and `SubscriberS
     :::csharp
     const int MegaBit = 1024;
     const int MegaByte = 1024;
-    using (NetMQContext context = NetMQContext.Create())
-    using (var pub = context.CreatePublisherSocket())
-    using (var sub1 = context.CreateSubscriberSocket())
-    using (var sub2 = context.CreateSubscriberSocket())
+    using (var pub = new PublisherSocket())
+    using (var sub1 = new SubscriberSocket())
+    using (var sub2 = new SubscriberSocket())
     {
         pub.Options.MulticastHops = 2;
         pub.Options.MulticastRate = 40 * MegaBit; // 40 megabit
