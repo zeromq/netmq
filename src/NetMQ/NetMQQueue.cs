@@ -27,8 +27,7 @@ namespace NetMQ
     /// <typeparam name="T">Type of the item in queue</typeparam>
     public class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
     {
-        private static byte[] s_empty = new byte[0];
-        private static int s_sequence = 0;
+        private static byte[] s_empty = new byte[0];        
         
         private readonly PairSocket m_writer;
         private readonly PairSocket m_reader;
@@ -64,9 +63,7 @@ namespace NetMQ
                 m_reader.ReceiveReady -= OnReceiveReady;
             });
 
-            string address = string.Format("inproc://NetMQQueue#{0}", Interlocked.Increment(ref s_sequence));
-            m_reader.Bind(address);
-            m_writer.Connect(address);
+            PairSocket.CreateSocketPair(out m_writer, out m_reader);            
 
             m_dequeueMsg = new Msg();
             m_dequeueMsg.InitEmpty();            

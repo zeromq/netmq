@@ -1,4 +1,5 @@
-﻿using NetMQ.Core;
+﻿using System.Threading;
+using NetMQ.Core;
 
 namespace NetMQ.Sockets
 {
@@ -7,6 +8,8 @@ namespace NetMQ.Sockets
     /// </summary>
     public class PairSocket : NetMQSocket
     {
+        static private int s_sequence = 0;
+
         /// <summary>
         /// Create a new PairSocket and attach socket to zero or more endpoints.               
         /// </summary>                
@@ -25,6 +28,17 @@ namespace NetMQ.Sockets
         internal PairSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
+        }
+
+        public static void CreateSocketPair(out PairSocket socket1, out PairSocket socket2)
+        {
+            string address = string.Format("inproc://NetMQSocketPair#{0}", Interlocked.Increment(ref s_sequence));
+
+            socket1 = new PairSocket();
+            socket1.Bind(address);
+
+            socket2 = new PairSocket();
+            socket2.Connect(address);
         }
     }
 }
