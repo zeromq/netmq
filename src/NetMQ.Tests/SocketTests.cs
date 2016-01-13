@@ -14,6 +14,7 @@ using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
+    [Obsolete("Declares AgainException as expected exception on some tests")]
     [TestFixture]
     public class SocketTests
     {
