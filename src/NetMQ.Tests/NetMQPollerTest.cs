@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Monitoring;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 #if !NET35
@@ -24,9 +25,8 @@ namespace NetMQ.Tests
         [Test]
         public void ResponsePoll()
         {
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var req = context.CreateRequestSocket())
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
             using (var poller = new NetMQPoller { rep })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -63,9 +63,8 @@ namespace NetMQ.Tests
             var acceptedEvent = new ManualResetEvent(false);
             var connectedEvent = new ManualResetEvent(false);
 
-            using (var context = NetMQContext.Create())
-            using (var rep = context.CreateResponseSocket())
-            using (var req = context.CreateRequestSocket())
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
             using (var poller = new NetMQPoller { PollTimeout = s_pollTimeout })
             using (var repMonitor = new NetMQMonitor(rep, "inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
             using (var reqMonitor = new NetMQMonitor(req, "inproc://req.inproc", SocketEvents.Connected))
@@ -105,11 +104,10 @@ namespace NetMQ.Tests
         [Test]
         public void AddSocketDuringWork()
         {
-            using (var context = NetMQContext.Create())
-            using (var router1 = context.CreateRouterSocket())
-            using (var router2 = context.CreateRouterSocket())
-            using (var dealer1 = context.CreateDealerSocket())
-            using (var dealer2 = context.CreateDealerSocket())
+            using (var router1 = new RouterSocket())
+            using (var router2 = new RouterSocket())
+            using (var dealer1 = new DealerSocket())
+            using (var dealer2 = new DealerSocket())
             using (var poller = new NetMQPoller { router1 })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -160,13 +158,12 @@ namespace NetMQ.Tests
         [Test]
         public void AddSocketAfterRemoving()
         {
-            using (var context = NetMQContext.Create())
-            using (var router1 = context.CreateRouterSocket())
-            using (var router2 = context.CreateRouterSocket())
-            using (var router3 = context.CreateRouterSocket())
-            using (var dealer1 = context.CreateDealerSocket())
-            using (var dealer2 = context.CreateDealerSocket())
-            using (var dealer3 = context.CreateDealerSocket())
+            using (var router1 = new RouterSocket())
+            using (var router2 = new RouterSocket())
+            using (var router3 = new RouterSocket())
+            using (var dealer1 = new DealerSocket())
+            using (var dealer2 = new DealerSocket())
+            using (var dealer3 = new DealerSocket())
             using (var poller = new NetMQPoller { router1, router2 })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -233,15 +230,14 @@ namespace NetMQ.Tests
         [Test]
         public void AddTwoSocketAfterRemoving()
         {
-            using (var context = NetMQContext.Create())
-            using (var router1 = context.CreateRouterSocket())
-            using (var router2 = context.CreateRouterSocket())
-            using (var router3 = context.CreateRouterSocket())
-            using (var router4 = context.CreateRouterSocket())
-            using (var dealer1 = context.CreateDealerSocket())
-            using (var dealer2 = context.CreateDealerSocket())
-            using (var dealer3 = context.CreateDealerSocket())
-            using (var dealer4 = context.CreateDealerSocket())
+            using (var router1 = new RouterSocket())
+            using (var router2 = new RouterSocket())
+            using (var router3 = new RouterSocket())
+            using (var router4 = new RouterSocket())
+            using (var dealer1 = new DealerSocket())
+            using (var dealer2 = new DealerSocket())
+            using (var dealer3 = new DealerSocket())
+            using (var dealer4 = new DealerSocket())
             using (var poller = new NetMQPoller { router1, router2 })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -336,13 +332,12 @@ namespace NetMQ.Tests
         [Test]
         public void RemoveSocket()
         {
-            using (var context = NetMQContext.Create())
-            using (var router1 = context.CreateRouterSocket())
-            using (var router2 = context.CreateRouterSocket())
-            using (var router3 = context.CreateRouterSocket())
-            using (var dealer1 = context.CreateDealerSocket())
-            using (var dealer2 = context.CreateDealerSocket())
-            using (var dealer3 = context.CreateDealerSocket())
+            using (var router1 = new RouterSocket())
+            using (var router2 = new RouterSocket())
+            using (var router3 = new RouterSocket())
+            using (var dealer1 = new DealerSocket())
+            using (var dealer2 = new DealerSocket())
+            using (var dealer3 = new DealerSocket())
             using (var poller = new NetMQPoller { router1, router2, router3 })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -423,9 +418,8 @@ namespace NetMQ.Tests
         {
             // TODO it is not really clear what this test is actually testing -- maybe split it into a few smaller tests
 
-            using (var context = NetMQContext.Create())
-            using (var router = context.CreateRouterSocket())
-            using (var dealer = context.CreateDealerSocket())
+            using (var router = new RouterSocket())
+            using (var dealer = new DealerSocket())
             using (var poller = new NetMQPoller { router })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -480,9 +474,8 @@ namespace NetMQ.Tests
         [Test]
         public void RemoveTimer()
         {
-            using (var context = NetMQContext.Create())
-            using (var router = context.CreateRouterSocket())
-            using (var dealer = context.CreateDealerSocket())
+            using (var router = new RouterSocket())
+            using (var dealer = new DealerSocket())
             using (var poller = new NetMQPoller { router })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -543,7 +536,6 @@ namespace NetMQ.Tests
                 }
             };
 
-            using (var context = NetMQContext.Create())
             using (var poller = new NetMQPoller { timer })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -621,7 +613,6 @@ namespace NetMQ.Tests
                 signal2.Set();
             };
 
-            using (var context = NetMQContext.Create())
             using (var poller = new NetMQPoller { timer1, timer2 })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -671,7 +662,6 @@ namespace NetMQ.Tests
                 count2++;
             };
 
-            using (var context = NetMQContext.Create())
             using (var poller = new NetMQPoller { timer1, timer2 })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -725,7 +715,6 @@ namespace NetMQ.Tests
                 }
             };
 
-            using (var context = NetMQContext.Create())
             using (var poller = new NetMQPoller { timer })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -760,7 +749,6 @@ namespace NetMQ.Tests
             };
 
             NetMQPoller poller;
-            using (var context = NetMQContext.Create())
             using (poller = new NetMQPoller { timer })
             {
                 poller.PollTimeout = s_pollTimeout;
@@ -780,8 +768,7 @@ namespace NetMQ.Tests
         [Test]
         public void NativeSocket()
         {
-            using (var context = NetMQContext.Create())
-            using (var streamServer = context.CreateStreamSocket())
+            using (var streamServer = new StreamSocket())
             using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 int port = streamServer.BindRandomPort("tcp://*");

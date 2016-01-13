@@ -91,7 +91,7 @@ namespace NetMQ
             }
             else
             {
-                m_poller = new NetMQPoller(TODO) { m_frontend, m_backend };
+                m_poller = new NetMQPoller { m_frontend, m_backend };
                 m_state = StateStarted;
                 m_poller.Run();
             }
