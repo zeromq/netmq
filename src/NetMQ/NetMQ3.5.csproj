@@ -130,6 +130,7 @@
     <Compile Include="Core\Utils\Selector.cs" />
     <Compile Include="Core\Utils\Signaler.cs" />
     <Compile Include="Core\Utils\SocketUtility.cs" />
+    <Compile Include="Core\Utils\StopSignaler.cs" />
     <Compile Include="Core\Utils\StringLib.cs" />
     <Compile Include="Core\Utils\Switch.cs" />
     <Compile Include="Core\Utils\YQueue.cs" />
