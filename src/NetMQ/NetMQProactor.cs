@@ -12,8 +12,8 @@ namespace NetMQ
     /// </summary>
     public class NetMQProactor : IDisposable
     {
-        private NetMQActor m_actor;
-        private NetMQSocket m_receiveSocket;
+        private readonly NetMQActor m_actor;
+        private readonly NetMQSocket m_receiveSocket;
         private readonly Action<NetMQSocket, NetMQMessage> m_handler;
         private Poller m_poller;
 
@@ -37,7 +37,7 @@ namespace NetMQ
             m_actor.Dispose();
         }
 
-        void Run(PairSocket shim)
+        private void Run(PairSocket shim)
         {
             shim.ReceiveReady += OnShimReady;
             m_receiveSocket.ReceiveReady += OnSocketReady;

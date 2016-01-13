@@ -20,12 +20,12 @@ namespace TitanicClientExample
     ///     the use or the client api should be extended for ease of use and
     ///      behavior in order to allow responsive apps
     /// </remark>
-    class TitanicExampleClient
+    internal class TitanicExampleClient
     {
         private static bool s_verbose;
         private static int s_runs = 1;
 
-        static void Main (string[] arguments)
+        private static void Main (string[] arguments)
         {
             const string address = "tcp://localhost:5555";
             //const string service_name = "echo";

@@ -38,7 +38,7 @@ namespace NetMQ.Core
 {
     internal abstract class SocketBase : Own, IPollEvents, Pipe.IPipeEvents
     {
-        class Endpoint
+        private class Endpoint
         {
             public Endpoint(Own own, Pipe pipe)
             {

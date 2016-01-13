@@ -9,8 +9,8 @@ namespace NetMQ.Tests.Security
     [TestFixture]
     public class SecureChannelTests
     {
-        SecureChannel m_clientSecureChannel;
-        SecureChannel m_serverSecureChannel;
+        private SecureChannel m_clientSecureChannel;
+        private SecureChannel m_serverSecureChannel;
 
         [SetUp]
         public void Setup()

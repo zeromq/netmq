@@ -6,7 +6,7 @@
     /// and overrides SetFromNetMQMessage/ToNetMQMessage to read/write that
     /// from the frames of a <see cref="NetMQMessage"/>.
     /// </summary>
-    class ClientKeyExchangeMessage : HandshakeMessage
+    internal class ClientKeyExchangeMessage : HandshakeMessage
     {
         /// <summary>
         /// The number of bytes within the EncryptedPreMasterSecret.

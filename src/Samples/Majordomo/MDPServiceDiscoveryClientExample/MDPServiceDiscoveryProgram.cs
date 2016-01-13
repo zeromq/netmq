@@ -6,14 +6,14 @@ using NetMQ;
 
 namespace MDPServiceDiscoveryClientExample
 {
-    class MDPServiceDiscoveryProgram
+    internal class MDPServiceDiscoveryProgram
     {
         /// <summary>
         ///     usage:  MDPServiceDiscoveryClientExample [-v]
         /// 
         ///     implements a MDPClient API usage with Service Discovery
         /// </summary>
-        static void Main (string[] args)
+        private static void Main (string[] args)
         {
             const string service_to_lookup = "echo";
             const string service_discovery = "mmi.service";

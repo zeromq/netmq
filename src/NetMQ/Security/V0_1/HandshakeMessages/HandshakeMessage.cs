@@ -42,7 +42,7 @@
     /// The abstract class HandshakeMessage holds a HandshakeType property and provides
     /// methods ToNetMQMessage and SetFromNetMQMessage, all intended to be overridden.
     /// </summary>
-    abstract class HandshakeMessage
+    internal abstract class HandshakeMessage
     {
         /// <summary>
         /// Get the part of the handshake-protocol that this HandshakeMessage represents.

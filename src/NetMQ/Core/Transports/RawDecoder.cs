@@ -50,7 +50,7 @@ namespace NetMQ.Core.Transports
             return false;
         }
 
-        bool RawMessageReady()
+        private bool RawMessageReady()
         {
             Debug.Assert(m_inProgress.Size != 0);
 

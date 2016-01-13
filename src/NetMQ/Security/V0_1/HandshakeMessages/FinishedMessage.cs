@@ -4,7 +4,7 @@
     /// The FinishedMessage is a HandshakeMessage with a HandshakeType of Finished.
     /// It holds a VerificationData property and a VerificationDataLength constant.
     /// </summary>
-    class FinishedMessage : HandshakeMessage
+    internal class FinishedMessage : HandshakeMessage
     {
         /// <summary>
         /// The number of bytes within the verification-data (which is a byte-array).
