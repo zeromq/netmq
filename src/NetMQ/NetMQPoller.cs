@@ -13,6 +13,8 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 #endif
 
+using Switch = NetMQ.Core.Utils.Switch;
+
 namespace NetMQ
 {
     public sealed class NetMQPoller :
@@ -24,7 +26,7 @@ namespace NetMQ
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
         private readonly Dictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
-        private readonly ManualResetEvent m_stoppedEvent = new ManualResetEvent(false);
+        private readonly Switch m_switch = new Switch(false);
         private readonly Selector m_selector = new Selector();
 
         private SelectItem[] m_pollSet;
@@ -150,7 +152,9 @@ namespace NetMQ
         /// <summary>
         /// Get whether this object is currently polling its sockets and timers.
         /// </summary>
-        public bool IsRunning { get; private set; }
+        public bool IsRunning {
+            get { return m_switch.Status; }
+        }
 
         /// <summary>
         /// Gets and sets the amount of time the internal poll operation should wait before timing out.
@@ -261,6 +265,8 @@ namespace NetMQ
 
             var thread = new Thread(Run) { Name = "NetMQPollerThread" };
             thread.Start();
+
+            m_switch.WaitForOn();
         }
 
         /// <summary>
@@ -281,8 +287,7 @@ namespace NetMQ
 #endif
             m_isStopRequested = false;
 
-            m_stoppedEvent.Reset();
-            IsRunning = true;
+            m_switch.SwitchOn();
             try
             {
                 // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barrier
@@ -408,14 +413,13 @@ namespace NetMQ
                 }
                 finally
                 {
-                    IsRunning = false;
 #if NET35
                     m_pollerThread = null;
 #else
                     m_isSchedulerThread.Value = false;
                     SynchronizationContext.SetSynchronizationContext(oldSynchronisationContext);
 #endif
-                    m_stoppedEvent.Set();
+                    m_switch.SwitchOff();
                 }
             }
         }
@@ -438,7 +442,7 @@ namespace NetMQ
             if (!m_isSchedulerThread.Value)
 #endif
             {
-                m_stoppedEvent.WaitOne();
+                m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
             }
         }
@@ -532,11 +536,11 @@ namespace NetMQ
             if (IsRunning)
             {
                 m_isStopRequested = true;
-                m_stoppedEvent.WaitOne();
+                m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
             }
 
-            m_stoppedEvent.Close();
+            m_switch.Dispose();
 
 #if !NET35
             m_tasksQueue.Dispose();
