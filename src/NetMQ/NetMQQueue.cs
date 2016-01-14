@@ -43,8 +43,7 @@ namespace NetMQ
         public NetMQQueue(int capacity = 0)
         {
             m_queue = new ConcurrentQueue<T>();
-            m_writer = new PairSocket();
-            m_reader = new PairSocket();
+            PairSocket.CreateSocketPair(out m_writer, out m_reader);
 
             if (capacity != 0)
             {
@@ -61,9 +60,7 @@ namespace NetMQ
             }, () =>
             {
                 m_reader.ReceiveReady -= OnReceiveReady;
-            });
-
-            PairSocket.CreateSocketPair(out m_writer, out m_reader);            
+            });            
 
             m_dequeueMsg = new Msg();
             m_dequeueMsg.InitEmpty();            
