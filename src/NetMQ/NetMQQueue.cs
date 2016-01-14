@@ -34,6 +34,9 @@ namespace NetMQ
         /// <param name="capacity">The capacity of the queue, use zero for unlimited</param>
         public NetMQQueue(int capacity = 0)
         {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException("capacity");
+
             m_queue = new ConcurrentQueue<T>();
             PairSocket.CreateSocketPair(out m_writer, out m_reader);
 
