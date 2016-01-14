@@ -41,11 +41,9 @@ namespace NetMQ
         #region Scheduling
 
 #if !NET35
-        private static int s_nextPollerId;
 
         private readonly NetMQQueue<Task> m_tasksQueue = new NetMQQueue<Task>();
         private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);
-        private readonly int m_pollerId = Interlocked.Increment(ref s_nextPollerId);
 
         /// <summary>
         /// Get whether the caller is running on the scheduler's thread.
