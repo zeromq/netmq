@@ -37,14 +37,7 @@ namespace NetMQ
             m_queue = new ConcurrentQueue<T>();
             PairSocket.CreateSocketPair(out m_writer, out m_reader);
 
-            if (capacity != 0)
-            {
-                m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
-            }
-            else
-            {
-                m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = 0;
-            }
+            m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
 
             m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(() =>
             {
