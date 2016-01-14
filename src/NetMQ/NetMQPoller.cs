@@ -7,10 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Core.Utils;
-using NetMQ.Sockets;
 #if !NET35
-using NetMQ.Core;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
 #endif
 
@@ -23,7 +20,7 @@ namespace NetMQ
         TaskScheduler,
 #endif
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
-    {        
+    {
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
         private readonly Dictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
@@ -33,7 +30,7 @@ namespace NetMQ
 
         private SelectItem[] m_pollSet;
         private NetMQSocket[] m_pollact;
-        
+
         private volatile bool m_isPollSetDirty = true;
         private int m_disposeState = (int)DisposeState.Undisposed;
 
@@ -44,11 +41,9 @@ namespace NetMQ
         #region Scheduling
 
 #if !NET35
-        private static int s_nextPollerId;
 
         private readonly NetMQQueue<Task> m_tasksQueue = new NetMQQueue<Task>();
-        private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);        
-        private readonly int m_pollerId = Interlocked.Increment(ref s_nextPollerId);
+        private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);
 
         /// <summary>
         /// Get whether the caller is running on the scheduler's thread.
@@ -111,7 +106,7 @@ namespace NetMQ
                 throw new ArgumentNullException("task");
             CheckDisposed();
 
-            m_tasksQueue.Enqueue(task);            
+            m_tasksQueue.Enqueue(task);
         }
 
         private void Run(Action action)
@@ -131,7 +126,7 @@ namespace NetMQ
         #endregion
 
         public NetMQPoller()
-        {                     
+        {
             m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
 
 #if !NET35
@@ -139,24 +134,25 @@ namespace NetMQ
             m_tasksQueue.ReceiveReady += delegate
             {
                 Debug.Assert(m_disposeState != (int)DisposeState.Disposed);
-                Debug.Assert(IsRunning);                
+                Debug.Assert(IsRunning);
 
                 // Try to dequeue and execute all pending tasks
                 Task task;
                 while (m_tasksQueue.TryDequeue(out task, TimeSpan.Zero))
                     TryExecuteTask(task);
-            };         
+            };
 
-            m_sockets.Add(((ISocketPollable)m_tasksQueue).Socket);            
+            m_sockets.Add(((ISocketPollable)m_tasksQueue).Socket);
 #endif
         }
 
         /// <summary>
         /// Get whether this object is currently polling its sockets and timers.
         /// </summary>
-        public bool IsRunning {
+        public bool IsRunning
+        {
             get { return m_switch.Status; }
-        }      
+        }
 
         #region Add / Remove
 
@@ -301,8 +297,8 @@ namespace NetMQ
 
                     var pollStart = Clock.NowMs();
 
-                    // Set tickless to infinity
-                    long tickless = pollStart + (long) int.MaxValue;
+                    // Set tickless to "infinity"
+                    long tickless = pollStart + int.MaxValue;
 
                     // Find the When-value of the earliest timer..
                     foreach (var timer in m_timers)
@@ -534,7 +530,7 @@ namespace NetMQ
             }
 
             m_switch.Dispose();
-            m_stopSignaler.Dispose();            
+            m_stopSignaler.Dispose();
 #if !NET35
             m_tasksQueue.Dispose();
 #endif

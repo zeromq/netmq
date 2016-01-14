@@ -1,17 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-using NetMQ.Core.Utils;
 using NetMQ.Sockets;
 using System.Collections;
 
 namespace NetMQ
 {
-    public class NetMQQueueEventArgs<T> : EventArgs
+    public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
         public NetMQQueueEventArgs(NetMQQueue<T> queue)
         {
@@ -25,34 +20,27 @@ namespace NetMQ
     /// Multi producer singler consumer queue which you can poll on with a Poller.
     /// </summary>
     /// <typeparam name="T">Type of the item in queue</typeparam>
-    public class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
+    public sealed class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
     {
-        private static byte[] s_empty = new byte[0];        
-        
         private readonly PairSocket m_writer;
         private readonly PairSocket m_reader;
         private readonly ConcurrentQueue<T> m_queue;
-        private readonly EventDelegator<NetMQQueueEventArgs<T>> m_eventDelegator;        
+        private readonly EventDelegator<NetMQQueueEventArgs<T>> m_eventDelegator;
         private Msg m_dequeueMsg;
 
         /// <summary>
         /// Create new NetMQQueue.
         /// </summary>
-        /// <param name="context">NetMQContext must be provided to the queue</param>
         /// <param name="capacity">The capacity of the queue, use zero for unlimited</param>
         public NetMQQueue(int capacity = 0)
         {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException("capacity");
+
             m_queue = new ConcurrentQueue<T>();
             PairSocket.CreateSocketPair(out m_writer, out m_reader);
 
-            if (capacity != 0)
-            {
-                m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
-            }
-            else
-            {
-                m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = 0;
-            }
+            m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
 
             m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(() =>
             {
@@ -60,10 +48,10 @@ namespace NetMQ
             }, () =>
             {
                 m_reader.ReceiveReady -= OnReceiveReady;
-            });            
+            });
 
             m_dequeueMsg = new Msg();
-            m_dequeueMsg.InitEmpty();            
+            m_dequeueMsg.InitEmpty();
         }
 
         private void OnReceiveReady(object sender, NetMQSocketEventArgs e)
@@ -128,15 +116,15 @@ namespace NetMQ
         public void Enqueue(T value)
         {
             m_queue.Enqueue(value);
-            
+
             Msg msg = new Msg();
-            msg.InitGC(s_empty, 0);
+            msg.InitGC(EmptyArray<byte>.Instance, 0);
 
             lock (m_writer)
             {
                 m_writer.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
-            }            
-            msg.Close();        
+            }
+            msg.Close();
         }
 
         #region IENumerator methods

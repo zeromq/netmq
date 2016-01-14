@@ -147,7 +147,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <returns></returns>
         public bool RemoveHelper([NotNull] Pipe pipe, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
         {
-            return RemoveHelper(pipe, new byte[0], 0, 0, func, arg);
+            return RemoveHelper(pipe, EmptyArray<byte>.Instance, 0, 0, func, arg);
         }
 
         private bool RemoveHelper([NotNull] Pipe pipe, [NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)

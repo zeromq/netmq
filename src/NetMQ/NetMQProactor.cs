@@ -49,8 +49,8 @@ namespace NetMQ
 
         private void OnShimReady(object sender, NetMQSocketEventArgs e)
         {
-            string commad = e.Socket.ReceiveFrameString();
-            if (commad == NetMQActor.EndShimMessage)
+            string command = e.Socket.ReceiveFrameString();
+            if (command == NetMQActor.EndShimMessage)
             {
                 m_poller.Stop();
             }

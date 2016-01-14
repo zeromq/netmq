@@ -41,7 +41,11 @@ namespace NetMQ.Tests
             {
                 var manualResetEvent = new ManualResetEvent(false);
 
-                queue.ReceiveReady += (sender, args) => { manualResetEvent.Set(); };
+                queue.ReceiveReady += (sender, args) =>
+                {
+                    Assert.AreEqual(1, queue.Dequeue());
+                    manualResetEvent.Set();
+                };
 
                 poller.RunAsync();
 

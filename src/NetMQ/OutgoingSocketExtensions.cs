@@ -719,8 +719,6 @@ namespace NetMQ
 
         #region Sending an empty frame
 
-        private static readonly byte[] s_empty = new byte[0];
-
         #region Blocking
 
         /// <summary>
@@ -730,7 +728,7 @@ namespace NetMQ
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         public static void SendFrameEmpty([NotNull] this IOutgoingSocket socket, bool more = false)
         {
-            SendFrame(socket, s_empty, more);
+            SendFrame(socket, EmptyArray<byte>.Instance, more);
         }
 
 
@@ -743,7 +741,7 @@ namespace NetMQ
         [NotNull]
         public static IOutgoingSocket SendMoreFrameEmpty([NotNull] this IOutgoingSocket socket)
         {
-            SendFrame(socket, s_empty, true);
+            SendFrame(socket, EmptyArray<byte>.Instance, true);
 
             return socket;
         }
@@ -762,7 +760,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrameEmpty([NotNull] this IOutgoingSocket socket, TimeSpan timeout, bool more = false)
         {
-            return TrySendFrame(socket, timeout, s_empty, more);
+            return TrySendFrame(socket, timeout, EmptyArray<byte>.Instance, more);
         }
 
         #endregion
@@ -778,7 +776,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrameEmpty([NotNull] this IOutgoingSocket socket, bool more = false)
         {
-            return TrySendFrame(socket, s_empty, more);
+            return TrySendFrame(socket, EmptyArray<byte>.Instance, more);
         }
 
         #endregion

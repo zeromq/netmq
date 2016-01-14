@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NetMQ.Sockets;
 
 namespace NetMQ.Core.Utils
 {
-    class StopSignaler : ISocketPollable, IDisposable
+    internal class StopSignaler : ISocketPollable, IDisposable
     {
-        private PairSocket m_writer;
-        private PairSocket m_reader;
+        private readonly PairSocket m_writer;
+        private readonly PairSocket m_reader;
 
         public StopSignaler()
         {
@@ -29,7 +26,7 @@ namespace NetMQ.Core.Utils
         {
             get
             {
-                return m_reader;                
+                return m_reader;
             }
         }
 
@@ -50,6 +47,6 @@ namespace NetMQ.Core.Utils
             {
                 m_writer.SignalOK();
             }
-        }        
+        }
     }
 }

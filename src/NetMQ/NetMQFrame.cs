@@ -29,7 +29,7 @@ namespace NetMQ
         {
             if (buffer == null)
             {
-                buffer = new byte[0];
+                buffer = EmptyArray<byte>.Instance;
             }
 
             Buffer = buffer;
