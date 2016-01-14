@@ -3,7 +3,7 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Core.Utils
 {
-    class StopSignaler : ISocketPollable, IDisposable
+    internal class StopSignaler : ISocketPollable, IDisposable
     {
         private readonly PairSocket m_writer;
         private readonly PairSocket m_reader;
