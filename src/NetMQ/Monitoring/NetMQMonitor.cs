@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 #if !NET35
 using System.Threading.Tasks;

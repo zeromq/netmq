@@ -7,10 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Core.Utils;
-using NetMQ.Sockets;
 #if !NET35
-using NetMQ.Core;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
 #endif
 
