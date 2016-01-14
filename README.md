@@ -24,7 +24,7 @@ The NetMQ documentation can be found at [netmq.readthedocs.org](http://netmq.rea
 
 There are also a few blog posts available, which you can read about here:
 
-+ [Somdorons blog](http://somdoron.com/category/netmq/)
++ [Somdoron's blog](http://somdoron.com/category/netmq/)
 + [Hello World](http://sachabarbs.wordpress.com/2014/08/19/zeromq-1-introduction/)
 + [The Socket Types](http://sachabarbs.wordpress.com/2014/08/21/zeromq-2-the-socket-types-2/)
 + [Socket Options/Identity and SendMore](http://sachabarbs.wordpress.com/2014/08/26/zeromq-3-socket-optionsidentity-and-sendmore/)
