@@ -6,7 +6,7 @@ using System.Collections;
 
 namespace NetMQ
 {
-    public class NetMQQueueEventArgs<T> : EventArgs
+    public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
         public NetMQQueueEventArgs(NetMQQueue<T> queue)
         {
@@ -20,7 +20,7 @@ namespace NetMQ
     /// Multi producer singler consumer queue which you can poll on with a Poller.
     /// </summary>
     /// <typeparam name="T">Type of the item in queue</typeparam>
-    public class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
+    public sealed class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
     {
         private static byte[] s_empty = new byte[0];
 
