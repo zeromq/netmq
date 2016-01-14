@@ -5,8 +5,8 @@ namespace NetMQ.Core.Utils
 {
     class StopSignaler : ISocketPollable, IDisposable
     {
-        private PairSocket m_writer;
-        private PairSocket m_reader;
+        private readonly PairSocket m_writer;
+        private readonly PairSocket m_reader;
 
         public StopSignaler()
         {
