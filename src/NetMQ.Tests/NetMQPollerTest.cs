@@ -136,13 +136,10 @@ namespace NetMQ.Tests
                 poller.RunAsync();
 
                 dealer1.SendFrame("1");
-                Assert.IsTrue(signal1.WaitOne(300));
-
-                // Give the pollset a chance to update
-                Thread.Sleep(50);
+                Assert.IsTrue(signal1.WaitOne(300));                
 
                 dealer2.SendFrame("2");
-                Assert.IsTrue(signal1.WaitOne(300));
+                Assert.IsTrue(signal2.WaitOne(300));
 
                 poller.Stop();
 
