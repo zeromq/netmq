@@ -22,8 +22,6 @@ namespace NetMQ
     /// <typeparam name="T">Type of the item in queue</typeparam>
     public sealed class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
     {
-        private static byte[] s_empty = new byte[0];
-
         private readonly PairSocket m_writer;
         private readonly PairSocket m_reader;
         private readonly ConcurrentQueue<T> m_queue;
@@ -124,7 +122,7 @@ namespace NetMQ
             m_queue.Enqueue(value);
 
             Msg msg = new Msg();
-            msg.InitGC(s_empty, 0);
+            msg.InitGC(EmptyArray<byte>.Instance, 0);
 
             lock (m_writer)
             {

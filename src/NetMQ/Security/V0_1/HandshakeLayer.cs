@@ -456,7 +456,7 @@ namespace NetMQ.Security.V0_1
             var finishedMessage = new FinishedMessage();
             finishedMessage.SetFromNetMQMessage(incomingMessage);
 
-            m_remoteHash.TransformFinalBlock(new byte[0], 0, 0);
+            m_remoteHash.TransformFinalBlock(EmptyArray<byte>.Instance, 0, 0);
 
             byte[] seed = m_remoteHash.Hash;
             m_remoteHash.Dispose();
@@ -491,7 +491,7 @@ namespace NetMQ.Security.V0_1
 
         private void AddFinished(OutgoingMessageBag outgoingMessages)
         {
-            m_localHash.TransformFinalBlock(new byte[0], 0, 0);
+            m_localHash.TransformFinalBlock(EmptyArray<byte>.Instance, 0, 0);
 
             byte[] seed = m_localHash.Hash;
             m_localHash.Dispose();

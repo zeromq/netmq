@@ -138,6 +138,7 @@
     <Compile Include="Core\ZmqSocketOption.cs" />
     <Compile Include="Core\ZObject.cs" />
     <Compile Include="DnsEndPoint.cs" />
+    <Compile Include="EmptyArray.cs" />
     <Compile Include="Endianness.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="EventDelegator.cs" />

@@ -262,7 +262,7 @@ namespace NetMQ.Security.V0_1
             }
             else
             {
-                mac = new byte[0];
+                mac = EmptyArray<byte>.Instance;
             }
 
             int length = plainBytes.Length + SecurityParameters.MACLength;
