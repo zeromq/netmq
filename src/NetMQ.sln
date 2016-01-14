@@ -140,13 +140,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D
 		..\docs\message.md = ..\docs\message.md
 		..\mkdocs.yml = ..\mkdocs.yml
 		..\docs\poller.md = ..\docs\poller.md
+		..\docs\proactor.md = ..\docs\proactor.md
 		..\docs\pub-sub.md = ..\docs\pub-sub.md
 		..\docs\push-pull.md = ..\docs\push-pull.md
+		..\docs\queue.md = ..\docs\queue.md
 		..\docs\receiving-sending.md = ..\docs\receiving-sending.md
 		..\docs\request-response.md = ..\docs\request-response.md
 		..\docs\router-dealer.md = ..\docs\router-dealer.md
 		..\docs\scheduler.md = ..\docs\scheduler.md
 		..\docs\stream.md = ..\docs\stream.md
+		..\docs\timer.md = ..\docs\timer.md
 		..\docs\transports.md = ..\docs\transports.md
 		..\docs\xpub-xsub.md = ..\docs\xpub-xsub.md
 	EndProjectSection

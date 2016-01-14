@@ -11,6 +11,9 @@ pages:
   - Poller: poller.md
   - Actor: actor.md
   - Beacon: beacon.md
+  - Timer: timer.md
+  - Queue: queue.md
+  - Proactor: proactor.md
 - Patterns:
   - Request-Response: request-response.md
   - Pub-Sub: pub-sub.md
