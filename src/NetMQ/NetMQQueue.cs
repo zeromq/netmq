@@ -33,7 +33,6 @@ namespace NetMQ
         /// <summary>
         /// Create new NetMQQueue.
         /// </summary>
-        /// <param name="context">NetMQContext must be provided to the queue</param>
         /// <param name="capacity">The capacity of the queue, use zero for unlimited</param>
         public NetMQQueue(int capacity = 0)
         {
