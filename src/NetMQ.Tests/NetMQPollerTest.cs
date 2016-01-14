@@ -429,7 +429,7 @@ namespace NetMQ.Tests
                 const int timerIntervalMillis = 100;
 
                 var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
-                timer.Elapsed += (a, s) =>
+                timer.Elapsed += (s, a) =>
                 {
                     // the timer should jump before the message
                     Assert.IsFalse(messageArrived);
@@ -469,7 +469,7 @@ namespace NetMQ.Tests
                 bool timerTriggered = false;
 
                 var timer = new NetMQTimer(TimeSpan.FromMilliseconds(100));
-                timer.Elapsed += (a, s) => { timerTriggered = true; };
+                timer.Elapsed += (s, a) => { timerTriggered = true; };
 
                 // The timer will fire after 100ms
                 poller.Add(timer);
@@ -508,7 +508,7 @@ namespace NetMQ.Tests
             const int timerIntervalMillis = 20;
 
             var timer = new NetMQTimer(TimeSpan.FromMilliseconds(timerIntervalMillis));
-            timer.Elapsed += (a, s) =>
+            timer.Elapsed += (s, a) =>
             {
                 count++;
 
@@ -539,7 +539,7 @@ namespace NetMQ.Tests
             int count = 0;
 
             var timer = new NetMQTimer(TimeSpan.FromMilliseconds(50));
-            timer.Elapsed += (a, s) =>
+            timer.Elapsed += (s, a) =>
             {
                 count++;
 
@@ -579,7 +579,7 @@ namespace NetMQ.Tests
             var signal1 = new ManualResetEvent(false);
             var signal2 = new ManualResetEvent(false);
 
-            timer1.Elapsed += (a, s) =>
+            timer1.Elapsed += (s, a) =>
             {
                 count++;
                 timer1.Enable = false;
@@ -618,7 +618,7 @@ namespace NetMQ.Tests
             int count = 0;
             int count2 = 0;
 
-            timer1.Elapsed += (a, s) =>
+            timer1.Elapsed += (s, a) =>
             {
                 count++;
 
@@ -668,7 +668,7 @@ namespace NetMQ.Tests
             long length1 = 0;
             long length2 = 0;
 
-            timer.Elapsed += (a, s) =>
+            timer.Elapsed += (s, a) =>
             {
                 count++;
 
@@ -719,7 +719,7 @@ namespace NetMQ.Tests
 
             var count = 0;
 
-            timer.Elapsed += (a, s) =>
+            timer.Elapsed += (s, a) =>
             {
                 if (count++ == 5)
                     signal.Set();
