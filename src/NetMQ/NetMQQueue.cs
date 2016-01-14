@@ -22,12 +22,12 @@ namespace NetMQ
     /// <typeparam name="T">Type of the item in queue</typeparam>
     public class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
     {
-        private static byte[] s_empty = new byte[0];        
-        
+        private static byte[] s_empty = new byte[0];
+
         private readonly PairSocket m_writer;
         private readonly PairSocket m_reader;
         private readonly ConcurrentQueue<T> m_queue;
-        private readonly EventDelegator<NetMQQueueEventArgs<T>> m_eventDelegator;        
+        private readonly EventDelegator<NetMQQueueEventArgs<T>> m_eventDelegator;
         private Msg m_dequeueMsg;
 
         /// <summary>
@@ -54,10 +54,10 @@ namespace NetMQ
             }, () =>
             {
                 m_reader.ReceiveReady -= OnReceiveReady;
-            });            
+            });
 
             m_dequeueMsg = new Msg();
-            m_dequeueMsg.InitEmpty();            
+            m_dequeueMsg.InitEmpty();
         }
 
         private void OnReceiveReady(object sender, NetMQSocketEventArgs e)
@@ -122,15 +122,15 @@ namespace NetMQ
         public void Enqueue(T value)
         {
             m_queue.Enqueue(value);
-            
+
             Msg msg = new Msg();
             msg.InitGC(s_empty, 0);
 
             lock (m_writer)
             {
                 m_writer.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
-            }            
-            msg.Close();        
+            }
+            msg.Close();
         }
 
         #region IENumerator methods

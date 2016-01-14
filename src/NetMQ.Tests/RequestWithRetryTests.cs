@@ -68,7 +68,7 @@ namespace NetMQ.Tests
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
                     Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
-                        DateTime.Now);                    
+                        DateTime.Now);
                 });
 
                 using (serverProactor)
@@ -112,7 +112,7 @@ namespace NetMQ.Tests
                     {
                         // reply same message
                         socket.SendMultipartMessage(message);
-                    }                    
+                    }
                 });
 
                 using (serverProactor)
@@ -126,15 +126,15 @@ namespace NetMQ.Tests
                     Assert.AreEqual("Hi", responseString);
                 }
             }
-        }        
-     
+        }
+
         [Test]
         public void RequestResponseStringWithRetryFails()
         {
             const string address = "tcp://127.0.0.1:50002";
             const string pubAddress = "tcp://127.0.0.1:60002";
             const int numTries = 5;
-            var requestTimeout = TimeSpan.FromMilliseconds(100);            
+            var requestTimeout = TimeSpan.FromMilliseconds(100);
 
             using (var progressPublisher = new PublisherSocket(pubAddress))
             using (var progressSubscriber = new SubscriberSocket(pubAddress))
@@ -158,7 +158,7 @@ namespace NetMQ.Tests
                     Assert.IsNull(responseMessage);
                 }
             }
-        }        
+        }
 
         [Test]
         public void RequestResponseStringWithRetrySucceedsNotOnFirstTry()
@@ -166,7 +166,7 @@ namespace NetMQ.Tests
             const string address = "tcp://127.0.0.1:50001";
             const string pubAddress = "tcp://127.0.0.1:60001";
             const int numTries = 5;
-            var requestTimeout = TimeSpan.FromMilliseconds(100);            
+            var requestTimeout = TimeSpan.FromMilliseconds(100);
 
             using (var progressPublisher = new PublisherSocket(pubAddress))
             using (var progressSubscriber = new SubscriberSocket(pubAddress))
@@ -196,7 +196,7 @@ namespace NetMQ.Tests
                 using (progressProactor)
                 {
                     var responseMessage = RequestSocket.RequestResponseStringWithRetry(address,
-                        "Hi", numTries, requestTimeout, progressPublisher);                                     
+                        "Hi", numTries, requestTimeout, progressPublisher);
                     Assert.AreEqual("Hi", responseMessage);
                 }
             }

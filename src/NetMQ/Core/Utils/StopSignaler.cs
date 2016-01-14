@@ -26,7 +26,7 @@ namespace NetMQ.Core.Utils
         {
             get
             {
-                return m_reader;                
+                return m_reader;
             }
         }
 
@@ -47,6 +47,6 @@ namespace NetMQ.Core.Utils
             {
                 m_writer.SignalOK();
             }
-        }        
+        }
     }
 }

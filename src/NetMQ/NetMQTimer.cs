@@ -126,7 +126,7 @@ namespace NetMQ
         {
             if (!Enable)
                 Enable = true;
-            else            
+            else
                 When = Clock.NowMs() + Interval;
         }
 
