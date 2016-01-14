@@ -297,8 +297,8 @@ namespace NetMQ
 
                     var pollStart = Clock.NowMs();
 
-                    // Set tickless to infinity
-                    long tickless = pollStart + (long) int.MaxValue;
+                    // Set tickless to "infinity"
+                    long tickless = pollStart + int.MaxValue;
 
                     // Find the When-value of the earliest timer..
                     foreach (var timer in m_timers)
