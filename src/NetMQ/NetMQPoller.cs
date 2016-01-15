@@ -528,8 +528,7 @@ namespace NetMQ
                 m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
             }
-
-            m_switch.Dispose();
+            
             m_stopSignaler.Dispose();
 #if !NET35
             m_tasksQueue.Dispose();
