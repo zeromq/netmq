@@ -250,11 +250,10 @@ namespace NetMQ.Tests
                 back.Bind("inproc://backend");
 
                 var proxy = new Proxy(front, back, null, poller);
-
-                poller.RunAsync();
-
                 proxy.Start();
 
+                poller.RunAsync();
+                
                 using (var client = new RequestSocket())
                 using (var server = new ResponseSocket())
                 {
