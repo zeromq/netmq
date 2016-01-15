@@ -702,8 +702,7 @@ namespace NetMQ
                 if (m_switch.Status)
                     Cancel(true);
 
-                m_disposed = true;
-                m_switch.Dispose();
+                m_disposed = true;                
             }
         }
 

@@ -3,58 +3,75 @@ using System.Threading;
 
 namespace NetMQ.Core.Utils
 {
-    internal class Switch : IDisposable
+    internal class Switch
     {
-        private ManualResetEvent m_offEvent;
-        private ManualResetEvent m_onEvent;
+        private object m_sync;
         private volatile bool m_status;
 
         public Switch(bool status)
         {
-            m_offEvent = new ManualResetEvent(!status);
-            m_onEvent = new ManualResetEvent(status);
+            m_sync = new object();
             m_status = status;
         }
 
         public bool Status
         {
-            get { return m_status; }
+            get
+            {
+                lock (m_sync)
+                {
+                    return m_status;
+                }                
+            }
         }
 
         public void WaitForOff()
         {
-            m_offEvent.WaitOne();
+            lock (m_sync)
+            {
+                // while the status is on
+                while (m_status)
+                {
+                    Monitor.Wait(m_sync);
+                }
+            }
         }
 
         public void WaitForOn()
         {
-            m_onEvent.WaitOne();
+            lock (m_sync)
+            {
+                // while the status is off
+                while (!m_status)
+                {
+                    Monitor.Wait(m_sync);
+                }
+            }
         }
 
         public void SwitchOn()
         {
-            if (!m_status)
-            {                
-                m_offEvent.Reset();
-                m_status = true;
-                m_onEvent.Set();
+            lock (m_sync)
+            {
+                if (!m_status)
+                {                  
+                    m_status = true;
+                    Monitor.PulseAll(m_sync);
+                }
             }
+            
         }
 
         public void SwitchOff()
         {
-            if (m_status)
+            lock (m_sync)
             {
-                m_onEvent.Reset();
-                m_status = false;
-                m_offEvent.Set();
+                if (m_status)
+                {
+                    m_status = false;
+                    Monitor.PulseAll(m_sync);
+                }
             }
-        }
-
-        public void Dispose()
-        {
-            m_offEvent.Close();
-            m_onEvent.Close();
         }
     }
 }
