@@ -15,8 +15,12 @@ namespace BeaconDemo
     {
         static void Main(string[] args)
         {
+            Console.Title = "NetMQ Beacon Demo";
+
             // create a bus using broadcast port 9999
             var actor = Bus.Create(9999);
+
+            Console.Title = string.Format("NetMQ Beacon Demo - Beacon from port {0}", B );
 
             // beacons publish every second, so wait a little longer than that to
             // let all the other nodes connect to our new node

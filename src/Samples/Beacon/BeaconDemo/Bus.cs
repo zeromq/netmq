@@ -53,6 +53,11 @@ namespace BeaconDemo
 
         private readonly int m_broadcastPort;
 
+        public int BroadcastPort
+        {
+            get { return m_broadcastPort; }
+        }
+
         private NetMQActor m_actor;
 
         private PublisherSocket m_publisher;
@@ -98,17 +103,21 @@ namespace BeaconDemo
                 // we bind to a random port, we will later publish this port
                 // using the beacon
                 int randomPort = m_subscriber.BindRandomPort("tcp://*");
+                Console.WriteLine("Subscriber is bound to {0}", m_subscriber.Options.LastEndpoint);
 
                 // listen to incoming messages from other publishers
                 m_subscriber.ReceiveReady += OnSubscriberReady;
 
                 // configure the beacon to listen on the broadcast port
+                Console.WriteLine("Beacon is being configured to port {0}", m_broadcastPort);
                 m_beacon.Configure(m_broadcastPort);
 
                 // publishing the random port to all other nodes
+                Console.WriteLine("Beacon is publishing its port {0}", randomPort);
                 m_beacon.Publish(randomPort.ToString(), TimeSpan.FromSeconds(1));
 
                 // Subscribe to all beacon on the port
+                Console.WriteLine("Beacon is subscribing to all beacons on port {0}", m_broadcastPort);
                 m_beacon.Subscribe("");
 
                 // listen to incoming beacons
@@ -164,9 +173,11 @@ namespace BeaconDemo
             // let's check if we already know about the beacon
             string nodeName;
             int port = Convert.ToInt32(m_beacon.ReceiveString(out nodeName));
+            Console.WriteLine("Got another beacon nodeName {0} on port {1}", nodeName, port);
 
             // remove the port from the peer name
             nodeName = nodeName.Replace(":" + m_broadcastPort, "");
+            Console.WriteLine("nodeName changed to {0}", nodeName);
 
             NodeKey node = new NodeKey(nodeName, port);
 
@@ -175,10 +186,13 @@ namespace BeaconDemo
             {
                 // we have a new node, let's add it and connect to subscriber
                 m_nodes.Add(node, DateTime.Now);
-                m_publisher.Connect(string.Format("tcp://{0}:{1}", nodeName, port));
+                var address = string.Format("tcp://{0}:{1}", nodeName, port);
+                Console.WriteLine("Beacon publisher connecting to {0}", address);
+                m_publisher.Connect(address);
             }
             else
             {
+                Console.WriteLine("NodeName={0} is not a new beacon.");
                 m_nodes[node] = DateTime.Now;
             }
         }
