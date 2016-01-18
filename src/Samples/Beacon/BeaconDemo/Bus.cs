@@ -14,6 +14,8 @@ namespace BeaconDemo
         // Actor Protocol
         public const string PublishCommand = "P";
 
+        public const string GetHostNameCommand = "GetHostName";
+
         // Dead nodes timeout
         private readonly TimeSpan m_deadNodeTimeout = TimeSpan.FromSeconds(10);
 
@@ -49,6 +51,11 @@ namespace BeaconDemo
                     return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ Port;
                 }
             }
+
+            public override string ToString()
+            {
+                return string.Format("{0}:{1}", Name, Port);
+            }
         }
 
         private readonly int m_broadcastPort;
@@ -58,14 +65,14 @@ namespace BeaconDemo
             get { return m_broadcastPort; }
         }
 
-        private NetMQActor m_actor;
+        private readonly NetMQActor m_actor;
 
         private PublisherSocket m_publisher;
         private SubscriberSocket m_subscriber;
         private NetMQBeacon m_beacon;
         private NetMQPoller m_poller;
         private PairSocket m_shim;
-        private Dictionary<NodeKey, DateTime> m_nodes;
+        private readonly Dictionary<NodeKey, DateTime> m_nodes;
 
         private Bus(int broadcastPort)
         {
@@ -157,6 +164,10 @@ namespace BeaconDemo
                 NetMQMessage message = m_shim.ReceiveMultipartMessage();
                 m_publisher.SendMultipartMessage(message);
             }
+            else if (command == GetHostNameCommand)
+            {
+                m_shim.SendFrame(m_beacon.Hostname);
+            }
         }
 
         private void OnSubscriberReady(object sender, NetMQSocketEventArgs e)
@@ -173,11 +184,10 @@ namespace BeaconDemo
             // let's check if we already know about the beacon
             string nodeName;
             int port = Convert.ToInt32(m_beacon.ReceiveString(out nodeName));
-            Console.WriteLine("Got another beacon nodeName {0} on port {1}", nodeName, port);
+            //Console.WriteLine("Got another beacon nodeName {0} on port {1}", nodeName, port);
 
             // remove the port from the peer name
             nodeName = nodeName.Replace(":" + m_broadcastPort, "");
-            Console.WriteLine("nodeName changed to {0}", nodeName);
 
             NodeKey node = new NodeKey(nodeName, port);
 
@@ -187,12 +197,12 @@ namespace BeaconDemo
                 // we have a new node, let's add it and connect to subscriber
                 m_nodes.Add(node, DateTime.Now);
                 var address = string.Format("tcp://{0}:{1}", nodeName, port);
-                Console.WriteLine("Beacon publisher connecting to {0}", address);
+                Console.WriteLine("Adding new node {0}", node);
                 m_publisher.Connect(address);
             }
             else
             {
-                Console.WriteLine("NodeName={0} is not a new beacon.");
+                //Console.WriteLine("NodeName={0} is not a new beacon.");
                 m_nodes[node] = DateTime.Now;
             }
         }
@@ -208,6 +218,7 @@ namespace BeaconDemo
             // from the publisher
             foreach (var node in deadNodes)
             {
+                Console.WriteLine("Removing dead node {0}", node);
                 m_nodes.Remove(node);
                 m_publisher.Disconnect(string.Format("tcp://{0}:{1}", node.Name, node.Port));
             }
