@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,10 +23,10 @@ namespace BeaconDemo
             // All communication with the bus is through the returned actor
             var actor = Bus.Create(9999);
 
-            actor.SendFrame(Bus.GetHostNameCommand);
-            var hostName = actor.ReceiveFrameString();
+            actor.SendFrame(Bus.GetHostAddressCommand);
+            var hostAddress = actor.ReceiveFrameString();
 
-            Console.Title = string.Format("NetMQ Beacon Demo - Beacon from {0}:{1}", hostName, "???");
+            Console.Title = string.Format("NetMQ Beacon Demo - {0}", hostAddress);
 
             // beacons publish every second, so wait a little longer than that to
             // let all the other nodes connect to our new node
@@ -32,25 +34,37 @@ namespace BeaconDemo
 
             // publish a hello message
             // note we can use NetMQSocket send and receive extension methods
-            actor.SendMoreFrame(Bus.PublishCommand).SendFrame("Hello?");
+            actor.SendMoreFrame(Bus.PublishCommand).SendMoreFrame("Hello?").SendFrame(hostAddress);
 
             // receive messages from other nodes on the bus
             while (true)
             {
+                // actor is receiving messages forwarded by the Bus subscriber
                 string message = actor.ReceiveFrameString();
-
-                if (message == "Hello?")
+                switch (message)
                 {
-                    // another node is saying hello
-                    Console.WriteLine(message);
+                    case "Hello?":
+                        // another node is saying hello
+                        var fromHostAddress = actor.ReceiveFrameString();
+                        var msg = fromHostAddress + " says Hello?";
+                        Console.WriteLine(msg);
 
-                    // send back a welcome message
-                    actor.SendMoreFrame(Bus.PublishCommand).SendFrame("Welcome!");
-                }
-                else
-                {
-                    // it's probably a welcome message
-                    Console.WriteLine(message);
+                        // send back a welcome message via the Bus publisher
+                        msg = hostAddress + " says Welcome!";
+                        actor.SendMoreFrame(Bus.PublishCommand).SendFrame(msg);
+                        break;
+                    case Bus.AddedNodeCommand:
+                        var addedAddress = actor.ReceiveFrameString();
+                        Console.WriteLine("Added node {0} to the Bus", addedAddress);
+                        break;
+                    case Bus.RemovedNodeCommand:
+                        var removedAddress = actor.ReceiveFrameString();
+                        Console.WriteLine("Removed node {0} from the Bus", removedAddress);
+                        break;
+                    default:
+                        // it's probably a welcome message
+                        Console.WriteLine(message);
+                        break;
                 }
             }
         }
