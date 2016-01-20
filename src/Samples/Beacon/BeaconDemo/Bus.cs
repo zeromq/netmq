@@ -9,7 +9,7 @@ using NetMQ.Sockets;
 namespace BeaconDemo
 {
     /// <summary>
-    /// From http://netmq.readthedocs.org/en/latest/beacon/
+    /// From the Docs\beacon.md documentation with small modifications for this demo
     /// </summary>
     class Bus
     {
