@@ -32,6 +32,8 @@ namespace NetMQ
         /// Create a new NetMQSocket with the given <see cref="ZmqSocketType"/>.
         /// </summary>
         /// <param name="socketType">Type of socket to create</param>
+        /// <param name="connectionString"></param>
+        /// <param name="defaultAction"></param>
         internal NetMQSocket(ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
         {
             m_socketHandle = NetMQConfig.Context.CreateSocket(socketType);
@@ -243,7 +245,7 @@ namespace NetMQ
             m_socketHandle.TermEndpoint(address);
         }
 
-        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose"/>.</summary>
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose()"/>.</summary>
         public void Close()
         {
             if (m_isClosed)

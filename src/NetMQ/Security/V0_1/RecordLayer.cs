@@ -165,6 +165,7 @@ namespace NetMQ.Security.V0_1
         }
 
         /// <param name="contentType">This identifies the type of content: ChangeCipherSpec, Handshake, or ApplicationData.</param>
+        /// <param name="plainMessage">The unencrypted form of the message to be encrypted.</param>
         public NetMQMessage EncryptMessage(ContentType contentType, NetMQMessage plainMessage)
         {
             if (SecurityParameters.BulkCipherAlgorithm == BulkCipherAlgorithm.Null &&
@@ -424,9 +425,14 @@ namespace NetMQ.Security.V0_1
         }
 
         /// <summary>
-        /// Check the given arguments and throw a <see cref="NetMQSecurityException"/>if something is amiss.
+        /// Check the given arguments and throw a <see cref="NetMQSecurityException"/> if something is amiss.
         /// </summary>
         /// <param name="contentType">This identifies the type of content: ChangeCipherSpec, Handshake, or ApplicationData.</param>
+        /// <param name="seqNum"></param>
+        /// <param name="frameIndex"></param>
+        /// <param name="plainBytes"></param>
+        /// <param name="mac"></param>
+        /// <param name="padding"></param>
         /// <exception cref="NetMQSecurityException"><see cref="NetMQSecurityErrorCode.MACNotMatched"/>: MAC does not match message.</exception>
         public void ValidateBytes(ContentType contentType, ulong seqNum, int frameIndex,
           byte[] plainBytes, byte[] mac, byte[] padding)
