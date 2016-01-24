@@ -43,7 +43,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AsyncIO">
-      <HintPath>..\packages\AsyncIO.0.1.17.0\lib\net35\AsyncIO.dll</HintPath>
+      <HintPath>..\packages\AsyncIO.0.1.18.0\lib\net35\AsyncIO.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="JetBrains.Annotations">
