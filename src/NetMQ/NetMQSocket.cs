@@ -27,7 +27,7 @@ namespace NetMQ
             Connect,
             Bind
         }
-        
+
         /// <summary>
         /// Create a new NetMQSocket with the given <see cref="ZmqSocketType"/>.
         /// </summary>
@@ -48,7 +48,7 @@ namespace NetMQ
                         .Select(a => a.Trim()).Where(a=> !string.IsNullOrEmpty(a));
 
                 foreach (string endpoint in endpoints)
-                {                    
+                {
                     if (endpoint[0] == '@')
                     {
                         Bind(endpoint.Substring(1));
@@ -78,7 +78,7 @@ namespace NetMQ
             m_selector = new Selector();
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
-            m_socketEventArgs = new NetMQSocketEventArgs(this);            
+            m_socketEventArgs = new NetMQSocketEventArgs(this);
         }
 
         #region Events
@@ -252,7 +252,7 @@ namespace NetMQ
             m_isClosed = true;
 
             m_socketHandle.CheckDisposed();
-            m_socketHandle.Close();            
+            m_socketHandle.Close();
         }
 
         #endregion
