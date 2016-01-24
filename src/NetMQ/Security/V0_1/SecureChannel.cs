@@ -164,6 +164,7 @@ namespace NetMQ.Security.V0_1
         }
 
         /// <param name="contentType">This identifies the type of content: ChangeCipherSpec, Handshake, or ApplicationData.</param>
+        /// <param name="plainMessage">The unencrypted form of the message to be encrypted.</param>
         internal NetMQMessage InternalEncryptAndWrapMessage(ContentType contentType, NetMQMessage plainMessage)
         {
             NetMQMessage encryptedMessage = m_recordLayer.EncryptMessage(contentType, plainMessage);
@@ -176,7 +177,7 @@ namespace NetMQ.Security.V0_1
         /// <summary>
         /// Encrypt the given NetMQMessage, wrapping it's content as application-data and preficing it with the encryption protocol.
         /// </summary>
-        /// <param name="plainMessage">the NetMQMessage to encrypt</param>
+        /// <param name="plainMessage">The unencrypted form of the message to be encrypted.</param>
         /// <returns>a new NetMQMessage that is encrypted</returns>
         /// <exception cref="ArgumentNullException">plainMessage must not be null.</exception>
         /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.SecureChannelNotReady: The secure channel must be ready.</exception>

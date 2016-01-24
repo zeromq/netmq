@@ -100,7 +100,7 @@ namespace NetMQ
 
         /// <summary>
         /// Gets the position of the first element in the Data property delimited by the message,
-        //     relative to the start of the original array.
+        /// relative to the start of the original array.
         /// </summary>
         public int Offset { get; internal set; }
 
@@ -121,7 +121,7 @@ namespace NetMQ
 
         /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
         /// <remarks>A newly constructed <see cref="Msg"/> is uninitialised, and can be initialised via one
-        /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC"/>, or <see cref="InitPool"/>. 
+        /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC(byte[],int)"/>, <see cref="InitGC(byte[],int,int)"/>, or <see cref="InitPool"/>. 
         /// Calling <see cref="Close"/> will cause the <see cref="Msg"/> to become uninitialised again.</remarks>
         /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
         public bool IsInitialised

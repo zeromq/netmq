@@ -27,11 +27,13 @@ namespace NetMQ
             Connect,
             Bind
         }
-        
+
         /// <summary>
         /// Create a new NetMQSocket with the given <see cref="ZmqSocketType"/>.
         /// </summary>
         /// <param name="socketType">Type of socket to create</param>
+        /// <param name="connectionString"></param>
+        /// <param name="defaultAction"></param>
         internal NetMQSocket(ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
         {
             m_socketHandle = NetMQConfig.Context.CreateSocket(socketType);
@@ -48,7 +50,7 @@ namespace NetMQ
                         .Select(a => a.Trim()).Where(a=> !string.IsNullOrEmpty(a));
 
                 foreach (string endpoint in endpoints)
-                {                    
+                {
                     if (endpoint[0] == '@')
                     {
                         Bind(endpoint.Substring(1));
@@ -78,7 +80,7 @@ namespace NetMQ
             m_selector = new Selector();
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
-            m_socketEventArgs = new NetMQSocketEventArgs(this);            
+            m_socketEventArgs = new NetMQSocketEventArgs(this);
         }
 
         #region Events
@@ -243,7 +245,7 @@ namespace NetMQ
             m_socketHandle.TermEndpoint(address);
         }
 
-        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose"/>.</summary>
+        /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose()"/>.</summary>
         public void Close()
         {
             if (m_isClosed)
@@ -252,7 +254,7 @@ namespace NetMQ
             m_isClosed = true;
 
             m_socketHandle.CheckDisposed();
-            m_socketHandle.Close();            
+            m_socketHandle.Close();
         }
 
         #endregion
