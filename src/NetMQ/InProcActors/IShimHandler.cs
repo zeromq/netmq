@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ.InProcActors
@@ -18,6 +18,6 @@ namespace NetMQ.InProcActors
         /// <param name="state">an object of type T to specify the initial state</param>
         void Initialise(T state);
 
-        void RunPipeline([NotNull] PairSocket shim);
+        void RunPipeline( PairSocket shim);
     }
 }

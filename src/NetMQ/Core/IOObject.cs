@@ -22,7 +22,7 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
@@ -33,16 +33,16 @@ namespace NetMQ.Core
     /// </summary>
     internal class IOObject : IProactorEvents
     {
-        [CanBeNull]
+        
         private IOThread m_ioThread;
-        [CanBeNull]
+        
         private IProactorEvents m_handler;
 
         /// <summary>
         /// Create a new IOObject object and plug it into the given IOThread.
         /// </summary>
         /// <param name="ioThread">the IOThread to plug this new IOObject into.</param>
-        public IOObject([CanBeNull] IOThread ioThread)
+        public IOObject( IOThread ioThread)
         {
             if (ioThread != null)
                 Plug(ioThread);
@@ -56,7 +56,7 @@ namespace NetMQ.Core
         /// When migrating an object from one I/O thread to another, first
         /// unplug it, then migrate it, then plug it to the new thread.
         /// </remarks>
-        public void Plug([NotNull] IOThread ioThread)
+        public void Plug( IOThread ioThread)
         {
             Debug.Assert(ioThread != null);
 
@@ -84,7 +84,7 @@ namespace NetMQ.Core
         /// Add the given socket to the Proactor.
         /// </summary>
         /// <param name="socket">the AsyncSocket to add</param>
-        public void AddSocket([NotNull] AsyncSocket socket)
+        public void AddSocket( AsyncSocket socket)
         {
             m_ioThread.Proactor.AddSocket(socket, this);
         }
@@ -93,7 +93,7 @@ namespace NetMQ.Core
         /// Remove the given socket from the Proactor.
         /// </summary>
         /// <param name="socket">the AsyncSocket to remove</param>
-        public void RemoveSocket([NotNull] AsyncSocket socket)
+        public void RemoveSocket( AsyncSocket socket)
         {
             m_ioThread.Proactor.RemoveSocket(socket);
         }
@@ -132,7 +132,7 @@ namespace NetMQ.Core
             m_ioThread.Proactor.AddTimer(timeout, this, id);
         }
 
-        public void SetHandler([NotNull] IProactorEvents handler)
+        public void SetHandler( IProactorEvents handler)
         {
             m_handler = handler;
         }

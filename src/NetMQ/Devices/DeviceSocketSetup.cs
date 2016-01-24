@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ.Devices
@@ -44,7 +44,7 @@ namespace NetMQ.Devices
         /// </summary>
         /// <param name="socket">the NetMQSocket to associate with this DeviceSocketSetup</param>
         /// <exception cref="ArgumentNullException">socket must not be null.</exception>
-        internal DeviceSocketSetup([NotNull] NetMQSocket socket)
+        internal DeviceSocketSetup( NetMQSocket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
@@ -62,7 +62,7 @@ namespace NetMQ.Devices
         /// <param name="endpoint">a string representing the endpoint to which the socket will bind (must not be null)</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         /// <exception cref="ArgumentNullException">endpoint must not be null.</exception>
-        public DeviceSocketSetup Bind([NotNull] string endpoint)
+        public DeviceSocketSetup Bind( string endpoint)
         {
             if (endpoint == null)
                 throw new ArgumentNullException("endpoint");
@@ -78,7 +78,7 @@ namespace NetMQ.Devices
         /// <param name="endpoint">a string representing the endpoint to which the socket will connect (must not be null)</param>
         /// <returns>the current <see cref="DeviceSocketSetup"/> object</returns>
         /// <exception cref="ArgumentNullException">endpoint must not be null.</exception>
-        public DeviceSocketSetup Connect([NotNull] string endpoint)
+        public DeviceSocketSetup Connect( string endpoint)
         {
             if (endpoint == null)
                 throw new ArgumentNullException("endpoint");

@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 
 namespace NetMQ
@@ -13,7 +13,7 @@ namespace NetMQ
         /// Create a new NetMQTimerEventArgs that contains a reference to the given NetMQTimer.
         /// </summary>
         /// <param name="timer">the NetMQTimer to hold a reference to</param>
-        public NetMQTimerEventArgs([NotNull] NetMQTimer timer)
+        public NetMQTimerEventArgs( NetMQTimer timer)
         {
             Timer = timer;
         }
@@ -21,7 +21,7 @@ namespace NetMQ
         /// <summary>
         /// Get the NetMQTimer that this has a reference to.
         /// </summary>
-        [NotNull]
+        
         public NetMQTimer Timer { get; private set; }
     }
 

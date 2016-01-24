@@ -24,7 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Patterns;
 using NetMQ.Core.Transports;
 using NetMQ.Core.Transports.Ipc;
@@ -106,7 +106,7 @@ namespace NetMQ.Core
         /// </summary>
         private readonly Address m_addr;
 
-        [NotNull] private readonly IOObject m_ioObject;
+         private readonly IOObject m_ioObject;
 
         /// <summary>
         /// Create a return a new session.
@@ -119,8 +119,8 @@ namespace NetMQ.Core
         /// <param name="addr">an <c>Address</c> object that specifies the protocol and address to connect to</param>
         /// <returns>the newly-created instance of whichever subclass of SessionBase is specified by the options</returns>
         /// <exception cref="InvalidException">The socket must be of the correct type.</exception>
-        [NotNull]
-        public static SessionBase Create([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+        
+        public static SessionBase Create( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
         {
             switch (options.SocketType)
             {
@@ -161,7 +161,7 @@ namespace NetMQ.Core
         /// <param name="socket">the socket to contain</param>
         /// <param name="options">Options that dictate the settings of this session</param>
         /// <param name="addr">an Address that dictates the protocol and IP-address to use when connecting</param>
-        public SessionBase([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+        public SessionBase( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -206,7 +206,7 @@ namespace NetMQ.Core
         /// <remarks>
         /// This is to be used once only, when creating the session.
         /// </remarks>
-        public void AttachPipe([NotNull] Pipe pipe)
+        public void AttachPipe( Pipe pipe)
         {
             Debug.Assert(!IsTerminating);
             Debug.Assert(m_pipe == null);
@@ -404,7 +404,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Get the contained socket.
         /// </summary>
-        [NotNull]
+        
         public SocketBase Socket
         {
             get { return m_socket; }

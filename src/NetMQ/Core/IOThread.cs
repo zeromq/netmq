@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 
 namespace NetMQ.Core
@@ -48,7 +48,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="ctx">the Ctx (context) for this thread to live within</param>
         /// <param name="threadId">the integer thread-id for this new IOThread</param>
-        public IOThread([NotNull] Ctx ctx, int threadId)
+        public IOThread( Ctx ctx, int threadId)
             : base(ctx, threadId)
         {
             var name = "iothread-" + threadId;
@@ -60,7 +60,7 @@ namespace NetMQ.Core
 #endif
         }
 
-        [NotNull]
+        
         internal Proactor Proactor
         {
             get { return m_proactor; }
@@ -82,7 +82,7 @@ namespace NetMQ.Core
             SendStop();
         }
 
-        [NotNull]
+        
         public IMailbox Mailbox
         {
             get { return m_mailbox; }

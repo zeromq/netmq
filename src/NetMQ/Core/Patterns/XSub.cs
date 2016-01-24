@@ -20,7 +20,7 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -32,7 +32,7 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         public class XSubSession : SessionBase
         {
-            public XSubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public XSubSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
@@ -91,7 +91,7 @@ namespace NetMQ.Core.Patterns
             };
         }
 
-        public XSub([NotNull] Ctx parent, int threadId, int socketId)
+        public XSub( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Xsub;

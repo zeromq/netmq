@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 using NetMQ;
 
@@ -266,7 +266,7 @@ namespace TitanicProtocol
             return op == TitanicOperation.Request ? RequestEntry.Is_Pending : RequestEntry.Is_Processed;
         }
 
-        private void Log ([NotNull] string info)
+        private void Log ( string info)
         {
             OnLogInfoReady (new TitanicLogEventArgs { Info = info });
         }

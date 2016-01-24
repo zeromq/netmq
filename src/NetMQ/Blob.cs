@@ -21,7 +21,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -32,7 +32,7 @@ namespace NetMQ
     [Obsolete("Use NetMQFrame instead of Blob")]
     public class Blob
     {
-        [NotNull]
+        
         private readonly byte[] m_buffer;
         private int m_hash;
 
@@ -41,7 +41,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="data">the byte-array of data for this Blob to contain</param>
         /// <param name="size">the length in bytes to allocate to the data buffer</param>
-        public Blob([NotNull] byte[] data, int size)
+        public Blob( byte[] data, int size)
         {
             m_buffer = new byte[size];
 
@@ -63,7 +63,7 @@ namespace NetMQ
         /// <param name="pos">the (zero-based) index of the data buffer to put the byte into</param>
         /// <param name="b">the byte to write into the buffer</param>
         /// <returns>a reference to this Blob so that other method-calls may be chained</returns>
-        [NotNull]
+        
         public Blob Put(int pos, byte b)
         {
             m_buffer[pos] = b;
@@ -78,8 +78,8 @@ namespace NetMQ
         /// <param name="data">the byte-array data to write into the data buffer</param>
         /// <param name="count">how many bytes of data to write into the data buffer</param>
         /// <returns>a reference to this Blob so that other method-calls may be chained</returns>
-        [NotNull]
-        public Blob Put(int pos, [NotNull] byte[] data, int count)
+        
+        public Blob Put(int pos,  byte[] data, int count)
         {
             Buffer.BlockCopy(data, 0, m_buffer, pos, count);
 
@@ -98,7 +98,7 @@ namespace NetMQ
         /// <summary>
         /// Get the data buffer contained by this Blob, as a byte-array.
         /// </summary>
-        [NotNull]
+        
         public byte[] Data
         {
             get { return m_buffer; }
@@ -109,7 +109,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="t">the other object to compare against</param>
         /// <returns>true if equal</returns>
-        public override bool Equals([CanBeNull] object t)
+        public override bool Equals( object t)
         {
             var blob = t as Blob;
             if (blob != null)

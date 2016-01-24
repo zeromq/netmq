@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core;
 
 namespace NetMQ
@@ -20,7 +20,7 @@ namespace NetMQ
         /// Create a new SocketOptions that references the given NetMQSocket.
         /// </summary>
         /// <param name="socket">the NetMQSocket for this SocketOptions to hold a reference to</param>
-        public SocketOptions([NotNull] NetMQSocket socket)
+        public SocketOptions( NetMQSocket socket)
         {
             m_socket = socket;
         }
@@ -53,9 +53,9 @@ namespace NetMQ
         /// </summary>
         public byte[] Identity
         {
-            [CanBeNull]
+            
             get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.Identity); }
-            [NotNull]
+            
             set { m_socket.SetSocketOption(ZmqSocketOption.Identity, value); }
         }
 
@@ -271,7 +271,7 @@ namespace NetMQ
         /// The returned value will be a string in the form of a ZMQ DSN.
         /// </summary>
         [Obsolete("Use LastEndpoint instead")]
-        [CanBeNull]
+        
         public string GetLastEndpoint
         {
             get { return LastEndpoint; }
@@ -285,7 +285,7 @@ namespace NetMQ
         /// If the TCP host is ANY, indicated by a *, then the returned address
         /// will be 0.0.0.0 (for IPv4).
         /// </remarks>
-        [CanBeNull]
+        
         public string LastEndpoint
         {
             get { return m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint); }

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 #endif
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core;
 using NetMQ.Sockets;
 
@@ -22,20 +22,20 @@ namespace NetMQ.Monitoring
     /// </remarks>
     public class NetMQMonitor : IDisposable
     {
-        [NotNull] private readonly NetMQSocket m_monitoringSocket;
+         private readonly NetMQSocket m_monitoringSocket;
         private readonly bool m_ownsMonitoringSocket;
-        [CanBeNull] private ISocketPollableCollection m_attachedPoller;
+         private ISocketPollableCollection m_attachedPoller;
         private int m_cancel;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
 
         [Obsolete("Use overload that takes SocketEvents (plural)")]
-        public NetMQMonitor([NotNull] NetMQContext context, [NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvent eventsToMonitor)
+        public NetMQMonitor( NetMQContext context,  NetMQSocket monitoredSocket,  string endpoint, SocketEvent eventsToMonitor)
             : this(context, monitoredSocket, endpoint, (SocketEvents)eventsToMonitor)
         {}
 
         [Obsolete("Use non context version")]
-        public NetMQMonitor([NotNull] NetMQContext context, [NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
+        public NetMQMonitor( NetMQContext context,  NetMQSocket monitoredSocket,  string endpoint, SocketEvents eventsToMonitor)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -49,7 +49,7 @@ namespace NetMQ.Monitoring
             m_ownsMonitoringSocket = true;
         }
 
-        public NetMQMonitor([NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
+        public NetMQMonitor( NetMQSocket monitoredSocket,  string endpoint, SocketEvents eventsToMonitor)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -75,7 +75,7 @@ namespace NetMQ.Monitoring
         /// A flag indicating whether ownership of <paramref name="socket"/> is transferred to the monitor.
         /// If <c>true</c>, disposing the monitor will also dispose <paramref name="socket"/>.
         /// </param>
-        public NetMQMonitor([NotNull] NetMQSocket socket, [NotNull] string endpoint, bool ownsSocket = false)
+        public NetMQMonitor( NetMQSocket socket,  string endpoint, bool ownsSocket = false)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -241,7 +241,7 @@ namespace NetMQ.Monitoring
             }
         }
 
-        public void AttachToPoller([NotNull] ISocketPollableCollection poller)
+        public void AttachToPoller( ISocketPollableCollection poller)
         {
             if (poller == null)
                 throw new ArgumentNullException("poller");

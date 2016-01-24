@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Pgm
 {
     internal sealed class PgmAddress : Address.IZAddress
     {
         /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
-        public PgmAddress([NotNull] string network)
+        public PgmAddress( string network)
         {
             Resolve(network, true);
         }
@@ -73,7 +73,7 @@ namespace NetMQ.Core.Transports.Pgm
             Address = new IPEndPoint(ipAddress, port);
         }
 
-        [CanBeNull]
+        
         public IPAddress InterfaceAddress { get; private set; }
 
         public IPEndPoint Address { get; private set; }

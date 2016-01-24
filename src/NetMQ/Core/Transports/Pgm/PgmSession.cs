@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Pgm
 {
@@ -32,7 +32,7 @@ namespace NetMQ.Core.Transports.Pgm
 
         private State m_state;
 
-        public PgmSession([NotNull] PgmSocket pgmSocket, [NotNull] Options options)
+        public PgmSession( PgmSocket pgmSocket,  Options options)
         {
             m_handle = pgmSocket.Handle;
             m_options = options;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -107,7 +107,7 @@ namespace NetMQ.Core.Utils
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate ulong RdtscDelegate();
 
-        [CanBeNull]
+        
         public static RdtscDelegate Rdtsc { get; private set; }
 
         // unsigned __int64 __stdcall rdtsc() {

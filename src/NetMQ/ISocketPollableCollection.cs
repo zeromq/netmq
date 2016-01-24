@@ -1,4 +1,4 @@
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Monitoring;
 
 namespace NetMQ
@@ -11,7 +11,7 @@ namespace NetMQ
     /// </remarks>
     public interface ISocketPollableCollection
     {
-        void Add([NotNull] ISocketPollable socket);
-        void Remove([NotNull] ISocketPollable socket);
+        void Add( ISocketPollable socket);
+        void Remove( ISocketPollable socket);
     }
 }

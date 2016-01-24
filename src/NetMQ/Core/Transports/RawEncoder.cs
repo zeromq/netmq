@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+﻿//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports
 {
@@ -10,7 +10,7 @@ namespace NetMQ.Core.Transports
         private const int RawMessageSizeReadyState = 1;
         private const int RawMessageReadyState = 2;
 
-        public RawEncoder(int bufferSize, [NotNull] IMsgSource msgSource, Endianness endianness) :
+        public RawEncoder(int bufferSize,  IMsgSource msgSource, Endianness endianness) :
             base(bufferSize, endianness)
         {
             m_msgSource = msgSource;

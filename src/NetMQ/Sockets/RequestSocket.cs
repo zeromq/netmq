@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core;
 
 namespace NetMQ.Sockets
@@ -47,7 +47,7 @@ namespace NetMQ.Sockets
         /// <param name="requestTimeout">The timeout for each request</param>
         /// <param name="progressPublisher">Report topics: Failure, Retry, Send, Success</param>
         /// <returns>the response message, or null if not successful</returns>
-        public static NetMQMessage RequestResponseMultipartMessageWithRetry([NotNull] string address, [NotNull] NetMQMessage requestMessage,
+        public static NetMQMessage RequestResponseMultipartMessageWithRetry( string address,  NetMQMessage requestMessage,
             int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
         {
             var responseMessage = new NetMQMessage();
@@ -98,7 +98,7 @@ namespace NetMQ.Sockets
         /// <param name="requestTimeout">The timeout for each request</param>
         /// <param name="progressPublisher">Report topics: Failure, Retry, Send, Success</param>
         /// <returns>the response message, or null if not successful</returns>
-        public static string RequestResponseStringWithRetry([NotNull] string address, [NotNull] string requestString,
+        public static string RequestResponseStringWithRetry( string address,  string requestString,
             int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
         {
             while (numTries-- > 0)

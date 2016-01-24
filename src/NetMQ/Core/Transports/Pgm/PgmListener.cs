@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Pgm
 {
     internal class PgmListener : Own, IProactorEvents
     {
-        [NotNull] private readonly SocketBase m_socket;
-        [NotNull] private readonly IOObject m_ioObject;
+         private readonly SocketBase m_socket;
+         private readonly IOObject m_ioObject;
         private AsyncSocket m_handle;
         private PgmSocket m_pgmSocket;
         private PgmSocket m_acceptedSocket;
         private PgmAddress m_address;
 
-        public PgmListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
+        public PgmListener( IOThread ioThread,  SocketBase socket,  Options options)
             : base(ioThread, options)
         {
             m_socket = socket;
@@ -24,7 +24,7 @@ namespace NetMQ.Core.Transports.Pgm
 
         /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
         /// <exception cref="NetMQException">Error establishing underlying socket.</exception>
-        public void Init([NotNull] string network)
+        public void Init( string network)
         {
             m_address = new PgmAddress(network);
 

@@ -20,7 +20,7 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -44,7 +44,7 @@ namespace NetMQ.Core.Patterns
             /// <param name="socket"></param>
             /// <param name="options"></param>
             /// <param name="addr"></param>
-            public DealerSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public DealerSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
@@ -70,7 +70,7 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// Create a new Dealer socket that holds the prefetched message.
         /// </summary>
-        public Dealer([NotNull] Ctx parent, int threadId, int socketId)
+        public Dealer( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_prefetched = false;

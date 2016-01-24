@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Transports;
 
 namespace NetMQ.Core
@@ -13,7 +13,7 @@ namespace NetMQ.Core
 
         private readonly SocketEvents m_monitorEvent;
         private readonly string m_addr;
-        [CanBeNull] private readonly object m_arg;
+         private readonly object m_arg;
         private readonly int m_flag;
 
         private static readonly int s_sizeOfIntPtr;
@@ -26,22 +26,22 @@ namespace NetMQ.Core
                 s_sizeOfIntPtr = 8;
         }
 
-        public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, ErrorCode arg)
+        public MonitorEvent(SocketEvents monitorEvent,  string addr, ErrorCode arg)
             : this(monitorEvent, addr, (int)arg)
         {
         }
 
-        public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, int arg)
+        public MonitorEvent(SocketEvents monitorEvent,  string addr, int arg)
             : this(monitorEvent, addr, (object)arg)
         {
         }
 
-        public MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, [NotNull] AsyncSocket arg)
+        public MonitorEvent(SocketEvents monitorEvent,  string addr,  AsyncSocket arg)
             : this(monitorEvent, addr, (object)arg)
         {
         }
 
-        private MonitorEvent(SocketEvents monitorEvent, [NotNull] string addr, [NotNull] object arg)
+        private MonitorEvent(SocketEvents monitorEvent,  string addr,  object arg)
         {
             m_monitorEvent = monitorEvent;
             m_addr = addr;
@@ -55,13 +55,13 @@ namespace NetMQ.Core
                 m_flag = 0;
         }
 
-        [NotNull]
+        
         public string Addr
         {
             get { return m_addr; }
         }
 
-        [NotNull]
+        
         public object Arg
         {
             get { return m_arg; }
@@ -72,7 +72,7 @@ namespace NetMQ.Core
             get { return m_monitorEvent; }
         }
 
-        public void Write([NotNull] SocketBase s)
+        public void Write( SocketBase s)
         {
             int size = 4 + 1 + m_addr.Length + 1; // event + len(addr) + addr + flag
 
@@ -113,8 +113,8 @@ namespace NetMQ.Core
             s.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
         }
 
-        [NotNull]
-        public static MonitorEvent Read([NotNull] SocketBase s)
+        
+        public static MonitorEvent Read( SocketBase s)
         {
             var msg = new Msg();
             msg.InitEmpty();

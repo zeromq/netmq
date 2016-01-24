@@ -21,7 +21,7 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
@@ -48,7 +48,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="parent">the Ctx to contain this socket</param>
         /// <param name="threadId">an integer thread-id for this socket to execute on</param>
         /// <param name="socketId">the socket-id for this socket</param>
-        public Req([NotNull] Ctx parent, int threadId, int socketId)
+        public Req( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_receivingReply = false;
@@ -183,7 +183,7 @@ namespace NetMQ.Core.Patterns
 
             private State m_state;
 
-            public ReqSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public ReqSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
                 m_state = State.Identity;

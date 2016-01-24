@@ -20,7 +20,7 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
@@ -28,14 +28,14 @@ namespace NetMQ.Core.Patterns
     {
         public class PairSession : SessionBase
         {
-            public PairSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public PairSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
 
         private Pipe m_pipe;
 
-        public Pair([NotNull] Ctx parent, int threadId, int socketId)
+        public Pair( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pair;

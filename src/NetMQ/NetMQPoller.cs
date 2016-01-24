@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 #if !NET35
 using System.Threading.Tasks;
@@ -174,7 +174,7 @@ namespace NetMQ
             });
         }
 
-        public void Add([NotNull] NetMQTimer timer)
+        public void Add( NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException("timer");
@@ -183,7 +183,7 @@ namespace NetMQ
             Run(() => m_timers.Add(timer));
         }
 
-        public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
+        public void Add( Socket socket,  Action<Socket> callback)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");
@@ -214,7 +214,7 @@ namespace NetMQ
             });
         }
 
-        public void Remove([NotNull] NetMQTimer timer)
+        public void Remove( NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException("timer");
@@ -225,7 +225,7 @@ namespace NetMQ
             Run(() => m_timers.Remove(timer));
         }
 
-        public void Remove([NotNull] Socket socket)
+        public void Remove( Socket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("socket");

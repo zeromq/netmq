@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
@@ -33,7 +33,7 @@ namespace NetMQ
         private readonly Ctx m_ctx;
         private int m_isClosed;
 
-        private NetMQContext([NotNull] Ctx ctx)
+        private NetMQContext( Ctx ctx)
         {
             m_ctx = ctx;
         }
@@ -42,7 +42,7 @@ namespace NetMQ
         /// Create and return a new context.
         /// </summary>
         /// <returns>the new NetMQContext</returns>
-        [NotNull]
+        
         public static NetMQContext Create()
         {
             return new NetMQContext(new Ctx());
@@ -74,7 +74,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socketType">a ZmqSocketType denoting which type of socket to create</param>
         /// <returns>a new socket of the given type</returns>
-        [CanBeNull]
+        
         private SocketBase CreateHandle(ZmqSocketType socketType)
         {
             m_ctx.CheckDisposed();
@@ -88,7 +88,7 @@ namespace NetMQ
         /// <param name="socketType">a ZmqSocketType indicating the type of socket to create</param>
         /// <returns>a new socket - a subclass of NetMQSocket</returns>
         /// <exception cref="ArgumentOutOfRangeException">The socketType must be a valid value.</exception>
-        [NotNull]
+        
         public NetMQSocket CreateSocket(ZmqSocketType socketType)
         {
             var socketHandle = CreateHandle(socketType);
@@ -128,7 +128,7 @@ namespace NetMQ
         /// Create and return a new request-socket.
         /// </summary>
         /// <returns>the new RequestSocket</returns>
-        [NotNull]
+        
         public RequestSocket CreateRequestSocket()
         {
             return new RequestSocket(CreateHandle(ZmqSocketType.Req));
@@ -138,7 +138,7 @@ namespace NetMQ
         /// Create and return a new response-socket.
         /// </summary>
         /// <returns>the new ResponseSocket</returns>
-        [NotNull]
+        
         public ResponseSocket CreateResponseSocket()
         {
             return new ResponseSocket(CreateHandle(ZmqSocketType.Rep));
@@ -148,7 +148,7 @@ namespace NetMQ
         /// Create and return a new dealer-socket.
         /// </summary>
         /// <returns>the new DealerSocket</returns>
-        [NotNull]
+        
         public DealerSocket CreateDealerSocket()
         {
             return new DealerSocket(CreateHandle(ZmqSocketType.Dealer));
@@ -158,7 +158,7 @@ namespace NetMQ
         /// Create and return a new router-socket.
         /// </summary>
         /// <returns>the new RouterSocket</returns>
-        [NotNull]
+        
         public RouterSocket CreateRouterSocket()
         {
             return new RouterSocket(CreateHandle(ZmqSocketType.Router));
@@ -168,7 +168,7 @@ namespace NetMQ
         /// Create and return a new xpublisher-socket.
         /// </summary>
         /// <returns>the new XPublisherSocket</returns>
-        [NotNull]
+        
         public XPublisherSocket CreateXPublisherSocket()
         {
             return new XPublisherSocket(CreateHandle(ZmqSocketType.Xpub));
@@ -178,7 +178,7 @@ namespace NetMQ
         /// Create and return a new pair-socket.
         /// </summary>
         /// <returns>the new PairSocket</returns>
-        [NotNull]
+        
         public PairSocket CreatePairSocket()
         {
             return new PairSocket(CreateHandle(ZmqSocketType.Pair));
@@ -188,7 +188,7 @@ namespace NetMQ
         /// Create and return a new push-socket.
         /// </summary>
         /// <returns>the new PushSocket</returns>
-        [NotNull]
+        
         public PushSocket CreatePushSocket()
         {
             return new PushSocket(CreateHandle(ZmqSocketType.Push));
@@ -198,7 +198,7 @@ namespace NetMQ
         /// Create and return a new publisher-socket.
         /// </summary>
         /// <returns>the new PublisherSocket</returns>
-        [NotNull]
+        
         public PublisherSocket CreatePublisherSocket()
         {
             return new PublisherSocket(CreateHandle(ZmqSocketType.Pub));
@@ -208,7 +208,7 @@ namespace NetMQ
         /// Create and return a new pull-socket.
         /// </summary>
         /// <returns>the new PullSocket</returns>
-        [NotNull]
+        
         public PullSocket CreatePullSocket()
         {
             return new PullSocket(CreateHandle(ZmqSocketType.Pull));
@@ -218,7 +218,7 @@ namespace NetMQ
         /// Create and return a new subscriber-socket.
         /// </summary>
         /// <returns>the new SubscriberSocket</returns>
-        [NotNull]
+        
         public SubscriberSocket CreateSubscriberSocket()
         {
             return new SubscriberSocket(CreateHandle(ZmqSocketType.Sub));
@@ -228,7 +228,7 @@ namespace NetMQ
         /// Create and return a new xsubscriber-socket.
         /// </summary>
         /// <returns>the new XSubscriberSocket</returns>
-        [NotNull]
+        
         public XSubscriberSocket CreateXSubscriberSocket()
         {
             return new XSubscriberSocket(CreateHandle(ZmqSocketType.Xsub));
@@ -238,7 +238,7 @@ namespace NetMQ
         /// Create and return a new stream-socket.
         /// </summary>
         /// <returns>the new StreamSocket</returns>
-        [NotNull]
+        
         public StreamSocket CreateStreamSocket()
         {
             return new StreamSocket(CreateHandle(ZmqSocketType.Stream));
@@ -251,8 +251,8 @@ namespace NetMQ
         /// <returns>the new NetMQMonitor</returns>
         /// <exception cref="ArgumentNullException">endpoint must not be null.</exception>
         /// <exception cref="ArgumentException">endpoint must not be an empty string.</exception>
-        [NotNull]
-        public NetMQMonitor CreateMonitorSocket([NotNull] string endpoint)
+        
+        public NetMQMonitor CreateMonitorSocket( string endpoint)
         {
             if (endpoint == null)
             {

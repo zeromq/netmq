@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Transports.Tcp;
 
 namespace NetMQ.Core.Transports.Ipc
@@ -36,7 +36,7 @@ namespace NetMQ.Core.Transports.Ipc
         /// <param name="ioThread"></param>
         /// <param name="socket">the SocketBase to listen to</param>
         /// <param name="options">an Options value that dictates the settings for this IpcListener</param>
-        public IpcListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
+        public IpcListener( IOThread ioThread,  SocketBase socket,  Options options)
             : base(ioThread, socket, options)
         {
             m_address = new IpcAddress();

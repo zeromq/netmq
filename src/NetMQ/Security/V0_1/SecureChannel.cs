@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Security.V0_1
 {
@@ -181,7 +181,7 @@ namespace NetMQ.Security.V0_1
         /// <returns>a new NetMQMessage that is encrypted</returns>
         /// <exception cref="ArgumentNullException">plainMessage must not be null.</exception>
         /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.SecureChannelNotReady: The secure channel must be ready.</exception>
-        public NetMQMessage EncryptApplicationMessage([NotNull] NetMQMessage plainMessage)
+        public NetMQMessage EncryptApplicationMessage( NetMQMessage plainMessage)
         {
             if (!SecureChannelReady)
             {
@@ -206,7 +206,7 @@ namespace NetMQ.Security.V0_1
         /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.InvalidFramesCount: The cipher message must have at least 2 frames.</exception>
         /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.InvalidProtocolVersion: The protocol must be the correct version.</exception>
         /// <exception cref="NetMQSecurityException">NetMQSecurityErrorCode.InvalidContentType: The message must contain application data.</exception>
-        public NetMQMessage DecryptApplicationMessage([NotNull] NetMQMessage cipherMessage)
+        public NetMQMessage DecryptApplicationMessage( NetMQMessage cipherMessage)
         {
             if (!SecureChannelReady)
             {

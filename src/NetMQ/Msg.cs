@@ -20,7 +20,7 @@
 */
 
 using System;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 
 namespace NetMQ
@@ -233,7 +233,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
         /// <param name="size">the number of bytes that are in the data byte-array</param>
-        public void InitGC([NotNull] byte[] data, int size)
+        public void InitGC( byte[] data, int size)
         {
             InitGC(data, 0, size);
         }
@@ -244,7 +244,7 @@ namespace NetMQ
         /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
         /// <param name="offset">first byte in the data array</param>
         /// <param name="size">the number of bytes that are in the data byte-array</param>
-        public void InitGC([NotNull] byte[] data, int offset, int size) {
+        public void InitGC( byte[] data, int offset, int size) {
             MsgType = MsgType.GC;
             Flags = MsgFlags.None;
             Data = data;
@@ -358,7 +358,7 @@ namespace NetMQ
         /// <param name="src">the source byte-array to copy from</param>
         /// <param name="i">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([CanBeNull] byte[] src, int i, int len)
+        public void Put( byte[] src, int i, int len)
         {
             if (len == 0 || src == null)
                 return;
@@ -373,7 +373,7 @@ namespace NetMQ
         /// <param name="srcOffset">first byte in the source byte-array</param>
         /// <param name="i">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([CanBeNull] byte[] src, int srcOffset, int i, int len) {
+        public void Put( byte[] src, int srcOffset, int i, int len) {
             if (len == 0 || src == null)
                 return;
             Buffer.BlockCopy(src, srcOffset, Data, i, len);

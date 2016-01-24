@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Devices
 {
@@ -80,7 +80,7 @@ namespace NetMQ.Devices
         /// <param name="mode">the <see cref="DeviceMode"/> (either Blocking or Threaded) for this device</param>
         /// <exception cref="ArgumentNullException">frontendSocket must not be null.</exception>
         /// <exception cref="ArgumentNullException">backendSocket must not be null.</exception>
-        protected DeviceBase(INetMQPoller poller, [NotNull] NetMQSocket frontendSocket, [NotNull] NetMQSocket backendSocket, DeviceMode mode)
+        protected DeviceBase(INetMQPoller poller,  NetMQSocket frontendSocket,  NetMQSocket backendSocket, DeviceMode mode)
         {
             m_isInitialized = false;
 

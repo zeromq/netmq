@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -48,7 +48,7 @@ namespace NetMQ.Core.Utils
             /// </summary>
             /// <param name="sink">an ITimerEvent that acts as a sink for when the timer expires</param>
             /// <param name="id">an integer id that identifies this timer</param>
-            public TimerInfo([NotNull] ITimerEvent sink, int id)
+            public TimerInfo( ITimerEvent sink, int id)
             {
                 Sink = sink;
                 Id = id;
@@ -57,7 +57,7 @@ namespace NetMQ.Core.Utils
             /// <summary>
             /// Get the ITimerEvent that serves as the event-sink.
             /// </summary>
-            [NotNull]
+            
             public ITimerEvent Sink { get; private set; }
 
             /// <summary>
@@ -112,7 +112,7 @@ namespace NetMQ.Core.Utils
         /// <param name="timeout">the timeout-period in milliseconds of the new timer</param>
         /// <param name="sink">the IProactorEvents to add for the sink of the new timer</param>
         /// <param name="id">the Id to assign to the new TimerInfo</param>
-        public void AddTimer(long timeout, [NotNull] IProactorEvents sink, int id)
+        public void AddTimer(long timeout,  IProactorEvents sink, int id)
         {
             long expiration = Clock.NowMs() + timeout;
             var info = new TimerInfo(sink, id);
@@ -131,7 +131,7 @@ namespace NetMQ.Core.Utils
         /// <remarks>
         /// The complexity of this operation is O(n). We assume it is rarely used.
         /// </remarks>
-        public void CancelTimer([NotNull] ITimerEvent sink, int id)
+        public void CancelTimer( ITimerEvent sink, int id)
         {
             var foundTimers = new Dictionary<long, TimerInfo>();
 

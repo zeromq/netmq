@@ -20,7 +20,7 @@
 */
 
 using System;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Transports;
 
 namespace NetMQ.Core
@@ -45,7 +45,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="ctx">the context for the new ZObject to live within</param>
         /// <param name="threadId">the integer thread-id for the new ZObject to be associated with</param>
-        protected ZObject([NotNull] Ctx ctx, int threadId)
+        protected ZObject( Ctx ctx, int threadId)
         {
             m_ctx = ctx;
             m_threadId = threadId;
@@ -55,7 +55,7 @@ namespace NetMQ.Core
         /// Create a new ZObject that has the same context and thread-id as the given parent-ZObject.
         /// </summary>
         /// <param name="parent">another ZObject that provides the context and thread-id for this one</param>
-        protected ZObject([NotNull] ZObject parent)
+        protected ZObject( ZObject parent)
             : this(parent.m_ctx, parent.m_threadId)
         {}
 
@@ -70,35 +70,35 @@ namespace NetMQ.Core
         /// <summary>
         /// Get the context that provides access to the global state.
         /// </summary>
-        [NotNull]
+        
         protected Ctx Ctx
         {
             get { return m_ctx; }
         }
 
-        protected bool RegisterEndpoint([NotNull] string addr, [NotNull] Ctx.Endpoint endpoint)
+        protected bool RegisterEndpoint( string addr,  Ctx.Endpoint endpoint)
         {
             return m_ctx.RegisterEndpoint(addr, endpoint);
         }
 
-        protected bool UnregisterEndpoint([NotNull] string addr, [NotNull] SocketBase socket)
+        protected bool UnregisterEndpoint( string addr,  SocketBase socket)
         {
             return m_ctx.UnregisterEndpoint(addr, socket);
         }
 
-        protected void UnregisterEndpoints([NotNull] SocketBase socket)
+        protected void UnregisterEndpoints( SocketBase socket)
         {
             m_ctx.UnregisterEndpoints(socket);
         }
 
         /// <exception cref="EndpointNotFoundException">The given address was not found in the list of endpoints.</exception>
-        [NotNull]
-        protected Ctx.Endpoint FindEndpoint([NotNull] string addr)
+        
+        protected Ctx.Endpoint FindEndpoint( string addr)
         {
             return m_ctx.FindEndpoint(addr);
         }
 
-        protected void DestroySocket([NotNull] SocketBase socket)
+        protected void DestroySocket( SocketBase socket)
         {
             m_ctx.DestroySocket(socket);
         }
@@ -108,7 +108,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <paramref name="affinity">Which threads are eligible (0 = all).</paramref>
         /// <returns>The least busy thread, or <c>null</c> if none is available.</returns>
-        [CanBeNull]
+        
         protected IOThread ChooseIOThread(long affinity)
         {
             return m_ctx.ChooseIOThread(affinity);
@@ -130,7 +130,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="destination">the Own to send the command to</param>
         /// <param name="incSeqnum">a flag that dictates whether to increment the sequence-number on the destination (optional - defaults to false)</param>
-        protected void SendPlug([NotNull] Own destination, bool incSeqnum = true)
+        protected void SendPlug( Own destination, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();
@@ -143,7 +143,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="destination">the Own to send the command to</param>
         /// <param name="obj">the object to Own</param>
-        protected void SendOwn([NotNull] Own destination, [NotNull] Own obj)
+        protected void SendOwn( Own destination,  Own obj)
         {
             destination.IncSeqnum();
             SendCommand(new Command(destination, CommandType.Own, obj));
@@ -155,7 +155,7 @@ namespace NetMQ.Core
         /// <param name="destination">the Own to send the command to</param>
         /// <param name="engine"></param>
         /// <param name="incSeqnum"></param>
-        protected void SendAttach([NotNull] SessionBase destination, [NotNull] IEngine engine, bool incSeqnum = true)
+        protected void SendAttach( SessionBase destination,  IEngine engine, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();
@@ -169,7 +169,7 @@ namespace NetMQ.Core
         /// <param name="destination"></param>
         /// <param name="pipe"></param>
         /// <param name="incSeqnum"></param>
-        protected void SendBind([NotNull] Own destination, [NotNull] Pipe pipe, bool incSeqnum = true)
+        protected void SendBind( Own destination,  Pipe pipe, bool incSeqnum = true)
         {
             if (incSeqnum)
                 destination.IncSeqnum();
@@ -177,27 +177,27 @@ namespace NetMQ.Core
             SendCommand(new Command(destination, CommandType.Bind, pipe));
         }
 
-        protected void SendActivateRead([NotNull] Pipe destination)
+        protected void SendActivateRead( Pipe destination)
         {
             SendCommand(new Command(destination, CommandType.ActivateRead));
         }
 
-        protected void SendActivateWrite([NotNull] Pipe destination, long msgsRead)
+        protected void SendActivateWrite( Pipe destination, long msgsRead)
         {
             SendCommand(new Command(destination, CommandType.ActivateWrite, msgsRead));
         }
 
-        protected void SendHiccup([NotNull] Pipe destination, [NotNull] object pipe)
+        protected void SendHiccup( Pipe destination,  object pipe)
         {
             SendCommand(new Command(destination, CommandType.Hiccup, pipe));
         }
 
-        protected void SendPipeTerm([NotNull] Pipe destination)
+        protected void SendPipeTerm( Pipe destination)
         {
             SendCommand(new Command(destination, CommandType.PipeTerm));
         }
 
-        protected void SendPipeTermAck([NotNull] Pipe destination)
+        protected void SendPipeTermAck( Pipe destination)
         {
             SendCommand(new Command(destination, CommandType.PipeTermAck));
         }
@@ -207,22 +207,22 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="destination"></param>
         /// <param name="obj"></param>
-        protected void SendTermReq([NotNull] Own destination, [NotNull] Own obj)
+        protected void SendTermReq( Own destination,  Own obj)
         {
             SendCommand(new Command(destination, CommandType.TermReq, obj));
         }
 
-        protected void SendTerm([NotNull] Own destination, int linger)
+        protected void SendTerm( Own destination, int linger)
         {
             SendCommand(new Command(destination, CommandType.Term, linger));
         }
 
-        protected void SendTermAck([NotNull] Own destination)
+        protected void SendTermAck( Own destination)
         {
             SendCommand(new Command(destination, CommandType.TermAck));
         }
 
-        protected void SendReap([NotNull] SocketBase socket)
+        protected void SendReap( SocketBase socket)
         {
             SendCommand(new Command(m_ctx.GetReaper(), CommandType.Reap, socket));
         }
@@ -245,7 +245,7 @@ namespace NetMQ.Core
         /// Send the given Command, on that commands Destination thread.
         /// </summary>
         /// <param name="cmd">the Command to send</param>
-        private void SendCommand([NotNull] Command cmd)
+        private void SendCommand( Command cmd)
         {
             m_ctx.SendCommand(cmd.Destination.ThreadId, cmd);
         }
@@ -254,7 +254,7 @@ namespace NetMQ.Core
 
         #region Command processing
 
-        public void ProcessCommand([NotNull] Command cmd)
+        public void ProcessCommand( Command cmd)
         {
             switch (cmd.CommandType)
             {
@@ -340,13 +340,13 @@ namespace NetMQ.Core
         }
 
         /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
-        protected virtual void ProcessOwn([NotNull] Own obj)
+        protected virtual void ProcessOwn( Own obj)
         {
             throw new NotSupportedException();
         }
 
         /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
-        protected virtual void ProcessAttach([NotNull] IEngine engine)
+        protected virtual void ProcessAttach( IEngine engine)
         {
             throw new NotSupportedException();
         }
@@ -356,7 +356,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="pipe"></param>
         /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
-        protected virtual void ProcessBind([NotNull] Pipe pipe)
+        protected virtual void ProcessBind( Pipe pipe)
         {
             throw new NotSupportedException();
         }
@@ -383,7 +383,7 @@ namespace NetMQ.Core
         /// is no longer available for writing to.
         /// </remarks>
         /// <exception cref="NotSupportedException">No supported on the ZObject class.</exception>
-        protected virtual void ProcessHiccup([NotNull] object pipe)
+        protected virtual void ProcessHiccup( object pipe)
         {
             throw new NotSupportedException();
         }
@@ -411,7 +411,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="obj"></param>
         /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
-        protected virtual void ProcessTermReq([NotNull] Own obj)
+        protected virtual void ProcessTermReq( Own obj)
         {
             throw new NotSupportedException();
         }
@@ -435,7 +435,7 @@ namespace NetMQ.Core
             throw new NotSupportedException();
         }
 
-        protected virtual void ProcessReap([NotNull] SocketBase socket)
+        protected virtual void ProcessReap( SocketBase socket)
         {
             // Overriden by Reaper
             throw new NotSupportedException();

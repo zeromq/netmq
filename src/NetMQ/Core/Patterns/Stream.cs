@@ -23,7 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 using NetMQ.Core.Utils;
 
@@ -35,20 +35,20 @@ namespace NetMQ.Core.Patterns
 
         public class StreamSession : SessionBase
         {
-            public StreamSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public StreamSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
 
         private class Outpipe
         {
-            public Outpipe([NotNull] Pipe pipe, bool active)
+            public Outpipe( Pipe pipe, bool active)
             {
                 Pipe = pipe;
                 Active = active;
             }
 
-            [NotNull]
+            
             public Pipe Pipe { get; private set; }
 
             public bool Active;
@@ -101,7 +101,7 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private int m_nextPeerId;
 
-        public Stream([NotNull] Ctx parent, int threadId, int socketId)
+        public Stream( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_prefetched = false;
@@ -366,7 +366,7 @@ namespace NetMQ.Core.Patterns
             return true;
         }
 
-        private void IdentifyPeer([NotNull] Pipe pipe)
+        private void IdentifyPeer( Pipe pipe)
         {
             // Always assign identity for raw-socket
             var identity = new byte[5];

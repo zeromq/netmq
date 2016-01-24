@@ -26,7 +26,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Patterns;
 using NetMQ.Core.Transports.Ipc;
 using NetMQ.Core.Transports.Pgm;
@@ -50,9 +50,9 @@ namespace NetMQ.Core
             public Pipe Pipe { get; private set; }
         }
 
-        [NotNull] private readonly Dictionary<string, Endpoint> m_endpoints = new Dictionary<string, Endpoint>();
+         private readonly Dictionary<string, Endpoint> m_endpoints = new Dictionary<string, Endpoint>();
 
-        [NotNull] private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
+         private readonly Dictionary<string, Pipe> m_inprocs = new Dictionary<string, Pipe>();
 
         private bool m_disposed;
 
@@ -67,10 +67,10 @@ namespace NetMQ.Core
         private bool m_destroyed;
 
         /// <summary>Socket's mailbox object.</summary>
-        [NotNull] private readonly Mailbox m_mailbox;
+         private readonly Mailbox m_mailbox;
 
         /// <summary>List of attached pipes.</summary>
-        [NotNull] private readonly List<Pipe> m_pipes = new List<Pipe>();
+         private readonly List<Pipe> m_pipes = new List<Pipe>();
 
         /// <summary>Reaper's poller.</summary>
         private Utils.Poller m_poller;
@@ -102,7 +102,7 @@ namespace NetMQ.Core
         /// <param name="parent">the Ctx context that this socket will live within</param>
         /// <param name="threadId">the id of the thread upon which this socket will execute</param>
         /// <param name="socketId">the integer id for the new socket</param>
-        protected SocketBase([NotNull] Ctx parent, int threadId, int socketId)
+        protected SocketBase( Ctx parent, int threadId, int socketId)
             : base(parent, threadId)
         {
             m_options.SocketId = socketId;
@@ -118,7 +118,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="pipe">the Pipe to attach</param>
         /// <param name="icanhasall">if true - subscribe to all data on the pipe</param>
-        protected abstract void XAttachPipe([NotNull] Pipe pipe, bool icanhasall);
+        protected abstract void XAttachPipe( Pipe pipe, bool icanhasall);
 
         /// <summary>
         /// Abstract method that gets called to signal that the given pipe is to be removed from this socket.
@@ -126,7 +126,7 @@ namespace NetMQ.Core
         /// of how to terminate the pipe.
         /// </summary>
         /// <param name="pipe">the Pipe that is being removed</param>
-        protected abstract void XTerminated([NotNull] Pipe pipe);
+        protected abstract void XTerminated( Pipe pipe);
 
         /// <summary>Throw <see cref="ObjectDisposedException"/> if this socket is already disposed.</summary>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
@@ -154,8 +154,8 @@ namespace NetMQ.Core
         /// <param name="threadId">the thread for this new socket to run on</param>
         /// <param name="socketId">an integer id for this socket</param>
         /// <exception cref="InvalidException">The socket type must be valid.</exception>
-        [NotNull]
-        public static SocketBase Create(ZmqSocketType type, [NotNull] Ctx parent, int threadId, int socketId)
+        
+        public static SocketBase Create(ZmqSocketType type,  Ctx parent, int threadId, int socketId)
         {
             switch (type)
             {
@@ -202,7 +202,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Return the Mailbox associated with this socket.
         /// </summary>
-        [NotNull]
+        
         public Mailbox Mailbox
         {
             get { return m_mailbox; }
@@ -231,7 +231,7 @@ namespace NetMQ.Core
         /// The supported protocols are "inproc", "ipc", "tcp", "pgm", and "epgm".
         /// If the protocol is either "pgm" or "epgm", then this socket must be of type Pub, Sub, XPub, or XSub.
         /// </remarks>
-        private void CheckProtocol([NotNull] string protocol)
+        private void CheckProtocol( string protocol)
         {
             switch (protocol)
             {
@@ -268,7 +268,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="pipe">the Pipe to attach</param>
         /// <param name="icanhasall">if true - subscribe to all data on the pipe (optional - default is false)</param>
-        private void AttachPipe([NotNull] Pipe pipe, bool icanhasall = false)
+        private void AttachPipe( Pipe pipe, bool icanhasall = false)
         {
             // First, register the pipe so that we can terminate it later on.
 
@@ -413,7 +413,7 @@ namespace NetMQ.Core
         /// If the protocol is either "pgm" or "epgm", then this socket must be of type Pub, Sub, XPub, or XSub.
         /// If the protocol is "inproc", you cannot bind to the same address more than once.
         /// </remarks>
-        public void Bind([NotNull] string addr)
+        public void Bind( string addr)
         {
             CheckContextTerminated();
 
@@ -544,7 +544,7 @@ namespace NetMQ.Core
         /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener errored during
         /// initialisation.</exception>
         /// <exception cref="FaultException">the socket bind failed</exception>
-        public int BindRandomPort([NotNull] string addr)
+        public int BindRandomPort( string addr)
         {
             string address, protocol;
 
@@ -571,7 +571,7 @@ namespace NetMQ.Core
         /// If the protocol is either "pgm" or "epgm", then this socket must be of type Pub, Sub, XPub, or XSub.
         /// </remarks>
         /// <exception cref="EndpointNotFoundException">The given address was not found in the list of endpoints.</exception>
-        public void Connect([NotNull] string addr)
+        public void Connect( string addr)
         {
             CheckContextTerminated();
 
@@ -725,7 +725,7 @@ namespace NetMQ.Core
         /// <param name="addr">a string denoting the endpoint, to take the parts from</param>
         /// <param name="address">the IP-address portion of the end-point address</param>
         /// <param name="protocol">the protocol portion of the end-point address (such as "tcp")</param>
-        private static void DecodeAddress([NotNull] string addr, out string address, out string protocol)
+        private static void DecodeAddress( string addr, out string address, out string protocol)
         {
             const string protocolDelimeter = "://";
             int protocolDelimeterIndex = addr.IndexOf(protocolDelimeter, StringComparison.Ordinal);
@@ -737,7 +737,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Take ownership of the given <paramref name="endpoint"/> and register it against the given <paramref name="address"/>.
         /// </summary>
-        private void AddEndpoint([NotNull] string address, [NotNull] Own endpoint, Pipe pipe)
+        private void AddEndpoint( string address,  Own endpoint, Pipe pipe)
         {
             // Activate the session. Make it a child of this socket.
             LaunchChild(endpoint);
@@ -752,7 +752,7 @@ namespace NetMQ.Core
         /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
         /// <exception cref="ProtocolNotSupportedException">The specified protocol must be valid.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void TermEndpoint([NotNull] string addr)
+        public void TermEndpoint( string addr)
         {
             CheckContextTerminated();
 
@@ -998,7 +998,7 @@ namespace NetMQ.Core
         /// Using this function reaper thread ask the socket to register with
         /// its poller.
         /// </summary>
-        internal void StartReaping([NotNull] Utils.Poller poller)
+        internal void StartReaping( Utils.Poller poller)
         {
             // Plug the socket to the reaper thread.
             m_poller = poller;
@@ -1124,7 +1124,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="option">a ZmqSocketOption specifying which option to set</param>
         /// <param name="optionValue">an Object that is the value to set the option to</param>
-        protected virtual bool XSetSocketOption(ZmqSocketOption option, [CanBeNull] object optionValue)
+        protected virtual bool XSetSocketOption(ZmqSocketOption option,  object optionValue)
         {
             return false;
         }
@@ -1179,7 +1179,7 @@ namespace NetMQ.Core
         /// to provide their own concrete implementation.
         /// </summary>
         /// <param name="pipe">the <c>Pipe</c> that is now becoming available for reading</param>
-        protected virtual void XReadActivated([NotNull] Pipe pipe)
+        protected virtual void XReadActivated( Pipe pipe)
         {
             throw new NotSupportedException("Must Override");
         }
@@ -1191,12 +1191,12 @@ namespace NetMQ.Core
         /// to provide their own concrete implementation.
         /// </summary>
         /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
-        protected virtual void XWriteActivated([NotNull] Pipe pipe)
+        protected virtual void XWriteActivated( Pipe pipe)
         {
             throw new NotSupportedException("Must Override");
         }
 
-        protected virtual void XHiccuped([NotNull] Pipe pipe)
+        protected virtual void XHiccuped( Pipe pipe)
         {
             throw new NotSupportedException("Must override");
         }
@@ -1336,7 +1336,7 @@ namespace NetMQ.Core
         /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
         /// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="addr"/> is not supported.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public void Monitor([CanBeNull] string addr, SocketEvents events)
+        public void Monitor( string addr, SocketEvents events)
         {
             CheckContextTerminated();
 
@@ -1389,7 +1389,7 @@ namespace NetMQ.Core
 
         #region Monitor events
 
-        public void EventConnected([NotNull] string addr, [NotNull] AsyncSocket ch)
+        public void EventConnected( string addr,  AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvents.Connected) == 0)
                 return;
@@ -1397,7 +1397,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.Connected, addr, ch));
         }
 
-        public void EventConnectDelayed([NotNull] string addr, ErrorCode errno)
+        public void EventConnectDelayed( string addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvents.ConnectDelayed) == 0)
                 return;
@@ -1405,7 +1405,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.ConnectDelayed, addr, errno));
         }
 
-        public void EventConnectRetried([NotNull] string addr, int interval)
+        public void EventConnectRetried( string addr, int interval)
         {
             if ((m_monitorEvents & SocketEvents.ConnectRetried) == 0)
                 return;
@@ -1413,7 +1413,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.ConnectRetried, addr, interval));
         }
 
-        public void EventListening([NotNull] string addr, [NotNull] AsyncSocket ch)
+        public void EventListening( string addr,  AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvents.Listening) == 0)
                 return;
@@ -1421,7 +1421,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.Listening, addr, ch));
         }
 
-        public void EventBindFailed([NotNull] string addr, ErrorCode errno)
+        public void EventBindFailed( string addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvents.BindFailed) == 0)
                 return;
@@ -1429,7 +1429,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.BindFailed, addr, errno));
         }
 
-        public void EventAccepted([NotNull] string addr, [NotNull] AsyncSocket ch)
+        public void EventAccepted( string addr,  AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvents.Accepted) == 0)
                 return;
@@ -1437,7 +1437,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.Accepted, addr, ch));
         }
 
-        public void EventAcceptFailed([NotNull] string addr, ErrorCode errno)
+        public void EventAcceptFailed( string addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvents.AcceptFailed) == 0)
                 return;
@@ -1445,7 +1445,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.AcceptFailed, addr, errno));
         }
 
-        public void EventClosed([NotNull] string addr, [NotNull] AsyncSocket ch)
+        public void EventClosed( string addr,  AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvents.Closed) == 0)
                 return;
@@ -1453,7 +1453,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.Closed, addr, ch));
         }
 
-        public void EventCloseFailed([NotNull] string addr, ErrorCode errno)
+        public void EventCloseFailed( string addr, ErrorCode errno)
         {
             if ((m_monitorEvents & SocketEvents.CloseFailed) == 0)
                 return;
@@ -1461,7 +1461,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.CloseFailed, addr, errno));
         }
 
-        public void EventDisconnected([NotNull] string addr, [NotNull] AsyncSocket ch)
+        public void EventDisconnected( string addr,  AsyncSocket ch)
         {
             if ((m_monitorEvents & SocketEvents.Disconnected) == 0)
                 return;
@@ -1469,7 +1469,7 @@ namespace NetMQ.Core
             MonitorEvent(new MonitorEvent(SocketEvents.Disconnected, addr, ch));
         }
 
-        private void MonitorEvent([NotNull] MonitorEvent monitorEvent)
+        private void MonitorEvent( MonitorEvent monitorEvent)
         {
             if (m_monitorSocket == null)
                 return;
@@ -1504,7 +1504,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Get the Socket (Handle) - which is actually the Handle of the contained mailbox.
         /// </summary>
-        [NotNull]
+        
         public Socket Handle
         {
             get { return m_mailbox.Handle; }
@@ -1514,7 +1514,7 @@ namespace NetMQ.Core
         /// Return a short bit of text that denotes the SocketType of this socket.
         /// </summary>
         /// <returns>a short type-string such as PAIR, PUB, OR UNKNOWN</returns>
-        [NotNull]
+        
         public string GetTypeString()
         {
             switch (m_options.SocketType)

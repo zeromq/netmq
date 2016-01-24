@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
@@ -53,7 +53,7 @@ namespace NetMQ.Core
             /// </summary>
             /// <param name="socket">the socket for this new Endpoint</param>
             /// <param name="options">the Options to assign to this new Endpoint</param>
-            public Endpoint([NotNull] SocketBase socket, [NotNull] Options options)
+            public Endpoint( SocketBase socket,  Options options)
             {
                 Socket = socket;
                 Options = options;
@@ -62,13 +62,13 @@ namespace NetMQ.Core
             /// <summary>
             /// Get the socket associated with this Endpoint.
             /// </summary>
-            [NotNull]
+            
             public SocketBase Socket { get; private set; }
 
             /// <summary>
             /// Get the Options of this Endpoint.
             /// </summary>
-            [NotNull]
+            
             public Options Options { get; private set; }
         }
 
@@ -110,7 +110,7 @@ namespace NetMQ.Core
         /// <summary>
         /// The reaper thread.
         /// </summary>
-        [CanBeNull] private Reaper m_reaper;
+         private Reaper m_reaper;
 
         /// <summary>
         /// List of I/O threads.
@@ -125,7 +125,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Array of pointers to mailboxes for both application and I/O threads.
         /// </summary>
-        [CanBeNull] private IMailbox[] m_slots;
+         private IMailbox[] m_slots;
 
         /// <summary>
         /// Mailbox for zmq_term thread.
@@ -288,7 +288,7 @@ namespace NetMQ.Core
         /// <exception cref="TerminatingException">Cannot create new socket while terminating.</exception>
         /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
         /// <exception cref="TerminatingException">The context (Ctx) must not be already terminating.</exception>
-        [NotNull]
+        
         public SocketBase CreateSocket(ZmqSocketType type)
         {
             lock (m_slotSync)
@@ -382,7 +382,7 @@ namespace NetMQ.Core
         /// <remarks>
         /// If this was the last socket, then stop the reaper.
         /// </remarks>
-        public void DestroySocket([NotNull] SocketBase socket)
+        public void DestroySocket( SocketBase socket)
         {
             // Free the associated thread slot.
             lock (m_slotSync)
@@ -415,7 +415,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Send a command to the given destination thread.
         /// </summary>
-        public void SendCommand(int threadId, [NotNull] Command command)
+        public void SendCommand(int threadId,  Command command)
         {
             m_slots[threadId].Send(command);
         }
@@ -425,7 +425,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <paramref name="affinity">Which threads are eligible (0 = all).</paramref>
         /// <returns>The least busy thread, or <c>null</c> if none is available.</returns>
-        [CanBeNull]
+        
         public IOThread ChooseIOThread(long affinity)
         {
             if (m_ioThreads.Count == 0)
@@ -458,7 +458,7 @@ namespace NetMQ.Core
         /// <param name="address">the textual name to give this endpoint</param>
         /// <param name="endpoint">the Endpoint to remember</param>
         /// <returns>true if the given address was NOT already registered</returns>
-        public bool RegisterEndpoint([NotNull] string address, [NotNull] Endpoint endpoint)
+        public bool RegisterEndpoint( string address,  Endpoint endpoint)
         {
             lock (m_endpointsSync)
             {
@@ -476,7 +476,7 @@ namespace NetMQ.Core
         /// <param name="address">the (string) address denoting the endpoint to unregister</param>
         /// <param name="socket">the socket associated with that endpoint</param>
         /// <returns>true if the endpoint having this address and socket is found, false otherwise</returns>
-        public bool UnregisterEndpoint([NotNull] string address, [NotNull] SocketBase socket)
+        public bool UnregisterEndpoint( string address,  SocketBase socket)
         {
             lock (m_endpointsSync)
             {
@@ -497,7 +497,7 @@ namespace NetMQ.Core
         /// Remove from the list of endpoints, all endpoints that reference the given socket.
         /// </summary>
         /// <param name="socket">the socket to remove all references to</param>
-        public void UnregisterEndpoints([NotNull] SocketBase socket)
+        public void UnregisterEndpoints( SocketBase socket)
         {
             lock (m_endpointsSync)
             {
@@ -518,8 +518,8 @@ namespace NetMQ.Core
         /// By calling this method, the socket associated with that returned EndPoint has it's Seqnum incremented,
         /// in order to prevent it from being de-allocated before a command can be sent to it.
         /// </remarks>
-        [NotNull]
-        public Endpoint FindEndpoint([NotNull] string addr)
+        
+        public Endpoint FindEndpoint( string addr)
         {
             Debug.Assert(addr != null);
 

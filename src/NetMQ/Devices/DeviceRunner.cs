@@ -1,4 +1,4 @@
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Devices
 {
@@ -15,7 +15,7 @@ namespace NetMQ.Devices
         /// Create a new DeviceRunner object that contains the given IDevice.
         /// </summary>
         /// <param name="device">the IDevice that this DeviceRunner will contain</param>
-        public DeviceRunner([NotNull] IDevice device)
+        public DeviceRunner( IDevice device)
         {
             Device = device;
         }

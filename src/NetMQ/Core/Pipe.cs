@@ -21,7 +21,7 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
@@ -43,16 +43,16 @@ namespace NetMQ.Core
             /// When called upon an instance of SocketBase, this simply calls XReadActivated.
             /// </summary>
             /// <param name="pipe">the pipe to indicate is ready for reading</param>
-            void ReadActivated([NotNull] Pipe pipe);
+            void ReadActivated( Pipe pipe);
 
-            void WriteActivated([NotNull] Pipe pipe);
-            void Hiccuped([NotNull] Pipe pipe);
+            void WriteActivated( Pipe pipe);
+            void Hiccuped( Pipe pipe);
 
             /// <summary>
             /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
             /// </summary>
             /// <param name="pipe">the pipe that was terminated</param>
-            void Terminated([NotNull] Pipe pipe);
+            void Terminated( Pipe pipe);
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace NetMQ.Core
         /// Constructor is private as pipe can only be created using <see cref="PipePair"/> method.
         /// </remarks>
         private Pipe(
-            [NotNull] ZObject parent, [NotNull] YPipe<Msg> inboundPipe, [NotNull] YPipe<Msg> outboundPipe, 
+             ZObject parent,  YPipe<Msg> inboundPipe,  YPipe<Msg> outboundPipe, 
             int inHighWatermark, int outHighWatermark, bool delay)
             : base(parent)
         {
@@ -180,8 +180,8 @@ namespace NetMQ.Core
         /// pipe receives all the pending messages before terminating, otherwise it
         /// terminates straight away.</param>
         /// <returns>A pipe pair for bi-directional transfer of messages. </returns>
-        [NotNull]
-        public static Pipe[] PipePair([NotNull] ZObject[] parents, [NotNull] int[] highWaterMarks, [NotNull] bool[] delays)
+        
+        public static Pipe[] PipePair( ZObject[] parents,  int[] highWaterMarks,  bool[] delays)
         {
             // Creates two pipe objects. These objects are connected by two ypipes,
             // each to pass messages in one direction.
@@ -205,7 +205,7 @@ namespace NetMQ.Core
         /// <see cref="PipePair"/> uses this function to let us know about the peer pipe object.
         /// </summary>
         /// <param name="peer">The peer to be assigned.</param>
-        private void SetPeer([NotNull] Pipe peer)
+        private void SetPeer( Pipe peer)
         {
             // Peer can be set once only.
             Debug.Assert(peer != null);
@@ -216,7 +216,7 @@ namespace NetMQ.Core
         /// Specifies the object to send events to.
         /// </summary>
         /// <param name="sink"> The receiver of the events. </param>
-        public void SetEventSink([NotNull] IPipeEvents sink)
+        public void SetEventSink( IPipeEvents sink)
         {
             Debug.Assert(m_sink == null);
             m_sink = sink;
@@ -225,7 +225,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Get or set the byte-array that comprises the identity of this Pipe.
         /// </summary>
-        [CanBeNull]
+        
         public byte[] Identity { get; set; }
 
         /// <summary>

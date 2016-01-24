@@ -23,7 +23,7 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Tcp
 {
@@ -31,19 +31,19 @@ namespace NetMQ.Core.Transports.Tcp
     {
         private const SocketOptionName IPv6Only = (SocketOptionName)27;
 
-        [NotNull]
+        
         private readonly IOObject m_ioObject;
 
         /// <summary>
         /// Address to listen on.
         /// </summary>
-        [NotNull]
+        
         private readonly TcpAddress m_address;
 
         /// <summary>
         /// Underlying socket.
         /// </summary>
-        [CanBeNull]
+        
         private AsyncSocket m_handle;
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// <summary>
         /// Socket the listener belongs to.
         /// </summary>
-        [NotNull]
+        
         private readonly SocketBase m_socket;
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// <param name="ioThread">the IOThread for this to live within</param>
         /// <param name="socket">a SocketBase to listen on</param>
         /// <param name="options">socket-related Options</param>
-        public TcpListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
+        public TcpListener( IOThread ioThread,  SocketBase socket,  Options options)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -114,7 +114,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// Set address to listen on.
         /// </summary>
         /// <param name="addr">a string denoting the address to set this to</param>
-        public virtual void SetAddress([NotNull] string addr)
+        public virtual void SetAddress( string addr)
         {
             m_address.Resolve(addr, m_options.IPv4Only);
 
@@ -279,7 +279,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// <summary>
         /// Get the bound address for use with wildcards
         /// </summary>
-        [NotNull]
+        
         public virtual string Address
         {
             get { return m_address.ToString(); }

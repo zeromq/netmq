@@ -23,7 +23,7 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Tcp
 {
@@ -47,7 +47,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// <summary>
         /// The underlying AsyncSocket.
         /// </summary>
-        [CanBeNull]
+        
         private AsyncSocket m_s;
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// <param name="options">Options that define this new TcpC</param>
         /// <param name="addr">the Address for this Tcp to connect to</param>
         /// <param name="delayedStart">this boolean flag dictates whether to wait before trying to connect</param>
-        public TcpConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
+        public TcpConnector( IOThread ioThread,  SessionBase session,  Options options,  Address addr, bool delayedStart)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
