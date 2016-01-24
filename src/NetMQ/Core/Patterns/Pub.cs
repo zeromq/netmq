@@ -20,7 +20,7 @@
 */
 
 using System;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
@@ -28,12 +28,12 @@ namespace NetMQ.Core.Patterns
     {
         public class PubSession : XPubSession
         {
-            public PubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public PubSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
 
-        public Pub([NotNull] Ctx parent, int threadId, int socketId)
+        public Pub( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pub;

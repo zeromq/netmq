@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 #if DEBUG
 using System.Diagnostics;
 #endif
@@ -71,7 +71,7 @@ namespace NetMQ.Core.Transports.Pgm
         private readonly PgmSocketType m_pgmSocketType;
         private readonly PgmAddress m_pgmAddress;
 
-        public PgmSocket([NotNull] Options options, PgmSocketType pgmSocketType, [NotNull] PgmAddress pgmAddress)
+        public PgmSocket( Options options, PgmSocketType pgmSocketType,  PgmAddress pgmAddress)
         {
             m_options = options;
             m_pgmSocketType = pgmSocketType;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -20,18 +20,18 @@ namespace NetMQ.Core.Utils
 
         private class Item
         {
-            public Item([NotNull] IProactorEvents proactorEvents)
+            public Item( IProactorEvents proactorEvents)
             {
                 ProactorEvents = proactorEvents;
                 Cancelled = false;
             }
 
-            [NotNull] 
+             
             public IProactorEvents ProactorEvents { get; private set; }
             public bool Cancelled { get; set; }
         }
 
-        public Proactor([NotNull] string name)
+        public Proactor( string name)
         {
             m_name = name;
             m_stopping = false;

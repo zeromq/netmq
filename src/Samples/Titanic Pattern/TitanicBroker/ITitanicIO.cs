@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 using NetMQ;
 
@@ -21,17 +21,17 @@ namespace TitanicProtocol
 
         RequestEntry GetRequestEntry (Guid id);
 
-        IEnumerable<RequestEntry> GetRequestEntries ([NotNull] Func<RequestEntry, bool> predicate);
+        IEnumerable<RequestEntry> GetRequestEntries ( Func<RequestEntry, bool> predicate);
 
         IEnumerable<RequestEntry> GetNotClosedRequestEntries ();
 
-        void SaveRequestEntry ([NotNull] RequestEntry entry);
+        void SaveRequestEntry ( RequestEntry entry);
 
         void SaveNewRequestEntry (Guid id);
 
-        void SaveNewRequestEntry (Guid id, [NotNull] NetMQMessage request);
+        void SaveNewRequestEntry (Guid id,  NetMQMessage request);
 
-        void SaveProcessedRequestEntry ([NotNull] RequestEntry entry);
+        void SaveProcessedRequestEntry ( RequestEntry entry);
 
         void CloseRequest (Guid id);
 
@@ -41,9 +41,9 @@ namespace TitanicProtocol
 
         Task<NetMQMessage> GetMessageAsync (TitanicOperation op, Guid id);
 
-        bool SaveMessage (TitanicOperation op, Guid id, [NotNull] NetMQMessage message);
+        bool SaveMessage (TitanicOperation op, Guid id,  NetMQMessage message);
 
-        Task<bool> SaveMessageAsync (TitanicOperation op, Guid id, [NotNull] NetMQMessage message);
+        Task<bool> SaveMessageAsync (TitanicOperation op, Guid id,  NetMQMessage message);
 
         bool ExistsMessage (TitanicOperation op, Guid id);
     }

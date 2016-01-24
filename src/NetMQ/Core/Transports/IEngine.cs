@@ -20,7 +20,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports
 {
@@ -32,7 +32,7 @@ namespace NetMQ.Core.Transports
         /// <summary>
         /// Plug the engine to the session.
         /// </summary>
-        void Plug([NotNull] IOThread ioThread, [NotNull] SessionBase session);
+        void Plug( IOThread ioThread,  SessionBase session);
 
         /// <summary>
         /// Terminate and deallocate the engine. Note that 'detached'

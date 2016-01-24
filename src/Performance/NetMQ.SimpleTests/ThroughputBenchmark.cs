@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ.SimpleTests
@@ -64,11 +64,11 @@ namespace NetMQ.SimpleTests
             }
         }
 
-        [NotNull] protected abstract PushSocket CreateProducerSocket();
-        [NotNull] protected abstract PullSocket CreateConsumerSocket();
+         protected abstract PushSocket CreateProducerSocket();
+         protected abstract PullSocket CreateConsumerSocket();
 
-        protected abstract void Produce([NotNull] PushSocket socket, int messageSize);
-        protected abstract void Consume([NotNull] PullSocket socket, int messageSize);
+        protected abstract void Produce( PushSocket socket, int messageSize);
+        protected abstract void Consume( PullSocket socket, int messageSize);
     }
 
     internal class ThroughputBenchmark : ThroughputBenchmarkBase

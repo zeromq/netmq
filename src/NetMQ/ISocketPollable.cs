@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+﻿//using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -10,7 +10,7 @@ namespace NetMQ
         /// <summary>
         /// Gets a <see cref="NetMQSocket"/> instance.
         /// </summary>
-        [NotNull]
+        
         NetMQSocket Socket { get; }
     }
 }

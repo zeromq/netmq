@@ -23,7 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 using NetMQ.Core.Utils;
 
@@ -38,7 +38,7 @@ namespace NetMQ.Core.Patterns
 
         public class RouterSession : SessionBase
         {
-            public RouterSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public RouterSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
@@ -48,13 +48,13 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private class Outpipe
         {
-            public Outpipe([NotNull] Pipe pipe, bool active)
+            public Outpipe( Pipe pipe, bool active)
             {
                 Pipe = pipe;
                 Active = active;
             }
 
-            [NotNull]
+            
             public Pipe Pipe { get; private set; }
 
             public bool Active;
@@ -131,7 +131,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="parent">the Ctx that will contain this Router</param>
         /// <param name="threadId">the integer thread-id value</param>
         /// <param name="socketId">the integer socket-id value</param>
-        public Router([NotNull] Ctx parent, int threadId, int socketId)
+        public Router( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_nextPeerId = s_random.Next();
@@ -480,7 +480,7 @@ namespace NetMQ.Core.Patterns
             return true;
         }
 
-        private bool IdentifyPeer([NotNull] Pipe pipe)
+        private bool IdentifyPeer( Pipe pipe)
         {
             byte[] identity;
 

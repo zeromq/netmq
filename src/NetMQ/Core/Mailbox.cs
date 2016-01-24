@@ -21,14 +21,14 @@
 
 using System.Diagnostics;
 using System.Net.Sockets;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 
 namespace NetMQ.Core
 {
     internal interface IMailbox
     {
-        void Send([NotNull] Command command);
+        void Send( Command command);
 
         void Close();
     }
@@ -40,11 +40,11 @@ namespace NetMQ.Core
 
     internal class IOThreadMailbox : IMailbox
     {
-        [NotNull] private readonly Proactor m_proactor;
+         private readonly Proactor m_proactor;
 
-        [NotNull] private readonly IMailboxEvent m_mailboxEvent;
+         private readonly IMailboxEvent m_mailboxEvent;
 
-        [NotNull] private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
+         private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 
         /// <summary>
         /// There's only one thread receiving from the mailbox, but there
@@ -52,16 +52,16 @@ namespace NetMQ.Core
         /// synchronised access on both of its endpoints, we have to synchronize
         /// the sending side.
         /// </summary>
-        [NotNull] private readonly object m_sync = new object();
+         private readonly object m_sync = new object();
 
 #if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
-        [NotNull] private readonly string m_name;
+         private readonly string m_name;
 #endif
 
         private bool m_disposed;
 
-        public IOThreadMailbox([NotNull] string name, [NotNull] Proactor proactor, [NotNull] IMailboxEvent mailboxEvent)
+        public IOThreadMailbox( string name,  Proactor proactor,  IMailboxEvent mailboxEvent)
         {
             m_proactor = proactor;
             m_mailboxEvent = mailboxEvent;
@@ -147,14 +147,14 @@ namespace NetMQ.Core
 
 #if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
-        [NotNull] private readonly string m_name;
+         private readonly string m_name;
 #endif
 
         /// <summary>
         /// Create a new Mailbox with the given name.
         /// </summary>
         /// <param name="name">the name to give this new Mailbox</param>
-        public Mailbox([NotNull] string name)
+        public Mailbox( string name)
         {
             // Get the pipe into passive state. That way, if the users starts by
             // polling on the associated file descriptor it will get woken up when
@@ -175,7 +175,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Get the socket-handle contained by the Signaler.
         /// </summary>
-        [NotNull]
+        
         public Socket Handle
         {
             get { return m_signaler.Handle; }

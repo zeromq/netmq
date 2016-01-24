@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ
@@ -15,7 +15,7 @@ namespace NetMQ
         /// Create a new NetMQBeaconEventArgs object containing the given NetMQBeacon.
         /// </summary>
         /// <param name="beacon">the NetMQBeacon object to hold a reference to</param>
-        public NetMQBeaconEventArgs([NotNull] NetMQBeacon beacon)
+        public NetMQBeaconEventArgs( NetMQBeacon beacon)
         {
             Beacon = beacon;
         }
@@ -23,7 +23,7 @@ namespace NetMQ
         /// <summary>
         /// Get the NetMQBeacon object that this holds.
         /// </summary>
-        [NotNull]
+        
         public NetMQBeacon Beacon { get; private set; }
     }
 
@@ -60,7 +60,7 @@ namespace NetMQ
             private NetMQTimer m_pingTimer;
             private NetMQPoller m_poller;
 
-            private void Configure([NotNull] string interfaceName, int port)
+            private void Configure( string interfaceName, int port)
             {
                 // In case the beacon was configured twice
                 if (m_udpSocket != null)
@@ -130,7 +130,7 @@ namespace NetMQ
                 }
             }
 
-            private static bool Compare([NotNull] NetMQFrame a, [NotNull] NetMQFrame b, int size)
+            private static bool Compare( NetMQFrame a,  NetMQFrame b, int size)
             {
                 for (int i = 0; i < size; i++)
                 {
@@ -267,7 +267,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="context">the NetMQContext to contain this new socket</param>
         [Obsolete("Use non context version")]
-        public NetMQBeacon([NotNull] NetMQContext context)
+        public NetMQBeacon( NetMQContext context)
         {
             m_actor = NetMQActor.Create(context, new Shim());
 
@@ -341,7 +341,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="interfaceName">One of the ip address of the interface</param>
         /// <param name="port">Port to bind to</param>
-        public void Configure([NotNull] string interfaceName, int port)
+        public void Configure( string interfaceName, int port)
         {
             var message = new NetMQMessage();
             message.Append(ConfigureCommand);
@@ -358,7 +358,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish([NotNull] string transmit, TimeSpan interval)
+        public void Publish( string transmit, TimeSpan interval)
         {
             var message = new NetMQMessage();
             message.Append(PublishCommand);
@@ -373,7 +373,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish([NotNull] byte[] transmit, TimeSpan interval)
+        public void Publish( byte[] transmit, TimeSpan interval)
         {
             var message = new NetMQMessage();
             message.Append(PublishCommand);
@@ -387,7 +387,7 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
-        public void Publish([NotNull] string transmit)
+        public void Publish( string transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
         }
@@ -396,7 +396,7 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
-        public void Publish([NotNull] byte[] transmit)
+        public void Publish( byte[] transmit)
         {
             Publish(transmit, TimeSpan.FromSeconds(1));
         }
@@ -413,7 +413,7 @@ namespace NetMQ
         /// Subscribe to beacon messages, will replace last subscribe call
         /// </summary>
         /// <param name="filter">Beacon will be filtered by this</param>
-        public void Subscribe([NotNull] string filter)
+        public void Subscribe( string filter)
         {
             m_actor.SendMoreFrame(SubscribeCommand).SendFrame(filter);
         }
@@ -432,7 +432,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
         /// <returns>the string that was received</returns>
-        [NotNull]
+        
         public string ReceiveString(out string peerName)
         {
             peerName = m_actor.ReceiveFrameString();
@@ -465,7 +465,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
         /// <returns>the byte-array of data that was received</returns>
-        [NotNull]
+        
         public byte[] Receive(out string peerName)
         {
             peerName = m_actor.ReceiveFrameString();

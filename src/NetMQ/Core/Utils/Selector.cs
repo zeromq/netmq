@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -51,7 +51,7 @@ namespace NetMQ.Core.Utils
         /// <exception cref="FaultException">The internal select operation failed.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="items"/> is <c>null</c>.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public bool Select([NotNull] SelectItem[] items, int itemsCount, long timeout)
+        public bool Select( SelectItem[] items, int itemsCount, long timeout)
         {
             if (items == null)
                 throw new ArgumentNullException("items");

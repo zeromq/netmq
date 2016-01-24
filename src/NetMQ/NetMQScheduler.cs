@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core;
 using NetMQ.Sockets;
 
@@ -39,7 +39,7 @@ namespace NetMQ
         /// <param name="context">the NetMQContext to create this NetMQScheduler within</param>
         /// <param name="poller">(optional)the Poller for this Net to use</param>
         [Obsolete("Use non context version")]
-        public NetMQScheduler([NotNull] NetMQContext context, [CanBeNull] Poller poller = null) : 
+        public NetMQScheduler( NetMQContext context,  Poller poller = null) : 
             this(poller, context.CreatePushSocket(), context.CreatePullSocket())
         {
             
@@ -49,7 +49,7 @@ namespace NetMQ
         /// Create a new NetMQScheduler object within the given context, and optionally using the given poller.
         /// </summary>        
         /// <param name="poller">(optional)the Poller for this Net to use</param>        
-        public NetMQScheduler([CanBeNull] Poller poller = null) :
+        public NetMQScheduler( Poller poller = null) :
             this(poller, new PushSocket(), new PullSocket())
         {
 

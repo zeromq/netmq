@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.InProcActors;
 using NetMQ.Sockets;
 
@@ -17,7 +17,7 @@ namespace NetMQ.Actors
         /// Create a new NetMQActorEventArgs with the given actor.
         /// </summary>
         /// <param name="actor">the Actor for the new NetMQActorEventArgs to contain</param>
-        public NetMQActorEventArgs([NotNull] Actor<T> actor)
+        public NetMQActorEventArgs( Actor<T> actor)
         {
             Actor = actor;
         }
@@ -25,7 +25,7 @@ namespace NetMQ.Actors
         /// <summary>
         /// Get the Actor object that this NetMQActorEventArgs contains.
         /// </summary>
-        [NotNull]
+        
         public Actor<T> Actor { get; private set; }
     }
 
@@ -45,7 +45,7 @@ namespace NetMQ.Actors
         private readonly EventDelegator<NetMQActorEventArgs<T>> m_receiveEvent;
         private readonly EventDelegator<NetMQActorEventArgs<T>> m_sendEvent;
 
-        [NotNull]
+        
         private static string GetEndPointName()
         {
             return string.Format("inproc://zactor-{0}-{1}",
@@ -58,7 +58,7 @@ namespace NetMQ.Actors
         /// <param name="context">the context for this actor to live within</param>
         /// <param name="shimHandler">this <see cref="IShimHandler"/> is will handle the actions we send to the shim</param>
         /// <param name="state">this generic type represents the state-information that the action will use</param>
-        public Actor([NotNull] NetMQContext context, [NotNull] IShimHandler<T> shimHandler, T state)
+        public Actor( NetMQContext context,  IShimHandler<T> shimHandler, T state)
         {
             m_self = context.CreatePairSocket();
             m_shim = new Shim<T>(shimHandler, context.CreatePairSocket());

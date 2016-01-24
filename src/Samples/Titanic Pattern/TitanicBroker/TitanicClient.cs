@@ -2,7 +2,7 @@
 using System.Text;
 using System.Threading;
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 using NetMQ;
 
@@ -427,7 +427,7 @@ namespace TitanicProtocol
             }
         }
 
-        private void Log ([NotNull] string info)
+        private void Log ( string info)
         {
             OnLogInfoReady (new TitanicLogEventArgs { Info = "[TITANIC CLIENT] " + info });
         }

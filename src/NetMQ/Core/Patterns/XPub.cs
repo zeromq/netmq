@@ -22,7 +22,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -31,7 +31,7 @@ namespace NetMQ.Core.Patterns
     {
         public class XPubSession : SessionBase
         {
-            public XPubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public XPubSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
@@ -110,7 +110,7 @@ namespace NetMQ.Core.Patterns
             };
         }
 
-        public XPub([NotNull] Ctx parent, int threadId, int socketId)
+        public XPub( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Xpub;

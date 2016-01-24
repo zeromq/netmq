@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 using NetMQ;
 
@@ -81,7 +81,7 @@ namespace TitanicProtocol
         ///     ctor - creation with all standard values
         /// </summary>
         /// <param name="path">root path to titanic files, if empty or whitespace standards are used</param>
-        public TitanicFileIO ([NotNull] string path)
+        public TitanicFileIO ( string path)
             : this ()
         {
             if (string.IsNullOrWhiteSpace (path))
@@ -98,7 +98,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="path">root path to titanic files</param>
         /// <param name="threshold">max delete cycles before compressing files</param>
-        public TitanicFileIO ([NotNull] string path, int threshold)
+        public TitanicFileIO ( string path, int threshold)
             : this ()
         {
             if (!string.IsNullOrWhiteSpace (path))
@@ -212,7 +212,7 @@ namespace TitanicProtocol
         ///     save a processed request entry and mark it as such
         /// </summary>
         /// <param name="entry">the entry to save</param>
-        public void SaveProcessedRequestEntry ([NotNull] RequestEntry entry)
+        public void SaveProcessedRequestEntry ( RequestEntry entry)
         {
             entry.State = RequestEntry.Is_Processed;
 
@@ -292,7 +292,7 @@ namespace TitanicProtocol
         /// <param name="op">defines whether it is a REQUEST or REPLY message</param>
         /// <param name="id">the guid of the message to save</param>
         /// <param name="message">the message to save</param>
-        public bool SaveMessage (TitanicOperation op, Guid id, [NotNull] NetMQMessage message)
+        public bool SaveMessage (TitanicOperation op, Guid id,  NetMQMessage message)
         {
             var filename = op == TitanicOperation.Request ? GetRequestFileName (id) : GetReplyFileName (id);
 
@@ -313,7 +313,7 @@ namespace TitanicProtocol
         /// <param name="op">defines whether it is a REQUEST or REPLY message</param>
         /// <param name="id">the guid of the message to save</param>
         /// <param name="message">the message to save</param>
-        public Task<bool> SaveMessageAsync (TitanicOperation op, Guid id, [NotNull] NetMQMessage message)
+        public Task<bool> SaveMessageAsync (TitanicOperation op, Guid id,  NetMQMessage message)
         {
             var tcs = new TaskCompletionSource<bool> ();
 
@@ -371,7 +371,7 @@ namespace TitanicProtocol
         /// <summary>
         ///     reads all request entries available
         /// </summary>
-        private IEnumerable<RequestEntry> ReadRequestEntries ([NotNull] FileStream f)
+        private IEnumerable<RequestEntry> ReadRequestEntries ( FileStream f)
         {
             var entries = new List<RequestEntry> ();
             var position = 0;
@@ -394,7 +394,7 @@ namespace TitanicProtocol
         ///     reads the bytes a request entry consists of
         /// </summary>
         /// <returns>a sequence of those raw entries</returns>
-        private static List<byte[]> ReadRawRequestEntries ([NotNull] FileStream f)
+        private static List<byte[]> ReadRawRequestEntries ( FileStream f)
         {
             var entries = new List<byte[]> ();
             var target = new byte[_size_of_entry];
@@ -466,7 +466,7 @@ namespace TitanicProtocol
         /// <param name="f">FileStream</param>
         /// <param name="b">byte sequence to write</param>
         /// <param name="pos">the 0 based position from the beginning of the file</param>
-        private static void WriteRequest ([NotNull] FileStream f, [NotNull] byte[] b, long pos)
+        private static void WriteRequest ( FileStream f,  byte[] b, long pos)
         {
             f.Seek (pos, SeekOrigin.Begin);
             f.Write (b, 0, b.Length);
@@ -477,7 +477,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="bytes">the raw request entry as byte sequence</param>
         /// <returns>the enbedded Guid</returns>
-        private static Guid GetGuidFromStoredRequest ([NotNull] byte[] bytes)
+        private static Guid GetGuidFromStoredRequest ( byte[] bytes)
         {
             var guid = new byte[16];
 
@@ -504,7 +504,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="bytes">sequence of bytes</param>
         /// <param name="b">byte to add</param>
-        private static byte[] AddByteAtStart ([NotNull] byte[] bytes, byte b)
+        private static byte[] AddByteAtStart ( byte[] bytes, byte b)
         {
             var target = new byte[bytes.Length + 1];
 
@@ -533,7 +533,7 @@ namespace TitanicProtocol
 
         #endregion
 
-        private void Log ([NotNull] string info)
+        private void Log ( string info)
         {
             OnLogInfoReady (new TitanicLogEventArgs { Info = info });
         }

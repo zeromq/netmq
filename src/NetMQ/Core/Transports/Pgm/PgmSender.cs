@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Pgm
 {
@@ -33,7 +33,7 @@ namespace NetMQ.Core.Transports.Pgm
         private State m_state;
         private PgmAddress m_pgmAddress;
 
-        public PgmSender([NotNull] IOThread ioThread, [NotNull] Options options, [NotNull] Address addr)
+        public PgmSender( IOThread ioThread,  Options options,  Address addr)
             : base(ioThread)
         {
             m_options = options;
@@ -47,7 +47,7 @@ namespace NetMQ.Core.Transports.Pgm
             m_state = State.Idle;
         }
 
-        public void Init([NotNull] PgmAddress pgmAddress)
+        public void Init( PgmAddress pgmAddress)
         {
             m_pgmAddress = pgmAddress;
 

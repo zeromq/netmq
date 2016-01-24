@@ -21,7 +21,7 @@
 
 using System;
 using System.Text;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
@@ -29,12 +29,12 @@ namespace NetMQ.Core.Patterns
     {
         public class SubSession : XSubSession
         {
-            public SubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public SubSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
 
-        public Sub([NotNull] Ctx parent, int threadId, int socketId)
+        public Sub( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Sub;

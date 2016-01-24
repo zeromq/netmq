@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 using NetMQ;
 
@@ -130,7 +130,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="endpoint">a valid NetMQ endpoint for the broker</param>
         /// <param name="heartbeatInterval">the interval between heartbeats in milliseconds, default 2,500ms</param>
-        public MDPBroker ([NotNull] string endpoint, int heartbeatInterval = 0)
+        public MDPBroker ( string endpoint, int heartbeatInterval = 0)
             : this ()
         {
             if (string.IsNullOrWhiteSpace (endpoint))
@@ -179,7 +179,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="endpoint">the new endpoint to bind to</param>
         /// <exception cref="InvalidOperationException">Can not change binding while operating!</exception>
-        public void Bind ([NotNull] string endpoint)
+        public void Bind ( string endpoint)
         {
             if (m_isRunning)
                 throw new InvalidOperationException ("Can not change binding while operating!");
@@ -326,7 +326,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="sender">the sender identity frame</param>
         /// <param name="message">the message sent</param>
-        public void ProcessWorkerMessage ([NotNull] NetMQFrame sender, [NotNull] NetMQMessage message)
+        public void ProcessWorkerMessage ( NetMQFrame sender,  NetMQMessage message)
         {
             // should be
             // READY        [mdp command][service name]
@@ -413,7 +413,7 @@ namespace MajordomoProtocol
         /// </summary>
         /// <param name="sender">client identity</param>
         /// <param name="message">the message received</param>
-        public void ProcessClientMessage ([NotNull] NetMQFrame sender, [NotNull] NetMQMessage message)
+        public void ProcessClientMessage ( NetMQFrame sender,  NetMQMessage message)
         {
             // should be
             // REQUEST      [service name][request] OR

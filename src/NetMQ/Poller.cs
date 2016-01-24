@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 
 namespace NetMQ
@@ -83,7 +83,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="sockets">an array of ISocketPollables to poll</param>
         /// <exception cref="ArgumentNullException">sockets must not be null.</exception>
-        public Poller([NotNull] [ItemNotNull] params ISocketPollable[] sockets)
+        public Poller(  params ISocketPollable[] sockets)
             : this()
         {
             if (sockets == null)
@@ -102,7 +102,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="timers">an array of NetMQTimers (must not be null) to be incorporated into this Poller</param>
         /// <exception cref="ArgumentNullException">timers must not be null.</exception>
-        public Poller([NotNull] [ItemNotNull] params NetMQTimer[] timers)
+        public Poller(  params NetMQTimer[] timers)
             : this()
         {
             if (timers == null)
@@ -138,7 +138,7 @@ namespace NetMQ
         /// <exception cref="ArgumentNullException">socket and callback must not be null.</exception>
         /// <exception cref="ArgumentException">The socket must not have already been added to this poller.</exception>
         /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
-        public void AddPollInSocket([NotNull] Socket socket, [NotNull] Action<Socket> callback)
+        public void AddPollInSocket( Socket socket,  Action<Socket> callback)
         {
             if (socket == null)
             {
@@ -171,7 +171,7 @@ namespace NetMQ
         /// <param name="socket">the Socket to remove</param>
         /// <exception cref="ArgumentNullException">socket must not be null.</exception>
         /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
-        public void RemovePollInSocket([NotNull] Socket socket)
+        public void RemovePollInSocket( Socket socket)
         {
             if (socket == null)
             {
@@ -195,7 +195,7 @@ namespace NetMQ
         /// <exception cref="ArgumentNullException">socket must not be null.</exception>
         /// <exception cref="ArgumentException">socket must not have already been added to this poller.</exception>
         /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
-        public void AddSocket([NotNull] ISocketPollable socket)
+        public void AddSocket( ISocketPollable socket)
         {
             if (socket == null)
             {
@@ -225,7 +225,7 @@ namespace NetMQ
         /// <param name="socket">the ISocketPollable to remove from the list</param>
         /// <exception cref="ArgumentNullException">socket must not be null.</exception>
         /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
-        public void RemoveSocket([NotNull] ISocketPollable socket)
+        public void RemoveSocket( ISocketPollable socket)
         {
             if (socket == null)
             {
@@ -266,7 +266,7 @@ namespace NetMQ
         /// <param name="timer">the NetMQTimer to add to the list</param>
         /// <exception cref="ArgumentNullException">timer must not be null.</exception>
         /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
-        public void AddTimer([NotNull] NetMQTimer timer)
+        public void AddTimer( NetMQTimer timer)
         {
             if (timer == null)
             {
@@ -287,7 +287,7 @@ namespace NetMQ
         /// <param name="timer">the NetMQTimer to remove from the list</param>
         /// <exception cref="ArgumentNullException">timer must not be null.</exception>
         /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
-        public void RemoveTimer([NotNull] NetMQTimer timer)
+        public void RemoveTimer( NetMQTimer timer)
         {
             if (timer == null)
             {
@@ -478,7 +478,7 @@ namespace NetMQ
         /// <param name="condition">a Func that returns a boolean value, to evaluate on each poll-iteration to decide when to exit the loop</param>
         /// <exception cref="ObjectDisposedException">This poller must not have already been disposed.</exception>
         /// <exception cref="InvalidOperationException">This poller must not have already been started.</exception>
-        private void PollWhile([NotNull, InstantHandle] Func<bool> condition)
+        private void PollWhile( Func<bool> condition)
         {
             if (m_disposed)
             {

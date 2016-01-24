@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
@@ -27,7 +27,7 @@ namespace NetMQ.Core.Patterns
     {
         public class RepSession : RouterSession
         {
-            public RepSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public RepSession( IOThread ioThread, bool connect,  SocketBase socket,  Options options,  Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {}
         }
@@ -44,7 +44,7 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private bool m_requestBegins;
 
-        public Rep([NotNull] Ctx parent, int threadId, int socketId)
+        public Rep( Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_sendingReply = false;

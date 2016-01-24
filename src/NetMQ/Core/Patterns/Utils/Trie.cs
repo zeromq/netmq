@@ -22,7 +22,7 @@
 
 using System;
 using System.Diagnostics;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns.Utils
 {
@@ -34,7 +34,7 @@ namespace NetMQ.Core.Patterns.Utils
         private short m_count;
         private short m_liveNodes;
 
-        public delegate void TrieDelegate([NotNull] byte[] data, int size, [CanBeNull] object arg);
+        public delegate void TrieDelegate( byte[] data, int size,  object arg);
 
         private Trie[] m_next;
 
@@ -46,7 +46,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="start"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public bool Add([NotNull] byte[] prefix, int start, int size)
+        public bool Add( byte[] prefix, int start, int size)
         {
             // We are at the node corresponding to the prefix. We are done.
             if (size == 0)
@@ -123,7 +123,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="start"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public bool Remove([NotNull] byte[] prefix, int start, int size)
+        public bool Remove( byte[] prefix, int start, int size)
         {
             if (size == 0)
             {
@@ -237,7 +237,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="offset"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public bool Check([NotNull] byte[] data, int offset, int size)
+        public bool Check( byte[] data, int offset, int size)
         {
             // This function is on critical path. It deliberately doesn't use
             // recursion to get a bit better performance.
@@ -275,12 +275,12 @@ namespace NetMQ.Core.Patterns.Utils
         }
 
         // Apply the function supplied to each subscription in the trie.
-        public void Apply([NotNull] TrieDelegate func, [CanBeNull] object arg)
+        public void Apply( TrieDelegate func,  object arg)
         {
             ApplyHelper(null, 0, 0, func, arg);
         }
 
-        private void ApplyHelper([NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] TrieDelegate func, [CanBeNull] object arg)
+        private void ApplyHelper( byte[] buffer, int bufferSize, int maxBufferSize,  TrieDelegate func,  object arg)
         {
             // If this node is a subscription, apply the function.
             if (m_referenceCount > 0)

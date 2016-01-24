@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 using MDPCommons;
 using NetMQ;
 using TitanicCommons;
@@ -101,7 +101,7 @@ namespace TitanicProtocolTests.TestEntities
 
         public void Dispose () { return; }
 
-        private void Log ([NotNull] string info)
+        private void Log ( string info)
         {
             OnLogInfoReady (new MDPLogEventArgs { Info = "[FAKE MDP CLIENT] " + info });
         }

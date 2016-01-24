@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
+//using JetBrains.Annotations;
 
 using MajordomoProtocol;
 using MDPCommons;
@@ -85,7 +85,7 @@ namespace TitanicProtocol
         ///         initializes root for storage "application directory"\.titanic
         ///         initializes io to TitanicFileIO
         /// </summary>
-        public TitanicBroker ([CanBeNull] ITitanicIO titanicIO = null, string path = null)
+        public TitanicBroker ( ITitanicIO titanicIO = null, string path = null)
         {
             var titanicDirectory = string.IsNullOrWhiteSpace (path)
                                             ? Path.Combine (AppDomain.CurrentDomain.BaseDirectory, _titanic_directory)
@@ -105,7 +105,7 @@ namespace TitanicProtocol
         /// <param name="path">point to the intended root path for the file system and must exist</param>
         /// <param name="titanicIO">a implementation of ITitanicIO allowing to persist</param>
         /// <exception cref="ApplicationException">The broker ip address is invalid!</exception>
-        public TitanicBroker ([NotNull] string endpoint, string path = null, ITitanicIO titanicIO = null)
+        public TitanicBroker ( string endpoint, string path = null, ITitanicIO titanicIO = null)
             : this (titanicIO, path)
         {
             m_titanicAddress = endpoint;
@@ -128,10 +128,10 @@ namespace TitanicProtocol
         /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener encountered an
         ///                                  error during initialization.</exception>
         /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
-        public void Run ([CanBeNull] IMDPWorker requestWorker = null,
-                         [CanBeNull] IMDPWorker replyWorker = null,
-                         [CanBeNull] IMDPWorker closeWorker = null,
-                         [CanBeNull] IMDPClient serviceCallClient = null)
+        public void Run ( IMDPWorker requestWorker = null,
+                          IMDPWorker replyWorker = null,
+                          IMDPWorker closeWorker = null,
+                          IMDPClient serviceCallClient = null)
         {
             using (var pipeStart = new PairSocket ())
             using (var pipeEnd = new PairSocket ())
@@ -198,7 +198,7 @@ namespace TitanicProtocol
         ///     <para>write request to disk and return the GUID to client</para>
         ///     sends the GUID of the request back via the pipe for further processing
         /// </summary>
-        internal void ProcessTitanicRequest ([NotNull] PairSocket pipe, [CanBeNull]IMDPWorker mdpWorker = null)
+        internal void ProcessTitanicRequest ( PairSocket pipe, IMDPWorker mdpWorker = null)
         {
             // get a MDP worker with an automatic id and register with the service "titanic.request"
             // the worker will automatically start and connect to a MDP Broker at the indicated address
@@ -246,7 +246,7 @@ namespace TitanicProtocol
         ///
         ///     <para>will send an OK, PENDING or UNKNOWN as result of the request for the reply</para>
         /// </summary>
-        internal void ProcessTitanicReply ([CanBeNull] IMDPWorker mdpWorker = null)
+        internal void ProcessTitanicReply ( IMDPWorker mdpWorker = null)
         {
             // get a MDP worker with an automatic id and register with the service "titanic.reply"
             // the worker will automatically start and connect to the indicated address
@@ -296,7 +296,7 @@ namespace TitanicProtocol
         ///     an idempotent method processing all requests to close a request with a GUID
         ///     it is safe to call it multiple times with the same GUID
         /// </summary>
-        internal void ProcessTitanicClose ([CanBeNull]IMDPWorker mdpWorker = null)
+        internal void ProcessTitanicClose (IMDPWorker mdpWorker = null)
         {
             // get a MDP worker with an automatic id and register with the service "titanic.Close"
             // the worker will automatically start and connect to MDP Broker with the indicated address
@@ -336,7 +336,7 @@ namespace TitanicProtocol
         /// <param name="requestId">request's GUID</param>
         /// <param name="serviceClient">mdp client to handle mdp broker communication</param>
         /// <returns><c>true</c> if successfull <c>false</c> otherwise</returns>
-        internal bool DispatchRequests (Guid requestId, [CanBeNull] IMDPClient serviceClient = null)
+        internal bool DispatchRequests (Guid requestId,  IMDPClient serviceClient = null)
         {
             // has the request already been processed? -> file does not exist
             // threat this as successfully processed
@@ -383,7 +383,7 @@ namespace TitanicProtocol
         ///             to service offering mdp worker via mdp broker and collecting
         ///             the replies from the mdp worker</param>
         /// <returns><c>true</c> if successfull and <c>false</c> otherwise</returns>
-        private NetMQMessage ServiceCall ([NotNull] string serviceName, [NotNull] NetMQMessage request, [CanBeNull]IMDPClient serviceClient = null)
+        private NetMQMessage ServiceCall ( string serviceName,  NetMQMessage request, IMDPClient serviceClient = null)
         {
             // create MDPClient session and send the request to MDPBroker
             using (var session = serviceClient ?? new MDPClient (m_titanicAddress))
@@ -424,7 +424,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="tasks"></param>
         /// <returns></returns>
-        private bool DidAnyTaskStopp ([NotNull] Task[] tasks)
+        private bool DidAnyTaskStopp ( Task[] tasks)
         {
             if (Task.WhenAny (tasks).IsCompleted)
             {
@@ -454,7 +454,7 @@ namespace TitanicProtocol
                 Log (string.Format ("Inner Exception: {0}", ex.Message));
         }
 
-        private void Log ([NotNull] string info)
+        private void Log ( string info)
         {
             OnLogInfoReady (new TitanicLogEventArgs { Info = "[TITANIC BROKER]" + info });
         }
