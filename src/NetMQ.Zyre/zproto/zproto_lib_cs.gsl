@@ -1,0 +1,68 @@
+.template 0
+#  Library functions
+
+function set_cs_defaults ()
+    resolve_cs_types ()
+
+    class.signature ?= 0    
+    class.source_dir ?= "."
+    class.test_dir ?= "."
+    class.namespace ?= "ZProto"
+    class.test_namespace ?= "ZProto.Tests"
+    class.modifier ?= ""
+
+    class.export_macro ?= ""
+    if class.export_macro <> ""
+        class.export_macro += " "
+    endif
+
+    for message
+        message.name = "$(message.name:lower)"
+        message.name = "$(message.name:Pascal)"
+        for field
+            field.var_name = "$(field.name:camel)"
+            field.name = "$(field.name:Pascal)"
+            if type = "number"
+                field.size ?= 1
+                if size = 1
+                    field.cstype = "byte"
+                elsif size = 2
+                    field.cstype = "UInt16"
+                elsif size = 4
+                    field.cstype = "UInt32"
+                elsif size = 8
+                    field.cstype = "UInt64"
+                else
+                    echo "E: bad size $(size) for $(name)"
+                endif
+            endif
+            for class.field as cfield where cfield.name = field.name
+                if cfield.type <> field.type
+                    echo "E: field '$(name)' must have same type everywhere"
+                endif
+            else
+                copy field to class
+            endfor
+        endfor
+    endfor
+endfunction
+
+function resolve_cs_types ()
+    for class.message
+        for field as original_field
+            for class.type where type.name = original_field.type
+                for type.field as type_field
+                    new field before original_field
+                        field.name = original_field.name + " " + type_field.name
+                        field.type = type_field.type
+                        field.size = type_field.size? 0
+                        field. = type_field.?''
+                    endnew
+                endfor
+                delete original_field
+            endfor
+        endfor
+    endfor
+endfunction
+
+.endtemplate

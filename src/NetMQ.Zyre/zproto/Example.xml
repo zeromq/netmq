@@ -1,0 +1,136 @@
+<class
+    name = "Example"
+    signature = "0"
+    title = "zproto example protocol csharp"
+    script = "zproto_codec_cs"    
+    source_dir = "./csharp/ZProto"
+    test_dir ="./csharp/ZProto.Tests"
+    namespace ="ZProto"
+    test_namespace="ZProto.Test"
+    modifier="public"
+    >
+This is an example protocol designed to teach you how this stuff works.
+
+The class name tells the code generator what files to generate. The source_dir and test_dir values
+provide the relative location for Source file and Test file files. Default is "."
+
+The signature is put into every protocol message and lets us filter bogus
+or unknown protocols. It is a 4-bit number from 0 to 15. Use a unique value
+for each protocol you write, at least.
+
+<include filename = "license.xml" />
+
+If you define a grammar block, the BNF generator outputs this before doing
+individual messages. Otherwise it generates something not entirely random.
+
+You can optionally define a header that will be repeated at the start of
+every message. This is just a kind of macro.
+
+<header>
+    <field name = "sequence" type = "number" size = "2" />
+</header>
+
+The protocol consists of one or more 'messages', each consisting of one or
+more 'fields'. The protocol messages get unique IDs. You can specify your
+own IDs, as we do in the following example messages.
+
+A field has a type and possibly a size. zcodec insists that a field with a
+given name have the same type and size anywhere you use it in a protocol.
+This keeps your APIs and grammars sane.
+
+There are a few ways to version a protocol. You could use a version number
+in the header. You could add it to the first message in a conversation, as
+FILEMQ does.
+
+The best way to avoid lots of breaking changes in a protocol is to split
+the fields into those that rarely change, and those that often change, and
+to put the second lot into hash tables (the 'hash' type).
+
+OK, let's see some meat.
+
+<message name = "LOG" id = "1">
+    <field name = "version" type = "number" size = "2" value = "3">Version</field>
+    <field name = "level" type = "number" size = "1">Log severity level</field>
+    <field name = "event" type = "number" size = "1">Type of event</field>
+    <field name = "node" type = "number" size = "2">Sending node</field>
+    <field name = "peer" type = "number" size = "2">Refers to this peer</field>
+    <field name = "time" type = "number" size = "8">Log date/time</field>
+    <field name = "host" type = "string">Originating hostname</field>
+    <field name = "data" type = "longstr">Actual log message</field>
+Log an event.
+</message>
+
+Note that you can add a short comment for each field, and for the message.
+Use these, it helps when reading the source code.
+
+zproto supports numbers (unsigned integers) of 1, 2, 4, and 8 bytes. If you
+don't specify the size, it's 1 byte by default.
+
+zproto supports strings encoded as length + data, in the proper ZeroMQ style,
+without trailing nulls or any of that language-specific stuff. The length can
+be 1 (string) or 4 (longstr). Strings (short and long) are shown to the API
+as char *.
+
+Strings contain UTF-8 data; that is, no zero bytes. Their encoded size is the
+number of bytes in the string (not including the size field).
+
+On number and string fields you can define a 'value' property. This will be
+stamped into messages as a constant, and checked on read messages. You can
+use this for e.g. version detection.
+
+zproto supports lists and hashes of strings:
+
+<message name = "STRUCTURES" id = "2">
+    <field name = "aliases" type = "strings">List of strings</field>
+    <field name = "headers" type = "hash">Other random properties</field>
+This message contains a list and a hash.
+</message>
+
+zproto supports several kinds of binary data:
+
+* You can define a raw octet block of fixed size, which is a byte array in
+  the API. You can use this to encode short binary fields. Do not use
+  for anything longer than e.g. 256 octets.
+
+* You can define chunks, which are byte arrays in the API. Chunks
+  are encoded like longstr fields, a 4-octet length and a body.
+
+* You can define uuids, which are Guid objects in the API.
+
+* You can define frames, which are byte arrays in the API. Frames
+  are sent as separate NetMQ frames on the wire. This is ideal for
+  variable-size binary data such as images, or other blobs.
+  
+* You can define NetMQ messages, which are NetMQMessage objects in the API.
+  This is useful for protocols that want to wrap entire NetMQ messages
+  in other data. If you use a "msg" type field, it must be the last
+  field in the message.
+
+<message name = "BINARY" id = "3">
+    <field name = "flags" type = "octets" size = "4">A set of flags</field>
+    <field name = "public key" type = "chunk">Our public key</field>
+    <field name = "identifier" type = "uuid">Unique identity</field>    
+Deliver a multi-part message.
+</message>
+
+As well as the built-in types, you can define your own types, by composing
+them from other fields:
+
+<message name = "TYPES" id = "4">
+    <field name = "client" type = "person">Client contact</field>
+    <field name = "supplier" type = "person">Supplier contact</field>
+Demonstrate custom-defined types
+</message>
+
+Here is the custom type. In the BNF, this will express as a separate term,
+as you'd expect. In the csharp API, this will be expressed as atomic properties
+prefixed with the original field name, e.g. ClientForename, SupplierEmail.
+
+<type name = "person">
+    <field name = "forename" type = "string">Given name</field>
+    <field name = "surname" type = "string">Family name</field>
+    <field name = "mobile" type = "string">Mobile phone number</field>
+    <field name = "email" type = "string">Email address</field>
+</type>
+
+</class>
