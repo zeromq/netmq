@@ -67,6 +67,23 @@ namespace NetMQ
             set { m_ctx.CheckDisposed(); m_ctx.MaxSockets = value; }
         }
 
+        /// <summary>
+        /// Should context wait for all sockets before terminating?
+        /// </summary>
+        public bool Block
+        {
+            get
+            {
+                m_ctx.CheckDisposed();
+                return m_ctx.Block;
+            }
+            set
+            {
+                m_ctx.CheckDisposed();
+                m_ctx.Block = value;
+            }
+        }
+
         #region Socket Creation
 
         /// <summary>

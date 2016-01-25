@@ -158,6 +158,11 @@ namespace NetMQ.Core
         private int m_ioThreadCount = DefaultIOThreads;
 
         /// <summary>
+        /// Should the context termination block until all socket are disposed?
+        /// </summary>
+        private bool m_block = true;
+
+        /// <summary>
         /// This object is used to synchronize access to context options.
         /// </summary>
         private readonly object m_optSync = new object();
@@ -171,27 +176,7 @@ namespace NetMQ.Core
         /// This is the thread-id to assign to the Reaper (value is 1).
         /// </summary>
         public const int ReaperTid = 1;
-
-        /// <summary>
-        /// Dump all of this object's resources
-        /// by stopping and destroying all of it's threads, destroying the reaper, and closing the mailbox.
-        /// </summary>
-        private void Destroy()
-        {
-            foreach (IOThread it in m_ioThreads)
-                it.Stop();
-
-            foreach (IOThread it in m_ioThreads)
-                it.Destroy();
-
-            if (m_reaper != null)
-                m_reaper.Destroy();
-
-            m_termMailbox.Close();
-
-            m_disposed = true;
-        }
-
+        
         /// <summary>Throws <see cref="ObjectDisposedException"/> if this is already disposed.</summary>
         /// <exception cref="ObjectDisposedException">This object has already been disposed.</exception>
         public void CheckDisposed()
@@ -241,19 +226,35 @@ namespace NetMQ.Core
                     }
                 }
 
-                // Wait till reaper thread closes all the sockets.
-                Command command;
-                var found = m_termMailbox.TryRecv(-1, out command);
+                if (m_block)
+                {
+                    // Wait till reaper thread closes all the sockets.
+                    Command command;
+                    var found = m_termMailbox.TryRecv(-1, out command);
 
-                Debug.Assert(found);
-                Debug.Assert(command.CommandType == CommandType.Done);
-                Monitor.Enter(m_slotSync);
-                Debug.Assert(m_sockets.Count == 0);
+                    Debug.Assert(found);
+                    Debug.Assert(command.CommandType == CommandType.Done);
+                    Monitor.Enter(m_slotSync);
+                    Debug.Assert(m_sockets.Count == 0);
+                }
+                else
+                    Monitor.Enter(m_slotSync);
             }
             Monitor.Exit(m_slotSync);
 
             // Deallocate the resources.
-            Destroy();
+            foreach (IOThread it in m_ioThreads)
+                it.Stop();
+
+            foreach (IOThread it in m_ioThreads)
+                it.Destroy();
+
+            if (m_reaper != null)
+                m_reaper.Destroy();
+
+            m_termMailbox.Close();
+
+            m_disposed = true;
         }
 
         public int IOThreadCount
@@ -277,6 +278,20 @@ namespace NetMQ.Core
                     throw new ArgumentOutOfRangeException("value", value, "Must be greater than zero");
                 lock (m_optSync)
                     m_maxSockets = value;
+            }
+        }
+
+        /// <summary>
+        /// Should context wait for all sockets before terminating?
+        /// </summary>
+        public bool Block
+        {
+
+            get { return m_block; }
+            set
+            {                
+                lock (m_optSync)
+                    m_block = value;
             }
         }
 
