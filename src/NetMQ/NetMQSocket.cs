@@ -22,6 +22,14 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
         private bool m_isClosed;
 
+        /// <summary>
+        /// The Socket Class type identifier for this Socket
+        /// </summary>
+        public abstract ZmqSocketType SocketType
+        {
+            get;
+        }
+
         internal enum DefaultAction
         {
             Connect,
@@ -35,19 +43,46 @@ namespace NetMQ
         /// <param name="connectionString"></param>
         /// <param name="defaultAction"></param>
         internal NetMQSocket(ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
+            : this(NetMQConfig.Context, socketType, connectionString, defaultAction)
         {
-            m_socketHandle = NetMQConfig.Context.CreateSocket(socketType);
+        }
+
+        /// <summary>
+        /// Create a new NetMQSocket within the given <see cref="Ctx"/> of the provided <see cref="ZmqSocketType"/>.
+        /// </summary>
+        /// <param name="ctx">The <see cref="Ctx"/> to create the socket within</param>
+        /// <param name="socketType">Type of socket to create</param>
+        /// <param name="connectionString"></param>
+        /// <param name="defaultAction"></param>
+        internal NetMQSocket(Ctx ctx, ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
+        {
+            m_socketHandle = ctx.CreateSocket(socketType);
             m_selector = new Selector();
             Options = new SocketOptions(this);
             m_socketEventArgs = new NetMQSocketEventArgs(this);
 
             Options.Linger = NetMQConfig.Linger;
 
+            ConnectWithAction(connectionString, defaultAction);
+        }
+
+
+        /// <summary>
+        /// Connect or Bind the socket to <paramref name="address"/>. 
+        /// </summary>
+        /// <param name="address">a string denoting the endpoint. Prefix with @ to Bind and > to connect.</param>
+        /// <param name="defaultAction">Action to take if not indicated by an address prefix.  Defaults to Connect.</param>
+        /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
+        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
+        /// <exception cref="NetMQException">No IO thread was found.</exception>
+        /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
+        private void ConnectWithAction(String connectionString, DefaultAction defaultAction = DefaultAction.Connect)
+        { 
             if (!string.IsNullOrEmpty(connectionString))
             {
                 var endpoints =
-                    connectionString.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(a => a.Trim()).Where(a=> !string.IsNullOrEmpty(a));
+                    connectionString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a));
 
                 foreach (string endpoint in endpoints)
                 {
