@@ -36,8 +36,8 @@ namespace NetMQ.Core
     /// <remarks>Internal analog of the public <see cref="NetMQContext"/> class.</remarks>
     internal sealed class Ctx
     {
-        private const int DefaultIOThreads = 1;
-        private const int DefaultMaxSockets = 1024;
+        public const int DefaultIOThreads = 1;
+        public const int DefaultMaxSockets = 1024;
 
         #region Nested class: Endpoint
 

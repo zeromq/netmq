@@ -38,7 +38,7 @@ namespace NetMQ
         internal NetMQSocket(ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
         {
             m_fromGlobalContext = true;
-            m_socketHandle = NetMQConfig.Context.CreateSocket(socketType);
+            m_socketHandle = NetMQConfig.CreateSocketHandle(socketType);
             m_selector = new Selector();
             Options = new SocketOptions(this);
             m_socketEventArgs = new NetMQSocketEventArgs(this);
@@ -260,6 +260,9 @@ namespace NetMQ
 
             // We only block if the socket is using the global context
             m_socketHandle.Close(block: m_fromGlobalContext);
+
+            if (m_fromGlobalContext)
+                NetMQConfig.SocketDisposed();
         }
 
         #endregion
