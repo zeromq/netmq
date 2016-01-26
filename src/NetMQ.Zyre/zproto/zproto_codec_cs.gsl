@@ -41,11 +41,7 @@ namespace $(class.namespace)
 	/// <summary>
 	/// $(class.title:)
 	/// </summary>
-.if class.modifier <> ""
-	$(class.modifier) class $(class.name:Pascal)
-.else
-	class $(class.name:Pascal)
-.endif
+	public class $(class.name:Pascal)
 	{
 		public class MessageException : Exception
 		{
