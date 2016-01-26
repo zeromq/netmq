@@ -234,6 +234,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// Check whether particular key is in the trie.
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="offset"></param>
         /// <param name="size"></param>
         /// <returns></returns>
         public bool Check([NotNull] byte[] data, int offset, int size)
