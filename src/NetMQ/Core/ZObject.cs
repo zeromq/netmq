@@ -197,9 +197,9 @@ namespace NetMQ.Core
             SendCommand(new Command(destination, CommandType.PipeTerm));
         }
 
-        protected void SendPipeTermAck([NotNull] Pipe destination)
+        protected void SendPipeCompleteTerm([NotNull] Pipe destination)
         {
-            SendCommand(new Command(destination, CommandType.PipeTermAck));
+            SendCommand(new Command(destination, CommandType.PipeCompleteTerm));
         }
 
         /// <summary>
@@ -298,8 +298,8 @@ namespace NetMQ.Core
                     ProcessPipeTerm();
                     break;
 
-                case CommandType.PipeTermAck:
-                    ProcessPipeTermAck();
+                case CommandType.PipeCompleteTerm:
+                    ProcessPipeCompleteTerm();
                     break;
 
                 case CommandType.TermReq:
@@ -398,13 +398,13 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// Process the terminate-pipe acknowledgement command.
+        /// Process the complete close pipe command.
         /// </summary>
         /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
-        protected virtual void ProcessPipeTermAck()
+        protected virtual void ProcessPipeCompleteTerm()
         {
             throw new NotSupportedException();
-        }
+        }        
 
         /// <summary>
         /// Process a termination-request command on the Own object.

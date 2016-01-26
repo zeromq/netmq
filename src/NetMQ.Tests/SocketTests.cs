@@ -790,5 +790,68 @@ namespace NetMQ.Tests
                 Assert.AreEqual("Hello", server2.ReceiveFrameString());
             }
         }
+
+        [Test]
+        public void TestObsoleteContext()
+        {
+            using (NetMQContext context = NetMQContext.Create())
+            using (var server = context.CreateDealerSocket())
+            using (var client = context.CreateDealerSocket())
+            {
+                server.Bind("tcp://127.0.0.1:5556");
+                client.Connect("tcp://127.0.0.1:5556");
+
+                client.SendFrame("Hello");
+
+                Assert.AreEqual("Hello", server.ReceiveFrameString());
+            }
+        }
+
+        [Test]
+        public void LingerWithBlockingDisposeWithTimeout()
+        {            
+            var client = new DealerSocket(">tcp://localhost:5556");
+
+            client.Options.Linger = TimeSpan.FromSeconds(1);
+            client.SendFrame("Hello");
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            // dispose block one second and then return
+            client.Dispose();
+
+            stopwatch.Stop();
+
+            Assert.GreaterOrEqual(stopwatch.Elapsed, TimeSpan.FromSeconds(1));
+        }
+
+        [Test]
+        public void LingerWithBlockingDispose()
+        {        
+            var client = new DealerSocket(">tcp://localhost:5556");
+
+            client.Options.Linger = TimeSpan.FromSeconds(2);
+            client.SendFrame("Hello");
+
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(100);
+                using (var server = new DealerSocket("@tcp://localhost:5556"))
+                {
+                    server.ReceiveFrameString();
+                }
+            });
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            // dispose block one second and then return
+            client.Dispose();
+
+            stopwatch.Stop();
+
+            Assert.Less(stopwatch.Elapsed, TimeSpan.FromSeconds(2));
+            Assert.GreaterOrEqual(stopwatch.Elapsed, TimeSpan.FromMilliseconds(100));
+        }
+
     }
 }

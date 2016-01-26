@@ -8,29 +8,49 @@ namespace NetMQ
         private static TimeSpan s_linger;
 
         private static Ctx s_ctx;
-        private static object s_settingsSync;
+        private static int s_socketCount = 0;
+        private static object s_sync;
+        private static int s_threadPoolSize;
+        private static int s_maxSockets;
 
         static NetMQConfig()
         {
-            s_ctx = new Ctx();
-            s_ctx.Block = false;
-            s_settingsSync = new object();
+            s_ctx = null;
+            s_sync = new object();
             s_linger = TimeSpan.Zero;
-
-            // Register to destory the context when application exit
-            AppDomain.CurrentDomain.ProcessExit += OnCurrentDomainOnProcessExit;
+            s_threadPoolSize = Ctx.DefaultIOThreads;
+            s_maxSockets = Ctx.DefaultMaxSockets;
         }
 
-        private static void OnCurrentDomainOnProcessExit(object sender, EventArgs args)
+        static internal SocketBase CreateSocketHandle(ZmqSocketType socketType)
         {
-            s_ctx.Terminate();
-        }
-
-        internal static Ctx Context
-        {
-            get
+            lock (s_sync)
             {
-                return s_ctx;                
+                if (s_ctx == null)
+                {
+                    s_ctx = new Ctx();
+                    s_ctx.Block = false;
+                    s_ctx.IOThreadCount = s_threadPoolSize;
+                    s_ctx.MaxSockets = s_maxSockets;
+                }
+
+                s_socketCount++;
+
+                return s_ctx.CreateSocket(socketType);
+            }
+        }
+
+        static internal void SocketDisposed()
+        {
+            lock (s_sync)
+            {
+                s_socketCount--;
+
+                if (s_socketCount == 0)
+                {
+                    s_ctx.Terminate();
+                    s_ctx = null;
+                }                    
             }
         }
 
@@ -52,14 +72,14 @@ namespace NetMQ
         {
             get
             {
-                lock (s_settingsSync)
+                lock (s_sync)
                 {
                     return s_linger;                    
                 }
             }
             set
             {
-                lock (s_settingsSync)
+                lock (s_sync)
                 {
                     s_linger = value;
                 }
@@ -72,10 +92,22 @@ namespace NetMQ
         /// </summary>
         public static int ThreadPoolSize
         {
-            get { return s_ctx.IOThreadCount; }
+            get
+            {
+                lock (s_sync)
+                {
+                    return s_threadPoolSize;
+                }
+            }
             set
             {
-                s_ctx.IOThreadCount = value;
+                lock (s_sync)
+                {
+                    s_threadPoolSize = value;
+
+                    if (s_ctx != null)
+                        s_ctx.IOThreadCount = value;
+                }
             }
         }
 
@@ -86,9 +118,21 @@ namespace NetMQ
         {
             get
             {
-                return s_ctx.MaxSockets;
+                lock (s_sync)
+                {
+                    return s_ctx.MaxSockets;
+                }
             }
-            set { s_ctx.MaxSockets = value; }
+            set
+            {
+                lock (s_sync)
+                {
+                    s_maxSockets = value;
+
+                    if (s_ctx != null)
+                        s_ctx.MaxSockets = value;
+                }
+            }
         }      
     }
 }
