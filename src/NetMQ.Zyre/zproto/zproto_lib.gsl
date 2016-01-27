@@ -1,0 +1,102 @@
+.template 0
+#  Library functions
+
+function expand_headers ()
+    for message
+        if !defined (message.id)
+            message.id = item ()
+        endif
+        for field where item () = 1
+            for class.header
+                for field as hfield
+                    copy hfield before field
+                endfor
+            endfor
+        else
+            for class.header
+                for field as hfield
+                    copy hfield to message
+                endfor
+            endfor
+        endfor
+    endfor
+endfunction
+
+function set_defaults ()
+    resolve_types ()
+
+    class.signature ?= 0
+    class.package_dir ?= "../include"
+    class.source_dir ?= "."
+    
+    class.export_macro ?= ""
+    if class.export_macro <> ""
+        class.export_macro += " "
+    endif
+
+    for message
+        message.name = "$(message.name:c)"
+        for field
+            field.name = "$(field.name:c)"
+            if type = "number"
+                field.size ?= 1
+                if size = 1
+                    field.ctype = "byte"
+                elsif size = 2
+                    field.ctype = "uint16_t"
+                elsif size = 4
+                    field.ctype = "uint32_t"
+                elsif size = 8
+                    field.ctype = "uint64_t"
+                else
+                    echo "E: bad size $(size) for $(name)"
+                endif
+            endif
+            for class.field as cfield where cfield.name = field.name
+                if cfield.type <> field.type
+                    echo "E: field '$(name)' must have same type everywhere"
+                endif
+            else
+                copy field to class
+            endfor
+        endfor
+    endfor
+endfunction
+
+function resolve_types ()
+    for class.message
+        for field as original_field
+            for class.type where type.name = original_field.type
+                for type.field as type_field
+                    new field before original_field
+                        field.name = original_field.name + " " + type_field.name
+                        field.type = type_field.type
+                        field.size = type_field.size? 0
+                        field.     = type_field.?''
+                        for original_field.test where test.name = type_field.name
+                            copy test to field
+                        endfor
+                    endnew
+                endfor
+                delete original_field
+            endfor
+        endfor
+    endfor
+endfunction
+
+function resolve_includes ()
+    for class.include
+        if defined (include.filename)
+            my.include_file = class.load_file (filename)
+            if defined (my.include_file)
+                move my.include_file after include
+            else
+                echo "E: error loading include file: $(filename): $(xml.error?)"
+            endif
+        else
+            echo "E: required attribute 'filename' not defined"
+        endif
+    endfor
+endfunction
+
+.endtemplate
