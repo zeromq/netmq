@@ -56,8 +56,8 @@ namespace NetMQ.Zyre.Tests
 			using (var client = new DealerSocket())
 			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestHello");
+				client.Connect("inproc://zprototestHello");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -108,8 +108,8 @@ namespace NetMQ.Zyre.Tests
 			using (var client = new DealerSocket())
 			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestWhisper");
+				client.Connect("inproc://zprototestWhisper");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -162,8 +162,8 @@ namespace NetMQ.Zyre.Tests
 			using (var client = new DealerSocket())
 			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestShout");
+				client.Connect("inproc://zprototestShout");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -217,8 +217,8 @@ namespace NetMQ.Zyre.Tests
 			using (var client = new DealerSocket())
 			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestJoin");
+				client.Connect("inproc://zprototestJoin");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -326,8 +326,8 @@ namespace NetMQ.Zyre.Tests
 			using (var client = new DealerSocket())
 			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestPing");
+				client.Connect("inproc://zprototestPing");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -377,8 +377,8 @@ namespace NetMQ.Zyre.Tests
 			using (var client = new DealerSocket())
 			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestPingOk");
+				client.Connect("inproc://zprototestPingOk");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
