@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using NUnit.Framework;
 using NetMQ;
+using NetMQ.Sockets;
 using NetMQ.Zyre;
 
 namespace NetMQ.Zyre.Tests
@@ -52,9 +53,8 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Hello.Headers["Age"], Is.EqualTo("43"));                                          
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
 				server.Bind("inproc://zprototest");
 				client.Connect("inproc://zprototest");
@@ -105,9 +105,8 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Whisper.Content.FrameCount, Is.EqualTo(1));                
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
 				server.Bind("inproc://zprototest");
 				client.Connect("inproc://zprototest");
@@ -160,9 +159,8 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Shout.Content.FrameCount, Is.EqualTo(1));                  
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
 				server.Bind("inproc://zprototest");
 				client.Connect("inproc://zprototest");
@@ -216,9 +214,8 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Join.Status, Is.EqualTo(123));                    
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
 				server.Bind("inproc://zprototest");
 				client.Connect("inproc://zprototest");
@@ -272,9 +269,8 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Leave.Status, Is.EqualTo(123));                   
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
 				server.Bind("inproc://zprototest");
 				client.Connect("inproc://zprototest");
@@ -324,9 +320,8 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Ping.Sequence, Is.EqualTo(123));                  
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
 				server.Bind("inproc://zprototest");
 				client.Connect("inproc://zprototest");
@@ -376,9 +371,8 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.PingOk.Sequence, Is.EqualTo(123));                
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
 				server.Bind("inproc://zprototest");
 				client.Connect("inproc://zprototest");

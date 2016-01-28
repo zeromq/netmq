@@ -20,6 +20,7 @@ using System.Text;
 using NetMQ;
 using NetMQ.Sockets;
 using NetMQ.zmq;
+#pragma warning disable 168
 
 namespace NetMQ.Zyre
 {
