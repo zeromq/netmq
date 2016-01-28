@@ -20,6 +20,7 @@ using System.Text;
 using NetMQ;
 using NetMQ.Sockets;
 using NetMQ.zmq;
+#pragma warning disable 168
 
 namespace NetMQ.Zyre
 {
@@ -300,6 +301,7 @@ namespace NetMQ.Zyre
 				frameSize += 2;          
 
 				//  Content
+                //  A frame or a message with special handling in Receive() and Send()
 
 				return frameSize;
 			}		
@@ -395,9 +397,10 @@ namespace NetMQ.Zyre
 				//  Group
 				frameSize += 1 + Group.Length;
 
-				//  Content
+                //  Content
+                //  A frame or a message with special handling in Receive() and Send()
 
-				return frameSize;
+                return frameSize;
 			}		
 
 			internal void Write(ZreMsg m)
@@ -970,9 +973,20 @@ namespace NetMQ.Zyre
 					break;
 				default:
 					throw new MessageException("Bad message id");            					
-				}        
-			}
-			finally
+				}
+
+                // Receive message content for types with content
+                switch (Id)
+                {
+                    case MessageId.Whisper:
+                        Whisper.Content = input.ReceiveMultipartMessage();
+                        break;
+                    case MessageId.Shout:
+                        Shout.Content = input.ReceiveMultipartMessage();
+                        break;
+                }
+            }
+            finally
 			{
 				m_buffer = null;
 				msg.Close();		
@@ -1054,208 +1068,217 @@ namespace NetMQ.Zyre
 				}
 
 				//  Send the data frame				
-				output.Send(ref msg, false);       
+			    var more = Id == MessageId.Whisper || Id == MessageId.Shout;
+				output.Send(ref msg, more);
+
+                // Send message content for types with content
+			    switch (Id)
+			    {
+			        case MessageId.Whisper:
+			            if (Whisper.Content == null)
+			            {
+			                Whisper.Content = new NetMQMessage();
+                            Whisper.Content.PushEmptyFrame();
+			            }
+                        output.SendMultipartMessage(Whisper.Content);
+			            break;
+			        case MessageId.Shout:
+                        if (Shout.Content == null)
+                        {
+                            Shout.Content = new NetMQMessage();
+                            Shout.Content.PushEmptyFrame();
+                        }
+                        output.SendMultipartMessage(Shout.Content);
+                        break;
+			    }
 			}
 			finally
 			{
-				m_buffer = null;
-				msg.Close();
+			    m_buffer = null;
+			    msg.Close();
 			}
-		}	
-
-		#region Network data encoding methods
-
-		//  Put a block of octets to the frame
-		private void PutOctets(byte[] host, int size) 
-		{ 
-			Buffer.BlockCopy(host, 0, m_buffer, m_offset, size);   
-			m_offset += size; 
 		}
 
-		//  Get a block of octets from the frame
-		private void GetOctets(byte[] host, int size) 
-		{
-			if (m_offset + size > m_buffer.Length) 
-			{ 
-				throw new MessageException("Malformed message");            			
-			} 
-			
-			Buffer.BlockCopy(m_buffer, m_offset, host, 0, size);
-			m_offset += size; 			
-		}
+	    #region Network data encoding methods
 
-		//  Put a 1-byte number to the frame
-		private void PutNumber1(byte host) 
-		{ 
-			m_buffer[m_offset] = host;
-			m_offset++;
-		}
+	    //  Put a block of octets to the frame
+	    private void PutOctets(byte[] host, int size)
+	    {
+	        Buffer.BlockCopy(host, 0, m_buffer, m_offset, size);
+	        m_offset += size;
+	    }
 
-		//  Put a 2-byte number to the frame
-		private void PutNumber2(UInt16 host) 
-		{ 
-			m_buffer[m_offset] = (byte) (((host) >> 8)  & 255);
-			m_buffer[m_offset+1] = (byte) (((host))       & 255); 
+	    //  Get a block of octets from the frame
+	    private void GetOctets(byte[] host, int size)
+	    {
+	        if (m_offset + size > m_buffer.Length)
+	        {
+	            throw new MessageException("Malformed message");
+	        }
 
-			m_offset+=2;
-		}
+	        Buffer.BlockCopy(m_buffer, m_offset, host, 0, size);
+	        m_offset += size;
+	    }
 
-		//  Put a 4-byte number to the frame
-		private void PutNumber4(UInt32 host) 
-		{
-			m_buffer[m_offset] = (byte) (((host) >> 24) & 255);
-			m_buffer[m_offset+1] = (byte) (((host) >> 16) & 255); 
-			m_buffer[m_offset+2] = (byte) (((host) >> 8)  & 255); 
-			m_buffer[m_offset+3] = (byte) (((host))       & 255);
+	    //  Put a 1-byte number to the frame
+	    private void PutNumber1(byte host)
+	    {
+	        m_buffer[m_offset] = host;
+	        m_offset++;
+	    }
 
-			m_offset+=4;
-		}
+	    //  Put a 2-byte number to the frame
+	    private void PutNumber2(UInt16 host)
+	    {
+	        m_buffer[m_offset] = (byte) (((host) >> 8) & 255);
+	        m_buffer[m_offset + 1] = (byte) (((host)) & 255);
 
-		//  Put a 8-byte number to the frame
-		private void PutNumber8(UInt64 host) 
-		{
-			m_buffer[m_offset] = (byte) (((host) >> 56) & 255);
-			m_buffer[m_offset+1] = (byte) (((host) >> 48) & 255);
-			m_buffer[m_offset+2] = (byte) (((host) >> 40) & 255);
-			m_buffer[m_offset+3] = (byte) (((host) >> 32) & 255);
-			m_buffer[m_offset+4] = (byte) (((host) >> 24) & 255); 
-			m_buffer[m_offset+5] = (byte) (((host) >> 16) & 255);
-			m_buffer[m_offset+6] = (byte) (((host) >> 8)  & 255);
-			m_buffer[m_offset+7] = (byte) (((host))       & 255);
+	        m_offset += 2;
+	    }
 
-			m_offset+=8;
-		}
+	    //  Put a 4-byte number to the frame
+	    private void PutNumber4(UInt32 host)
+	    {
+	        m_buffer[m_offset] = (byte) (((host) >> 24) & 255);
+	        m_buffer[m_offset + 1] = (byte) (((host) >> 16) & 255);
+	        m_buffer[m_offset + 2] = (byte) (((host) >> 8) & 255);
+	        m_buffer[m_offset + 3] = (byte) (((host)) & 255);
 
-		//  Get a 1-byte number from the frame
-		private byte GetNumber1() 
-		{
-			if (m_offset + 1 > m_buffer.Length) 
-			{
-				throw new MessageException("Malformed message.");
-			} 
-    
-			byte b = m_buffer[m_offset];
-		
-			m_offset++;
+	        m_offset += 4;
+	    }
 
-			return b;
-		}
+	    //  Put a 8-byte number to the frame
+	    private void PutNumber8(UInt64 host)
+	    {
+	        m_buffer[m_offset] = (byte) (((host) >> 56) & 255);
+	        m_buffer[m_offset + 1] = (byte) (((host) >> 48) & 255);
+	        m_buffer[m_offset + 2] = (byte) (((host) >> 40) & 255);
+	        m_buffer[m_offset + 3] = (byte) (((host) >> 32) & 255);
+	        m_buffer[m_offset + 4] = (byte) (((host) >> 24) & 255);
+	        m_buffer[m_offset + 5] = (byte) (((host) >> 16) & 255);
+	        m_buffer[m_offset + 6] = (byte) (((host) >> 8) & 255);
+	        m_buffer[m_offset + 7] = (byte) (((host)) & 255);
 
-		//  Get a 2-byte number from the frame
-		private UInt16 GetNumber2() 
-		{ 
-			if (m_offset + 2 > m_buffer.Length) 
-			{
-				throw new MessageException("Malformed message.");
-			} 
-    
-			UInt16 number = (UInt16)((m_buffer[m_offset] << 8) + 
-							m_buffer[m_offset+1]);
-		
-			m_offset+=2;
+	        m_offset += 8;
+	    }
 
-			return number;
-		}
+	    //  Get a 1-byte number from the frame
+	    private byte GetNumber1()
+	    {
+	        if (m_offset + 1 > m_buffer.Length)
+	        {
+	            throw new MessageException("Malformed message.");
+	        }
 
-		//  Get a 4-byte number from the frame
-		private UInt32 GetNumber4() 
-		{ 
-			if (m_offset + 4 > m_buffer.Length) 
-			{
-				throw new MessageException("Malformed message.");
-			} 
-    
-			UInt32 number = 
-				(((UInt32)m_buffer[m_offset]) << 24) + 
-				(((UInt32)m_buffer[m_offset+1]) << 16)  +
-				(((UInt32)m_buffer[m_offset+2]) << 8) +
-				(UInt32)m_buffer[m_offset+3];
-		
-			m_offset+=4;
+	        byte b = m_buffer[m_offset];
 
-			return number;
-		}
+	        m_offset++;
 
-		//  Get a 8byte number from the frame
-		private UInt64 GetNumber8() 
-		{ 
-			if (m_offset + 8 > m_buffer.Length) 
-			{
-				throw new MessageException("Malformed message.");
-			} 
-    
-			UInt64 number = 
-				(((UInt64) m_buffer[m_offset]) << 56) + 
-				(((UInt64) m_buffer[m_offset+1]) << 48)  +
-				(((UInt64) m_buffer[m_offset+2]) << 40) +
-				(((UInt64) m_buffer[m_offset+3]) << 32) +
-				(((UInt64) m_buffer[m_offset+4]) << 24) +
-				(((UInt64) m_buffer[m_offset+5]) << 16) +
-				(((UInt64) m_buffer[m_offset+6]) << 8) +		
-				(UInt64) m_buffer[m_offset+7];
-		
-			m_offset+=8;
+	        return b;
+	    }
 
-			return number;
-		}
+	    //  Get a 2-byte number from the frame
+	    private UInt16 GetNumber2()
+	    {
+	        if (m_offset + 2 > m_buffer.Length)
+	        {
+	            throw new MessageException("Malformed message.");
+	        }
 
-		//  Put a string to the frame
-		private void PutString(string host) 
-		{   
-			int length = Encoding.UTF8.GetByteCount(host); 
-			
-			if (length > 255)
-				length = 255;
-		
-			PutNumber1((byte)length); 
+	        UInt16 number = (UInt16) ((m_buffer[m_offset] << 8) + m_buffer[m_offset + 1]);
 
-			Encoding.UTF8.GetBytes(host, 0, length, m_buffer, m_offset);
-    
-			m_offset += length;
-		}
+	        m_offset += 2;
 
-		//  Get a string from the frame
-		private string GetString() 
-		{ 
-			int length = GetNumber1();    
-			if (m_offset + length > m_buffer.Length) 
-			{ 
-			  throw new MessageException("Malformed message.");
-			} 
+	        return number;
+	    }
 
-			string s = Encoding.UTF8.GetString(m_buffer, m_offset, length);
+	    //  Get a 4-byte number from the frame
+	    private UInt32 GetNumber4()
+	    {
+	        if (m_offset + 4 > m_buffer.Length)
+	        {
+	            throw new MessageException("Malformed message.");
+	        }
 
-			m_offset += length;
+	        UInt32 number = (((UInt32) m_buffer[m_offset]) << 24) + (((UInt32) m_buffer[m_offset + 1]) << 16) + (((UInt32) m_buffer[m_offset + 2]) << 8) + (UInt32) m_buffer[m_offset + 3];
 
-			return s;
-		}
+	        m_offset += 4;
 
-		//  Put a long string to the frame
-		private void PutLongString(string host) 
-		{     
-			PutNumber4((UInt32)Encoding.UTF8.GetByteCount(host));
-	 
-			Encoding.UTF8.GetBytes(host, 0, host.Length, m_buffer, m_offset);
-    
-			m_offset += host.Length;
-		}
+	        return number;
+	    }
 
-		//  Get a long string from the frame
-		private string GetLongString() 
-		{ 
-			int length = (int)GetNumber4();    
-			if (m_offset + length > m_buffer.Length) 
-			{ 
-			  throw new MessageException("Malformed message.");
-			} 
+	    //  Get a 8byte number from the frame
+	    private UInt64 GetNumber8()
+	    {
+	        if (m_offset + 8 > m_buffer.Length)
+	        {
+	            throw new MessageException("Malformed message.");
+	        }
 
-			string s = Encoding.UTF8.GetString(m_buffer, m_offset, length);
+	        UInt64 number = (((UInt64) m_buffer[m_offset]) << 56) + (((UInt64) m_buffer[m_offset + 1]) << 48) + (((UInt64) m_buffer[m_offset + 2]) << 40) + (((UInt64) m_buffer[m_offset + 3]) << 32) + (((UInt64) m_buffer[m_offset + 4]) << 24) + (((UInt64) m_buffer[m_offset + 5]) << 16) + (((UInt64) m_buffer[m_offset + 6]) << 8) + (UInt64) m_buffer[m_offset + 7];
 
-			m_offset += length;
+	        m_offset += 8;
 
-			return s;
-		}
+	        return number;
+	    }
 
-		#endregion
+	    //  Put a string to the frame
+	    private void PutString(string host)
+	    {
+	        int length = Encoding.UTF8.GetByteCount(host);
+
+	        if (length > 255)
+	            length = 255;
+
+	        PutNumber1((byte) length);
+
+	        Encoding.UTF8.GetBytes(host, 0, length, m_buffer, m_offset);
+
+	        m_offset += length;
+	    }
+
+	    //  Get a string from the frame
+	    private string GetString()
+	    {
+	        int length = GetNumber1();
+	        if (m_offset + length > m_buffer.Length)
+	        {
+	            throw new MessageException("Malformed message.");
+	        }
+
+	        string s = Encoding.UTF8.GetString(m_buffer, m_offset, length);
+
+	        m_offset += length;
+
+	        return s;
+	    }
+
+	    //  Put a long string to the frame
+	    private void PutLongString(string host)
+	    {
+	        PutNumber4((UInt32) Encoding.UTF8.GetByteCount(host));
+
+	        Encoding.UTF8.GetBytes(host, 0, host.Length, m_buffer, m_offset);
+
+	        m_offset += host.Length;
+	    }
+
+	    //  Get a long string from the frame
+	    private string GetLongString()
+	    {
+	        int length = (int) GetNumber4();
+	        if (m_offset + length > m_buffer.Length)
+	        {
+	            throw new MessageException("Malformed message.");
+	        }
+
+	        string s = Encoding.UTF8.GetString(m_buffer, m_offset, length);
+
+	        m_offset += length;
+
+	        return s;
+	    }
+
+	    #endregion
 	}
 }

@@ -45,15 +45,17 @@
     <Compile Include="ZreMsg.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="zproto\Generate.bat" />
     <None Include="zproto\zproto_codec_cs.gsl" />
     <None Include="zproto\zproto_lib.gsl" />
     <None Include="zproto\zproto_lib_cs.gsl" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="zproto\License.xml" />
     <Content Include="zproto\Example.xml" />
+    <Content Include="zproto\License.xml" />
     <Content Include="zproto\zre_msg.xml">
       <SubType>Designer</SubType>
     </Content>

@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using NUnit.Framework;
 using NetMQ;
+using NetMQ.Sockets;
 using NetMQ.Zyre;
 
 namespace NetMQ.Zyre.Tests
@@ -52,12 +53,11 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Hello.Headers["Age"], Is.EqualTo("43"));                                          
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestHello");
+				client.Connect("inproc://zprototestHello");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -105,12 +105,11 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Whisper.Content.FrameCount, Is.EqualTo(1));                
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestWhisper");
+				client.Connect("inproc://zprototestWhisper");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -160,12 +159,11 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Shout.Content.FrameCount, Is.EqualTo(1));                  
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestShout");
+				client.Connect("inproc://zprototestShout");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -216,12 +214,11 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Join.Status, Is.EqualTo(123));                    
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestJoin");
+				client.Connect("inproc://zprototestJoin");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -272,12 +269,14 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Leave.Status, Is.EqualTo(123));                   
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
-			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
+            {
+                // TODO: If I use inproc://zprototest ReSharper TestRunner fails with NetMQ.AddressAlreadyInUseException : 
+                //  Cannot bind address ( inproc://zprototest ) - already in use.
+                //  But only when I run all these tests at the same time.
+                server.Bind("inproc://zprototestLeave"); 
+                client.Connect("inproc://zprototestLeave");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -324,12 +323,11 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Ping.Sequence, Is.EqualTo(123));                  
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestPing");
+				client.Connect("inproc://zprototestPing");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
@@ -376,12 +374,11 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.PingOk.Sequence, Is.EqualTo(123));                
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+				server.Bind("inproc://zprototestPingOk");
+				client.Connect("inproc://zprototestPingOk");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();

@@ -41,7 +41,11 @@ namespace $(class.namespace)
 	/// <summary>
 	/// $(class.title:)
 	/// </summary>
-	public class $(class.name:Pascal)
+.if class.modifier <> ""
+	$(class.modifier) class $(class.name:Pascal)
+.else
+	class $(class.name:Pascal)
+.endif
 	{
 		public class MessageException : Exception
 		{
@@ -773,6 +777,7 @@ using System.Text;
 using System.Collections.Generic;
 using NUnit.Framework;
 using NetMQ;
+using NetMQ.Sockets;
 .if class.namespace <> class.test_namespace
 using $(class.namespace);
 .endif
@@ -850,9 +855,8 @@ namespace $(class.test_namespace)
 .   endfor
 			};
 
-			using (NetMQContext context = NetMQContext.Create())
-			using (var client = context.CreateDealerSocket())
-			using (var server = context.CreateRouterSocket())
+			using (var client = new DealerSocket())
+			using (var server = new RouterSocket())
 			{
 				server.Bind("inproc://zprototest");
 				client.Connect("inproc://zprototest");
