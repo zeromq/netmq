@@ -7,6 +7,7 @@
     test_dir ="./csharp/ZProto.Tests"
     namespace ="ZProto"
     test_namespace="ZProto.Test"
+    modifier="public"
     >
 This is an example protocol designed to teach you how this stuff works.
 

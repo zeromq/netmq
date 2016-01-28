@@ -7,6 +7,7 @@
     test_dir ="../../NetMQ.Zyre.Tests"
     namespace ="NetMQ.Zyre"
     test_namespace="NetMQ.Zyre.Tests"
+    modifier="public"
     >
     This is the ZRE protocol, version 2 draft, as defined by rfc.zeromq.org/spec:36/ZRE.
 
