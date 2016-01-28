@@ -271,9 +271,12 @@ namespace NetMQ.Zyre.Tests
 
 			using (var client = new DealerSocket())
 			using (var server = new RouterSocket())
-			{
-				server.Bind("inproc://zprototest");
-				client.Connect("inproc://zprototest");
+            {
+                // TODO: If I use inproc://zprototest ReSharper TestRunner fails with NetMQ.AddressAlreadyInUseException : 
+                //  Cannot bind address ( inproc://zprototest ) - already in use.
+                //  But only when I run all these tests at the same time.
+                server.Bind("inproc://zprototestLeave"); 
+                client.Connect("inproc://zprototestLeave");
 
 				ZreMsg clientMessage = new ZreMsg();
 				ZreMsg serverMessage = new ZreMsg();
