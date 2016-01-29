@@ -107,9 +107,9 @@ namespace NetMQ.Zyre.Tests
 				Assert.That(m.Id, Is.EqualTo(ZreMsg.MessageId.Whisper));
 				Assert.That(m.Whisper.Sequence, Is.EqualTo(123));               
 				Assert.That(m.Whisper.Content.FrameCount, Is.EqualTo(2));
-			    var str1 = m.Whisper.Content.Pop().ConvertToString();
+			    var str1 = m.Whisper.Content[0].ConvertToString();
                 Assert.That(str1, Is.EqualTo("Hello"));
-                var str2 = m.Whisper.Content.Pop().ConvertToString();
+                var str2 = m.Whisper.Content[1].ConvertToString();
                 Assert.That(str2, Is.EqualTo("World"));
             };
 
