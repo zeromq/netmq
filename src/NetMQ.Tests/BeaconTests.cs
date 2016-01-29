@@ -128,7 +128,7 @@ namespace NetMQ.Tests
                 };
 
                 using (var poller = new NetMQPoller { listener })
-                {                    
+                {
                     poller.RunAsync();
 
                     manualResetEvent.WaitOne();
