@@ -14,7 +14,7 @@ namespace NetMQ.Zyre
         private const int PeerExpired = 30000; // 30 seconds' silence is expired
         private const int ReapInterval = 1000; // Once per second
 
-        private DealerSocket m_mailbox;                   // Socket through to peer
+        private DealerSocket m_mailbox;                 // Socket through to peer
         private readonly string m_uuid;                 // Identity string, 16 bytes
         private string m_endpoint;                      // Endpoint connected to
         private string m_name;                          // Peer's public name
@@ -23,9 +23,9 @@ namespace NetMQ.Zyre
         private long m_expiredAt;                       // Peer has expired by now
         private bool m_connected;                       // Peer will send messages
         private bool m_ready;                           // Peer has said Hello to us
-        private int m_status;                           // Our status counter
-        private int m_sentSequence;                     // Outgoing message sequence
-        private int m_wantSequence;                     // Incoming message sequence
+        private byte m_status;                           // Our status counter
+        private ushort m_sentSequence;                  // Outgoing message sequence
+        private ushort m_wantSequence;                  // Incoming message sequence
         private Dictionary<string, string> m_headers;   // Peer headers 
         
         private ZrePeer(string uuid)
@@ -35,6 +35,7 @@ namespace NetMQ.Zyre
             m_connected = false;
             m_sentSequence = 0;
             m_wantSequence = 0;
+            m_headers = new Dictionary<string, string>();
         }
 
         /// <summary>
@@ -100,17 +101,143 @@ namespace NetMQ.Zyre
         /// Send message to peer
         /// </summary>
         /// <param name="msg">the message</param>
-        /// <returns></returns>
+        /// <returns>always true</returns>
         public bool Send(ZreMsg msg)
         {
             if (m_connected)
             {
-                m_sentSequence++;
-                m_sentSequence %= ushort.MaxValue;
-                msg.Hello
+                msg.Sequence = m_sentSequence++;
                 msg.Send(m_mailbox);
             }
-            return true; // always true
+            return true;
+        }
+
+        /// <summary>
+        /// Return peer connected status
+        /// </summary>
+        public bool Connected => m_connected;
+
+        /// <summary>
+        /// Return peer identity string
+        /// </summary>
+        public string Uuid => m_uuid;
+
+        /// <summary>
+        /// Return peer connection endpoint
+        /// </summary>
+        public string Endpoint => m_endpoint;
+
+        /// <summary>
+        /// Register activity at peer
+        /// </summary>
+        public void Refresh()
+        {
+            m_evasiveAt = CurrentTimeMilliseconds() + PeerEvasive;
+            m_expiredAt = CurrentTimeMilliseconds() + PeerExpired;
+        }
+
+        /// <summary>
+        /// Milliseconds since January 1, 1970 UTC
+        /// </summary>
+        /// <returns></returns>
+        public long CurrentTimeMilliseconds() => (DateTime.UtcNow.Ticks - 621355968000000000)/ 10000;
+
+        /// <summary>
+        /// Return peer future expired time
+        /// </summary>
+        public long PeerEvasiveAt => m_evasiveAt;
+
+        /// <summary>
+        /// Return peer future evasive time
+        /// </summary>
+        public long PeerExpiredAt => m_expiredAt;
+
+        /// <summary>
+        /// Return peer name
+        /// </summary>
+        public string PeerName => m_name ?? "";
+
+        /// <summary>
+        /// Return peer cycle
+        /// This gives us a state change count for the peer, which we can
+        /// check against its claimed status, to detect message loss.
+        /// </summary>
+        public byte Status => m_status;
+
+        /// <summary>
+        /// Set peer status
+        /// </summary>
+        /// <param name="status"></param>
+        public void SetStatus(byte status)
+        {
+            m_status = status;
+        }
+
+        /// <summary>
+        /// Return peer ready state
+        /// </summary>
+        public bool Ready => m_ready;
+
+        /// <summary>
+        /// Set peer ready
+        /// </summary>
+        /// <param name="ready"></param>
+        public void SetReady(bool ready)
+        {
+            m_ready = ready;
+        }
+
+        /// <summary>
+        /// Get peer header value
+        /// </summary>
+        /// <param name="key">The he</param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public string Header(string key, string defaultValue)
+        {
+            string value;
+            if (!m_headers.TryGetValue(key, out value))
+            {
+                return defaultValue;
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Get peer headers table
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, string> GetHeaders()
+        {
+            return m_headers;
+        }
+
+        /// <summary>
+        /// Set peer headers from provided dictionary
+        /// </summary>
+        /// <returns></returns>
+        public void SetHeaders(Dictionary<string, string> headers)
+        {
+            m_headers = headers;
+        }
+
+        /// <summary>
+        /// Check if messages were lost from peer, returns true if they were
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns>true if we have lost one or more message</returns>
+        public bool MessagesLost(ZreMsg msg)
+        {
+            if (msg.Id == ZreMsg.MessageId.Hello)
+            {
+                //  HELLO always MUST have sequence = 1
+                m_wantSequence = 1;
+            }
+            else
+            {
+                m_wantSequence++;
+            }
+            return m_wantSequence != msg.Sequence;
         }
     }
 }

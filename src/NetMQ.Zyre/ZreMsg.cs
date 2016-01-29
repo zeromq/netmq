@@ -49,7 +49,7 @@ namespace NetMQ.Zyre
 		
 		#region Hello
 
-		public class HelloMessage : ISequence
+		public class HelloMessage
 		{
 			public HelloMessage()
 			{
@@ -259,7 +259,7 @@ namespace NetMQ.Zyre
 
 		#region Whisper
 
-		public class WhisperMessage : ISequence
+		public class WhisperMessage
         {
 			public WhisperMessage()
 			{
@@ -345,7 +345,7 @@ namespace NetMQ.Zyre
 
 		#region Shout
 
-		public class ShoutMessage : ISequence
+		public class ShoutMessage
         {
 			public ShoutMessage()
 			{
@@ -448,7 +448,7 @@ namespace NetMQ.Zyre
 
 		#region Join
 
-		public class JoinMessage : ISequence
+		public class JoinMessage
         {
 			public JoinMessage()
 			{
@@ -553,7 +553,7 @@ namespace NetMQ.Zyre
 
 		#region Leave
 
-		public class LeaveMessage : ISequence
+		public class LeaveMessage
         {
 			public LeaveMessage()
 			{
@@ -658,7 +658,7 @@ namespace NetMQ.Zyre
 
 		#region Ping
 
-		public class PingMessage : ISequence
+		public class PingMessage
         {
 			public PingMessage()
 			{
@@ -729,7 +729,7 @@ namespace NetMQ.Zyre
 
 		#region PingOk
 
-		public class PingOkMessage : ISequence
+		public class PingOkMessage
         {
 			public PingOkMessage()
 			{
@@ -890,11 +890,65 @@ namespace NetMQ.Zyre
 				return "?";
 			}
 		}
-			
-		/// <summary>
-		/// Receive a ZreMsg from the socket.                
-		/// </summary>
-		public void Receive(IReceivingSocket input)
+
+	    public ushort Sequence
+	    {
+	        get
+	        {
+                switch (Id)
+                {
+                    case MessageId.Hello:
+                        return Hello.Sequence;
+                    case MessageId.Whisper:
+                        return Whisper.Sequence;
+                    case MessageId.Shout:
+                        return Shout.Sequence;
+                    case MessageId.Join:
+                        return Join.Sequence;
+                    case MessageId.Leave:
+                        return Leave.Sequence;
+                    case MessageId.Ping:
+                        return Ping.Sequence;
+                    case MessageId.PingOk:
+                        return PingOk.Sequence;
+                    default:
+                        throw new ArgumentException(Id.ToString());
+                }
+            }
+            set
+	        {
+                switch (Id)
+                {
+                    case MessageId.Hello:
+                        Hello.Sequence = value;
+                        break;
+                    case MessageId.Whisper:
+                        Whisper.Sequence = value;
+                        break;
+                    case MessageId.Shout:
+                        Shout.Sequence = value;
+                        break;
+                    case MessageId.Join:
+                        Join.Sequence = value;
+                        break;
+                    case MessageId.Leave:
+                        Leave.Sequence = value;
+                        break;
+                    case MessageId.Ping:
+                        Ping.Sequence = value;
+                        break;
+                    case MessageId.PingOk:
+                        PingOk.Sequence = value;
+                        break;
+                }
+
+            }
+        }
+
+        /// <summary>
+        /// Receive a ZreMsg from the socket.                
+        /// </summary>
+        public void Receive(IReceivingSocket input)
 		{	    
 			bool more;     		
 			   
