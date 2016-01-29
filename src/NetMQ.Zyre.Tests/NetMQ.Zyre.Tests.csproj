@@ -99,6 +99,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ZreMsgOriginalTests.cs" />
     <Compile Include="ZreMsgTests.cs" />
   </ItemGroup>
   <ItemGroup>

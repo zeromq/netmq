@@ -77,8 +77,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ISequence.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ZreMsg.cs" />
+    <Compile Include="ZreGroup.cs" />
+    <Compile Include="ZreMsgOriginal.cs" />
+    <Compile Include="ZrePeer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
