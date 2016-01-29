@@ -89,6 +89,11 @@ namespace NetMQ
                     bindTo = IPAddress.Any;
                     sendTo = IPAddress.Broadcast;
                 }
+                else if (interfaceName == "loopback")
+                {
+                    bindTo = IPAddress.Loopback;
+                    sendTo = IPAddress.Broadcast;
+                }
                 else
                 {
                     var interfaceCollection = new InterfaceCollection();
