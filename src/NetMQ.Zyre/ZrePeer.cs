@@ -189,6 +189,14 @@ namespace NetMQ.Zyre
         }
 
         /// <summary>
+        /// Increment status
+        /// </summary>
+        public void IncrementStatus()
+        {
+            m_status++;
+        }
+
+        /// <summary>
         /// Set peer status
         /// </summary>
         /// <param name="status"></param>

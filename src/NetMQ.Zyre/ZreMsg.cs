@@ -863,35 +863,12 @@ namespace NetMQ.Zyre
 			get;set;
 		}
 
-		/// <summary>
-		/// Return a printable command string
-		/// </summary>
-		public string Command
-		{
-			get
-			{	    
-				switch (Id) 
-				{
-					case MessageId.Hello:
-						return "Hello";										
-					case MessageId.Whisper:
-						return "Whisper";										
-					case MessageId.Shout:
-						return "Shout";										
-					case MessageId.Join:
-						return "Join";										
-					case MessageId.Leave:
-						return "Leave";										
-					case MessageId.Ping:
-						return "Ping";										
-					case MessageId.PingOk:
-						return "PingOk";										
-				}
-				return "?";
-			}
-		}
+        /// <summary>
+        /// Return a printable command string
+        /// </summary>
+        public string Command { get { return Id.ToString(); } }
 
-	    public ushort Sequence
+        public ushort Sequence
 	    {
 	        get
 	        {
