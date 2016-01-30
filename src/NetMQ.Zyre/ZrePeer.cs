@@ -115,17 +115,26 @@ namespace NetMQ.Zyre
         /// <summary>
         /// Return peer connected status
         /// </summary>
-        public bool Connected => m_connected;
+        public bool Connected
+        {
+            get { return m_connected; }
+        }
 
         /// <summary>
         /// Return peer identity string
         /// </summary>
-        public string Uuid => m_uuid;
+        public string Uuid
+        {
+            get { return m_uuid; }
+        }
 
         /// <summary>
         /// Return peer connection endpoint
         /// </summary>
-        public string Endpoint => m_endpoint;
+        public string Endpoint
+        {
+            get { return m_endpoint; }
+        }
 
         /// <summary>
         /// Register activity at peer
@@ -140,29 +149,44 @@ namespace NetMQ.Zyre
         /// Milliseconds since January 1, 1970 UTC
         /// </summary>
         /// <returns></returns>
-        public long CurrentTimeMilliseconds() => (DateTime.UtcNow.Ticks - 621355968000000000)/ 10000;
+        public long CurrentTimeMilliseconds()
+        {
+            return (DateTime.UtcNow.Ticks - 621355968000000000) / 10000;
+        }
 
         /// <summary>
         /// Return peer future expired time
         /// </summary>
-        public long PeerEvasiveAt => m_evasiveAt;
+        public long PeerEvasiveAt
+        {
+            get { return m_evasiveAt; }
+        }
 
         /// <summary>
         /// Return peer future evasive time
         /// </summary>
-        public long PeerExpiredAt => m_expiredAt;
+        public long PeerExpiredAt
+        {
+            get { return m_expiredAt; }
+        }
 
         /// <summary>
         /// Return peer name
         /// </summary>
-        public string PeerName => m_name ?? "";
+        public string PeerName
+        {
+            get { return m_name ?? ""; }
+        }
 
         /// <summary>
         /// Return peer cycle
         /// This gives us a state change count for the peer, which we can
         /// check against its claimed status, to detect message loss.
         /// </summary>
-        public byte Status => m_status;
+        public byte Status
+        {
+            get { return m_status; }
+        }
 
         /// <summary>
         /// Set peer status
@@ -176,7 +200,10 @@ namespace NetMQ.Zyre
         /// <summary>
         /// Return peer ready state
         /// </summary>
-        public bool Ready => m_ready;
+        public bool Ready
+        {
+            get { return m_ready; }
+        }
 
         /// <summary>
         /// Set peer ready
