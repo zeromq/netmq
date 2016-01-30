@@ -83,6 +83,8 @@ namespace NetMQ.Zyre
 
                     //  Set a high-water mark that allows for reasonable activity
                     SendHighWatermark = PeerExpired * 100,
+
+                    // SendTimeout = TimeSpan.Zero Instead of this, ZreMsg.Send() uses 
                 }
             };
             m_endpoint = endpoint;

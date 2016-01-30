@@ -1107,7 +1107,7 @@ namespace NetMQ.Zyre
 
 	            //  Send the data frame				
 	            var more = Id == MessageId.Whisper || Id == MessageId.Shout;
-	            output.Send(ref msg, more);
+	            output.TrySend(ref msg, TimeSpan.Zero, more);
 
 	            // Send message content for types with content
 	            switch (Id)
@@ -1118,7 +1118,7 @@ namespace NetMQ.Zyre
 	                        Whisper.Content = new NetMQMessage();
 	                        Whisper.Content.PushEmptyFrame();
 	                    }
-	                    output.SendMultipartMessage(Whisper.Content);
+	                    output.TrySendMultipartMessage(Whisper.Content);
 	                    break;
 	                case MessageId.Shout:
 	                    if (Shout.Content == null)
@@ -1126,7 +1126,7 @@ namespace NetMQ.Zyre
 	                        Shout.Content = new NetMQMessage();
 	                        Shout.Content.PushEmptyFrame();
 	                    }
-	                    output.SendMultipartMessage(Shout.Content);
+	                    output.TrySendMultipartMessage(Shout.Content);
 	                    break;
 	            }
 	        }
