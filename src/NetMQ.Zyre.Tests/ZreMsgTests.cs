@@ -96,14 +96,22 @@ namespace NetMQ.Zyre.Tests
 				m.Id = ZreMsg.MessageId.Whisper;
 
 				m.Whisper.Sequence = 123;
-			};
+
+                m.Whisper.Content = new NetMQMessage();
+                m.Whisper.Content.Append("Hello");
+                m.Whisper.Content.Append("World");
+            };
 
 			Action<ZreMsg> checkMessage = m=> 
 			{
 				Assert.That(m.Id, Is.EqualTo(ZreMsg.MessageId.Whisper));
 				Assert.That(m.Whisper.Sequence, Is.EqualTo(123));               
-				Assert.That(m.Whisper.Content.FrameCount, Is.EqualTo(1));                
-			};
+				Assert.That(m.Whisper.Content.FrameCount, Is.EqualTo(2));
+			    var str1 = m.Whisper.Content[0].ConvertToString();
+                Assert.That(str1, Is.EqualTo("Hello"));
+                var str2 = m.Whisper.Content[1].ConvertToString();
+                Assert.That(str2, Is.EqualTo("World"));
+            };
 
 			using (var client = new DealerSocket())
 			using (var server = new RouterSocket())
