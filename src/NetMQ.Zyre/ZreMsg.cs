@@ -53,6 +53,10 @@ namespace NetMQ.Zyre
 		{
 			public HelloMessage()
 			{
+			    Version = 2;
+			    Name = "";
+                Headers = new Dictionary<string, string>();
+                Groups = new List<string>();
 			}			
 
 			/// <summary>
@@ -263,12 +267,13 @@ namespace NetMQ.Zyre
         {
 			public WhisperMessage()
 			{
-			}			
+                Version = 2;
+            }
 
-			/// <summary>
-			/// Get/Set the Version field
-			/// </summary>
-			public byte Version
+            /// <summary>
+            /// Get/Set the Version field
+            /// </summary>
+            public byte Version
 			{
 				get;set;
 			}
@@ -349,12 +354,14 @@ namespace NetMQ.Zyre
         {
 			public ShoutMessage()
 			{
-			}			
+                Version = 2;
+			    Group = "";
+			}
 
-			/// <summary>
-			/// Get/Set the Version field
-			/// </summary>
-			public byte Version
+            /// <summary>
+            /// Get/Set the Version field
+            /// </summary>
+            public byte Version
 			{
 				get;set;
 			}
@@ -452,12 +459,13 @@ namespace NetMQ.Zyre
         {
 			public JoinMessage()
 			{
-			}			
+                Version = 2;
+			}
 
-			/// <summary>
-			/// Get/Set the Version field
-			/// </summary>
-			public byte Version
+            /// <summary>
+            /// Get/Set the Version field
+            /// </summary>
+            public byte Version
 			{
 				get;set;
 			}
@@ -557,12 +565,13 @@ namespace NetMQ.Zyre
         {
 			public LeaveMessage()
 			{
-			}			
+                Version = 2;
+            }
 
-			/// <summary>
-			/// Get/Set the Version field
-			/// </summary>
-			public byte Version
+            /// <summary>
+            /// Get/Set the Version field
+            /// </summary>
+            public byte Version
 			{
 				get;set;
 			}
@@ -662,12 +671,13 @@ namespace NetMQ.Zyre
         {
 			public PingMessage()
 			{
-			}			
+                Version = 2;
+            }
 
-			/// <summary>
-			/// Get/Set the Version field
-			/// </summary>
-			public byte Version
+            /// <summary>
+            /// Get/Set the Version field
+            /// </summary>
+            public byte Version
 			{
 				get;set;
 			}
@@ -733,12 +743,13 @@ namespace NetMQ.Zyre
         {
 			public PingOkMessage()
 			{
-			}			
+                Version = 2;
+            }
 
-			/// <summary>
-			/// Get/Set the Version field
-			/// </summary>
-			public byte Version
+            /// <summary>
+            /// Get/Set the Version field
+            /// </summary>
+            public byte Version
 			{
 				get;set;
 			}
@@ -807,328 +818,324 @@ namespace NetMQ.Zyre
 		/// Create a new ZreMsg
 		/// </summary>
 		public ZreMsg()
-		{    
-			Hello = new HelloMessage();
-			Whisper = new WhisperMessage();
-			Shout = new ShoutMessage();
-			Join = new JoinMessage();
-			Leave = new LeaveMessage();
-			Ping = new PingMessage();
-			PingOk = new PingOkMessage();
-		}			
-
-		public HelloMessage Hello {get;private set;}
-
-		public WhisperMessage Whisper {get;private set;}
-
-		public ShoutMessage Shout {get;private set;}
-
-		public JoinMessage Join {get;private set;}
-
-		public LeaveMessage Leave {get;private set;}
-
-		public PingMessage Ping {get;private set;}
-
-		public PingOkMessage PingOk {get;private set;}
-
-	
-		/// <summary>
-		/// Get/set the message RoutingId.
-		/// </summary>
-		public byte[] RoutingId
 		{
-			get
-			{
-				return m_routingId;
-			}
-			set 
-			{
-				if (value == null)
-			        m_routingId = null;
-			    else
-			    {       
-					if (m_routingId == null || m_routingId.Length != value.Length)
-						m_routingId = new byte[value.Length];
-
-					Buffer.BlockCopy(value, 0, m_routingId, 0, value.Length);
-				}
-			}
+            Hello = new HelloMessage();
+            Whisper = new WhisperMessage();
+            Shout = new ShoutMessage();
+            Join = new JoinMessage();
+            Leave = new LeaveMessage();
+            Ping = new PingMessage();
+            PingOk = new PingOkMessage();
 		}
 
-		/// <summary>
-		/// Get/Set the ZreMsg id
-		/// </summary>
-		public MessageId Id 
-		{
-			get;set;
-		}
+	    public HelloMessage Hello { get; private set; }
 
-        /// <summary>
-        /// Return a printable command string
-        /// </summary>
-        public string Command { get { return Id.ToString(); } }
+	    public WhisperMessage Whisper { get; private set; }
 
-        public ushort Sequence
+	    public ShoutMessage Shout { get; private set; }
+
+	    public JoinMessage Join { get; private set; }
+
+	    public LeaveMessage Leave { get; private set; }
+
+	    public PingMessage Ping { get; private set; }
+
+	    public PingOkMessage PingOk { get; private set; }
+
+
+	    /// <summary>
+	    /// Get/set the message RoutingId.
+	    /// </summary>
+	    public byte[] RoutingId
+	    {
+	        get { return m_routingId; }
+	        set
+	        {
+	            if (value == null)
+	                m_routingId = null;
+	            else
+	            {
+	                if (m_routingId == null || m_routingId.Length != value.Length)
+	                    m_routingId = new byte[value.Length];
+
+	                Buffer.BlockCopy(value, 0, m_routingId, 0, value.Length);
+	            }
+	        }
+	    }
+
+	    /// <summary>
+	    /// Get/Set the ZreMsg id
+	    /// </summary>
+	    public MessageId Id { get; set; }
+
+	    /// <summary>
+	    /// Return a printable command string
+	    /// </summary>
+	    public string Command
+	    {
+	        get { return Id.ToString(); }
+	    }
+
+	    public ushort Sequence
 	    {
 	        get
 	        {
-                switch (Id)
-                {
-                    case MessageId.Hello:
-                        return Hello.Sequence;
-                    case MessageId.Whisper:
-                        return Whisper.Sequence;
-                    case MessageId.Shout:
-                        return Shout.Sequence;
-                    case MessageId.Join:
-                        return Join.Sequence;
-                    case MessageId.Leave:
-                        return Leave.Sequence;
-                    case MessageId.Ping:
-                        return Ping.Sequence;
-                    case MessageId.PingOk:
-                        return PingOk.Sequence;
-                    default:
-                        throw new ArgumentException(Id.ToString());
-                }
-            }
-            set
+	            switch (Id)
+	            {
+	                case MessageId.Hello:
+	                    return Hello.Sequence;
+	                case MessageId.Whisper:
+	                    return Whisper.Sequence;
+	                case MessageId.Shout:
+	                    return Shout.Sequence;
+	                case MessageId.Join:
+	                    return Join.Sequence;
+	                case MessageId.Leave:
+	                    return Leave.Sequence;
+	                case MessageId.Ping:
+	                    return Ping.Sequence;
+	                case MessageId.PingOk:
+	                    return PingOk.Sequence;
+	                default:
+	                    throw new ArgumentException(Id.ToString());
+	            }
+	        }
+	        set
 	        {
-                switch (Id)
-                {
-                    case MessageId.Hello:
-                        Hello.Sequence = value;
-                        break;
-                    case MessageId.Whisper:
-                        Whisper.Sequence = value;
-                        break;
-                    case MessageId.Shout:
-                        Shout.Sequence = value;
-                        break;
-                    case MessageId.Join:
-                        Join.Sequence = value;
-                        break;
-                    case MessageId.Leave:
-                        Leave.Sequence = value;
-                        break;
-                    case MessageId.Ping:
-                        Ping.Sequence = value;
-                        break;
-                    case MessageId.PingOk:
-                        PingOk.Sequence = value;
-                        break;
-                }
+	            switch (Id)
+	            {
+	                case MessageId.Hello:
+	                    Hello.Sequence = value;
+	                    break;
+	                case MessageId.Whisper:
+	                    Whisper.Sequence = value;
+	                    break;
+	                case MessageId.Shout:
+	                    Shout.Sequence = value;
+	                    break;
+	                case MessageId.Join:
+	                    Join.Sequence = value;
+	                    break;
+	                case MessageId.Leave:
+	                    Leave.Sequence = value;
+	                    break;
+	                case MessageId.Ping:
+	                    Ping.Sequence = value;
+	                    break;
+	                case MessageId.PingOk:
+	                    PingOk.Sequence = value;
+	                    break;
+	            }
+	        }
+	    }
 
-            }
-        }
+	    /// <summary>
+	    /// Receive a ZreMsg from the socket.                
+	    /// </summary>
+	    public void Receive(IReceivingSocket input)
+	    {
+	        bool more;
 
-        /// <summary>
-        /// Receive a ZreMsg from the socket.                
-        /// </summary>
-        public void Receive(IReceivingSocket input)
-		{	    
-			bool more;     		
-			   
-			if (input is RouterSocket) 
-			{   			
-				Msg routingIdMsg = new Msg();
-				routingIdMsg.InitEmpty();
+	        if (input is RouterSocket)
+	        {
+	            Msg routingIdMsg = new Msg();
+	            routingIdMsg.InitEmpty();
 
-				try
-				{
-					input.Receive(ref routingIdMsg);
+	            try
+	            {
+	                input.Receive(ref routingIdMsg);
 
-					if (!routingIdMsg.HasMore) 
-					{
-						throw new MessageException("No routing id");				
-					}
+	                if (!routingIdMsg.HasMore)
+	                {
+	                    throw new MessageException("No routing id");
+	                }
 
-					if (m_routingId == null || m_routingId.Length == routingIdMsg.Size)					
-						m_routingId = new byte[routingIdMsg.Size];					
+	                if (m_routingId == null || m_routingId.Length == routingIdMsg.Size)
+	                    m_routingId = new byte[routingIdMsg.Size];
 
-					Buffer.BlockCopy(routingIdMsg.Data, 0, m_routingId, 0, m_routingId.Length);
-				}
-				finally
-				{
-					routingIdMsg.Close();
-				}
-			}
-			else
-			{
-				RoutingId = null;
-			}
+	                Buffer.BlockCopy(routingIdMsg.Data, 0, m_routingId, 0, m_routingId.Length);
+	            }
+	            finally
+	            {
+	                routingIdMsg.Close();
+	            }
+	        }
+	        else
+	        {
+	            RoutingId = null;
+	        }
 
-			Msg msg = new Msg();
-			msg.InitEmpty();
+	        Msg msg = new Msg();
+	        msg.InitEmpty();
 
-			try
-			{
-				input.Receive(ref msg);
+	        try
+	        {
+	            input.Receive(ref msg);
 
-				m_offset = 0;
-				m_buffer = msg.Data;
-				more = msg.HasMore;
-        
-				UInt16 signature = GetNumber2();
-    
-				if (signature != (0xAAA0 | 1)) 
-				{
-					throw new MessageException("Invalid signature");			
-				}
-		
-				//  Get message id and parse per message type
-				Id = (MessageId)GetNumber1();
-				
-				switch (Id) 
-				{
-					case MessageId.Hello:
-						Hello.Read(this);
-					break;
-					case MessageId.Whisper:
-						Whisper.Read(this);
-					break;
-					case MessageId.Shout:
-						Shout.Read(this);
-					break;
-					case MessageId.Join:
-						Join.Read(this);
-					break;
-					case MessageId.Leave:
-						Leave.Read(this);
-					break;
-					case MessageId.Ping:
-						Ping.Read(this);
-					break;
-					case MessageId.PingOk:
-						PingOk.Read(this);
-					break;
-				default:
-					throw new MessageException("Bad message id");            					
-				}
+	            m_offset = 0;
+	            m_buffer = msg.Data;
+	            more = msg.HasMore;
 
-                // Receive message content for types with content
-                switch (Id)
-                {
-                    case MessageId.Whisper:
-                        Whisper.Content = input.ReceiveMultipartMessage();
-                        break;
-                    case MessageId.Shout:
-                        Shout.Content = input.ReceiveMultipartMessage();
-                        break;
-                }
-            }
-            finally
-			{
-				m_buffer = null;
-				msg.Close();		
-			}
-		}
+	            UInt16 signature = GetNumber2();
 
-		/// <summary>
-		/// Send the ZreMsg to the socket.
-		/// </summary>
-		public void Send(IOutgoingSocket output)
-		{    
-			if (output is RouterSocket)
-				output.SendMoreFrame(RoutingId);
+	            if (signature != (0xAAA0 | 1))
+	            {
+	                throw new MessageException("Invalid signature");
+	            }
 
-			int frameSize = 2 + 1;          //  Signature and message ID
-			switch (Id) 
-			{
-				case MessageId.Hello:
-					frameSize += Hello.GetFrameSize();
-					break;
-				case MessageId.Whisper:
-					frameSize += Whisper.GetFrameSize();
-					break;
-				case MessageId.Shout:
-					frameSize += Shout.GetFrameSize();
-					break;
-				case MessageId.Join:
-					frameSize += Join.GetFrameSize();
-					break;
-				case MessageId.Leave:
-					frameSize += Leave.GetFrameSize();
-					break;
-				case MessageId.Ping:
-					frameSize += Ping.GetFrameSize();
-					break;
-				case MessageId.PingOk:
-					frameSize += PingOk.GetFrameSize();
-					break;
-			}
+	            //  Get message id and parse per message type
+	            Id = (MessageId) GetNumber1();
 
-			//  Now serialize message into the buffer    
-			Msg msg = new Msg();
-			msg.InitPool(frameSize);
+	            switch (Id)
+	            {
+	                case MessageId.Hello:
+	                    Hello.Read(this);
+	                    break;
+	                case MessageId.Whisper:
+	                    Whisper.Read(this);
+	                    break;
+	                case MessageId.Shout:
+	                    Shout.Read(this);
+	                    break;
+	                case MessageId.Join:
+	                    Join.Read(this);
+	                    break;
+	                case MessageId.Leave:
+	                    Leave.Read(this);
+	                    break;
+	                case MessageId.Ping:
+	                    Ping.Read(this);
+	                    break;
+	                case MessageId.PingOk:
+	                    PingOk.Read(this);
+	                    break;
+	                default:
+	                    throw new MessageException("Bad message id");
+	            }
 
-			try
-			{		
-				m_offset = 0;
-				m_buffer = msg.Data;
+	            // Receive message content for types with content
+	            switch (Id)
+	            {
+	                case MessageId.Whisper:
+	                    Whisper.Content = input.ReceiveMultipartMessage();
+	                    break;
+	                case MessageId.Shout:
+	                    Shout.Content = input.ReceiveMultipartMessage();
+	                    break;
+	            }
+	        }
+	        finally
+	        {
+	            m_buffer = null;
+	            msg.Close();
+	        }
+	    }
 
-				// put signature
-				PutNumber2(0xAAA0 | 1);
+	    /// <summary>
+	    /// Send the ZreMsg to the socket.
+	    /// </summary>
+	    public void Send(IOutgoingSocket output)
+	    {
+	        if (output is RouterSocket)
+	            output.SendMoreFrame(RoutingId);
 
-				// put message id
-				PutNumber1((byte)Id);
-	
-				switch (Id) 
-				{
-					case MessageId.Hello:
-						Hello.Write(this);
-					break;
-					case MessageId.Whisper:
-						Whisper.Write(this);
-					break;
-					case MessageId.Shout:
-						Shout.Write(this);
-					break;
-					case MessageId.Join:
-						Join.Write(this);
-					break;
-					case MessageId.Leave:
-						Leave.Write(this);
-					break;
-					case MessageId.Ping:
-						Ping.Write(this);
-					break;
-					case MessageId.PingOk:
-						PingOk.Write(this);
-					break;
-				}
+	        int frameSize = 2 + 1; //  Signature and message ID
+	        switch (Id)
+	        {
+	            case MessageId.Hello:
+	                frameSize += Hello.GetFrameSize();
+	                break;
+	            case MessageId.Whisper:
+	                frameSize += Whisper.GetFrameSize();
+	                break;
+	            case MessageId.Shout:
+	                frameSize += Shout.GetFrameSize();
+	                break;
+	            case MessageId.Join:
+	                frameSize += Join.GetFrameSize();
+	                break;
+	            case MessageId.Leave:
+	                frameSize += Leave.GetFrameSize();
+	                break;
+	            case MessageId.Ping:
+	                frameSize += Ping.GetFrameSize();
+	                break;
+	            case MessageId.PingOk:
+	                frameSize += PingOk.GetFrameSize();
+	                break;
+	        }
 
-				//  Send the data frame				
-			    var more = Id == MessageId.Whisper || Id == MessageId.Shout;
-				output.Send(ref msg, more);
+	        //  Now serialize message into the buffer    
+	        Msg msg = new Msg();
+	        msg.InitPool(frameSize);
 
-                // Send message content for types with content
-			    switch (Id)
-			    {
-			        case MessageId.Whisper:
-			            if (Whisper.Content == null)
-			            {
-			                Whisper.Content = new NetMQMessage();
-                            Whisper.Content.PushEmptyFrame();
-			            }
-                        output.SendMultipartMessage(Whisper.Content);
-			            break;
-			        case MessageId.Shout:
-                        if (Shout.Content == null)
-                        {
-                            Shout.Content = new NetMQMessage();
-                            Shout.Content.PushEmptyFrame();
-                        }
-                        output.SendMultipartMessage(Shout.Content);
-                        break;
-			    }
-			}
-			finally
-			{
-			    m_buffer = null;
-			    msg.Close();
-			}
-		}
+	        try
+	        {
+	            m_offset = 0;
+	            m_buffer = msg.Data;
+
+	            // put signature
+	            PutNumber2(0xAAA0 | 1);
+
+	            // put message id
+	            PutNumber1((byte) Id);
+
+	            switch (Id)
+	            {
+	                case MessageId.Hello:
+	                    Hello.Write(this);
+	                    break;
+	                case MessageId.Whisper:
+	                    Whisper.Write(this);
+	                    break;
+	                case MessageId.Shout:
+	                    Shout.Write(this);
+	                    break;
+	                case MessageId.Join:
+	                    Join.Write(this);
+	                    break;
+	                case MessageId.Leave:
+	                    Leave.Write(this);
+	                    break;
+	                case MessageId.Ping:
+	                    Ping.Write(this);
+	                    break;
+	                case MessageId.PingOk:
+	                    PingOk.Write(this);
+	                    break;
+	            }
+
+	            //  Send the data frame				
+	            var more = Id == MessageId.Whisper || Id == MessageId.Shout;
+	            output.Send(ref msg, more);
+
+	            // Send message content for types with content
+	            switch (Id)
+	            {
+	                case MessageId.Whisper:
+	                    if (Whisper.Content == null)
+	                    {
+	                        Whisper.Content = new NetMQMessage();
+	                        Whisper.Content.PushEmptyFrame();
+	                    }
+	                    output.SendMultipartMessage(Whisper.Content);
+	                    break;
+	                case MessageId.Shout:
+	                    if (Shout.Content == null)
+	                    {
+	                        Shout.Content = new NetMQMessage();
+	                        Shout.Content.PushEmptyFrame();
+	                    }
+	                    output.SendMultipartMessage(Shout.Content);
+	                    break;
+	            }
+	        }
+	        finally
+	        {
+	            m_buffer = null;
+	            msg.Close();
+	        }
+	    }
 
 	    #region Network data encoding methods
 
@@ -1311,5 +1318,10 @@ namespace NetMQ.Zyre
 	    }
 
 	    #endregion
+
+	    public override string ToString()
+	    {
+	        return Command;
+	    }
 	}
 }

@@ -8,7 +8,7 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Zyre
 {
-    public class ZrePeer
+    public class ZrePeer : IDisposable
     {
         private const int PeerEvasive = 10000; // 10 seconds' silence is evasive
         private const int PeerExpired = 30000; // 30 seconds' silence is expired
@@ -16,10 +16,9 @@ namespace NetMQ.Zyre
         private const byte UbyteMax = byte.MaxValue;
 
         private DealerSocket m_mailbox;                 // Socket through to peer
-        private readonly string m_uuid;                 // Identity string, 16 bytes
+        private readonly Guid m_uuid;                   // Identity guid, 16 bytes
         private string m_endpoint;                      // Endpoint connected to
         private string m_name;                          // Peer's public name
-        private string m_origin;                        // Origin node's public name
         private long m_evasiveAt;                       // Peer is being evasive
         private long m_expiredAt;                       // Peer has expired by now
         private bool m_connected;                       // Peer will send messages
@@ -29,7 +28,7 @@ namespace NetMQ.Zyre
         private ushort m_wantSequence;                  // Incoming message sequence
         private Dictionary<string, string> m_headers;   // Peer headers 
         
-        private ZrePeer(string uuid)
+        private ZrePeer(Guid uuid)
         {
             m_uuid = uuid;
             m_ready = false;
@@ -42,13 +41,13 @@ namespace NetMQ.Zyre
         /// <summary>
         /// Construct new ZrePeer object
         /// </summary>
-        /// <param name="uuid">The identity for this peer</param>
         /// <param name="container">The dictionary of peers</param>
+        /// <param name="guid">The identity for this peer</param>
         /// <returns></returns>
-        public static ZrePeer NewPeer(string uuid, Dictionary<string, ZrePeer> container)
+        public static ZrePeer NewPeer(Dictionary<Guid, ZrePeer> container, Guid guid)
         {
-            var peer = new ZrePeer(uuid);
-            container[uuid] = peer; // overwrite any existing entry for same uuid
+            var peer = new ZrePeer(guid);
+            container[guid] = peer; // overwrite any existing entry for same uuid
             return peer;
         }
 
@@ -63,26 +62,42 @@ namespace NetMQ.Zyre
 
         /// <summary>
         /// Connect peer mailbox (a DealerSocket)
-        /// Configures mailbox and connects to peer's router endpoint
+        /// Configures mailbox and connects to peer's RouterSocket endpoint
         /// </summary>
+        /// <param name="replyTo"></param>
         /// <param name="endpoint"></param>
-        public void Connect(string endpoint)
+        public void Connect(Guid replyTo, string endpoint)
         {
             //  Create new outgoing socket (drop any messages in transit)
             m_mailbox = new DealerSocket(m_endpoint) // default action is to connect to the peer node
             {
                 Options =
                 {
-                    //  Set our own identity on the socket so that receiving node knows who each message came from.
-                    Identity = Encoding.ASCII.GetBytes(m_uuid),
+                    //  Set our own identity on the socket so that receiving node
+                    //  knows who each message came from. Note that we cannot use
+                    //  the UUID directly as the identity since it may contain a
+                    //  zero byte at the start, which libzmq does not like for
+                    //  historical and arguably bogus reasons that it nonetheless
+                    //  enforces.
+                    Identity = GetIdentity(replyTo), 
 
                     //  Set a high-water mark that allows for reasonable activity
                     SendHighWatermark = PeerExpired * 100,
                 }
             };
+            m_mailbox.Connect(endpoint);
             m_endpoint = endpoint;
             m_connected = true;
             m_ready = false;
+        }
+
+        private static byte[] GetIdentity(Guid replyTo)
+        {
+            var result = new byte[17];
+            result[0] = 1;
+            var uuidBytes = replyTo.ToByteArray();
+            Buffer.BlockCopy(uuidBytes, 0, result, 1, 16);
+            return result;
         }
 
         /// <summary>
@@ -91,6 +106,7 @@ namespace NetMQ.Zyre
         /// </summary>
         public void Disconnect()
         {
+            m_mailbox.Dispose();
             m_mailbox = null;
             m_endpoint = null;
             m_connected = false;
@@ -123,7 +139,7 @@ namespace NetMQ.Zyre
         /// <summary>
         /// Return peer identity string
         /// </summary>
-        public string Uuid
+        public Guid Uuid
         {
             get { return m_uuid; }
         }
@@ -157,7 +173,7 @@ namespace NetMQ.Zyre
         /// <summary>
         /// Return peer future expired time
         /// </summary>
-        public long PeerEvasiveAt
+        public long EvasiveAt
         {
             get { return m_evasiveAt; }
         }
@@ -165,7 +181,7 @@ namespace NetMQ.Zyre
         /// <summary>
         /// Return peer future evasive time
         /// </summary>
-        public long PeerExpiredAt
+        public long ExpiredAt
         {
             get { return m_expiredAt; }
         }
@@ -173,7 +189,7 @@ namespace NetMQ.Zyre
         /// <summary>
         /// Return peer name
         /// </summary>
-        public string PeerName
+        public string Name
         {
             get { return m_name ?? ""; }
         }
@@ -194,6 +210,15 @@ namespace NetMQ.Zyre
         public void IncrementStatus()
         {
             m_status = m_status == UbyteMax ? (byte)0 : m_status++;
+        }
+
+        /// <summary>
+        /// Set peer name
+        /// </summary>
+        /// <param name="name"></param>
+        public void SetName(string name)
+        {
+            m_name = name;
         }
 
         /// <summary>
@@ -273,6 +298,35 @@ namespace NetMQ.Zyre
                 m_wantSequence = m_wantSequence == UshortMax ? (ushort)0 : m_wantSequence++;
             }
             return m_wantSequence != msg.Sequence;
+        }
+
+        public override string ToString()
+        {
+            return m_name;
+        }
+
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Release any contained resources.
+        /// </summary>
+        /// <param name="disposing">true if managed resources are to be released</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
+            if (m_mailbox != null)
+            {
+                m_mailbox.Dispose();
+            }
         }
     }
 }
