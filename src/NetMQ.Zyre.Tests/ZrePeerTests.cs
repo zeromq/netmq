@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace NetMQ.Zyre.Tests
@@ -13,57 +14,29 @@ namespace NetMQ.Zyre.Tests
     public class ZrePeerTests
     {
         [Test]
-        public void ConnectedTest()
-        {
-
-           using (var peer = ZrePeer.NewPeer(new Dictionary<Guid, ZrePeer>(), Guid.NewGuid()))
-            {
-                peer.Connected.Should().BeFalse();
-
-                peer.Connect(Guid.NewGuid(), "tcp://127.0.0.1:5551");
-                peer.Connected.Should().BeTrue();
-
-                peer.Disconnect();
-                peer.Connected.Should().BeFalse();
-            }
-        }
-
-        [Test]
-        public void NameTest()
-        {
-            using (var peer = ZrePeer.NewPeer(new Dictionary<Guid, ZrePeer>(), Guid.NewGuid()))
-            {
-                peer.SetName("TestName");
-                peer.Name.Should().Be("TestName");
-            }
-        }
-
-        [Test]
         public void SendMessageTest()
         {
             var peers = new Dictionary<Guid, ZrePeer>();
             var me = Guid.NewGuid();
             var you = Guid.NewGuid();
-            using (var peerYou = ZrePeer.NewPeer(peers, you))
-            using (var peerMe = ZrePeer.NewPeer(peers, me))
+            using (var peer = ZrePeer.NewPeer(peers, you))
+            using (var mailbox = new RouterSocket("tcp://127.0.0.1:5551")) // RouterSocket default action binds to the address
             {
-                peerYou.Connected.Should().BeFalse();
-                peerYou.SetName("PeerYou");
-                peerMe.Connect(me, "tcp://127.0.0.1:5551");
-                peerMe.Connected.Should().BeTrue();
-                peerMe.SetName("PeerMe");
+                peer.Connected.Should().BeFalse();
+                peer.SetName("PeerYou");
+                peer.Name.Should().Be("PeerYou");
+                peer.Connect(me, "tcp://127.0.0.1:5551");
+                peer.Connected.Should().BeTrue();
                 var helloMsg = new ZreMsg
                 {
                     Id = ZreMsg.MessageId.Hello,
                     Hello = { Endpoint = "tcp://127.0.0.1:5552" }
                 };
-                var sendTask = Task<bool>.Factory.StartNew(() => peerMe.Send(helloMsg));
-                var success = sendTask.Result;
+                var success = peer.Send(helloMsg);
                 success.Should().BeTrue();
+                var receiveMessage = mailbox.ReceiveMultipartMessage();
+                receiveMessage.FrameCount.Should().Be(2);
             }
-            Assert.Fail("Not done yet.");
         }
-
-
     }
 }

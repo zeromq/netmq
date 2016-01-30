@@ -61,15 +61,15 @@ namespace NetMQ.Zyre
         }
 
         /// <summary>
-        /// Connect peer mailbox (a DealerSocket)
-        /// Configures mailbox and connects to peer's RouterSocket endpoint
+        /// Connect peer mailbox
+        /// Configures a DealerSocket mailbox connected to peer's router endpoint
         /// </summary>
         /// <param name="replyTo"></param>
         /// <param name="endpoint"></param>
         public void Connect(Guid replyTo, string endpoint)
         {
             //  Create new outgoing socket (drop any messages in transit)
-            m_mailbox = new DealerSocket(m_endpoint) // default action is to connect to the peer node
+            m_mailbox = new DealerSocket(endpoint) // default action is to connect to the peer node
             {
                 Options =
                 {
@@ -85,7 +85,6 @@ namespace NetMQ.Zyre
                     SendHighWatermark = PeerExpired * 100,
                 }
             };
-            m_mailbox.Connect(endpoint);
             m_endpoint = endpoint;
             m_connected = true;
             m_ready = false;
@@ -302,7 +301,8 @@ namespace NetMQ.Zyre
 
         public override string ToString()
         {
-            return m_name;
+            var name = string.IsNullOrEmpty(m_name) ? "NotSet" : m_name;
+            return string.Format("name:{0} router endpoint:{1} connected:{2} ready:{3} status:{4}", name, m_endpoint, m_connected, m_ready, m_status);
         }
 
         /// <summary>
