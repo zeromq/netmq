@@ -12,7 +12,8 @@ namespace NetMQ.Zyre
     {
         private const int PeerEvasive = 10000; // 10 seconds' silence is evasive
         private const int PeerExpired = 30000; // 30 seconds' silence is expired
-        private const int ReapInterval = 1000; // Once per second
+        private const ushort UshortMax = ushort.MaxValue;
+        private const byte UbyteMax = byte.MaxValue;
 
         private DealerSocket m_mailbox;                 // Socket through to peer
         private readonly string m_uuid;                 // Identity string, 16 bytes
@@ -23,7 +24,7 @@ namespace NetMQ.Zyre
         private long m_expiredAt;                       // Peer has expired by now
         private bool m_connected;                       // Peer will send messages
         private bool m_ready;                           // Peer has said Hello to us
-        private byte m_status;                           // Our status counter
+        private byte m_status;                          // Our status counter
         private ushort m_sentSequence;                  // Outgoing message sequence
         private ushort m_wantSequence;                  // Incoming message sequence
         private Dictionary<string, string> m_headers;   // Peer headers 
@@ -64,7 +65,6 @@ namespace NetMQ.Zyre
         /// Connect peer mailbox (a DealerSocket)
         /// Configures mailbox and connects to peer's router endpoint
         /// </summary>
-        /// <param name="replyTo"></param>
         /// <param name="endpoint"></param>
         public void Connect(string endpoint)
         {
@@ -193,7 +193,7 @@ namespace NetMQ.Zyre
         /// </summary>
         public void IncrementStatus()
         {
-            m_status++;
+            m_status = m_status == UbyteMax ? (byte)0 : m_status++;
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace NetMQ.Zyre
             }
             else
             {
-                m_wantSequence++;
+                m_wantSequence = m_wantSequence == UshortMax ? (ushort)0 : m_wantSequence++;
             }
             return m_wantSequence != msg.Sequence;
         }
