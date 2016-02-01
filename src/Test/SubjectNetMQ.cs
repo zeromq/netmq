@@ -67,7 +67,7 @@ namespace Test
 						{
 							// Must ensure that we have a unique monitor name for every instance of this class.
 							monitor = new NetMQMonitor(_publisherSocket, $"inproc://#PublisherInterProcess#{this.QueueName}",
-								SocketEvents.Accepted, ownsSocket:false);
+								SocketEvents.Accepted);
 							monitor.Accepted += Monitor_Accepted;
 							monitor.StartAsync();
 						}
