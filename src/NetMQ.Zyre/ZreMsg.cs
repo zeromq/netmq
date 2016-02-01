@@ -1031,10 +1031,12 @@ namespace NetMQ.Zyre
 	        }
 	    }
 
-	    /// <summary>
-	    /// Send the ZreMsg to the socket.
-	    /// </summary>
-	    public void Send(IOutgoingSocket output)
+        /// <summary>
+        /// Send the ZreMsg to the socket.
+        /// Warning re WHISPER and SHOUT: The 0MQ spec http://rfc.zeromq.org/spec:36 
+        ///     says "message content defined as one 0MQ frame. ZRE does not support multi-frame message contents."
+        /// </summary>
+        public void Send(IOutgoingSocket output)
 	    {
 	        if (output is RouterSocket)
 	            output.SendMoreFrame(RoutingId);
@@ -1118,8 +1120,8 @@ namespace NetMQ.Zyre
 	                        Whisper.Content = new NetMQMessage();
 	                        Whisper.Content.PushEmptyFrame();
 	                    }
-	                    output.TrySendMultipartMessage(Whisper.Content);
-	                    break;
+                        output.TrySendMultipartMessage(Whisper.Content);
+                        break;
 	                case MessageId.Shout:
 	                    if (Shout.Content == null)
 	                    {

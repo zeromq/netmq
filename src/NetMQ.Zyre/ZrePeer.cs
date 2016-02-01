@@ -52,12 +52,13 @@ namespace NetMQ.Zyre
         }
 
         /// <summary>
-        /// Disconnect this peer. zeromq/zyre also frees peer memory, but our GC will take care of that
+        /// Disconnect this peer and Dispose this class.
         /// </summary>
         public void Destroy()
         {
             Debug.Assert(m_mailbox != null, "Mailbox must not be null");
             Disconnect();
+            Dispose();
         }
 
         /// <summary>
@@ -68,6 +69,7 @@ namespace NetMQ.Zyre
         /// <param name="endpoint"></param>
         public void Connect(Guid replyTo, string endpoint)
         {
+            Debug.Assert(!m_connected);
             //  Create new outgoing socket (drop any messages in transit)
             m_mailbox = new DealerSocket(endpoint) // default action is to connect to the peer node
             {
@@ -289,6 +291,7 @@ namespace NetMQ.Zyre
         /// <returns>true if we have lost one or more message</returns>
         public bool MessagesLost(ZreMsg msg)
         {
+            Debug.Assert(msg != null);
             if (msg.Id == ZreMsg.MessageId.Hello)
             {
                 //  HELLO always MUST have sequence = 1
