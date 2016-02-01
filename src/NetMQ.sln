@@ -186,6 +186,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.Zyre", "NetMQ.Zyre\Ne
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.Zyre.Tests", "NetMQ.Zyre.Tests\NetMQ.Zyre.Tests.csproj", "{A5EB60C2-1AA8-4550-B49E-3A9817300460}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -784,6 +786,18 @@ Global
 		{A5EB60C2-1AA8-4550-B49E-3A9817300460}.Release|x64.Build.0 = Release|x64
 		{A5EB60C2-1AA8-4550-B49E-3A9817300460}.Release|x86.ActiveCfg = Release|x86
 		{A5EB60C2-1AA8-4550-B49E-3A9817300460}.Release|x86.Build.0 = Release|x86
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Debug|x64.Build.0 = Debug|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Debug|x86.Build.0 = Debug|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Release|x64.ActiveCfg = Release|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Release|x64.Build.0 = Release|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Release|x86.ActiveCfg = Release|Any CPU
+		{EA7C7A50-F5FE-4A95-8D0A-7AB7098C6293}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
