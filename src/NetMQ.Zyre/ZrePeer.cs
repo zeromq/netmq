@@ -94,7 +94,7 @@ namespace NetMQ.Zyre
             m_ready = false;
         }
 
-        private static byte[] GetIdentity(Guid replyTo)
+        public static byte[] GetIdentity(Guid replyTo)
         {
             var result = new byte[17];
             result[0] = 1;
