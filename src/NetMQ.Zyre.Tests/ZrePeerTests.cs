@@ -25,17 +25,32 @@ namespace NetMQ.Zyre.Tests
                 peer.Connected.Should().BeFalse();
                 peer.SetName("PeerYou");
                 peer.Name.Should().Be("PeerYou");
-                peer.Connect(me, "tcp://127.0.0.1:5551");
+                peer.Connect(me, "tcp://127.0.0.1:5551"); // create a DealerSocket connected to router on 5551
                 peer.Connected.Should().BeTrue();
                 var helloMsg = new ZreMsg
                 {
                     Id = ZreMsg.MessageId.Hello,
-                    Hello = { Endpoint = "tcp://127.0.0.1:5552" }
+                    Hello =
+                    {
+                        Endpoint = "tcp://127.0.0.1:5552",
+                        Name = "PeerMe"
+                    },
                 };
                 var success = peer.Send(helloMsg);
                 success.Should().BeTrue();
-                var receiveMessage = mailbox.ReceiveMultipartMessage();
-                receiveMessage.FrameCount.Should().Be(2);
+
+                var msg = new ZreMsg();
+                msg.Receive(mailbox);
+                var identityMe = ZrePeer.GetIdentity(me);
+                var routingEqual = msg.RoutingId.SequenceEqual(identityMe);
+                routingEqual.Should().BeTrue();
+                var hello = msg.Hello;
+                hello.Version.Should().Be(2);
+                hello.Sequence.Should().Be(0);
+                hello.Endpoint.Should().Be("tcp://127.0.0.1:5552");
+                hello.Status.Should().Be(0);
+                hello.Name.Should().Be("PeerMe");
+                hello.Headers.Count.Should().Be(0);
             }
         }
     }
