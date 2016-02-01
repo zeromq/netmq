@@ -51,7 +51,7 @@ namespace Test
 		private PublisherSocket _publisherSocket;
 		private volatile bool _initializePublisherDone = false;
 		private readonly object _initializePublisherLock = new object();
-		ManualResetEvent publisherReadySignal = new ManualResetEvent(false);
+		readonly ManualResetEvent _publisherReadySignal = new ManualResetEvent(false);
 		private void InitializePublisherOnFirstUse()
 		{
 			if (_initializePublisherDone == false) // Double checked locking.
@@ -63,16 +63,16 @@ namespace Test
 						Console.WriteLine($"Publisher socket binding to: {ZeroMqAddress}");
 						_publisherSocket = new PublisherSocket();
 
+						// Corner case: wait until publisher socket is ready (see code below that waits for
+						// "_publisherReadySignal").
 						NetMQMonitor monitor;
 						{
 							// Must ensure that we have a unique monitor name for every instance of this class.
 							monitor = new NetMQMonitor(_publisherSocket, $"inproc://#PublisherInterProcess#{this.QueueName}",
 								SocketEvents.Accepted | SocketEvents.Listening
-								//SocketEvents.All
 								);
-							monitor.Accepted += Monitor_Accepted;
-							monitor.Listening += Monitor_Listening;
-							//monitor.EventReceived += Monitor_EventReceived;
+							monitor.Accepted += Publisher_Event_Accepted;
+							monitor.Listening += Publisher_Event_Listening;
 							monitor.StartAsync();
 						}
 
@@ -80,43 +80,37 @@ namespace Test
 						_publisherSocket.Options.SendHighWatermark = 1000;
 						_publisherSocket.Bind(this.ZeroMqAddress);
 
-						// Corner case: wait until the publisher is properly set up. If we omit this code, then we will
-						// get intermittent failures if we start the subscriber first, then the publisher.
+						// Corner case: wait until publisher socket is ready (see code below that sets
+                        // "_publisherReadySignal").
 						{
 							Stopwatch sw = Stopwatch.StartNew();
-							publisherReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
+							_publisherReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
 							Console.Write($"Publisher: Waited {sw.ElapsedMilliseconds} ms for binding.\n");
 						}
-						Thread.Sleep(100); // Otherwise, the first item we publish may get missed by the subscriber.
-
-						// Stop monitor.
 						{
-							//monitor.Accepted -= MonitorOnAccepted;
+							monitor.Accepted -= Publisher_Event_Accepted;
+							monitor.Listening -= Publisher_Event_Listening;
+							// Current issue with NegMQ: Cannot stop or dipose monitor, or else it stops the parent socket.
 							//monitor.Stop();
 							//monitor.Dispose();
 						}
-
 						_initializePublisherDone = true;
 					}
-				}
+				} // lock
+				Thread.Sleep(100); // Otherwise, the first item we publish may get missed by the subscriber.
 			}
 		}
 
-		private void Monitor_Listening(object sender, NetMQMonitorSocketEventArgs e)
+		private void Publisher_Event_Listening(object sender, NetMQMonitorSocketEventArgs e)
 		{
 			Console.Write($"Publisher event: {e.SocketEvent}\n");
-			publisherReadySignal.Set();
+			_publisherReadySignal.Set();
 		}
 
-		/*private void Monitor_EventReceived(object sender, NetMQMonitorEventArgs e)
+		private void Publisher_Event_Accepted(object sender, NetMQMonitorSocketEventArgs e)
 		{
 			Console.Write($"Publisher event: {e.SocketEvent}\n");
-		}*/
-
-		private void Monitor_Accepted(object sender, NetMQMonitorSocketEventArgs e)
-		{
-			Console.Write($"Publisher event: {e.SocketEvent}\n");
-			publisherReadySignal.Set();
+			_publisherReadySignal.Set();
 		}
 		#endregion
 
@@ -125,7 +119,7 @@ namespace Test
 		private volatile bool _initializeSubscriberDone = false;
 		private Thread _thread;
 
-		ManualResetEvent subscriberReadySignal = new ManualResetEvent(false);
+		readonly ManualResetEvent _subscriberReadySignal = new ManualResetEvent(false);
 
 		private void InitializeSubscriberOnFirstUse()
 		{
@@ -139,55 +133,21 @@ namespace Test
 						Console.WriteLine($"Subscriber socket connecting to: {ZeroMqAddress}");
 						_subscriberSocket = new SubscriberSocket();
 
-						//_subscriberSocket.Monitor("", SocketEvents.AcceptFailed);
-
-						// Corner case: part of code to wait until socket is ready (see matching code below that
-						// consumes "subscriberReadySignal").
-
+						// Corner case: wait until subscriber socket is ready (see code below that waits for
+                        // "_subscriberReadySignal").
 						NetMQMonitor monitor;
 						{
 							// Must ensure that we have a unique monitor name for every instance of this class.
 							monitor = new NetMQMonitor(_subscriberSocket, $"inproc://#SubscriberInterProcess#{this.QueueName}",
-								//ownsSocket//false);
-								SocketEvents.ConnectRetried | SocketEvents.Connected);
-
-
-							//monitor.Timeout = TimeSpan.FromMilliseconds(500);
-							//PollEvents flags = _subscriberSocket.Poll(PollEvents.PollError, TimeSpan.FromMilliseconds(500));
-
-							monitor.ConnectRetried += Monitor_ConnectRetried; /*(sender, args) =>
-							{
-								Console.Write($"Subscriber event: {args.SocketEvent}\n");
-								subscriberReadySignal.Set();
-							};*/
-							monitor.Connected += Monitor_Connected; /*(sender, args) =>
-							{
-								Console.Write($"Subscriber event: {args.SocketEvent}\n");
-								subscriberReadySignal.Set();
-							};*/
-
+								SocketEvents.ConnectRetried | SocketEvents.Connected);						
+							monitor.ConnectRetried += Subscriber_Event_ConnectRetried;
+							monitor.Connected += Subscriber_Event_Connected; 
 							monitor.StartAsync();
 						}
-
-						/*var poller = new Poller();
-						poller.PollTimeout = 500;
-						poller.AddSocket(_subscriberSocket);
-						{
-							// these event will be raised by the Poller
-							_subscriberSocket.ReceiveReady += (s, a) =>
-							{
-								Console.Write("Subscriber: ReceiveReady: Event!");
-							};
-							
-							// start polling (on this thread)
-						}
-						poller.PollTillCancelledNonBlocking();*/
 
 						_subscriberSocket.Options.ReceiveHighWatermark = 1000;
 						_subscriberSocket.Connect(this.ZeroMqAddress);
 						_subscriberSocket.Subscribe(this.QueueName);
-
-						//_subscriberSocket.Monitor(this.ZeroMqAddress, SocketEvents.All);
 
 						if (_cancellationTokenSource == null)
 						{
@@ -268,50 +228,40 @@ namespace Test
 						// Wait for thread to properly spin up.
 						threadReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
 
-						// Corner case: wait until we have connected to the publisher, *or* (if there is no publisher
-						// started yet) we have started a retry. If we omit this code, then we will get intermittent
-						// failures if we start the subscriber first, then the publisher.
+						// Corner case: wait until the publisher socket is ready (see code above that sets
+                        // "_subscriberReadySignal").
 						{
 							Stopwatch sw = Stopwatch.StartNew();
-							subscriberReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
+							_subscriberReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
 							Console.Write($"Subscriber: Waited {sw.ElapsedMilliseconds} ms for connection.\n");
 
+							monitor.ConnectRetried -= Subscriber_Event_ConnectRetried;
+							monitor.Connected -= Subscriber_Event_Connected;
 
-							monitor.ConnectRetried -= Monitor_ConnectRetried;
-							monitor.Connected -= Monitor_Connected;
-							//monitor.Stop();
-							//monitor -= Monitor_Connected;
-							//monitor -= Monitor_Connected;
-
-							//monitor.Stop();
-							//Thread.Sleep(TimeSpan.FromMilliseconds(1000));
-							//monitor.Dispose();
-							//monitor.DetachFromPoller();
+							// Issue with NetMQ - cannot .Stop or .Dispose, or else it will dipsose of the parent socket.
 							//monitor.Stop();
 							//monitor.Dispose();
 						}
 
 						Console.Write("Subscriber: finished setup.\n");
 
-						Thread.Sleep(100); // Otherwise, the first item we subsmay get missed by the subscriber.
-
 						_initializeSubscriberDone = true;
 					}
-				}
+				} // lock
+				Thread.Sleep(100); // Otherwise, the first item we subscribe  to may get missed by the subscriber.
 			}
-
 		}
 
-		private void Monitor_Connected(object sender, NetMQMonitorSocketEventArgs e)
+		private void Subscriber_Event_Connected(object sender, NetMQMonitorSocketEventArgs e)
 		{
 			Console.Write($"Subscriber event: {e.SocketEvent}\n");
-			subscriberReadySignal.Set();
+			_subscriberReadySignal.Set();
 		}
 
-		private void Monitor_ConnectRetried(object sender, NetMQMonitorIntervalEventArgs e)
+		private void Subscriber_Event_ConnectRetried(object sender, NetMQMonitorIntervalEventArgs e)
 		{
 			Console.Write($"Subscriber event: {e.SocketEvent}\n");
-			subscriberReadySignal.Set();
+			_subscriberReadySignal.Set();
 		}
 		#endregion
 
