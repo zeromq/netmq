@@ -115,7 +115,6 @@ namespace NetMQ.Zyre
 				get;set;
 			}
 
-
 			internal int GetFrameSize()
 			{
 				int frameSize = 0;
@@ -254,8 +253,7 @@ namespace NetMQ.Zyre
 					string key = m.GetString();
 					string value = m.GetLongString();
 					Headers.Add(key, value);
-				}						
-
+				}	
 			}
 		}
 
@@ -1139,10 +1137,173 @@ namespace NetMQ.Zyre
 	        }
 	    }
 
-	    #region Network data encoding methods
+        #region SendHelpers
 
-	    //  Put a block of octets to the frame
-	    private void PutOctets(byte[] host, int size)
+        /// <summary>
+        /// Send a Hello message to the socket
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="sequence"></param>
+        /// <param name="endpoint"></param>
+        /// <param name="groups"></param>
+        /// <param name="status"></param>
+        /// <param name="name"></param>
+        /// <param name="headers"></param>
+	    public static void SendHello(IOutgoingSocket socket, ushort sequence, string endpoint, List<string> groups, byte status, string name, Dictionary<string, string> headers)
+	    {
+            var msg = new ZreMsg
+            {
+                Id = MessageId.Hello,
+                Hello =
+                {
+                    Version = 2,
+                    Sequence = sequence,
+                    Endpoint = endpoint,
+                    Groups = groups,
+                    Status = status,
+                    Name = name,
+                    Headers = headers
+                }
+            };
+            msg.Send(socket);
+        }
+
+        /// <summary>
+        /// Send a Whisper message to the socket
+        /// Warning re WHISPER and SHOUT: The 0MQ spec http://rfc.zeromq.org/spec:36 
+        ///     says "message content defined as one 0MQ frame. ZRE does not support multi-frame message contents."
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="sequence"></param>
+        /// <param name="content">See warning above</param>
+        public static void SendWhisper(IOutgoingSocket socket, ushort sequence, NetMQMessage content)
+        {
+            var msg = new ZreMsg
+            {
+                Id = MessageId.Whisper,
+                Whisper = 
+                {
+                    Version = 2,
+                    Sequence = sequence,
+                    Content = content
+                }
+            };
+            msg.Send(socket);
+        }
+
+        /// <summary>
+        /// Send a Shout message to the socket
+        /// Warning re WHISPER and SHOUT: The 0MQ spec http://rfc.zeromq.org/spec:36 
+        ///     says "message content defined as one 0MQ frame. ZRE does not support multi-frame message contents."
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="sequence"></param>
+        /// <param name="content">See warning above</param>
+        public static void SendShout(IOutgoingSocket socket, ushort sequence, NetMQMessage content)
+        {
+            var msg = new ZreMsg
+            {
+                Id = MessageId.Shout,
+                Shout =
+                {
+                    Version = 2,
+                    Sequence = sequence,
+                    Content = content
+                }
+            };
+            msg.Send(socket);
+        }
+
+	    /// <summary>
+	    /// Send a Join message to the socket
+	    /// </summary>
+	    /// <param name="socket"></param>
+	    /// <param name="sequence"></param>
+	    /// <param name="group"></param>
+	    /// <param name="status"></param>
+	    public static void SendJoin(IOutgoingSocket socket, ushort sequence, string group, byte status)
+        {
+            var msg = new ZreMsg
+            {
+                Id = MessageId.Join,
+                Join =
+                {
+                    Version = 2,
+                    Sequence = sequence,
+                    Group = group,
+                    Status = status,
+                }
+            };
+            msg.Send(socket);
+        }
+
+        /// <summary>
+        /// Send a Leave message to the socket
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="sequence"></param>
+        /// <param name="group"></param>
+        /// <param name="status"></param>
+        public static void SendLeave(IOutgoingSocket socket, ushort sequence, string group, byte status)
+        {
+            var msg = new ZreMsg
+            {
+                Id = MessageId.Leave,
+                Leave =
+                {
+                    Version = 2,
+                    Sequence = sequence,
+                    Group = group,
+                    Status = status,
+                }
+            };
+            msg.Send(socket);
+        }
+
+        /// <summary>
+        /// Send a Ping message to the socket
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="sequence"></param>
+        public static void SendPing(IOutgoingSocket socket, ushort sequence)
+        {
+            var msg = new ZreMsg
+            {
+                Id = MessageId.Ping,
+                Ping =
+                {
+                    Version = 2,
+                    Sequence = sequence,
+                }
+            };
+            msg.Send(socket);
+        }
+
+        /// <summary>
+        /// Send a PingOk message to the socket
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="sequence"></param>
+        public static void SendPingOk(IOutgoingSocket socket, ushort sequence)
+        {
+            var msg = new ZreMsg
+            {
+                Id = MessageId.PingOk,
+                PingOk =
+                {
+                    Version = 2,
+                    Sequence = sequence,
+                }
+            };
+            msg.Send(socket);
+        }
+
+        #endregion
+
+        #region Network data encoding methods
+
+        //  Put a block of octets to the frame
+        private void PutOctets(byte[] host, int size)
 	    {
 	        Buffer.BlockCopy(host, 0, m_buffer, m_offset, size);
 	        m_offset += size;
@@ -1323,6 +1484,41 @@ namespace NetMQ.Zyre
 
 	    public override string ToString()
 	    {
+            var sb = new StringBuilder(Command);
+	        sb.Append(' ');
+	        switch (Id)
+	        {
+	            case MessageId.Hello:
+	                sb.Append(Hello.Name);
+                    sb.Append(" Seq:");
+	                sb.Append(Hello.Sequence);
+	                sb.Append(' ');
+	                sb.Append(Hello.Endpoint);
+                    break;
+	            case MessageId.Whisper:
+                case MessageId.Shout:
+                    sb.Append(" Seq:");
+                    sb.Append(Hello.Sequence);
+                    break;
+	            case MessageId.Join:
+                    sb.Append(" Seq:");
+                    sb.Append(Hello.Sequence);
+                    sb.Append(' ');
+	                sb.Append(Join.Group);
+                    break;
+	            case MessageId.Leave:
+                    sb.Append(" Seq:");
+                    sb.Append(Hello.Sequence);
+                    sb.Append(' ');
+                    sb.Append(Leave.Group);
+                    break;
+	            case MessageId.Ping:
+	                break;
+	            case MessageId.PingOk:
+	                break;
+	            default:
+	                throw new ArgumentOutOfRangeException();
+	        }
 	        return Command;
 	    }
 	}
