@@ -67,8 +67,12 @@ namespace Test
 						{
 							// Must ensure that we have a unique monitor name for every instance of this class.
 							monitor = new NetMQMonitor(_publisherSocket, $"inproc://#PublisherInterProcess#{this.QueueName}",
-								SocketEvents.Accepted);
+								SocketEvents.Accepted | SocketEvents.Listening
+								//SocketEvents.All
+								);
 							monitor.Accepted += Monitor_Accepted;
+							monitor.Listening += Monitor_Listening;
+							//monitor.EventReceived += Monitor_EventReceived;
 							monitor.StartAsync();
 						}
 
@@ -97,6 +101,17 @@ namespace Test
 				}
 			}
 		}
+
+		private void Monitor_Listening(object sender, NetMQMonitorSocketEventArgs e)
+		{
+			Console.Write($"Publisher event: {e.SocketEvent}\n");
+			publisherReadySignal.Set();
+		}
+
+		/*private void Monitor_EventReceived(object sender, NetMQMonitorEventArgs e)
+		{
+			Console.Write($"Publisher event: {e.SocketEvent}\n");
+		}*/
 
 		private void Monitor_Accepted(object sender, NetMQMonitorSocketEventArgs e)
 		{

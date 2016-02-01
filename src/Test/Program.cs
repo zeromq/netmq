@@ -31,7 +31,7 @@ namespace Test
 					Console.Write($"Hello, world 2! {o}\n");
 				});
 
-				Thread.Sleep(TimeSpan.FromSeconds(5));
+				//Thread.Sleep(TimeSpan.FromSeconds(5));
 
 				for (int i = 0; i < 2000; i++)
 				{
