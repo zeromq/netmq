@@ -88,8 +88,8 @@ namespace Test
 						// Stop monitor.
 						{
 							//monitor.Accepted -= MonitorOnAccepted;
-							monitor.Stop();
-							monitor.Dispose();
+							//monitor.Stop();
+							//monitor.Dispose();
 						}
 
 						_initializePublisherDone = true;
@@ -277,6 +277,8 @@ namespace Test
 						}
 
 						Console.Write("Subscriber: finished setup.\n");
+
+						Thread.Sleep(100); // Otherwise, the first item we subsmay get missed by the subscriber.
 
 						_initializeSubscriberDone = true;
 					}
