@@ -336,9 +336,10 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Configure beacon to bind to all interfaces
+        /// Configure beacon for the specified port on all interfaces.
         /// </summary>
-        /// <param name="port">Port to bind to</param>
+        /// <remaraks>Blocks until the bind operation completes.</remaraks>
+        /// <param name="port">The UDP port to bind to.</param>
         public void ConfigureAllInterfaces(int port)
         {
             Configure(port, "*");
@@ -412,7 +413,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Stop publish messages
+        /// Stop publishing beacons.
         /// </summary>
         public void Silence()
         {
@@ -420,8 +421,12 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Subscribe to beacon messages, will replace last subscribe call
+        /// Subscribe to beacon messages that match the specified filter.
         /// </summary>
+        /// <remarks>
+        /// Beacons must prefix-match with <paramref name="filter"/>.
+        /// Any previous subscription is replaced by this one.
+        /// </remarks>
         /// <param name="filter">Beacon will be filtered by this</param>
         public void Subscribe([NotNull] string filter)
         {
