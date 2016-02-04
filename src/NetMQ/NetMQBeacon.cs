@@ -109,22 +109,9 @@ namespace NetMQ
                 {
                     m_broadcastAddress = new IPEndPoint(sendTo, m_udpPort);
                     m_udpSocket.Bind(new IPEndPoint(bindTo, m_udpPort));
-
-                    string hostname = "";
-
-                    try
-                    {
-                        if (!IPAddress.Any.Equals(bindTo) && !IPAddress.IPv6Any.Equals(bindTo))
-                        {
-                            var host = Dns.GetHostEntry(bindTo);
-                            hostname = host != null ? host.HostName : "";
-                        }
-                    }
-                    catch (Exception)
-                    {}
-
-                    m_pipe.SendFrame(hostname);
                 }
+
+                m_pipe.SendFrame(bindTo == null ? "" : bindTo.ToString());
             }
 
             private static bool Compare([NotNull] NetMQFrame a, [NotNull] NetMQFrame b, int size)
@@ -259,6 +246,8 @@ namespace NetMQ
 
         private readonly EventDelegator<NetMQBeaconEventArgs> m_receiveEvent;
 
+        [CanBeNull] private string m_boundTo;
+
         /// <summary>
         /// Create a new NetMQBeacon, contained within the given context.
         /// </summary>
@@ -291,12 +280,43 @@ namespace NetMQ
                 () => m_actor.ReceiveReady -= onReceive);
         }
 
-
-
         /// <summary>
-        /// Ip address the beacon is bind to
+        /// Get the host name this beacon is bound to.
         /// </summary>
-        public string Hostname { get; private set; }
+        /// <remarks>
+        /// This may involve a reverse DNS lookup which can take a second or two.
+        /// <para/>
+        /// An empty string is returned if:
+        /// <list type="bullet">
+        ///     <item>the beacon is not bound,</item>
+        ///     <item>the beacon is bound to all interfaces,</item>
+        ///     <item>an error occurred during reverse DNS lookup.</item>
+        /// </list>
+        /// </remarks>
+        [CanBeNull]
+        public string HostName
+        {
+            get
+            {
+                // create a copy for thread safety
+                var boundTo = m_boundTo;
+
+                if (boundTo == null)
+                    return null;
+
+                if (IPAddress.Any.ToString() == boundTo || IPAddress.IPv6Any.ToString() == boundTo)
+                    return string.Empty;
+
+                try
+                {
+                    return Dns.GetHostEntry(boundTo).HostName;
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+        }
 
         /// <summary>
         /// Get the socket of the contained actor.
@@ -347,7 +367,7 @@ namespace NetMQ
 
             m_actor.SendMultipartMessage(message);
 
-            Hostname = m_actor.ReceiveFrameString();
+            m_boundTo = m_actor.ReceiveFrameString();
         }
 
         /// <summary>

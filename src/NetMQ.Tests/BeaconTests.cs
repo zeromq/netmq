@@ -18,7 +18,7 @@ namespace NetMQ.Tests
             using (var listener = new NetMQBeacon())
             {
                 speaker.Configure(9999);
-                Console.WriteLine(speaker.Hostname);
+                Console.WriteLine(speaker.HostName);
 
                 speaker.Publish("Hello", s_publishInterval);
 
@@ -109,7 +109,7 @@ namespace NetMQ.Tests
             using (var listener = new NetMQBeacon())
             {
                 speaker.Configure(9999);
-                Console.WriteLine(speaker.Hostname);
+                Console.WriteLine(speaker.HostName);
 
                 speaker.Publish("Hello", s_publishInterval);
 
@@ -155,7 +155,7 @@ namespace NetMQ.Tests
             {
                 speaker.Configure(5555);
                 speaker.Configure(9999);
-                Console.WriteLine(speaker.Hostname);
+                Console.WriteLine(speaker.HostName);
 
                 speaker.Publish("Hello", s_publishInterval);
 
