@@ -37,6 +37,23 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Instantiates a frame from the provided byte array, considering only the specified number of bytes.
+        /// </summary>
+        /// <remarks>This constructor may be useful to avoid copying data into a smaller array when a buffer is oversized.</remarks>
+        /// <param name="buffer">The content of the frame.</param>
+        /// <param name="length">The number bytes from <paramref name="buffer"/> to consider as part of the frame.</param>
+        public NetMQFrame([NotNull] byte[] buffer, int length)
+        {
+            if (buffer == null)
+                throw new ArgumentNullException("buffer");
+            if (length > buffer.Length)
+                throw new ArgumentOutOfRangeException("length", length, "Must be less than or equal to the provided buffer's length.");
+
+            Buffer = buffer;
+            MessageSize = length;
+        }
+
+        /// <summary>
         /// Create a new NetMQFrame containing the given string-message,
         /// using the default ASCII encoding.
         /// </summary>
@@ -91,7 +108,7 @@ namespace NetMQ
 
         /// <summary>
         /// Get the underlying frame-data buffer, which is an array of bytes.
-        /// </summary>       
+        /// </summary>
         [NotNull]
         public byte[] Buffer { get; private set; }
 

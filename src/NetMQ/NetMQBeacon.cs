@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using JetBrains.Annotations;
 using NetMQ.Sockets;
 
@@ -27,23 +28,15 @@ namespace NetMQ
         public NetMQBeacon Beacon { get; private set; }
     }
 
-    public class NetMQBeacon : IDisposable, ISocketPollable
+    public sealed class NetMQBeacon : IDisposable, ISocketPollable
     {
         public const int UdpFrameMax = 255;
 
-        public const string ConfigureCommand = "CONFIGURE";
-        public const string PublishCommand = "PUBLISH";
-        public const string SilenceCommand = "SILENCE";
-
-        /// <summary>
-        /// Command to subscribe a socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
-        /// </summary>
-        public const string SubscribeCommand = "SUBSCRIBE";
-
-        /// <summary>
-        /// Command to un-subscribe a socket from messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
-        /// </summary>
-        public const string UnsubscribeCommand = "UNSUBSCRIBE";
+        private const string ConfigureCommand = "CONFIGURE";
+        private const string PublishCommand = "PUBLISH";
+        private const string SilenceCommand = "SILENCE";
+        private const string SubscribeCommand = "SUBSCRIBE";
+        private const string UnsubscribeCommand = "UNSUBSCRIBE";
 
         #region Nested class: Shim
 
@@ -117,22 +110,9 @@ namespace NetMQ
                 {
                     m_broadcastAddress = new IPEndPoint(sendTo, m_udpPort);
                     m_udpSocket.Bind(new IPEndPoint(bindTo, m_udpPort));
-
-                    string hostname = "";
-
-                    try
-                    {
-                        if (!IPAddress.Any.Equals(bindTo) && !IPAddress.IPv6Any.Equals(bindTo))
-                        {
-                            var host = Dns.GetHostEntry(bindTo);
-                            hostname = host != null ? host.HostName : "";
-                        }
-                    }
-                    catch (Exception)
-                    {}
-
-                    m_pipe.SendFrame(hostname);
                 }
+
+                m_pipe.SendFrame(bindTo == null ? "" : bindTo.ToString());
             }
 
             private static bool Compare([NotNull] NetMQFrame a, [NotNull] NetMQFrame b, int size)
@@ -250,14 +230,10 @@ namespace NetMQ
                 var buffer = new byte[UdpFrameMax];
                 EndPoint peer = new IPEndPoint(IPAddress.Any, 0);
 
-                int bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
-
-                var frame = new NetMQFrame(bytesRead);
-                Buffer.BlockCopy(buffer, 0, frame.Buffer, 0, bytesRead);
-
+                var bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
                 peerName = peer.ToString();
 
-                return frame;
+                return new NetMQFrame(buffer, bytesRead);
             }
         }
 
@@ -266,6 +242,9 @@ namespace NetMQ
         private readonly NetMQActor m_actor;
 
         private readonly EventDelegator<NetMQBeaconEventArgs> m_receiveEvent;
+
+        [CanBeNull] private string m_boundTo;
+        [CanBeNull] private string m_hostName;
 
         /// <summary>
         /// Create a new NetMQBeacon, contained within the given context.
@@ -299,12 +278,46 @@ namespace NetMQ
                 () => m_actor.ReceiveReady -= onReceive);
         }
 
-
-
         /// <summary>
-        /// Ip address the beacon is bind to
+        /// Get the host name this beacon is bound to.
         /// </summary>
-        public string Hostname { get; private set; }
+        /// <remarks>
+        /// This may involve a reverse DNS lookup which can take a second or two.
+        /// <para/>
+        /// An empty string is returned if:
+        /// <list type="bullet">
+        ///     <item>the beacon is not bound,</item>
+        ///     <item>the beacon is bound to all interfaces,</item>
+        ///     <item>an error occurred during reverse DNS lookup.</item>
+        /// </list>
+        /// </remarks>
+        [CanBeNull]
+        public string HostName
+        {
+            get
+            {
+                if (m_hostName != null)
+                    return m_hostName;
+
+                // create a copy for thread safety
+                var boundTo = m_boundTo;
+
+                if (boundTo == null)
+                    return null;
+
+                if (IPAddress.Any.ToString() == boundTo || IPAddress.IPv6Any.ToString() == boundTo)
+                    return m_hostName = string.Empty;
+
+                try
+                {
+                    return m_hostName = Dns.GetHostEntry(boundTo).HostName;
+                }
+                catch
+                {
+                    return m_hostName = string.Empty;
+                }
+            }
+        }
 
         /// <summary>
         /// Get the socket of the contained actor.
@@ -324,29 +337,22 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Configure beacon to bind to all interfaces
+        /// Configure beacon for the specified port on all interfaces.
         /// </summary>
-        /// <param name="port">Port to bind to</param>
+        /// <remaraks>Blocks until the bind operation completes.</remaraks>
+        /// <param name="port">The UDP port to bind to.</param>
         public void ConfigureAllInterfaces(int port)
         {
-            Configure("*", port);
+            Configure(port, "*");
         }
 
         /// <summary>
-        /// Configure beacon to bind to default interface
+        /// Configure beacon for the specified port and, optionally, to a specific interface.
         /// </summary>
-        /// <param name="port">Port to bind to</param>
-        public void Configure(int port)
-        {
-            Configure("", port);
-        }
-
-        /// <summary>
-        /// Configure beacon to bind to specific interface
-        /// </summary>
-        /// <param name="interfaceName">One of the ip address of the interface</param>
-        /// <param name="port">Port to bind to</param>
-        public void Configure([NotNull] string interfaceName, int port)
+        /// <remaraks>Blocks until the bind operation completes.</remaraks>
+        /// <param name="port">The UDP port to bind to.</param>
+        /// <param name="interfaceName">IP address of the interface to bind to. Pass empty string (the default value) to use the default interface.</param>
+        public void Configure(int port, [NotNull] string interfaceName = "")
         {
             var message = new NetMQMessage();
             message.Append(ConfigureCommand);
@@ -355,22 +361,19 @@ namespace NetMQ
 
             m_actor.SendMultipartMessage(message);
 
-            Hostname = m_actor.ReceiveFrameString();
+            m_boundTo = m_actor.ReceiveFrameString();
+            m_hostName = null;
         }
 
         /// <summary>
         /// Publish beacon immediately and continue to publish when interval elapsed
         /// </summary>
-        /// <param name="transmit">Beacon to transmit</param>
+        /// <param name="transmit">Beacon to transmit.</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish([NotNull] string transmit, TimeSpan interval)
+        /// <param name="encoding">Encoding for <paramref name="transmit"/>. Defaults to <see cref="Encoding.UTF8"/>.</param>
+        public void Publish([NotNull] string transmit, TimeSpan interval, Encoding encoding = null)
         {
-            var message = new NetMQMessage();
-            message.Append(PublishCommand);
-            message.Append(transmit);
-            message.Append((int)interval.TotalMilliseconds);
-
-            m_actor.SendMultipartMessage(message);
+            Publish((encoding ?? Encoding.UTF8).GetBytes(transmit), interval);
         }
 
         /// <summary>
@@ -392,9 +395,10 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
-        public void Publish([NotNull] string transmit)
+        /// <param name="encoding">Encoding for <paramref name="transmit"/>. Defaults to <see cref="Encoding.UTF8"/>.</param>
+        public void Publish([NotNull] string transmit, Encoding encoding = null)
         {
-            Publish(transmit, TimeSpan.FromSeconds(1));
+            Publish(transmit, TimeSpan.FromSeconds(1), encoding);
         }
 
         /// <summary>
@@ -407,7 +411,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Stop publish messages
+        /// Stop publishing beacons.
         /// </summary>
         public void Silence()
         {
@@ -415,8 +419,12 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Subscribe to beacon messages, will replace last subscribe call
+        /// Subscribe to beacon messages that match the specified filter.
         /// </summary>
+        /// <remarks>
+        /// Beacons must prefix-match with <paramref name="filter"/>.
+        /// Any previous subscription is replaced by this one.
+        /// </remarks>
         /// <param name="filter">Beacon will be filtered by this</param>
         public void Subscribe([NotNull] string filter)
         {
@@ -432,72 +440,85 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Blocks until a string is received. As the returning of this method is uncontrollable, it's
-        /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
+        /// Receives the next beacon message, blocking until it arrives.
         /// </summary>
-        /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
-        /// <returns>the string that was received</returns>
-        [NotNull]
-        public string ReceiveString(out string peerName)
+        public BeaconMessage Receive()
         {
-            peerName = m_actor.ReceiveFrameString();
+            var peerName = m_actor.ReceiveFrameString();
+            var bytes = m_actor.ReceiveFrameBytes();
 
-            return m_actor.ReceiveFrameString();
+            return new BeaconMessage(bytes, peerName);
         }
 
         /// <summary>
-        /// Attempt to receive a message from the specified peer for the specified amount of time.
+        /// Receives the next beacon message if one is available before <paramref name="timeout"/> expires.
         /// </summary>
-        /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
-        /// <param name="peerName">the name of the peer that the message comes from is written to this string</param>
-        /// <param name="message">the string to write the received message into</param>
-        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
-        /// otherwise <c>false</c>.</returns>
-        public bool TryReceiveString(TimeSpan timeout, out string peerName, out string message)
+        /// <param name="timeout">The maximum amount of time to wait for the next beacon message.</param>
+        /// <param name="message">The received beacon message.</param>
+        /// <returns><c>true</c> if a beacon message was received, otherwise <c>false</c>.</returns>
+        public bool TryReceive(TimeSpan timeout, out BeaconMessage message)
         {
+            string peerName;
             if (!m_actor.TryReceiveFrameString(timeout, out peerName))
             {
-                message = null;
+                message = default(BeaconMessage);
                 return false;
             }
 
-            return m_actor.TryReceiveFrameString(timeout, out message);
+            var bytes = m_actor.ReceiveFrameBytes();
+
+            message = new BeaconMessage(bytes, peerName);
+            return true;
         }
 
-        /// <summary>
-        /// Blocks until a message is received. As the returning of this method is uncontrollable, it's
-        /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
-        /// </summary>
-        /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
-        /// <returns>the byte-array of data that was received</returns>
-        [NotNull]
-        public byte[] Receive(out string peerName)
-        {
-            peerName = m_actor.ReceiveFrameString();
-
-            return m_actor.ReceiveFrameBytes();
-        }
-
-        /// <summary>
-        /// Release any contained resources.
-        /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            m_actor.Dispose();
+            m_receiveEvent.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Contents of a message received from a beacon.
+    /// </summary>
+    public struct BeaconMessage
+    {
+        /// <summary>
+        /// THe beacon content as a byte array.
+        /// </summary>
+        public byte[] Bytes { get; private set; }
+
+        /// <summary>
+        /// The address of the peer that sent this message. Includes host name and port number.
+        /// </summary>
+        public string PeerAddress { get; private set; }
+
+        internal BeaconMessage(byte[] bytes, string peerAddress) : this()
+        {
+            Bytes = bytes;
+            PeerAddress = peerAddress;
         }
 
         /// <summary>
-        /// Release any contained resources.
+        /// The beacon content as a string.
         /// </summary>
-        /// <param name="disposing">true if managed resources are to be released</param>
-        protected virtual void Dispose(bool disposing)
+        /// <remarks>Decoded using <see cref="Encoding.UTF8"/>. Other encodings may be used with <see cref="Bytes"/> directly.</remarks>
+        public string String
         {
-            if (!disposing)
-                return;
+            get { return Encoding.UTF8.GetString(Bytes); }
+        }
 
-            m_actor.Dispose();
-            m_receiveEvent.Dispose();
+        /// <summary>
+        /// The host name of the peer that sent this message.
+        /// </summary>
+        /// <remarks>This is simply the value of <see cref="PeerAddress"/> without the port number.</remarks>
+        public string PeerHost
+        {
+            get
+            {
+                var i = PeerAddress.IndexOf(':');
+                return i == -1 ? PeerAddress : PeerAddress.Substring(0, i);
+            }
         }
     }
 }
