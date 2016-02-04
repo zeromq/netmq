@@ -45,6 +45,7 @@ namespace NetMQ.Core
             MulticastHops = 1;
             Rate = 100;
             ReceiveHighWatermark = 1000;
+            ReceiveLowWatermark = 0;
 #pragma warning disable 618
             // This is obsolete, but it is still used. Disable compiler warning.
             ReceiveTimeout = -1;
@@ -52,6 +53,7 @@ namespace NetMQ.Core
             ReconnectIvl = 100;
             RecoveryIvl = 10000;
             SendHighWatermark = 1000;
+            SendLowWatermark = 0;
             SendTimeout = -1;
             SocketType = ZmqSocketType.None;
             TcpKeepalive = -1;
@@ -217,6 +219,16 @@ namespace NetMQ.Core
         public int ReceiveHighWatermark { get; set; }
 
         /// <summary>
+        /// The low-water mark for message transmission. 
+        /// </summary>
+        public int SendLowWatermark { get; set; }
+
+        /// <summary>
+        /// The low-water mark for message reception. 
+        /// </summary>
+        public int ReceiveLowWatermark { get; set; }
+
+        /// <summary>
         /// Get or set the timeout for send operations for this socket.
         /// The default value is -1, which means no timeout.
         /// </summary>
@@ -287,6 +299,14 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.ReceiveHighWatermark:
                     ReceiveHighWatermark = (int)optionValue;
+                    break;
+
+                case ZmqSocketOption.SendLowWatermark:
+                    SendLowWatermark = (int)optionValue;
+                    break;
+
+                case ZmqSocketOption.ReceiveLowWatermark:
+                    ReceiveLowWatermark = (int)optionValue;
                     break;
 
                 case ZmqSocketOption.Affinity:
@@ -418,6 +438,12 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.ReceiveHighWatermark:
                     return ReceiveHighWatermark;
+
+                case ZmqSocketOption.SendLowWatermark:
+                    return SendLowWatermark;
+
+                case ZmqSocketOption.ReceiveLowWatermark:
+                    return ReceiveLowWatermark;
 
                 case ZmqSocketOption.Affinity:
                     return Affinity;
