@@ -256,6 +256,20 @@ namespace NetMQ.Core
         XPublisherBroadcast = 45,
 
         /// <summary>
+        /// The low-water mark for message transmission. This is the number of messages that should be processed
+        /// before transmission is unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        SendLowWatermark = 46,
+
+        /// <summary>
+        /// The low-water mark for message reception. This is the number of messages that should be processed 
+        /// before reception is unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        ReceiveLowWatermark = 47,
+
+        /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
         Endian = 1000

@@ -150,8 +150,8 @@ namespace NetMQ.Core
         /// Constructor is private as pipe can only be created using <see cref="PipePair"/> method.
         /// </remarks>
         private Pipe(
-            [NotNull] ZObject parent, [NotNull] YPipe<Msg> inboundPipe, [NotNull] YPipe<Msg> outboundPipe, 
-            int inHighWatermark, int outHighWatermark, bool delay)
+            [NotNull] ZObject parent, [NotNull] YPipe<Msg> inboundPipe, [NotNull] YPipe<Msg> outboundPipe,
+            int inHighWatermark, int outHighWatermark, int predefinedLowWatermark, bool delay)
             : base(parent)
         {
             m_parent = parent;
@@ -160,7 +160,7 @@ namespace NetMQ.Core
             m_inActive = true;
             m_outActive = true;
             m_highWatermark = outHighWatermark;
-            m_lowWatermark = ComputeLowWatermark(inHighWatermark);
+            m_lowWatermark = ComputeLowWatermark(inHighWatermark, predefinedLowWatermark);
             m_numberOfMessagesRead = 0;
             m_numberOfMessagesWritten = 0;
             m_peersMsgsRead = 0;
@@ -176,12 +176,14 @@ namespace NetMQ.Core
         /// <param name="parents">The parents.</param>
         /// <param name="highWaterMarks">First HWM is for messages passed from first pipe to the second pipe.
         /// Second HWM is for messages passed from second pipe to the first pipe.</param>
+        /// <param name="lowWaterMarks">First LWM is for messages passed from first pipe to the second pipe.
+        /// Second LWM is for messages passed from second pipe to the first pipe.</param>
         /// <param name="delays">Delay specifies how the pipe behaves when the peer terminates. If true
         /// pipe receives all the pending messages before terminating, otherwise it
         /// terminates straight away.</param>
         /// <returns>A pipe pair for bi-directional transfer of messages. </returns>
         [NotNull]
-        public static Pipe[] PipePair([NotNull] ZObject[] parents, [NotNull] int[] highWaterMarks, [NotNull] bool[] delays)
+        public static Pipe[] PipePair([NotNull] ZObject[] parents, [NotNull] int[] highWaterMarks, [NotNull] int[] lowWaterMarks, [NotNull] bool[] delays)
         {
             // Creates two pipe objects. These objects are connected by two ypipes,
             // each to pass messages in one direction.
@@ -191,8 +193,8 @@ namespace NetMQ.Core
 
             var pipes = new[]
             {
-                new Pipe(parents[0], upipe1, upipe2, highWaterMarks[1], highWaterMarks[0], delays[0]),
-                new Pipe(parents[1], upipe2, upipe1, highWaterMarks[0], highWaterMarks[1], delays[1])
+                new Pipe(parents[0], upipe1, upipe2, highWaterMarks[1], highWaterMarks[0], lowWaterMarks[1], delays[0]),
+                new Pipe(parents[1], upipe2, upipe1, highWaterMarks[0], highWaterMarks[1], lowWaterMarks[0], delays[1])
             };
 
             pipes[0].SetPeer(pipes[1]);
@@ -564,9 +566,13 @@ namespace NetMQ.Core
         /// Compute an appropriate low watermark from the given high-watermark.
         /// </summary>
         /// <param name="highWatermark">the given high-watermark value to compute it from</param>
+        /// <param name="predefinedLowWatermark">predefined low watermark value coming from configuration</param>
         /// <returns>the computed low-watermark</returns>
-        private static int ComputeLowWatermark(int highWatermark)
+        private static int ComputeLowWatermark(int highWatermark, int predefinedLowWatermark)
         {
+            if (predefinedLowWatermark > 0 && predefinedLowWatermark < highWatermark)
+                return predefinedLowWatermark;
+ 
             // Compute the low water mark. Following point should be taken
             // into consideration:
             //

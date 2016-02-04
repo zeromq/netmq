@@ -603,11 +603,22 @@ namespace NetMQ.Core
                     ? m_options.ReceiveHighWatermark + peer.Options.SendHighWatermark
                     : 0;
 
+                // The total LWM for an inproc connection should be the sum of
+                // the binder's LWM and the connector's LWM.
+                int sndlwm = m_options.SendLowWatermark != 0 && peer.Options.ReceiveLowWatermark != 0
+                    ? m_options.SendLowWatermark + peer.Options.ReceiveLowWatermark
+                    : 0;
+
+                int rcvlwm = m_options.ReceiveLowWatermark != 0 && peer.Options.SendLowWatermark != 0
+                    ? m_options.ReceiveLowWatermark + peer.Options.SendLowWatermark
+                    : 0;
+
                 // Create a bi-directional pipe to connect the peers.
                 ZObject[] parents = { this, peer.Socket };
                 int[] highWaterMarks = { sndhwm, rcvhwm };
+                int[] lowWaterMarks = { sndlwm, rcvlwm };
                 bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks, delays);
 
                 // Attach local end of the pipe to this socket object.
                 AttachPipe(pipes[0]);
@@ -701,8 +712,9 @@ namespace NetMQ.Core
                 // Create a bi-directional pipe.
                 ZObject[] parents = { this, session };
                 int[] hwms = { m_options.SendHighWatermark, m_options.ReceiveHighWatermark };
+                int[] lwms = { m_options.SendLowWatermark, m_options.ReceiveLowWatermark };
                 bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-                Pipe[] pipes = Pipe.PipePair(parents, hwms, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, hwms, lwms, delays);
 
                 // Attach local end of the pipe to the socket object.
                 AttachPipe(pipes[0], icanhasall);

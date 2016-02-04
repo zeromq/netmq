@@ -223,6 +223,30 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// The low-water mark for message transmission. 
+        /// This is the number of messages that should be processed before transmission is 
+        /// unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        public int SendLowWatermark
+        {
+            get { return m_socket.GetSocketOption(ZmqSocketOption.SendLowWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.SendLowWatermark, value); }
+        }
+
+        /// <summary>
+        /// The low-water mark for message reception. 
+        /// This is the number of messages that should be processed  before reception is 
+        /// unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        public int ReceiveLowWatermark
+        {
+            get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveLowWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveLowWatermark, value); }
+        }
+
+        /// <summary>
         /// Get or set the time-to-live (maximum number of hops) that outbound multicast packets
         /// are allowed to propagate.
         /// The default value of 1 means that the multicast packets don't leave the local network.
