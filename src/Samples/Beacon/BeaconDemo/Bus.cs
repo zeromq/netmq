@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using NetMQ;
 using NetMQ.Sockets;
 
@@ -190,13 +189,10 @@ namespace BeaconDemo
         {
             // we got another beacon
             // let's check if we already know about the beacon
-            string nodeName;
-            int port = Convert.ToInt32(m_beacon.ReceiveString(out nodeName));
+            var message = m_beacon.Receive();
+            int port = Convert.ToInt32(message.String);
 
-            // remove the port from the peer name
-            nodeName = nodeName.Replace(":" + m_broadcastPort, "");
-
-            NodeKey node = new NodeKey(nodeName, port);
+            NodeKey node = new NodeKey(message.PeerHost, port);
 
             // check if node already exist
             if (!m_nodes.ContainsKey(node))

@@ -440,56 +440,85 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Blocks until a string is received. As the returning of this method is uncontrollable, it's
-        /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
+        /// Receives the next beacon message, blocking until it arrives.
         /// </summary>
-        /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
-        /// <returns>the string that was received</returns>
-        [NotNull]
-        public string ReceiveString(out string peerName)
+        public BeaconMessage Receive()
         {
-            peerName = m_actor.ReceiveFrameString();
+            var peerName = m_actor.ReceiveFrameString();
+            var bytes = m_actor.ReceiveFrameBytes();
 
-            return m_actor.ReceiveFrameString();
+            return new BeaconMessage(bytes, peerName);
         }
 
         /// <summary>
-        /// Attempt to receive a message from the specified peer for the specified amount of time.
+        /// Receives the next beacon message if one is available before <paramref name="timeout"/> expires.
         /// </summary>
-        /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
-        /// <param name="peerName">the name of the peer that the message comes from is written to this string</param>
-        /// <param name="message">the string to write the received message into</param>
-        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
-        /// otherwise <c>false</c>.</returns>
-        public bool TryReceiveString(TimeSpan timeout, out string peerName, out string message)
+        /// <param name="timeout">The maximum amount of time to wait for the next beacon message.</param>
+        /// <param name="message">The received beacon message.</param>
+        /// <returns><c>true</c> if a beacon message was received, otherwise <c>false</c>.</returns>
+        public bool TryReceive(TimeSpan timeout, out BeaconMessage message)
         {
+            string peerName;
             if (!m_actor.TryReceiveFrameString(timeout, out peerName))
             {
-                message = null;
+                message = default(BeaconMessage);
                 return false;
             }
 
-            return m_actor.TryReceiveFrameString(timeout, out message);
-        }
+            var bytes = m_actor.ReceiveFrameBytes();
 
-        /// <summary>
-        /// Blocks until a message is received. As the returning of this method is uncontrollable, it's
-        /// normally safer to call <see cref="TryReceiveString"/> instead and pass a timeout.
-        /// </summary>
-        /// <param name="peerName">the name of the peer, which should come before the actual message, is written to this string</param>
-        /// <returns>the byte-array of data that was received</returns>
-        [NotNull]
-        public byte[] Receive(out string peerName)
-        {
-            peerName = m_actor.ReceiveFrameString();
-
-            return m_actor.ReceiveFrameBytes();
+            message = new BeaconMessage(bytes, peerName);
+            return true;
         }
 
         public void Dispose()
         {
             m_actor.Dispose();
             m_receiveEvent.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Contents of a message received from a beacon.
+    /// </summary>
+    public struct BeaconMessage
+    {
+        /// <summary>
+        /// THe beacon content as a byte array.
+        /// </summary>
+        public byte[] Bytes { get; private set; }
+
+        /// <summary>
+        /// The address of the peer that sent this message. Includes host name and port number.
+        /// </summary>
+        public string PeerAddress { get; private set; }
+
+        internal BeaconMessage(byte[] bytes, string peerAddress) : this()
+        {
+            Bytes = bytes;
+            PeerAddress = peerAddress;
+        }
+
+        /// <summary>
+        /// The beacon content as a string.
+        /// </summary>
+        /// <remarks>Decoded using <see cref="Encoding.UTF8"/>. Other encodings may be used with <see cref="Bytes"/> directly.</remarks>
+        public string String
+        {
+            get { return Encoding.UTF8.GetString(Bytes); }
+        }
+
+        /// <summary>
+        /// The host name of the peer that sent this message.
+        /// </summary>
+        /// <remarks>This is simply the value of <see cref="PeerAddress"/> without the port number.</remarks>
+        public string PeerHost
+        {
+            get
+            {
+                var i = PeerAddress.IndexOf(':');
+                return i == -1 ? PeerAddress : PeerAddress.Substring(0, i);
+            }
         }
     }
 }
