@@ -8,9 +8,9 @@ using NetMQ.Sockets;
 namespace BeaconDemo
 {
     /// <summary>
-    /// From the Docs\beacon.md documentation with small modifications for this demo
+    /// Originally from the Docs\beacon.md documentation with small modifications for this demo
     /// </summary>
-    class Bus
+    internal class Bus
     {
         // Actor Protocol
         public const string PublishCommand = "P";
