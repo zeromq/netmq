@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using JetBrains.Annotations;
 using NetMQ.Sockets;
 
@@ -367,16 +368,12 @@ namespace NetMQ
         /// <summary>
         /// Publish beacon immediately and continue to publish when interval elapsed
         /// </summary>
-        /// <param name="transmit">Beacon to transmit</param>
+        /// <param name="transmit">Beacon to transmit.</param>
         /// <param name="interval">Interval to transmit beacon</param>
-        public void Publish([NotNull] string transmit, TimeSpan interval)
+        /// <param name="encoding">Encoding for <paramref name="transmit"/>. Defaults to <see cref="Encoding.UTF8"/>.</param>
+        public void Publish([NotNull] string transmit, TimeSpan interval, Encoding encoding = null)
         {
-            var message = new NetMQMessage();
-            message.Append(PublishCommand);
-            message.Append(transmit);
-            message.Append((int)interval.TotalMilliseconds);
-
-            m_actor.SendMultipartMessage(message);
+            Publish((encoding ?? Encoding.UTF8).GetBytes(transmit), interval);
         }
 
         /// <summary>
@@ -398,9 +395,10 @@ namespace NetMQ
         /// Publish beacon immediately and continue to publish every second
         /// </summary>
         /// <param name="transmit">Beacon to transmit</param>
-        public void Publish([NotNull] string transmit)
+        /// <param name="encoding">Encoding for <paramref name="transmit"/>. Defaults to <see cref="Encoding.UTF8"/>.</param>
+        public void Publish([NotNull] string transmit, Encoding encoding = null)
         {
-            Publish(transmit, TimeSpan.FromSeconds(1));
+            Publish(transmit, TimeSpan.FromSeconds(1), encoding);
         }
 
         /// <summary>
