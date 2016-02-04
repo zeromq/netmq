@@ -229,14 +229,10 @@ namespace NetMQ
                 var buffer = new byte[UdpFrameMax];
                 EndPoint peer = new IPEndPoint(IPAddress.Any, 0);
 
-                int bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
-
-                var frame = new NetMQFrame(bytesRead);
-                Buffer.BlockCopy(buffer, 0, frame.Buffer, 0, bytesRead);
-
+                var bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
                 peerName = peer.ToString();
 
-                return frame;
+                return new NetMQFrame(buffer, bytesRead);
             }
         }
 
