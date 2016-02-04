@@ -28,7 +28,7 @@ namespace NetMQ
         public NetMQBeacon Beacon { get; private set; }
     }
 
-    public class NetMQBeacon : IDisposable, ISocketPollable
+    public sealed class NetMQBeacon : IDisposable, ISocketPollable
     {
         public const int UdpFrameMax = 255;
 
@@ -486,24 +486,8 @@ namespace NetMQ
             return m_actor.ReceiveFrameBytes();
         }
 
-        /// <summary>
-        /// Release any contained resources.
-        /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Release any contained resources.
-        /// </summary>
-        /// <param name="disposing">true if managed resources are to be released</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing)
-                return;
-
             m_actor.Dispose();
             m_receiveEvent.Dispose();
         }
