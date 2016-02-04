@@ -341,24 +341,16 @@ namespace NetMQ
         /// <param name="port">Port to bind to</param>
         public void ConfigureAllInterfaces(int port)
         {
-            Configure("*", port);
+            Configure(port, "*");
         }
 
         /// <summary>
-        /// Configure beacon to bind to default interface
+        /// Configure beacon for the specified port and, optionally, to a specific interface.
         /// </summary>
-        /// <param name="port">Port to bind to</param>
-        public void Configure(int port)
-        {
-            Configure("", port);
-        }
-
-        /// <summary>
-        /// Configure beacon to bind to specific interface
-        /// </summary>
-        /// <param name="interfaceName">One of the ip address of the interface</param>
-        /// <param name="port">Port to bind to</param>
-        public void Configure([NotNull] string interfaceName, int port)
+        /// <remaraks>Blocks until the bind operation completes.</remaraks>
+        /// <param name="port">The UDP port to bind to.</param>
+        /// <param name="interfaceName">IP address of the interface to bind to. Pass empty string (the default value) to use the default interface.</param>
+        public void Configure(int port, [NotNull] string interfaceName = "")
         {
             var message = new NetMQMessage();
             message.Append(ConfigureCommand);

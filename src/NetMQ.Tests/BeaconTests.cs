@@ -199,11 +199,11 @@ namespace NetMQ.Tests
             using (var beacon1 = new NetMQBeacon())
             using (var beacon2 = new NetMQBeacon())
             {
-                beacon1.Configure("loopback", 9998);
+                beacon1.Configure(9998, "loopback");
                 beacon1.Publish("H1", s_publishInterval);
                 beacon1.Subscribe("H");
 
-                beacon2.Configure("loopback", 9998);
+                beacon2.Configure(9998, "loopback");
                 beacon2.Publish("H2", s_publishInterval);
                 beacon2.Subscribe("H");
 
