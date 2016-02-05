@@ -320,6 +320,11 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Get the IP address this beacon is bound to.
+        /// </summary>
+        public string BoundTo { get { return m_boundTo; } }
+
+        /// <summary>
         /// Get the socket of the contained actor.
         /// </summary>
         NetMQSocket ISocketPollable.Socket
