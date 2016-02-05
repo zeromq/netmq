@@ -9,6 +9,7 @@ using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 #if !NET35
 using System.Threading.Tasks;
+using System.ComponentModel;
 #endif
 
 using Switch = NetMQ.Core.Utils.Switch;
@@ -17,7 +18,7 @@ namespace NetMQ
 {
     public sealed class NetMQPoller :
 #if !NET35
-        TaskScheduler,
+        TaskScheduler, ISynchronizeInvoke,
 #endif
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
     {
@@ -109,7 +110,7 @@ namespace NetMQ
             m_tasksQueue.Enqueue(task);
         }
 
-        private void Run(Action action)
+        private void Run([NotNull] Action action)
         {
             if (CanExecuteTaskInline)
                 action();
@@ -528,7 +529,7 @@ namespace NetMQ
                 m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
             }
-            
+
             m_stopSignaler.Dispose();
 #if !NET35
             m_tasksQueue.Dispose();
@@ -539,6 +540,40 @@ namespace NetMQ
 
             m_disposeState = (int)DisposeState.Disposed;
         }
+
+        #endregion
+
+        #region ISynchronizeInvoke
+
+#if !NET35
+        IAsyncResult ISynchronizeInvoke.BeginInvoke(Delegate method, object[] args)
+        {
+            var task = new Task<object>(() => method.DynamicInvoke(args));
+            task.Start(this);
+            return task;
+        }
+
+        object ISynchronizeInvoke.EndInvoke(IAsyncResult result)
+        {
+            var task = (Task<object>)result;
+            return task.Result;
+        }
+
+        object ISynchronizeInvoke.Invoke(Delegate method, object[] args)
+        {
+            if (CanExecuteTaskInline)
+                return method.DynamicInvoke(args);
+
+            var task = new Task<object>(() => method.DynamicInvoke(args));
+            task.Start(this);
+            return task.Result;
+        }
+
+        bool ISynchronizeInvoke.InvokeRequired
+        {
+            get { return !CanExecuteTaskInline; }
+        }
+#endif
 
         #endregion
 
