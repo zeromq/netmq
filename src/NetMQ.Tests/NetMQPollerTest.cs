@@ -136,7 +136,7 @@ namespace NetMQ.Tests
                 poller.RunAsync();
 
                 dealer1.SendFrame("1");
-                Assert.IsTrue(signal1.WaitOne(300));                
+                Assert.IsTrue(signal1.WaitOne(300));
 
                 dealer2.SendFrame("2");
                 Assert.IsTrue(signal2.WaitOne(300));
@@ -799,7 +799,7 @@ namespace NetMQ.Tests
 
         #endregion
 
-        #region Scheduling tests
+        #region TaskScheduler tests
 
 #if !NET35
         [Test]
@@ -931,5 +931,33 @@ namespace NetMQ.Tests
 #endif
 
         #endregion
+
+        #region ISynchronizeInvoke tests
+
+#if !NET35
+        [Test]
+        public void ISynchronizeInvokeWorks()
+        {
+            using (var poller = new NetMQPoller())
+            using (var signal = new ManualResetEvent(false))
+            using (var timer = new System.Timers.Timer { AutoReset = false, Interval = 100, SynchronizingObject = poller, Enabled = true })
+            {
+                var isCorrectThread = false;
+
+                poller.RunAsync();
+
+                timer.Elapsed += (sender, args) =>
+                {
+                    isCorrectThread = poller.CanExecuteTaskInline;
+                    Assert.True(signal.Set());
+                };
+
+                Assert.True(signal.WaitOne(TimeSpan.FromSeconds(2)));
+                Assert.True(isCorrectThread);
+            }
+        }
+#endif
+
+#endregion
     }
 }
