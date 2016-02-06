@@ -30,6 +30,11 @@ namespace NetMQ.Sockets
         {
         }
 
+        /// <summary>
+        /// Create and return an inproc pipe where socket1 is bound and socket2 is connected.
+        /// </summary>
+        /// <param name="socket1">the Bind socket</param>
+        /// <param name="socket2">the Connect socket</param>
         public static void CreateSocketPair(out PairSocket socket1, out PairSocket socket2)
         {
             string address = string.Format("inproc://NetMQSocketPair#{0}", Interlocked.Increment(ref s_sequence));
