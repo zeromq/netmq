@@ -291,7 +291,7 @@ namespace InterBrokerRouter
                     // just to make sure we received a message
                     Debug.Assert(msg != null && msg.FrameCount > 0, "[CloudFrontend] message was empty or frame count == 0!");
 
-                    // we may need need the peers address for proper addressing
+                    // we may need the peers address for proper addressing
                     var peerAdr = Unwrap(msg);
 
                     // the remaining message must be at least 3 frames!

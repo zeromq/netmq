@@ -189,7 +189,7 @@ This is the same as before:
 
 ### AccountActioner
 
-And here is the entire code for an `Actor` that deals with `Account` actions. This example is deliberatley simplistic, where we only debit/credit an `Account`
+And here is the entire code for an `Actor` that deals with `Account` actions. This example is deliberately simplistic, where we only debit/credit an `Account`
 by an amount. You could send any command to the `Actor`, and the `Actor` is really a general purpose in process messaging system.
 
 Anyway here is the `Actor` code:

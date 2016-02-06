@@ -123,7 +123,7 @@ namespace TitanicProtocol
 
             if (!File.Exists (m_titanicQueue))
             {
-                // create file but release all ressources immediately
+                // create file but release all resources immediately
                 var f = File.Create (m_titanicQueue);
                 f.Dispose ();
             }
@@ -132,7 +132,7 @@ namespace TitanicProtocol
         #region REQUEST/REPLY QUEUE I/O HANDLING
 
         /// <summary>
-        ///     get the request entry identifyed by the GUID from the infrastructure
+        ///     get the request entry identified by the GUID from the infrastructure
         /// </summary>
         /// <param name="id"></param>
         /// <returns>a request entry or default(RequestEntry) if no request entry with the id exists</returns>

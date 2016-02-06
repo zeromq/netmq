@@ -17,7 +17,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// Multi producer singler consumer queue which you can poll on with a Poller.
+    /// Multi producer single consumer queue which you can poll on with a Poller.
     /// </summary>
     /// <typeparam name="T">Type of the item in queue</typeparam>
     public sealed class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
