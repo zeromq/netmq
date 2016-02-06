@@ -182,7 +182,7 @@ namespace TitanicProtocol
                     // beware of the silently dieing threads - must be detected!
                     if (DidAnyTaskStopp (tasks))
                     {
-                        // stopp all threads
+                        // stop all threads
                         cts.Cancel ();
                         // stop processing!
                         break;
@@ -335,7 +335,7 @@ namespace TitanicProtocol
         /// </summary>
         /// <param name="requestId">request's GUID</param>
         /// <param name="serviceClient">mdp client to handle mdp broker communication</param>
-        /// <returns><c>true</c> if successfull <c>false</c> otherwise</returns>
+        /// <returns><c>true</c> if successful <c>false</c> otherwise</returns>
         internal bool DispatchRequests (Guid requestId, [CanBeNull] IMDPClient serviceClient = null)
         {
             // has the request already been processed? -> file does not exist
@@ -382,7 +382,7 @@ namespace TitanicProtocol
         /// <param name="serviceClient">mdp client handling the forwarding of requests
         ///             to service offering mdp worker via mdp broker and collecting
         ///             the replies from the mdp worker</param>
-        /// <returns><c>true</c> if successfull and <c>false</c> otherwise</returns>
+        /// <returns><c>true</c> if successful and <c>false</c> otherwise</returns>
         private NetMQMessage ServiceCall ([NotNull] string serviceName, [NotNull] NetMQMessage request, [CanBeNull]IMDPClient serviceClient = null)
         {
             // create MDPClient session and send the request to MDPBroker
@@ -435,7 +435,7 @@ namespace TitanicProtocol
 
             if (Task.WhenAny (tasks).IsFaulted)
             {
-                Log (string.Format ("An expection has been detected! ABANDONING!"));
+                Log (string.Format ("An exception has been detected! ABANDONING!"));
                 // get the exceptions available and log them
                 foreach (var task in tasks.Where (task => task.IsFaulted))
                     LogExceptions (task.Exception);

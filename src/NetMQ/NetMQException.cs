@@ -353,7 +353,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// FaultException is a NetMQException that is used within within the message-queueing system to signal general fault conditions.
+    /// FaultException is a NetMQException that is used within the message-queueing system to signal general fault conditions.
     /// </summary>
     [Serializable]
     public class FaultException : NetMQException
@@ -434,7 +434,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// HostUnreachableException is an Exception that is used within within the message-queueing system
+    /// HostUnreachableException is an Exception that is used within the message-queueing system
     /// to signal failures to communicate with a host.
     /// </summary>
     [Serializable]

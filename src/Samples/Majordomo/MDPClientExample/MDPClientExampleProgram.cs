@@ -75,7 +75,7 @@ namespace MDPClientExample
                     {
                         var request = new NetMQMessage ();
                         // set the request data
-                        request.Push ("Helo World!");
+                        request.Push ("Hello World!");
                         // send the request to the service
                         var reply = session.Send (service_name, request);
 

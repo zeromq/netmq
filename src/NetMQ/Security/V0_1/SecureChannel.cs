@@ -175,7 +175,7 @@ namespace NetMQ.Security.V0_1
         }
 
         /// <summary>
-        /// Encrypt the given NetMQMessage, wrapping it's content as application-data and preficing it with the encryption protocol.
+        /// Encrypt the given NetMQMessage, wrapping it's content as application-data and prefixing it with the encryption protocol.
         /// </summary>
         /// <param name="plainMessage">The unencrypted form of the message to be encrypted.</param>
         /// <returns>a new NetMQMessage that is encrypted</returns>

@@ -27,7 +27,7 @@ namespace NetMQ.Tests
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message.First.ConvertToString(),
+                    Console.WriteLine("ResponseEcho received message {0} at {1:ss.fff}", message.First.ConvertToString(),
                         DateTime.Now);
 
                     // reply same message
@@ -67,7 +67,7 @@ namespace NetMQ.Tests
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
+                    Console.WriteLine("ResponseEcho received message {0} at {1:ss.fff}", message[2].ConvertToString(),
                         DateTime.Now);
                 });
 
@@ -103,7 +103,7 @@ namespace NetMQ.Tests
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
+                    Console.WriteLine("ResponseEcho received message {0} at {1:ss.fff}", message[2].ConvertToString(),
                         DateTime.Now);
 
                     attempt++;
@@ -146,7 +146,7 @@ namespace NetMQ.Tests
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
+                    Console.WriteLine("ResponseEcho received message {0} at {1:ss.fff}", message[2].ConvertToString(),
                         DateTime.Now);
                 });
 
@@ -180,7 +180,7 @@ namespace NetMQ.Tests
 
                 var serverProactor = new NetMQProactor(server, (socket, message) =>
                 {
-                    Console.WriteLine("ResponseEcho recieved message {0} at {1:ss.fff}", message[2].ConvertToString(),
+                    Console.WriteLine("ResponseEcho received message {0} at {1:ss.fff}", message[2].ConvertToString(),
                         DateTime.Now);
 
                     attempt++;

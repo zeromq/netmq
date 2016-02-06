@@ -289,7 +289,7 @@ namespace NetMQ
 
             try
             {
-                // move to the first emlement, if false frames is empty
+                // move to the first element, if false frames is empty
                 if (!enumerator.MoveNext())
                 {
                     throw new ArgumentException("frames is empty", "frames");
@@ -320,7 +320,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to transmit a mulitple frames on <paramref name="socket"/>.
+        /// Attempt to transmit a multiple frames on <paramref name="socket"/>.
         /// If frames cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
@@ -332,7 +332,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to transmit a mulitple frames on <paramref name="socket"/>.
+        /// Attempt to transmit a multiple frames on <paramref name="socket"/>.
         /// If frames cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
@@ -345,7 +345,7 @@ namespace NetMQ
 
             try
             {
-                // move to the first emlement, if false frames is empty
+                // move to the first element, if false frames is empty
                 if (!enumerator.MoveNext())
                 {
                     throw new ArgumentException("frames is empty", "frames");
@@ -394,8 +394,8 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to transmit a mulitple frames on <paramref name="socket"/>.
-        /// If frames cannot be sent immediatly, return <c>false</c>.
+        /// Attempt to transmit a multiple frames on <paramref name="socket"/>.
+        /// If frames cannot be sent immediately, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="frames">frames to transmit</param>
@@ -405,8 +405,8 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Attempt to transmit a mulitple frames on <paramref name="socket"/>.
-        /// If frames cannot be sent immediatly, return <c>false</c>.
+        /// Attempt to transmit a multiple frames on <paramref name="socket"/>.
+        /// If frames cannot be sent immediately, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="frames">frames to transmit</param>
@@ -647,7 +647,7 @@ namespace NetMQ
         #region Timeout
 
         /// <summary>
-        /// Attempt to transmit a mulitple message on <paramref name="socket"/>.
+        /// Attempt to transmit a multiple message on <paramref name="socket"/>.
         /// If message cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
@@ -683,8 +683,8 @@ namespace NetMQ
         #region Immediate
 
         /// <summary>
-        /// Attempt to transmit a mulitple message on <paramref name="socket"/>.
-        /// If frames cannot be sent immediatly, return <c>false</c>.
+        /// Attempt to transmit a multiple message on <paramref name="socket"/>.
+        /// If frames cannot be sent immediately, return <c>false</c>.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="message">message to transmit</param>

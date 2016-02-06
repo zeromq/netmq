@@ -132,7 +132,7 @@ namespace NetMQ.Core
         ReconnectIvlMax = 21,
 
         /// <summary>
-        /// The upper limit to to the size for inbound messages.
+        /// The upper limit to the size for inbound messages.
         /// -1 (the default value) means no limit.
         /// </summary>
         /// <remarks>

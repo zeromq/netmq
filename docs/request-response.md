@@ -1,7 +1,7 @@
 Request / Response
 =====
 
-Request / Response is perhaps the simplest of all the NetMQ socket combinations. That is not to say that `RequestSocket` and `ResponseSocket` MUST always be used together, that is not true at all, there are many occassions where you may want to use a particular NetMQ socket with another NetMQ socket. It is just that there are particular socket arrangements that happen to make a great deal of sense to use together, and `RequestSocket` with `ResponseSocket` is one such pattern.
+Request / Response is perhaps the simplest of all the NetMQ socket combinations. That is not to say that `RequestSocket` and `ResponseSocket` MUST always be used together, that is not true at all, there are many occasions where you may want to use a particular NetMQ socket with another NetMQ socket. It is just that there are particular socket arrangements that happen to make a great deal of sense to use together, and `RequestSocket` with `ResponseSocket` is one such pattern.
 
 The particular socket combinations that work well together are all covered in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>. Whilst it may seem a cop out to simply tell you to read more documentation somewhere else, there really is **NO BETTER** documentation on ZeroMQ/NetMQ than you will find in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, as it covers well known patterns that have been proved in the field and are known to work well.
 
@@ -21,7 +21,7 @@ The way you should work with connected `RequestSocket` and `ResponseSocket`s is 
 3. The `ResponseSocket` sends the response message
 4. The `RequestSocket` receives the message from the `ResponseSocket`
 
-Believe it or not you have more than likely already seen this example on numerous occassions as it is the simplest to demonstrate.
+Believe it or not you have more than likely already seen this example on numerous occasions as it is the simplest to demonstrate.
 
 Here is a small example where the `RequestSocket` and `ResponseSocket`s are both in the same process, but this could be easily split between two processes. We are keeping this as simple as possible for demonstration purposes.
 

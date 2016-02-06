@@ -437,14 +437,14 @@ namespace NetMQ.Core
 
         protected virtual void ProcessReap([NotNull] SocketBase socket)
         {
-            // Overriden by Reaper
+            // Overridden by Reaper
             throw new NotSupportedException();
         }
 
         /// <exception cref="NotSupportedException">Not supported on the ZObject class.</exception>
         protected virtual void ProcessReaped()
         {
-            // Overriden by Reaper
+            // Overridden by Reaper
             throw new NotSupportedException();
         }
 
