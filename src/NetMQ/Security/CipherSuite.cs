@@ -20,7 +20,7 @@ namespace NetMQ.Security
 
         /// <summary>
         /// The Null TLS cipher suite. This does not provide any data encryption nor data integrity function
-        /// and is used during intial session establishment.
+        /// and is used during initial session establishment.
         /// </summary>
         TLS_NULL_WITH_NULL_NULL = 0,
 
