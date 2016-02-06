@@ -67,7 +67,7 @@ namespace NetMQ
     /// <summary>
     /// The Actor represents one end of a two-way pipe between 2 PairSocket(s). Where
     /// the actor may be passed messages, that are sent to the other end of the pipe
-    /// which called the "shim"
+    /// which is called the "shim"
     /// </summary>
     public class NetMQActor : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
     {
@@ -208,7 +208,7 @@ namespace NetMQ
         /// <summary>
         /// Create a new <see cref="NetMQActor"/> with the action, and state-information.
         /// </summary>
-        /// <param name="action">a <c>ShimAction</c> - delegate for the action to perfrom</param>
+        /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <param name="state">the state-information - of the generic type T</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
@@ -245,7 +245,7 @@ namespace NetMQ
         /// Create a new <c>NetMQActor</c> with the given context, action, and state-information.
         /// </summary>
         /// <param name="context">the context for this actor to live within</param>
-        /// <param name="action">a <c>ShimAction</c> - delegate for the action to perfrom</param>
+        /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <param name="state">the state-information - of the generic type T</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
         [Obsolete("Use non context version")]

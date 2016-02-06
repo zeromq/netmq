@@ -319,7 +319,7 @@ namespace NetMQ
                         }
                     }
 
-                    // Compute a timeout value - how many milliseconds from now that that earliest-timer will expire.
+                    // Compute a timeout value - how many milliseconds from now that the earliest-timer will expire.
                     var timeout = tickless - pollStart;
 
                     // Use zero to indicate it has already expired.

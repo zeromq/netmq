@@ -10,7 +10,7 @@ namespace NetMQ.Sockets
         /// <summary>
         /// Create a new RouterSocket and attach socket to zero or more endpoints.               
         /// </summary>                
-        /// <param name="connectionString">List of NetMQ endpoints, seperated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
+        /// <param name="connectionString">List of NetMQ endpoints, separated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
         /// Default action is bind (if endpoint doesn't start with '@' or '>')</param>
         /// <example><code>var socket = new RouterSocket(">tcp://127.0.0.1:5555,>127.0.0.1:55556");</code></example>  
         public RouterSocket(string connectionString = null) : base(ZmqSocketType.Router, connectionString, DefaultAction.Bind)

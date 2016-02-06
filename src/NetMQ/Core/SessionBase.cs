@@ -411,7 +411,7 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// Process the Plug-request by setting this SessionBase as teh handler for the io-object
+        /// Process the Plug-request by setting this SessionBase as the handler for the io-object
         /// and starting connecting (without waiting).
         /// </summary>
         protected override void ProcessPlug()

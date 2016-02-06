@@ -17,7 +17,7 @@ namespace NetMQ
             s_settingsSync = new object();
             s_linger = TimeSpan.Zero;
 
-            // Register to destory the context when application exit
+            // Register to destroy the context when application exit
             AppDomain.CurrentDomain.ProcessExit += OnCurrentDomainOnProcessExit;
         }
 

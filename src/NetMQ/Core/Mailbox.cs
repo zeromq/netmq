@@ -182,7 +182,7 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// Send the given Command out accross the command-pipe.
+        /// Send the given Command out across the command-pipe.
         /// </summary>
         /// <param name="cmd">the Command to send</param>
         public void Send(Command cmd)

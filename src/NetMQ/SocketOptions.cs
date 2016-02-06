@@ -188,7 +188,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get or set the upper limit to to the size for inbound messages.
+        /// Get or set the upper limit to the size for inbound messages.
         /// If a peer sends a message larger than this it is disconnected.
         /// The default value is -1, which means no limit.
         /// </summary>

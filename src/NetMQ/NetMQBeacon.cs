@@ -344,7 +344,7 @@ namespace NetMQ
         /// <summary>
         /// Configure beacon for the specified port on all interfaces.
         /// </summary>
-        /// <remaraks>Blocks until the bind operation completes.</remaraks>
+        /// <remarks>Blocks until the bind operation completes.</remarks>
         /// <param name="port">The UDP port to bind to.</param>
         public void ConfigureAllInterfaces(int port)
         {
@@ -354,7 +354,7 @@ namespace NetMQ
         /// <summary>
         /// Configure beacon for the specified port and, optionally, to a specific interface.
         /// </summary>
-        /// <remaraks>Blocks until the bind operation completes.</remaraks>
+        /// <remarks>Blocks until the bind operation completes.</remarks>
         /// <param name="port">The UDP port to bind to.</param>
         /// <param name="interfaceName">IP address of the interface to bind to. Pass empty string (the default value) to use the default interface.</param>
         public void Configure(int port, [NotNull] string interfaceName = "")
