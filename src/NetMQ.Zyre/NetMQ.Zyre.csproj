@@ -78,36 +78,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ZreMsg.cs" />
-    <Compile Include="ZreGroup.cs" />
-    <Compile Include="ZreMsgOriginal.cs" />
-    <Compile Include="ZrePeer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="zproto\Generate.bat" />
-    <None Include="zproto\zproto_codec_cs.gsl" />
-    <None Include="zproto\zproto_lib.gsl" />
-    <None Include="zproto\zproto_lib_cs.gsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="zproto\Example.xml" />
-    <Content Include="zproto\License.xml" />
-    <Content Include="zproto\zre_msg.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="_ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NetMQ\NetMQ.csproj">
       <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
       <Name>NetMQ</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

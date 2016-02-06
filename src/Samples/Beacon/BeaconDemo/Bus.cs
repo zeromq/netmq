@@ -170,9 +170,7 @@ namespace BeaconDemo
             }
             else if (command == GetHostAddressCommand)
             {
-                var interfaceCollection = new InterfaceCollection();
-                var bindTo = interfaceCollection.Select(x => x.Address).First();
-                var address = bindTo + ":" + m_randomPort;
+                var address = m_beacon.BoundTo + ":" + m_randomPort;
                 m_shim.SendFrame(address);
             }
         }
@@ -190,7 +188,8 @@ namespace BeaconDemo
             // we got another beacon
             // let's check if we already know about the beacon
             var message = m_beacon.Receive();
-            int port = Convert.ToInt32(message.String);
+            int port;
+            int.TryParse(message.String, out port);
 
             NodeKey node = new NodeKey(message.PeerHost, port);
 
