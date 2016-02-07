@@ -60,13 +60,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\NetMQ\NetMQ.csproj">
+      <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
+      <Name>NetMQ</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NetMQ.ReactiveExtensions\NetMQ.ReactiveExtensions.csproj">
       <Project>{53c7e7c2-0c41-4123-a555-27ec4aa7f275}</Project>
       <Name>NetMQ.ReactiveExtensions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NetMQ\NetMQ.csproj">
-      <Project>{82934bac-07fb-41ac-ae59-46fee6026a40}</Project>
-      <Name>NetMQ</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
