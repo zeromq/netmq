@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using Test;
+using ProtoBuf;
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InvertIf
 #pragma warning disable 649
@@ -181,7 +181,7 @@ namespace NetMQ.ReactiveExtensions
 									{
 										// Originated from "OnNext".
 										case "N":
-											T messageReceived = m_subscriberSocket.ReceiveFrameBytes().ProtoBufDeserialize<T>();
+											T messageReceived = m_subscriberSocket.ReceiveFrameBytes().DeserializeProtoBuf<T>();
 											lock (m_subscribersLock)
 											{
 												m_subscribers.ForEach(o => o.OnNext(messageReceived));
@@ -196,7 +196,7 @@ namespace NetMQ.ReactiveExtensions
 											break;
 										// Originated from "OnException".
 										case "E":
-											Exception ex = m_subscriberSocket.ReceiveFrameBytes().ProtoBufDeserialize<Exception>();
+											Exception ex = m_subscriberSocket.ReceiveFrameBytes().DeserializeProtoBuf<Exception>();
 											lock (m_subscribersLock)
 											{
 												m_subscribers.ForEach(o => o.OnError(ex));
@@ -305,7 +305,7 @@ namespace NetMQ.ReactiveExtensions
 				// Publish message using ZeroMQ as the transport mechanism.
 				m_publisherSocket.SendMoreFrame(QueueName)
 					.SendMoreFrame("N") // "N", "E" or "C" for "OnNext", "OnError" or "OnCompleted".
-					.SendFrame(message.ProtoBufSerialize<T>());
+					.SendFrame(message.SerializeProtoBuf<T>());
 
 				// Comment in the remaining code for the standard pub/sub pattern.
 
@@ -334,9 +334,12 @@ namespace NetMQ.ReactiveExtensions
 		{
 			InitializePublisherOnFirstUse();
 
+			var wrappedException = new ProtobufExceptionWrapper(ex);
+			byte[] serializedException = wrappedException.SerializeProtoBuf<ProtobufExceptionWrapper>();
+
 			m_publisherSocket.SendMoreFrame(QueueName)
 					.SendMoreFrame("E") // "N", "E" or "C" for "OnNext", "OnError" or "OnCompleted".
-					.SendFrame(ex.ProtoBufSerialize<Exception>());
+					.SendFrame(serializedException);
 
 			// Comment in the remaining code for the standard pub/sub pattern.
 
@@ -392,6 +395,22 @@ namespace NetMQ.ReactiveExtensions
 					return this.m_subscribers.Count > 0;
 				}
 			}
+		}
+
+		/// <summary>
+		///	Intent: Reliable method to serialize a .NET exception, see
+        ///	http://stackoverflow.com/questions/10235854/how-to-serialize-net-exceptions-using-protobuf-net.
+		/// </summary>
+		[ProtoContract]
+		public class ProtobufExceptionWrapper
+		{
+			public ProtobufExceptionWrapper(Exception ex)
+			{
+				Exception = ex;
+			}
+
+			[ProtoMember(1, DynamicType = true)]
+			public object Exception { get; set; }
 		}
 	}	
 }

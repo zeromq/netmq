@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace Test
+namespace NetMQ.ReactiveExtensions
 {
 	public sealed class AnonymousDisposable : IDisposable
 	{

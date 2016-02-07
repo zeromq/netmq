@@ -54,8 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnonymousDisposable.cs" />
+    <Compile Include="SerializeAnException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProtobufExtensions.cs" />
+    <Compile Include="SerializeViaProtoBuf.cs" />
     <Compile Include="NetMQ.ReactiveExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

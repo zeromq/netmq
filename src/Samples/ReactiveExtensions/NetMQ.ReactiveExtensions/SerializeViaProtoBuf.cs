@@ -1,14 +1,17 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using ProtoBuf;
 
 namespace NetMQ.ReactiveExtensions
 {
 	/// <summary>
-	/// Intent: extension methods to serialize/deserialize messages for inter-process communication.
+	/// Intent: Allow us to serialize using ProtoBuf.
 	/// </summary>
-	public static class ProtoBufExtensions
+	public static class SerializeViaProtoBuf
 	{
-		public static byte[] ProtoBufSerialize<T>(this T message)
+		public static byte[] SerializeProtoBuf<T>(this T message)
 		{
 			byte[] result;
 			using (var stream = new MemoryStream())
@@ -19,7 +22,7 @@ namespace NetMQ.ReactiveExtensions
 			return result;
 		}
 
-		public static T ProtoBufDeserialize<T>(this byte[] bytes)
+		public static T DeserializeProtoBuf<T>(this byte[] bytes)
 		{
 			T result;
 			using (var stream = new MemoryStream(bytes))
@@ -28,5 +31,5 @@ namespace NetMQ.ReactiveExtensions
 			}
 			return result;
 		}
-	}	
+	}
 }

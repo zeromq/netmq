@@ -72,7 +72,8 @@
   <ItemGroup>
     <Compile Include="NetMQ.ReactiveExtensions.Tests.cs" />
     <None Include="packages.config" />
-    <Compile Include="ProtoBufExtensions.Tests.cs" />
+    <Compile Include="SerializeAnExceptionTests.cs" />
+    <Compile Include="SerializeViaProtoBufTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
