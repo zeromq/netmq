@@ -257,7 +257,7 @@ namespace NetMQ.ReactiveExtensions.Tests
 				}
 				if (cd.Wait(TimeSpan.FromSeconds(15)) == false) // Blocks until _countdown.Signal has been called.
 				{
-					Assert.Fail("\nTimed out, this test should complete in 10 seconds. receivedNum={0}", );
+					Assert.Fail("\nTimed out, this test should complete in 10 seconds. receivedNum={0}", receivedNum);
 				}
 
 				sw.Stop();
