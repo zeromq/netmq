@@ -24,7 +24,7 @@ namespace NetMQ.Tests.InProcActors.ExceptionShimExample
     /// </summary>
     public class ExceptionShimHandler : IShimHandler
     {
-        public void Run(PairSocket shim)
+        public void Run(PairSocket shim, params object[] args)
         {
             shim.SignalOK();
 

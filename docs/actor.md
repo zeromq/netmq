@@ -206,7 +206,7 @@ Anyway here is the `Actor` code:
             {
             }
 
-            public void RunPipeline(PairSocket shim)
+            public void RunPipeline(PairSocket shim, params object[] args)
             {
                 this.shim = shim;
                 shim.ReceiveReady += OnShimReady;

@@ -35,7 +35,7 @@ namespace NetMQ
             m_actor.Dispose();
         }
 
-        private void Run(PairSocket shim)
+        private void Run(PairSocket shim, params object[] args)
         {
             shim.ReceiveReady += OnShimReady;
             m_receiveSocket.ReceiveReady += OnSocketReady;

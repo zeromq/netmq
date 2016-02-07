@@ -95,7 +95,7 @@ namespace BeaconDemo
             return node.m_actor;
         }
 
-        private void RunActor(PairSocket shim)
+        private void RunActor(PairSocket shim, params object[] args)
         {
             // save the shim to the class to use later
             m_shim = shim;
