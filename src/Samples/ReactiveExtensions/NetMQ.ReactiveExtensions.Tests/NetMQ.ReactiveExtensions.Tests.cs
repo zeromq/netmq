@@ -28,12 +28,12 @@ namespace NetMQ.ReactiveExtensions.Tests
 				var pubSub = new SubjectNetMQ<int>("tcp://127.0.0.1:" + freePort);
 				pubSub.Subscribe(o =>
 					{
-						Console.Write($"Test 1: {o}\n");
+						Console.Write("Test 1: {0}\n", o);
 						cd.Signal();
 					},
 					ex =>
 					{
-						Console.WriteLine($"Exception! {ex.Message}");
+						Console.WriteLine("Exception! {0}", ex.Message);
 					});
 
 				pubSub.OnNext(38);
@@ -66,12 +66,12 @@ namespace NetMQ.ReactiveExtensions.Tests
 
 				pubSub.Subscribe(o =>
 				{
-					Console.Write($"Test 1: {o}\n");
+					Console.Write("Test 1: {0}\n", o);
 					cd.Signal();
 				},
 					ex =>
 					{
-						Console.WriteLine($"Exception! {ex.Message}");
+						Console.WriteLine("Exception! {0}", ex.Message);
 					});
 
 				pubSub.OnNext(38);
@@ -97,19 +97,19 @@ namespace NetMQ.ReactiveExtensions.Tests
 				pubSub.Subscribe(o =>
 				{
 					Assert.AreEqual(o, 42);
-					Console.Write($"PubTwoThreadFanoutSub1: {o}\n");
+					Console.Write("PubTwoThreadFanoutSub1: {0}\n", o);
 					cd.Signal();
 				});
 				pubSub.Subscribe(o =>
 				{
 					Assert.AreEqual(o, 42);
-					Console.Write($"PubTwoThreadFanoutSub2: {o}\n");
+					Console.Write("PubTwoThreadFanoutSub2: {0}\n", o);
 					cd.Signal();
 				});
 				pubSub.Subscribe(o =>
 				{
 					Assert.AreEqual(o, 42);
-					Console.Write($"PubTwoThreadFanoutSub3: {o}\n");
+					Console.Write("PubTwoThreadFanoutSub3: {0}\n", o);
 					cd.Signal();
 				});
 
@@ -137,7 +137,7 @@ namespace NetMQ.ReactiveExtensions.Tests
 					},
 					ex =>
 					{
-						Console.Write($"Exception: {ex.Message}");
+						Console.Write("Exception: {0}", ex.Message);
 						Assert.True(ex.Message.Contains("passed"));
 						weAreDone.Signal();
 					},
@@ -257,7 +257,7 @@ namespace NetMQ.ReactiveExtensions.Tests
 				}
 				if (cd.Wait(TimeSpan.FromSeconds(15)) == false) // Blocks until _countdown.Signal has been called.
 				{
-					Assert.Fail($"\nTimed out, this test should complete in 10 seconds. receivedNum={receivedNum}");
+					Assert.Fail("\nTimed out, this test should complete in 10 seconds. receivedNum={0}", );
 				}
 
 				sw.Stop();
@@ -297,7 +297,7 @@ namespace NetMQ.ReactiveExtensions.Tests
 							}
 						}
 					}
-					Console.WriteLine($"Connected in {sw.ElapsedMilliseconds} ms.");
+					Console.WriteLine("Connected in {0} ms.", sw.ElapsedMilliseconds);
 				}
 			}
 		}
