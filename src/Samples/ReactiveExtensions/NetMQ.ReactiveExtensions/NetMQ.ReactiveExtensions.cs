@@ -32,8 +32,6 @@ namespace NetMQ.ReactiveExtensions
 		private readonly List<IObserver<T>> m_subscribers = new List<IObserver<T>>();
 		private readonly object m_subscribersLock = new object();
 
-		private int m_randomPortNumber = 0;
-
 		public string ZeroMqAddress { get; set; } = null;
 
 		public SubjectNetMQ(string zeroMqAddress, string queueName = "default", EnumWhenToCreateConnection whenToCreateConnection = EnumWhenToCreateConnection.ConnectOnFirstUse, CancellationTokenSource cancellationTokenSource = default(CancellationTokenSource))
@@ -196,10 +194,28 @@ namespace NetMQ.ReactiveExtensions
 											break;
 										// Originated from "OnException".
 										case "E":
-											Exception ex = m_subscriberSocket.ReceiveFrameBytes().DeserializeProtoBuf<Exception>();
+											Exception exception;
+											string exceptionAsString = "Uninitialized.";
+											try
+											{
+												// Not used, but useful for cross-platform debugging: we can read the error straight off the wire.
+												exceptionAsString = m_subscriberSocket.ReceiveFrameBytes().DeserializeProtoBuf<string>();
+												SerializableException exceptionWrapper = m_subscriberSocket.ReceiveFrameBytes().DeSerializeException();
+												exception = exceptionWrapper.InnerException;
+											}
+											catch (Exception ex)
+											{
+												// If we had trouble deserializing the exception (probably due to a
+												// different version of .NET), then do the next best thing: (1) The
+                                                // inner exception is the error we got when deserializing, and (2) the
+                                                // main exception is the human-readable "exception.ToString()" that we
+                                                // originally captured.
+												exception = new Exception(exceptionAsString, ex);
+											}
+
 											lock (m_subscribersLock)
 											{
-												m_subscribers.ForEach(o => o.OnError(ex));
+												m_subscribers.ForEach(o => o.OnError(exception));
 											}
 											break;
 										// Originated from a "Ping" request.
@@ -330,16 +346,21 @@ namespace NetMQ.ReactiveExtensions
 			}
 		}
 
-		public void OnError(Exception ex)
+		public void OnError(Exception exception)
 		{
 			InitializePublisherOnFirstUse();
 
-			var wrappedException = new ProtobufExceptionWrapper(ex);
-			byte[] serializedException = wrappedException.SerializeProtoBuf<ProtobufExceptionWrapper>();
+			var exceptionWrapper = new SerializableException(exception);	
+			byte[] serializedException = exceptionWrapper.SerializeException();
+			string exceptionAsString = exception.ToString();
 
 			m_publisherSocket.SendMoreFrame(QueueName)
 					.SendMoreFrame("E") // "N", "E" or "C" for "OnNext", "OnError" or "OnCompleted".
-					.SendFrame(serializedException);
+					.SendMoreFrame(exceptionAsString.SerializeProtoBuf()) // Human readable exception. Added for 100%
+                                                                          // cross-platform debugging, so we can read
+                                                                          // the error on the wire.
+					.SendFrame(serializedException); // Machine readable exception. So we can pass the full exception to
+                                                     // the .NET client.
 
 			// Comment in the remaining code for the standard pub/sub pattern.
 
@@ -350,7 +371,7 @@ namespace NetMQ.ReactiveExtensions
 
 			//lock (_subscribersLock)
 			//{
-			//this._subscribers.ForEach(msg => msg.OnError(ex));
+			//this._subscribers.ForEach(msg => msg.OnError(exception));
 			//}
 		}
 
@@ -395,22 +416,6 @@ namespace NetMQ.ReactiveExtensions
 					return this.m_subscribers.Count > 0;
 				}
 			}
-		}
-
-		/// <summary>
-		///	Intent: Reliable method to serialize a .NET exception, see
-        ///	http://stackoverflow.com/questions/10235854/how-to-serialize-net-exceptions-using-protobuf-net.
-		/// </summary>
-		[ProtoContract]
-		public class ProtobufExceptionWrapper
-		{
-			public ProtobufExceptionWrapper(Exception ex)
-			{
-				Exception = ex;
-			}
-
-			[ProtoMember(1, DynamicType = true)]
-			public object Exception { get; set; }
 		}
 	}	
 }
