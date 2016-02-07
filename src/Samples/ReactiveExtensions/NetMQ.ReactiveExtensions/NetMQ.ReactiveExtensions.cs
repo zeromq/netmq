@@ -16,8 +16,8 @@ namespace NetMQ.ReactiveExtensions
 	/// </summary>
 	public enum EnumWhenToCreateConnection
 	{
-		ConnectImmediately,
-		ConnectOnFirstUse
+		InstantConnectOnClassInstantiation,
+		LazyConnectOnFirstUse
 	}
 
 	/// <summary>
@@ -34,7 +34,7 @@ namespace NetMQ.ReactiveExtensions
 
 		public string ZeroMqAddress { get; set; } = null;
 
-		public SubjectNetMQ(string zeroMqAddress, string queueName = "default", EnumWhenToCreateConnection whenToCreateConnection = EnumWhenToCreateConnection.ConnectOnFirstUse, CancellationTokenSource cancellationTokenSource = default(CancellationTokenSource))
+		public SubjectNetMQ(string zeroMqAddress, string queueName = "default", EnumWhenToCreateConnection whenToCreateConnection = EnumWhenToCreateConnection.LazyConnectOnFirstUse, CancellationTokenSource cancellationTokenSource = default(CancellationTokenSource))
 		{
 			m_whenToCreateConnection = whenToCreateConnection;
 			m_cancellationTokenSource = cancellationTokenSource;
@@ -50,6 +50,14 @@ namespace NetMQ.ReactiveExtensions
 			if (string.IsNullOrEmpty(ZeroMqAddress))
 			{
 				throw new Exception("Error. Must define the address for ZeroMQ.");
+			}
+
+			if (whenToCreateConnection == EnumWhenToCreateConnection.InstantConnectOnClassInstantiation)
+			{
+				throw new ArgumentException(
+					"Argument exception: \"whenToCreateConnection == EnumWhenToCreateConnection.InstantConnectOnClassInstantiation\" is not supported for reasons of efficiency.\n" +
+				    "Class will lazily create a subscriber when '.Subscriber()' is first called, and lazily create a publisher when '.OnNext()', " +
+				    "'.OnError()', or '.OnCompleted()' are called for the first time.");
 			}
 		}
 
@@ -190,6 +198,10 @@ namespace NetMQ.ReactiveExtensions
 											lock (m_subscribersLock)
 											{
 												m_subscribers.ForEach(o => o.OnCompleted());
+
+												// We are done! We want to send any more messages to subscribers, and we
+												// want to close the listening socket.
+												m_cancellationTokenSource.Cancel();
 											}
 											break;
 										// Originated from "OnException".
@@ -207,9 +219,9 @@ namespace NetMQ.ReactiveExtensions
 											{
 												// If we had trouble deserializing the exception (probably due to a
 												// different version of .NET), then do the next best thing: (1) The
-                                                // inner exception is the error we got when deserializing, and (2) the
-                                                // main exception is the human-readable "exception.ToString()" that we
-                                                // originally captured.
+												// inner exception is the error we got when deserializing, and (2) the
+												// main exception is the human-readable "exception.ToString()" that we
+												// originally captured.
 												exception = new Exception(exceptionAsString, ex);
 											}
 
@@ -236,11 +248,17 @@ namespace NetMQ.ReactiveExtensions
 									this.m_subscribers.ForEach((ob) => ob.OnError(ex));
 								}
 							}
-							lock (m_subscribersLock)
+							finally
 							{
-								m_subscribers.Clear();
+								lock (m_subscribersLock)
+								{
+									m_subscribers.Clear();
+								}
+								m_cancellationTokenSource.Dispose();
+
+								// Disconnect from the socket.
+								m_subscriberSocket.Dispose();
 							}
-							m_cancellationTokenSource.Dispose();
 						})
 						{
 							Name = this.QueueName,
@@ -381,8 +399,6 @@ namespace NetMQ.ReactiveExtensions
 
 			m_publisherSocket.SendMoreFrame(QueueName)
 				.SendFrame("C"); // "N", "E" or "C" for "OnNext", "OnError" or "OnCompleted".
-
-			this.Dispose();
 		}
 		#endregion
 

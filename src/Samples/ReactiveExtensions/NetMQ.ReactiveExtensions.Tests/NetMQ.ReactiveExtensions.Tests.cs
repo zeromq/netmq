@@ -50,6 +50,44 @@ namespace NetMQ.ReactiveExtensions.Tests
 		}
 
 		[Test]
+		public void Initialize_Publisher_Then_Subscriber()
+		{
+			Console.WriteLine(TestContext.CurrentContext.Test.Name);
+
+			CountdownEvent cd = new CountdownEvent(5);
+			{
+				int freePort = TcpPortFree();
+
+				var pubSub = new SubjectNetMQ<int>("tcp://127.0.0.1:" + freePort);
+
+				// Forces the publisher to be initialized. Subscriber not set up yet, so this message will never get
+                // delivered to the subscriber, which is what is should do.
+				pubSub.OnNext(1); 
+
+				pubSub.Subscribe(o =>
+				{
+					Console.Write($"Test 1: {o}\n");
+					cd.Signal();
+				},
+					ex =>
+					{
+						Console.WriteLine($"Exception! {ex.Message}");
+					});
+
+				pubSub.OnNext(38);
+				pubSub.OnNext(39);
+				pubSub.OnNext(40);
+				pubSub.OnNext(41);
+				pubSub.OnNext(42);
+			}
+
+			if (cd.Wait(TimeSpan.FromSeconds(10)) == false) // Blocks until _countdown.Signal has been called.
+			{
+				Assert.Fail("Timed out, this test should complete in 10 seconds.");
+			}
+		}
+
+		[Test]
 		public void Simplest_Fanout_Sub()
 		{
 			CountdownEvent cd = new CountdownEvent(3);
@@ -109,6 +147,39 @@ namespace NetMQ.ReactiveExtensions.Tests
 					});
 
 				pubSub.OnError(new Exception("passed"));
+			}
+			if (weAreDone.Wait(TimeSpan.FromSeconds(10)) == false) // Blocks until _countdown.Signal has been called.
+			{
+				Assert.Fail("Timed out, this test should complete in 10 seconds.");
+			}
+		}
+
+		[Test]
+		public void OnCompleted_Should_Get_Passed_To_Subscribers()
+		{
+			CountdownEvent weAreDone = new CountdownEvent(1);
+			{
+				int freePort = TcpPortFree();
+				var pubSub = new SubjectNetMQ<int>("tcp://127.0.0.1:" + freePort);
+				pubSub.Subscribe(
+					o =>
+					{
+						// If this gets called more than max times, it will throw an exception as it is going through 0.
+						Console.Write("FAIL!");
+						Assert.Fail();
+					},
+					ex =>
+					{
+						Console.Write("FAIL!");
+						Assert.Fail();
+					},
+					() =>
+					{
+						Console.Write("Pass!");
+						weAreDone.Signal();
+					});
+
+				pubSub.OnCompleted();
 			}
 			if (weAreDone.Wait(TimeSpan.FromSeconds(10)) == false) // Blocks until _countdown.Signal has been called.
 			{
