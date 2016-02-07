@@ -14,7 +14,7 @@ using NUnit.Framework;
 namespace NetMQ.ReactiveExtensions.Tests
 {
 	[TestFixture]	
-	public class UnitTest
+	public class NetMQ_ReactiveExtensions_Tests
 	{
 		[Test]
 		public void Simplest_Test()

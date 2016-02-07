@@ -10,7 +10,7 @@ using ProtoBuf;
 
 namespace NetMQ.ReactiveExtensions.Tests
 {
-	public class SerializeAnExceptionTests
+	public class SerializeAnException_Tests
 	{
 		[Test]
 		public static void Can_Serialize_An_Exception()

@@ -11,7 +11,7 @@ using ProtoBuf;
 namespace NetMQ.ReactiveExtensions.Tests
 {
 	[TestFixture]
-	public static class SerializeViaProtoBufTests
+	public static class SerializeViaProtoBuf_Tests
 	{
 		[Test]
 		public static void Should_be_able_to_serialize_an_int()
