@@ -185,10 +185,89 @@ namespace NetMQ.ReactiveExtensions.Tests
 			{
 				Assert.Fail("Timed out, this test should complete in 10 seconds.");
 			}
+		}		
+
+		[Test]
+		public static void Disposing_Of_One_Does_Not_Dispose_Of_The_Other()
+		{
+			Console.WriteLine("Disposing of one subscriber should not dispose of the other.");
+
+			int max = 1000;
+			CountdownEvent cd = new CountdownEvent(max);
+			{
+				int freePort = TcpPortFree();
+				var pubSub = new SubjectNetMQ<int>("tcp://127.0.0.1:" + freePort);
+				var d1 = pubSub.Subscribe(o =>
+					{
+						cd.Signal();
+					});
+
+				var d2 = pubSub.Subscribe(o =>
+					{
+						Assert.Fail();
+					},
+					ex =>
+					{
+						Console.WriteLine("Exception in subscriber thread.");
+					});
+				d2.Dispose();
+
+				for (int i = 0; i < max; i++)
+				{
+					pubSub.OnNext(i);
+				}
+			}
+			if (cd.Wait(TimeSpan.FromSeconds(10)) == false) // Blocks until _countdown.Signal has been called.
+			{
+				Assert.Fail("Timed out, this test should complete in 10 seconds.");
+			}
 		}
 
 		[Test]
-		public void PubSubShouldNotCrashIfNoThreadSleep()
+		public static void Speed_Test()
+		{
+			Stopwatch sw = new Stopwatch();
+			{
+				var max = 200 * 1000;
+
+				CountdownEvent cd = new CountdownEvent(max);
+				var receivedNum = 0;
+				{
+
+					Console.Write("Speed test with {0} messages:\n", max);
+
+					int freePort = TcpPortFree();
+					var pubSub = new SubjectNetMQ<int>("tcp://127.0.0.1:" + freePort);
+
+					pubSub.Subscribe(i =>
+					{
+						receivedNum++;
+						cd.Signal();
+						if (i % 10000 == 0)
+						{
+							//Console.Write("*");
+						}
+					});
+
+					sw.Start();
+					for (int i = 0; i < max; i++)
+					{
+						pubSub.OnNext(i);
+					}
+				}
+				if (cd.Wait(TimeSpan.FromSeconds(15)) == false) // Blocks until _countdown.Signal has been called.
+				{
+					Assert.Fail($"\nTimed out, this test should complete in 10 seconds. receivedNum={receivedNum}");
+				}
+
+				sw.Stop();
+				Console.Write("\nElapsed time: {0} milliseconds ({1:0,000}/sec)\n", sw.ElapsedMilliseconds, (double)max / (double)sw.Elapsed.TotalSeconds);
+				// On my machine, achieved >120,000 messages per second.
+			}
+		}
+
+		[Test]
+		public void PubSub_Should_NotCrash_IfNo_Thread_Sleep()
 		{
 			using (var pub = new PublisherSocket())
 			{
