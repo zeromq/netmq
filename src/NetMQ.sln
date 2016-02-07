@@ -188,9 +188,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.Zyre.Tests", "NetMQ.Z
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reactive Extensions", "Reactive Extensions", "{7007BBA9-2C8E-4145-85DC-03EE664C2A6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.ReactiveExtensions.SampleServer", "Samples\ReactiveExtensions\NetMQ.ReactiveExtensions.SampleServer\NetMQ.ReactiveExtensions.SampleServer.csproj", "{428889AC-3686-4930-B20D-BA0CBDE35115}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.ReactiveExtensions.SamplePublisher", "Samples\ReactiveExtensions\NetMQ.ReactiveExtensions.SampleServer\NetMQ.ReactiveExtensions.SamplePublisher.csproj", "{428889AC-3686-4930-B20D-BA0CBDE35115}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.ReactiveExtensions.SampleClient", "Samples\ReactiveExtensions\NetMQ.ReactiveExtensions.SampleClient\NetMQ.ReactiveExtensions.SampleClient.csproj", "{E9CE5A1C-0940-44A7-A03A-F3E26048EBB5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.ReactiveExtensions.SampleSubscriber", "Samples\ReactiveExtensions\NetMQ.ReactiveExtensions.SampleClient\NetMQ.ReactiveExtensions.SampleSubscriber.csproj", "{E9CE5A1C-0940-44A7-A03A-F3E26048EBB5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ.ReactiveExtensions", "Samples\ReactiveExtensions\NetMQ.ReactiveExtensions\NetMQ.ReactiveExtensions.csproj", "{53C7E7C2-0C41-4123-A555-27EC4AA7F275}"
 EndProject

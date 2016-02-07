@@ -32,7 +32,7 @@ namespace NetMQ.ReactiveExtensions
 		private readonly List<IObserver<T>> m_subscribers = new List<IObserver<T>>();
 		private readonly object m_subscribersLock = new object();
 
-		public string ZeroMqAddress { get; set; } = null;
+		public string ZeroMqAddress { get; set; }
 
 		public SubjectNetMQ(string zeroMqAddress, string queueName = "default", EnumWhenToCreateConnection whenToCreateConnection = EnumWhenToCreateConnection.LazyConnectOnFirstUse, CancellationTokenSource cancellationTokenSource = default(CancellationTokenSource))
 		{
@@ -74,7 +74,7 @@ namespace NetMQ.ReactiveExtensions
 				{
 					if (m_initializePublisherDone == false)
 					{
-						Console.WriteLine($"Publisher socket binding to: {ZeroMqAddress}");
+						Console.WriteLine("Publisher socket binding to: {0}", ZeroMqAddress);
 						m_publisherSocket = new PublisherSocket();
 
 						// Corner case: wait until publisher socket is ready (see code below that waits for
@@ -82,7 +82,8 @@ namespace NetMQ.ReactiveExtensions
 						NetMQMonitor monitor;
 						{
 							// Must ensure that we have a unique monitor name for every instance of this class.
-							monitor = new NetMQMonitor(m_publisherSocket, $"inproc://#SubjectNetMQ#Publisher#{this.QueueName}#{this.ZeroMqAddress}",
+							string endPoint = string.Format("inproc://#SubjectNetMQ#Publisher#{0}#{1}", this.QueueName, this.ZeroMqAddress);
+							monitor = new NetMQMonitor(m_publisherSocket, endPoint,
 								SocketEvents.Accepted | SocketEvents.Listening
 								);
 							monitor.Accepted += Publisher_Event_Accepted;
@@ -100,7 +101,7 @@ namespace NetMQ.ReactiveExtensions
 						{
 							Stopwatch sw = Stopwatch.StartNew();
 							m_publisherReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
-							Console.Write($"Publisher: Waited {sw.ElapsedMilliseconds} ms for binding.\n");
+							Console.Write("Publisher: Waited {0} ms for binding.\n", sw.ElapsedMilliseconds);
 						}
 						{
 							monitor.Accepted -= Publisher_Event_Accepted;
@@ -118,13 +119,13 @@ namespace NetMQ.ReactiveExtensions
 
 		private void Publisher_Event_Listening(object sender, NetMQMonitorSocketEventArgs e)
 		{
-			Console.Write($"Publisher event: {e.SocketEvent}\n");
+			Console.Write("Publisher event: {0}\n", e.SocketEvent);
 			m_publisherReadySignal.Set();
 		}
 
 		private void Publisher_Event_Accepted(object sender, NetMQMonitorSocketEventArgs e)
 		{
-			Console.Write($"Publisher event: {e.SocketEvent}\n");
+			Console.Write("Publisher event: {0}\n", e.SocketEvent);
 			m_publisherReadySignal.Set();
 		}
 		#endregion
@@ -143,7 +144,7 @@ namespace NetMQ.ReactiveExtensions
 				{
 					if (m_initializeSubscriberDone == false)
 					{
-						Console.WriteLine($"Subscriber socket connecting to: {ZeroMqAddress}");
+						Console.WriteLine("Subscriber socket connecting to: {0}", ZeroMqAddress);
 						m_subscriberSocket = new SubscriberSocket();
 
 						// Corner case: wait until subscriber socket is ready (see code below that waits for
@@ -151,7 +152,9 @@ namespace NetMQ.ReactiveExtensions
 						NetMQMonitor monitor;
 						{
 							// Must ensure that we have a unique monitor name for every instance of this class.
-							monitor = new NetMQMonitor(m_subscriberSocket, $"inproc://#SubjectNetMQ#Subscriber#{this.QueueName}#{this.ZeroMqAddress}",
+							string endpoint = string.Format("inproc://#SubjectNetMQ#Subscriber#{0}#{1}", this.QueueName, this.ZeroMqAddress);
+
+							monitor = new NetMQMonitor(m_subscriberSocket, endpoint,
 								SocketEvents.ConnectRetried | SocketEvents.Connected);
 							monitor.ConnectRetried += Subscriber_Event_ConnectRetried;
 							monitor.Connected += Subscriber_Event_Connected;
@@ -173,14 +176,14 @@ namespace NetMQ.ReactiveExtensions
 						{
 							try
 							{
-								Console.Write($"Thread initialized.\n");
+								Console.Write("Thread initialized.\n");
 								threadReadySignal.Set();
 								while (m_cancellationTokenSource.IsCancellationRequested == false)
 								{
 									string messageTopicReceived = m_subscriberSocket.ReceiveFrameString();
 									if (messageTopicReceived != QueueName)
 									{
-										throw new Exception($"Error E65724. We should always subscribe on the queue name '{QueueName}', instead we got '{messageTopicReceived}'.");
+										throw new Exception(string.Format("Error E65724. We should always subscribe on the queue name '{0}', instead we got '{1}'.", QueueName, messageTopicReceived));
 									}
 									var type = m_subscriberSocket.ReceiveFrameString();
 									switch (type)
@@ -236,13 +239,13 @@ namespace NetMQ.ReactiveExtensions
 											Console.Write("Received ping.\n");
 											break;
 										default:
-											throw new Exception($"Error E28734. Something is wrong - received '{type}' when we expected \"N\", \"C\" or \"E\" - are we out of sync?");
+											throw new Exception(string.Format("Error E28734. Something is wrong - received '{0}' when we expected \"N\", \"C\" or \"E\" - are we out of sync?", type));
 									}
 								}
 							}
 							catch (Exception ex)
 							{
-								Console.Write($"Error E23844. Exception in threadName \"{QueueName}\". Thread exiting. Exception: \"{ex.Message}\".\n");
+								Console.Write("Error E23844. Exception in threadName \"{0}\". Thread exiting. Exception: \"{1}\".\n", QueueName, ex.Message);
 								lock (m_subscribersLock)
 								{
 									this.m_subscribers.ForEach((ob) => ob.OnError(ex));
@@ -274,7 +277,7 @@ namespace NetMQ.ReactiveExtensions
 						{
 							Stopwatch sw = Stopwatch.StartNew();
 							m_subscriberReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
-							Console.Write($"Subscriber: Waited {sw.ElapsedMilliseconds} ms for connection.\n");
+							Console.Write("Subscriber: Waited {0} ms for connection.\n", sw.ElapsedMilliseconds);
 
 							monitor.ConnectRetried -= Subscriber_Event_ConnectRetried;
 							monitor.Connected -= Subscriber_Event_Connected;
@@ -295,13 +298,13 @@ namespace NetMQ.ReactiveExtensions
 
 		private void Subscriber_Event_Connected(object sender, NetMQMonitorSocketEventArgs e)
 		{
-			Console.Write($"Subscriber event: {e.SocketEvent}\n");
+			Console.Write("Subscriber event: {0}\n", e.SocketEvent);
 			m_subscriberReadySignal.Set();
 		}
 
 		private void Subscriber_Event_ConnectRetried(object sender, NetMQMonitorIntervalEventArgs e)
 		{
-			Console.Write($"Subscriber event: {e.SocketEvent}\n");
+			Console.Write("Subscriber event: {0}\n", e.SocketEvent);
 			m_subscriberReadySignal.Set();
 		}
 		#endregion
@@ -357,7 +360,7 @@ namespace NetMQ.ReactiveExtensions
 			{
 				var col = Console.ForegroundColor;
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine($"Exception: {ex.Message}");
+				Console.WriteLine("Exception: {0}", ex.Message);
 				Console.ForegroundColor = col;
 				this.OnError(ex);
 				throw;
