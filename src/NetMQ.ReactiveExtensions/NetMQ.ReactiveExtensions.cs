@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.Threading;
-using NetMQ;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using NUnit.Framework;
+using Test;
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InvertIf
 #pragma warning disable 649
 
-namespace Test
+namespace NetMQ.ReactiveExtensions
 {
 	/// <summary>
 	///	Intent: Pub/sub across different processes.
@@ -21,8 +19,8 @@ namespace Test
 	{
 		private CancellationTokenSource _cancellationTokenSource;
 		public string QueueName { get; private set; }
-		private readonly List<IObserver<T>> _subscribers = new List<IObserver<T>>();
-		private readonly object _subscribersLock = new object();
+		private readonly List<IObserver<T>> m_subscribers = new List<IObserver<T>>();
+		private readonly object m_subscribersLock = new object();
 
 		public string ZeroMqAddress { get; set; } = null;
 
@@ -39,7 +37,7 @@ namespace Test
 			ZeroMqAddress = zeroMqAddress;
 			if (string.IsNullOrEmpty(zeroMqAddress))
 			{
-				ZeroMqAddress = ConfigurationManager.AppSettings["ZeroMqAddress"];
+				throw new ArgumentException("Must supply");
 			}
 			if (string.IsNullOrEmpty(ZeroMqAddress))
 			{
@@ -48,27 +46,27 @@ namespace Test
 		}
 
 		#region Initialize publisher on demand.
-		private PublisherSocket _publisherSocket;
-		private volatile bool _initializePublisherDone = false;
-		private readonly object _initializePublisherLock = new object();
-		readonly ManualResetEvent _publisherReadySignal = new ManualResetEvent(false);
+		private PublisherSocket m_publisherSocket;
+		private volatile bool m_initializePublisherDone = false;
+		private readonly object m_initializePublisherLock = new object();
+		private readonly ManualResetEvent m_publisherReadySignal = new ManualResetEvent(false);
 		private void InitializePublisherOnFirstUse()
 		{
-			if (_initializePublisherDone == false) // Double checked locking.
+			if (m_initializePublisherDone == false) // Double checked locking.
 			{
-				lock (_initializePublisherLock)
+				lock (m_initializePublisherLock)
 				{
-					if (_initializePublisherDone == false)
+					if (m_initializePublisherDone == false)
 					{
 						Console.WriteLine($"Publisher socket binding to: {ZeroMqAddress}");
-						_publisherSocket = new PublisherSocket();
+						m_publisherSocket = new PublisherSocket();
 
 						// Corner case: wait until publisher socket is ready (see code below that waits for
 						// "_publisherReadySignal").
 						NetMQMonitor monitor;
 						{
 							// Must ensure that we have a unique monitor name for every instance of this class.
-							monitor = new NetMQMonitor(_publisherSocket, $"inproc://#PublisherInterProcess#{this.QueueName}",
+							monitor = new NetMQMonitor(m_publisherSocket, $"inproc://#SubjectNetMQ#Publisher#{this.QueueName}#{this.ZeroMqAddress}",
 								SocketEvents.Accepted | SocketEvents.Listening
 								);
 							monitor.Accepted += Publisher_Event_Accepted;
@@ -77,14 +75,14 @@ namespace Test
 						}
 
 
-						_publisherSocket.Options.SendHighWatermark = 1000;
-						_publisherSocket.Bind(this.ZeroMqAddress);
+						m_publisherSocket.Options.SendHighWatermark = 2000 * 1000;
+						m_publisherSocket.Bind(this.ZeroMqAddress);
 
 						// Corner case: wait until publisher socket is ready (see code below that sets
-                        // "_publisherReadySignal").
+						// "_publisherReadySignal").
 						{
 							Stopwatch sw = Stopwatch.StartNew();
-							_publisherReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
+							m_publisherReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
 							Console.Write($"Publisher: Waited {sw.ElapsedMilliseconds} ms for binding.\n");
 						}
 						{
@@ -94,60 +92,58 @@ namespace Test
 							//monitor.Stop();
 							//monitor.Dispose();
 						}
-						_initializePublisherDone = true;
+						m_initializePublisherDone = true;
 					}
 				} // lock
-				Thread.Sleep(100); // Otherwise, the first item we publish may get missed by the subscriber.
+				Thread.Sleep(500); // Otherwise, the first item we publish may get missed by the subscriber.
 			}
 		}
 
 		private void Publisher_Event_Listening(object sender, NetMQMonitorSocketEventArgs e)
 		{
 			Console.Write($"Publisher event: {e.SocketEvent}\n");
-			_publisherReadySignal.Set();
+			m_publisherReadySignal.Set();
 		}
 
 		private void Publisher_Event_Accepted(object sender, NetMQMonitorSocketEventArgs e)
 		{
 			Console.Write($"Publisher event: {e.SocketEvent}\n");
-			_publisherReadySignal.Set();
+			m_publisherReadySignal.Set();
 		}
 		#endregion
 
 		#region Initialize subscriber on demand.
-		private SubscriberSocket _subscriberSocket;
-		private volatile bool _initializeSubscriberDone = false;
-		private Thread _thread;
-
-		readonly ManualResetEvent _subscriberReadySignal = new ManualResetEvent(false);
+		private SubscriberSocket m_subscriberSocket;
+		private volatile bool m_initializeSubscriberDone = false;
+		private Thread m_thread;
+		private readonly ManualResetEvent m_subscriberReadySignal = new ManualResetEvent(false);
 
 		private void InitializeSubscriberOnFirstUse()
 		{
-			if (_initializeSubscriberDone == false) // Double checked locking.
+			if (m_initializeSubscriberDone == false) // Double checked locking.
 			{
-				lock (_subscribersLock)
+				lock (m_subscribersLock)
 				{
-					if (_initializeSubscriberDone == false)
+					if (m_initializeSubscriberDone == false)
 					{
-
 						Console.WriteLine($"Subscriber socket connecting to: {ZeroMqAddress}");
-						_subscriberSocket = new SubscriberSocket();
+						m_subscriberSocket = new SubscriberSocket();
 
 						// Corner case: wait until subscriber socket is ready (see code below that waits for
-                        // "_subscriberReadySignal").
+						// "_subscriberReadySignal").
 						NetMQMonitor monitor;
 						{
 							// Must ensure that we have a unique monitor name for every instance of this class.
-							monitor = new NetMQMonitor(_subscriberSocket, $"inproc://#SubscriberInterProcess#{this.QueueName}#{this.ZeroMqAddress}",
-								SocketEvents.ConnectRetried | SocketEvents.Connected);						
+							monitor = new NetMQMonitor(m_subscriberSocket, $"inproc://#SubjectNetMQ#Subscriber#{this.QueueName}#{this.ZeroMqAddress}",
+								SocketEvents.ConnectRetried | SocketEvents.Connected);
 							monitor.ConnectRetried += Subscriber_Event_ConnectRetried;
-							monitor.Connected += Subscriber_Event_Connected; 
+							monitor.Connected += Subscriber_Event_Connected;
 							monitor.StartAsync();
 						}
 
-						_subscriberSocket.Options.ReceiveHighWatermark = 1000;
-						_subscriberSocket.Connect(this.ZeroMqAddress);
-						_subscriberSocket.Subscribe(this.QueueName);
+						m_subscriberSocket.Options.ReceiveHighWatermark = 2000 * 1000;
+						m_subscriberSocket.Connect(this.ZeroMqAddress);
+						m_subscriberSocket.Subscribe(this.QueueName);
 
 						if (_cancellationTokenSource == null)
 						{
@@ -156,7 +152,7 @@ namespace Test
 
 						ManualResetEvent threadReadySignal = new ManualResetEvent(false);
 
-						_thread = new Thread(() =>
+						m_thread = new Thread(() =>
 						{
 							try
 							{
@@ -164,35 +160,35 @@ namespace Test
 								threadReadySignal.Set();
 								while (_cancellationTokenSource.IsCancellationRequested == false)
 								{
-									string messageTopicReceived = _subscriberSocket.ReceiveFrameString();
+									string messageTopicReceived = m_subscriberSocket.ReceiveFrameString();
 									if (messageTopicReceived != QueueName)
 									{
 										throw new Exception($"Error E65724. We should always subscribe on the queue name '{QueueName}', instead we got '{messageTopicReceived}'.");
 									}
-									var type = _subscriberSocket.ReceiveFrameString();
+									var type = m_subscriberSocket.ReceiveFrameString();
 									switch (type)
 									{
 										// Originated from "OnNext".
 										case "N":
-											T messageReceived = _subscriberSocket.ReceiveFrameBytes().ProtoBufDeserialize<T>();
-											lock (_subscribersLock)
+											T messageReceived = m_subscriberSocket.ReceiveFrameBytes().ProtoBufDeserialize<T>();
+											lock (m_subscribersLock)
 											{
-												_subscribers.ForEach(o => o.OnNext(messageReceived));
+												m_subscribers.ForEach(o => o.OnNext(messageReceived));
 											}
 											break;
 										// Originated from "OnCompleted".
 										case "C":
-											lock (_subscribersLock)
+											lock (m_subscribersLock)
 											{
-												_subscribers.ForEach(o => o.OnCompleted());
+												m_subscribers.ForEach(o => o.OnCompleted());
 											}
 											break;
 										// Originated from "OnException".
 										case "E":
-											Exception ex = _subscriberSocket.ReceiveFrameBytes().ProtoBufDeserialize<Exception>();
-											lock (_subscribersLock)
+											Exception ex = m_subscriberSocket.ReceiveFrameBytes().ProtoBufDeserialize<Exception>();
+											lock (m_subscribersLock)
 											{
-												_subscribers.ForEach(o => o.OnError(ex));
+												m_subscribers.ForEach(o => o.OnError(ex));
 											}
 											break;
 										// Originated from a "Ping" request.
@@ -208,14 +204,14 @@ namespace Test
 							catch (Exception ex)
 							{
 								Console.Write($"Error E23844. Exception in threadName \"{QueueName}\". Thread exiting. Exception: \"{ex.Message}\".\n");
-								lock (_subscribersLock)
+								lock (m_subscribersLock)
 								{
-									this._subscribers.ForEach((ob) => ob.OnError(ex));
+									this.m_subscribers.ForEach((ob) => ob.OnError(ex));
 								}
 							}
-							lock (_subscribersLock)
+							lock (m_subscribersLock)
 							{
-								_subscribers.Clear();
+								m_subscribers.Clear();
 							}
 							_cancellationTokenSource.Dispose();
 						})
@@ -223,16 +219,16 @@ namespace Test
 							Name = this.QueueName,
 							IsBackground = true // Have to set it to background, or else it will not exit when the program exits.
 						};
-						_thread.Start();
+						m_thread.Start();
 
 						// Wait for thread to properly spin up.
 						threadReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
 
 						// Corner case: wait until the publisher socket is ready (see code above that sets
-                        // "_subscriberReadySignal").
+						// "_subscriberReadySignal").
 						{
 							Stopwatch sw = Stopwatch.StartNew();
-							_subscriberReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
+							m_subscriberReadySignal.WaitOne(TimeSpan.FromMilliseconds(3000));
 							Console.Write($"Subscriber: Waited {sw.ElapsedMilliseconds} ms for connection.\n");
 
 							monitor.ConnectRetried -= Subscriber_Event_ConnectRetried;
@@ -245,31 +241,32 @@ namespace Test
 
 						Console.Write("Subscriber: finished setup.\n");
 
-						_initializeSubscriberDone = true;
+						m_initializeSubscriberDone = true;
 					}
 				} // lock
-				Thread.Sleep(100); // Otherwise, the first item we subscribe  to may get missed by the subscriber.
+				Thread.Sleep(500); // Otherwise, the first item we subscribe  to may get missed by the subscriber.
 			}
 		}
 
 		private void Subscriber_Event_Connected(object sender, NetMQMonitorSocketEventArgs e)
 		{
 			Console.Write($"Subscriber event: {e.SocketEvent}\n");
-			_subscriberReadySignal.Set();
+			m_subscriberReadySignal.Set();
 		}
 
 		private void Subscriber_Event_ConnectRetried(object sender, NetMQMonitorIntervalEventArgs e)
 		{
 			Console.Write($"Subscriber event: {e.SocketEvent}\n");
-			_subscriberReadySignal.Set();
+			m_subscriberReadySignal.Set();
 		}
 		#endregion
 
+		#region IObservable<T> (i.e. the subscriber)
 		public IDisposable Subscribe(IObserver<T> observer)
 		{
-			lock (_subscribersLock)
+			lock (m_subscribersLock)
 			{
-				this._subscribers.Add(observer);
+				this.m_subscribers.Add(observer);
 			}
 
 			InitializeSubscriberOnFirstUse();
@@ -278,12 +275,15 @@ namespace Test
 			// unsubscribe all subscribers.
 			return new AnonymousDisposable(() =>
 			{
-				lock (_subscribersLock)
+				lock (m_subscribersLock)
 				{
-					this._subscribers.Remove(observer);
+					this.m_subscribers.Remove(observer);
 				}
 			});
 		}
+		#endregion
+
+		#region Implement IObserver<T> (i.e. the publisher).
 
 		public void OnNext(T message)
 		{
@@ -292,7 +292,7 @@ namespace Test
 				InitializePublisherOnFirstUse();
 
 				// Publish message using ZeroMQ as the transport mechanism.
-				_publisherSocket.SendMoreFrame(QueueName)
+				m_publisherSocket.SendMoreFrame(QueueName)
 					.SendMoreFrame("N") // "N", "E" or "C" for "OnNext", "OnError" or "OnCompleted".
 					.SendFrame(message.ProtoBufSerialize<T>());
 
@@ -323,7 +323,7 @@ namespace Test
 		{
 			InitializePublisherOnFirstUse();
 
-			_publisherSocket.SendMoreFrame(QueueName)
+			m_publisherSocket.SendMoreFrame(QueueName)
 					.SendMoreFrame("E") // "N", "E" or "C" for "OnNext", "OnError" or "OnCompleted".
 					.SendFrame(ex.ProtoBufSerialize<Exception>());
 
@@ -344,27 +344,30 @@ namespace Test
 		{
 			InitializePublisherOnFirstUse();
 
-			_publisherSocket.SendMoreFrame(QueueName)
+			m_publisherSocket.SendMoreFrame(QueueName)
 				.SendFrame("C"); // "N", "E" or "C" for "OnNext", "OnError" or "OnCompleted".
 
 			this.Dispose();
 		}
+		#endregion
 
+		#region Implement IDisposable.
 		public void Dispose()
 		{
-			lock (_subscribersLock)
+			lock (m_subscribersLock)
 			{
-				_subscribers.Clear();
+				m_subscribers.Clear();
 			}
 			_cancellationTokenSource.Cancel();
 
 			// Wait until the thread has exited.
-			bool threadExitedProperly = _thread.Join(TimeSpan.FromSeconds(30));
+			bool threadExitedProperly = m_thread.Join(TimeSpan.FromSeconds(30));
 			if (threadExitedProperly == false)
 			{
 				throw new Exception("Error E62724. Thread did not exit when requested.");
 			}
 		}
+		#endregion
 
 		/// <summary>
 		/// Intent: True if there are any subscribers registered.
@@ -373,52 +376,12 @@ namespace Test
 		{
 			get
 			{
-				lock (_subscribersLock)
+				lock (m_subscribersLock)
 				{
-					return this._subscribers.Count > 0;
+					return this.m_subscribers.Count > 0;
 				}
 			}
 		}
-	}
-
-	[TestFixture]
-	public class UnitTest
-	{
-
-		[Test]
-		public void PubSubShouldNotCrashIfNoThreadSleep()
-		{
-			using (var pub = new PublisherSocket())
-			{
-				using (var sub = new SubscriberSocket())
-				{
-					int port = pub.BindRandomPort("tcp://127.0.0.1");
-					sub.Connect("tcp://127.0.0.1:" + port);
-
-					sub.Subscribe("*");
-
-					Stopwatch sw = Stopwatch.StartNew();
-					{
-						for (int i = 0; i < 50; i++)
-						{
-							pub.SendFrame("*"); // Ping.
-
-							Console.Write("*");
-							string topic;
-							var gotTopic = sub.TryReceiveFrameString(TimeSpan.FromMilliseconds(100), out topic);
-							string ping;
-							var gotPing = sub.TryReceiveFrameString(TimeSpan.FromMilliseconds(100), out ping);
-							if (gotTopic == true)
-							{
-								Console.Write("\n");
-								break;
-							}
-						}
-					}
-					Console.WriteLine($"Connected in {sw.ElapsedMilliseconds} ms.");
-				}
-			}
-		}
-	}
+	}	
 }
 
