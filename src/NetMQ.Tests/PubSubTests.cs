@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
+﻿using System.Threading;
 using NetMQ.Sockets;
 using NUnit.Framework;
 
@@ -157,14 +155,10 @@ namespace NetMQ.Tests
                 sub1.Subscribe("A");
                 sub2.Subscribe("A");
 
-	            Stopwatch sw = Stopwatch.StartNew();
-				sub1.Poll(TimeSpan.FromMilliseconds(500));
-				sub2.Poll(TimeSpan.FromMilliseconds(500));
-				Console.Write($"Elapsed: {sw.ElapsedMilliseconds}.\n");
-				//Thread.Sleep(500);
+                Thread.Sleep(500);
 
-				// Send from pub 1
-				pub1.SendMoreFrame("A").SendFrame("Hello from the first publisher");
+                // Send from pub 1
+                pub1.SendMoreFrame("A").SendFrame("Hello from the first publisher");
 
                 CollectionAssert.AreEqual(new[] { "A", "Hello from the first publisher" }, sub1.ReceiveMultipartStrings());
                 CollectionAssert.AreEqual(new[] { "A", "Hello from the first publisher" }, sub2.ReceiveMultipartStrings());
@@ -189,10 +183,8 @@ namespace NetMQ.Tests
 
                 sub.Subscribe("A");
 
-	            sub.Poll(TimeSpan.FromMilliseconds(500));
-
                 // let the subscriber connect to the publisher before sending a message
-                //Thread.Sleep(500);
+                Thread.Sleep(500);
 
                 pub.SendMoreFrame("A").SendFrame("Hello");
 
@@ -207,40 +199,5 @@ namespace NetMQ.Tests
                 Assert.IsFalse(sub.TrySkipFrame());
             }
         }
-
-	    [Test]
-	    public void PubSubShouldNotCrashIfNoThreadSleep()
-	    {
-			Stopwatch sw = Stopwatch.StartNew();
-			using (var pub = new PublisherSocket())
-		    {
-				pub.Options.SendHighWatermark = 1000;
-				using (var sub = new SubscriberSocket())
-			    {
-				    int port = pub.BindRandomPort("tcp://127.0.0.1");
-				    sub.Connect("tcp://127.0.0.1:" + port);
-
-				    sub.Subscribe("*");
-
-					for (int i = 0; i < 50; i++)
-					{
-						pub.SendMoreFrame("*").SendFrame("P"); ; // Ping.
-
-						Console.Write("*");
-
-						string topic;
-						var gotTopic = sub.TryReceiveFrameString(TimeSpan.FromMilliseconds(100), out topic);
-						string ping;
-						var gotPing = sub.TryReceiveFrameString(TimeSpan.FromMilliseconds(10), out ping);
-						if (gotTopic == true)
-						{
-							Console.Write("\n");
-							break;
-						}
-					}
-				}
-		    }
-			Console.WriteLine($"Connected in {sw.ElapsedMilliseconds} ms.");
-		}
     }
 }
