@@ -1,21 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using NetMQ;
 
 namespace BeaconDemo
 {
     /// <summary>
-    /// From http://netmq.readthedocs.org/en/latest/beacon/
+    /// Originally from http://netmq.readthedocs.org/en/latest/beacon/
     /// </summary>
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
             Console.Title = "NetMQ Beacon Demo";
 

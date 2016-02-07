@@ -461,7 +461,7 @@ namespace NetMQ
                     tickless = timer.When;
                 }
             }
-            // Compute a timeout value - how many milliseconds from now that that earliest-timer will expire.
+            // Compute a timeout value - how many milliseconds from now that the earliest-timer will expire.
             var timeout = (int)(tickless - Clock.NowMs());
             // Use zero to indicate it has already expired.
             if (timeout < 0)
@@ -528,7 +528,7 @@ namespace NetMQ
                     }
                     else
                     {
-                        // Don't pass anything less than 0 to sleep or risk an out of range exception or worse - infinity. Do not sleep on 0 from orginal code.
+                        // Don't pass anything less than 0 to sleep or risk an out of range exception or worse - infinity. Do not sleep on 0 from original code.
                         if (timeout > 0)
                         {
                             //TODO: Do we really want to simply sleep and return, doing nothing during this interval?

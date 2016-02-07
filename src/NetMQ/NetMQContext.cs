@@ -9,7 +9,7 @@ namespace NetMQ
 {
     /// <summary>
     /// NetMQContext is an old concept and is no longer needed. You can create sockets with new keyword, for example new RequestSocket();
-    /// Please note that when creating socket with new keyword the default value for SocketOptions.Linger is zero and not indefinitly like with context.
+    /// Please note that when creating socket with new keyword the default value for SocketOptions.Linger is zero and not indefinitely like with context.
     /// NetMQContext is the context class of the NetMQ message-queueing subsystem.
     /// This contains all of the state-information for the message-queueing subsystem, and provides
     /// methods for socket creation.

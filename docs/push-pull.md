@@ -109,7 +109,7 @@ Here is what we are trying to achieve :
                         Thread.Sleep(int.Parse(workload));
 
                         //send results to sink, sink just needs to know worker
-                        //is done, message content is not important, just the precence of
+                        //is done, message content is not important, just the presence of
                         //a message means worker is done.
                         //See Sink.csproj Proram.cs
                         Console.WriteLine("Sending to Sink");

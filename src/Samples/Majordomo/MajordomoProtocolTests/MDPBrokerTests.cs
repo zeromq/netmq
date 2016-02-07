@@ -257,8 +257,8 @@ namespace MajordomoTests
                 {
                     Assert.That (debugLog.Count, Is.EqualTo (16));
                     Assert.That (debugLog.Count (s => s.Contains ("Received")), Is.EqualTo (3));
-                    Assert.That (debugLog.Contains ("[MDP BROKER DEBUG] Dispatching -> NetMQMessage[C1,,Helo World!] to echo"));
-                    Assert.That (debugLog.Contains ("[MDP BROKER DEBUG] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Helo World!]"));
+                    Assert.That (debugLog.Contains ("[MDP BROKER DEBUG] Dispatching -> NetMQMessage[C1,,Hello World!] to echo"));
+                    Assert.That (debugLog.Contains ("[MDP BROKER DEBUG] REPLY from W1 received and send to C1 -> NetMQMessage[MDPC01,echo,Hello World!]"));
                 }
             }
         }
@@ -617,13 +617,13 @@ namespace MajordomoTests
         {
             var request = new NetMQMessage ();
             // set the request data
-            request.Push ("Helo World!");
+            request.Push ("Hello World!");
             // send the request to the service
             var reply = client.Send (serviceName, request);
 
             Assert.That (reply, Is.Not.Null, "[ECHO CLIENT] REPLY was <null>");
             Assert.That (reply.FrameCount, Is.EqualTo (1));
-            Assert.That (reply.First.ConvertToString (), Is.EqualTo ("Helo World!"));
+            Assert.That (reply.First.ConvertToString (), Is.EqualTo ("Hello World!"));
         }
 
         private static void MultipleRequestWorker (IMDPWorker worker = null, string endpoint = null, int heartbeatinterval = 2500)
@@ -658,7 +658,7 @@ namespace MajordomoTests
 
             var request = new NetMQMessage ();
             // set the request data
-            request.Push ("Helo World!");
+            request.Push ("Hello World!");
             // send the request to the service
             for (int i = 0; i < _NO_OF_RUNS; i++)
                 reply[i] = client.Send (serviceName, request);
@@ -666,7 +666,7 @@ namespace MajordomoTests
             client.Dispose ();
 
             Assert.That (reply, Has.None.Null);
-            Assert.That (reply.All (r => r.First.ConvertToString () == "Helo World!"));
+            Assert.That (reply.All (r => r.First.ConvertToString () == "Hello World!"));
         }
 
         private static void DoubleEchoWorker (IMDPWorker worker, int heartbeatinterval = 2500)

@@ -220,7 +220,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         /// <param name="endian">an Endianness to specify which byte-ordering to use to interpret the source bytes</param>
         /// <param name="i">the index position beyond the offset to start reading the bytes</param>
-        /// <returns>an unsigend long that is read from the bytes of the buffer</returns>
+        /// <returns>an unsigned long that is read from the bytes of the buffer</returns>
         public ulong GetUnsignedLong(Endianness endian, int i)
         {
             // we changed how NetMQ is serializing long to support zeromq, however we still want to support old releases of netmq

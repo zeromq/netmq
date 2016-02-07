@@ -188,7 +188,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get or set the upper limit to to the size for inbound messages.
+        /// Get or set the upper limit to the size for inbound messages.
         /// If a peer sends a message larger than this it is disconnected.
         /// The default value is -1, which means no limit.
         /// </summary>
@@ -220,6 +220,30 @@ namespace NetMQ
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveHighWatermark); }
             set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveHighWatermark, value); }
+        }
+
+        /// <summary>
+        /// The low-water mark for message transmission. 
+        /// This is the number of messages that should be processed before transmission is 
+        /// unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        public int SendLowWatermark
+        {
+            get { return m_socket.GetSocketOption(ZmqSocketOption.SendLowWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.SendLowWatermark, value); }
+        }
+
+        /// <summary>
+        /// The low-water mark for message reception. 
+        /// This is the number of messages that should be processed  before reception is 
+        /// unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        public int ReceiveLowWatermark
+        {
+            get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveLowWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveLowWatermark, value); }
         }
 
         /// <summary>

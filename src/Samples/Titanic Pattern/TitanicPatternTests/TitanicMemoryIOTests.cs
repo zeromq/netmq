@@ -294,7 +294,7 @@ namespace TitanicProtocolTests
 
         #endregion
 
-        #region region Handling of MESSAGES
+        #region Handling of MESSAGES
 
         [Test]
         public void GetMessage_ExistingRequest_ShouldReturnCorrectMessage ()

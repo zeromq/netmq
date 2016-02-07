@@ -13,7 +13,7 @@ namespace NetMQ.Sockets
         /// <summary>
         /// Create a new PairSocket and attach socket to zero or more endpoints.               
         /// </summary>                
-        /// <param name="connectionString">List of NetMQ endpoints, seperated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
+        /// <param name="connectionString">List of NetMQ endpoints, separated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
         /// Default action is connect (if endpoint doesn't start with '@' or '>')</param>
         /// <example><code>var socket = new PairSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>                 
         public PairSocket(string connectionString = null) : base(ZmqSocketType.Pair, connectionString, DefaultAction.Connect)
@@ -30,6 +30,11 @@ namespace NetMQ.Sockets
         {
         }
 
+        /// <summary>
+        /// Create and return an inproc pipe where socket1 is bound and socket2 is connected.
+        /// </summary>
+        /// <param name="socket1">the Bind socket</param>
+        /// <param name="socket2">the Connect socket</param>
         public static void CreateSocketPair(out PairSocket socket1, out PairSocket socket2)
         {
             string address = string.Format("inproc://NetMQSocketPair#{0}", Interlocked.Increment(ref s_sequence));

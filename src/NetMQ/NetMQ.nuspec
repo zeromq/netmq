@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
-    <id>NetMQ</id>
+    <id>NetMQ4</id>
     <version>$version$</version>
-    <title>NetMQ</title>
+    <title>NetMQ4</title>
     <authors>NetMQ</authors>
     <owners>NetMQ</owners>
     <licenseUrl>https://github.com/zeromq/netmq/blob/master/COPYING.LESSER</licenseUrl>
@@ -12,42 +12,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A 100% native C# port of the lightweight high performance messaging library ZeroMQ</description>
     <releaseNotes>
-      Features:
-      * XML Comments
-      * DotNet 3.5 support
-      * Using IO Completion Port
-      * Poller support native sockets
-      * Exceptions and error codes are more expressive
-      * XPub Welcome Message
-      * XPub Manual Subscriptions
-      * Refactoring of Poller methods
-      * Refactoring of Actor
-      * Improve router performance by using MurMurHash
-      * New Send and Receive API
-      * Disable TimeWait option
-      * 16bit methods to NetworkOrderBitsConverter
-      * Improve memory performance by converting a Command class to struct
-      * Serialisable exceptions
-
-
-      Bug Fixes:
-      * Exceptions are serializeable
-      * Fix XPub.Verbose Cast exception
-      * Fix optimization exception on OSX
-      * Fix XSub subscriptions bug
-      * Fix memory overflow issue
-      * Fix bug in YPipe
-      * Fix Identity bug with InProc
-      * Fix Identity is sent on reconnect on Stream Socket
-      * Fix bug with ARM processor
-      * Fix setting Max Sockets bug
-      * Fix disposing leaked native sockets in TCPListener
-      * Fix CreateMonitorSocket causing NetMQContext.Dispose hang
-      * Fix Device.IsRunning is always false
-      * Fix Unbind of random port
-      * Fix proxy with external poller bug
+      NetMQ4 is same as NetMQ without obsolete code.
     </releaseNotes>
-    <copyright>Copyright 2015</copyright>
+    <copyright>Copyright 2016</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>
     <dependencies>
       <dependency id="AsyncIO" version="0.1.18.0" />

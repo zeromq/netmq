@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using NetMQ;
 using NetMQ.Sockets;
 
 namespace BeaconDemo
 {
     /// <summary>
-    /// From the Docs\beacon.md documentation with small modifications for this demo
+    /// Originally from the Docs\beacon.md documentation with small modifications for this demo
     /// </summary>
-    class Bus
+    internal class Bus
     {
         // Actor Protocol
         public const string PublishCommand = "P";
@@ -171,9 +170,7 @@ namespace BeaconDemo
             }
             else if (command == GetHostAddressCommand)
             {
-                var interfaceCollection = new InterfaceCollection();
-                var bindTo = interfaceCollection.Select(x => x.Address).First();
-                var address = bindTo + ":" + m_randomPort;
+                var address = m_beacon.BoundTo + ":" + m_randomPort;
                 m_shim.SendFrame(address);
             }
         }
@@ -190,13 +187,11 @@ namespace BeaconDemo
         {
             // we got another beacon
             // let's check if we already know about the beacon
-            string nodeName;
-            int port = Convert.ToInt32(m_beacon.ReceiveString(out nodeName));
+            var message = m_beacon.Receive();
+            int port;
+            int.TryParse(message.String, out port);
 
-            // remove the port from the peer name
-            nodeName = nodeName.Replace(":" + m_broadcastPort, "");
-
-            NodeKey node = new NodeKey(nodeName, port);
+            NodeKey node = new NodeKey(message.PeerHost, port);
 
             // check if node already exist
             if (!m_nodes.ContainsKey(node))

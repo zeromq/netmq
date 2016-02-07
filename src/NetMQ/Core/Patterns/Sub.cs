@@ -79,7 +79,7 @@ namespace NetMQ.Core.Patterns
                 if (!isMessageSent)
                 {
                     string xMsg = string.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
-                    // TODO: should we change the excepion that is thrown here as AgainException is obsolete?
+                    // TODO: should we change the exception that is thrown here as AgainException is obsolete?
 #pragma warning disable 618                    
                     throw new AgainException(innerException: null, message: xMsg);
 #pragma warning restore 618

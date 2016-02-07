@@ -49,7 +49,7 @@ namespace TitanicCommons
     public interface ITitanicBroker : IDisposable
     {
         /// <summary>
-        ///     event for any loggin information
+        ///     event for any logging information
         /// </summary>
         /// <value>
         ///     any subscriber will receive detailed processing information

@@ -122,7 +122,7 @@ namespace TitanicProtocolTests
          * Testing the main methods of TitanicBroker is complex due to the four task
          * used Run/Request/Reply/Close
          * 
-         *      Taks      incoming              outgoing                   Whereto
+         *      Task      incoming              outgoing                   Whereto
          *      Request                         [empty]                    MDPBroker
          *                [service][request]    [Ok][Guid]                 Requesting Party
          *                                      [Guid]                     Titanic.Run
