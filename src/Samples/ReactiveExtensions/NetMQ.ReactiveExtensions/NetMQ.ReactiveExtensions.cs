@@ -12,21 +12,34 @@ using Test;
 namespace NetMQ.ReactiveExtensions
 {
 	/// <summary>
+	/// Intent: 
+	/// </summary>
+	public enum EnumWhenToCreateConnection
+	{
+		ConnectImmediately,
+		ConnectOnFirstUse
+	}
+
+	/// <summary>
 	///	Intent: Pub/sub across different processes.
 	/// </summary>
 	/// <threadSafe>Yes</threadSafe>
 	public class SubjectNetMQ<T> : IObservable<T>, IObserver<T>, IDisposable
 	{
-		private CancellationTokenSource _cancellationTokenSource;
+		private readonly EnumWhenToCreateConnection m_whenToCreateConnection;
+		private CancellationTokenSource m_cancellationTokenSource;
 		public string QueueName { get; private set; }
 		private readonly List<IObserver<T>> m_subscribers = new List<IObserver<T>>();
 		private readonly object m_subscribersLock = new object();
 
+		private int m_randomPortNumber = 0;
+
 		public string ZeroMqAddress { get; set; } = null;
 
-		public SubjectNetMQ(string zeroMqAddress, string queueName = "default", CancellationTokenSource cancellationTokenSource = default(CancellationTokenSource))
+		public SubjectNetMQ(string zeroMqAddress, string queueName = "default", EnumWhenToCreateConnection whenToCreateConnection = EnumWhenToCreateConnection.ConnectOnFirstUse, CancellationTokenSource cancellationTokenSource = default(CancellationTokenSource))
 		{
-			_cancellationTokenSource = cancellationTokenSource;
+			m_whenToCreateConnection = whenToCreateConnection;
+			m_cancellationTokenSource = cancellationTokenSource;
 			QueueName = queueName;
 			if (string.IsNullOrEmpty(Thread.CurrentThread.Name) == true)
 			{
@@ -35,13 +48,10 @@ namespace NetMQ.ReactiveExtensions
 			}
 
 			ZeroMqAddress = zeroMqAddress;
-			if (string.IsNullOrEmpty(zeroMqAddress))
-			{
-				throw new ArgumentException("Must supply");
-			}
+
 			if (string.IsNullOrEmpty(ZeroMqAddress))
 			{
-				throw new Exception("Error E26624. Must define the address for ZeroMQ.");
+				throw new Exception("Error. Must define the address for ZeroMQ.");
 			}
 		}
 
@@ -76,6 +86,7 @@ namespace NetMQ.ReactiveExtensions
 
 
 						m_publisherSocket.Options.SendHighWatermark = 2000 * 1000;
+
 						m_publisherSocket.Bind(this.ZeroMqAddress);
 
 						// Corner case: wait until publisher socket is ready (see code below that sets
@@ -145,9 +156,9 @@ namespace NetMQ.ReactiveExtensions
 						m_subscriberSocket.Connect(this.ZeroMqAddress);
 						m_subscriberSocket.Subscribe(this.QueueName);
 
-						if (_cancellationTokenSource == null)
+						if (m_cancellationTokenSource == null)
 						{
-							_cancellationTokenSource = new CancellationTokenSource();
+							m_cancellationTokenSource = new CancellationTokenSource();
 						}
 
 						ManualResetEvent threadReadySignal = new ManualResetEvent(false);
@@ -158,7 +169,7 @@ namespace NetMQ.ReactiveExtensions
 							{
 								Console.Write($"Thread initialized.\n");
 								threadReadySignal.Set();
-								while (_cancellationTokenSource.IsCancellationRequested == false)
+								while (m_cancellationTokenSource.IsCancellationRequested == false)
 								{
 									string messageTopicReceived = m_subscriberSocket.ReceiveFrameString();
 									if (messageTopicReceived != QueueName)
@@ -213,7 +224,7 @@ namespace NetMQ.ReactiveExtensions
 							{
 								m_subscribers.Clear();
 							}
-							_cancellationTokenSource.Dispose();
+							m_cancellationTokenSource.Dispose();
 						})
 						{
 							Name = this.QueueName,
@@ -358,7 +369,7 @@ namespace NetMQ.ReactiveExtensions
 			{
 				m_subscribers.Clear();
 			}
-			_cancellationTokenSource.Cancel();
+			m_cancellationTokenSource.Cancel();
 
 			// Wait until the thread has exited.
 			bool threadExitedProperly = m_thread.Join(TimeSpan.FromSeconds(30));
