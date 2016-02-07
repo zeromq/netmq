@@ -40,7 +40,7 @@ namespace NetMQ.Sockets
         /// You can set topic to an empty string to subscribe to everything.
         /// </summary>
         /// <param name="topic">this specifies what text-prefix to subscribe to, or may be an empty-string to specify ALL</param>
-        public new virtual void Subscribe(string topic)
+        public virtual void Subscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
@@ -62,7 +62,7 @@ namespace NetMQ.Sockets
         /// messages that begin with this array of bytes.
         /// </summary>
         /// <param name="topic">this specifies what byte-array prefix to subscribe to</param>
-        public new virtual void Subscribe(byte[] topic)
+        public virtual void Subscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
@@ -81,7 +81,7 @@ namespace NetMQ.Sockets
         /// Remove this socket's subscription to the given topic.
         /// </summary>
         /// <param name="topic">a string denoting which the topic to stop receiving</param>
-        public new virtual void Unsubscribe(string topic)
+        public virtual void Unsubscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
@@ -100,7 +100,7 @@ namespace NetMQ.Sockets
         /// Remove this socket's subscription to the given topic.
         /// </summary>
         /// <param name="topic">a byte-array denoting which the topic to stop receiving</param>
-        public new virtual void Unsubscribe(byte[] topic)
+        public virtual void Unsubscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
