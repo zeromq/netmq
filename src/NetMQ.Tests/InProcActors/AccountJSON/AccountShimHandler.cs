@@ -25,7 +25,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
     /// </summary>
     public class AccountShimHandler : IShimHandler
     {
-        public void Run(PairSocket shim)
+        public void Run(PairSocket shim, params object[] args)
         {
             shim.SignalOK();
 

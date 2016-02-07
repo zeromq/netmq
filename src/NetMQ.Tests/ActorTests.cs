@@ -8,7 +8,7 @@ namespace NetMQ.Tests
         [Test]
         public void Simple()
         {
-            ShimAction shimAction = shim =>
+            ShimAction shimAction = (shim, args) =>
             {
                 shim.SignalOK();
 

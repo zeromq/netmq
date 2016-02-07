@@ -23,7 +23,7 @@ namespace NetMQ.Tests.InProcActors.Echo
     /// </summary>
     public class EchoShimHandler : IShimHandler
     {
-        public void Run(PairSocket shim)
+        public void Run(PairSocket shim, params object[] args)
         {
             shim.SignalOK();
 

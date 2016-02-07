@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Remoting.Channels;
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Sockets;
@@ -15,8 +16,9 @@ namespace NetMQ
         /// <summary>
         /// Execute whatever action this <c>IShimHandler</c> represents against the given shim.
         /// </summary>
-        /// <param name="shim"></param>
-        void Run([NotNull] PairSocket shim);
+        /// <param name="shim">the "other end of the pipe"</param>
+        /// <param name="args">optional arguments passed from the <c>NetMQActor</c> constructor to the Run() action</param>
+        void Run([NotNull] PairSocket shim, params object[] args);
     }
 
     #endregion
@@ -52,7 +54,8 @@ namespace NetMQ
     /// This delegate represents the action for this actor to execute.
     /// </summary>
     /// <param name="shim">the <seealso cref="PairSocket"/> that is the shim to execute this action</param>
-    public delegate void ShimAction(PairSocket shim);
+    /// <param name="args">optional arguments passed from the <c>NetMQActor</c> constructor to the Run() action</param>
+    public delegate void ShimAction(PairSocket shim, params object[] args);
 
     /// <summary>
     /// This delegate represents the action for this actor to execute - along with a state-information object.
@@ -60,7 +63,8 @@ namespace NetMQ
     /// <typeparam name="T">the type to use for the state-information object</typeparam>
     /// <param name="shim">the <seealso cref="PairSocket"/> that is the shim to execute this action</param>
     /// <param name="state">the state-information that the action will use</param>
-    public delegate void ShimAction<in T>(PairSocket shim, T state);
+    /// <param name="args">optional arguments passed from the <c>NetMQActor</c> constructor to the Run() action</param>
+    public delegate void ShimAction<in T>(PairSocket shim, T state, params object[] args);
 
     #endregion
 
@@ -100,7 +104,8 @@ namespace NetMQ
             /// Perform the action upon the given shim, using our state-information.
             /// </summary>
             /// <param name="shim">a <see cref="PairSocket"/> that is the shim to perform the action upon</param>
-            public void Run(PairSocket shim)
+            /// <param name="args">optional arguments passed from the <c>NetMQActor</c> constructor to the Run() action</param>
+            public void Run(PairSocket shim, params object[] args)
             {
                 m_action(shim, m_state);
             }
@@ -123,9 +128,10 @@ namespace NetMQ
             /// Perform the action upon the given shim, using our state-information.
             /// </summary>
             /// <param name="shim">a <see cref="PairSocket"/> that is the shim to perform the action upon</param>
-            public void Run(PairSocket shim)
+            /// <param name="args">optional arguments passed from the <c>NetMQActor</c> constructor to the Run() action</param>
+            public void Run(PairSocket shim, params object[] args)
             {
-                m_action(shim);
+                m_action(shim, args);
             }
         }
 
@@ -142,7 +148,7 @@ namespace NetMQ
 
         #region Creating Actor
 
-        private NetMQActor(PairSocket self, PairSocket shim, [NotNull] IShimHandler shimHandler)
+        private NetMQActor(PairSocket self, PairSocket shim, [NotNull] IShimHandler shimHandler, params object[] args)
         {
             m_shimHandler = shimHandler;
 
@@ -185,7 +191,7 @@ namespace NetMQ
 
             m_shim.Connect(endPoint);
 
-            m_shimThread = new Thread(RunShim) { Name = actorName };
+            m_shimThread = new Thread(() => RunShim(args)) { Name = actorName };
             m_shimThread.Start();
 
             // Mandatory handshake for new actor so that constructor returns only
@@ -198,11 +204,12 @@ namespace NetMQ
         /// Create a new <see cref="NetMQActor"/> with the given shimHandler.
         /// </summary>
         /// <param name="shimHandler">an <c>IShimHandler</c> that provides the Run method</param>
+        /// <param name="args">optional arguments passed to an IShimHandlerArgs Run(PairSocket, params object[]) action</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
-        public static NetMQActor Create([NotNull] IShimHandler shimHandler)
+        public static NetMQActor Create([NotNull] IShimHandler shimHandler, params object[] args)
         {
-            return new NetMQActor(new PairSocket(), new PairSocket(), shimHandler);
+            return new NetMQActor(new PairSocket(), new PairSocket(), shimHandler, args);
         }
 
         /// <summary>
@@ -210,22 +217,24 @@ namespace NetMQ
         /// </summary>
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <param name="state">the state-information - of the generic type T</param>
+        /// <param name="args">optional arguments passed to an IShimHandlerArgs Run(PairSocket, params object[]) action</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
-        public static NetMQActor Create<T>([NotNull] ShimAction<T> action, T state)
+        public static NetMQActor Create<T>([NotNull] ShimAction<T> action, T state, params object[] args)
         {
-            return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler<T>(action, state));
+            return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler<T>(action, state), args);
         }
 
         /// <summary>
         /// Create a new <see cref="NetMQActor"/> with the given <see cref="ShimAction"/>.
         /// </summary>
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
+        /// <param name="args">optional arguments passed to an IShimHandlerArgs Run(PairSocket, params object[]) action</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
         [NotNull]
-        public static NetMQActor Create([NotNull] ShimAction action)
+        public static NetMQActor Create([NotNull] ShimAction action, params object[] args)
         {
-            return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler(action));
+            return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler(action), args);
         }
 
         /// <summary>
@@ -273,11 +282,11 @@ namespace NetMQ
         /// <summary>
         /// Execute the shimhandler's Run method, signal ok and then dispose of the shim.
         /// </summary>
-        private void RunShim()
+        private void RunShim(params object[] args)
         {
             try
             {
-                m_shimHandler.Run(m_shim);
+                m_shimHandler.Run(m_shim, args);
             }
             catch (TerminatingException)
             {

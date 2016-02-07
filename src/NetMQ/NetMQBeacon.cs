@@ -126,7 +126,7 @@ namespace NetMQ
                 return true;
             }
 
-            public void Run(PairSocket shim)
+            public void Run(PairSocket shim, params object[] args)
             {
                 m_pipe = shim;
 
