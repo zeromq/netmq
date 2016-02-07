@@ -134,7 +134,6 @@
     <Compile Include="Devices\StreamerDeviceTests.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="NetMQMonitorTests.cs" />
-    <Compile Include="NetMQSchedulerTest.cs" />
     <Compile Include="NetMQTestRunner.cs" />
     <Compile Include="NetworkOrderBitsConverterTests.cs" />
     <Compile Include="PgmTests.cs" />

@@ -43,25 +43,5 @@ namespace NetMQ
         /// Get whether at least one message may be sent by the socket without blocking.
         /// </summary>
         public bool IsReadyToSend { get; private set; }
-
-        /// <summary>
-        /// Get whether at least one message may be received by the socket without blocking.
-        /// </summary>
-        [Obsolete("Use IsReadyToReceive")]
-        public bool ReceiveReady
-        {
-            get { return IsReadyToReceive; }
-            private set { IsReadyToReceive = value; }
-        }
-
-         /// <summary>
-        /// Get whether at least one message may be sent by the socket without blocking.
-        /// </summary>
-        [Obsolete("Use IsReadyToSend")]
-        public bool SendReady
-        {
-            get { return IsReadyToSend; }
-            private set { IsReadyToSend = value; }
-        }
     }
 }

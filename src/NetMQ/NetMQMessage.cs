@@ -182,16 +182,6 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Add the Data of the given Blob, as a new frame, onto this NetMQMessage.
-        /// </summary>
-        /// <param name="blob">the Blob whose data is to be added as a new frame</param>
-        [Obsolete("Use NetMQFrame instead of blobs")]
-        public void Append([NotNull] Blob blob)
-        {
-            Append(blob.Data);
-        }
-
-        /// <summary>
         /// Add an empty frame to this NetMQMessage.
         /// </summary>
         public void AppendEmptyFrame()
@@ -291,22 +281,6 @@ namespace NetMQ
         public void Push(long value)
         {
             Push(NetworkOrderBitsConverter.GetBytes(value));
-        }
-
-        /// <summary>
-        /// Push a new frame containing the given Data of the given Blob, into the frame-stack of this NetMQMessage.
-        /// </summary>
-        /// <param name="blob">the Blob to create a new frame from</param>
-        /// <remarks>
-        /// The concept is the same as pushing an element onto a stack.
-        /// This creates a new frame from the given data (in this case taken from the Data property of the Blob) and inserts it into the lowest-indexed position of 
-        /// the collection of frames of this NetMQMessage,
-        /// pushing all of the other frames upward in index-position.
-        /// </remarks>
-        [Obsolete("Use NetMQFrame instead of blobs")]
-        public void Push([NotNull] Blob blob)
-        {
-            Push(blob.Data);
         }
 
         /// <summary>

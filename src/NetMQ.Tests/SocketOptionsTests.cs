@@ -9,7 +9,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void DefaultValues()
-        {            
+        {
             using (var socket = new RouterSocket())
             {
                 Assert.IsNull(socket.Options.Identity);
@@ -20,7 +20,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void GetAndSetAllProperties()
-        {            
+        {
             using (var socket = new RouterSocket())
             {
                 socket.Options.Affinity = 1L;
@@ -65,16 +65,6 @@ namespace NetMQ.Tests
                 socket.Options.MulticastHops = 100;
                 Assert.AreEqual(100, socket.Options.MulticastHops);
 
-#pragma warning disable 618
-                socket.Options.ReceiveTimeout = TimeSpan.FromMilliseconds(100);
-                Assert.AreEqual(TimeSpan.FromMilliseconds(100), socket.Options.ReceiveTimeout);
-
-
-                socket.Options.SendTimeout = TimeSpan.FromMilliseconds(100);
-                Assert.AreEqual(TimeSpan.FromMilliseconds(100), socket.Options.SendTimeout);
-
-#pragma warning restore 618
-
                 socket.Options.IPv4Only = true;
                 Assert.AreEqual(true, socket.Options.IPv4Only);
 
@@ -95,11 +85,6 @@ namespace NetMQ.Tests
                 socket.Options.TcpKeepaliveInterval = TimeSpan.FromMilliseconds(100);
                 Assert.AreEqual(TimeSpan.FromMilliseconds(100), socket.Options.TcpKeepaliveInterval);
 
-#pragma warning disable 618
-                socket.Options.TcpAcceptFilter = "1.0.0.0:1234";
-#pragma warning restore 618
-//                Assert.AreEqual("1.0.0.0:1234", socket.Options.TcpAcceptFilter);
-
                 socket.Options.DelayAttachOnConnect = true;
                 Assert.AreEqual(true, socket.Options.DelayAttachOnConnect);
 
@@ -113,7 +98,7 @@ namespace NetMQ.Tests
                 socket.Options.DisableTimeWait = true;
                 Assert.IsTrue(socket.Options.DisableTimeWait);
             }
-            
+
             using (var socket = new XPublisherSocket())
             {
                 socket.Options.XPubVerbose = true;

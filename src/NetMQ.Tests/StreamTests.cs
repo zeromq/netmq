@@ -9,7 +9,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void StreamToStream()
-        {            
+        {
             using (var server = new StreamSocket())
             using (var client = new StreamSocket())
             {

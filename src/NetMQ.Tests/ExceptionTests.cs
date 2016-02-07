@@ -10,13 +10,12 @@ namespace NetMQ.Tests
     [TestFixture]
     public class ExceptionTests
     {
-        [Test, Obsolete]
+        [Test]
         public void Serialisation()
         {
             RoundTrip(NetMQException.Create("Hello", ErrorCode.BaseErrorNumber));
             RoundTrip(new AddressAlreadyInUseException("Hello"));
             RoundTrip(new EndpointNotFoundException("Hello"));
-            RoundTrip(new AgainException("Hello"));
             RoundTrip(new TerminatingException("Hello"));
             RoundTrip(new InvalidException("Hello"));
             RoundTrip(new FaultException("Hello"));
@@ -46,14 +45,6 @@ namespace NetMQ.Tests
         {
             var before = new EndpointNotFoundException("Hello");
             Assert.AreEqual(ErrorCode.EndpointNotFound, before.ErrorCode);
-            Assert.AreEqual("Hello", before.Message);
-        }
-
-        [Test, Obsolete]
-        public void AgainException()
-        {
-            var before = new AgainException("Hello");
-            Assert.AreEqual(ErrorCode.TryAgain, before.ErrorCode);
             Assert.AreEqual("Hello", before.Message);
         }
 

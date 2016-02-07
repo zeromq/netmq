@@ -10,14 +10,13 @@ namespace NetMQ.Sockets
     public class PushSocket : NetMQSocket
     {
         /// <summary>
-        /// Create a new PushSocket and attach socket to zero or more endpoints.               
-        /// </summary>                
+        /// Create a new PushSocket and attach socket to zero or more endpoints.
+        /// </summary>
         /// <param name="connectionString">List of NetMQ endpoints, separated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
         /// Default action is connect (if endpoint doesn't start with '@' or '>')</param>
-        /// <example><code>var socket = new PushSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>               
+        /// <example><code>var socket = new PushSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>
         public PushSocket(string connectionString = null) : base(ZmqSocketType.Push, connectionString, DefaultAction.Connect)
         {
-            
         }
 
         /// <summary>
@@ -27,14 +26,6 @@ namespace NetMQ.Sockets
         internal PushSocket(SocketBase socketHandle)
             : base(socketHandle)
         {
-        }
-
-        /// <summary><see cref="PushSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>
-        /// <exception cref="NotSupportedException">Receive is not supported.</exception>
-        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
-        public override void Receive(ref Msg msg, SendReceiveOptions options)
-        {
-            throw new NotSupportedException("PushSocket doesn't support receiving");
         }
 
         /// <summary><see cref="PushSocket"/> doesn't support sending, so this override throws <see cref="NotSupportedException"/>.</summary>

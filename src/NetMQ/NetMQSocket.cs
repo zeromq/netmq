@@ -361,31 +361,6 @@ namespace NetMQ
 
         #region Receiving messages
 
-        /// <summary>Receive the next message from this socket.</summary>
-        /// <remarks>Whether the request blocks or not is controlled by <paramref name="options"/>.</remarks>
-        /// <param name="msg">The Msg object to put it in</param>
-        /// <param name="options">Either <see cref="SendReceiveOptions.None"/>, or <see cref="SendReceiveOptions.DontWait"/>.
-        /// <see cref="SendReceiveOptions.SendMore"/> is ignored.</param>
-        /// <exception cref="AgainException">The receive operation timed out.</exception>
-        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
-        public virtual void Receive(ref Msg msg, SendReceiveOptions options)
-        {
-            // This legacy method adapts the newer nothrow API to the older AgainException one.
-
-            if ((options & SendReceiveOptions.DontWait) != 0)
-            {
-                // User specified DontWait, so use a zero timeout.
-                if (!m_socketHandle.TryRecv(ref msg, TimeSpan.Zero))
-                    throw new AgainException();
-            }
-            else
-            {
-                // User is expecting to wait, however we must still consider the socket's (obsolete) ReceiveTimeout.
-                if (!m_socketHandle.TryRecv(ref msg, Options.ReceiveTimeout))
-                    throw new AgainException();
-            }
-        }
-
         /// <summary>Attempt to receive a message for the specified amount of time.</summary>
         /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message
         /// data should be placed.</param>
@@ -402,35 +377,6 @@ namespace NetMQ
         #region Sending messages
 
         /// <summary>
-        /// Send the given Msg out upon this socket.
-        /// The message content is in the form of a byte-array that Msg contains.
-        /// </summary>
-        /// <param name="msg">the Msg struct that contains the data and the options for this transmission</param>
-        /// <param name="options">a SendReceiveOptions value that can specify the DontWait or SendMore bits (or None)</param>
-        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
-        /// <exception cref="AgainException">The send operation timed out.</exception>
-        [Obsolete("Use Send(ref Msg, bool) or TrySend(ref Msg,TimeSpan, bool) instead.")]
-        public virtual void Send(ref Msg msg, SendReceiveOptions options)
-        {
-            bool more = (options & SendReceiveOptions.SendMore) != 0;
-
-            // This legacy method adapts the newer nothrow API to the older AgainException one.
-            if ((options & SendReceiveOptions.DontWait) != 0)
-            {
-                // User specified DontWait, so use a zero timeout.
-                if (!m_socketHandle.TrySend(ref msg, TimeSpan.Zero, more))
-                    throw new AgainException();
-            }
-            else
-            {
-                // User is expecting to wait, however we must still consider the socket's (obsolete) SendTimeout.
-                if (!m_socketHandle.TrySend(ref msg, Options.SendTimeout, more))
-                    throw new AgainException();
-            }
-        }
-
-        /// <summary>
         /// Send a message if one is available within <paramref name="timeout"/>.
         /// </summary>
         /// <param name="msg">An object with message's data to send.</param>
@@ -444,87 +390,6 @@ namespace NetMQ
         }
 
         #endregion
-
-        #region Unsubscribe (obsolete)
-
-        /// <summary>
-        /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
-        /// </summary>
-        /// <param name="topic">a string denoting the topic to subscribe to</param>
-        /// <remarks>
-        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
-        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
-        /// This is valid only for Subscriber and XSubscriber sockets.
-        /// </remarks>
-        [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
-        public virtual void Subscribe(string topic)
-        {
-            SetSocketOption(ZmqSocketOption.Subscribe, topic);
-        }
-
-        /// <summary>
-        /// Subscribe this socket to messages that have the given topic. This is valid only for Subscriber and XSubscriber sockets.
-        /// </summary>
-        /// <param name="topic">a byte-array denoting the topic to subscribe to</param>
-        /// <remarks>
-        /// You subscribe a socket to a given topic when you want that socket to receive messages of that topic.
-        /// A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
-        /// This is valid only for Subscriber and XSubscriber sockets.
-        /// </remarks>
-        [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
-        public virtual void Subscribe(byte[] topic)
-        {
-            SetSocketOption(ZmqSocketOption.Subscribe, topic);
-        }
-
-        /// <summary>
-        /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
-        /// </summary>
-        /// <param name="topic">a string denoting the topic to unsubscribe from</param>
-        /// <remarks>
-        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
-        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
-        /// This is valid only for Subscriber and XSubscriber sockets.
-        /// </remarks>
-        [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
-        public virtual void Unsubscribe(string topic)
-        {
-            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
-        }
-
-        /// <summary>
-        /// Un-subscribe this socket from the given topic. This is valid only for Subscriber and XSubscriber sockets.
-        /// </summary>
-        /// <param name="topic">a byte-array denoting the topic to unsubscribe from</param>
-        /// <remarks>
-        /// You un-subscribe a socket from the given topic when you no longer want that socket to receive
-        /// messages of that topic. A topic is simply a specific prefix (in the form of a byte-array or the equivalent text).
-        /// This is valid only for Subscriber and XSubscriber sockets.
-        /// </remarks>
-        [Obsolete("Do not use this method if the socket is different from Subscriber and XSubscriber")]
-        public virtual void Unsubscribe(byte[] topic)
-        {
-            SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Listen to the given endpoint for SocketEvent events.
-        /// </summary>
-        /// <param name="endpoint">A string denoting the endpoint to monitor</param>
-        /// <param name="events">The specific <see cref="SocketEvent"/> events to report on. Defaults to <see cref="SocketEvent.All"/> if omitted.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="endpoint"/> cannot be empty or whitespace.</exception>
-        /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
-        /// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="endpoint"/> is not supported.</exception>
-        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
-        [Obsolete("Use overload that accepts SocketEvents (plural) instead")]
-        public void Monitor([NotNull] string endpoint, SocketEvent events = SocketEvent.All)
-        {
-            Monitor(endpoint, (SocketEvents)events);
-        }
 
         /// <summary>
         /// Listen to the given endpoint for SocketEvent events.

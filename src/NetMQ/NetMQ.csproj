@@ -98,10 +98,6 @@
     <Compile Include="ISocketPollableCollection.cs" />
     <Compile Include="NetMQActor.cs" />
     <Compile Include="EventDelegator.cs" />
-    <Compile Include="InProcActors\Actor.cs" />
-    <Compile Include="InProcActors\IShimHandler.cs" />
-    <Compile Include="InProcActors\KnownMessages.cs" />
-    <Compile Include="InProcActors\Shim.cs" />
     <Compile Include="InterfaceCollection.cs" />
     <Compile Include="ISocketPollable.cs" />
     <Compile Include="IReceivingSocket.cs" />
@@ -109,10 +105,8 @@
     <Compile Include="NetMQQueue.cs" />
     <Compile Include="NetMQProactor.cs" />
     <Compile Include="NetMQPoller.cs" />
-    <Compile Include="NetMQScheduler.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
-    <Compile Include="ErrorPollingException.cs" />
     <Compile Include="NetMQFrame.cs" />
     <Compile Include="IOutgoingSocket.cs" />
     <Compile Include="Monitoring\NetMQMonitorEventArgs.cs" />
@@ -171,11 +165,9 @@
     <Compile Include="ZmqNamespacePlaceholder.cs" />
     <Compile Include="Core\Address.cs" />
     <Compile Include="Endianness.cs" />
-    <Compile Include="SendReceiveOptions.cs" />
     <Compile Include="SocketEvents.cs" />
     <Compile Include="PollEvents.cs" />
     <Compile Include="Core\Utils\AtomicCounter.cs" />
-    <Compile Include="Blob.cs" />
     <Compile Include="BufferPool.cs" />
     <Compile Include="Core\Utils\ByteArrayEqualityComparer.cs" />
     <Compile Include="Core\Utils\StringLib.cs" />
@@ -262,7 +254,9 @@
     <None Include="packages.NetMQ.config" />
     <Compile Include="SendReceiveConstants.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="InProcActors\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

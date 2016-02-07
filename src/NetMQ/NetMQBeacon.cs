@@ -247,23 +247,6 @@ namespace NetMQ
         [CanBeNull] private string m_hostName;
 
         /// <summary>
-        /// Create a new NetMQBeacon, contained within the given context.
-        /// </summary>
-        /// <param name="context">the NetMQContext to contain this new socket</param>
-        [Obsolete("Use non context version")]
-        public NetMQBeacon([NotNull] NetMQContext context)
-        {
-            m_actor = NetMQActor.Create(context, new Shim());
-
-            EventHandler<NetMQActorEventArgs> onReceive = (sender, e) =>
-                m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
-
-            m_receiveEvent = new EventDelegator<NetMQBeaconEventArgs>(
-                () => m_actor.ReceiveReady += onReceive,
-                () => m_actor.ReceiveReady -= onReceive);
-        }
-
-        /// <summary>
         /// Create a new NetMQBeacon.
         /// </summary>
         public NetMQBeacon()

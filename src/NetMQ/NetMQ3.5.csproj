@@ -94,7 +94,6 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Blob.cs" />
     <Compile Include="BufferPool.cs" />
     <Compile Include="Core\Address.cs" />
     <Compile Include="Core\Command.cs" />
@@ -201,13 +200,10 @@
     <Compile Include="Monitoring\NetMQMonitorEventArgs.cs" />
     <Compile Include="NetMQMessage.cs" />
     <Compile Include="NetMQSocket.cs" />
-    <Compile Include="NetMQContext.cs" />
     <Compile Include="NetMQSocketEventArgs.cs" />
-    <Compile Include="Poller.cs" />
     <Compile Include="PollEvents.cs" />
     <Compile Include="ReceivingSocketExtensions.cs" />
     <Compile Include="SendReceiveConstants.cs" />
-    <Compile Include="SendReceiveOptions.cs" />
     <Compile Include="SocketEvents.cs" />
     <Compile Include="Sockets\DealerSocket.cs" />
     <Compile Include="Monitoring\NetMQMonitor.cs" />
@@ -227,7 +223,6 @@
     <Compile Include="Sockets\XPublisherSocket.cs" />
     <Compile Include="Sockets\XSubscriberSocket.cs" />
     <Compile Include="NetMQTimer.cs" />
-    <Compile Include="ZmqNamespacePlaceholder.cs" />
     <Compile Include="ZmqSocketType.cs" />
     <None Include="NetMQ.nuspec" />
     <None Include="NetMQ.snk" />
