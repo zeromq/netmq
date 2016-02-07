@@ -84,13 +84,13 @@ namespace NetMQ
         /// <summary>
         /// Get the number of bytes within the Data property.
         /// </summary>
-        public int Size { get; internal set; }
+        public int Size { get; private set; }
 
         /// <summary>
         /// Gets the position of the first element in the Data property delimited by the message,
         /// relative to the start of the original array.
         /// </summary>
-        public int Offset { get; internal set; }
+        public int Offset { get; private set; }
 
         #region MsgType
 
