@@ -25,7 +25,7 @@ namespace NetMQ.ReactiveExtensions.SampleClient
 	}
 
 	[ProtoContract]
-	public struct MyMessage
+	public class MyMessage
 	{
 		public MyMessage(int num, string name)
 		{
