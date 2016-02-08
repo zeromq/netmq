@@ -126,7 +126,7 @@ namespace NetMQ.Core.Utils
         {
             T value = m_beginChunk.Values[m_beginPositionInChunk];
             m_beginChunk.Values[m_beginPositionInChunk] = default(T);
-            
+
             m_beginPositionInChunk++;
             if (m_beginPositionInChunk == m_chunkSize)
             {
@@ -202,7 +202,7 @@ namespace NetMQ.Core.Utils
             // Capturing and removing the unpushed value from chunk.
             T value = m_backChunk.Values[m_backPositionInChunk];
             m_backChunk.Values[m_backPositionInChunk] = default(T);
-            
+
             return value;
         }
     }

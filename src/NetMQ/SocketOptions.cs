@@ -38,16 +38,6 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Unused.
-        /// </summary>
-        [Obsolete("This property doesn't effect NetMQ anymore")]
-        public bool CopyMessages
-        {
-            get { return false; }
-            set { }
-        }
-
-        /// <summary>
         /// Get or set unique identity of the socket, from a message-queueing router's perspective.
         /// This is a byte-array of at most 255 bytes.
         /// </summary>
@@ -86,17 +76,6 @@ namespace NetMQ
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.SendBuffer); }
             set { m_socket.SetSocketOption(ZmqSocketOption.SendBuffer, value); }
-        }
-
-        /// <summary>
-        /// Get or set the size of the receive buffer for the specified socket.
-        /// A value of zero means that the OS default is in effect.
-        /// </summary>
-        [Obsolete("Use ReceiveBuffer instead")]
-        public int ReceivevBuffer
-        {
-            get { return ReceiveBuffer; }
-            set { ReceiveBuffer = value; }
         }
 
         /// <summary>
@@ -223,9 +202,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// The low-water mark for message transmission. 
-        /// This is the number of messages that should be processed before transmission is 
-        /// unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// The low-water mark for message transmission.
+        /// This is the number of messages that should be processed before transmission is
+        /// unblocked (in case it was blocked by reaching high-watermark). The default value is
         /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
         /// </summary>
         public int SendLowWatermark
@@ -235,9 +214,9 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// The low-water mark for message reception. 
-        /// This is the number of messages that should be processed  before reception is 
-        /// unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// The low-water mark for message reception.
+        /// This is the number of messages that should be processed  before reception is
+        /// unblocked (in case it was blocked by reaching high-watermark). The default value is
         /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
         /// </summary>
         public int ReceiveLowWatermark
@@ -258,29 +237,6 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get or set the amount of time after which a synchronous receive call will time out.
-        /// </summary>
-        [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
-        public TimeSpan ReceiveTimeout
-        {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReceiveTimeout); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReceiveTimeout, value); }
-        }
-
-        /// <summary>
-        /// Specifies the amount of time after which a synchronous send call will time out.
-        /// A value of 0 means Send will return immediately, with a EAGAIN error if the message cannot be sent.
-        /// A value of -1 means to block until the message is sent.
-        /// TODO: May need to update this explanation.
-        /// </summary>
-        [Obsolete("Pass a TimeSpan value directly to socket send methods instead.")]
-        public TimeSpan SendTimeout
-        {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout, value); }
-        }
-
-        /// <summary>
         /// Get or set whether the underlying socket is for IPv4 only (not IPv6),
         /// as opposed to one that allows connections with either IPv4 or IPv6.
         /// </summary>
@@ -288,17 +244,6 @@ namespace NetMQ
         {
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.IPv4Only); }
             set { m_socket.SetSocketOption(ZmqSocketOption.IPv4Only, value); }
-        }
-
-        /// <summary>
-        /// Get the last endpoint bound for TCP and IPC transports.
-        /// The returned value will be a string in the form of a ZMQ DSN.
-        /// </summary>
-        [Obsolete("Use LastEndpoint instead")]
-        [CanBeNull]
-        public string GetLastEndpoint
-        {
-            get { return LastEndpoint; }
         }
 
         /// <summary>
@@ -341,15 +286,6 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Unused
-        /// </summary>
-        [Obsolete("This option is not supported and has no effect")]
-        public int TcpKeepaliveCnt
-        {
-            set { /* m_socket.SetSocketOption(ZmqSocketOption.TcpKeepaliveCnt, value); */ }
-        }
-
-        /// <summary>
         /// Get or set the keep-alive time - the duration between two keepalive transmissions in idle condition.
         /// The TCP keepalive period is required by socket implementers to be configurable and by default is
         /// set to no less than 2 hours.
@@ -378,12 +314,6 @@ namespace NetMQ
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl, value); }
         }
 
-        [Obsolete("This feature has not been implemented and will be removed.")]
-        public string TcpAcceptFilter
-        {
-            set { }
-        }
-
         /// <summary>
         /// Get or set the attach-on-connect value.
         /// If set to true, this will delay the attachment of a pipe on connect until
@@ -408,15 +338,14 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.XpubVerbose, value); }
         }
 
-
         /// <summary>
         /// This applies only to publisher sockets.
         /// Set whether to support broadcast functionality
         /// </summary>
-        public bool XPubBroadcast {
+        public bool XPubBroadcast
+        {
             set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherBroadcast, value); }
         }
-
 
         public bool RouterRawSocket
         {

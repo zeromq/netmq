@@ -50,7 +50,6 @@ namespace NetMQ.Core.Patterns
         /// <param name="optionValue">the value to set the option to</param>
         /// <returns><c>true</c> if successful</returns>
         /// <exception cref="InvalidException">optionValue must be a String or a byte-array.</exception>
-        /// <exception cref="AgainException">XSend must return true.</exception>
         protected override bool XSetSocketOption(ZmqSocketOption option, object optionValue)
         {
             // Only subscribe/unsubscribe options are supported
@@ -74,16 +73,10 @@ namespace NetMQ.Core.Patterns
             try
             {
                 // Pass it further on in the stack.
-                bool isMessageSent = base.XSend(ref msg);
+                var isMessageSent = base.XSend(ref msg);
 
                 if (!isMessageSent)
-                {
-                    string xMsg = string.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue);
-                    // TODO: should we change the exception that is thrown here as AgainException is obsolete?
-#pragma warning disable 618                    
-                    throw new AgainException(innerException: null, message: xMsg);
-#pragma warning restore 618
-                }
+                    throw new Exception(string.Format("in Sub.XSetSocketOption({0}, {1}), XSend returned false.", option, optionValue));
             }
             finally
             {

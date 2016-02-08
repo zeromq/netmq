@@ -228,46 +228,6 @@ namespace NetMQ
             return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler(action));
         }
 
-        /// <summary>
-        /// Create a new <see cref="NetMQActor"/> with the given context and shimHandler.
-        /// </summary>
-        /// <param name="context">the context for this actor to live within</param>
-        /// <param name="shimHandler">an <c>IShimHandler</c> that provides the Run method</param>
-        /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [Obsolete("Use non context version")]
-        [NotNull]
-        public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] IShimHandler shimHandler)
-        {
-            return new NetMQActor(context.CreatePairSocket(), context.CreatePairSocket(), shimHandler);
-        }
-
-        /// <summary>
-        /// Create a new <c>NetMQActor</c> with the given context, action, and state-information.
-        /// </summary>
-        /// <param name="context">the context for this actor to live within</param>
-        /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
-        /// <param name="state">the state-information - of the generic type T</param>
-        /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [Obsolete("Use non context version")]
-        [NotNull]
-        public static NetMQActor Create<T>([NotNull] NetMQContext context, [NotNull] ShimAction<T> action, T state)
-        {
-            return new NetMQActor(context.CreatePairSocket(), context.CreatePairSocket(), new ActionShimHandler<T>(action, state));
-        }
-
-        /// <summary>
-        /// Create a new <c>NetMQActor</c> with the given context and <see cref="ShimAction"/>.
-        /// </summary>
-        /// <param name="context">the context for this actor to live within</param>
-        /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
-        /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [Obsolete("Use non context version")]
-        [NotNull]
-        public static NetMQActor Create([NotNull] NetMQContext context, [NotNull] ShimAction action)
-        {
-            return new NetMQActor(context.CreatePairSocket(), context.CreatePairSocket(), new ActionShimHandler(action));
-        }
-
         #endregion
 
         /// <summary>
@@ -293,20 +253,6 @@ namespace NetMQ
         /// Transmit the given Msg over this actor's own socket.
         /// </summary>
         /// <param name="msg">the <c>Msg</c> to transmit</param>
-        /// <param name="options">this denotes any of the DontWait and SendMore flags be set</param>
-        /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        /// <exception cref="FaultException"><paramref name="msg"/> is not initialised.</exception>
-        /// <exception cref="AgainException">The send operation timed out.</exception>
-        [Obsolete("Use Send(ref Msg,bool) or TrySend(ref Msg,TimeSpan,bool) instead.")]
-        public void Send(ref Msg msg, SendReceiveOptions options)
-        {
-            m_self.Send(ref msg, options);
-        }
-
-        /// <summary>
-        /// Transmit the given Msg over this actor's own socket.
-        /// </summary>
-        /// <param name="msg">the <c>Msg</c> to transmit</param>
         /// <param name="timeout">The maximum length of time to try and send a message. If <see cref="TimeSpan.Zero"/>, no
         /// wait occurs.</param>
         /// <param name="more">Indicate if another frame is expected after this frame</param>
@@ -319,13 +265,6 @@ namespace NetMQ
         }
 
         #region IReceivingSocket
-
-        /// <exception cref="AgainException">The receive operation timed out.</exception>
-        [Obsolete("Use Receive(ref Msg) or TryReceive(ref Msg,TimeSpan) instead.")]
-        public void Receive(ref Msg msg, SendReceiveOptions options)
-        {
-            m_self.Receive(ref msg, options);
-        }
 
         /// <summary>
         /// Attempt to receive a message for the specified period of time, returning true if successful or false if it times-out.

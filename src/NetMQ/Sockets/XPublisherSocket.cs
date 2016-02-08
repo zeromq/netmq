@@ -11,14 +11,13 @@ namespace NetMQ.Sockets
     public class XPublisherSocket : NetMQSocket
     {
         /// <summary>
-        /// Create a new XPublisherSocket and attach socket to zero or more endpoints.               
-        /// </summary>                
+        /// Create a new XPublisherSocket and attach socket to zero or more endpoints.
+        /// </summary>
         /// <param name="connectionString">List of NetMQ endpoints, separated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
         /// Default action is bind (if endpoint doesn't start with '@' or '>')</param>
-        /// <example><code>var socket = new XPublisherSocket(">tcp://127.0.0.1:5555,>127.0.0.1:55556");</code></example>  
+        /// <example><code>var socket = new XPublisherSocket(">tcp://127.0.0.1:5555,>127.0.0.1:55556");</code></example>
         public XPublisherSocket(string connectionString = null) : base(ZmqSocketType.Xpub, connectionString, DefaultAction.Bind)
         {
-            
         }
 
         /// <summary>
@@ -34,7 +33,7 @@ namespace NetMQ.Sockets
         /// In case of socket set to manual mode will subscribe the last subscriber to the topic
         /// </summary>
         /// <param name="topic">a string specifying the Topic to subscribe to</param>
-        public new virtual void Subscribe(string topic)
+        public virtual void Subscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
@@ -53,7 +52,7 @@ namespace NetMQ.Sockets
         /// In case of socket set to manual mode will subscribe the last subscriber to the topic
         /// </summary>
         /// <param name="topic">a byte-array specifying the Topic to subscribe to</param>
-        public new virtual void Subscribe(byte[] topic)
+        public virtual void Subscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOption.Subscribe, topic);
         }
@@ -62,7 +61,7 @@ namespace NetMQ.Sockets
         /// In case of socket set to manual mode will unsubscribe the last subscriber from a topic
         /// </summary>
         /// <param name="topic">a string specifying the Topic to unsubscribe from</param>
-        public new virtual void Unsubscribe(string topic)
+        public virtual void Unsubscribe(string topic)
         {
             SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }
@@ -81,7 +80,7 @@ namespace NetMQ.Sockets
         /// In case of socket set to manual mode will unsubscribe the last subscriber from a topic
         /// </summary>
         /// <param name="topic">a byte-array specifying the Topic to unsubscribe from</param>
-        public new virtual void Unsubscribe(byte[] topic)
+        public virtual void Unsubscribe(byte[] topic)
         {
             SetSocketOption(ZmqSocketOption.Unsubscribe, topic);
         }

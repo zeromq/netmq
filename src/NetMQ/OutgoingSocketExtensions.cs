@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using JetBrains.Annotations;
 
 namespace NetMQ
@@ -164,100 +163,6 @@ namespace NetMQ
            bool more = false)
         {
             return TrySendFrame(socket, TimeSpan.Zero, data, length, more);
-        }
-
-        #endregion
-
-        #region Obsolete
-
-        /// <summary>
-        /// Transmit a byte-array of data over this socket.
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>
-        /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
-        /// <param name="options">options to control how the data is sent</param>
-        [Obsolete("Use SendFrame or TrySendFrame")]
-        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, SendReceiveOptions options)
-        {
-            var msg = new Msg();
-            msg.InitPool(length);
-
-            Buffer.BlockCopy(data, 0, msg.Data, 0, length);
-
-            socket.Send(ref msg, options);
-
-            msg.Close();
-        }
-
-        /// <summary>
-        /// Transmit a byte-array of data over this socket.
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>
-        /// <param name="length">the number of bytes to send</param>
-        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
-        /// <param name="sendMore">set this flag to true to signal that you will be immediately sending another message (optional: default is false)</param>
-        [Obsolete("Use SendFrame or TrySendFrame")]
-        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false, bool sendMore = false)
-        {
-            var options = SendReceiveOptions.None;
-
-            if (dontWait)
-            {
-                options |= SendReceiveOptions.DontWait;
-            }
-
-            if (sendMore)
-            {
-                options |= SendReceiveOptions.SendMore;
-            }
-
-            socket.Send(data, length, options);
-        }
-
-        /// <summary>
-        /// Transmit a byte-array of data over this socket.
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>
-        [Obsolete("Use SendFrame or TrySendFrame")]
-        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data)
-        {
-            socket.Send(data, data.Length);
-        }
-
-        /// <summary>
-        /// Transmit a string-message of data over this socket, while indicating that more is to come
-        /// (the SendMore flag is set to true).
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>
-        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
-        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
-        [NotNull]
-        [Obsolete("Use SendMoreFrame or TrySendFrame")]
-        public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, bool dontWait = false)
-        {
-            socket.Send(data, data.Length, dontWait, true);
-            return socket;
-        }
-
-        /// <summary>
-        /// Transmit a string-message of data over this socket, while indicating that more is to come
-        /// (the SendMore flag is set to true).
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="data">the byte-array of data to send</param>
-        /// <param name="length">the number of bytes to send</param>
-        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
-        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
-        [NotNull]
-        [Obsolete("Use SendMoreFrame or TrySendFrame")]
-        public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] byte[] data, int length, bool dontWait = false)
-        {
-            socket.Send(data, length, dontWait, true);
-            return socket;
         }
 
         #endregion
@@ -516,108 +421,6 @@ namespace NetMQ
 
         #endregion
 
-        #region obsolete
-
-        /// <summary>
-        /// Transmit a string-message of data over this socket. The string will be encoded into bytes using the specified Encoding.
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">a string containing the message to send</param>
-        /// <param name="encoding">the Encoding to use when converting the message-string into bytes</param>
-        /// <param name="options">use this to specify which of the DontWait and SendMore flags to set</param>
-        [Obsolete("Use SendFrame or TrySendFrame")]
-        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, SendReceiveOptions options)
-        {
-            var msg = new Msg();
-
-            // Count the number of bytes required to encode the string.
-            // Note that non-ASCII strings may not have an equal number of characters
-            // and bytes. The encoding must be queried for this answer.
-            // With this number, request a buffer from the pool.
-            msg.InitPool(encoding.GetByteCount(message));
-
-            // Encode the string into the buffer
-            encoding.GetBytes(message, 0, message.Length, msg.Data, 0);
-
-            socket.Send(ref msg, options);
-
-            msg.Close();
-        }
-
-        /// <summary>
-        /// Transmit a string-message of data over this socket. The string will be encoded into bytes using the specified Encoding.
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">a string containing the message to send</param>
-        /// <param name="encoding">the Encoding to use when converting the message-string into bytes</param>
-        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
-        /// <param name="sendMore">set this flag to true to signal that you will be immediately sending another message (optional: default is false)</param>
-        [Obsolete("Use SendFrame or TrySendFrame")]
-        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false, bool sendMore = false)
-        {
-            var options = SendReceiveOptions.None;
-
-            if (dontWait)
-            {
-                options |= SendReceiveOptions.DontWait;
-            }
-
-            if (sendMore)
-            {
-                options |= SendReceiveOptions.SendMore;
-            }
-
-            socket.Send(message, encoding, options);
-        }
-
-        /// <summary>
-        /// Transmit a string-message of data over this socket. The string will be encoded into bytes using the default Encoding (ASCII).
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">a string containing the message to send</param>
-        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
-        /// <param name="sendMore">set this flag to true to signal that you will be immediately sending another message (optional: default is false)</param>
-        [Obsolete("Use SendFrame or TrySendFrame")]
-        public static void Send([NotNull] this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false, bool sendMore = false)
-        {
-            Send(socket, message, Encoding.ASCII, dontWait, sendMore);
-        }
-
-        /// <summary>
-        /// Transmit a string-message of data over this socket, while indicating that more is to come
-        /// (the SendMore flag is set to true).
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">a string containing the message to send</param>
-        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete</param>
-        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
-        [NotNull]
-        [Obsolete("Use SendMoreFrame or TrySendFrame")]
-        public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] string message, bool dontWait = false)
-        {
-            socket.Send(message, dontWait, true);
-            return socket;
-        }
-
-        /// <summary>
-        /// Transmit a string-message of data over this socket and also signal that you are sending more.
-        /// The string will be encoded into bytes using the specified Encoding.
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">a string containing the message to send</param>
-        /// <param name="encoding">the Encoding to use when converting the message-string into bytes</param>
-        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
-        /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
-        [NotNull]
-        [Obsolete("Use SendMoreFrame or TrySendFrame")]
-        public static IOutgoingSocket SendMore([NotNull] this IOutgoingSocket socket, [NotNull] string message, [NotNull] Encoding encoding, bool dontWait = false)
-        {
-            socket.Send(message, encoding, dontWait, true);
-            return socket;
-        }
-
-        #endregion
-
         #endregion
 
         #region Sending a multipart message as NetMQMessage
@@ -691,28 +494,6 @@ namespace NetMQ
         public static bool TrySendMultipartMessage([NotNull] this IOutgoingSocket socket, [NotNull] NetMQMessage message)
         {
             return TrySendMultipartMessage(socket, TimeSpan.Zero, message);
-        }
-
-        #endregion
-
-
-        #region obsolete
-
-        /// <summary>
-        /// Transmit a message over this socket.
-        /// </summary>
-        /// <param name="socket">the IOutgoingSocket to transmit on</param>
-        /// <param name="message">the NetMQMessage that contains the frames of data to send</param>
-        /// <param name="dontWait">if true, return immediately without waiting for the send operation to complete (optional: default is false)</param>
-        [Obsolete("Use TrySendMultipartMessage or SendMultipartMessage")]
-        public static void SendMessage([NotNull] this IOutgoingSocket socket, [NotNull] NetMQMessage message, bool dontWait = false)
-        {
-            for (int i = 0; i < message.FrameCount - 1; i++)
-            {
-                socket.Send(message[i].Buffer, message[i].MessageSize, dontWait, true);
-            }
-
-            socket.Send(message.Last.Buffer, message.Last.MessageSize, dontWait);
         }
 
         #endregion

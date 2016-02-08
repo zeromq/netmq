@@ -14,43 +14,24 @@ using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
-    [Obsolete("Declares AgainException as expected exception on some tests")]
     [TestFixture]
     public class SocketTests
     {
-        [Test, ExpectedException(typeof(AgainException)), Obsolete]
-        public void CheckReceiveAgainException()
+        [Test]
+        public void CheckTryReceive()
         {
             using (var router = new RouterSocket())
             {
                 router.BindRandomPort("tcp://127.0.0.1");
 
-                router.Receive(SendReceiveOptions.DontWait);
-            }
-        }
-
-        [Test, ExpectedException(typeof(AgainException))]
-        public void CheckSendAgainException()
-        {
-            using (var router = new RouterSocket())
-            using (var dealer = new DealerSocket())
-            {
-                var port = router.BindRandomPort("tcp://127.0.0.1");
-                router.Options.Linger = TimeSpan.Zero;
-
-                dealer.Options.SendHighWatermark = 1;
-                dealer.Options.Linger = TimeSpan.Zero;
-                dealer.Connect("tcp://127.0.0.1:" + port);
-
-#pragma warning disable 618
-                dealer.Send("1", dontWait: true, sendMore: false);
-                dealer.Send("2", dontWait: true, sendMore: false);
-#pragma warning restore 618
+                var msg = new Msg();
+                msg.InitEmpty();
+                Assert.IsFalse(router.TryReceive(ref msg, TimeSpan.Zero));
             }
         }
 
         [Test]
-        public void CheckSendTryAgain()
+        public void CheckTrySend()
         {
             using (var router = new RouterSocket())
             using (var dealer = new DealerSocket())

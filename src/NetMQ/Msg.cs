@@ -45,19 +45,11 @@ namespace NetMQ
     /// <summary>Enumeration of possible <see cref="Msg"/> types: Uninitialised, GC, Pool, Delimiter.</summary>
     public enum MsgType : byte
     {
-        /// <summary>The <see cref="Msg"/> has not yet been initialised.</summary>
-        [Obsolete("Use Uninitialised instead")]
-        Invalid = 0,
-
         /// <summary>The <see cref="Msg"/> has not yet been initialised (default value).</summary>
         Uninitialised = 0,
 
         /// <summary>The <see cref="Msg"/> is empty.</summary>
         Empty = 101,
-
-        /// <summary>The minimum valid enum value.</summary>
-        [Obsolete]
-        Min = 101,
 
         /// <summary>The <see cref="Msg"/> data will be garbage collected when no longer needed.</summary>
         GC = 102,
@@ -70,11 +62,7 @@ namespace NetMQ
 
         /// <summary>The <see cref="Msg"/> is a delimiter frame and doesn't contain any data.</summary>
         /// <remarks>Delimiters are commonly used to mark a boundary between groups frames.</remarks>
-        Delimiter = 104,
-
-        /// <summary>The maximum valid enum value.</summary>
-        [Obsolete]
-        Max = 104
+        Delimiter = 104
     }
 
     /// <summary>
@@ -96,13 +84,13 @@ namespace NetMQ
         /// <summary>
         /// Get the number of bytes within the Data property.
         /// </summary>
-        public int Size { get; internal set; }
+        public int Size { get; private set; }
 
         /// <summary>
         /// Gets the position of the first element in the Data property delimited by the message,
         /// relative to the start of the original array.
         /// </summary>
-        public int Offset { get; internal set; }
+        public int Offset { get; private set; }
 
         #region MsgType
 
@@ -121,7 +109,7 @@ namespace NetMQ
 
         /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
         /// <remarks>A newly constructed <see cref="Msg"/> is uninitialised, and can be initialised via one
-        /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC(byte[],int)"/>, <see cref="InitGC(byte[],int,int)"/>, or <see cref="InitPool"/>. 
+        /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC(byte[],int)"/>, <see cref="InitGC(byte[],int,int)"/>, or <see cref="InitPool"/>.
         /// Calling <see cref="Close"/> will cause the <see cref="Msg"/> to become uninitialised again.</remarks>
         /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
         public bool IsInitialised
@@ -191,13 +179,6 @@ namespace NetMQ
         /// <see cref="NetMQ.MsgType.Empty"/> or <see cref="NetMQ.MsgType.Delimiter"/>.
         /// </remarks>
         public byte[] Data { get; private set; }
-
-        /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
-        [Obsolete("Use the IsInitialised property instead")]
-        public bool Check()
-        {
-            return IsInitialised;
-        }
 
         #region Initialisation
 

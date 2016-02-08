@@ -138,10 +138,6 @@ namespace NetMQ
         {
             switch (errorCode)
             {
-                case ErrorCode.TryAgain:
-#pragma warning disable 618
-                    return new AgainException(innerException, message);
-#pragma warning restore 618
                 case ErrorCode.ContextTerminated:
                     return new TerminatingException(innerException, message);
                 case ErrorCode.Invalid:
@@ -231,45 +227,6 @@ namespace NetMQ
 
         /// <summary>Constructor for serialisation.</summary>
         protected EndpointNotFoundException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
-    }
-
-    /// <summary>
-    /// AgainException is a NetMQException that is used within SocketBase.Send and SocketBase.Recv to signal failures
-    /// (as when the Send/Receive fails and DontWait is set or no timeout is specified)
-    /// and is raised within Sub.XSetSocketOption if sending the queued-message fails.
-    /// </summary>
-    [Serializable]
-    [Obsolete("AgainException is obsolete. Use TrySendFrame or TryReceive return values instead of catching this exception.")]
-    public class AgainException : NetMQException
-    {
-        /// <summary>
-        /// Create a new AgainException with a given inner-exception and message.
-        /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
-        /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        internal AgainException([CanBeNull] Exception innerException, [CanBeNull] string message)
-            : base(innerException, message, ErrorCode.TryAgain)
-        {
-        }
-
-        public AgainException([CanBeNull] string message)
-            : this(null, message)
-        {
-        }
-
-        /// <summary>
-        /// Create a new AgainException with no message nor inner-exception.
-        /// </summary>
-        public AgainException()
-            : this(null, null)
-        {
-        }
-
-        /// <summary>Constructor for serialisation.</summary>
-        protected AgainException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
