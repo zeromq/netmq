@@ -63,6 +63,7 @@ Time for an example. This example is very simple, and follows these rules.
     using System;
     using System.Threading;
     using NetMQ;
+    using NetMQ.Sockets;
 
     namespace Publisher
     {
@@ -112,6 +113,7 @@ Time for an example. This example is very simple, and follows these rules.
     using System.Text;
     using System.Threading.Tasks;
     using NetMQ;
+    using NetMQ.Sockets;
 
     namespace SubscriberA
     {
