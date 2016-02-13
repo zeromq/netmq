@@ -87,7 +87,7 @@ Ok so that is the overview. Let's see the code:
 
                     if (!clientSocketPerThread.IsValueCreated)
                     {
-                        client = ctx.CreateDealerSocket();
+                        client = new DealerSocket();
                         client.Options.Identity =
                             Encoding.Unicode.GetBytes(state.ToString());
                         client.Connect("tcp://127.0.0.1:5556");
