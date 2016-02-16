@@ -31,7 +31,7 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void CheckTrySend()
+        public void CheckTrySendSucceeds()
         {
             using (var router = new RouterSocket())
             using (var dealer = new DealerSocket())
@@ -46,7 +46,24 @@ namespace NetMQ.Tests
                 Thread.Sleep(100);
 
                 Assert.IsTrue(dealer.TrySendFrame("1"));
-                Assert.IsFalse(dealer.TrySendFrame("2"));
+            }
+        }
+
+        [Test]
+        public void CheckTrySendFails()
+        {
+            using (var dealer = new DealerSocket())
+            {
+                dealer.Options.SendHighWatermark = 1;
+                dealer.Options.Linger = TimeSpan.Zero;
+                dealer.Connect("tcp://127.0.0.1:55555");
+
+                Thread.Sleep(100);
+
+                var success = dealer.TrySendFrame("1");
+                Assert.IsTrue(success); // because the SendHighWatermark allows it into the buffers
+                success = dealer.TrySendFrame("2");
+                Assert.IsFalse(success);
             }
         }
 
