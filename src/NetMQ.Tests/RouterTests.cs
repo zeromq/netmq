@@ -80,5 +80,16 @@ namespace NetMQ.Tests
                 poller.Run();
             }
         }
+
+        [Test]
+        public void SetRouterMandatory()
+        {
+            var socketOptions = new SocketOptions(new RouterSocket());
+            var mandatory = socketOptions.RouterMandatory;
+            Assert.IsFalse(mandatory);
+            socketOptions.RouterMandatory = true;
+            mandatory = socketOptions.RouterMandatory;
+            Assert.IsTrue(mandatory);
+        }
     }
 }

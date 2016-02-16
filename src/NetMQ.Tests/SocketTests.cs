@@ -38,6 +38,7 @@ namespace NetMQ.Tests
             {
                 var port = router.BindRandomPort("tcp://127.0.0.1");
                 router.Options.Linger = TimeSpan.Zero;
+                //router.Options.RouterMandatory = true;
 
                 dealer.Options.SendHighWatermark = 1;
                 dealer.Options.Linger = TimeSpan.Zero;
