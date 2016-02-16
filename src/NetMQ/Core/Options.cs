@@ -182,13 +182,6 @@ namespace NetMQ.Core
         public int RecoveryIvl { get; set; }
 
         /// <summary>
-        /// Get or Set the RouterSocket behavior when an unroutable message is encountered.
-        /// A value of false is the default and discards the message silently when it cannot be routed.
-        /// A value of true causes throw of HostUnreachableException if the message cannot be routed.
-        /// </summary>       
-        public bool RouterMandatory { get; set; }
-
-        /// <summary>
         /// SO_SNDBUF and SO_RCVBUF to be passed to underlying transport sockets.
         /// The initial value is 0.
         /// </summary>
@@ -398,10 +391,6 @@ namespace NetMQ.Core
                     DisableTimeWait = (bool)optionValue;
                     break;
 
-                case ZmqSocketOption.RouterMandatory:
-                    RouterMandatory = (bool)optionValue;
-                    break;    
-
                 default:
                     throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOption of " + option);
             }
@@ -494,9 +483,6 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.DisableTimeWait:
                     return DisableTimeWait;
-
-                case ZmqSocketOption.RouterMandatory:
-                    return RouterMandatory;
 
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);
