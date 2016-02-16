@@ -185,6 +185,11 @@ namespace NetMQ.Core
         /// </remarks>
         LastEndpoint = 32,
 
+        /// <summary>
+        /// Sets the RouterSocket behavior when an unroutable message is encountered.
+        /// A value of 0 is the default and discards the message silently when it cannot be routed.
+        /// A value of 1 returns an EHOSTUNREACH error code if the message cannot be routed.
+        /// </summary>
         RouterMandatory = 33,
         
         /// <summary>
@@ -230,7 +235,10 @@ namespace NetMQ.Core
         /// The default is false.
         /// </summary>
         XpubVerbose = 40,
-        
+
+        /// <summary>
+        /// If true, router socket accepts non-zmq tcp connections
+        /// </summary>
         RouterRawSocket = 41,
 
         XPublisherManual = 42,

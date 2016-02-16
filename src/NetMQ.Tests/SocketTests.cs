@@ -31,7 +31,7 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void CheckTrySend()
+        public void CheckTrySendSucceeds()
         {
             using (var router = new RouterSocket())
             using (var dealer = new DealerSocket())
@@ -46,7 +46,24 @@ namespace NetMQ.Tests
                 Thread.Sleep(100);
 
                 Assert.IsTrue(dealer.TrySendFrame("1"));
-                Assert.IsFalse(dealer.TrySendFrame("2"));
+            }
+        }
+
+        [Test]
+        public void CheckTrySendFails()
+        {
+            using (var dealer = new DealerSocket())
+            {
+                dealer.Options.SendHighWatermark = 1;
+                dealer.Options.Linger = TimeSpan.Zero;
+                dealer.Connect("tcp://127.0.0.1:55555");
+
+                Thread.Sleep(100);
+
+                var success = dealer.TrySendFrame("1");
+                Assert.IsTrue(success); // because the SendHighWatermark allows it into the buffers
+                success = dealer.TrySendFrame("2");
+                Assert.IsFalse(success);
             }
         }
 
@@ -616,6 +633,46 @@ namespace NetMQ.Tests
                         router.SendMoreFrame("dealer").SendFrame("Hello");
                         message = dealer.ReceiveFrameString();
                         Assert.That(message == "Hello");
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void RouterMandatoryTrueThrowsHostUnreachableException()
+        {
+            {
+                using (var dealer = new DealerSocket())
+                {
+                    dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
+                    dealer.Bind("tcp://localhost:6667");
+
+                    using (var router = new RouterSocket())
+                    {
+                        router.Options.RouterMandatory = true;
+                        router.Connect("tcp://localhost:8889");
+
+                        Assert.Throws<HostUnreachableException>(() => router.SendMoreFrame("dealer").SendFrame("Hello"));
+                    }
+                }
+            }
+        }
+
+
+        [Test]
+        public void RouterMandatoryFalseDiscardsMessageSilently()
+        {
+            {
+                using (var dealer = new DealerSocket())
+                {
+                    dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
+                    dealer.Bind("tcp://localhost:6667");
+
+                    using (var router = new RouterSocket())
+                    {
+                        router.Connect("tcp://localhost:8889");
+
+                        Assert.DoesNotThrow(() => router.SendMoreFrame("dealer").SendFrame("Hello"));
                     }
                 }
             }

@@ -260,6 +260,11 @@ namespace NetMQ
             get { return m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint); }
         }
 
+        /// <summary>
+        /// Set the RouterSocket behavior when an unroutable message is encountered.
+        /// A value of false is the default and discards the message silently when it cannot be routed.
+        /// A value of true causes throw of HostUnreachableException if the message cannot be routed.
+        /// </summary>       
         public bool RouterMandatory
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.RouterMandatory, value); }
@@ -347,6 +352,11 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherBroadcast, value); }
         }
 
+        /// <summary>
+        /// This applies only to router sockets.
+        /// Set whether RouterSocket allows non-zmq tcp connects.
+        /// If true, router socket accepts non-zmq tcp connections
+        /// </summary>
         public bool RouterRawSocket
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.RouterRawSocket, value); }
