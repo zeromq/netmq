@@ -639,6 +639,46 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void RouterMandatoryTrueThrowsHostUnreachableException()
+        {
+            {
+                using (var dealer = new DealerSocket())
+                {
+                    dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
+                    dealer.Bind("tcp://localhost:6667");
+
+                    using (var router = new RouterSocket())
+                    {
+                        router.Options.RouterMandatory = true;
+                        router.Connect("tcp://localhost:8889");
+
+                        Assert.Throws<HostUnreachableException>(() => router.SendMoreFrame("dealer").SendFrame("Hello"));
+                    }
+                }
+            }
+        }
+
+
+        [Test]
+        public void RouterMandatoryFalseDiscardsMessageSilently()
+        {
+            {
+                using (var dealer = new DealerSocket())
+                {
+                    dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
+                    dealer.Bind("tcp://localhost:6667");
+
+                    using (var router = new RouterSocket())
+                    {
+                        router.Connect("tcp://localhost:8889");
+
+                        Assert.DoesNotThrow(() => router.SendMoreFrame("dealer").SendFrame("Hello"));
+                    }
+                }
+            }
+        }
+
+        [Test]
         public void InprocRouterDealerTest()
         {
             // The main thread simply starts several clients and a server, and then
