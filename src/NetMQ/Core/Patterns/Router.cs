@@ -123,6 +123,9 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private bool m_mandatory;
 
+        /// <summary>
+        /// If true, router socket accepts non-zmq tcp connections
+        /// </summary>
         private bool m_rawSocket;
 
         /// <summary>

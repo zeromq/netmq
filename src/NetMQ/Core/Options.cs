@@ -154,6 +154,7 @@ namespace NetMQ.Core
         /// <summary>
         /// If true, router socket accepts non-zmq tcp connections
         /// The default value is false, except the Stream ctor initialises this to true.
+        /// Setting this to true changes RecvIdentity to false.
         /// </summary>
         public bool RawSocket { get; set; }
 

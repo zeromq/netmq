@@ -235,7 +235,10 @@ namespace NetMQ.Core
         /// The default is false.
         /// </summary>
         XpubVerbose = 40,
-        
+
+        /// <summary>
+        /// If true, router socket accepts non-zmq tcp connections
+        /// </summary>
         RouterRawSocket = 41,
 
         XPublisherManual = 42,
