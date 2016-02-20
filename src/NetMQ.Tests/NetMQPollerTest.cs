@@ -15,7 +15,7 @@ using System.Collections.Concurrent;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
+    [TestFixture(Category = "Poller")]
     public class NetMQPollerTest
     {
         #region Socket polling tests

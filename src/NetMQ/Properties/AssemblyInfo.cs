@@ -33,8 +33,10 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.3.2.2")]
-[assembly: AssemblyFileVersion("3.3.2.2")]
+[assembly: AssemblyVersion("4.0.0.0")]
+[assembly: AssemblyFileVersion("4.0.0.0")]
+[assembly: AssemblyInformationalVersion("4.0.0.0")]
+
 
 [assembly: InternalsVisibleTo("NetMQ.Tests,PublicKey=" +
     "0024000004800000940000000602000000240000525341310004000001000100c90e1ebf352af7" +
