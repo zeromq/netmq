@@ -15,6 +15,14 @@ protocols, and more.
 
 You can download NetMQ via [NuGet](https://nuget.org/packages/NetMQ/).
 
+## Versions
+
+Currently two versions are maintained 
+Version 3 which is the stable version of NetMQ and version 4, version 4 is same as version 3 without obsolete code.
+You can find both version on Nuget, for more information read the [Migrating-to-v4](https://github.com/zeromq/netmq/wiki/Migrating-to-v4).
+
+This repository is for version 4, for version 3 go to: https://github.com/NetMQ/NetMQ3-x.
+
 ## Using / Documentation
 
 Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all).
