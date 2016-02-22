@@ -272,6 +272,11 @@ namespace NetMQ.Core
         ReceiveLowWatermark = 47,
 
         /// <summary>
+        /// When enabled new router connections with same identity take over old ones
+        /// </summary>
+        RouterHandover = 48,
+
+        /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
         Endian = 1000

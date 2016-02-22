@@ -363,6 +363,14 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// When enabled new router connections with same identity take over old ones
+        /// </summary>
+        public bool RouterHandover
+        {
+            set { m_socket.SetSocketOption(ZmqSocketOption.RouterHandover, value); }
+        }
+
+        /// <summary>
         /// Get or set the byte-order: big-endian, vs little-endian.
         /// </summary>
         public Endianness Endian

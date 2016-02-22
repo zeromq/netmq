@@ -1,6 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 using System.Text;
+using System.Threading;
 using NetMQ.Sockets;
 
 // ReSharper disable AccessToDisposedClosure
@@ -79,6 +80,45 @@ namespace NetMQ.Tests
 
                 poller.Run();
             }
+        }
+
+        [Test]
+        public void Handover()
+        {
+            using (var router = new RouterSocket())
+            using (var dealer1 = new DealerSocket())
+            {
+                router.Options.RouterHandover = true;
+                router.Bind("inproc://127.0.0.1:5555");
+                dealer1.Options.Identity = Encoding.ASCII.GetBytes("ID");
+                dealer1.Connect("inproc://127.0.0.1:5555");
+                dealer1.SendMoreFrame("Hello").SendFrame("World");
+
+                var identity = router.ReceiveFrameString();
+                Assert.AreEqual("ID", identity);
+
+                using (var dealer2 = new DealerSocket())
+                {                    
+                    dealer2.Options.Identity = Encoding.ASCII.GetBytes("ID");
+                    dealer2.Connect("inproc://127.0.0.1:5555");
+
+                    // We have new peer which should take over, however we are still reading a message                    
+                    var message = router.ReceiveFrameString();
+                    Assert.AreEqual("Hello", message);
+                    message = router.ReceiveFrameString();
+                    Assert.AreEqual("World", message);
+
+                    dealer2.SendMoreFrame("Hello").SendFrame("World");
+                    identity = router.ReceiveFrameString();
+                    Assert.AreEqual("ID", identity);
+
+                    message = router.ReceiveFrameString();                    
+                    Assert.AreEqual("Hello", message);
+
+                    message = router.ReceiveFrameString();
+                    Assert.AreEqual("World", message);
+                }
+            }                
         }
     }
 }

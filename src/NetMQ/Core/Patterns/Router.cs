@@ -40,7 +40,7 @@ namespace NetMQ.Core.Patterns
         {
             public RouterSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
-            {}
+            { }
         }
 
         /// <summary>
@@ -107,6 +107,14 @@ namespace NetMQ.Core.Patterns
         private Pipe m_currentOut;
 
         /// <summary>
+        /// The pipe we are currently reading from.
+        /// </summary>
+        private Pipe m_currentIn;
+
+
+        private bool m_closingCurrentIn;
+
+        /// <summary>
         /// If true, more outgoing message parts are expected.
         /// </summary>
         private bool m_moreOut;
@@ -127,6 +135,11 @@ namespace NetMQ.Core.Patterns
         /// If true, router socket accepts non-zmq tcp connections
         /// </summary>
         private bool m_rawSocket;
+
+        /// <summary>
+        /// When enabled new router connections with same identity take over old ones
+        /// </summary>
+        private bool m_handover;
 
         /// <summary>
         /// Create a new Router instance with the given parent-Ctx, thread-id, and socket-id.
@@ -187,6 +200,9 @@ namespace NetMQ.Core.Patterns
                     return true;
                 case ZmqSocketOption.RouterMandatory:
                     m_mandatory = (bool)optval;
+                    return true;
+                case ZmqSocketOption.RouterHandover:
+                    m_handover = (bool)optval;
                     return true;
             }
 
@@ -281,7 +297,7 @@ namespace NetMQ.Core.Patterns
                     // If there's no such pipe just silently ignore the message, unless
                     // mandatory is set.
 
-                    var identity = msg.Size == msg.Data.Length 
+                    var identity = msg.Size == msg.Data.Length
                         ? msg.Data
                         : msg.CloneData();
 
@@ -378,6 +394,17 @@ namespace NetMQ.Core.Patterns
                     m_prefetched = false;
                 }
                 m_moreIn = msg.HasMore;
+
+                if (!m_moreIn)
+                {
+                    if (m_closingCurrentIn)
+                    {
+                        m_currentIn.Terminate(true);
+                        m_closingCurrentIn = false;
+                    }
+                    m_currentIn = null;
+                }
+
                 return true;
             }
 
@@ -400,7 +427,19 @@ namespace NetMQ.Core.Patterns
 
             // If we are in the middle of reading a message, just return the next part.
             if (m_moreIn)
+            {
                 m_moreIn = msg.HasMore;
+
+                if (!m_moreIn)
+                {
+                    if (m_closingCurrentIn)
+                    {
+                        m_currentIn.Terminate(true);
+                        m_closingCurrentIn = false;
+                    }
+                    m_currentIn = null;
+                }
+            }
             else
             {
                 // We are at the beginning of a message.
@@ -409,6 +448,7 @@ namespace NetMQ.Core.Patterns
                 m_prefetchedMsg.Move(ref msg);
 
                 m_prefetched = true;
+                m_currentIn = pipe[0];
 
                 byte[] identity = pipe[0].Identity;
                 msg.InitPool(identity.Length);
@@ -471,6 +511,7 @@ namespace NetMQ.Core.Patterns
 
             m_prefetched = true;
             m_identitySent = false;
+            m_currentIn = pipe[0];
 
             return true;
         }
@@ -520,15 +561,38 @@ namespace NetMQ.Core.Patterns
                 else
                 {
                     identity = msg.CloneData();
-
-                    // Ignore peers with duplicate ID.
-                    if (m_outpipes.ContainsKey(identity))
-                    {
-                        msg.Close();
-                        return false;
-                    }
-
                     msg.Close();
+
+                    Outpipe existPipe;                 
+
+                    if (m_outpipes.TryGetValue(identity, out existPipe))
+                    {                        
+                        if (!m_handover)
+                        {
+                            // Ignore peers with duplicate ID.
+                            return false;
+                        }
+                        else
+                        {
+                            //  We will allow the new connection to take over this
+                            //  identity. Temporarily assign a new identity to the
+                            //  existing pipe so we can terminate it asynchronously.
+                            var newIdentity = new byte[5];
+                            byte[] result = BitConverter.GetBytes(m_nextPeerId++);
+                            Buffer.BlockCopy(result, 0, newIdentity, 1, 4);
+                            existPipe.Pipe.Identity = newIdentity;                        
+                            m_outpipes.Add(newIdentity, existPipe);
+
+                            //  Remove the existing identity entry to allow the new
+                            //  connection to take the identity.
+                            m_outpipes.Remove(identity);
+
+                            if (existPipe.Pipe == m_currentIn)
+                                m_closingCurrentIn = true;
+                            else
+                                existPipe.Pipe.Terminate(true);
+                        }
+                    }
                 }
             }
 
