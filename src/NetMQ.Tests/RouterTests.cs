@@ -17,10 +17,24 @@ namespace NetMQ.Tests
             using (var router = new RouterSocket())
             {
                 router.Options.RouterMandatory = true;
-                router.BindRandomPort("tcp://*");
+                router.Bind("tcp://127.0.0.1:5555");
 
-                Assert.Throws<HostUnreachableException>(() => router.SendMoreFrame("UNKNOWN").SendFrame("Hello"));
+                using (var dealer = new DealerSocket())
+                {
+                    dealer.Options.Identity = Encoding.ASCII.GetBytes("1");
+                    dealer.Connect("tcp://127.0.0.1:5555");
+
+                    dealer.SendFrame("Hello");
+
+                    Assert.AreEqual("1", router.ReceiveFrameString());
+                    Assert.AreEqual("Hello", router.ReceiveFrameString());
+                }
+
+                Thread.Sleep(100);
+
+                Assert.Throws<HostUnreachableException>(() => router.SendMoreFrame("1").SendFrame("Hello"));
             }
+            
         }
 
         [Test]
@@ -98,7 +112,7 @@ namespace NetMQ.Tests
                 Assert.AreEqual("ID", identity);
 
                 using (var dealer2 = new DealerSocket())
-                {                    
+                {
                     dealer2.Options.Identity = Encoding.ASCII.GetBytes("ID");
                     dealer2.Connect("inproc://127.0.0.1:5555");
 
@@ -112,13 +126,13 @@ namespace NetMQ.Tests
                     identity = router.ReceiveFrameString();
                     Assert.AreEqual("ID", identity);
 
-                    message = router.ReceiveFrameString();                    
+                    message = router.ReceiveFrameString();
                     Assert.AreEqual("Hello", message);
 
                     message = router.ReceiveFrameString();
                     Assert.AreEqual("World", message);
                 }
-            }                
+            }
         }
     }
 }
