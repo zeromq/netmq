@@ -313,7 +313,11 @@ namespace NetMQ.Core.Patterns
                             if (m_mandatory)
                             {
                                 m_moreOut = false;
-                                return false;
+
+                                if (op.Pipe.Active)
+                                    return false;
+                                else
+                                    throw new HostUnreachableException("In Router.XSend");
                             }
                         }
                     }
