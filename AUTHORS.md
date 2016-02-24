@@ -22,3 +22,4 @@ Contributors
 * Victor Baybekov &mdash; [@buybackoff](https://github.com/buybackoff)
 * Tobias Böhm &mdash; [@tobiasb](https://github.com/tobiasb)
 * Dale Brubaker &mdash; [@dalebrubaker](https://github.com/dalebrubaker)
+* Calin Pirtea &mdash; [@pcalin](https://github.com/pcalin)
