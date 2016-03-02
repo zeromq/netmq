@@ -507,7 +507,8 @@ namespace NetMQ.Core.Transports
                                     if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
                                         m_decoder.SetMsgSink(this);
 
-                                    ActivateOut();
+                                    // handshake is done
+                                    Activate();
                                 }
                                 else if (m_greetingBytesRead < 10)
                                 {
