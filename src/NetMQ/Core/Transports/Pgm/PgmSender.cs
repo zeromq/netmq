@@ -9,8 +9,14 @@ namespace NetMQ.Core.Transports.Pgm
 {
     internal sealed class PgmSender : IOObject, IEngine, IProactorEvents
     {
+        /// <summary>
+        /// ID of the timer used to delay the reconnection. Value is 1.
+        /// </summary>
+        private const int ReconnectTimerId = 1;
+
         private readonly Options m_options;
         private readonly Address m_addr;
+        private readonly bool m_delayedStart;
         private readonly V1Encoder m_encoder;
 
         private AsyncSocket m_socket;
@@ -24,6 +30,7 @@ namespace NetMQ.Core.Transports.Pgm
         private enum State
         {
             Idle,
+            Delaying,
             Connecting,
             Active,
             ActiveSendingIdle,
@@ -32,17 +39,21 @@ namespace NetMQ.Core.Transports.Pgm
 
         private State m_state;
         private PgmAddress m_pgmAddress;
+        private SessionBase m_session;
+        private int m_currentReconnectIvl;
 
-        public PgmSender([NotNull] IOThread ioThread, [NotNull] Options options, [NotNull] Address addr)
+        public PgmSender([NotNull] IOThread ioThread, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
             : base(ioThread)
         {
             m_options = options;
             m_addr = addr;
+            m_delayedStart = delayedStart;
             m_encoder = null;
             m_outBuffer = null;
             m_outBufferSize = 0;
             m_writeSize = 0;
             m_encoder = new V1Encoder(0, m_options.Endian);
+            m_currentReconnectIvl = m_options.ReconnectIvl;
 
             m_state = State.Idle;
         }
@@ -68,6 +79,7 @@ namespace NetMQ.Core.Transports.Pgm
 
         public void Plug(IOThread ioThread, SessionBase session)
         {
+            m_session = session;
             m_encoder.SetMsgSource(session);
 
             // get the first message from the session because we don't want to send identities
@@ -81,16 +93,39 @@ namespace NetMQ.Core.Transports.Pgm
                 msg.Close();
             }
 
-            AddSocket(m_socket);
+            AddSocket(m_socket);            
 
+            if (!m_delayedStart)
+            {
+                StartConnecting();
+            }
+            else
+            {
+                m_state = State.Delaying;                
+                AddTimer(GetNewReconnectIvl(), ReconnectTimerId);
+            }
+        }
+
+        private void StartConnecting()
+        {
             m_state = State.Connecting;
-            m_socket.Connect(m_pgmAddress.Address);
+
+            try
+            {
+                m_socket.Connect(m_pgmAddress.Address);
+            }
+            catch (SocketException ex)
+            {
+                if (ex.SocketErrorCode == SocketError.InvalidArgument)
+                    Error();
+                else
+                    throw ex;
+            }
         }
 
         public void Terminate()
         {
-            RemoveSocket(m_socket);
-            m_encoder.SetMsgSource(null);
+            Destroy();            
         }
 
         public void ActivateOut()
@@ -106,6 +141,23 @@ namespace NetMQ.Core.Transports.Pgm
         public void ActivateIn()
         {
             Debug.Assert(false);
+        }
+
+        /// <summary>
+        /// This would be called when a timer expires, although here it only throws a NotSupportedException.
+        /// </summary>
+        /// <param name="id">an integer used to identify the timer (not used here)</param>
+        /// <exception cref="NotImplementedException">This method must not be called on instances of PgmSender.</exception>
+        public override void TimerEvent(int id)
+        {
+            if (m_state == State.Delaying)
+            {
+                StartConnecting();
+            }
+            else
+            {
+                Debug.Assert(false);
+            }
         }
 
         /// <summary>
@@ -142,9 +194,10 @@ namespace NetMQ.Core.Transports.Pgm
                 }
                 else
                 {
-                    Debug.Assert(false);
-
-                    throw NetMQException.Create(socketError.ToErrorCode());
+                    if (socketError == SocketError.ConnectionReset)
+                        Error();
+                    else                    
+                        throw NetMQException.Create(socketError.ToErrorCode());
                 }
             }
             else
@@ -185,8 +238,55 @@ namespace NetMQ.Core.Transports.Pgm
             }
             catch (SocketException ex)
             {
-                throw NetMQException.Create(ex.SocketErrorCode, ex);
+                if (ex.SocketErrorCode == SocketError.ConnectionReset)
+                    Error();
+                else
+                    throw NetMQException.Create(ex.SocketErrorCode, ex);
             }
+        }
+
+        private void Error()
+        {
+            Debug.Assert(m_session != null);            
+            m_session.Detach();     
+            Destroy();       
+        }
+
+        private void Destroy()
+        {
+            if (m_state == State.Delaying)
+            {
+                CancelTimer(ReconnectTimerId);
+            }
+
+            m_pgmSocket.Dispose();
+            RemoveSocket(m_socket);
+            m_encoder.SetMsgSource(null);
+        }
+
+        /// <summary>
+        /// Internal function to return a reconnect back-off delay.
+        /// Will modify the current_reconnect_ivl used for next call
+        /// Returns the currently used interval
+        /// </summary>
+        private int GetNewReconnectIvl()
+        {
+            // The new interval is the current interval + random value.
+            int thisInterval = m_currentReconnectIvl + new Random().Next(0, m_options.ReconnectIvl);
+
+            // Only change the current reconnect interval  if the maximum reconnect
+            // interval was set and if it's larger than the reconnect interval.
+            if (m_options.ReconnectIvlMax > 0 &&
+                m_options.ReconnectIvlMax > m_options.ReconnectIvl)
+            {
+                // Calculate the next interval
+                m_currentReconnectIvl = m_currentReconnectIvl * 2;
+                if (m_currentReconnectIvl >= m_options.ReconnectIvlMax)
+                {
+                    m_currentReconnectIvl = m_options.ReconnectIvlMax;
+                }
+            }
+            return thisInterval;
         }
 
         /// <summary>
@@ -198,16 +298,6 @@ namespace NetMQ.Core.Transports.Pgm
         public override void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// This would be called when a timer expires, although here it only throws a NotSupportedException.
-        /// </summary>
-        /// <param name="id">an integer used to identify the timer (not used here)</param>
-        /// <exception cref="NotImplementedException">This method must not be called on instances of PgmSender.</exception>
-        public override void TimerEvent(int id)
-        {
-            throw new NotImplementedException();
-        }
+        }        
     }
 }

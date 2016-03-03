@@ -607,7 +607,7 @@ namespace NetMQ.Core
                 case Address.PgmProtocol:
                 case Address.EpgmProtocol:
                 {
-                    var pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
+                    var pgmSender = new PgmSender(m_ioThread, m_options, m_addr, wait);
                     pgmSender.Init((PgmAddress)m_addr.Resolved);
                     SendAttach(this, pgmSender);
                     return;
