@@ -189,7 +189,7 @@ The `SendHighWaterMark`/`ReceiveHighWaterMark` options set the high water mark f
 
 If this limit has been reached the socket shall enter an exceptional state and depending on the socket type, NetMQ shall take appropriate action such as blocking or dropping sent messages.
 
-The default `SendHighWaterMark`/`ReceiveHighWaterMark` value of zero means "no limit".
+The default `SendHighWaterMark`/`ReceiveHighWaterMark` value is 1000. The value of zero means "no limit".
 
 You would set these 2 options using the `xxxxSocket.Options` property as follows:
 
