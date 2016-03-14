@@ -68,7 +68,12 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// True if we are in the middle of sending a multipart message.
         /// </summary>
-        private bool m_more;
+        private bool m_moreOut;
+
+        /// <summary>
+        /// True if we are in the middle of receiving a multipart message.
+        /// </summary>
+        private bool m_moreIn;
 
         /// <summary>
         /// List of pending (un)subscriptions, ie. those that were already
@@ -163,11 +168,13 @@ namespace NetMQ.Core.Patterns
             // There are some subscriptions waiting. Let's process them.
             var sub = new Msg();
             var isBroadcast = false;
+            var msgMore = false;
             while (pipe.Read(ref sub))
             {
                 // Apply the subscription to the trie.
                 int size = sub.Size;
-                if (size > 0 && (sub[0] == 0 || sub[0] == 1) && !isBroadcast)
+                var msgMoreTmp = sub.HasMore;
+                if (!msgMore && !isBroadcast && size > 0 && (sub[0] == 0 || sub[0] == 1) )
                 {
                     if (m_manual)
                     {
@@ -189,20 +196,19 @@ namespace NetMQ.Core.Patterns
                         {
                             sub.Close();
                         }
-
                     }
                 }
-                else if (m_broadcastEnabled && size > 0 && sub[0] == 2)
+                else if (!msgMore && m_broadcastEnabled && size > 0 && sub[0] == 2)
                 {
                     m_pendingMessages.Enqueue(new KeyValuePair<Msg, Pipe>(sub, pipe));
                     isBroadcast = true;
                 }
-                else // process message unrelated to sub/unsub
+                else // process message unrelated to sub/unsub/broadcast
                 {
                     // pipe is null here, no special treatment
                     m_pendingMessages.Enqueue(new KeyValuePair<Msg, Pipe>(sub, null));
                 }
-
+                msgMore = msgMoreTmp;
             }
         }
 
@@ -314,7 +320,7 @@ namespace NetMQ.Core.Patterns
             bool msgMore = msg.HasMore;
 
             // For the first part of multipart message, find the matching pipes.
-            if (!m_more)
+            if (!m_moreOut)
             {
                 m_subscriptions.Match(msg.Data, msg.Offset, msg.Size, s_markAsMatching, this);
             }
@@ -334,7 +340,7 @@ namespace NetMQ.Core.Patterns
                 }
             }
 
-            m_more = msgMore;
+            m_moreOut = msgMore;
 
             return true;
         }
@@ -351,26 +357,33 @@ namespace NetMQ.Core.Patterns
         /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
+            
             // If there is at least one 
             if (m_pendingMessages.Count == 0)
+            {
                 return false;
+            }
+
             msg.Close();
             var msgPipe = m_pendingMessages.Dequeue();
             msg = msgPipe.Key;
+            bool msgMore = msg.HasMore;
+
             // must check if m_lastPipe == null to avoid dequeue at the second frame of a broadcast message
             if (msgPipe.Value != null && m_lastPipe == null) 
             {
-                if (m_broadcastEnabled && msg[0] == 2)
+                if (!m_moreIn && m_broadcastEnabled && msg[0] == 2)
                 {
                     m_lastPipeIsBroadcast = true;
                     m_lastPipe = msgPipe.Value;
                 }
-                if (m_manual && (msg[0] == 0 || msg[0] == 1)) 
+                if (!m_moreIn && m_manual && (msg[0] == 0 || msg[0] == 1)) 
                 {
                     m_lastPipeIsBroadcast = false;
                     m_lastPipe = msgPipe.Value;
                 }
             }
+            m_moreIn = msgMore;
             return true;
         }
 

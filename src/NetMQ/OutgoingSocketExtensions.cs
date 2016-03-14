@@ -11,7 +11,7 @@ namespace NetMQ
     public static class OutgoingSocketExtensions
     {
         /// <summary>
-        /// Block until the message is can be sent.
+        /// Block until the message can be sent.
         /// </summary>
         /// <remarks>
         /// The call  blocks until the message can be sent and cannot be interrupted.
