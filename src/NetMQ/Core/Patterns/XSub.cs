@@ -64,7 +64,9 @@ namespace NetMQ.Core.Patterns
         /// If true, part of a multipart message was already received, but
         /// there are following parts still waiting.
         /// </summary>
-        private bool m_more;
+        private bool m_moreIn;
+
+        private bool m_moreOut;
 
         private static readonly Trie.TrieDelegate s_sendSubscription;
 
@@ -96,7 +98,7 @@ namespace NetMQ.Core.Patterns
         {
             m_options.SocketType = ZmqSocketType.Xsub;
             m_hasMessage = false;
-            m_more = false;
+            m_moreIn = false;
 
             m_options.Linger = 0;
             m_fairQueueing = new FairQueueing();
@@ -173,30 +175,41 @@ namespace NetMQ.Core.Patterns
         protected override bool XSend(ref Msg msg)
         {
             int size = msg.Size;
-
-            if (size > 0 && msg[0] == 1)
+            bool msgMore = msg.HasMore;
+            try
             {
-                // Process the subscription.
-                if (m_subscriptions.Add(msg.Data, msg.Offset + 1, size - 1))
+                if (!m_moreOut && size > 0 && msg[0] == 1)
                 {
+                    // Process the subscription.
+                    if (m_subscriptions.Add(msg.Data, msg.Offset + 1, size - 1))
+                    {
+                        m_distribution.SendToAll(ref msg);
+                        return true;
+                    }
+                }
+                else if (!m_moreOut && size > 0 && msg[0] == 0)
+                {
+                    if (m_subscriptions.Remove(msg.Data, msg.Offset + 1, size - 1))
+                    {
+                        m_distribution.SendToAll(ref msg);
+                        return true;
+                    }
+                }
+                else
+                {
+                    // upstream message unrelated to sub/unsub
                     m_distribution.SendToAll(ref msg);
+
                     return true;
                 }
             }
-            else if (size > 0 && msg[0] == 0)
+            finally
             {
-                if (m_subscriptions.Remove(msg.Data, msg.Offset + 1, size - 1))
-                {
-                    m_distribution.SendToAll(ref msg);
-                    return true;
-                }
-            }
-            else
-            {
-                // upstream message unrelated to sub/unsub
-                m_distribution.SendToAll(ref msg);
-
-                return true;
+                // set it before returning and before SendToAll (which destroys a message): 
+                // the first part of every message 
+                // (including the very first) will have it as false
+                // when true, we do not check for the first byte
+                m_moreOut = msgMore;
             }
 
             msg.Close();
@@ -225,7 +238,7 @@ namespace NetMQ.Core.Patterns
             {
                 msg.Move(ref m_message);
                 m_hasMessage = false;
-                m_more = msg.HasMore;
+                m_moreIn = msg.HasMore;
                 return true;
             }
 
@@ -246,9 +259,9 @@ namespace NetMQ.Core.Patterns
 
                 // Check whether the message matches at least one subscription.
                 // Non-initial parts of the message are passed 
-                if (m_more || !m_options.Filter || Match(msg))
+                if (m_moreIn || !m_options.Filter || Match(msg))
                 {
-                    m_more = msg.HasMore;
+                    m_moreIn = msg.HasMore;
                     return true;
                 }
 
@@ -266,7 +279,7 @@ namespace NetMQ.Core.Patterns
         protected override bool XHasIn()
         {
             // There are subsequent parts of the partly-read message available.
-            if (m_more)
+            if (m_moreIn)
                 return true;
 
             // If there's already a message prepared by a previous call to zmq_poll,
