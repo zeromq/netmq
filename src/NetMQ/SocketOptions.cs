@@ -379,11 +379,15 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.Endian, value); }
         }
 
+        /// <summary>
+        /// </summary>
         public bool ManualPublisher
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherManual, value); }
         }
 
+        /// <summary>
+        /// </summary>
         public bool DisableTimeWait
         {
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DisableTimeWait); }

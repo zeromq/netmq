@@ -73,6 +73,8 @@ namespace NetMQ.Security
     /// </summary>
     public class NetMQSecurityException : Exception
     {
+        /// <summary>
+        /// </summary>
         public NetMQSecurityException(NetMQSecurityErrorCode errorCode, string message)
             : base(message)
         {

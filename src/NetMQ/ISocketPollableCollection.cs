@@ -11,7 +11,11 @@ namespace NetMQ
     /// </remarks>
     public interface ISocketPollableCollection
     {
+        /// <summary>
+        /// </summary>
         void Add([NotNull] ISocketPollable socket);
+        /// <summary>
+        /// </summary>
         void Remove([NotNull] ISocketPollable socket);
     }
 }
