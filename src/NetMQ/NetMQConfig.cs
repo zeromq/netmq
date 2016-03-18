@@ -3,6 +3,8 @@ using NetMQ.Core;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// </summary>
     public static class NetMQConfig
     {
         private static TimeSpan s_linger;

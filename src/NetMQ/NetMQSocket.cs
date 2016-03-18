@@ -395,7 +395,7 @@ namespace NetMQ
         /// Listen to the given endpoint for SocketEvent events.
         /// </summary>
         /// <param name="endpoint">A string denoting the endpoint to monitor</param>
-        /// <param name="events">The specific <see cref="SocketEvent"/> events to report on. Defaults to <see cref="SocketEvent.All"/> if omitted.</param>
+        /// <param name="events">The specific <see cref="SocketEvents"/> events to report on. Defaults to <see cref="SocketEvents.All"/> if omitted.</param>
         /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException"><paramref name="endpoint"/> cannot be empty or whitespace.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>

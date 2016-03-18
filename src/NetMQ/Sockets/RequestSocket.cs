@@ -30,11 +30,21 @@ namespace NetMQ.Sockets
         {
         }
 
+        /// <summary>
+        /// </summary>
         public enum ProgressTopic
         {
+            /// <summary>
+            /// </summary>
             Send,
+            /// <summary>
+            /// </summary>
             Retry,
+            /// <summary>
+            /// </summary>
             Failure,
+            /// <summary>
+            /// </summary>
             Success
         }
 

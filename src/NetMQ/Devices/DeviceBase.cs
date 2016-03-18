@@ -135,6 +135,8 @@ namespace NetMQ.Devices
             }
         }
 
+        /// <summary>
+        /// </summary>
         public void Start()
         {
             Initialize();
