@@ -1,5 +1,12 @@
 @ECHO OFF
 :: Usage:     build.bat [Clean]
+::
+::  Requires NuGet.exe to get references NuGets prior to command line build.
+::  If you prefer to not install NuGet.exe fom https://nuget.org/nuget.exe),
+::  build first time from NetMQ.sln using DevStudio, and the referenced NuGet
+:;  packages will be downloaded for you.
+::  After that first build, you can then use this script to build with no errors.
+::
 @setlocal
 
 set ACTION=Building
@@ -26,6 +33,11 @@ ECHO %ACTION% %solution% with DevStudio%vsversion%...
 @set oldpath=%PATH%
 
 CALL %environment% x86 >> %log%
+
+::  non error if not found, but build may fail
+ECHO Restoring referenced NuGet packages
+for /f %%n in ('@echo NuGet.exe') do set NUGETEXE=%%~dpf$PATH:n
+if NOT "%NUGETEXE%" == "" "%NUGETEXE%" restore netmq.sln
 
 ECHO Configuration=Debug
 msbuild /m /v:n /p:Configuration=Debug /p:Platform="Any CPU" %solution% %target% >> %log%
@@ -60,6 +72,7 @@ goto :eof
 :error
 if NOT "%oldpath%" == "" set PATH=%oldpath%&set oldpath=
 ECHO *** ERROR, build terminated early: see %log%
+if "%NUGETEXE%" == "" ECHO *** ERROR, Either install NuGet (https://nuget.org/nuget.exe) or do very first build using DevStudio NetMQ.sln
 GOTO end
 
 :no_tools
