@@ -2,9 +2,9 @@
 :: Usage:     build.bat [Clean]
 ::
 ::  Requires NuGet.exe to get references NuGets prior to command line build.
-::  If you prefer to not install NuGet.exe fom https://nuget.org/nuget.exe),
+::  If you prefer to not install NuGet.exe fom https://nuget.org/nuget.exe,
 ::  build first time from NetMQ.sln using DevStudio, and the referenced NuGet
-:;  packages will be downloaded for you.
+::  packages will be downloaded for you.
 ::  After that first build, you can then use this script to build with no errors.
 ::
 @setlocal
