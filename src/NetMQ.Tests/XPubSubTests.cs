@@ -450,9 +450,6 @@ namespace NetMQ.Tests
 
                 var payload = new[] { (byte)42 };
 
-                var msg = new Msg();
-                msg.InitEmpty();
-
                 sub1.SendFrame(new byte[] { (byte)'A' }, true);
                 sub1.SendFrame(new byte[] { (byte)42 });
                 var subscription = pub.ReceiveFrameBytes();
@@ -470,6 +467,74 @@ namespace NetMQ.Tests
                 Assert.IsTrue(broadcast1[0] == 65);
                 broadcast1 = sub1.ReceiveFrameBytes();
                 Assert.IsTrue(broadcast1.SequenceEqual(payload));
+            }
+        }
+
+
+        [Test]
+        public void CouldTrackSubscriberIdentityInXPubSocket() {
+            using (var pub = new XPublisherSocket())
+            using (var sub1 = new XSubscriberSocket())
+            using (var sub2 = new XSubscriberSocket()) {
+                pub.Bind("inproc://manual");
+                pub.Options.ManualPublisher = true;
+
+                sub1.Connect("inproc://manual");
+                sub2.Connect("inproc://manual");
+
+                Thread.Sleep(50);
+
+                sub1.SendFrame(new byte[] { 1, (byte)'A' });
+
+                var identity1 = new byte[] { 1 };
+                var identity2 = new byte[] { 2 };
+
+                sub1.SendFrame(new byte[] { (byte)'A' }, true);
+                sub1.SendFrame(new byte[] { (byte)42 });
+                var subscription = pub.ReceiveFrameBytes();
+                // NB Identity must be set before pub.Subscribe/Unsubscribe/Send, because these operations clear a private field with last subscriber
+                
+                // set identity to sub1
+                pub.Options.Identity = identity1;
+
+                Assert.IsTrue(identity1.SequenceEqual(pub.Options.Identity), "Cannot read identity that was just set");
+
+                pub.Subscribe(subscription);
+
+                Assert.IsTrue(identity1.SequenceEqual(pub.Options.Identity), "Identity must be kept after Subscribe/Unsubscribe/Send operations (which clear m_lastPipe)");
+
+                var topic = pub.ReceiveFrameBytes();
+                var message = pub.ReceiveFrameBytes();
+
+                sub2.SendFrame(new byte[] { 1, (byte)'A' });
+                sub2.SendFrame(new byte[] { (byte)'A' }, true);
+                sub2.SendFrame(new byte[] { (byte)43 });
+
+                subscription = pub.ReceiveFrameBytes();
+                // Id of sub2 is not set yet
+                Assert.IsNull(pub.Options.Identity);
+                pub.Options.Identity = identity2;
+                Assert.IsTrue(identity2.SequenceEqual(pub.Options.Identity), "Cannot read identity that was just set");
+
+                pub.Subscribe(subscription);
+
+                Assert.IsTrue(identity2.SequenceEqual(pub.Options.Identity), "Identity must be kept after Subscribe/Unsubscribe/Send operations (which clear m_lastPipe)");
+
+                topic = pub.ReceiveFrameBytes();
+                message = pub.ReceiveFrameBytes();
+                
+                sub1.SendFrame(new byte[] { (byte)'A' }, true);
+                sub1.SendFrame(new byte[] { (byte)44 });
+                topic = pub.ReceiveFrameBytes();
+                message = pub.ReceiveFrameBytes();
+                Assert.IsTrue(identity1.SequenceEqual(pub.Options.Identity), "Identity option must be set to the identity of sub1 here");
+
+
+                sub2.SendFrame(new byte[] { (byte)'A' }, true);
+                sub2.SendFrame(new byte[] { (byte)45 });
+                topic = pub.ReceiveFrameBytes();
+                message = pub.ReceiveFrameBytes();
+                Assert.IsTrue(identity2.SequenceEqual(pub.Options.Identity), "Identity option must be set to the identity of sub2 here");
             }
         }
     }

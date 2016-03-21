@@ -190,7 +190,7 @@ namespace NetMQ.Core.Patterns
                         // passed to used on next recv call.
                         if (m_options.SocketType == ZmqSocketType.Xpub && (unique || m_verbose))
                         {
-                            m_pendingMessages.Enqueue(new KeyValuePair<Msg, Pipe>(sub, null));
+                            m_pendingMessages.Enqueue(new KeyValuePair<Msg, Pipe>(sub, pipe));
                         }
                         else
                         {
@@ -205,8 +205,7 @@ namespace NetMQ.Core.Patterns
                 }
                 else // process message unrelated to sub/unsub/broadcast
                 {
-                    // pipe is null here, no special treatment
-                    m_pendingMessages.Enqueue(new KeyValuePair<Msg, Pipe>(sub, null));
+                    m_pendingMessages.Enqueue(new KeyValuePair<Msg, Pipe>(sub, pipe));
                 }
                 msgMore = msgMoreTmp;
             }
@@ -244,10 +243,31 @@ namespace NetMQ.Core.Patterns
                     return true;
                 }
                 case ZmqSocketOption.XPublisherBroadcast:
+                {
+                    m_broadcastEnabled = (bool)optionValue;
+                    return true;
+                }
+                case ZmqSocketOption.Identity: 
+                {
+                    if (m_manual && m_lastPipe != null)
                     {
-                        m_broadcastEnabled = (bool)optionValue;
-                        return true;
+                        byte[] val;
+
+                        if (optionValue is string)
+                            val = Encoding.ASCII.GetBytes((string)optionValue);
+                        else if (optionValue is byte[])
+                            val = (byte[])optionValue;
+                        else
+                            throw new InvalidException(string.Format("In XPub.XSetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue == null ? "null" : optionValue.ToString()));
+                        if (val.Length == 0 || val.Length > 255)
+                            throw new InvalidException(string.Format("In XPub.XSetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length));
+
+                        m_lastPipe.Identity = val;
+                        m_options.Identity = val;
                     }
+                    return true;
+                }
+
                 case ZmqSocketOption.Subscribe:
                 {
                     if (m_manual && m_lastPipe != null)
@@ -308,6 +328,9 @@ namespace NetMQ.Core.Patterns
             m_subscriptions.RemoveHelper(pipe, s_sendUnsubscription, this);
 
             m_distribution.Terminated(pipe);
+
+            // remove a reference to a dead pipe
+            if (m_lastPipe == pipe) m_lastPipe = null;
         }
 
         /// <summary>
@@ -336,8 +359,8 @@ namespace NetMQ.Core.Patterns
                 if (m_broadcastEnabled)
                 {
                     m_lastPipeIsBroadcast = false;
-                    m_lastPipe = null;
                 }
+                m_lastPipe = null;
             }
 
             m_moreOut = msgMore;
@@ -365,24 +388,22 @@ namespace NetMQ.Core.Patterns
             }
 
             msg.Close();
-            var msgPipe = m_pendingMessages.Dequeue();
-            msg = msgPipe.Key;
+            var msgPipePair = m_pendingMessages.Dequeue();
+            msg = msgPipePair.Key;
             bool msgMore = msg.HasMore;
 
             // must check if m_lastPipe == null to avoid dequeue at the second frame of a broadcast message
-            if (msgPipe.Value != null && m_lastPipe == null) 
+            if (msgPipePair.Value != null && !m_moreIn)
             {
-                if (!m_moreIn && m_broadcastEnabled && msg[0] == 2)
-                {
+                if (!m_moreIn && m_broadcastEnabled && msg[0] == 2) {
                     m_lastPipeIsBroadcast = true;
-                    m_lastPipe = msgPipe.Value;
                 }
-                if (!m_moreIn && m_manual && (msg[0] == 0 || msg[0] == 1)) 
-                {
+                if (!m_moreIn && m_manual && (msg[0] == 0 || msg[0] == 1)) {
                     m_lastPipeIsBroadcast = false;
-                    m_lastPipe = msgPipe.Value;
                 }
+                m_lastPipe = msgPipePair.Value;
             }
+            m_options.Identity = m_lastPipe != null ? m_lastPipe.Identity : null;
             m_moreIn = msgMore;
             return true;
         }
