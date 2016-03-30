@@ -9,8 +9,8 @@ namespace NetMQ
     {
         private static TimeSpan s_linger;
 
-        private static Ctx s_ctx;
-        private static object s_settingsSync;
+        private static readonly Ctx s_ctx;
+        private static readonly object s_settingsSync;
 
         static NetMQConfig()
         {

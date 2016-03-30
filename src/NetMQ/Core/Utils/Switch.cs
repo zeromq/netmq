@@ -5,7 +5,7 @@ namespace NetMQ.Core.Utils
 {
     internal class Switch
     {
-        private object m_sync;
+        private readonly object m_sync;
         private volatile bool m_status;
 
         public Switch(bool status)
