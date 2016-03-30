@@ -119,7 +119,7 @@ namespace NetMQ.Core.Transports.Pgm
                 if (ex.SocketErrorCode == SocketError.InvalidArgument)
                     Error();
                 else
-                    throw ex;
+                    throw;
             }
         }
 
