@@ -405,9 +405,9 @@ namespace NetMQ
         public void Monitor([NotNull] string endpoint, SocketEvents events = SocketEvents.All)
         {
             if (endpoint == null)
-                throw new ArgumentNullException("endpoint");
+                throw new ArgumentNullException(nameof(endpoint));
             if (string.IsNullOrEmpty(endpoint))
-                throw new ArgumentException("Cannot be empty.", "endpoint");
+                throw new ArgumentException("Cannot be empty.", nameof(endpoint));
 
             m_socketHandle.CheckDisposed();
 

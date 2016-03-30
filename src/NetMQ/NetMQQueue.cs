@@ -41,7 +41,7 @@ namespace NetMQ
         public NetMQQueue(int capacity = 0)
         {
             if (capacity < 0)
-                throw new ArgumentOutOfRangeException("capacity");
+                throw new ArgumentOutOfRangeException(nameof(capacity));
 
             m_queue = new ConcurrentQueue<T>();
             PairSocket.CreateSocketPair(out m_writer, out m_reader);

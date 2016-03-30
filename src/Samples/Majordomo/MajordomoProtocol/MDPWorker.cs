@@ -84,11 +84,11 @@ namespace MajordomoProtocol
             : this ()
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
-                throw new ArgumentNullException ("brokerAddress",
+                throw new ArgumentNullException (nameof(brokerAddress),
                                                  "The address of the broker must not be null, empty or whitespace!");
 
             if (string.IsNullOrWhiteSpace (serviceName))
-                throw new ArgumentNullException ("serviceName",
+                throw new ArgumentNullException (nameof(serviceName),
                                                  "The name of the service must not be null, empty or whitespace!");
             m_identity = identity;
             m_brokerAddress = brokerAddress;

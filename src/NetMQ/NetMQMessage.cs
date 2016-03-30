@@ -49,7 +49,7 @@ namespace NetMQ
         public NetMQMessage([NotNull] IEnumerable<NetMQFrame> frames)
         {
             if (frames == null)
-                throw new ArgumentNullException("frames");
+                throw new ArgumentNullException(nameof(frames));
 
             m_frames = new List<NetMQFrame>(frames);
         }
@@ -62,7 +62,7 @@ namespace NetMQ
         public NetMQMessage([NotNull] IEnumerable<byte[]> buffers)
         {
             if (buffers == null)
-                throw new ArgumentNullException("buffers");
+                throw new ArgumentNullException(nameof(buffers));
 
             m_frames = buffers.Select(buf => new NetMQFrame(buf)).ToList();
         }

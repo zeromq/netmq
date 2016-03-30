@@ -228,7 +228,7 @@ namespace NetMQ.Monitoring
         public void AttachToPoller([NotNull] ISocketPollableCollection poller)
         {
             if (poller == null)
-                throw new ArgumentNullException("poller");
+                throw new ArgumentNullException(nameof(poller));
             if (IsRunning)
                 throw new InvalidOperationException("Monitor already started");
             if (Interlocked.CompareExchange(ref m_attachedPoller, poller, null) != null)

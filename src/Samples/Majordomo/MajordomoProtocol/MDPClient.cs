@@ -72,7 +72,7 @@ namespace MajordomoProtocol
             : this ()
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
-                throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
+                throw new ArgumentNullException (nameof(brokerAddress), "The broker address must not be null, empty or whitespace!");
 
             m_identity = identity;
             m_brokerAddress = brokerAddress;
@@ -86,7 +86,7 @@ namespace MajordomoProtocol
         public MDPClient (string brokerAddress, string identity)
         {
             if (string.IsNullOrWhiteSpace (brokerAddress))
-                throw new ArgumentNullException ("brokerAddress", "The broker address must not be null, empty or whitespace!");
+                throw new ArgumentNullException (nameof(brokerAddress), "The broker address must not be null, empty or whitespace!");
 
             if (!string.IsNullOrWhiteSpace (identity))
                 m_identity = Encoding.UTF8.GetBytes (identity);

@@ -431,7 +431,7 @@ namespace NetMQ
         /// <param name="count">Number of bytes to remove from a message</param>
         public void TrimPrefix(int count)
         {
-            if (count > Size || count < 0) throw new ArgumentOutOfRangeException("count", "Count should be between 0 and size");
+            if (count > Size || count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count should be between 0 and size");
             Offset = Offset + count;
             Size = Size - count;
         }

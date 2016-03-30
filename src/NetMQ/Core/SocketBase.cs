@@ -530,7 +530,7 @@ namespace NetMQ.Core
                     }
                 default:
                     {
-                        throw new ArgumentException(string.Format("Address {0} has unsupported protocol: {1}", addr, protocol), "addr");
+                        throw new ArgumentException(string.Format("Address {0} has unsupported protocol: {1}", addr, protocol), nameof(addr));
                     }
             }
         }
@@ -770,7 +770,7 @@ namespace NetMQ.Core
 
             // Check whether endpoint address passed to the function is valid.
             if (addr == null)
-                throw new ArgumentNullException("addr");
+                throw new ArgumentNullException(nameof(addr));
 
             // Process pending commands, if any, since there could be pending unprocessed process_own()'s
             //  (from launch_child() for example) we're asked to terminate now.

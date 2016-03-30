@@ -134,7 +134,7 @@ namespace MajordomoProtocol
             : this ()
         {
             if (string.IsNullOrWhiteSpace (endpoint))
-                throw new ArgumentNullException ("endpoint", "An 'endpoint' were the broker binds to must be given!");
+                throw new ArgumentNullException (nameof(endpoint), "An 'endpoint' were the broker binds to must be given!");
 
             if (heartbeatInterval > 0)
                 m_heartbeatInterval = TimeSpan.FromMilliseconds (heartbeatInterval);

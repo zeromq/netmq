@@ -190,7 +190,7 @@ namespace NetMQ.Security.V0_1
 
             if (plainMessage == null)
             {
-                throw new ArgumentNullException("plainMessage");
+                throw new ArgumentNullException(nameof(plainMessage));
             }
 
             return InternalEncryptAndWrapMessage(ContentType.ApplicationData, plainMessage);
@@ -215,7 +215,7 @@ namespace NetMQ.Security.V0_1
 
             if (cipherMessage == null)
             {
-                throw new ArgumentNullException("cipherMessage");
+                throw new ArgumentNullException(nameof(cipherMessage));
             }
 
             if (cipherMessage.FrameCount < 2)
