@@ -73,7 +73,7 @@ namespace NetMQ.Core
         [NotNull] private readonly List<Pipe> m_pipes = new List<Pipe>();
 
         /// <summary>Reaper's poller.</summary>
-        private Utils.Poller m_poller;
+        private Poller m_poller;
 
         /// <summary>The handle of this socket within the reaper's poller.</summary>
         private Socket m_handle;
@@ -1007,7 +1007,7 @@ namespace NetMQ.Core
         /// Using this function reaper thread ask the socket to register with
         /// its poller.
         /// </summary>
-        internal void StartReaping([NotNull] Utils.Poller poller)
+        internal void StartReaping([NotNull] Poller poller)
         {
             // Plug the socket to the reaper thread.
             m_poller = poller;
