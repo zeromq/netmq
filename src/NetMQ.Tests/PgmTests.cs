@@ -283,7 +283,7 @@ namespace NetMQ.Tests
                 using (var sub = new SubscriberSocket())
                 {
                     sub.Bind(address);
-                    using (var monitor = new NetMQMonitor(sub, $"inproc://cleanup.test{Guid.NewGuid()}", SocketEvents.Closed))
+                    using (var monitor = new NetMQMonitor(sub, String.Format("inproc://cleanup.test{0}", Guid.NewGuid()), SocketEvents.Closed))
                     {
                         var monitorTask = Task.Factory.StartNew(monitor.Start);
 
@@ -297,7 +297,7 @@ namespace NetMQ.Tests
 
                         Assert.That(closed.Wait(1000), Is.True, "Unbind failed to report Closed event to the Monitor");
                         var duration = DateTime.Now - time;
-                        Console.WriteLine($"Run {i}: {duration.TotalMilliseconds} ms");
+                        Console.WriteLine("Run {0}: {1} ms", i, duration.TotalMilliseconds);
 
                         monitor.Stop();
 
