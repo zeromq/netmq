@@ -127,10 +127,7 @@ namespace NetMQ.Security.V0_1
         /// <summary>
         /// Get the Pseudo-Random number generating-Function (PRF) that is being used.
         /// </summary>
-        public IPRF PRF
-        {
-            get { return m_prf; }
-        }
+        public IPRF PRF => m_prf;
 
         /// <summary>
         /// This event signals a change to the cipher-suite.

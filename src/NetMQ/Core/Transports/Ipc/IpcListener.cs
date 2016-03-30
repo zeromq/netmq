@@ -45,10 +45,7 @@ namespace NetMQ.Core.Transports.Ipc
         /// <summary>
         /// Get the bound address for use with wildcards
         /// </summary>
-        public override string Address
-        {
-            get { return m_address.ToString(); }
-        }
+        public override string Address => m_address.ToString();
 
         /// <summary>
         /// Set address to listen on.

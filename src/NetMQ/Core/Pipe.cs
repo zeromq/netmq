@@ -203,7 +203,7 @@ namespace NetMQ.Core
             return pipes;
         }
 
-        public bool Active { get { return m_state == State.Active; } }
+        public bool Active => m_state == State.Active;
 
         /// <summary>
         /// <see cref="PipePair"/> uses this function to let us know about the peer pipe object.

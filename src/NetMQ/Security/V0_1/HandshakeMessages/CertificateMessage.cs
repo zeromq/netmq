@@ -13,10 +13,7 @@ namespace NetMQ.Security.V0_1.HandshakeMessages
         /// Get the part of the handshake-protocol that this HandshakeMessage represents
         /// - in this case a Certificate.
         /// </summary>
-        public override HandshakeType HandshakeType
-        {
-            get { return HandshakeType.Certificate; }
-        }
+        public override HandshakeType HandshakeType => HandshakeType.Certificate;
 
         /// <summary>
         /// Get or set the X.509 Digital Certificate that this message contains.

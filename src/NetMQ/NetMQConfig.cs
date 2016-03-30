@@ -28,13 +28,7 @@ namespace NetMQ
             s_ctx.Terminate();
         }
 
-        internal static Ctx Context
-        {
-            get
-            {
-                return s_ctx;                
-            }
-        }
+        internal static Ctx Context => s_ctx;
 
         /// <summary>
         /// Get or set the default linger period for the all sockets,

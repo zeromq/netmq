@@ -115,26 +115,17 @@ namespace NetMQ
         /// <summary>
         /// Get the maximum size of the frame-data buffer (ie, the number of bytes of the array).
         /// </summary>
-        public int BufferSize
-        {
-            get { return Buffer.Length; }
-        }
+        public int BufferSize => Buffer.Length;
 
         /// <summary>
         /// Get a new empty <see cref="NetMQFrame"/> that may be used as message separators.
         /// </summary>
-        public static NetMQFrame Empty
-        {
-            get { return new NetMQFrame(0); }
-        }
+        public static NetMQFrame Empty => new NetMQFrame(0);
 
         /// <summary>
         /// Get whether this NetMQFrame is empty - that is, has a Buffer of zero-length.
         /// </summary>
-        public bool IsEmpty
-        {
-            get { return MessageSize == 0; }
-        }
+        public bool IsEmpty => MessageSize == 0;
 
         /// <summary>
         /// Create and return a new NetMQFrame with a copy of the supplied byte-array buffer.

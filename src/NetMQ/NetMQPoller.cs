@@ -71,10 +71,7 @@ namespace NetMQ
         /// }
         /// </code>
         /// </example>
-        public bool CanExecuteTaskInline
-        {
-            get { return m_isSchedulerThread.Value; }
-        }
+        public bool CanExecuteTaskInline => m_isSchedulerThread.Value;
 
         /// <summary>
         /// </summary>
@@ -90,10 +87,7 @@ namespace NetMQ
         /// <summary>
         /// Returns 1, as <see cref="NetMQPoller"/> runs a single thread and all tasks must execute on that thread.
         /// </summary>
-        public override int MaximumConcurrencyLevel
-        {
-            get { return 1; }
-        }
+        public override int MaximumConcurrencyLevel => 1;
 
         /// <summary>
         /// Not supported.
@@ -158,10 +152,7 @@ namespace NetMQ
         /// <summary>
         /// Get whether this object is currently polling its sockets and timers.
         /// </summary>
-        public bool IsRunning
-        {
-            get { return m_switch.Status; }
-        }
+        public bool IsRunning => m_switch.Status;
 
         #region Add / Remove
 
@@ -589,10 +580,7 @@ namespace NetMQ
             return task.Result;
         }
 
-        bool ISynchronizeInvoke.InvokeRequired
-        {
-            get { return !CanExecuteTaskInline; }
-        }
+        bool ISynchronizeInvoke.InvokeRequired => !CanExecuteTaskInline;
 #endif
 
         #endregion

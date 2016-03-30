@@ -176,10 +176,7 @@ namespace NetMQ.Core
         /// Get the socket-handle contained by the Signaler.
         /// </summary>
         [NotNull]
-        public Socket Handle
-        {
-            get { return m_signaler.Handle; }
-        }
+        public Socket Handle => m_signaler.Handle;
 
         /// <summary>
         /// Send the given Command out across the command-pipe.

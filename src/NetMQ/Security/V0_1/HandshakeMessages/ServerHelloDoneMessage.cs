@@ -9,10 +9,7 @@
         /// Get the part of the handshake-protocol that this HandshakeMessage represents
         /// - in this case, ServerHelloDone.
         /// </summary>
-        public override HandshakeType HandshakeType
-        {
-            get { return HandshakeType.ServerHelloDone; }
-        }
+        public override HandshakeType HandshakeType => HandshakeType.ServerHelloDone;
 
         /// <summary>
         /// Remove the one frame from the given NetMQMessage, which shall contain one byte with the HandshakeType,

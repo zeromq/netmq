@@ -37,12 +37,12 @@ namespace MajordomoProtocol
         /// <summary>
         ///     returns the address of the broker the client is connected to
         /// </summary>
-        public string Address { get { return m_brokerAddress; } }
+        public string Address => m_brokerAddress;
 
         /// <summary>
         ///     returns the name of the client
         /// </summary>
-        public byte[] Identity { get { return m_identity; } }
+        public byte[] Identity => m_identity;
 
         /// <summary>
         ///     if client has a log message available if fires this event

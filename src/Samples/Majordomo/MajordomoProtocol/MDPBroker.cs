@@ -83,7 +83,7 @@ namespace MajordomoProtocol
         ///     the interval at which the broker send heartbeats to workers
         ///     initially set to 2.500 ms
         /// </summary>
-        public TimeSpan HeartbeatInterval { get { return m_heartbeatInterval; } }
+        public TimeSpan HeartbeatInterval => m_heartbeatInterval;
 
         /// <summary>
         ///     after so many heartbeat cycles a worker is deemed to dead

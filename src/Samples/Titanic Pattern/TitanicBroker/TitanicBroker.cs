@@ -72,7 +72,7 @@ namespace TitanicProtocol
         /// <summary>
         ///     returns the ip-address of the titanic broker
         /// </summary>
-        public string TitanicAddress { get { return m_titanicAddress; } }
+        public string TitanicAddress => m_titanicAddress;
 
         /// <summary>
         ///     if broker has a log message available if fires this event

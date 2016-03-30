@@ -62,19 +62,13 @@ namespace NetMQ.Core
         /// <summary>
         /// Get the id of the thread that this object belongs to.
         /// </summary>
-        public int ThreadId
-        {
-            get { return m_threadId; }
-        }
+        public int ThreadId => m_threadId;
 
         /// <summary>
         /// Get the context that provides access to the global state.
         /// </summary>
         [NotNull]
-        protected Ctx Ctx
-        {
-            get { return m_ctx; }
-        }
+        protected Ctx Ctx => m_ctx;
 
         protected bool RegisterEndpoint([NotNull] string addr, [NotNull] Ctx.Endpoint endpoint)
         {

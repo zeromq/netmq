@@ -27,12 +27,12 @@ namespace MajordomoProtocol
         ///     we need to copy the array in order to allow the changing of it in an iteration
         ///     since we will change the list while iterating we must operate on a copy
         /// </remarks>
-        public IEnumerable<Worker> WaitingWorkers { get { return m_waitingWorkers.ToArray (); } }
+        public IEnumerable<Worker> WaitingWorkers => m_waitingWorkers.ToArray ();
 
         /// <summary>
         /// Returns a list of requests pending for being send to workers
         /// </summary>
-        public List<NetMQMessage> PendingRequests { get { return m_pendingRequests; } }
+        public List<NetMQMessage> PendingRequests => m_pendingRequests;
 
         /// <summary>
         /// Ctor for a service

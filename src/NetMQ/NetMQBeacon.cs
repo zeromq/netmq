@@ -301,15 +301,12 @@ namespace NetMQ
         /// <summary>
         /// Get the IP address this beacon is bound to.
         /// </summary>
-        public string BoundTo { get { return m_boundTo; } }
+        public string BoundTo => m_boundTo;
 
         /// <summary>
         /// Get the socket of the contained actor.
         /// </summary>
-        NetMQSocket ISocketPollable.Socket
-        {
-            get { return ((ISocketPollable)m_actor).Socket; }
-        }
+        NetMQSocket ISocketPollable.Socket => ((ISocketPollable)m_actor).Socket;
 
         /// <summary>
         /// This event occurs when at least one message may be received from the socket without blocking.
@@ -489,10 +486,7 @@ namespace NetMQ
         /// The beacon content as a string.
         /// </summary>
         /// <remarks>Decoded using <see cref="Encoding.UTF8"/>. Other encodings may be used with <see cref="Bytes"/> directly.</remarks>
-        public string String
-        {
-            get { return Encoding.UTF8.GetString(Bytes); }
-        }
+        public string String => Encoding.UTF8.GetString(Bytes);
 
         /// <summary>
         /// The host name of the peer that sent this message.

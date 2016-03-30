@@ -402,10 +402,7 @@ namespace NetMQ.Core
         /// Get the contained socket.
         /// </summary>
         [NotNull]
-        public SocketBase Socket
-        {
-            get { return m_socket; }
-        }
+        public SocketBase Socket => m_socket;
 
         /// <summary>
         /// Process the Plug-request by setting this SessionBase as the handler for the io-object

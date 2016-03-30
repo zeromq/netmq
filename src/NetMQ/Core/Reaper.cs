@@ -92,10 +92,7 @@ namespace NetMQ.Core
         /// Get the Mailbox that this Reaper uses for communication with the rest of the message-queueing subsystem.
         /// </summary>
         [NotNull]
-        public Mailbox Mailbox
-        {
-            get { return m_mailbox; }
-        }
+        public Mailbox Mailbox => m_mailbox;
 
         /// <summary>
         /// Start the contained Poller to begin polling.

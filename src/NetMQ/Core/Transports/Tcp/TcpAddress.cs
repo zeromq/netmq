@@ -127,9 +127,6 @@ namespace NetMQ.Core.Transports.Tcp
         /// Get the textual-representation of the communication protocol implied by this TcpAddress,
         /// which here is simply "tcp".
         /// </summary>
-        public string Protocol
-        {
-            get { return Core.Address.TcpProtocol; }
-        }
+        public string Protocol => Core.Address.TcpProtocol;
     }
 }
