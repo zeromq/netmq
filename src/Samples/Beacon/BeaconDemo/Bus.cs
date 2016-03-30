@@ -32,10 +32,10 @@ namespace BeaconDemo
                 HostName = Dns.GetHostEntry(name).HostName;
             }
 
-            public string Name { get; private set; }
-            public int Port { get; private set; }
+            public string Name { get; }
+            public int Port { get; }
 
-            public string Address { get; private set; }
+            public string Address { get; }
 
             public string HostName { get; private set; }
 

@@ -110,7 +110,7 @@ namespace NetMQ
         /// Get the underlying frame-data buffer, which is an array of bytes.
         /// </summary>
         [NotNull]
-        public byte[] Buffer { get; private set; }
+        public byte[] Buffer { get; }
 
         /// <summary>
         /// Get the maximum size of the frame-data buffer (ie, the number of bytes of the array).

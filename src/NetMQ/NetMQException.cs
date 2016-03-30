@@ -15,7 +15,7 @@ namespace NetMQ
     {
         /// <summary>
         /// </summary>
-        public ErrorCode ErrorCode { get; private set; }
+        public ErrorCode ErrorCode { get; }
 
         #region Exception contract & serialisation
 

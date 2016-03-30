@@ -58,12 +58,12 @@ namespace NetMQ.Core.Utils
             /// Get the ITimerEvent that serves as the event-sink.
             /// </summary>
             [NotNull]
-            public ITimerEvent Sink { get; private set; }
+            public ITimerEvent Sink { get; }
 
             /// <summary>
             /// Get the integer Id of this TimerInfo.
             /// </summary>
-            public int Id { get; private set; }
+            public int Id { get; }
         }
 
         /// <summary>

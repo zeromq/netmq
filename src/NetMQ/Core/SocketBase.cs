@@ -46,8 +46,8 @@ namespace NetMQ.Core
                 Pipe = pipe;
             }
 
-            public Own Own { get; private set; }
-            public Pipe Pipe { get; private set; }
+            public Own Own { get; }
+            public Pipe Pipe { get; }
         }
 
         [NotNull] private readonly Dictionary<string, Endpoint> m_endpoints = new Dictionary<string, Endpoint>();

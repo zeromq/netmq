@@ -53,10 +53,10 @@ namespace NetMQ.Core.Utils
             }
 
             [NotNull]
-            public T[] Values { get; private set; }
+            public T[] Values { get; }
 
             /// <summary>Contains global index positions of elements in the chunk.</summary>
-            public int GlobalOffset { get; private set; }
+            public int GlobalOffset { get; }
 
             /// <summary>Optional link to the previous <see cref="Chunk"/>.</summary>
             [CanBeNull]

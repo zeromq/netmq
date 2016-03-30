@@ -39,11 +39,11 @@ namespace NetMQ.Core.Transports
                 BytesTransferred = bytesTransferred;
             }
 
-            public Action Action { get; private set; }
+            public Action Action { get; }
 
-            public SocketError SocketError { get; private set; }
+            public SocketError SocketError { get; }
 
-            public int BytesTransferred { get; private set; }
+            public int BytesTransferred { get; }
         }
 
         /// <summary>

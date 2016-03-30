@@ -63,7 +63,7 @@ namespace NetMQ.Core
             /// Get the socket associated with this Endpoint.
             /// </summary>
             [NotNull]
-            public SocketBase Socket { get; private set; }
+            public SocketBase Socket { get; }
 
             /// <summary>
             /// Get the Options of this Endpoint.

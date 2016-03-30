@@ -9,7 +9,7 @@ namespace MajordomoProtocol
     internal class Worker
     {
         // the id of the worker as string
-        public string Id { get; private set; }
+        public string Id { get; }
         // identity of worker for routing
         public NetMQFrame Identity { get; private set; }
         // owing service if known

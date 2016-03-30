@@ -23,11 +23,11 @@ namespace NetMQ.Core.Utils
             Event = @event;
         }
 
-        public Socket FileDescriptor { get; private set; }
+        public Socket FileDescriptor { get; }
 
-        public SocketBase Socket { get; private set; }
+        public SocketBase Socket { get; }
 
-        public PollEvents Event { get; private set; }
+        public PollEvents Event { get; }
 
         public PollEvents ResultEvent { get; set; }
     }

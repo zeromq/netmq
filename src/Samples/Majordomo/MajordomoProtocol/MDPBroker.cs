@@ -77,7 +77,7 @@ namespace MajordomoProtocol
         /// <summary>
         ///     the socket for communicating with clients and workers
         /// </summary>
-        public NetMQSocket Socket { get; private set; }
+        public NetMQSocket Socket { get; }
 
         /// <summary>
         ///     the interval at which the broker send heartbeats to workers

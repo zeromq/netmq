@@ -472,12 +472,12 @@ namespace NetMQ
         /// <summary>
         /// THe beacon content as a byte array.
         /// </summary>
-        public byte[] Bytes { get; private set; }
+        public byte[] Bytes { get; }
 
         /// <summary>
         /// The address of the peer that sent this message. Includes host name and port number.
         /// </summary>
-        public string PeerAddress { get; private set; }
+        public string PeerAddress { get; }
 
         internal BeaconMessage(byte[] bytes, string peerAddress) : this()
         {
