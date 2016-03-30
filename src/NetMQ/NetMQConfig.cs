@@ -68,10 +68,7 @@ namespace NetMQ
         public static int ThreadPoolSize
         {
             get { return s_ctx.IOThreadCount; }
-            set
-            {
-                s_ctx.IOThreadCount = value;
-            }
+            set { s_ctx.IOThreadCount = value; }
         }
 
         /// <summary>
@@ -79,10 +76,7 @@ namespace NetMQ
         /// </summary>
         public static int MaxSockets
         {
-            get
-            {
-                return s_ctx.MaxSockets;
-            }
+            get { return s_ctx.MaxSockets; }
             set { s_ctx.MaxSockets = value; }
         }      
     }
