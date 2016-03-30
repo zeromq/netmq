@@ -726,25 +726,30 @@ namespace NetMQ.Tests
 
                 for (int i = 0; i < 2; i++)
                 {
-                    var workerThread = new Thread(state =>
+                    ParameterizedThreadStart threadMmethod = state =>
+                    {
+                        byte[] routerId = (byte[])state;
+                        byte[] workerId = Guid.NewGuid().ToByteArray();
+                        using (var workerSocket = new DealerSocket())
                         {
-                            byte[] routerId = (byte[])state;
-                            byte[] workerId = Guid.NewGuid().ToByteArray();
-                            using (var workerSocket = new DealerSocket())
-                            {
-                                workerSocket.Options.Identity = workerId;
-                                workerSocket.Connect("inproc://backend");
+                            workerSocket.Options.Identity = workerId;
+                            workerSocket.Connect("inproc://backend");
 
-                                var workerReadyMsg = new NetMQMessage();
-                                workerReadyMsg.Append(workerId);
-                                workerReadyMsg.AppendEmptyFrame();
-                                workerReadyMsg.Append(readyMsg);
-                                workerSocket.SendMultipartMessage(workerReadyMsg);
-                                Thread.Sleep(1000);
-                            }
-                        });
-                    workerThread.IsBackground = true;
-                    workerThread.Name = "worker" + i;
+                            var workerReadyMsg = new NetMQMessage();
+                            workerReadyMsg.Append(workerId);
+                            workerReadyMsg.AppendEmptyFrame();
+                            workerReadyMsg.Append(readyMsg);
+                            workerSocket.SendMultipartMessage(workerReadyMsg);
+                            Thread.Sleep(1000);
+                        }
+                    };
+
+                    var workerThread = new Thread(threadMmethod)
+                    {
+                        IsBackground = true,
+                        Name = "worker" + i
+                    };
+
                     workerThread.Start(backendsRouter.Options.Identity);
                 }
 

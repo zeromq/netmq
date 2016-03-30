@@ -14,8 +14,7 @@ namespace NetMQ
 
         static NetMQConfig()
         {
-            s_ctx = new Ctx();
-            s_ctx.Block = false;
+            s_ctx = new Ctx { Block = false };
             s_settingsSync = new object();
             s_linger = TimeSpan.Zero;
 
