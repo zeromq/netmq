@@ -459,19 +459,9 @@ namespace NetMQ.Security.V0_1
             m_remoteHash.Dispose();
             m_remoteHash = null;
 
-            string label;
+            var label = SecurityParameters.Entity == ConnectionEnd.Client ? ServerFinishedLabel : ClientFinshedLabel;
 
-            if (SecurityParameters.Entity == ConnectionEnd.Client)
-            {
-                label = ServerFinishedLabel;
-            }
-            else
-            {
-                label = ClientFinshedLabel;
-            }
-
-            byte[] verifyData =
-                PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
+            var verifyData = PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
 
             if (!verifyData.SequenceEqual(finishedMessage.VerifyData))
             {
@@ -494,16 +484,7 @@ namespace NetMQ.Security.V0_1
             m_localHash.Dispose();
             m_localHash = null;
 
-            string label;
-
-            if (SecurityParameters.Entity == ConnectionEnd.Server)
-            {
-                label = ServerFinishedLabel;
-            }
-            else
-            {
-                label = ClientFinshedLabel;
-            }
+            var label = SecurityParameters.Entity == ConnectionEnd.Server ? ServerFinishedLabel : ClientFinshedLabel;
 
             var finishedMessage = new FinishedMessage
             {
