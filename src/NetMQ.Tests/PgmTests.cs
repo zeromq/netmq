@@ -1,9 +1,12 @@
 ﻿using System;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using NetMQ.Core;
+using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NUnit.Framework;
 
@@ -267,6 +270,40 @@ namespace NetMQ.Tests
 
                 for (Int16 i = 0; i < 1600; i++)
                     Assert.AreEqual(i, BitConverter.ToInt16(message, i*2));
+            }
+        }
+
+        [Test]
+        [TestCase("pgm://239.0.0.1:1000")]
+        [TestCase("tcp://localhost:60000")]
+        public void SubsriberCleanupOnUnbind(string address)
+        {
+            for (var i = 0; i < 10; i++)
+            {
+                using (var sub = new SubscriberSocket())
+                {
+                    sub.Bind(address);
+                    using (var monitor = new NetMQMonitor(sub, $"inproc://cleanup.test{Guid.NewGuid()}", SocketEvents.Closed))
+                    {
+                        var monitorTask = Task.Factory.StartNew(monitor.Start);
+
+                        var closed = new ManualResetEventSlim();
+
+                        monitor.Closed += (sender, args) => closed.Set();
+
+                        var time = DateTime.Now;
+
+                        sub.Unbind(address);
+
+                        Assert.That(closed.Wait(1000), Is.True, "Unbind failed to report Closed event to the Monitor");
+                        var duration = DateTime.Now - time;
+                        Console.WriteLine($"Run {i}: {duration.TotalMilliseconds} ms");
+
+                        monitor.Stop();
+
+                        monitorTask.Wait();
+                    }
+                }
             }
         }
     }
