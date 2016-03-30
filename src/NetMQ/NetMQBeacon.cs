@@ -116,7 +116,7 @@ namespace NetMQ
                     m_udpSocket.Bind(new IPEndPoint(bindTo, m_udpPort));
                 }
 
-                m_pipe.SendFrame(bindTo == null ? "" : bindTo.ToString());
+                m_pipe.SendFrame(bindTo?.ToString() ?? "");
             }
 
             private static bool Compare([NotNull] NetMQFrame a, [NotNull] NetMQFrame b, int size)

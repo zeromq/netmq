@@ -301,7 +301,7 @@ namespace NetMQ.Core
                     else if (optionValue is byte[])
                         val = (byte[])optionValue;
                     else
-                        throw new InvalidException(string.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue == null ? "null" : optionValue.ToString()));
+                        throw new InvalidException(string.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue?.ToString() ?? "null"));
 
                     if (val.Length == 0 || val.Length > 255)
                         throw new InvalidException(string.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length));

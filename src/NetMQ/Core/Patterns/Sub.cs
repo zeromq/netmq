@@ -62,7 +62,7 @@ namespace NetMQ.Core.Patterns
             else if (optionValue is byte[])
                 topic = (byte[])optionValue;
             else
-                throw new InvalidException(string.Format("In Sub.XSetSocketOption({0},{1}), optionValue must be either a string or a byte-array.", option, (optionValue == null ? "null" : optionValue.ToString())));
+                throw new InvalidException(string.Format("In Sub.XSetSocketOption({0},{1}), optionValue must be either a string or a byte-array.", option, optionValue?.ToString() ?? "null"));
 
             // Create the subscription message.
             var msg = new Msg();

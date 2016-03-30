@@ -56,7 +56,7 @@ namespace BeaconDemo
             {
                 unchecked
                 {
-                    return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ Port;
+                    return ((Name?.GetHashCode() ?? 0) * 397) ^ Port;
                 }
             }
 

@@ -258,7 +258,7 @@ namespace NetMQ.Core.Patterns
                         else if (optionValue is byte[])
                             val = (byte[])optionValue;
                         else
-                            throw new InvalidException(string.Format("In XPub.XSetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue == null ? "null" : optionValue.ToString()));
+                            throw new InvalidException(string.Format("In XPub.XSetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue?.ToString() ?? "null"));
                         if (val.Length == 0 || val.Length > 255)
                             throw new InvalidException(string.Format("In XPub.XSetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length));
 
@@ -403,7 +403,7 @@ namespace NetMQ.Core.Patterns
                 }
                 m_lastPipe = msgPipePair.Value;
             }
-            m_options.Identity = m_lastPipe != null ? m_lastPipe.Identity : null;
+            m_options.Identity = m_lastPipe?.Identity;
             m_moreIn = msgMore;
             return true;
         }
