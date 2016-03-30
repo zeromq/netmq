@@ -234,10 +234,7 @@ namespace NetMQ
         /// <returns></returns>
         public bool Equals([CanBeNull] byte[] other)
         {
-            if (other == null)
-                return false;
-
-            if (other.Length != MessageSize)
+            if (other?.Length != MessageSize)
                 return false;
 
             if (ReferenceEquals(Buffer, other))

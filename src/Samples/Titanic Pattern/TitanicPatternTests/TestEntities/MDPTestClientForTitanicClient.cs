@@ -108,11 +108,7 @@ namespace TitanicProtocolTests.TestEntities
 
         protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
-
     }
 }

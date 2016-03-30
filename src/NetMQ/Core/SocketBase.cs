@@ -801,8 +801,7 @@ namespace NetMQ.Core
                 if (!m_endpoints.TryGetValue(addr, out endpoint))
                     throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
-                if (endpoint.Pipe != null)
-                    endpoint.Pipe.Terminate(false);
+                endpoint.Pipe?.Terminate(false);
 
                 TermChild(endpoint.Own);
                 m_endpoints.Remove(addr);

@@ -639,18 +639,12 @@ namespace MajordomoProtocol
 
         protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
 
         protected virtual void OnDebugInfoReady (MDPLogEventArgs e)
         {
-            var handler = DebugInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            DebugInfoReady?.Invoke (this, e);
         }
 
         private void Log (string info)

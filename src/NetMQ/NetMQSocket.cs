@@ -343,18 +343,10 @@ namespace NetMQ
             m_socketEventArgs.Init(events);
 
             if (events.HasIn())
-            {
-                var temp = m_receiveReady;
-                if (temp != null)
-                    temp(sender, m_socketEventArgs);
-            }
+                m_receiveReady?.Invoke(sender, m_socketEventArgs);
 
             if (events.HasOut())
-            {
-                var temp = m_sendReady;
-                if (temp != null)
-                    temp(sender, m_socketEventArgs);
-            }
+                m_sendReady?.Invoke(sender, m_socketEventArgs);
         }
 
         #endregion

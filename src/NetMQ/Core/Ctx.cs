@@ -249,8 +249,7 @@ namespace NetMQ.Core
             foreach (IOThread it in m_ioThreads)
                 it.Destroy();
 
-            if (m_reaper != null)
-                m_reaper.Destroy();
+            m_reaper?.Destroy();
 
             m_termMailbox.Close();
 

@@ -588,11 +588,7 @@ namespace NetMQ.Security.V0_1
         /// </summary>
         private void InvokeChangeCipherSuite()
         {
-            EventHandler temp = CipherSuiteChange;
-            if (temp != null)
-            {
-                temp(this, EventArgs.Empty);
-            }
+            CipherSuiteChange?.Invoke(this, EventArgs.Empty);
         }
 
         private void GenerateMasterSecret(byte[] preMasterSecret)

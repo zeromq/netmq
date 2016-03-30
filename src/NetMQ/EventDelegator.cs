@@ -56,10 +56,7 @@ namespace NetMQ
         public void Fire([NotNull] object sender, [NotNull] T args)
         {
             var temp = m_event;
-            if (temp != null)
-            {
-                temp(sender, args);
-            }
+            temp?.Invoke(sender, args);
         }
 
         public void Dispose()

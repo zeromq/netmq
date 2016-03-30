@@ -66,35 +66,22 @@ namespace NetMQ.Sockets
             {
                 using (var requestSocket = new RequestSocket(address))
                 {
-                    if (progressPublisher != null)
-                    {
-                        progressPublisher.SendFrame(ProgressTopic.Send.ToString());
-                    }
+                    progressPublisher?.SendFrame(ProgressTopic.Send.ToString());
 
                     requestSocket.SendMultipartMessage(requestMessage);
 
                     if (requestSocket.TryReceiveMultipartMessage(requestTimeout, ref responseMessage))
                     {
-                        if (progressPublisher != null)
-                        {
-                            progressPublisher.SendFrame(ProgressTopic.Success.ToString());
-                        }
+                        progressPublisher?.SendFrame(ProgressTopic.Success.ToString());
 
                         return responseMessage;
                     }
 
-                    if (progressPublisher != null)
-                    {
-                        progressPublisher.SendFrame(ProgressTopic.Retry.ToString());
-                    }                    
+                    progressPublisher?.SendFrame(ProgressTopic.Retry.ToString());
                 }
             }
 
-
-            if (progressPublisher != null)
-            {
-                progressPublisher.SendFrame(ProgressTopic.Failure.ToString());
-            }
+            progressPublisher?.SendFrame(ProgressTopic.Failure.ToString());
 
             return null;
         }
@@ -115,34 +102,23 @@ namespace NetMQ.Sockets
             {
                 using (var requestSocket = new RequestSocket(address))
                 {
-                    if (progressPublisher != null)
-                    {
-                        progressPublisher.SendFrame(ProgressTopic.Send.ToString());
-                    }
+                    progressPublisher?.SendFrame(ProgressTopic.Send.ToString());
 
                     requestSocket.SendFrame(requestString);
 
                     string frameString;
                     if (requestSocket.TryReceiveFrameString(requestTimeout, out frameString))
                     {
-                        if (progressPublisher != null)
-                        {
-                            progressPublisher.SendFrame(ProgressTopic.Success.ToString());
-                        }
+                        progressPublisher?.SendFrame(ProgressTopic.Success.ToString());
 
                         return frameString;
                     }
-                    if (progressPublisher != null)
-                    {
-                        progressPublisher.SendFrame(ProgressTopic.Retry.ToString());
-                    }
+
+                    progressPublisher?.SendFrame(ProgressTopic.Retry.ToString());
                 }
             }
 
-            if (progressPublisher != null)
-            {
-                progressPublisher.SendFrame(ProgressTopic.Failure.ToString());
-            }
+            progressPublisher?.SendFrame(ProgressTopic.Failure.ToString());
 
             return null;
         }

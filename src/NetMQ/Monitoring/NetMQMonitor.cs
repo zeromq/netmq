@@ -192,13 +192,8 @@ namespace NetMQ.Monitoring
 
         private void InvokeEvent<T>(EventHandler<T> handler, T args) where T : NetMQMonitorEventArgs
         {
-            var t1 = EventReceived;
-            if (t1 != null)
-                t1(this, args);
-
-            var t2 = handler;
-            if (t2 != null)
-                t2(this, args);
+            EventReceived?.Invoke(this, args);
+            handler?.Invoke(this, args);
         }
 
         private void InternalStart()
