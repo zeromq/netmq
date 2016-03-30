@@ -9,7 +9,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void TopicPubSub()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -30,7 +30,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void SimplePubSub()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -52,7 +52,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void NotSubscribed()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -73,7 +73,7 @@ namespace NetMQ.Tests
         /// </summary>
         [Test]
         public void MultipleSubscriptions()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -99,7 +99,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultipleSubscribersOnDifferentTopics()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub1 = new SubscriberSocket())
             using (var sub2 = new SubscriberSocket())
@@ -108,7 +108,7 @@ namespace NetMQ.Tests
 
                 sub1.Connect("tcp://127.0.0.1:" + port);
                 sub2.Connect("tcp://127.0.0.1:" + port);
-                
+
                 sub1.Subscribe("1");
                 sub1.Subscribe("1&2");
 
@@ -123,7 +123,7 @@ namespace NetMQ.Tests
                 Assert.IsFalse(sub2.TrySkipFrame());
 
                 pub.SendMoreFrame("2").SendFrame("B");
-            
+
                 Assert.IsFalse(sub1.TrySkipFrame());
                 CollectionAssert.AreEqual(new[] { "2", "B" }, sub2.ReceiveMultipartStrings());
 
@@ -136,7 +136,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultiplePublishersAndSubscribersOnSameTopic()
-        {            
+        {
             using (var pub1 = new PublisherSocket())
             using (var pub2 = new PublisherSocket())
             using (var sub1 = new SubscriberSocket())
@@ -174,7 +174,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void Unsubscribe()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
