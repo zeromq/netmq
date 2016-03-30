@@ -19,7 +19,7 @@ namespace ROUTERbrokerDEALERworkers
 
             using (var client = new RouterSocket())
             {
-                client.Bind(string.Format("tcp://localhost:{0}", PortNumber));
+                client.Bind($"tcp://localhost:{PortNumber}");
 
                 foreach (var thread in workers)
                 {
@@ -53,7 +53,7 @@ namespace ROUTERbrokerDEALERworkers
             using (var worker = new DealerSocket())
             {
                 worker.Options.Identity = Encoding.Unicode.GetBytes("A");
-                worker.Connect(string.Format("tcp://localhost:{0}", portNumber));
+                worker.Connect($"tcp://localhost:{portNumber}");
 
                 int total = 0;
 
@@ -82,7 +82,7 @@ namespace ROUTERbrokerDEALERworkers
             using (var worker = new DealerSocket())
             {
                 worker.Options.Identity = Encoding.Unicode.GetBytes("B");
-                worker.Connect(string.Format("tcp://localhost:{0}", portNumber));
+                worker.Connect($"tcp://localhost:{portNumber}");
 
                 int total = 0;
 

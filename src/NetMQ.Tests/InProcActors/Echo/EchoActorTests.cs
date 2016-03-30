@@ -16,7 +16,7 @@ namespace NetMQ.Tests.InProcActors.Echo
                 actor.SendFrame(actorMessage);
 
                 Assert.AreEqual(
-                    string.Format("ECHO BACK : {0}", actorMessage),
+                    $"ECHO BACK : {actorMessage}",
                     actor.ReceiveFrameString());
             }
         }

@@ -62,7 +62,7 @@ namespace TitanicProtocolTests.TestEntities
         //
         public NetMQMessage Send (string serviceName, NetMQMessage message)
         {
-            Log (string.Format ("requested service <{0}> with request <{1}>", serviceName, message));
+            Log ($"requested service <{serviceName}> with request <{message}>");
 
             if (ReplyMessage != null)
                 return new NetMQMessage (ReplyMessage);     // to keep it intact for multiple tries return a copy(!)
@@ -94,7 +94,7 @@ namespace TitanicProtocolTests.TestEntities
                     break;
             }
 
-            Log (string.Format ("reply <{0}>", reply));
+            Log ($"reply <{reply}>");
 
             return reply;
         }

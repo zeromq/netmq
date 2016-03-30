@@ -37,7 +37,7 @@ namespace NetMQ.Sockets
         /// <param name="socket2">the Connect socket</param>
         public static void CreateSocketPair(out PairSocket socket1, out PairSocket socket2)
         {
-            string address = string.Format("inproc://NetMQSocketPair#{0}", Interlocked.Increment(ref s_sequence));
+            string address = $"inproc://NetMQSocketPair#{Interlocked.Increment(ref s_sequence)}";
 
             socket1 = new PairSocket();
             socket1.Bind(address);

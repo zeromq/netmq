@@ -29,7 +29,7 @@ namespace WeatherUpdateServer
                     int temperature = rng.Next(-80, 135);
                     int relhumidity = rng.Next(0, 90);
 
-                    publisher.SendFrame(string.Format("{0} {1} {2}", zipcode, temperature, relhumidity));
+                    publisher.SendFrame($"{zipcode} {temperature} {relhumidity}");
                 }
             }
         }

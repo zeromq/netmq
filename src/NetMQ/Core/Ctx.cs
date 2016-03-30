@@ -355,7 +355,7 @@ namespace NetMQ.Core
                 // Once zmq_term() was called, we can't create new sockets.
                 if (m_terminating)
                 {
-                    string xMsg = string.Format("Ctx.CreateSocket({0}), cannot create new socket while terminating.", type);
+                    string xMsg = $"Ctx.CreateSocket({type}), cannot create new socket while terminating.";
                     throw new TerminatingException(innerException: null, message: xMsg);
                 }
 
@@ -363,7 +363,7 @@ namespace NetMQ.Core
                 if (m_emptySlots.Count == 0)
                 {
 #if DEBUG
-                    string xMsg = string.Format("Ctx.CreateSocket({0}), max number of sockets {1} reached.", type, m_maxSockets);
+                    string xMsg = $"Ctx.CreateSocket({type}), max number of sockets {m_maxSockets} reached.";
                     throw NetMQException.Create(xMsg, ErrorCode.TooManyOpenSockets);
 #else
                     throw NetMQException.Create(ErrorCode.TooManyOpenSockets);

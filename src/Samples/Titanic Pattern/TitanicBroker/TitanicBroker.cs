@@ -164,7 +164,7 @@ namespace TitanicProtocol
                             Log ("[TITANIC BROKER] Received a malformed GUID via pipe - throw it away");
                         else
                         {
-                            Log (string.Format ("[TITANIC BROKER] Received request GUID {0} via pipe", msg));
+                            Log ($"[TITANIC BROKER] Received request GUID {msg} via pipe");
                             // now we have a valid GUID - save it to disk for further use
                             m_io.SaveNewRequestEntry (guid);
                         }
@@ -212,7 +212,7 @@ namespace TitanicProtocol
                     // a request should be [service name][request data]
                     var request = worker.Receive (reply);
 
-                    Log (string.Format ("[TITANIC REQUEST] Received request: {0}", request));
+                    Log ($"[TITANIC REQUEST] Received request: {request}");
 
                     //! has there been a breaking cause? -> exit
                     if (ReferenceEquals (request, null))
@@ -225,7 +225,7 @@ namespace TitanicProtocol
                     // save request to file -> [service name][request data]
                     m_io.SaveMessage (TitanicOperation.Request, requestId, request);
 
-                    Log (string.Format ("[TITANIC REQUEST] sending through pipe: {0}", requestId));
+                    Log ($"[TITANIC REQUEST] sending through pipe: {requestId}");
 
                     // send GUID through message queue to main thread
                     pipe.SendFrame (requestId.ToString ());
@@ -236,7 +236,7 @@ namespace TitanicProtocol
                     // [Ok][Guid]
                     reply.Push (TitanicReturnCode.Ok.ToString ());
 
-                    Log (string.Format ("[TITANIC REQUEST] sending reply: {0}", reply));
+                    Log ($"[TITANIC REQUEST] sending reply: {reply}");
                 }
             }
         }
@@ -260,7 +260,7 @@ namespace TitanicProtocol
                     // since there is no initial reply everytime thereafter the reply will be send
                     var request = worker.Receive (reply);
 
-                    Log (string.Format ("TITANIC REPLY] received: {0}", request));
+                    Log ($"TITANIC REPLY] received: {request}");
 
                     //! has there been a breaking cause? -> exit
                     if (ReferenceEquals (request, null))
@@ -271,7 +271,7 @@ namespace TitanicProtocol
 
                     if (m_io.ExistsMessage (TitanicOperation.Reply, requestId))
                     {
-                        Log (string.Format ("[TITANIC REPLY] reply for request exists: {0}", requestId));
+                        Log ($"[TITANIC REPLY] reply for request exists: {requestId}");
 
                         reply = m_io.GetMessage (TitanicOperation.Reply, requestId);    // [service][reply]
                         reply.Push (TitanicReturnCode.Ok.ToString ());                  // ["OK"][service][reply]
@@ -287,7 +287,7 @@ namespace TitanicProtocol
                         reply.Push (replyCommand.ToString ());
                     }
 
-                    Log (string.Format ("[TITANIC REPLY] reply: {0}", reply));
+                    Log ($"[TITANIC REPLY] reply: {reply}");
                 }
             }
         }
@@ -309,7 +309,7 @@ namespace TitanicProtocol
                     // initiate the communication with sending a null, since there is no reply yet
                     var request = worker.Receive (reply);
 
-                    Log (string.Format ("[TITANIC CLOSE] received: {0}", request));
+                    Log ($"[TITANIC CLOSE] received: {request}");
 
                     //! has there been a breaking cause? -> exit
                     if (ReferenceEquals (request, null))
@@ -319,7 +319,7 @@ namespace TitanicProtocol
                     var guidAsString = request.Pop ().ConvertToString ();
                     var guid = Guid.Parse (guidAsString);
 
-                    Log (string.Format ("[TITANIC CLOSE] closing {0}", guid));
+                    Log ($"[TITANIC CLOSE] closing {guid}");
 
                     // close the request
                     m_io.CloseRequest (guid);
@@ -342,7 +342,7 @@ namespace TitanicProtocol
             // threat this as successfully processed
             if (!m_io.ExistsMessage (TitanicOperation.Request, requestId))
             {
-                Log (string.Format ("[TITANIC DISPATCH] Request {0} does not exist. Removing it from queue.", requestId));
+                Log ($"[TITANIC DISPATCH] Request {requestId} does not exist. Removing it from queue.");
                 // close request inorder to avoid any further processing
                 m_io.CloseRequest (requestId);
 
@@ -354,7 +354,7 @@ namespace TitanicProtocol
             // [service name][data]
             var serviceName = request[0].ConvertToString ();
 
-            Log (string.Format ("[TITANIC DISPATCH] Do a ServiceCall for {0} - {1}.", serviceName, request));
+            Log ($"[TITANIC DISPATCH] Do a ServiceCall for {serviceName} - {request}.");
 
             var reply = ServiceCall (serviceName, request, serviceClient);
 
@@ -362,7 +362,7 @@ namespace TitanicProtocol
                 return false;       // no reply
 
             // a reply has been received -> save it
-            Log (string.Format ("[TITANIC DISPATCH] Saving reply for request {0}.", requestId));
+            Log ($"[TITANIC DISPATCH] Saving reply for request {requestId}.");
             // save the reply for further use
             m_io.SaveMessage (TitanicOperation.Reply, requestId, reply);
 
@@ -402,15 +402,12 @@ namespace TitanicProtocol
                 // answer == "Ok" -> service is available -> make the request
                 if (answer == MmiCode.Ok)
                 {
-                    Log (string.Format ("[TITANIC SERVICECALL] -> {0} - {1}", serviceName, request));
+                    Log ($"[TITANIC SERVICECALL] -> {serviceName} - {request}");
 
                     return session.Send (serviceName, request);
                 }
 
-                Log (string.Format ("[TITANIC SERVICECALL] Service {0} (RC = {1}/{2}) is not available.",
-                                    serviceName,
-                                    answer,
-                                    request));
+                Log ($"[TITANIC SERVICECALL] Service {serviceName} (RC = {answer}/{request}) is not available.");
 
                 //! shall this information be available for request? Unknown or Pending
                 //! so TitanicRequest could utilize this information
@@ -448,10 +445,10 @@ namespace TitanicProtocol
 
         private void LogExceptions (AggregateException exception)
         {
-            Log (string.Format ("Exception: {0}", exception.Message));
+            Log ($"Exception: {exception.Message}");
 
             foreach (var ex in exception.Flatten ().InnerExceptions)
-                Log (string.Format ("Inner Exception: {0}", ex.Message));
+                Log ($"Inner Exception: {ex.Message}");
         }
 
         private void Log ([NotNull] string info)

@@ -309,7 +309,7 @@ namespace TitanicProtocolTests
             {
                 ids[i] = Guid.NewGuid ();
                 var request = new NetMQMessage ();
-                request.Push (string.Format ("Request #{0}", i));
+                request.Push ($"Request #{i}");
                 request.Push ("echo");
                 sut.SaveNewRequestEntry (ids[i], request);
             }
@@ -330,7 +330,7 @@ namespace TitanicProtocolTests
             {
                 ids[i] = Guid.NewGuid ();
                 var request = new NetMQMessage ();
-                request.Push (string.Format ("Request #{0}", i));
+                request.Push ($"Request #{i}");
                 request.Push ("echo");
                 sut.SaveNewRequestEntry (ids[i], request);
             }
@@ -372,7 +372,7 @@ namespace TitanicProtocolTests
                 ids[i] = Guid.NewGuid ();
 
                 var request = new NetMQMessage ();
-                request.Push (string.Format ("Request #{0}", i));
+                request.Push ($"Request #{i}");
                 request.Push ("echo");
                 sut.SaveMessage (TitanicOperation.Request, ids[i], request);
             }
@@ -380,7 +380,7 @@ namespace TitanicProtocolTests
             sut.NumberOfRequests.Should ().Be (10);
 
             var reply = new NetMQMessage ();
-            reply.Push (string.Format ("This is a REPLY to Request #{0}", id_to_retrieve));
+            reply.Push ($"This is a REPLY to Request #{id_to_retrieve}");
             reply.Push ("echo");
 
             sut.SaveMessage (TitanicOperation.Reply, ids[id_to_retrieve], reply).Should ().BeTrue ();
@@ -407,7 +407,7 @@ namespace TitanicProtocolTests
                 ids[i] = Guid.NewGuid ();
 
                 var request = new NetMQMessage ();
-                request.Push (string.Format ("Request #{0}", i));
+                request.Push ($"Request #{i}");
                 request.Push ("echo");
                 sut.SaveMessage (TitanicOperation.Request, ids[i], request);
             }
@@ -427,7 +427,7 @@ namespace TitanicProtocolTests
                 ids[i] = Guid.NewGuid ();
 
                 var request = new NetMQMessage ();
-                request.Push (string.Format ("Request #{0}", i));
+                request.Push ($"Request #{i}");
                 request.Push ("echo");
                 sut.SaveMessage (TitanicOperation.Request, ids[i], request);
             }
@@ -448,7 +448,7 @@ namespace TitanicProtocolTests
                 ids[i] = Guid.NewGuid ();
 
                 var request = new NetMQMessage ();
-                request.Push (string.Format ("Request #{0}", i));
+                request.Push ($"Request #{i}");
                 request.Push ("echo");
                 sut.SaveMessage (TitanicOperation.Request, ids[i], request);
             }

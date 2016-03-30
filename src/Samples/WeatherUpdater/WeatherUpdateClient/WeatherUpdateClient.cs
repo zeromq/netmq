@@ -35,7 +35,7 @@ namespace WeatherUpdateClient
                     int zip = int.Parse(split[0]);
                     if (zip != zipToSubscribeTo)
                     {
-                        throw new Exception(string.Format("Received message for unexpected zipcode: {0} (expected {1})", zip, zipToSubscribeTo));
+                        throw new Exception($"Received message for unexpected zipcode: {zip} (expected {zipToSubscribeTo})");
                     }
 
                     totalTemp += int.Parse(split[1]);

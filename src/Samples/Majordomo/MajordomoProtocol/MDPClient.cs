@@ -133,7 +133,7 @@ namespace MajordomoProtocol
             message.Push (serviceName);
             message.Push (m_mdpClient);
 
-            Log (string.Format ("[CLIENT INFO] sending {0} to service {1}", message, serviceName));
+            Log ($"[CLIENT INFO] sending {message} to service {serviceName}");
 
             var retiesLeft = Retries;
 
@@ -189,7 +189,7 @@ namespace MajordomoProtocol
 
             m_connected = true;
 
-            Log (string.Format ("[CLIENT] connecting to broker at {0}", m_brokerAddress));
+            Log ($"[CLIENT] connecting to broker at {m_brokerAddress}");
         }
 
         /// <summary>
@@ -205,7 +205,7 @@ namespace MajordomoProtocol
             // a message is available within the timeout period
             var reply = m_client.ReceiveMultipartMessage ();
 
-            Log (string.Format ("\n[CLIENT INFO] received the reply {0}\n", reply));
+            Log ($"\n[CLIENT INFO] received the reply {reply}\n");
 
             // in production code malformed messages should be handled smarter
             if (reply.FrameCount < 2)
@@ -214,13 +214,12 @@ namespace MajordomoProtocol
             var header = reply.Pop (); // [MDPHeader] <- [service name][reply] OR ['mmi.service'][return code]
 
             if (header.ConvertToString () != m_mdpClient)
-                throw new ApplicationException (string.Format ("[CLIENT INFO] MDP Version mismatch: {0}", header));
+                throw new ApplicationException ($"[CLIENT INFO] MDP Version mismatch: {header}");
 
             var service = reply.Pop (); // [service name or 'mmi.service'] <- [reply] OR [return code]
 
             if (service.ConvertToString () != m_serviceName)
-                throw new ApplicationException (string.Format ("[CLIENT INFO] answered by wrong service: {0}",
-                                                               service.ConvertToString ()));
+                throw new ApplicationException ($"[CLIENT INFO] answered by wrong service: {service.ConvertToString()}");
             // now set the value for the reply of the send method!
             m_reply = reply;        // [reply] OR [return code]
         }

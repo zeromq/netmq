@@ -329,7 +329,7 @@ namespace NetMQ.Tests
                 using (var connectingDealer = new DealerSocket())
                 {
                     var port = localDealer.BindRandomPort("tcp://*");
-                    connectingDealer.Connect(string.Format("tcp://{0}:{1}", alias, port));
+                    connectingDealer.Connect($"tcp://{alias}:{port}");
 
                     localDealer.SendFrame("test");
 
@@ -348,7 +348,7 @@ namespace NetMQ.Tests
                 localDealer.Options.IPv4Only = false;
                 var port = localDealer.BindRandomPort("tcp://*");
 
-                connectingDealer.Connect(string.Format("tcp://{0}:{1}", IPAddress.Loopback, port));
+                connectingDealer.Connect($"tcp://{IPAddress.Loopback}:{port}");
 
                 connectingDealer.SendFrame("test");
 
@@ -366,7 +366,7 @@ namespace NetMQ.Tests
                 var port = localDealer.BindRandomPort("tcp://*");
 
                 connectingDealer.Options.IPv4Only = false;
-                connectingDealer.Connect(string.Format("tcp://{0}:{1}", IPAddress.IPv6Loopback, port));
+                connectingDealer.Connect($"tcp://{IPAddress.IPv6Loopback}:{port}");
 
                 connectingDealer.SendFrame("test");
 

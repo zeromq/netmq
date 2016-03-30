@@ -28,7 +28,7 @@ namespace BeaconDemo
             {
                 Name = name;
                 Port = port;
-                Address = string.Format("tcp://{0}:{1}", name, port);
+                Address = $"tcp://{name}:{port}";
                 HostName = Dns.GetHostEntry(name).HostName;
             }
 

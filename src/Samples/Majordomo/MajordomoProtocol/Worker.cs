@@ -31,10 +31,7 @@ namespace MajordomoProtocol
 
         public override string ToString()
         {
-            return string.Format("Name = {0} / Service = {1} / Expires {2}",
-                Id,
-                Service.Name,
-                Expiry.ToShortTimeString());
+            return $"Name = {Id} / Service = {Service.Name} / Expires {Expiry.ToShortTimeString()}";
         }
 
         public override bool Equals(object obj)

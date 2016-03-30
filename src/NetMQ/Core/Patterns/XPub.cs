@@ -258,9 +258,9 @@ namespace NetMQ.Core.Patterns
                         else if (optionValue is byte[])
                             val = (byte[])optionValue;
                         else
-                            throw new InvalidException(string.Format("In XPub.XSetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue?.ToString() ?? "null"));
+                            throw new InvalidException($"In XPub.XSetSocketOption(Identity, {optionValue?.ToString() ?? "null"}) optionValue must be a string or byte-array.");
                         if (val.Length == 0 || val.Length > 255)
-                            throw new InvalidException(string.Format("In XPub.XSetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length));
+                            throw new InvalidException($"In XPub.XSetSocketOption(Identity,) optionValue yielded a byte-array of length {val.Length}, should be 1..255.");
 
                         m_lastPipe.Identity = val;
                         m_options.Identity = val;
@@ -298,7 +298,7 @@ namespace NetMQ.Core.Patterns
                     {
                         var bytes = optionValue as byte[];
                         if (bytes == null)
-                            throw new InvalidException(string.Format("In XPub.XSetSocketOption({0},{1}), optionValue must be a byte-array.", option, optionValue));
+                            throw new InvalidException($"In XPub.XSetSocketOption({option},{optionValue}), optionValue must be a byte-array.");
                         var welcomeBytes = new byte[bytes.Length];
                         bytes.CopyTo(welcomeBytes, 0);
                         m_welcomeMessage.InitGC(welcomeBytes, welcomeBytes.Length);

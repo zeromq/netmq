@@ -20,7 +20,7 @@ namespace Freelance.ModelOne.Server
                 if (!string.IsNullOrEmpty(address))
                 {
                     Console.WriteLine("Binding tcp://{0}:{1}", address, PortNumber);
-                    response.Bind(string.Format("tcp://{0}:{1}", address, PortNumber));
+                    response.Bind($"tcp://{address}:{PortNumber}");
 
                     while (true)
                     {

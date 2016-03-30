@@ -301,10 +301,10 @@ namespace NetMQ.Core
                     else if (optionValue is byte[])
                         val = (byte[])optionValue;
                     else
-                        throw new InvalidException(string.Format("In Options.SetSocketOption(Identity, {0}) optionValue must be a string or byte-array.", optionValue?.ToString() ?? "null"));
+                        throw new InvalidException($"In Options.SetSocketOption(Identity, {optionValue?.ToString() ?? "null"}) optionValue must be a string or byte-array.");
 
                     if (val.Length == 0 || val.Length > 255)
-                        throw new InvalidException(string.Format("In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {0}, should be 1..255.", val.Length));
+                        throw new InvalidException($"In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {val.Length}, should be 1..255.");
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
                     IdentitySize = (byte)Identity.Length;
@@ -333,14 +333,14 @@ namespace NetMQ.Core
                 case ZmqSocketOption.ReconnectIvl:
                     var reconnectIvl = (int)optionValue;
                     if (reconnectIvl < -1)
-                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvl, {0}) optionValue must be >= -1.", reconnectIvl));
+                        throw new InvalidException($"Options.SetSocketOption(ReconnectIvl, {reconnectIvl}) optionValue must be >= -1.");
                     ReconnectIvl = reconnectIvl;
                     break;
 
                 case ZmqSocketOption.ReconnectIvlMax:
                     var reconnectIvlMax = (int)optionValue;
                     if (reconnectIvlMax < 0)
-                        throw new InvalidException(string.Format("Options.SetSocketOption(ReconnectIvlMax, {0}) optionValue must be non-negative.", reconnectIvlMax));
+                        throw new InvalidException($"Options.SetSocketOption(ReconnectIvlMax, {reconnectIvlMax}) optionValue must be non-negative.");
                     ReconnectIvlMax = reconnectIvlMax;
                     break;
 
@@ -367,7 +367,7 @@ namespace NetMQ.Core
                 case ZmqSocketOption.TcpKeepalive:
                     var tcpKeepalive = (int)optionValue;
                     if (tcpKeepalive != -1 && tcpKeepalive != 0 && tcpKeepalive != 1)
-                        throw new InvalidException(string.Format("Options.SetSocketOption(TcpKeepalive, {0}) optionValue is neither -1, 0, nor 1.", tcpKeepalive));
+                        throw new InvalidException($"Options.SetSocketOption(TcpKeepalive, {tcpKeepalive}) optionValue is neither -1, 0, nor 1.");
                     TcpKeepalive = tcpKeepalive;
                     break;
 
