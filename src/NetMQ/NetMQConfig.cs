@@ -19,12 +19,7 @@ namespace NetMQ
             s_linger = TimeSpan.Zero;
 
             // Register to destroy the context when application exit
-            AppDomain.CurrentDomain.ProcessExit += OnCurrentDomainOnProcessExit;
-        }
-
-        private static void OnCurrentDomainOnProcessExit(object sender, EventArgs args)
-        {
-            s_ctx.Terminate();
+            AppDomain.CurrentDomain.ProcessExit += (sender, args) => s_ctx.Terminate();
         }
 
         internal static Ctx Context => s_ctx;
