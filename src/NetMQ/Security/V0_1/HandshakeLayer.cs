@@ -145,8 +145,8 @@ namespace NetMQ.Security.V0_1
         /// <param name="incomingMessage">the NetMQMessage that has come in</param>
         /// <param name="outgoingMessages">a collection of NetMQMessages that are to be sent</param>
         /// <returns>true if finished - ie, an incoming message of type Finished was received</returns>
-        /// <exception cref="ArgumentNullException">handshakeMessage must not be null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">The incomingMessage must have a valid HandshakeType.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="incomingMessage"/> must not be <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="incomingMessage"/> must have a valid <see cref="HandshakeType"/>.</exception>
         public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
         {
             if (incomingMessage == null)
@@ -160,7 +160,7 @@ namespace NetMQ.Security.V0_1
                 }
                 else
                 {
-                    throw new ArgumentNullException("handshakeMessage is null");
+                    throw new ArgumentNullException(nameof(incomingMessage));
                 }
             }
 
