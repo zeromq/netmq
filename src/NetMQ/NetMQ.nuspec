@@ -16,9 +16,6 @@
     </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>ZeroMQ 0MQ CLRZMQ NetMQ Messaging ZMQ transport distributed</tags>
-    <dependencies>
-      <dependency id="AsyncIO" version="0.1.18.0" />
-    </dependencies>
   </metadata>
   <files>
     <file src="bin\Release\NetMQ.dll" target="lib\net40\" />
