@@ -46,7 +46,7 @@ namespace NetMQ
             if (!string.IsNullOrEmpty(connectionString))
             {
                 var endpoints =
-                    connectionString.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    connectionString.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                         .Select(a => a.Trim()).Where(a=> !string.IsNullOrEmpty(a));
 
                 foreach (string endpoint in endpoints)

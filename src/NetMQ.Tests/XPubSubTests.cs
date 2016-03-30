@@ -407,7 +407,7 @@ namespace NetMQ.Tests
 
                 // add prefix 2 to the topic, this indicates a broadcast message and it will not be sent to sub1
                 sub1.SendFrame(new byte[] {2, (byte) 'A'}, true);
-                sub1.SendFrame(new byte[] {(byte) 42});
+                sub1.SendFrame(new[] {(byte) 42});
                 var subscription = pub.ReceiveFrameBytes();
                 var topic = pub.ReceiveFrameBytes();
                 var message = pub.ReceiveFrameBytes();
@@ -450,8 +450,8 @@ namespace NetMQ.Tests
 
                 var payload = new[] { (byte)42 };
 
-                sub1.SendFrame(new byte[] { (byte)'A' }, true);
-                sub1.SendFrame(new byte[] { (byte)42 });
+                sub1.SendFrame(new[] { (byte)'A' }, true);
+                sub1.SendFrame(new[] { (byte)42 });
                 var subscription = pub.ReceiveFrameBytes();
                 var topic = pub.ReceiveFrameBytes();
                 var message = pub.ReceiveFrameBytes();
@@ -489,8 +489,8 @@ namespace NetMQ.Tests
                 var identity1 = new byte[] { 1 };
                 var identity2 = new byte[] { 2 };
 
-                sub1.SendFrame(new byte[] { (byte)'A' }, true);
-                sub1.SendFrame(new byte[] { (byte)42 });
+                sub1.SendFrame(new[] { (byte)'A' }, true);
+                sub1.SendFrame(new[] { (byte)42 });
                 var subscription = pub.ReceiveFrameBytes();
                 // NB Identity must be set before pub.Subscribe/Unsubscribe/Send, because these operations clear a private field with last subscriber
                 
@@ -507,8 +507,8 @@ namespace NetMQ.Tests
                 var message = pub.ReceiveFrameBytes();
 
                 sub2.SendFrame(new byte[] { 1, (byte)'A' });
-                sub2.SendFrame(new byte[] { (byte)'A' }, true);
-                sub2.SendFrame(new byte[] { (byte)43 });
+                sub2.SendFrame(new[] { (byte)'A' }, true);
+                sub2.SendFrame(new[] { (byte)43 });
 
                 subscription = pub.ReceiveFrameBytes();
                 // Id of sub2 is not set yet
@@ -523,15 +523,15 @@ namespace NetMQ.Tests
                 topic = pub.ReceiveFrameBytes();
                 message = pub.ReceiveFrameBytes();
                 
-                sub1.SendFrame(new byte[] { (byte)'A' }, true);
-                sub1.SendFrame(new byte[] { (byte)44 });
+                sub1.SendFrame(new[] { (byte)'A' }, true);
+                sub1.SendFrame(new[] { (byte)44 });
                 topic = pub.ReceiveFrameBytes();
                 message = pub.ReceiveFrameBytes();
                 Assert.IsTrue(identity1.SequenceEqual(pub.Options.Identity), "Identity option must be set to the identity of sub1 here");
 
 
-                sub2.SendFrame(new byte[] { (byte)'A' }, true);
-                sub2.SendFrame(new byte[] { (byte)45 });
+                sub2.SendFrame(new[] { (byte)'A' }, true);
+                sub2.SendFrame(new[] { (byte)45 });
                 topic = pub.ReceiveFrameBytes();
                 message = pub.ReceiveFrameBytes();
                 Assert.IsTrue(identity2.SequenceEqual(pub.Options.Identity), "Identity option must be set to the identity of sub2 here");

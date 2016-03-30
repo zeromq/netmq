@@ -248,7 +248,7 @@ namespace NetMQ.Security.V0_1
 
             if (SecurityParameters.MACAlgorithm != MACAlgorithm.Null)
             {
-                byte[] versionAndType = new byte[] { (byte)contentType, m_protocolVersion[0], m_protocolVersion[1] };
+                byte[] versionAndType = new[] { (byte)contentType, m_protocolVersion[0], m_protocolVersion[1] };
                 byte[] seqNumBytes = BitConverter.GetBytes(seqNum);
                 byte[] messageSize = BitConverter.GetBytes(plainBytes.Length);
                 byte[] frameIndexBytes = BitConverter.GetBytes(frameIndex);
@@ -439,7 +439,7 @@ namespace NetMQ.Security.V0_1
         {
             if (SecurityParameters.MACAlgorithm != MACAlgorithm.Null)
             {
-                byte[] versionAndType = new byte[] { (byte)contentType, m_protocolVersion[0], m_protocolVersion[1] };
+                byte[] versionAndType = new[] { (byte)contentType, m_protocolVersion[0], m_protocolVersion[1] };
                 byte[] seqNumBytes = BitConverter.GetBytes(seqNum);
                 byte[] messageSize = BitConverter.GetBytes(plainBytes.Length);
                 byte[] frameIndexBytes = BitConverter.GetBytes(frameIndex);

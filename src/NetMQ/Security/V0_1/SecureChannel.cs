@@ -168,7 +168,7 @@ namespace NetMQ.Security.V0_1
         internal NetMQMessage InternalEncryptAndWrapMessage(ContentType contentType, NetMQMessage plainMessage)
         {
             NetMQMessage encryptedMessage = m_recordLayer.EncryptMessage(contentType, plainMessage);
-            encryptedMessage.Push(new byte[] { (byte)contentType });
+            encryptedMessage.Push(new[] { (byte)contentType });
             encryptedMessage.Push(m_protocolVersion);
 
             return encryptedMessage;
