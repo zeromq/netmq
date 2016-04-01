@@ -56,7 +56,7 @@
         public virtual NetMQMessage ToNetMQMessage()
         {
             NetMQMessage message = new NetMQMessage();
-            message.Append(new byte[] { (byte)HandshakeType });
+            message.Append(new[] { (byte)HandshakeType });
 
             return message;
         }

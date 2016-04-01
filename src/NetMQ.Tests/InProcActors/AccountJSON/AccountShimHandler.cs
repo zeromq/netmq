@@ -65,7 +65,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
                 // demonstration purposes only, any unhandled fault will bubble up to caller's code.
                 catch (Exception e)
                 {
-                    shim.SendFrame(string.Format("Error: Exception occurred {0}", e.Message));
+                    shim.SendFrame($"Error: Exception occurred {e.Message}");
                 }
             }
         }

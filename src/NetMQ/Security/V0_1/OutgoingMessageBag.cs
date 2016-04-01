@@ -24,10 +24,7 @@ namespace NetMQ.Security.V0_1
         /// <summary>
         /// Get the list of NetMQMessages that this OutgoingMessageBag is holding.
         /// </summary>
-        public IEnumerable<NetMQMessage> Messages
-        {
-            get { return m_messages; }
-        }
+        public IEnumerable<NetMQMessage> Messages => m_messages;
 
         /// <summary>
         /// Add the given NetMQMessage to the list that this object holds, using the SecureChannel to

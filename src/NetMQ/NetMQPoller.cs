@@ -71,17 +71,14 @@ namespace NetMQ
         /// }
         /// </code>
         /// </example>
-        public bool CanExecuteTaskInline
-        {
-            get { return m_isSchedulerThread.Value; }
-        }
+        public bool CanExecuteTaskInline => m_isSchedulerThread.Value;
 
         /// <summary>
         /// </summary>
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             if (task == null)
-                throw new ArgumentNullException("task");
+                throw new ArgumentNullException(nameof(task));
             CheckDisposed();
 
             return CanExecuteTaskInline && TryExecuteTask(task);
@@ -90,10 +87,7 @@ namespace NetMQ
         /// <summary>
         /// Returns 1, as <see cref="NetMQPoller"/> runs a single thread and all tasks must execute on that thread.
         /// </summary>
-        public override int MaximumConcurrencyLevel
-        {
-            get { return 1; }
-        }
+        public override int MaximumConcurrencyLevel => 1;
 
         /// <summary>
         /// Not supported.
@@ -110,7 +104,7 @@ namespace NetMQ
         protected override void QueueTask(Task task)
         {
             if (task == null)
-                throw new ArgumentNullException("task");
+                throw new ArgumentNullException(nameof(task));
             CheckDisposed();
 
             m_tasksQueue.Enqueue(task);
@@ -158,10 +152,7 @@ namespace NetMQ
         /// <summary>
         /// Get whether this object is currently polling its sockets and timers.
         /// </summary>
-        public bool IsRunning
-        {
-            get { return m_switch.Status; }
-        }
+        public bool IsRunning => m_switch.Status;
 
         #region Add / Remove
 
@@ -170,7 +161,7 @@ namespace NetMQ
         public void Add(ISocketPollable socket)
         {
             if (socket == null)
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
             CheckDisposed();
 
             Run(() =>
@@ -190,7 +181,7 @@ namespace NetMQ
         public void Add([NotNull] NetMQTimer timer)
         {
             if (timer == null)
-                throw new ArgumentNullException("timer");
+                throw new ArgumentNullException(nameof(timer));
             CheckDisposed();
 
             Run(() => m_timers.Add(timer));
@@ -201,9 +192,9 @@ namespace NetMQ
         public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
             if (callback == null)
-                throw new ArgumentNullException("callback");
+                throw new ArgumentNullException(nameof(callback));
             CheckDisposed();
 
             Run(() =>
@@ -220,7 +211,7 @@ namespace NetMQ
         public void Remove(ISocketPollable socket)
         {
             if (socket == null)
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
             CheckDisposed();
 
             Run(() =>
@@ -236,7 +227,7 @@ namespace NetMQ
         public void Remove([NotNull] NetMQTimer timer)
         {
             if (timer == null)
-                throw new ArgumentNullException("timer");
+                throw new ArgumentNullException(nameof(timer));
             CheckDisposed();
 
             timer.When = -1;
@@ -249,7 +240,7 @@ namespace NetMQ
         public void Remove([NotNull] Socket socket)
         {
             if (socket == null)
-                throw new ArgumentNullException("socket");
+                throw new ArgumentNullException(nameof(socket));
             CheckDisposed();
 
             Run(() =>
@@ -589,10 +580,7 @@ namespace NetMQ
             return task.Result;
         }
 
-        bool ISynchronizeInvoke.InvokeRequired
-        {
-            get { return !CanExecuteTaskInline; }
-        }
+        bool ISynchronizeInvoke.InvokeRequired => !CanExecuteTaskInline;
 #endif
 
         #endregion

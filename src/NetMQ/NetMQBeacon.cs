@@ -116,7 +116,7 @@ namespace NetMQ
                     m_udpSocket.Bind(new IPEndPoint(bindTo, m_udpPort));
                 }
 
-                m_pipe.SendFrame(bindTo == null ? "" : bindTo.ToString());
+                m_pipe.SendFrame(bindTo?.ToString() ?? "");
             }
 
             private static bool Compare([NotNull] NetMQFrame a, [NotNull] NetMQFrame b, int size)
@@ -147,8 +147,7 @@ namespace NetMQ
                 m_poller.Run();
 
                 // the beacon might never been configured
-                if (m_udpSocket != null)
-                    m_udpSocket.Close();
+                m_udpSocket?.Close();
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
@@ -162,14 +161,7 @@ namespace NetMQ
                 var frame = ReceiveUdpFrame(out peerName);
 
                 // If filter is set, check that beacon matches it
-                bool isValid = false;
-                if (m_filter != null)
-                {
-                    if (frame.MessageSize >= m_filter.MessageSize && Compare(frame, m_filter, m_filter.MessageSize))
-                    {
-                        isValid = true;
-                    }
-                }
+                var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);
 
                 // If valid, discard our own broadcasts, which UDP echoes to us
                 if (isValid && m_transmit != null)
@@ -309,15 +301,12 @@ namespace NetMQ
         /// <summary>
         /// Get the IP address this beacon is bound to.
         /// </summary>
-        public string BoundTo { get { return m_boundTo; } }
+        public string BoundTo => m_boundTo;
 
         /// <summary>
         /// Get the socket of the contained actor.
         /// </summary>
-        NetMQSocket ISocketPollable.Socket
-        {
-            get { return ((ISocketPollable)m_actor).Socket; }
-        }
+        NetMQSocket ISocketPollable.Socket => ((ISocketPollable)m_actor).Socket;
 
         /// <summary>
         /// This event occurs when at least one message may be received from the socket without blocking.
@@ -480,12 +469,12 @@ namespace NetMQ
         /// <summary>
         /// THe beacon content as a byte array.
         /// </summary>
-        public byte[] Bytes { get; private set; }
+        public byte[] Bytes { get; }
 
         /// <summary>
         /// The address of the peer that sent this message. Includes host name and port number.
         /// </summary>
-        public string PeerAddress { get; private set; }
+        public string PeerAddress { get; }
 
         internal BeaconMessage(byte[] bytes, string peerAddress) : this()
         {
@@ -497,10 +486,7 @@ namespace NetMQ
         /// The beacon content as a string.
         /// </summary>
         /// <remarks>Decoded using <see cref="Encoding.UTF8"/>. Other encodings may be used with <see cref="Bytes"/> directly.</remarks>
-        public string String
-        {
-            get { return Encoding.UTF8.GetString(Bytes); }
-        }
+        public string String => Encoding.UTF8.GetString(Bytes);
 
         /// <summary>
         /// The host name of the peer that sent this message.

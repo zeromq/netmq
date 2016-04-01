@@ -347,14 +347,14 @@ namespace InterBrokerRouter
                 for (var i = 0; i < NbrClients; i++)
                 {
                     var client = new Client(localFrontendAddress, monitorAddress, (byte)i);
-                    clientTasks[i] = new Thread(client.Run) { Name = string.Format("Client_{0}", i) };
+                    clientTasks[i] = new Thread(client.Run) { Name = $"Client_{i}" };
                     clientTasks[i].Start();
                 }
 
                 for (var i = 0; i < NbrWorker; i++)
                 {
                     var worker = new Worker(localBackendAddress, (byte)i);
-                    workerTasks[i] = new Thread(worker.Run) { Name = string.Format("Worker_{0}", i) };
+                    workerTasks[i] = new Thread(worker.Run) { Name = $"Worker_{i}" };
                     workerTasks[i].Start();
                 }
 

@@ -107,7 +107,7 @@ namespace NetMQ.Security.V0_1
             VerifyCertificate = c => c.Verify();
         }
 
-        public SecurityParameters SecurityParameters { get; private set; }
+        public SecurityParameters SecurityParameters { get; }
 
         /// <summary>
         /// Get or set the array of allowed cipher-suites.
@@ -127,10 +127,7 @@ namespace NetMQ.Security.V0_1
         /// <summary>
         /// Get the Pseudo-Random number generating-Function (PRF) that is being used.
         /// </summary>
-        public IPRF PRF
-        {
-            get { return m_prf; }
-        }
+        public IPRF PRF => m_prf;
 
         /// <summary>
         /// This event signals a change to the cipher-suite.
@@ -148,8 +145,8 @@ namespace NetMQ.Security.V0_1
         /// <param name="incomingMessage">the NetMQMessage that has come in</param>
         /// <param name="outgoingMessages">a collection of NetMQMessages that are to be sent</param>
         /// <returns>true if finished - ie, an incoming message of type Finished was received</returns>
-        /// <exception cref="ArgumentNullException">handshakeMessage must not be null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">The incomingMessage must have a valid HandshakeType.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="incomingMessage"/> must not be <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="incomingMessage"/> must have a valid <see cref="HandshakeType"/>.</exception>
         public bool ProcessMessages(NetMQMessage incomingMessage, OutgoingMessageBag outgoingMessages)
         {
             if (incomingMessage == null)
@@ -163,7 +160,7 @@ namespace NetMQ.Security.V0_1
                 }
                 else
                 {
-                    throw new ArgumentNullException("handshakeMessage is null");
+                    throw new ArgumentNullException(nameof(incomingMessage));
                 }
             }
 
@@ -462,19 +459,9 @@ namespace NetMQ.Security.V0_1
             m_remoteHash.Dispose();
             m_remoteHash = null;
 
-            string label;
+            var label = SecurityParameters.Entity == ConnectionEnd.Client ? ServerFinishedLabel : ClientFinshedLabel;
 
-            if (SecurityParameters.Entity == ConnectionEnd.Client)
-            {
-                label = ServerFinishedLabel;
-            }
-            else
-            {
-                label = ClientFinshedLabel;
-            }
-
-            byte[] verifyData =
-                PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
+            var verifyData = PRF.Get(SecurityParameters.MasterSecret, label, seed, FinishedMessage.VerifyDataLength);
 
             if (!verifyData.SequenceEqual(finishedMessage.VerifyData))
             {
@@ -497,16 +484,7 @@ namespace NetMQ.Security.V0_1
             m_localHash.Dispose();
             m_localHash = null;
 
-            string label;
-
-            if (SecurityParameters.Entity == ConnectionEnd.Server)
-            {
-                label = ServerFinishedLabel;
-            }
-            else
-            {
-                label = ClientFinshedLabel;
-            }
+            var label = SecurityParameters.Entity == ConnectionEnd.Server ? ServerFinishedLabel : ClientFinshedLabel;
 
             var finishedMessage = new FinishedMessage
             {
@@ -554,7 +532,7 @@ namespace NetMQ.Security.V0_1
                     SecurityParameters.RecordIVLength = 16;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("cipher");
+                    throw new ArgumentOutOfRangeException(nameof(cipher));
             }
 
             switch (cipher)
@@ -579,7 +557,7 @@ namespace NetMQ.Security.V0_1
                     SecurityParameters.MACLength = 32;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("cipher");
+                    throw new ArgumentOutOfRangeException(nameof(cipher));
             }
         }
 
@@ -588,11 +566,7 @@ namespace NetMQ.Security.V0_1
         /// </summary>
         private void InvokeChangeCipherSuite()
         {
-            EventHandler temp = CipherSuiteChange;
-            if (temp != null)
-            {
-                temp(this, EventArgs.Empty);
-            }
+            CipherSuiteChange?.Invoke(this, EventArgs.Empty);
         }
 
         private void GenerateMasterSecret(byte[] preMasterSecret)

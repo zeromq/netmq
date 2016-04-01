@@ -45,9 +45,9 @@ namespace NetMQ
         public NetMQFrame([NotNull] byte[] buffer, int length)
         {
             if (buffer == null)
-                throw new ArgumentNullException("buffer");
+                throw new ArgumentNullException(nameof(buffer));
             if (length > buffer.Length)
-                throw new ArgumentOutOfRangeException("length", length, "Must be less than or equal to the provided buffer's length.");
+                throw new ArgumentOutOfRangeException(nameof(length), length, "Must be less than or equal to the provided buffer's length.");
 
             Buffer = buffer;
             MessageSize = length;
@@ -81,7 +81,7 @@ namespace NetMQ
         {
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException("length", "A non-negative value is expected.");
+                throw new ArgumentOutOfRangeException(nameof(length), "A non-negative value is expected.");
             }
 
             Buffer = new byte[length];
@@ -99,7 +99,7 @@ namespace NetMQ
             {
                 if (value < 0 || value > BufferSize)
                 {
-                    throw new ArgumentOutOfRangeException("value", "Expecting a non-negative value less than or equal to the buffer size.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Expecting a non-negative value less than or equal to the buffer size.");
                 }
 
                 m_messageSize = value;
@@ -110,31 +110,22 @@ namespace NetMQ
         /// Get the underlying frame-data buffer, which is an array of bytes.
         /// </summary>
         [NotNull]
-        public byte[] Buffer { get; private set; }
+        public byte[] Buffer { get; }
 
         /// <summary>
         /// Get the maximum size of the frame-data buffer (ie, the number of bytes of the array).
         /// </summary>
-        public int BufferSize
-        {
-            get { return Buffer.Length; }
-        }
+        public int BufferSize => Buffer.Length;
 
         /// <summary>
         /// Get a new empty <see cref="NetMQFrame"/> that may be used as message separators.
         /// </summary>
-        public static NetMQFrame Empty
-        {
-            get { return new NetMQFrame(0); }
-        }
+        public static NetMQFrame Empty => new NetMQFrame(0);
 
         /// <summary>
         /// Get whether this NetMQFrame is empty - that is, has a Buffer of zero-length.
         /// </summary>
-        public bool IsEmpty
-        {
-            get { return MessageSize == 0; }
-        }
+        public bool IsEmpty => MessageSize == 0;
 
         /// <summary>
         /// Create and return a new NetMQFrame with a copy of the supplied byte-array buffer.
@@ -147,7 +138,7 @@ namespace NetMQ
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException("buffer");
+                throw new ArgumentNullException(nameof(buffer));
             }
 
             var copy = new NetMQFrame(buffer.Length);
@@ -207,7 +198,7 @@ namespace NetMQ
         {
             if (frame == null)
             {
-                throw new ArgumentNullException("frame");
+                throw new ArgumentNullException(nameof(frame));
             }
 
             var copy = new NetMQFrame(new byte[frame.BufferSize]) { MessageSize = frame.MessageSize };
@@ -234,10 +225,7 @@ namespace NetMQ
         /// <returns></returns>
         public bool Equals([CanBeNull] byte[] other)
         {
-            if (other == null)
-                return false;
-
-            if (other.Length != MessageSize)
+            if (other?.Length != MessageSize)
                 return false;
 
             if (ReferenceEquals(Buffer, other))

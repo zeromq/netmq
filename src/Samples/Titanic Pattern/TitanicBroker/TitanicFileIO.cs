@@ -53,14 +53,14 @@ namespace TitanicProtocol
         /// </summary>
         private readonly string m_appDir;
 
-        public string TitanicDirectory { get { return m_appDir; } }
+        public string TitanicDirectory => m_appDir;
 
         /// <summary>
         ///     represents the filename of the queue of requests
         /// </summary>
         private readonly string m_titanicQueue;
 
-        public string TitanicQueue { get { return m_titanicQueue; } }
+        public string TitanicQueue => m_titanicQueue;
 
         /// <summary>
         ///     ctor - creation with all standard values
@@ -212,7 +212,7 @@ namespace TitanicProtocol
         ///     save a processed request entry and mark it as such
         /// </summary>
         /// <param name="entry">the entry to save</param>
-        public void SaveProcessedRequestEntry ([NotNull] RequestEntry entry)
+        public void SaveProcessedRequestEntry (RequestEntry entry)
         {
             entry.State = RequestEntry.Is_Processed;
 
@@ -292,7 +292,7 @@ namespace TitanicProtocol
         /// <param name="op">defines whether it is a REQUEST or REPLY message</param>
         /// <param name="id">the guid of the message to save</param>
         /// <param name="message">the message to save</param>
-        public bool SaveMessage (TitanicOperation op, Guid id, [NotNull] NetMQMessage message)
+        public bool SaveMessage (TitanicOperation op, Guid id, NetMQMessage message)
         {
             var filename = op == TitanicOperation.Request ? GetRequestFileName (id) : GetReplyFileName (id);
 
@@ -313,7 +313,7 @@ namespace TitanicProtocol
         /// <param name="op">defines whether it is a REQUEST or REPLY message</param>
         /// <param name="id">the guid of the message to save</param>
         /// <param name="message">the message to save</param>
-        public Task<bool> SaveMessageAsync (TitanicOperation op, Guid id, [NotNull] NetMQMessage message)
+        public Task<bool> SaveMessageAsync (TitanicOperation op, Guid id, NetMQMessage message)
         {
             var tcs = new TaskCompletionSource<bool> ();
 
@@ -540,10 +540,7 @@ namespace TitanicProtocol
 
         protected virtual void OnLogInfoReady (TitanicLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
     }
 }

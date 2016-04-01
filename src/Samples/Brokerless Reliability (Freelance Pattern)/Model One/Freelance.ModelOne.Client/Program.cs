@@ -22,7 +22,7 @@ namespace Freelance.ModelOne.Client
             {
                 for (int i = 0; i < MaxRetries; i++)
                 {
-                    if (TryRequest(endpoints[0], string.Format("Hello from endpoint {0}", endpoints[0])))
+                    if (TryRequest(endpoints[0], $"Hello from endpoint {endpoints[0]}"))
                         break;
                 }
             }
@@ -30,7 +30,7 @@ namespace Freelance.ModelOne.Client
             {
                 foreach (string endpoint in endpoints)
                 {
-                    if (TryRequest(endpoint, string.Format("Hello from endpoint {0}", endpoint)))
+                    if (TryRequest(endpoint, $"Hello from endpoint {endpoint}"))
                         break;
                 }
             }

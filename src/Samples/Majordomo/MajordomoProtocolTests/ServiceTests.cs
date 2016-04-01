@@ -60,7 +60,7 @@ namespace MajordomoTests
 
             for (var i = 0; i < 10; i++)
             {
-                var id = string.Format("W0{0:N3}", i);
+                var id = $"W0{i:N3}";
                 var worker = new Worker(id, new NetMQFrame(id), service);
 
                 if (i == 5)
@@ -85,7 +85,7 @@ namespace MajordomoTests
 
             for (var i = 0; i < 10; i++)
             {
-                var id = string.Format("W0{0:N3}", i);
+                var id = $"W0{i:N3}";
                 var worker = new Worker(id, new NetMQFrame(id), service);
 
                 if (i == 0)
@@ -105,7 +105,7 @@ namespace MajordomoTests
 
             for (var i = 0; i < 10; i++)
             {
-                var id = string.Format("W0{0:N3}", i);
+                var id = $"W0{i:N3}";
                 var worker = new Worker(id, new NetMQFrame(id), service);
                 service.AddWaitingWorker(worker);
                 service.GetNextWorker();
@@ -123,7 +123,7 @@ namespace MajordomoTests
 
             for (var i = 0; i < 10; i++)
             {
-                var id = string.Format("W0{0:N3}", i);
+                var id = $"W0{i:N3}";
                 var worker = new Worker(id, new NetMQFrame(id), service);
 
                 service.AddWaitingWorker(worker);
@@ -144,7 +144,7 @@ namespace MajordomoTests
 
             for (var i = 0; i < 10; i++)
             {
-                var id = string.Format("W0{0:N3}", i);
+                var id = $"W0{i:N3}";
                 var worker = new Worker(id, new NetMQFrame(id), service);
                 service.AddWaitingWorker(worker);
                 service.DeleteWorker(worker);
@@ -213,7 +213,7 @@ namespace MajordomoTests
                 var request = new NetMQMessage();
                 request.Push("DATA");
                 request.Push("SERVICE");
-                request.Push(string.Format("HEADER_{0}", i));
+                request.Push($"HEADER_{i}");
 
                 service.AddRequest(request);
             }
@@ -222,7 +222,7 @@ namespace MajordomoTests
             {
                 var req = service.GetNextRequest();
 
-                Assert.That(req.First.ConvertToString(), Is.EqualTo(string.Format("HEADER_{0}", i)));
+                Assert.That(req.First.ConvertToString(), Is.EqualTo($"HEADER_{i}"));
             }
 
             Assert.That(service.PendingRequests.Count, Is.EqualTo(5));

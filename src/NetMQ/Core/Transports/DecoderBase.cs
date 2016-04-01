@@ -214,6 +214,6 @@ namespace NetMQ.Core.Transports
             return false;
         }
 
-        abstract protected bool Next();
+        protected abstract bool Next();
     }
 }

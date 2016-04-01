@@ -28,14 +28,14 @@ namespace BeaconDemo
             {
                 Name = name;
                 Port = port;
-                Address = string.Format("tcp://{0}:{1}", name, port);
+                Address = $"tcp://{name}:{port}";
                 HostName = Dns.GetHostEntry(name).HostName;
             }
 
-            public string Name { get; private set; }
-            public int Port { get; private set; }
+            public string Name { get; }
+            public int Port { get; }
 
-            public string Address { get; private set; }
+            public string Address { get; }
 
             public string HostName { get; private set; }
 
@@ -56,7 +56,7 @@ namespace BeaconDemo
             {
                 unchecked
                 {
-                    return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ Port;
+                    return ((Name?.GetHashCode() ?? 0) * 397) ^ Port;
                 }
             }
 

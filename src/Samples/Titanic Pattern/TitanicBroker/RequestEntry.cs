@@ -62,7 +62,7 @@ namespace TitanicProtocol
         public override string ToString ()
         {
             var status = State == Is_Processed ? "processed" : State == Is_Pending ? "pending" : "closed";
-            return string.Format ("Id={0} / Position={1} / IsProcessed={2} / Message={3}", RequestId, Position, status, Request);
+            return $"Id={RequestId} / Position={Position} / IsProcessed={status} / Message={Request}";
         }
 
         public override int GetHashCode ()

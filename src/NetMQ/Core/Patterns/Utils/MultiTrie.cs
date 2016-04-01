@@ -441,9 +441,6 @@ namespace NetMQ.Core.Patterns.Utils
             }
         }
 
-        private bool IsRedundant
-        {
-            get { return m_pipes == null && m_liveNodes == 0; }
-        }
+        private bool IsRedundant => m_pipes == null && m_liveNodes == 0;
     }
 }

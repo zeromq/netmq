@@ -197,7 +197,7 @@ namespace NetMQ
                 // move to the first element, if false frames is empty
                 if (!enumerator.MoveNext())
                 {
-                    throw new ArgumentException("frames is empty", "frames");
+                    throw new ArgumentException("frames is empty", nameof(frames));
                 }
 
                 var current = enumerator.Current;
@@ -253,7 +253,7 @@ namespace NetMQ
                 // move to the first element, if false frames is empty
                 if (!enumerator.MoveNext())
                 {
-                    throw new ArgumentException("frames is empty", "frames");
+                    throw new ArgumentException("frames is empty", nameof(frames));
                 }
 
                 var current = enumerator.Current;
@@ -435,7 +435,7 @@ namespace NetMQ
         public static void SendMultipartMessage([NotNull] this IOutgoingSocket socket, [NotNull] NetMQMessage message)
         {
             if (message.FrameCount == 0)
-                throw new ArgumentException("message is empty", "message");
+                throw new ArgumentException("message is empty", nameof(message));
 
             for (int i = 0; i < message.FrameCount - 1; i++)
             {
@@ -459,7 +459,7 @@ namespace NetMQ
         public static bool TrySendMultipartMessage([NotNull] this IOutgoingSocket socket, TimeSpan timeout, [NotNull] NetMQMessage message)
         {
             if (message.FrameCount == 0)
-                throw new ArgumentException("message is empty", "message");
+                throw new ArgumentException("message is empty", nameof(message));
             else if (message.FrameCount == 1)
             {
                 return TrySendFrame(socket, timeout, message[0].Buffer, message[0].MessageSize);

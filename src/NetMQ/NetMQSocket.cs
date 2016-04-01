@@ -46,7 +46,7 @@ namespace NetMQ
             if (!string.IsNullOrEmpty(connectionString))
             {
                 var endpoints =
-                    connectionString.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    connectionString.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                         .Select(a => a.Trim()).Where(a=> !string.IsNullOrEmpty(a));
 
                 foreach (string endpoint in endpoints)
@@ -154,20 +154,14 @@ namespace NetMQ
         /// <summary>
         /// Get the <see cref="SocketOptions"/> of this socket.
         /// </summary>
-        public SocketOptions Options { get; private set; }
+        public SocketOptions Options { get; }
 
         /// <summary>
         /// Get the underlying <see cref="SocketBase"/>.
         /// </summary>
-        internal SocketBase SocketHandle
-        {
-            get { return m_socketHandle; }
-        }
+        internal SocketBase SocketHandle => m_socketHandle;
 
-        NetMQSocket ISocketPollable.Socket
-        {
-            get { return this; }
-        }
+        NetMQSocket ISocketPollable.Socket => this;
 
         #region Bind, Unbind, Connect, Disconnect, Close
 
@@ -343,18 +337,10 @@ namespace NetMQ
             m_socketEventArgs.Init(events);
 
             if (events.HasIn())
-            {
-                var temp = m_receiveReady;
-                if (temp != null)
-                    temp(sender, m_socketEventArgs);
-            }
+                m_receiveReady?.Invoke(sender, m_socketEventArgs);
 
             if (events.HasOut())
-            {
-                var temp = m_sendReady;
-                if (temp != null)
-                    temp(sender, m_socketEventArgs);
-            }
+                m_sendReady?.Invoke(sender, m_socketEventArgs);
         }
 
         #endregion
@@ -405,9 +391,9 @@ namespace NetMQ
         public void Monitor([NotNull] string endpoint, SocketEvents events = SocketEvents.All)
         {
             if (endpoint == null)
-                throw new ArgumentNullException("endpoint");
+                throw new ArgumentNullException(nameof(endpoint));
             if (string.IsNullOrEmpty(endpoint))
-                throw new ArgumentException("Cannot be empty.", "endpoint");
+                throw new ArgumentException("Cannot be empty.", nameof(endpoint));
 
             m_socketHandle.CheckDisposed();
 
@@ -420,10 +406,7 @@ namespace NetMQ
         /// Get whether a message is waiting to be picked up (<c>true</c> if there is, <c>false</c> if there is none).
         /// </summary>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public bool HasIn
-        {
-            get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasIn(); }
-        }
+        public bool HasIn => GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasIn();
 
         /// <summary>
         /// Get whether a message is waiting to be sent.
@@ -432,10 +415,7 @@ namespace NetMQ
         /// This is <c>true</c> if at least one message is waiting to be sent, <c>false</c> if there is none.
         /// </remarks>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public bool HasOut
-        {
-            get { return GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasOut(); }
-        }
+        public bool HasOut => GetSocketOptionX<PollEvents>(ZmqSocketOption.Events).HasOut();
 
         /// <summary>
         /// Get the integer-value of the specified <see cref="ZmqSocketOption"/>.

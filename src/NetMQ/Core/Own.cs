@@ -249,7 +249,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Returns true if the object is in process of termination.
         /// </summary>
-        protected bool IsTerminating { get { return m_terminating; } }
+        protected bool IsTerminating => m_terminating;
 
         /// <summary>
         /// Send termination requests to all of the owned objects, and then runs the termination process.

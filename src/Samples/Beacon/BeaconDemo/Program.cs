@@ -20,7 +20,7 @@ namespace BeaconDemo
             actor.SendFrame(Bus.GetHostAddressCommand);
             var hostAddress = actor.ReceiveFrameString();
 
-            Console.Title = string.Format("NetMQ Beacon Demo at {0}", hostAddress);
+            Console.Title = $"NetMQ Beacon Demo at {hostAddress}";
 
             // beacons publish every second, so wait a little longer than that to
             // let all the other nodes connect to our new node

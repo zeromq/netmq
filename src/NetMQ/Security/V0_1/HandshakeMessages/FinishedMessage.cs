@@ -15,10 +15,7 @@
         /// Get the part of the handshake-protocol that this HandshakeMessage represents
         /// - in this case, Finished.
         /// </summary>
-        public override HandshakeType HandshakeType
-        {
-            get { return HandshakeType.Finished; }
-        }
+        public override HandshakeType HandshakeType => HandshakeType.Finished;
 
         /// <summary>
         /// Get or set a byte-array that contains the verification data that is part of the finished-message.

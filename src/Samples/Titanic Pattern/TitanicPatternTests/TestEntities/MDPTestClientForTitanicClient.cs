@@ -20,9 +20,9 @@ namespace TitanicProtocolTests.TestEntities
 
         public int Retries { get { throw new NotImplementedException (); } set { throw new NotImplementedException (); } }
 
-        public string Address { get { return "Fake Address"; } }
+        public string Address => "Fake Address";
 
-        public byte[] Identity { get { return Encoding.UTF8.GetBytes ("Fake Identity"); } }
+        public byte[] Identity => Encoding.UTF8.GetBytes ("Fake Identity");
 
         /// <remarks>
         ///  return messages can be:
@@ -62,7 +62,7 @@ namespace TitanicProtocolTests.TestEntities
         //
         public NetMQMessage Send (string serviceName, NetMQMessage message)
         {
-            Log (string.Format ("requested service <{0}> with request <{1}>", serviceName, message));
+            Log ($"requested service <{serviceName}> with request <{message}>");
 
             if (ReplyMessage != null)
                 return new NetMQMessage (ReplyMessage);     // to keep it intact for multiple tries return a copy(!)
@@ -94,7 +94,7 @@ namespace TitanicProtocolTests.TestEntities
                     break;
             }
 
-            Log (string.Format ("reply <{0}>", reply));
+            Log ($"reply <{reply}>");
 
             return reply;
         }
@@ -108,11 +108,7 @@ namespace TitanicProtocolTests.TestEntities
 
         protected virtual void OnLogInfoReady (MDPLogEventArgs e)
         {
-            var handler = LogInfoReady;
-
-            if (handler != null)
-                handler (this, e);
+            LogInfoReady?.Invoke (this, e);
         }
-
     }
 }

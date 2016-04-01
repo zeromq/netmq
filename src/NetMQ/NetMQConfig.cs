@@ -9,32 +9,20 @@ namespace NetMQ
     {
         private static TimeSpan s_linger;
 
-        private static Ctx s_ctx;
-        private static object s_settingsSync;
+        private static readonly Ctx s_ctx;
+        private static readonly object s_settingsSync;
 
         static NetMQConfig()
         {
-            s_ctx = new Ctx();
-            s_ctx.Block = false;
+            s_ctx = new Ctx { Block = false };
             s_settingsSync = new object();
             s_linger = TimeSpan.Zero;
 
             // Register to destroy the context when application exit
-            AppDomain.CurrentDomain.ProcessExit += OnCurrentDomainOnProcessExit;
+            AppDomain.CurrentDomain.ProcessExit += (sender, args) => s_ctx.Terminate();
         }
 
-        private static void OnCurrentDomainOnProcessExit(object sender, EventArgs args)
-        {
-            s_ctx.Terminate();
-        }
-
-        internal static Ctx Context
-        {
-            get
-            {
-                return s_ctx;                
-            }
-        }
+        internal static Ctx Context => s_ctx;
 
         /// <summary>
         /// Get or set the default linger period for the all sockets,
@@ -75,10 +63,7 @@ namespace NetMQ
         public static int ThreadPoolSize
         {
             get { return s_ctx.IOThreadCount; }
-            set
-            {
-                s_ctx.IOThreadCount = value;
-            }
+            set { s_ctx.IOThreadCount = value; }
         }
 
         /// <summary>
@@ -86,10 +71,7 @@ namespace NetMQ
         /// </summary>
         public static int MaxSockets
         {
-            get
-            {
-                return s_ctx.MaxSockets;
-            }
+            get { return s_ctx.MaxSockets; }
             set { s_ctx.MaxSockets = value; }
         }      
     }

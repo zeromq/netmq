@@ -172,8 +172,8 @@ namespace NetMQ
             {
                 try
                 {
-                    actorName = string.Format("NetMQActor-{0}-{1}", random.Next(0, 10000), random.Next(0, 10000));
-                    endPoint = string.Format("inproc://{0}", actorName);
+                    actorName = $"NetMQActor-{random.Next(0, 10000)}-{random.Next(0, 10000)}";
+                    endPoint = $"inproc://{actorName}";
                     m_self.Bind(endPoint);
                     break;
                 }
@@ -299,10 +299,7 @@ namespace NetMQ
             remove { m_sendEvent.Event -= value; }
         }
 
-        NetMQSocket ISocketPollable.Socket
-        {
-            get { return m_self; }
-        }
+        NetMQSocket ISocketPollable.Socket => m_self;
 
         #endregion
 

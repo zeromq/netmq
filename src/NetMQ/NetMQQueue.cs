@@ -41,7 +41,7 @@ namespace NetMQ
         public NetMQQueue(int capacity = 0)
         {
             if (capacity < 0)
-                throw new ArgumentOutOfRangeException("capacity");
+                throw new ArgumentOutOfRangeException(nameof(capacity));
 
             m_queue = new ConcurrentQueue<T>();
             PairSocket.CreateSocketPair(out m_writer, out m_reader);
@@ -74,13 +74,7 @@ namespace NetMQ
             remove { m_eventDelegator.Event -= value; }
         }
 
-        NetMQSocket ISocketPollable.Socket
-        {
-            get
-            {
-                return m_reader;
-            }
-        }
+        NetMQSocket ISocketPollable.Socket => m_reader;
 
         /// <summary>
         /// Try to dequeue an item from the queue. Dequeueing and item is not thread safe.

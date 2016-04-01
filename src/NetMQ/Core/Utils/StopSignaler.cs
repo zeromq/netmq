@@ -22,13 +22,7 @@ namespace NetMQ.Core.Utils
 
         public bool IsStopRequested { get; private set; }
 
-        NetMQSocket ISocketPollable.Socket
-        {
-            get
-            {
-                return m_reader;
-            }
-        }
+        NetMQSocket ISocketPollable.Socket => m_reader;
 
         public void Dispose()
         {

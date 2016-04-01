@@ -63,7 +63,7 @@ namespace InterBrokerRouter
                     }
                     else
                     {
-                        var msg = string.Format("[CLIENT {0}] ERR - EXIT - lost message {1}", m_id, messageId);
+                        var msg = $"[CLIENT {m_id}] ERR - EXIT - lost message {messageId}";
                         // send an error message
                         monitor.SendFrame(msg);
 
@@ -86,7 +86,7 @@ namespace InterBrokerRouter
                     if (reply.FrameCount == 0)
                     {
                         // something went wrong
-                        monitor.SendFrame(string.Format("[CLIENT {0}] Received an empty message!", m_id));
+                        monitor.SendFrame($"[CLIENT {m_id}] Received an empty message!");
                         // mark the exit flag to ensure the exit
                         exit = true;
                     }
@@ -99,9 +99,7 @@ namespace InterBrokerRouter
                             sb.Append("[" + frame.ConvertToString() + "]");
 
                         // send the success message
-                        monitor.SendFrame(string.Format("[CLIENT {0}] Received answer {1}",
-                            m_id,
-                            sb.ToString()));
+                        monitor.SendFrame($"[CLIENT {m_id}] Received answer {sb.ToString()}");
                     }
                 };
 

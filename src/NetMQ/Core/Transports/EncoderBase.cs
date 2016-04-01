@@ -171,7 +171,7 @@ namespace NetMQ.Core.Transports
             return m_error;
         }
 
-        abstract protected bool Next();
+        protected abstract bool Next();
 
         //protected void next_step (Msg msg_, int state_, bool beginning_) {
         //    if (msg_ == null)
