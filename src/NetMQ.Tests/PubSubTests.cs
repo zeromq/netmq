@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using NetMQ.Sockets;
 using NUnit.Framework;
 
@@ -9,7 +11,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void TopicPubSub()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -30,7 +32,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void SimplePubSub()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -52,7 +54,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void NotSubscribed()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -73,7 +75,7 @@ namespace NetMQ.Tests
         /// </summary>
         [Test]
         public void MultipleSubscriptions()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -99,7 +101,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultipleSubscribersOnDifferentTopics()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub1 = new SubscriberSocket())
             using (var sub2 = new SubscriberSocket())
@@ -108,7 +110,7 @@ namespace NetMQ.Tests
 
                 sub1.Connect("tcp://127.0.0.1:" + port);
                 sub2.Connect("tcp://127.0.0.1:" + port);
-                
+
                 sub1.Subscribe("1");
                 sub1.Subscribe("1&2");
 
@@ -123,7 +125,7 @@ namespace NetMQ.Tests
                 Assert.IsFalse(sub2.TrySkipFrame());
 
                 pub.SendMoreFrame("2").SendFrame("B");
-            
+
                 Assert.IsFalse(sub1.TrySkipFrame());
                 CollectionAssert.AreEqual(new[] { "2", "B" }, sub2.ReceiveMultipartStrings());
 
@@ -136,7 +138,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void MultiplePublishersAndSubscribersOnSameTopic()
-        {            
+        {
             using (var pub1 = new PublisherSocket())
             using (var pub2 = new PublisherSocket())
             using (var sub1 = new SubscriberSocket())
@@ -174,7 +176,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void Unsubscribe()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -197,6 +199,93 @@ namespace NetMQ.Tests
                 pub.SendMoreFrame("A").SendFrame("Hello again");
 
                 Assert.IsFalse(sub.TrySkipFrame());
+            }
+        }
+
+        [Test]
+        public void ThroughXPubXSub()
+        {
+            using (var xpub = new XPublisherSocket())
+            using (var xsub = new XSubscriberSocket())
+            using (var proxyPoller = new NetMQPoller {xsub, xpub})
+            {
+                var xPubPort = (ushort)xpub.BindRandomPort("tcp://*");
+                var xSubPort = (ushort)xsub.BindRandomPort("tcp://*");
+
+                var proxy = new Proxy(xsub, xpub, poller: proxyPoller);
+                proxy.Start();
+
+                proxyPoller.RunAsync();
+
+                using (var pub = new PublisherSocket())
+                using (var sub = new SubscriberSocket())
+                {
+                    // Client 1
+                    sub.Connect(string.Format("tcp://localhost:{0}", xPubPort));
+                    pub.Connect(string.Format("tcp://localhost:{0}", xSubPort));
+
+                    sub.Subscribe("A");
+
+                    // Client 2
+                    Thread.Sleep(500);
+                    pub.SendMoreFrame("A").SendFrame("Hello");
+
+                    var frames = new List<string>();
+                    Assert.True(sub.TryReceiveMultipartStrings(TimeSpan.FromSeconds(1), ref frames));
+                    CollectionAssert.AreEqual(
+                        new[] { "A", "Hello" },
+                        frames);
+                }
+            }
+        }
+
+        [Test]
+        public void ThroughXPubXSubWithReconnectingPublisher()
+        {
+            using (var xpub = new XPublisherSocket())
+            using (var xsub = new XSubscriberSocket())
+            using (var poller = new NetMQPoller {xsub, xpub})
+            {
+                var xPubPort = (ushort)xpub.BindRandomPort("tcp://*");
+                var xSubPort = (ushort)xsub.BindRandomPort("tcp://*");
+
+                var proxy = new Proxy(xsub, xpub, poller: poller);
+                proxy.Start();
+
+                poller.RunAsync();
+
+                // long running subscriber
+                using (var sub = new SubscriberSocket())
+                {
+                    sub.Connect(string.Format("tcp://localhost:{0}", xPubPort));
+                    sub.Subscribe("A");
+
+                    // publisher 1
+                    using (var pub = new PublisherSocket())
+                    {
+                        pub.Connect(string.Format("tcp://localhost:{0}", xSubPort));
+                        // give the publisher a chance to learn of the subscription
+                        Thread.Sleep(100);
+                        pub.SendMoreFrame("A").SendFrame("1");
+                    }
+
+                    // publisher 2
+                    using (var pub = new PublisherSocket())
+                    {
+                        pub.Connect(string.Format("tcp://localhost:{0}", xSubPort));
+                        // give the publisher a chance to learn of the subscription
+                        Thread.Sleep(100);
+                        pub.SendMoreFrame("A").SendFrame("2");
+                    }
+
+                    var frames = new List<string>();
+
+                    Assert.True(sub.TryReceiveMultipartStrings(TimeSpan.FromSeconds(1), ref frames));
+                    CollectionAssert.AreEqual(new[] { "A", "1" }, frames);
+
+                    Assert.True(sub.TryReceiveMultipartStrings(TimeSpan.FromSeconds(1), ref frames));
+                    CollectionAssert.AreEqual(new[] { "A", "2" }, frames);
+                }
             }
         }
     }
