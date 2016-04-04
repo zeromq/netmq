@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NUnit.Framework;
 
@@ -833,5 +834,52 @@ namespace NetMQ.Tests
                 Assert.AreEqual("Hello", server2.ReceiveFrameString());
             }
         }
+
+        [Test]
+        public void TestRebindSamePort()
+        {
+            int port;
+            using (var response = new ResponseSocket())
+            {
+                port = response.BindRandomPort("tcp://127.0.0.1");
+                response.Unbind();
+            }
+            using (var response = new ResponseSocket())
+            {
+                response.Bind($"tcp://127.0.0.1:{port}");
+                response.Unbind();
+            }
+        }
+    }
+
+    public static class NetMqSocketHelper
+    {
+        /// <summary>
+        /// Unbind the socket from last endpoint and wait until the underlaying socket was unbound and disposed.
+        /// It will also dispose the NetMQSocket
+        /// </summary>
+        /// <param name="sub"></param>
+        public static void Unbind(this NetMQSocket sub)
+        {
+            using (var monitor = new NetMQMonitor(sub, $"inproc://unbind.wait.{Counter++}", SocketEvents.Closed))
+            {
+                var monitorTask = Task.Factory.StartNew(monitor.Start);
+
+                var closed = new ManualResetEventSlim();
+
+                monitor.Closed += (sender, args) => closed.Set();
+
+                Assert.IsNotNull(sub.Options.LastEndpoint);
+
+                sub.Unbind(sub.Options.LastEndpoint);
+                closed.Wait(1000);
+
+                monitor.Stop();
+
+                monitorTask.Wait();
+            }
+        }
+
+        public static long Counter;
     }
 }
