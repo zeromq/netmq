@@ -87,6 +87,8 @@ namespace NetMQ.Core
                 buffer.PutString(m_addr, pos);
                 pos += m_addr.Length;
             }
+            else
+                buffer[pos++] = 0;
 
             buffer[pos++] = ((byte)m_flag);
             if (m_flag == ValueInteger)
