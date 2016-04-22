@@ -65,7 +65,7 @@ namespace NetMQ.Core
 
         public void Write([NotNull] SocketBase s)
         {
-            int size = 4 + 1 + m_addr.Length + 1; // event + len(addr) + addr + flag
+            int size = 4 + 1 + (m_addr?.Length ?? 0) + 1; // event + len(addr) + addr + flag
 
             if (m_flag == ValueInteger)
                 size += 4;
@@ -77,12 +77,16 @@ namespace NetMQ.Core
             ByteArraySegment buffer = new byte[size];
             buffer.PutInteger(Endianness.Little, (int)m_monitorEvent, pos);
             pos += 4;
-            buffer[pos++] = (byte)m_addr.Length;
 
-            // was not here originally
+            if (m_addr != null)
+            {
+                buffer[pos++] = (byte)m_addr.Length;
 
-            buffer.PutString(m_addr, pos);
-            pos += m_addr.Length;
+                // was not here originally
+
+                buffer.PutString(m_addr, pos);
+                pos += m_addr.Length;
+            }
 
             buffer[pos++] = ((byte)m_flag);
             if (m_flag == ValueInteger)
