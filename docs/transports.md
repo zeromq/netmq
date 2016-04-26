@@ -20,7 +20,7 @@ Here is another trivial example:
 
     :::csharp
     using (var server = new ResponseSocket())
-    using (var client = new CreateRequestSocket())
+    using (var client = new RequestSocket())
     {
         server.Bind("tcp://*:5555");
         client.Connect("tcp://localhost:5555");

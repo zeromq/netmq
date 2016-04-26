@@ -137,7 +137,7 @@ Just to solidify this information here is a complete example showing everything 
     using (var client = new RequestSocket(">tcp://127.0.0.1:5556"))
     {
         // client sends message consisting of two frames
-        Console.WriteLine("Client sending")
+        Console.WriteLine("Client sending");
         client.SendMoreFrame("A").SendFrame("Hello");
 
         // server receives frames
@@ -161,7 +161,8 @@ Just to solidify this information here is a complete example showing everything 
 
         // client receives the message
         msg = client.ReceiveMultipartMessage();
-        Console.WriteLine("Client received {0} frames", msg.FrameCount)
+        Console.WriteLine("Client received {0} frames", msg.FrameCount);
+
         foreach (var frame in msg)
             Console.WriteLine("Frame={0}", frame.ConvertToString());
 

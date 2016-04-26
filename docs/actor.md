@@ -197,16 +197,16 @@ Anyway here is the `Actor` code:
     :::csharp
     public class AccountActioner
     {
-        public class ShimHandler : IShimHandler<object>
+        public class ShimHandler : IShimHandler
         {
             private PairSocket shim;
-            private Poller poller;
+            private NetMQPoller poller;
 
             public void Initialise(object state)
             {
             }
 
-            public void RunPipeline(PairSocket shim)
+            public void Run(PairSocket shim)
             {
                 this.shim = shim;
                 shim.ReceiveReady += OnShimReady;
@@ -218,27 +218,27 @@ Anyway here is the `Actor` code:
 
             private void OnShimReady(object sender, NetMQSocketEventArgs e)
             {
-                string command = e.Socket.ReceiveString();
+                string command = e.Socket.ReceiveFrameString();
 
                 switch (command)
                 {
-                    case ActorKnownMessages.END_PIPE:
-                        Console.WriteLine("Actor received END_PIPE message");
+                    case NetMQActor.EndShimMessage:
+                        Console.WriteLine("Actor received EndShimMessage");
                         poller.Stop();
                         break;
                     case "AmmendAccount":
                         Console.WriteLine("Actor received AmmendAccount message");
-                        string accountJson = e.Socket.ReceiveString();
+                        string accountJson = e.Socket.ReceiveFrameString();
                         Account account
                             = JsonConvert.DeserializeObject<Account>(accountJson);
-                        string accountActionJson = e.Socket.ReceiveString();
+                        string accountActionJson = e.Socket.ReceiveFrameString();
                         AccountAction accountAction
                             = JsonConvert.DeserializeObject<AccountAction>(
                                 accountActionJson);
                         Console.WriteLine("Incoming Account details are");
                         Console.WriteLine(account);
                         AmmendAccount(account, accountAction);
-                        shim.Send(JsonConvert.SerializeObject(account));
+                        shim.SendFrame(JsonConvert.SerializeObject(account));
                         break;
                 }
             }
@@ -257,14 +257,14 @@ Anyway here is the `Actor` code:
             }
         }
 
-        private Actor<object> actor;
+        private NetMQActor actor;
 
         public void Start()
         {
             if (actor != null)
                 return;
 
-            actor = new Actor<object>(new ShimHandler(), null);
+            actor = NetMQActor.Create(new ShimHandler());
         }
 
         public void Stop()
@@ -287,12 +287,12 @@ Anyway here is the `Actor` code:
             message.Append("AmmendAccount");
             message.Append(JsonConvert.SerializeObject(account));
             message.Append(JsonConvert.SerializeObject(accountAction));
-            actor.SendMessage(message);
+            actor.SendMultipartMessage(message);
         }
 
         public Account GetPayLoad()
         {
-            return JsonConvert.DeserializeObject<Account>(actor.ReceiveString());
+            return JsonConvert.DeserializeObject<Account>(actor.ReceiveFrameString());
         }
     }
 
@@ -308,7 +308,7 @@ You would communicate with this `Actor` code using something like the following.
             // CommandActioner uses an NetMq.Actor internally
             var accountActioner = new AccountActioner();
 
-            var account = new Account(1, "Doron Semech", "112233", 0);
+            var account = new Account(1, "Doron Somech", "112233", 0);
             PrintAccount(account);
 
             accountActioner.Start();
