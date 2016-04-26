@@ -118,6 +118,7 @@
     <Compile Include="InProcActors\ExceptionShimExample\ExceptionShimHandler.cs" />
     <Compile Include="InProcActors\Echo\EchoShimHandler.cs" />
     <Compile Include="InProcActors\Echo\EchoActorTests.cs" />
+    <Compile Include="ManualContextTerminationTests.cs" />
     <Compile Include="MockBufferPool.cs" />
     <Compile Include="MsgTests.cs" />
     <Compile Include="NetMQProactorTests.cs" />
