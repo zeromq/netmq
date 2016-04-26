@@ -42,7 +42,7 @@ namespace NetMQ.Tests
         [Test, Repeat(10)]
         public void CycleCreateTerminate()
         {
-            NetMQConfig.ContextCreate();
+            NetMQConfig.ContextCreate(true);
             var isTerminated = VerifyTermination();
             Assert.AreEqual(false, isTerminated);
 
@@ -82,6 +82,7 @@ namespace NetMQ.Tests
         [Test]
         public void TerminateAfterSocketsUse()
         {
+            NetMQConfig.ContextCreate(true);
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             using (var poller = new NetMQPoller { rep })
@@ -117,6 +118,7 @@ namespace NetMQ.Tests
         [Test]
         public void TerminateContext()
         {
+            NetMQConfig.ContextCreate(true);
             NetMQConfig.ContextTerminate();
             var isTerminated = VerifyTermination();
             Assert.AreEqual(true, isTerminated);
