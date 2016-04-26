@@ -155,12 +155,12 @@ Let's see a more involved example that uses much of what we've seen so far. We'l
         rep.ReceiveReady += (s, a) =>
         {
             bool more;
-            string messageIn = a.Socket.ReceiveString(out more);
+            string messageIn = a.Socket.ReceiveFrameString(out more);
             Console.WriteLine("messageIn = {0}", messageIn);
-            a.Socket.Send("World");
+            a.Socket.SendFrame("World");
 
             // REMOVE THE SOCKET!
-            poller.RemoveSocket(a.Socket);
+            poller.Remove(a.Socket);
         };
 
         // start the poller
