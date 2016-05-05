@@ -142,9 +142,10 @@ namespace NetMQ
                 m_pingTimer.Elapsed += PingElapsed;
                 m_pingTimer.Enable = false;
 
-                m_poller = new NetMQPoller { m_pipe, m_pingTimer };
-
-                m_poller.Run();
+                using (m_poller = new NetMQPoller { m_pipe, m_pingTimer })
+                {
+                    m_poller.Run();
+                }
 
                 // the beacon might never been configured
                 m_udpSocket?.Close();
