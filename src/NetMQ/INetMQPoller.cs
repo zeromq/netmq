@@ -1,8 +1,10 @@
+using System;
+
 namespace NetMQ
 {
     /// <summary>
     /// </summary>
-    public interface INetMQPoller
+    public interface INetMQPoller: IDisposable
     {
         /// <summary>
         /// </summary>
