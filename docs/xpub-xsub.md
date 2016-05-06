@@ -1,7 +1,7 @@
 XPub / XSub
 =====
 
-The [Pub/Sub](pub-sub) pattern is great for multiple subscribers and a single publisher, but if you need multiple publishers then the XPub/XSub pattern will be of interest.
+The [Pub/Sub](pub-sub.md) pattern is great for multiple subscribers and a single publisher, but if you need multiple publishers then the XPub/XSub pattern will be of interest.
 
 XPub/XSub can also assist with the so-called _dynamic discovery problem_. From the [ZeroMQ guide](http://zguide.zeromq.org/page:all#The-Dynamic-Discovery-Problem):
 
@@ -107,4 +107,4 @@ When run, it should look something like this:
 
 ![](Images/XPubXSubDemo.png)
 
-Unlike the [Pub/Sub](pub-sub) pattern, we can have an arbitrary number of publishers and subscribers.
+Unlike the [Pub/Sub](pub-sub.md) pattern, we can have an arbitrary number of publishers and subscribers.
