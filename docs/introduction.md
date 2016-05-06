@@ -25,7 +25,7 @@ You can get NetMQ library from [NuGet](https://nuget.org/packages/NetMQ/).
 
 ## Sending and receiving
 
-Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page on [receiving and sending](receiving-sending).
+Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page on [receiving and sending](receiving-sending.md).
 
 
 ## First example
@@ -53,7 +53,7 @@ So let's start with some code, the "Hello world" example (of course).
         }
     }
 
-The server creates a socket of type response (you can read more on the [request-response](request-response) chapter), binds it to port 5555 and then waits for messages.
+The server creates a socket of type response (you can read more on the [request-response](request-response.md) chapter), binds it to port 5555 and then waits for messages.
 
 You can also see that we have zero configuration, we are just sending strings. NetMQ can send much more than strings, but NetMQ doesn't come with any serialization feature and you have to do it by hand, but you will learn some cool tricks for that below ([Multipart messages](#multipart-messages)).
 
@@ -113,7 +113,7 @@ You can read more about this at the [ZeroMQ FAQ](http://zeromq.org/area:faq) und
 
 ZeroMQ/NetMQ work on the concept of frames, as such most messages are considered to be made up of one or more frames. NetMQ provides some convenience methods to allow you to send string messages. You should however, familiarise yourself with the the idea of multiple frames and how they work.
 
-This is covered in much more detail in the [Message](message) documentation page.
+This is covered in much more detail in the [Message](message.md) documentation page.
 
 
 ## Patterns
@@ -142,8 +142,8 @@ ZeroMQ patterns are implemented by pairs of sockets of particular types. In othe
 
 The built-in core ZeroMQ patterns are:
 
-+ [**Request-reply**](request-response), which connects a set of clients to a set of services. This is a remote procedure call and task distribution pattern.
-+ [**Pub-sub**](pub-sub), which connects a set of publishers to a set of subscribers. This is a data distribution pattern.
++ [**Request-reply**](request-response.md), which connects a set of clients to a set of services. This is a remote procedure call and task distribution pattern.
++ [**Pub-sub**](pub-sub.md), which connects a set of publishers to a set of subscribers. This is a data distribution pattern.
 + **Pipeline**, which connects nodes in a fan-out/fan-in pattern that can have multiple steps and loops. This is a parallel task distribution and collection pattern.
 + **Exclusive pair**, which connects two sockets exclusively. This is a pattern for connecting two threads in a process, not to be confused with "normal" pairs of sockets.
 
