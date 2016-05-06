@@ -67,7 +67,7 @@ InProc (in-process) allows you to connect sockets running with the same process.
 + To do away with shared state/locks. When you send data down the wire (socket) there is no shared state to worry about. Each end of the socket will have its own copy.
 + Being able to communicate between very disparate parts of a system.
 
-NetMQ comes with several components that use InProc, such the as [Actor model](actor) and [Devices](devices), which are discussed in their relevant documentation pages.
+NetMQ comes with several components that use InProc, such the as [Actor model](actor.md) and [Devices](devices.md), which are discussed in their relevant documentation pages.
 
 ### Example
 
@@ -129,7 +129,7 @@ regard for scalability and network efficiency.
 To use PGM with NetMQ, we do not have to do too much. We just need to follow these three pointers:
 
 1. The socket types are now `PublisherSocket` and `SubscriberSocket`
-   which are talked about in more detail in the [pub-sub pattern](pub-sub) documentation.
+   which are talked about in more detail in the [pub-sub pattern](pub-sub.md) documentation.
 2. Make sure you are running the app as "Administrator"
 3. Make sure you have turned on the "Multicasting Support". You can do that as follows:
 

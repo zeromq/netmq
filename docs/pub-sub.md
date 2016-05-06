@@ -14,7 +14,7 @@ NetMQ comes with support for Pub/Sub by way of two socket types:
 
 ## Topics
 
-ZeroMQ/NetMQ uses multipart [messages](message) to convey topic information. Topics are expressed as an array of bytes, though you may use a string and suitable `System.Text.Encoding`.
+ZeroMQ/NetMQ uses multipart [messages](message.md) to convey topic information. Topics are expressed as an array of bytes, though you may use a string and suitable `System.Text.Encoding`.
 
 A publisher must include the topic in the message's' first frame, prior to the message payload. For example, to publish a status message to subscribers of the `status` topic:
 

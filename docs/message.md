@@ -28,13 +28,13 @@ Truth is ZeroMQ, and therefore NetMQ are really frame based, which implies some 
 
 While it is true that if you wish to come up with some complex and elaborate architecture you would be best of coming up with a nice protocol, thankfully you will not need to do this all the time. This is largely down to ZeroMQ/NetMQ's clever sockets that abstract away a lot of that from you, and the way in which you can treat the sockets as building blocks to build complex architecture (think lego).
 
-One precanned example of this is the [RouterSocket](router-dealer) which makes very clever use of frames for you out of the box. Where it effectively onion skins the current message with the senders return address, so that when it gets a message back (say from a worker socket), it can use that frame information again to obtain the correct return address and send it back to the correct socket.
+One precanned example of this is the [RouterSocket](router-dealer.md) which makes very clever use of frames for you out of the box. Where it effectively onion skins the current message with the senders return address, so that when it gets a message back (say from a worker socket), it can use that frame information again to obtain the correct return address and send it back to the correct socket.
 
-So that is one inbuilt use of frames that you should be aware of, but frames are not limited to [RouterSocket](router-dealer), you can use them yourself for all sorts of things, here are some examples:
+So that is one inbuilt use of frames that you should be aware of, but frames are not limited to [RouterSocket](router-dealer.md), you can use them yourself for all sorts of things, here are some examples:
 
 + You may decide to have `frame[0]` denote the specific message type of following frame(s).
   This allows receivers to discard message types they are disinterested in without wasting time deserialising a message they do not care about anyway.
-  ZeroMQ/NetMQ uses this approach in its [Pub-Sub sockets](pub-sub), and you can replicate or extend this idea.
+  ZeroMQ/NetMQ uses this approach in its [Pub-Sub sockets](pub-sub.md), and you can replicate or extend this idea.
 + You may decide to use `frame[0]` as some sort of command, `frame[1]` and some sort of parameter and have `frame[2]` as the message payload (where it may contain some serialized object).
 
 These are just some examples. You can use frames however you wish really, although some socket types expect or produce certain frame structures.
