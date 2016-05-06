@@ -107,7 +107,9 @@ namespace NetMQ.Core
 
             var msg = new Msg();
             msg.InitGC((byte[])buffer, buffer.Size);
-            s.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
+            // An infinite timeout here can cause the IO thread to hang
+            // see https://github.com/zeromq/netmq/issues/539
+            s.TrySend(ref msg, TimeSpan.Zero, false);
         }
 
         [NotNull]
