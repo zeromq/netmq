@@ -108,43 +108,43 @@ namespace NetMQ.Core.Utils
 
                 for (int i = 0; i < removed; i++)
                 {
-                    if (completionStatuses[i].OperationType == OperationType.Signal)
+                    try
                     {
-                        var mailbox = (IOThreadMailbox)completionStatuses[i].State;
-                        mailbox.RaiseEvent();
-                    }
-                        // if the state is null we just ignore the completion status
-                    else if (completionStatuses[i].State != null)
-                    {
-                        var item = (Item)completionStatuses[i].State;
-
-                        if (!item.Cancelled)
+                        if (completionStatuses[i].OperationType == OperationType.Signal)
                         {
-                            try
+                            var mailbox = (IOThreadMailbox)completionStatuses[i].State;
+                            mailbox.RaiseEvent();
+                        }
+                            // if the state is null we just ignore the completion status
+                        else if (completionStatuses[i].State != null)
+                        {
+                            var item = (Item)completionStatuses[i].State;
+
+                            if (!item.Cancelled)
                             {
-                                switch (completionStatuses[i].OperationType)
-                                {
-                                    case OperationType.Accept:
-                                    case OperationType.Receive:
-                                        item.ProactorEvents.InCompleted(
-                                            completionStatuses[i].SocketError,
-                                            completionStatuses[i].BytesTransferred);
-                                        break;
-                                    case OperationType.Connect:
-                                    case OperationType.Disconnect:
-                                    case OperationType.Send:
-                                        item.ProactorEvents.OutCompleted(
-                                            completionStatuses[i].SocketError,
-                                            completionStatuses[i].BytesTransferred);
-                                        break;
-                                    default:
-                                        throw new ArgumentOutOfRangeException();
+                                    switch (completionStatuses[i].OperationType)
+                                    {
+                                        case OperationType.Accept:
+                                        case OperationType.Receive:
+                                            item.ProactorEvents.InCompleted(
+                                                completionStatuses[i].SocketError,
+                                                completionStatuses[i].BytesTransferred);
+                                            break;
+                                        case OperationType.Connect:
+                                        case OperationType.Disconnect:
+                                        case OperationType.Send:
+                                            item.ProactorEvents.OutCompleted(
+                                                completionStatuses[i].SocketError,
+                                                completionStatuses[i].BytesTransferred);
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
                                 }
                             }
-                            catch (TerminatingException)
-                            {}
                         }
-                    }
+                    catch (TerminatingException)
+                    { }
                 }
             }
         }
