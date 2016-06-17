@@ -76,10 +76,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IMDPBroker.cs" />
+    <Compile Include="IMDPClientAsync.cs" />
     <Compile Include="IMDPClient.cs" />
     <Compile Include="IMDPWorker.cs" />
     <Compile Include="MDPCommand.cs" />
+    <Compile Include="MDPConstants.cs" />
     <Compile Include="MDPLogEventArgs.cs" />
+    <Compile Include="MDPReplyEventArgs.cs" />
     <Compile Include="MMICode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

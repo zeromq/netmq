@@ -12,7 +12,7 @@ namespace MajordomoProtocol
     public class MDPWorker : IMDPWorker
     {
         // Majordomo protocol header
-        private readonly string m_mdpWorker = MDPBroker.MDPWorkerHeader;
+        private readonly string m_mdpWorker = MDPConstants.MDP_WORKER_HEADER;
 
         private const int _heartbeat_liveliness = 3;// indicates the remaining "live" for the worker
 

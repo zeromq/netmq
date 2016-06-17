@@ -6,12 +6,12 @@ using NetMQ;
 
 namespace MDPClientExample
 {
-    internal static class MDPClientExampleProgram
+    internal static class MDPClientAsyncExampleProgram
     {
         /// <summary>
-        ///     usage:  MDPClientExample [-v] [-rn] (1 ;lt n ;lt 100000 / Default == 10)
+        ///     usage:  MDPClientAsyncExample [-v] [-rn] (1 ;lt n ;lt 100000 / Default == 10)
         /// 
-        ///     implements a MDPClient API usage
+        ///     implements a MDPClientAsync API usage
         /// </summary>
         private static void Main(string[] args)
         {
@@ -61,10 +61,13 @@ namespace MDPClientExample
             try
             {
                 // create MDP client and set verboseness && use automatic disposal
-                using (var session = new MDPClient("tcp://localhost:5555", id))
+                using (var session = new MDPClientAsync("tcp://localhost:5555", id))
                 {
+
                     if (verbose)
                         session.LogInfoReady += (s, e) => Console.WriteLine("{0}", e.Info);
+
+                    session.ReplyReady += (s, e) => Console.WriteLine("{0}", e.Reply);
 
                     // just give everything time to settle in
                     Thread.Sleep(500);
@@ -77,10 +80,7 @@ namespace MDPClientExample
                         // set the request data
                         request.Push("Hello World!");
                         // send the request to the service
-                        var reply = session.Send(service_name, request);
-
-                        if (ReferenceEquals(reply, null))
-                            break;
+                        session.Send(service_name, request);
 
                         if (count % 1000 == 0)
                             Console.Write("|");
@@ -90,6 +90,8 @@ namespace MDPClientExample
                     }
 
                     watch.Stop();
+                    Console.Write("\nStop receiving with any key!");
+                    Console.ReadKey();
                 }
             }
             catch (Exception ex)

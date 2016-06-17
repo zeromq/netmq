@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetMQ", "NetMQ\NetMQ.csproj", "{82934BAC-07FB-41AC-AE59-46FEE6026A40}"
 EndProject
@@ -104,6 +104,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouterPerformance", "RouterPerformance\RouterPerformance.csproj", "{173B7FFF-F0CB-4D7F-B3A9-B2F2DBCCFFFE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDPClientExample", "Samples\Majordomo\MDPClientExample\MDPClientExample.csproj", "{BA3B66DE-85AB-44F0-890B-E598C777880D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDPClientAsyncExample", "Samples\Majordomo\MDPClientAsyncExample\MDPClientAsyncExample.csproj", "{E6115527-4D2B-4196-8C89-8A8D44141E5D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MajordomoProtocol", "Samples\Majordomo\MajordomoProtocol\MajordomoProtocol.csproj", "{A16EBCCB-A575-4BA5-813D-C8AD925D5A59}"
 EndProject
@@ -756,6 +758,18 @@ Global
 		{D0B707E4-5563-41FA-A8B0-292605332EF1}.Release|x64.Build.0 = Release|x64
 		{D0B707E4-5563-41FA-A8B0-292605332EF1}.Release|x86.ActiveCfg = Release|x86
 		{D0B707E4-5563-41FA-A8B0-292605332EF1}.Release|x86.Build.0 = Release|x86
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Debug|x64.Build.0 = Debug|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Debug|x86.Build.0 = Debug|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Release|x64.ActiveCfg = Release|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Release|x64.Build.0 = Release|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Release|x86.ActiveCfg = Release|Any CPU
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -821,5 +835,6 @@ Global
 		{3193ADF3-D394-44A1-B44D-F53616886A1E} = {8F3B82AB-A6CE-4685-A846-83209A10A12B}
 		{F6C473E4-3005-4C40-942D-82B156695377} = {0D41951D-83C3-45B0-B319-A424EBF530E2}
 		{D0B707E4-5563-41FA-A8B0-292605332EF1} = {F6C473E4-3005-4C40-942D-82B156695377}
+		{E6115527-4D2B-4196-8C89-8A8D44141E5D} = {813D3184-CAE9-4EA5-AD8F-CF0B5E890E79}
 	EndGlobalSection
 EndGlobal

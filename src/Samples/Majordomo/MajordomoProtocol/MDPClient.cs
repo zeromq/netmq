@@ -13,7 +13,7 @@ namespace MajordomoProtocol
     /// </summary>
     public class MDPClient : IMDPClient
     {
-        private readonly string m_mdpClient = MDPBroker.MDPClientHeader;
+        private readonly string m_mdpClient = MDPConstants.MDP_CLIENT_HEADER;
 
         private NetMQSocket m_client;           // the socket to communicate with the broker
 
@@ -208,7 +208,7 @@ namespace MajordomoProtocol
             Log ($"\n[CLIENT INFO] received the reply {reply}\n");
 
             // in production code malformed messages should be handled smarter
-            if (reply.FrameCount < 2)
+            if (reply.FrameCount < 3)
                 throw new ApplicationException ("[CLIENT ERROR] received a malformed reply");
 
             var header = reply.Pop (); // [MDPHeader] <- [service name][reply] OR ['mmi.service'][return code]
