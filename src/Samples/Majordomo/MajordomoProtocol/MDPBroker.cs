@@ -59,8 +59,8 @@ namespace MajordomoProtocol
         //   OR
         //      "W" for Worker
         //      "01" for the version of the Majordomo Protocol V0.1
-        public static readonly string MDPClientHeader = "MDPC01";
-        public static readonly string MDPWorkerHeader = "MDPW01";
+
+        internal const int DEFAULT_RECONNECT_DELAY_IN_MILIS = 2500;
 
         private readonly List<Service> m_services;              // list of known services
         private readonly List<Worker> m_knownWorkers;           // list of all known workers, regardless of service offered
@@ -311,10 +311,10 @@ namespace MajordomoProtocol
             var headerFrame = msg.Pop ();               // [service or command][data]
             var header = headerFrame.ConvertToString ();
 
-            if (header == MDPClientHeader)
+            if (header == MDPConstants.MDP_CLIENT_HEADER)
                 ProcessClientMessage (senderFrame, msg);
             else
-                if (header == MDPWorkerHeader)
+                if (header == MDPConstants.MDP_WORKER_HEADER)
                     ProcessWorkerMessage (senderFrame, msg);
                 else
                     Log (string.Format ("ERROR - message with invalid protocol header!"));
@@ -377,7 +377,7 @@ namespace MajordomoProtocol
                         // and service name then rewrap the envelope
                         var client = UnWrap (message);                  // [reply]
                         message.Push (worker.Service.Name);             // [service name][reply]
-                        message.Push (MDPClientHeader);                 // [protocol header][service name][reply]
+                        message.Push (MDPConstants.MDP_CLIENT_HEADER);  // [protocol header][service name][reply]
                         var reply = Wrap (client, message);             // [client adr][e][protocol header][service name][reply]
 
                         Socket.SendMultipartMessage (reply);
@@ -446,7 +446,7 @@ namespace MajordomoProtocol
                 // protocol header and service name,
                 // then rewrap envelope
                 var client = UnWrap (request);                  // ['mmi.service'][return code]
-                request.Push (MDPClientHeader);                 // [protocol header]['mmi.service'][return code]
+                request.Push (MDPConstants.MDP_CLIENT_HEADER);                 // [protocol header]['mmi.service'][return code]
                 var reply = Wrap (client, request);             // [CLIENT ADR][e][protocol header]['mmi.service'][return code]
 
                 // send to back to CLIENT(!)
@@ -558,7 +558,7 @@ namespace MajordomoProtocol
                 msg.Push (option);
 
             msg.Push (new[] { (byte) command });
-            msg.Push (MDPWorkerHeader);
+            msg.Push (MDPConstants.MDP_WORKER_HEADER);
             // stack routing envelope
             var request = Wrap (worker.Identity, msg);
 
