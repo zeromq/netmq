@@ -224,7 +224,7 @@ namespace NetMQ.Tests
             Assert.IsNull(msg.Data);
         }
 
-        [Test, ExpectedException(typeof(FaultException), ExpectedMessage = "Cannot copy an uninitialised Msg.")]
+        [Test]
         public void CopyUninitialisedThrows()
         {
             var msg = new Msg();
@@ -232,7 +232,8 @@ namespace NetMQ.Tests
             Assert.IsFalse(msg.IsInitialised);
 
             var msgCopy = new Msg();
-            msgCopy.Copy(ref msg);
+
+            Assert.Throws<FaultException>(() => msgCopy.Copy(ref msg), "Cannot copy an uninitialised Msg.");
         }
 
         [Test]

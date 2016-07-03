@@ -9,8 +9,7 @@ namespace NetMQ.Tests
     {
         [Test]
         [TestCase("tcp://localhost")]
-        [TestCase("tcp://127.0.0.1")]
-        [TestCase("tcp://unknownhostname", ExpectedException = typeof(SocketException))]
+        [TestCase("tcp://127.0.0.1")]        
         public void SimpleReqRep(string address)
         {            
             using (var rep = new ResponseSocket())
