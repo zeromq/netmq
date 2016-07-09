@@ -29,6 +29,7 @@ Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.or
 
 The NetMQ documentation can be found at [netmq.readthedocs.org](http://netmq.readthedocs.org/en/latest/). Thanks to [Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber) who agreed to do the documentation.
 
+You can find NetMQ samples contributed by various users here: https://github.com/NetMQ/Samples
 
 There are also a few blog posts available, which you can read about here:
 
