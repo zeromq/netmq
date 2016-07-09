@@ -36,8 +36,8 @@ namespace NetMQ.Core
     /// <remarks>Internal analog of the public <see cref="NetMQContext"/> class.</remarks>
     internal sealed class Ctx
     {
-        private const int DefaultIOThreads = 1;
-        private const int DefaultMaxSockets = 1024;
+        internal const int DefaultIOThreads = 1;
+        internal const int DefaultMaxSockets = 1024;
 
         #region Nested class: Endpoint
 
@@ -156,12 +156,7 @@ namespace NetMQ.Core
         /// The number of I/O threads to launch.
         /// </summary>
         private int m_ioThreadCount = DefaultIOThreads;
-
-        /// <summary>
-        /// Should the context termination block until all socket are disposed?
-        /// </summary>
-        private bool m_block = true;
-
+        
         /// <summary>
         /// This object is used to synchronize access to context options.
         /// </summary>
@@ -191,7 +186,7 @@ namespace NetMQ.Core
         /// down. If there are open sockets still, the deallocation happens
         /// after the last one is closed.
         /// </summary>
-        public void Terminate()
+        public void Terminate(bool block)
         {
             m_disposed = true;
 
@@ -217,28 +212,27 @@ namespace NetMQ.Core
                         foreach (var socket in m_sockets)
                             socket.Stop();
 
-                        if (m_sockets.Count == 0)
+                        if (!block)
+                        {
+                            m_reaper.ForceStop();
+                        }
+                        else if (m_sockets.Count == 0)
                             m_reaper.Stop();
+                        
                     }
                     finally
                     {
                         Monitor.Exit(m_slotSync);
                     }
                 }
+                
+                // Wait till reaper thread closes all the sockets.
+                Command command;
+                var found = m_termMailbox.TryRecv(-1, out command);
 
-                if (m_block)
-                {
-                    // Wait till reaper thread closes all the sockets.
-                    Command command;
-                    var found = m_termMailbox.TryRecv(-1, out command);
-
-                    Debug.Assert(found);
-                    Debug.Assert(command.CommandType == CommandType.Done);
-                    Monitor.Enter(m_slotSync);
-                    Debug.Assert(m_sockets.Count == 0);
-                }
-                else
-                    Monitor.Enter(m_slotSync);
+                Debug.Assert(found);
+                Debug.Assert(command.CommandType == CommandType.Done);
+                Monitor.Enter(m_slotSync);                                                
             }
             Monitor.Exit(m_slotSync);
 
@@ -278,21 +272,7 @@ namespace NetMQ.Core
                 lock (m_optSync)
                     m_maxSockets = value;
             }
-        }
-
-        /// <summary>
-        /// Should context wait for all sockets before terminating?
-        /// </summary>
-        public bool Block
-        {
-
-            get { return m_block; }
-            set
-            {                
-                lock (m_optSync)
-                    m_block = value;
-            }
-        }
+        }       
 
         /// <summary>
         /// Create and return a new socket of the given type, and initialize this Ctx if this is the first one.

@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
+    [TestFixture(Category = "Monitor")]
     public class NetMQMonitorTests
     {
         [Test]

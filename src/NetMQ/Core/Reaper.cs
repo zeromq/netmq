@@ -111,6 +111,11 @@ namespace NetMQ.Core
                 SendStop();
         }
 
+        public void ForceStop()
+        {
+            SendForceStop();
+        }
+
         /// <summary>
         /// Handle input-ready events, by receiving and processing any commands
         /// that are waiting in the mailbox.
@@ -165,6 +170,14 @@ namespace NetMQ.Core
             }
         }
 
+        protected override void ProcessForceStop()
+        {
+            m_terminating = true;
+            SendDone();
+            m_poller.RemoveHandle(m_mailboxHandle);
+            m_poller.Stop();
+        }
+
         /// <summary>
         /// Add the given socket to the list to be reaped (terminated).
         /// </summary>
@@ -193,6 +206,6 @@ namespace NetMQ.Core
                 m_poller.RemoveHandle(m_mailboxHandle);
                 m_poller.Stop();
             }
-        }
+        }        
     }
 }

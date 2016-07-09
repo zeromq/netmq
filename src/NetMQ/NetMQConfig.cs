@@ -10,125 +10,45 @@ namespace NetMQ
         private static TimeSpan s_linger;
 
         private static Ctx s_ctx;
-        private static readonly object s_settingsSync;
-        private static bool s_manualTakeOver;
-
+        private static int s_threadPoolSize = Ctx.DefaultIOThreads;
+        private static int s_maxSockets = Ctx.DefaultMaxSockets;
+        private static readonly object s_sync;     
+           
         static NetMQConfig()
-        {
-            s_manualTakeOver = false;
-            s_ctx = new Ctx { Block = false };
-            s_settingsSync = new object();
-            s_linger = TimeSpan.Zero;
-
-            // Register to destroy the context when application exit
-            AppDomain.CurrentDomain.ProcessExit += ProcessExitTerminateContext;
+        {                        
+            s_sync = new object();
+            s_linger = TimeSpan.Zero;            
         }
 
-        /// <summary>
-        /// Handles the context termination.
-        /// We use a named method so we can unregister it from the event handler.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private static void ProcessExitTerminateContext(object sender, EventArgs e)
+        internal static Ctx Context
         {
-            try
+            get
             {
-                s_ctx.CheckDisposed();
-                s_ctx.Terminate();
-            }
-            catch (ObjectDisposedException)
-            {
+                lock (s_sync)
+                {
+                    if (s_ctx == null)
+                        s_ctx = new Ctx();
+
+                    return s_ctx;
+                }
             }
         }
 
         /// <summary>
-        /// WARNING:
-        /// Please use this with care, this removes the context cleanup, 
-        /// and may leave threads running if you don't do proper cleanup.
-        /// For proper termination, dispose all sockets, pollers and timmers
-        /// and call <see cref="ContextTerminate"/>.
+        /// Cleanup library resources, call this method when your process is shutting-down.
         /// </summary>
-        public static void ManualTerminationTakeOver()
+        /// <param name="block">Set to true when you want to make sure sockets send all pending messages</param>
+        public static void Cleanup(bool block = true)
         {
-            // Ignore subsequence calls
-            if (s_manualTakeOver) return;
-            s_manualTakeOver = true;
-            AppDomain.CurrentDomain.ProcessExit -= ProcessExitTerminateContext;
-        }
-
-        /// <summary>
-        /// For use in testing
-        /// </summary>
-        internal static void DisableManualTermination()
-        {
-            if (!s_manualTakeOver) return;
-            s_manualTakeOver = false;
-            var isTerminated = false;
-            try
+            lock (s_sync)
             {
-                s_ctx.CheckDisposed();
-            }
-            catch (ObjectDisposedException)
-            {
-                isTerminated = true;
-            }
-
-            // Only creates if we don't have a context.
-            if (isTerminated)
-                s_ctx = new Ctx { Block = false };
-        }
-
-        /// <summary>
-        /// WARNING:
-        /// This terminate the context, blocking if called with the default options.
-        /// This as no effect if ManualTerminationTakeOver isn't called.
-        /// </summary>
-        /// <param name="block">Should the context block the thread while terminating.</param>
-        public static void ContextTerminate(bool block = true)
-        {
-            // Move along, nothing to see here :)
-            if (!s_manualTakeOver) return;
-
-            lock (s_settingsSync)
-                s_ctx.Block = block;
-
-            // Gracefully exit if Terminate was already called for the static context.
-            try
-            {
-                s_ctx.CheckDisposed();
-                s_ctx.Terminate();
-            }
-            catch (ObjectDisposedException)
-            {
+                if (s_ctx != null)
+                {                    
+                    s_ctx.Terminate(block);
+                    s_ctx = null;
+                }
             }
         }
-
-        /// <summary>
-        /// Create a context, if needed.
-        /// </summary>
-        /// <param name="block">Should the context block the thread while terminating.</param>
-        public static void ContextCreate(bool block=false)
-        {
-            // Move along, nothing to see here :)
-            if (!s_manualTakeOver) return;
-
-            var isTerminated = false;
-            try
-            {
-                s_ctx.CheckDisposed();
-            }
-            catch (ObjectDisposedException)
-            {
-                isTerminated = true;
-            }
-
-            // Only creates if we don't have a context.
-            if(isTerminated)
-                s_ctx = new Ctx { Block = block };
-        }
-
-        internal static Ctx Context => s_ctx;
 
         /// <summary>
         /// Get or set the default linger period for the all sockets,
@@ -148,14 +68,14 @@ namespace NetMQ
         {
             get
             {
-                lock (s_settingsSync)
+                lock (s_sync)
                 {
                     return s_linger;                    
                 }
             }
             set
             {
-                lock (s_settingsSync)
+                lock (s_sync)
                 {
                     s_linger = value;
                 }
@@ -168,8 +88,23 @@ namespace NetMQ
         /// </summary>
         public static int ThreadPoolSize
         {
-            get { return s_ctx.IOThreadCount; }
-            set { s_ctx.IOThreadCount = value; }
+            get
+            {
+                lock (s_sync)
+                    return s_threadPoolSize;
+            }
+            set
+            {
+                lock (s_sync)
+                {
+                    s_threadPoolSize = value;
+
+                    if (s_ctx != null)
+                        s_ctx.IOThreadCount = value;
+                }
+                
+                
+            }
         }
 
         /// <summary>
@@ -177,8 +112,61 @@ namespace NetMQ
         /// </summary>
         public static int MaxSockets
         {
-            get { return s_ctx.MaxSockets; }
-            set { s_ctx.MaxSockets = value; }
-        }      
+            get
+            {
+                lock (s_sync)
+                    return s_maxSockets;
+            }
+            set
+            {
+                lock (s_sync)
+                {
+                    s_maxSockets = value;
+
+                    if (s_ctx != null)
+                        s_ctx.MaxSockets = value;
+                }
+                
+            }
+        }
+
+        #region Obsolete
+
+        /// <summary>
+        /// Method is obsolete, call Cleanup instead
+        /// </summary>
+        [Obsolete("Use Cleanup method")]
+        public static void ManualTerminationTakeOver()
+        {
+        }
+
+        /// <summary>
+        /// Method is obsolete, call Cleanup instead
+        /// </summary>
+        [Obsolete("Use Cleanup method")]
+        internal static void DisableManualTermination()
+        {
+        }
+
+        /// <summary>
+        /// Method is obsolete, call Cleanup instead
+        /// </summary>
+        /// <param name="block">Should the context block the thread while terminating.</param>
+        [Obsolete("Use Cleanup method")]
+        public static void ContextTerminate(bool block = true)
+        {
+
+        }
+
+        /// <summary>
+        /// /// Method is obsolete, context created automatically
+        /// </summary>        
+        [Obsolete("Context is created automatically")]
+        public static void ContextCreate(bool block = false)
+        {
+            Cleanup(block);
+        }
+
+        #endregion
     }
 }
