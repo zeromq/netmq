@@ -36,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D
 	ProjectSection(SolutionItems) = preProject
 		..\docs\actor.md = ..\docs\actor.md
 		..\docs\beacon.md = ..\docs\beacon.md
+		..\docs\cleanup.md = ..\docs\cleanup.md
 		..\docs\devices.md = ..\docs\devices.md
 		..\docs\index.md = ..\docs\index.md
 		..\docs\introduction.md = ..\docs\introduction.md
