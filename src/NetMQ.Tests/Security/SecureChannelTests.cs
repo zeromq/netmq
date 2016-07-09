@@ -14,8 +14,8 @@ namespace NetMQ.Tests.Security
 
         [SetUp]
         public void Setup()
-        {
-            X509Certificate2 certificate = new X509Certificate2("NetMQ.Testing.pfx", "1");
+        {            
+            X509Certificate2 certificate = new X509Certificate2(NUnit.Framework.TestContext.CurrentContext.TestDirectory + "\\NetMQ.Testing.pfx", "1");
 
             m_serverSecureChannel = new SecureChannel(ConnectionEnd.Server) { Certificate = certificate };
 
