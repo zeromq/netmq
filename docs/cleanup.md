@@ -66,4 +66,4 @@ This how to do it with NUnit:
         }
     }
 
-In tests it is important to call Cleanup with block set to true so in case of failing test the entire process is not hang.
+In tests it is important to call Cleanup with block set to false so in case of failing test the entire process is not hanging.

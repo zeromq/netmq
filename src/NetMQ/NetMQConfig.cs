@@ -27,7 +27,11 @@ namespace NetMQ
                 lock (s_sync)
                 {
                     if (s_ctx == null)
+                    {
                         s_ctx = new Ctx();
+                        s_ctx.IOThreadCount = s_threadPoolSize;
+                        s_ctx.MaxSockets = s_maxSockets;
+                    }
 
                     return s_ctx;
                 }
