@@ -20,7 +20,10 @@ namespace NetMQ
     /// </summary>
     public sealed class NetMQPoller :
 #if !NET35
-        TaskScheduler, ISynchronizeInvoke,
+        TaskScheduler,
+#endif        
+#if NET40
+        ISynchronizeInvoke,
 #endif
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
     {
@@ -289,11 +292,7 @@ namespace NetMQ
 
             m_switch.SwitchOn();
             try
-            {
-                // the sockets may have been created in another thread, to make sure we can fully use them we do full memory barrier
-                // at the beginning of the loop
-                Thread.MemoryBarrier();
-
+            {                
                 // Recalculate all timers now
                 foreach (var timer in m_timers)
                 {
@@ -556,7 +555,7 @@ namespace NetMQ
 
         #region ISynchronizeInvoke
 
-#if !NET35
+#if NET40
         IAsyncResult ISynchronizeInvoke.BeginInvoke(Delegate method, object[] args)
         {
             var task = new Task<object>(() => method.DynamicInvoke(args));

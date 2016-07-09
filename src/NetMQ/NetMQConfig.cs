@@ -17,7 +17,7 @@ namespace NetMQ
         static NetMQConfig()
         {                        
             s_sync = new object();
-            s_linger = TimeSpan.Zero;            
+            s_linger = TimeSpan.Zero;
         }
 
         internal static Ctx Context

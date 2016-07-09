@@ -30,7 +30,7 @@ namespace NetMQ.Tests
             return true;
         }
 
-        public void PushFrame([NotNull] byte[] frame)
+        public void PushFrame(byte[] frame)
         {
             m_frames.Enqueue(frame);
         }
@@ -48,9 +48,8 @@ namespace NetMQ.Tests
         {
             m_socket = new MockReceivingSocket();
         }
-
-        [NotNull]
-        private byte[] PushFrame([NotNull] string hello)
+        
+        private byte[] PushFrame(string hello)
         {
             byte[] expected = Encoding.ASCII.GetBytes(hello);
             m_socket.PushFrame(expected);

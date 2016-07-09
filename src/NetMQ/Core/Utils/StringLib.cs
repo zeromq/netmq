@@ -165,11 +165,7 @@ namespace NetMQ.Core.Utils
                 {
                     sb.Append("Ttl=");
                     sb.Append(socket.Ttl);
-                }
-                if (socket.UseOnlyOverlappedIO)
-                {
-                    sb.Append(",UseOnlyOverlappedIO");
-                }
+                }               
                 sb.Append(")");
 #else
                 sb.Append("Socket");

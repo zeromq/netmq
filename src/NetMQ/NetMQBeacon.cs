@@ -63,7 +63,12 @@ namespace NetMQ
                 if (m_udpSocket != null)
                 {
                     m_poller.Remove(m_udpSocket);
+
+#if NET35
                     m_udpSocket.Close();
+#else
+                    m_udpSocket.Dispose();
+#endif
                 }
 
                 m_udpPort = port;
@@ -148,7 +153,11 @@ namespace NetMQ
                 }
 
                 // the beacon might never been configured
+#if NET35
                 m_udpSocket?.Close();
+#else
+                m_udpSocket?.Dispose();
+#endif                      
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
@@ -290,7 +299,11 @@ namespace NetMQ
 
                 try
                 {
+#if NETSTANDARD1_6
+                    return m_hostName = Dns.GetHostEntryAsync(boundTo).Result.HostName;
+#else
                     return m_hostName = Dns.GetHostEntry(boundTo).HostName;
+#endif
                 }
                 catch
                 {

@@ -934,7 +934,7 @@ namespace NetMQ.Tests
 
         #region ISynchronizeInvoke tests
 
-#if !NET35
+#if NET451
         [Test]
         public void ISynchronizeInvokeWorks()
         {

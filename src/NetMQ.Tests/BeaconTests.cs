@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
-    [TestFixture(Category = "Beacon")]
+    [TestFixture(Category = "Beacon", Explicit = true)]
     public class BeaconTests
     {
         private static readonly TimeSpan s_publishInterval = TimeSpan.FromMilliseconds(100);
