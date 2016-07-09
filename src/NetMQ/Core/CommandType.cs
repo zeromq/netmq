@@ -101,6 +101,11 @@ namespace NetMQ.Core
         /// Sent by reaper thread to the term thread when all the sockets
         /// have successfully been deallocated.
         /// </summary>
-        Done
+        Done,
+
+        /// <summary>
+        /// Send to reaper to stop the reaper immediatly
+        /// </summary>
+        ForceStop
     }
 }

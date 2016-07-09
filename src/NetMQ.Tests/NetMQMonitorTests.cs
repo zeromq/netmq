@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
+    [TestFixture(Category = "Monitor")]
     public class NetMQMonitorTests
     {
         [Test]
@@ -16,7 +16,7 @@ namespace NetMQ.Tests
         {            
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
-            using (var monitor = new NetMQMonitor(rep, "inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
+            using (var monitor = new NetMQMonitor(rep, $"inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
             {
                 var listening = false;
                 var accepted = false;
@@ -27,6 +27,8 @@ namespace NetMQ.Tests
                 monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
                 var monitorTask = Task.Factory.StartNew(monitor.Start);
+
+                Thread.Sleep(10);
 
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
 
@@ -47,8 +49,8 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(200);
 
-                Assert.IsTrue(monitorTask.IsCompleted);
-            }
+                Assert.IsTrue(monitorTask.IsCompleted);                
+            }            
         }
 
 #if !NET35
@@ -102,6 +104,7 @@ namespace NetMQ.Tests
                 monitor.Timeout = TimeSpan.FromMilliseconds(100);
 
                 var monitorTask = Task.Factory.StartNew(monitor.Start);
+                Thread.Sleep(10);
 
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
 
