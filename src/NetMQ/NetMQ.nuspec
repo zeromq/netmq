@@ -3,7 +3,7 @@
   <metadata>
     <id>NetMQ</id>
     <version>$version$</version>
-    <title>NetMQ4</title>
+    <title>NetMQ</title>
     <authors>NetMQ</authors>
     <owners>NetMQ</owners>
     <licenseUrl>https://github.com/zeromq/netmq/blob/master/COPYING.LESSER</licenseUrl>
