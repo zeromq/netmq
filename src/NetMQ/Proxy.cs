@@ -107,6 +107,7 @@ namespace NetMQ
             if (!m_externalPoller)
             {
                 m_poller.Stop();
+                m_poller.Dispose();
                 m_poller = null;
             }
 
