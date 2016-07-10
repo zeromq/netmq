@@ -5,7 +5,11 @@
     "emitEntryPoint": true
   },
   "dependencies": {
-    "NetMQ": "4.0.0.0"
+    "NetMQ": "4.0.0.0",
+    "JetBrains.Annotations": {
+      "version": "10.1.5",
+      "type": "build"
+    }
   },
   "frameworks": {
     "netcoreapp1.0": {

@@ -6,7 +6,10 @@
   },
   "dependencies": {
     "AsyncIO": "0.1.20.0",
-    "JetBrains.Annotations": "10.1.5"
+    "JetBrains.Annotations": {
+      "version": "10.1.5",
+      "type": "build"
+    }
   },
   "frameworks": {
     "netstandard1.6": {
