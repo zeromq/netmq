@@ -1,3 +1,5 @@
+#if !NETCOREAPP1_0
+
 using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -128,3 +130,5 @@ namespace NetMQ.Tests
         #endregion
     }
 }
+
+#endif

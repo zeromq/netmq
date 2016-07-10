@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace NetMQ.Core.Utils
 {
@@ -46,11 +47,14 @@ namespace NetMQ.Core.Utils
 
         static Clock()
         {
+#if !NETSTANDARD1_6     
             try
             {
+
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT ||
                     Environment.OSVersion.Platform == PlatformID.Unix ||
                     Environment.OSVersion.Platform == (PlatformID)128)
+
                 {
                     s_rdtscSupported = Opcode.Open();
                 }
@@ -63,6 +67,7 @@ namespace NetMQ.Core.Utils
             {
                 s_rdtscSupported = false;
             }
+#endif
         }
 
         /// <summary>
@@ -105,7 +110,11 @@ namespace NetMQ.Core.Utils
         /// </summary>
         public static long Rdtsc()
         {
+#if NETSTANDARD1_6
+            return 0;
+#else        
             return s_rdtscSupported ? (long)Opcode.Rdtsc() : 0;
+#endif
         }
     }
 }

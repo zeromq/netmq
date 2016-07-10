@@ -73,14 +73,22 @@ namespace NetMQ.Core.Utils
 
             try
             {
+#if NET35
                 m_writeSocket.Close();
+#else 
+                m_writeSocket.Dispose();
+#endif
             }
             catch (SocketException)
             {}
 
             try
             {
+#if NET35
                 m_readSocket.Close();
+#else
+                m_readSocket.Dispose();
+#endif                
             }
             catch (SocketException)
             {}

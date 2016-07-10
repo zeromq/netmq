@@ -39,3 +39,9 @@ _ReSharper*/
 
 # Ignore NuGet Packages
 /src/packages/
+
+#Ignore VS files
+.vs/
+
+#Ignore lock files
+*.lock.json

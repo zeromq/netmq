@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using AsyncIO;
 using JetBrains.Annotations;
@@ -93,9 +94,13 @@ namespace NetMQ.Core.Transports.Pgm
             }
             catch (SocketException x)
             {
-                string xMsg = $"SocketException with ErrorCode={x.ErrorCode}, SocketErrorCode={x.SocketErrorCode}, Message={x.Message}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {this}";
+                string xMsg = $"SocketException with SocketErrorCode={x.SocketErrorCode}, Message={x.Message}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {this}";
                 Debug.WriteLine(xMsg);
                 // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
+
+#if NETSTANDARD1_6
+                bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#else
                 PlatformID p = Environment.OSVersion.Platform;
                 bool isWindows = true;
                 switch (p)
@@ -110,6 +115,7 @@ namespace NetMQ.Core.Transports.Pgm
                         isWindows = false;
                         break;
                 }
+#endif
                 if (isWindows)
                 {
                     Debug.WriteLine("For Microsoft Windows, you may want to check to see whether you have installed MSMQ on this host, to get PGM socket support.");

@@ -1,3 +1,5 @@
+#if !NET35
+
 using System.Threading.Tasks;
 
 namespace NetMQ.Devices
@@ -27,3 +29,4 @@ namespace NetMQ.Devices
         }
     }
 }
+#endif

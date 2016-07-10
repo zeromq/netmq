@@ -1,0 +1,53 @@
+{
+  "version": "4.0.0.0",
+  "buildOptions": {
+    "debugType": "portable",
+    "keyFile": "./NetMQ.snk"
+  },
+  "dependencies": {
+    "AsyncIO": "0.1.20.0",
+    "JetBrains.Annotations": {
+      "version": "10.1.5",
+      "type": "build"
+    }
+  },
+  "frameworks": {
+    "netstandard1.6": {
+      "buildOptions": {
+        "compile": {
+          "exclude": [ "Devices/**.*", "Security/**.*" ]
+        }
+      },
+      "dependencies": {
+        "NETStandard.Library": "1.6.0",
+        "System.ServiceModel.Primitives": "4.1.0",
+        "System.Threading": "4.0.11",
+        "System.Threading.Thread": "4.0.0",
+        "System.Net.NetworkInformation": "4.1.0",
+        "System.Runtime.Loader": "4.0.0"
+      },
+      "imports": [ "dnxcore50" ]
+    },
+    "net35": {
+      "buildOptions": {
+        "compile": {
+          "exclude": [ "Devices/**.*", "Security/**.*" ],
+          "excludeFiles": ["NetMQQueue.cs"]
+        }
+      },
+      "dependencies": {
+      },
+      "frameworkAssemblies": {
+        "System.ServiceModel": "3.0.0.0"
+      }
+    },
+    "net40": {
+      "dependencies": {
+      },
+      "frameworkAssemblies": {
+        "System.ServiceModel": "4.0.0.0"
+      }
+    }
+  },
+  "supports": {}
+}

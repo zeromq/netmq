@@ -269,9 +269,10 @@ namespace NetMQ.Tests
                     if (router2Arrived == 1)
                     {
                         poller.Add(router3);
-                        poller.Add(router4);
-                        signal2.Set();
+                        poller.Add(router4);                        
                     }
+
+                    signal2.Set();
                 };
 
                 router3.ReceiveReady += (s, e) =>
@@ -296,12 +297,14 @@ namespace NetMQ.Tests
                 Assert.IsTrue(signal1.WaitOne(300));
                 dealer2.SendFrame("2");
                 Assert.IsTrue(signal2.WaitOne(300));
+                signal2.Reset();
                 dealer3.SendFrame("3");
                 dealer4.SendFrame("4");
                 dealer2.SendFrame("2");
                 dealer1.SendFrame("1");
                 Assert.IsTrue(signal3.WaitOne(300));
                 Assert.IsTrue(signal4.WaitOne(300));
+                Assert.IsTrue(signal2.WaitOne(300));
 
                 poller.Stop();
 
@@ -571,7 +574,7 @@ namespace NetMQ.Tests
         [Test]
         public void TwoTimers()
         {
-            var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(52));
+            var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(60));
             var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(40));
 
             int count = 0;
@@ -676,12 +679,13 @@ namespace NetMQ.Tests
                 if (count == 1)
                 {
                     stopwatch.Start();
+                    timer.Interval = 30;
                 }
                 else if (count == 2)
                 {
                     length1 = stopwatch.ElapsedMilliseconds;
 
-                    timer.Interval = 20;
+                    timer.Interval = 60;
                     stopwatch.Restart();
                 }
                 else if (count == 3)
@@ -698,15 +702,15 @@ namespace NetMQ.Tests
             {
                 poller.RunAsync();
 
-                Thread.Sleep(timerIntervalMillis * 6);
+                Thread.Sleep(200);
 
                 poller.Stop();
             }
 
             Assert.AreEqual(3, count);
 
-            Assert.AreEqual(10.0, length1, 2.0);
-            Assert.AreEqual(20.0, length2, 2.0);
+            Assert.AreEqual(30, length1, 10.0);
+            Assert.AreEqual(60.0, length2, 10.0);
         }
 
         [Test]
@@ -934,7 +938,7 @@ namespace NetMQ.Tests
 
         #region ISynchronizeInvoke tests
 
-#if !NET35
+#if NET451
         [Test]
         public void ISynchronizeInvokeWorks()
         {

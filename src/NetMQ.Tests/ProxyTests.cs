@@ -8,6 +8,21 @@ namespace NetMQ.Tests
     [TestFixture]
     public class ProxyTests
     {
+        [OneTimeSetUp]
+        public void SetUp()
+        {
+            // Doing cleanup once so tests will not be affected by already ran tests
+            NetMQConfig.Cleanup(false);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // In CI it takes time for the background threads to complete the socket async dispose
+            // cleanup the library to avoid the issue
+            NetMQConfig.Cleanup();
+        }
+
         [Test]
         public void SendAndReceive()
         {

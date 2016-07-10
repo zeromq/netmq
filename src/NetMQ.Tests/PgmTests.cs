@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -20,7 +19,7 @@ namespace NetMQ.Tests
     //
     // Note: The 224.0.0.1 is the IPv4 All Hosts multicast group which addresses all hosts on the same network segment.
 
-    [TestFixture(Category = "PGM")]
+    [TestFixture(Category = "PGM", Explicit = true)]
     public class PgmTests
     {
         [Test]
@@ -83,7 +82,11 @@ namespace NetMQ.Tests
         [Test]
         public void UseInterface()
         {
+#if NETCOREAPP1_0            
+            var hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).Result;
+#else
             var hostEntry = Dns.GetHostEntry(Dns.GetHostName());
+#endif
 
             string ip = hostEntry.AddressList
                 .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork)
@@ -239,9 +242,7 @@ namespace NetMQ.Tests
             });
 
             pubTask.Wait();
-            subTask.Wait();
-
-            Thread.MemoryBarrier();
+            subTask.Wait();            
 
             Assert.AreEqual(1000, count);
         }

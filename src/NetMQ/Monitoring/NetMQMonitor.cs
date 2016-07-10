@@ -250,10 +250,7 @@ namespace NetMQ.Monitoring
         /// </summary>
         /// <exception cref="InvalidOperationException">The Monitor must not have already started nor attached to a poller.</exception>
         public void Start()
-        {
-            // in case the sockets is created in another thread
-            Thread.MemoryBarrier();
-
+        {            
             if (IsRunning)
                 throw new InvalidOperationException("Monitor already started");
 
@@ -336,7 +333,11 @@ namespace NetMQ.Monitoring
 
             m_monitoringSocket.ReceiveReady -= Handle;
 
+#if NET35
             m_isStoppedEvent.Close();
+#else
+            m_isStoppedEvent.Dispose();
+#endif
 
             if (m_ownsMonitoringSocket)
             {
