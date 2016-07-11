@@ -119,10 +119,6 @@
     <Compile Include="RouterTests.cs" />
     <Compile Include="Setup.cs" />
     <Compile Include="XPubSubTests.cs" />
-    <Compile Include="Devices\DeviceTestBase.cs" />
-    <Compile Include="Devices\ForwarderDeviceTests.cs" />
-    <Compile Include="Devices\QueueDeviceTests.cs" />
-    <Compile Include="Devices\StreamerDeviceTests.cs" />
     <Compile Include="MessageTests.cs" />
     <Compile Include="NetMQMonitorTests.cs" />
     <Compile Include="NetworkOrderBitsConverterTests.cs" />
@@ -133,7 +129,6 @@
     <Compile Include="PubSubTests.cs" />
     <Compile Include="PushPullTests.cs" />
     <Compile Include="ReqRepTests.cs" />
-    <Compile Include="Security\SecureChannelTests.cs" />
     <Compile Include="SocketTests.cs" />
     <Compile Include="StreamTests.cs" />
     <Compile Include="Core\YQueueTests.cs" />

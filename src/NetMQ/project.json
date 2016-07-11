@@ -12,12 +12,7 @@
     }
   },
   "frameworks": {
-    "netstandard1.6": {
-      "buildOptions": {
-        "compile": {
-          "exclude": [ "Devices/**.*", "Security/**.*" ]
-        }
-      },
+    "netstandard1.6": {      
       "dependencies": {
         "NETStandard.Library": "1.6.0",
         "System.ServiceModel.Primitives": "4.1.0",
@@ -30,8 +25,7 @@
     },
     "net35": {
       "buildOptions": {
-        "compile": {
-          "exclude": [ "Devices/**.*", "Security/**.*" ],
+        "compile": {          
           "excludeFiles": ["NetMQQueue.cs"]
         }
       },
