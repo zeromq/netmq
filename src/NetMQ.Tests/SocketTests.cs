@@ -18,6 +18,21 @@ namespace NetMQ.Tests
     [TestFixture]
     public class SocketTests
     {
+        [OneTimeSetUp]
+        public void SetUp()
+        {
+            // Doing cleanup once so tests will not be affected by already ran tests
+            NetMQConfig.Cleanup(false);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // In CI it takes time for the background threads to complete the socket async dispose
+            // cleanup the library to avoid the issue
+            NetMQConfig.Cleanup();
+        }
+
         [Test]
         public void CheckTryReceive()
         {
@@ -723,41 +738,42 @@ namespace NetMQ.Tests
                     }
                 };
 
-                var poller = new NetMQPoller { backendsRouter };
-
-                for (int i = 0; i < 2; i++)
+                using (var poller = new NetMQPoller {backendsRouter})
                 {
-                    ParameterizedThreadStart threadMmethod = state =>
+                    for (int i = 0; i < 2; i++)
                     {
-                        byte[] routerId = (byte[])state;
-                        byte[] workerId = Guid.NewGuid().ToByteArray();
-                        using (var workerSocket = new DealerSocket())
+                        ParameterizedThreadStart threadMmethod = state =>
                         {
-                            workerSocket.Options.Identity = workerId;
-                            workerSocket.Connect("inproc://backend");
+                            byte[] routerId = (byte[]) state;
+                            byte[] workerId = Guid.NewGuid().ToByteArray();
+                            using (var workerSocket = new DealerSocket())
+                            {
+                                workerSocket.Options.Identity = workerId;
+                                workerSocket.Connect("inproc://backend");
 
-                            var workerReadyMsg = new NetMQMessage();
-                            workerReadyMsg.Append(workerId);
-                            workerReadyMsg.AppendEmptyFrame();
-                            workerReadyMsg.Append(readyMsg);
-                            workerSocket.SendMultipartMessage(workerReadyMsg);
-                            Thread.Sleep(1000);
-                        }
-                    };
+                                var workerReadyMsg = new NetMQMessage();
+                                workerReadyMsg.Append(workerId);
+                                workerReadyMsg.AppendEmptyFrame();
+                                workerReadyMsg.Append(readyMsg);
+                                workerSocket.SendMultipartMessage(workerReadyMsg);
+                                Thread.Sleep(1000);
+                            }
+                        };
 
-                    var workerThread = new Thread(threadMmethod)
-                    {
-                        IsBackground = true,
-                        Name = "worker" + i
-                    };
+                        var workerThread = new Thread(threadMmethod)
+                        {
+                            IsBackground = true,
+                            Name = "worker" + i
+                        };
 
-                    workerThread.Start(backendsRouter.Options.Identity);
+                        workerThread.Start(backendsRouter.Options.Identity);
+                    }
+
+                    poller.RunAsync();
+                    Thread.Sleep(1000);
+                    poller.Stop();
+                    Assert.AreEqual(2, freeWorkers.Count);
                 }
-
-                poller.RunAsync();
-                Thread.Sleep(1000);
-                poller.Stop();
-                Assert.AreEqual(2, freeWorkers.Count);
             }
         }
 
