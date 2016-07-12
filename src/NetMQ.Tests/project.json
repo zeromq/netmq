@@ -16,11 +16,6 @@
   "testRunner": "nunit",
   "frameworks": {
     "net451": {
-      "buildOptions": {
-        "copyToOutput": ["./NetMQ.Testing.pfx", "./NetMQ.Testing.crt"]
-      },
-      "dependencies": {
-      }
     },
     "netcoreapp1.0": {      
       "imports": [
