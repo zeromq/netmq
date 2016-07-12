@@ -16,18 +16,8 @@
   "testRunner": "nunit",
   "frameworks": {
     "net451": {
-      "buildOptions": {
-        "copyToOutput": ["./NetMQ.Testing.pfx", "./NetMQ.Testing.crt"]
-      },
-      "dependencies": {
-      }
     },
-    "netcoreapp1.0": {
-      "buildOptions": {
-        "compile": {
-          "exclude": [ "Devices/**.*", "Security/**.*" ]
-        }
-      },
+    "netcoreapp1.0": {      
       "imports": [
         "netcoreapp1.0",
         "portable-net45+win8"

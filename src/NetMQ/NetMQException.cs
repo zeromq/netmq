@@ -315,7 +315,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        internal InvalidException([CanBeNull] Exception innerException, [CanBeNull] string message)
+        public InvalidException([CanBeNull] Exception innerException, [CanBeNull] string message)
             : base(innerException, message, ErrorCode.Invalid)
         {
         }
@@ -324,7 +324,7 @@ namespace NetMQ
         /// Create a new InvalidException with the given message.
         /// </summary>
         /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        internal InvalidException([CanBeNull] string message)
+        public InvalidException([CanBeNull] string message)
             : this(null, message)
         {
         }
