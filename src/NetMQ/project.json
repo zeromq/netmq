@@ -1,5 +1,19 @@
 {
   "version": "4.0.0.0",
+  "projectUrl": "https://github.com/zeromq/netmq",
+  "title": "NetMQ",
+  "description": "A 100% native C# port of the lightweight high performance messaging library ZeroMQ",
+  "packOptions": {
+    "summary": "A 100% native C# port of the lightweight high performance messaging library ZeroMQ",
+    "licenseUrl": "https://github.com/zeromq/netmq/blob/master/COPYING.LESSER",
+    "iconUrl": "https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQ.ico",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/zeromq/netmq"
+    },
+    "requireLicenseAcceptance": false,
+    "tags": [ "ZeroMQ", "0MQ", "CLRZMQ", "NetMQ", "Messaging", "ZMQ", "transport", "distributed" ]
+  },
   "buildOptions": {
     "debugType": "portable",
     "keyFile": "./NetMQ.snk"
@@ -12,7 +26,7 @@
     }
   },
   "frameworks": {
-    "netstandard1.6": {      
+    "netstandard1.6": {
       "dependencies": {
         "NETStandard.Library": "1.6.0",
         "System.ServiceModel.Primitives": "4.1.0",
@@ -25,8 +39,8 @@
     },
     "net35": {
       "buildOptions": {
-        "compile": {          
-          "excludeFiles": ["NetMQQueue.cs"]
+        "compile": {
+          "excludeFiles": [ "NetMQQueue.cs" ]
         }
       },
       "dependencies": {
