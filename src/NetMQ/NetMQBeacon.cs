@@ -299,7 +299,7 @@ namespace NetMQ
 
                 try
                 {
-#if NETSTANDARD1_6
+#if NETSTANDARD1_3
                     return m_hostName = Dns.GetHostEntryAsync(boundTo).Result.HostName;
 #else
                     return m_hostName = Dns.GetHostEntry(boundTo).HostName;

@@ -47,7 +47,7 @@ namespace NetMQ.Core.Utils
 
         static Clock()
         {
-#if !NETSTANDARD1_6     
+#if !NETSTANDARD1_3     
             try
             {
 
@@ -110,7 +110,7 @@ namespace NetMQ.Core.Utils
         /// </summary>
         public static long Rdtsc()
         {
-#if NETSTANDARD1_6
+#if NETSTANDARD1_3
             return 0;
 #else        
             return s_rdtscSupported ? (long)Opcode.Rdtsc() : 0;

@@ -102,7 +102,7 @@ namespace NetMQ.Core.Transports.Tcp
             }            
             else if (!IPAddress.TryParse(addrStr, out ipAddress))
             {
-#if NETSTANDARD1_6
+#if NETSTANDARD1_3
                 var availableAddresses = Dns.GetHostEntryAsync(addrStr).Result.AddressList;
 #else
                 var availableAddresses = Dns.GetHostEntry(addrStr).AddressList;
