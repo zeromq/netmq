@@ -19,7 +19,7 @@
     "keyFile": "./NetMQ.snk"
   },
   "dependencies": {
-    "AsyncIO": "0.1.21",
+    "AsyncIO": "0.1.22",
     "JetBrains.Annotations": {
       "version": "10.1.5",
       "type": "build"
@@ -54,6 +54,22 @@
       },
       "frameworkAssemblies": {
         "System.ServiceModel": "4.0.0.0"
+      }
+    },
+    "MonoAndroid,Version=v6.0": {
+      "frameworkAssemblies": {
+        "mscorlib": {},
+        "System": {},
+        "System.Core": {},
+        "System.ServiceModel": {}
+      }
+    },
+    "Xamarin.iOS,Version=v1.0": {
+      "frameworkAssemblies": {
+        "mscorlib": {},
+        "System": {},
+        "System.Core": {},
+        "System.ServiceModel": {}
       }
     }
   },
