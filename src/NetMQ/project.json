@@ -19,7 +19,7 @@
     "keyFile": "./NetMQ.snk"
   },
   "dependencies": {
-    "AsyncIO": "0.1.22",
+    "AsyncIO": "0.1.23",
     "JetBrains.Annotations": {
       "version": "10.1.5",
       "type": "build"
