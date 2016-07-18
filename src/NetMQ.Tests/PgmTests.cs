@@ -297,8 +297,7 @@ namespace NetMQ.Tests
                         sub.Unbind(address);
 
                         Assert.That(closed.Wait(1000), Is.True, "Unbind failed to report Closed event to the Monitor");
-                        var duration = DateTime.Now - time;
-                        Console.WriteLine("Run {0}: {1} ms", i, duration.TotalMilliseconds);
+                        var duration = DateTime.Now - time;                        
 
                         monitor.Stop();
 

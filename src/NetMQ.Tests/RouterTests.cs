@@ -62,11 +62,7 @@ namespace NetMQ.Tests
                 var cnt = 0;
                 client.ReceiveReady += (sender, e) =>
                 {
-                    var strs = e.Socket.ReceiveMultipartStrings();
-                    foreach (var str in strs)
-                    {
-                        Console.WriteLine(str);
-                    }
+                    e.Socket.ReceiveMultipartStrings();                  
                     cnt++;
                     if (cnt == 2)
                     {

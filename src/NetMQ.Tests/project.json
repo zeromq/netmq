@@ -2,10 +2,10 @@
   "version": "1.0.0-*",
   "buildOptions": {
     "debugType": "portable",
-    "keyFile": "../NetMQ/NetMQ.snk"   
+    "keyFile": "../NetMQ/NetMQ.snk"
   },
   "dependencies": {
-    "dotnet-test-nunit": "3.4.0-beta-1",
+    "dotnet-test-nunit-with-labels": "3.4.0-alpha7",
     "NetMQ": "4.0.0.0",
     "NUnit": "3.4.1",
     "JetBrains.Annotations": {
@@ -13,11 +13,11 @@
       "type": "build"
     }
   },
-  "testRunner": "nunit",
+  "testRunner": "nunit-with-labels",
   "frameworks": {
     "net451": {
     },
-    "netcoreapp1.0": {      
+    "netcoreapp1.0": {
       "imports": [
         "netcoreapp1.0",
         "portable-net45+win8"

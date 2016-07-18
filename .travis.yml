@@ -49,4 +49,4 @@ script:
   - dotnet restore src/
   
   # testing only netcoreapp1.0 on linux and osx
-  - dotnet test src/NetMQ.Tests -f netcoreapp1.0
+  - dotnet test src/NetMQ.Tests -f netcoreapp1.0 --labels=All

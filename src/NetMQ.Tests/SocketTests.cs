@@ -178,7 +178,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Test, Explicit]
         public void TestKeepAlive()
         {
             // there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
@@ -297,7 +297,7 @@ namespace NetMQ.Tests
                 router.Options.RouterRawSocket = true;
                 var port = router.BindRandomPort("tcp://127.0.0.1");
 
-                clientSocket.Connect("127.0.0.1", port);
+                clientSocket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));                
                 clientSocket.NoDelay = true;
 
                 byte[] clientMessage = Encoding.ASCII.GetBytes("HelloRaw");
@@ -349,13 +349,12 @@ namespace NetMQ.Tests
 
                     localDealer.SendFrame("test");
 
-                    Assert.AreEqual("test", connectingDealer.ReceiveFrameString());
-                    Console.WriteLine(alias + " connected ");
+                    Assert.AreEqual("test", connectingDealer.ReceiveFrameString());                    
                 }
             }
         }
 
-        [Test, Category("IPv6")]
+        [Test, Category("IPv6"), Explicit]
         public void Ipv6ToIpv4()
         {
             using (var localDealer = new DealerSocket())
@@ -372,7 +371,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test, Category("IPv6")]
+        [Test, Category("IPv6"), Explicit]
         public void Ipv6ToIpv6()
         {
             using (var localDealer = new DealerSocket())
@@ -780,9 +779,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringDefault()
         {
-            using (ResponseSocket response = new ResponseSocket("tcp://127.0.0.1:5555"))
+            using (ResponseSocket response = new ResponseSocket("tcp://127.0.0.1:51500"))
             {
-                using (RequestSocket request = new RequestSocket("tcp://127.0.0.1:5555"))
+                using (RequestSocket request = new RequestSocket("tcp://127.0.0.1:51500"))
                 {
                     request.SendFrame("Hello");
 
@@ -794,9 +793,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringSpecifyDefault()
         {
-            using (ResponseSocket response = new ResponseSocket("@tcp://127.0.0.1:5555"))
+            using (ResponseSocket response = new ResponseSocket("@tcp://127.0.0.1:51501"))
             {
-                using (RequestSocket request = new RequestSocket(">tcp://127.0.0.1:5555"))
+                using (RequestSocket request = new RequestSocket(">tcp://127.0.0.1:51501"))
                 {
                     request.SendFrame("Hello");
 
@@ -808,9 +807,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringSpecifyNonDefault()
         {
-            using (ResponseSocket response = new ResponseSocket(">tcp://127.0.0.1:5555"))
+            using (ResponseSocket response = new ResponseSocket(">tcp://127.0.0.1:51502"))
             {
-                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:5555"))
+                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:51502"))
                 {
                     request.SendFrame("Hello");
 
@@ -822,9 +821,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringWithWhiteSpace()
         {
-            using (ResponseSocket response = new ResponseSocket(" >tcp://127.0.0.1:5555 "))
+            using (ResponseSocket response = new ResponseSocket(" >tcp://127.0.0.1:51503 "))
             {
-                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:5555, "))
+                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:51503, "))
                 {
                     request.SendFrame("Hello");
 
@@ -836,9 +835,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringMultipleAddresses()
         {
-            using (DealerSocket server1 = new DealerSocket("@tcp://127.0.0.1:5555"))
-            using (DealerSocket server2 = new DealerSocket("@tcp://127.0.0.1:5556,@tcp://127.0.0.1:5557"))
-            using (DealerSocket client = new DealerSocket("tcp://127.0.0.1:5555,tcp://127.0.0.1:5556,tcp://127.0.0.1:5557"))
+            using (DealerSocket server1 = new DealerSocket("@tcp://127.0.0.1:51504"))
+            using (DealerSocket server2 = new DealerSocket("@tcp://127.0.0.1:51505,@tcp://127.0.0.1:51506"))
+            using (DealerSocket client = new DealerSocket("tcp://127.0.0.1:51504,tcp://127.0.0.1:51505,tcp://127.0.0.1:51506"))
             {
                 // send three helloes
                 client.SendFrame("Hello");

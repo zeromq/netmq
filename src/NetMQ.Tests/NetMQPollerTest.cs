@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -754,7 +755,7 @@ namespace NetMQ.Tests
             {
                 int port = streamServer.BindRandomPort("tcp://*");
 
-                socket.Connect("127.0.0.1", port);
+                socket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));
 
                 var buffer = new byte[] { 1 };
                 socket.Send(buffer);
