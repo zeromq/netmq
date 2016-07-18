@@ -178,7 +178,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Test, Explicit]
         public void TestKeepAlive()
         {
             // there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
