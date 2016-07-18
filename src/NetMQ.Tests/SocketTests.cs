@@ -354,7 +354,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test, Category("IPv6")]
+        [Test, Category("IPv6"), Explicit]
         public void Ipv6ToIpv4()
         {
             using (var localDealer = new DealerSocket())
@@ -371,7 +371,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test, Category("IPv6")]
+        [Test, Category("IPv6"), Explicit]
         public void Ipv6ToIpv6()
         {
             using (var localDealer = new DealerSocket())
