@@ -9,10 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		..\.gitattributes = ..\.gitattributes
 		..\.gitignore = ..\.gitignore
+		..\.travis.yml = ..\.travis.yml
 		..\COPYING.LESSER = ..\COPYING.LESSER
 		global.json = global.json
 		..\mkdocs.yml = ..\mkdocs.yml
 		..\README.md = ..\README.md
+		..\travis.yml = ..\travis.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D7A0-489E-9530-0F972DAE1167}"
