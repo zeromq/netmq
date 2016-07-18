@@ -26,8 +26,6 @@ namespace NetMQ.Tests
 
                 var message = listener.Receive();
 
-                Console.WriteLine(message.PeerAddress);
-
                 Assert.AreEqual("Hello", message.String);
             }
         }

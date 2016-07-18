@@ -349,8 +349,7 @@ namespace NetMQ.Tests
 
                     localDealer.SendFrame("test");
 
-                    Assert.AreEqual("test", connectingDealer.ReceiveFrameString());
-                    Console.WriteLine(alias + " connected ");
+                    Assert.AreEqual("test", connectingDealer.ReceiveFrameString());                    
                 }
             }
         }

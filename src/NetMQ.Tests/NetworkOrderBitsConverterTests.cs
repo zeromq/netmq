@@ -93,7 +93,6 @@ namespace NetMQ.Tests
 //                var sw = Stopwatch.StartNew();
 //                for (var k = 0; k < loopCount; k++)
 //                    NetworkOrderBitsConverter.PutInt64(0x12345678ABCDEF12L, buffer);
-//                Console.Out.WriteLine("{0}", sw.Elapsed.TotalMilliseconds);
 //            }
 //        }
     }
