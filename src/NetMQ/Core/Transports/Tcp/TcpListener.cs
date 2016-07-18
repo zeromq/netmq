@@ -22,6 +22,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using AsyncIO;
 using JetBrains.Annotations;
 
@@ -136,7 +137,13 @@ namespace NetMQ.Core.Transports.Tcp
                     }
                 }
 
+#if NETSTANDARD1_3
+                // This command is failing on linux
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    m_handle.ExclusiveAddressUse = false;
+#else
                 m_handle.ExclusiveAddressUse = false;
+#endif
                 m_handle.Bind(m_address.Address);
                 m_handle.Listen(m_options.Backlog);
 
