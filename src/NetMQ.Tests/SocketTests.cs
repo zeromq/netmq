@@ -779,9 +779,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringDefault()
         {
-            using (ResponseSocket response = new ResponseSocket("tcp://127.0.0.1:5555"))
+            using (ResponseSocket response = new ResponseSocket("tcp://127.0.0.1:51500"))
             {
-                using (RequestSocket request = new RequestSocket("tcp://127.0.0.1:5555"))
+                using (RequestSocket request = new RequestSocket("tcp://127.0.0.1:51500"))
                 {
                     request.SendFrame("Hello");
 
@@ -793,9 +793,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringSpecifyDefault()
         {
-            using (ResponseSocket response = new ResponseSocket("@tcp://127.0.0.1:5555"))
+            using (ResponseSocket response = new ResponseSocket("@tcp://127.0.0.1:51501"))
             {
-                using (RequestSocket request = new RequestSocket(">tcp://127.0.0.1:5555"))
+                using (RequestSocket request = new RequestSocket(">tcp://127.0.0.1:51501"))
                 {
                     request.SendFrame("Hello");
 
@@ -807,9 +807,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringSpecifyNonDefault()
         {
-            using (ResponseSocket response = new ResponseSocket(">tcp://127.0.0.1:5555"))
+            using (ResponseSocket response = new ResponseSocket(">tcp://127.0.0.1:51502"))
             {
-                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:5555"))
+                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:51502"))
                 {
                     request.SendFrame("Hello");
 
@@ -821,9 +821,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringWithWhiteSpace()
         {
-            using (ResponseSocket response = new ResponseSocket(" >tcp://127.0.0.1:5555 "))
+            using (ResponseSocket response = new ResponseSocket(" >tcp://127.0.0.1:51503 "))
             {
-                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:5555, "))
+                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:51503, "))
                 {
                     request.SendFrame("Hello");
 
@@ -835,9 +835,9 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringMultipleAddresses()
         {
-            using (DealerSocket server1 = new DealerSocket("@tcp://127.0.0.1:5555"))
-            using (DealerSocket server2 = new DealerSocket("@tcp://127.0.0.1:5556,@tcp://127.0.0.1:5557"))
-            using (DealerSocket client = new DealerSocket("tcp://127.0.0.1:5555,tcp://127.0.0.1:5556,tcp://127.0.0.1:5557"))
+            using (DealerSocket server1 = new DealerSocket("@tcp://127.0.0.1:51504"))
+            using (DealerSocket server2 = new DealerSocket("@tcp://127.0.0.1:51505,@tcp://127.0.0.1:51506"))
+            using (DealerSocket client = new DealerSocket("tcp://127.0.0.1:51504,tcp://127.0.0.1:51505,tcp://127.0.0.1:51506"))
             {
                 // send three helloes
                 client.SendFrame("Hello");
