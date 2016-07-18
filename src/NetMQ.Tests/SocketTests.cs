@@ -297,7 +297,7 @@ namespace NetMQ.Tests
                 router.Options.RouterRawSocket = true;
                 var port = router.BindRandomPort("tcp://127.0.0.1");
 
-                clientSocket.Connect("127.0.0.1", port);
+                clientSocket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));                
                 clientSocket.NoDelay = true;
 
                 byte[] clientMessage = Encoding.ASCII.GetBytes("HelloRaw");
