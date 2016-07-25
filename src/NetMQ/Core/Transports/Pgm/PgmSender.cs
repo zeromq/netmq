@@ -73,7 +73,7 @@ namespace NetMQ.Core.Transports.Pgm
 
             m_pgmSocket.InitOptions();
 
-            m_outBufferSize = Config.PgmMaxTPDU;
+            m_outBufferSize = m_options.PgmMaxTransportServiceDataUnitLength;
             m_outBuffer = new ByteArraySegment(new byte[m_outBufferSize]);
         }
 

@@ -387,5 +387,14 @@ namespace NetMQ
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DisableTimeWait); }
             set { m_socket.SetSocketOption(ZmqSocketOption.DisableTimeWait, value); }
         }
+
+        /// <summary>
+        /// Controls the maximum datagram size for PGM.
+        /// </summary>
+        public int PgmMaxTransportServiceDataUnitLength
+        {
+            get { return m_socket.GetSocketOptionX<int>(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength, value); }
+        }
     }
 }

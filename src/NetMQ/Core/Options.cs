@@ -57,6 +57,7 @@ namespace NetMQ.Core
             TcpKeepaliveIdle = -1;
             TcpKeepaliveIntvl = -1;
             DisableTimeWait = false;
+            PgmMaxTransportServiceDataUnitLength = Config.PgmMaxTPDU;
         }
 
         /// <summary>
@@ -264,6 +265,11 @@ namespace NetMQ.Core
         public bool DisableTimeWait { get; set; }
 
         /// <summary>
+        /// Controls the maximum datagram size for PGM.
+        /// </summary>
+        public int PgmMaxTransportServiceDataUnitLength { get; set; }
+        
+        /// <summary>
         /// Assign the given optionValue to the specified option.
         /// </summary>
         /// <param name="option">a ZmqSocketOption that specifies what to set</param>
@@ -389,6 +395,10 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.DisableTimeWait:
                     DisableTimeWait = (bool)optionValue;
+                    break;
+
+                case ZmqSocketOption.PgmMaxTransportServiceDataUnitLength:
+                    PgmMaxTransportServiceDataUnitLength = (int)optionValue;
                     break;
 
                 default:

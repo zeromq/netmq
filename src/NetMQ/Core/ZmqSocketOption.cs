@@ -279,6 +279,11 @@ namespace NetMQ.Core
         /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
-        Endian = 1000
+        Endian = 1000,
+
+        /// <summary>
+        /// Specifies the max datagram size for PGM.
+        /// </summary>
+        PgmMaxTransportServiceDataUnitLength = 1001
     }
 }
