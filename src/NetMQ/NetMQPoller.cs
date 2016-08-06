@@ -31,10 +31,10 @@ namespace NetMQ
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
         private readonly Dictionary<Socket, Action<Socket>> m_pollinSockets = new Dictionary<Socket, Action<Socket>>();
         private readonly Switch m_switch = new Switch(false);
-        private readonly Selector m_selector = new Selector();
+        private readonly NetMQSelector m_netMqSelector = new NetMQSelector();
         private readonly StopSignaler m_stopSignaler = new StopSignaler();
 
-        private SelectItem[] m_pollSet;
+        private NetMQSelector.Item[] m_pollSet;
         private NetMQSocket[] m_pollact;
 
         private volatile bool m_isPollSetDirty = true;
@@ -340,7 +340,7 @@ namespace NetMQ
 
                     if (m_pollSet.Length != 0)
                     {
-                        isItemAvailable = m_selector.Select(m_pollSet, m_pollSet.Length, timeout);
+                        isItemAvailable = m_netMqSelector.Select(m_pollSet, m_pollSet.Length, timeout);
                     }
                     else if (timeout > 0)
                     {
@@ -372,7 +372,7 @@ namespace NetMQ
 
                     for (var i = 0; i < m_pollSet.Length; i++)
                     {
-                        SelectItem item = m_pollSet[i];
+                        NetMQSelector.Item item = m_pollSet[i];
 
                         if (item.Socket != null)
                         {
@@ -473,7 +473,7 @@ namespace NetMQ
 #endif
 
             // Recreate the m_pollSet and m_pollact arrays.
-            m_pollSet = new SelectItem[m_sockets.Count + m_pollinSockets.Count];
+            m_pollSet = new NetMQSelector.Item[m_sockets.Count + m_pollinSockets.Count];
             m_pollact = new NetMQSocket[m_sockets.Count];
 
             // For each socket in m_sockets,
@@ -482,14 +482,14 @@ namespace NetMQ
 
             foreach (var socket in m_sockets)
             {
-                m_pollSet[index] = new SelectItem(socket.SocketHandle, socket.GetPollEvents());
+                m_pollSet[index] = new NetMQSelector.Item(socket, socket.GetPollEvents());
                 m_pollact[index] = socket;
                 index++;
             }
 
             foreach (var socket in m_pollinSockets.Keys)
             {
-                m_pollSet[index] = new SelectItem(socket, PollEvents.PollError | PollEvents.PollIn);
+                m_pollSet[index] = new NetMQSelector.Item(socket, PollEvents.PollError | PollEvents.PollIn);
                 index++;
             }
 

@@ -3,55 +3,58 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
 using JetBrains.Annotations;
+using NetMQ.Core;
+using NetMQ.Core.Utils;
 
-namespace NetMQ.Core.Utils
-{
+namespace NetMQ
+{   
     /// <summary>
-    /// A SelectItem is a pairing of a (Socket or SocketBase) and a PollEvents value.
+    /// For selecting on NetMQSocket or regualr .net Socket.
+    /// This is for advanced usages, for most cases NetMQPoller is the suggested alternative.
     /// </summary>
-    internal sealed class SelectItem
-    {
-        public SelectItem(SocketBase socket, PollEvents @event)
-        {
-            Socket = socket;
-            Event = @event;
-        }
-
-        public SelectItem(Socket fileDescriptor, PollEvents @event)
-        {
-            FileDescriptor = fileDescriptor;
-            Event = @event;
-        }
-
-        public Socket FileDescriptor { get; }
-
-        public SocketBase Socket { get; }
-
-        public PollEvents Event { get; }
-
-        public PollEvents ResultEvent { get; set; }
-    }
-
-    /// <summary>
-    /// A Selector holds three lists of Sockets - for read, write, and error,
-    /// and provides a Select method.
-    /// </summary>
-    internal sealed class Selector
+    public sealed class NetMQSelector
     {
         private readonly List<Socket> m_checkRead = new List<Socket>();
         private readonly List<Socket> m_checkWrite = new List<Socket>();
         private readonly List<Socket> m_checkError = new List<Socket>();
 
         /// <summary>
+        /// Selector Item used to hold the NetMQSocket/Socket and PollEvents
         /// </summary>
-        /// <param name="items">  (must not be null)</param>
-        /// <param name="itemsCount"></param>
+        public sealed class Item
+        {
+            public Item(NetMQSocket socket, PollEvents @event)
+            {
+                Socket = socket;
+                Event = @event;
+            }
+
+            public Item(Socket fileDescriptor, PollEvents @event)
+            {
+                FileDescriptor = fileDescriptor;
+                Event = @event;
+            }
+
+            public Socket FileDescriptor { get; }
+
+            public NetMQSocket Socket { get; }
+
+            public PollEvents Event { get; }
+
+            public PollEvents ResultEvent { get; set; }
+        }
+
+        /// <summary>
+        /// Select on NetMQSocket or Socket, similar behavior to Socket.Select.
+        /// </summary>
+        /// <param name="items">Items to select on (must not be null)</param>
+        /// <param name="itemsCount">Number of items in the array to select on</param>
         /// <param name="timeout">a time-out period, in milliseconds</param>
         /// <returns></returns>
         /// <exception cref="FaultException">The internal select operation failed.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="items"/> is <c>null</c>.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public bool Select([NotNull] SelectItem[] items, int itemsCount, long timeout)
+        public bool Select([NotNull] Item[] items, int itemsCount, long timeout)
         {
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
@@ -103,8 +106,8 @@ namespace NetMQ.Core.Utils
 
                     if (pollItem.Socket != null)
                     {
-                        if (pollItem.Event != PollEvents.None && pollItem.Socket.Handle.Connected)
-                            m_checkRead.Add(pollItem.Socket.Handle);
+                        if (pollItem.Event != PollEvents.None && pollItem.Socket.SocketHandle.Handle.Connected)
+                            m_checkRead.Add(pollItem.Socket.SocketHandle.Handle);
                     }
                     else
                     {
