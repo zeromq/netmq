@@ -16,7 +16,7 @@ namespace NetMQ
     {
         private readonly SocketBase m_socketHandle;
         private readonly NetMQSocketEventArgs m_socketEventArgs;
-        private readonly Selector m_selector;
+        private readonly NetMQSelector m_netMqSelector;
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
@@ -37,7 +37,7 @@ namespace NetMQ
         internal NetMQSocket(ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
         {
             m_socketHandle = NetMQConfig.Context.CreateSocket(socketType);
-            m_selector = new Selector();
+            m_netMqSelector = new NetMQSelector();
             Options = new SocketOptions(this);
             m_socketEventArgs = new NetMQSocketEventArgs(this);
 
@@ -77,7 +77,7 @@ namespace NetMQ
         /// <param name="socketHandle">a SocketBase object to assign to the new socket</param>
         internal NetMQSocket([NotNull] SocketBase socketHandle)
         {
-            m_selector = new Selector();
+            m_netMqSelector = new NetMQSelector();
             m_socketHandle = socketHandle;
             Options = new SocketOptions(this);
             m_socketEventArgs = new NetMQSocketEventArgs(this);
@@ -296,9 +296,9 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         public PollEvents Poll(PollEvents pollEvents, TimeSpan timeout)
         {
-            SelectItem[] items = { new SelectItem(SocketHandle, pollEvents) };
+            NetMQSelector.Item[] items = { new NetMQSelector.Item(this, pollEvents) };
 
-            m_selector.Select(items, 1, (long)timeout.TotalMilliseconds);
+            m_netMqSelector.Select(items, 1, (long)timeout.TotalMilliseconds);
             return items[0].ResultEvent;
         }
 
