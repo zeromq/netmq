@@ -105,6 +105,7 @@
     <Compile Include="NetMQQueue.cs" />
     <Compile Include="NetMQProactor.cs" />
     <Compile Include="NetMQPoller.cs" />
+    <Compile Include="NetMQSelector.cs" />
     <Compile Include="NetworkOrderBitsConverter.cs" />
     <Compile Include="OutgoingSocketExtensions.cs" />
     <Compile Include="NetMQFrame.cs" />
@@ -143,7 +144,6 @@
     <Compile Include="BufferPool.cs" />
     <Compile Include="Core\Utils\ByteArrayEqualityComparer.cs" />
     <Compile Include="Core\Utils\StringLib.cs" />
-    <Compile Include="Core\Utils\Selector.cs" />
     <Compile Include="Core\Transports\ByteArraySegment.cs" />
     <Compile Include="Core\Utils\Clock.cs" />
     <Compile Include="Core\Command.cs" />
