@@ -35,6 +35,8 @@ namespace NetMQ.Core
                     return ErrorCode.AddressFamilyNotSupported;
                 case SocketError.AddressNotAvailable:
                     return ErrorCode.AddressNotAvailable;
+                case SocketError.AddressAlreadyInUse:
+                    return ErrorCode.AddressAlreadyInUse;
                 case SocketError.NetworkDown:
                     return ErrorCode.NetworkDown;
                 case SocketError.NetworkUnreachable:
