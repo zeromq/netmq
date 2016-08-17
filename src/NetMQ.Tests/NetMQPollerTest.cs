@@ -382,7 +382,7 @@ namespace NetMQ.Tests
 
                     e.Socket.SendMoreFrame(identity).SendFrame("3");
                 };
-
+                
                 Task pollerTask = Task.Factory.StartNew(poller.Run);
 
                 // Send three messages. Only the first will be processed, as then handler removes
@@ -400,6 +400,8 @@ namespace NetMQ.Tests
                 Assert.AreEqual("3", dealer3.ReceiveFrameString());
 
                 poller.Stop();
+                // await the pollerTask, 1ms should suffice
+                pollerTask.Wait(1);
                 Assert.IsTrue(pollerTask.IsCompleted);
             }
         }
