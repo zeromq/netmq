@@ -229,7 +229,8 @@ namespace NetMQ.Core.Transports.Tcp
                 if (socketError == SocketError.ConnectionRefused || socketError == SocketError.TimedOut ||
                     socketError == SocketError.ConnectionAborted ||
                     socketError == SocketError.HostUnreachable || socketError == SocketError.NetworkUnreachable ||
-                    socketError == SocketError.NetworkDown || socketError == SocketError.AccessDenied)
+                    socketError == SocketError.NetworkDown || socketError == SocketError.AccessDenied ||
+                    socketError == SocketError.OperationAborted)
                 {
                     if (m_options.ReconnectIvl >= 0)
                         AddReconnectTimer();
