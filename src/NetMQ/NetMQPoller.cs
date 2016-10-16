@@ -499,7 +499,7 @@ namespace NetMQ
         
         public boolean ContainsSocket(NetMQSocket socket)
         {
-            return m_sockets.Contains(socket)
+            return m_sockets.Contains(socket);
         }
 
         #region IEnumerable
