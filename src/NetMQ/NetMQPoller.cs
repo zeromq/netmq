@@ -497,7 +497,7 @@ namespace NetMQ
             m_isPollSetDirty = false;
         }
         
-        public boolean ContainsSocket(NetMQSocket socket)
+        public bool ContainsSocket(NetMQSocket socket)
         {
             return m_sockets.Contains(socket);
         }
