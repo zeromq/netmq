@@ -496,6 +496,11 @@ namespace NetMQ
             // Mark this as NOT having any fresh events to attend to, as yet.
             m_isPollSetDirty = false;
         }
+        
+        public boolean ContainsSocket(NetMQSocket socket)
+        {
+            return m_sockets.Contains(socket)
+        }
 
         #region IEnumerable
 
