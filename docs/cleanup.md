@@ -1,15 +1,15 @@
 Cleanup
 =======
 
-New with NetMQ version 4 we said goobye to NetMQContext, we can now create sockets with new operator without the NetMQContext.
-As this make the library simpler it is also add complication as how to cleanup the library.
+New with NetMQ version 4 we said goobye to NetMQContext. We can now create sockets with the new operator without the NetMQContext.
+Though this makes using the library simpler, it also adds complication to cleaning it up.
 
-# Why do NetMQ needs Cleanup?
+# Why does NetMQ need Cleanup?
 
-NetMQ creates few background threads, also when you call Dispose on a Socket the process is asynchronous and actually happen in a background thread.
-Because NetMQ threads are background threads you can actually exit the application without a proper cleanup for the NetMQ library, however it is not recommeneded.
+NetMQ creates a few background threads. Also, when you call Dispose on a Socket the process is asynchronous and actually happens in a background thread.
+Because NetMQ threads are background threads you can actually exit the application without a proper cleanup of the NetMQ library, though it is not recommeneded.
 
-When existing AppDomain it might be more complicated and you have to cleanup the NetMQ library.
+When exiting AppDomain it might be more complicated, and you have to cleanup the NetMQ library.
 
 # What is Linger?
 
