@@ -1,15 +1,15 @@
 ![](Images/NetMQLogo.svg)
 
-NetMQ is a 100% native C# port of ZeroMQ, a lightweight messaging library.
+NetMQ是100%原生從ZeroMQ移植至C#的輕量級訊息函式庫。
 
-NetMQ extends the standard socket interface with features traditionally provided by specialised messaging middleware products. NetMQ sockets provide an abstraction of asynchronous message queues, multiple messaging patterns, message filtering (subscriptions), seamless access to multiple transport protocols and more.
+NetMQ擴充了標準socket介面，具有傳統上由專用訊息中介軟體產品提供的功能。NetMQ socket提供非同步訊息佇列、多種訊息模式、訊息過濾（訂閱），多種傳輸協議間無縫訪問等等的抽象。
 
 ## Documentation
 
-NetMQ documentation is available at [netmq.readthedocs.org](http://netmq.readthedocs.org/en/latest/).
+NetMQ 的文件在 [netmq.readthedocs.org](http://netmq.readthedocs.org/en/latest/).
 
-Using NetMQ requires an understanding of ZeroMQ, for which there is no better documentation than the [ZeroMQ Guide](http://zguide.zeromq.org/page:all).
+使用`NetMQ`要先了解`ZeroMQ`，沒有比這更好的文件了ー[ZeroMQ Guide](http://zguide.zeromq.org/page:all).
 
 ## Installation
 
-You can install NetMQ from [NuGet](https://nuget.org/packages/NetMQ/).
+可以從這裡 [NuGet](https://nuget.org/packages/NetMQ/)安裝`NetMQ`。
