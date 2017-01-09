@@ -3,7 +3,7 @@ Pollers
 
 ## Motivation 1: Efficiency
 
-There are many use cases for the `NetMQPoller`. First let's look at a simple server:
+NetMQPoller有很多範例。首先讓我們來看一個簡單的伺服器：
 
     :::csharp
     using (var rep = new ResponseSocket("@tcp://*:5002"))
@@ -19,9 +19,9 @@ There are many use cases for the `NetMQPoller`. First let's look at a simple ser
         }
     }
 
-This server will happily process responses indefinitely.
+這個伺服器會很娛快的永遠處理回應。
 
-What now if we wanted to have one thread handling two different response sockets?
+如果我們想在同一個執行緒中處理兩個不同的response sockets中呢？
 
     :::csharp
     using (var rep1 = new ResponseSocket("@tcp://*:5001"))
@@ -33,7 +33,7 @@ What now if we wanted to have one thread handling two different response sockets
         }
     }
 
-How would we fairly service both of these response sockets? Can't we just  process them each in turn?
+我們要如何公平的處理兩個response sockets的服務？不能一次處理一個嗎？
 
     :::csharp
     // blocks until a message is received
@@ -42,27 +42,27 @@ How would we fairly service both of these response sockets? Can't we just  proce
     // might never reach this code!
     var msg2 = rep2.ReceiveString();
 
-A receive call blocks until a message arrives. If we make a blocking receive call on `rep1`, then we will ignore any messages for `rep2` until `rep1` actually receives something&mdash;which may never happen. This is clearly not a suitable solution.
+一個等待接收的函式會阻塞直到有訊息抵達。如果我們在**rep1**等待接收，那傳送給**rep2**的所有訊息會被忽略，直到**rep1**收到訊息-也可能永遠收不到，所以這當然不是一個好方法。
 
-Instead we could use non-blocking receive calls on `rep1` and `rep2`. However this would keep the CPU maxed out even when no messages are available. Again, this is not a suitable approach.
+相反的，我們可以在**rep1**和**rep2**上用非阻塞式的接收函式，但這可能會在沒有訊息的狀況下讓當前CPU的負載過高，所以，這也不是一個好方法…
 
-We could introduce a timeout on the non-blocking receive calls. However, what would a sensible value be? If we chose 10ms, then if `rep1` wasn't receiving messages, we could only dequeue up to 100 messages/sec on `rep2` (or vice versa). This severely limits throughput and doesn't utilise resources efficiently.
+我們可以引進使用非阻塞式函式中的timeout參數。然而，什麼值比較合適呢？如果我們用10ms，那如果**rep1**沒有收到訊息，那**rep2**最多只能取得每秒100個訊息(反之也成立)，這嚴重限制了吞吐量，而且無法有效地利用資源。
 
-Clearly a better approach is needed.
+所以我們需要一個較好的方式。
 
 ## Motivation 2: Correctness
 
-Following from the example above, you might consider using one thread per socket and going back to blocking receive calls. Indeed in some cases this is a fine solution. However it comes with some restrictions.
+接續上面的範例，也許你會考慮每個socket放在不同的執行緒當中，並且採用阻塞式呼叫，雖然這在一些狀況下是個好方法，但是它有一些限制。
 
-For ZeroMQ/NetMQ to give great performance, some restrictions exist on how we can use its sockets. In particular, `NetMQSocket` is not threadsafe. It is invalid to use a socket from multiple threads simultaneously.
+對ZeroMQ/NetMQ來說，為了發揮最大效能，所存在的限制是我們使用socket的方式。特別地說，`NetMQSocket`不是執行緒安全的，在多個執行緒中同步使用同一個socket是無效的。
 
-For example, consider socket A with a service loop in thread A, and socket B with a service loop in thread B. It would be invalid to receive a message from socket A (on thread A) and then attempt to send it on socket B. The socket is not threadsafe, and so attempts to use is simultaneously from threads A and B would cause errors.
+舉例來說，考慮我們在Thread A中有一個socket A的迴圈在服務，在Thread B中有一個socket B的迴圈在服務，若試著在socket A中接收訊息，並傳送至socket B，是無效的。Socket不是執行緒安全的，所以試著在執行緒A和B中同步使用可能會導致錯誤。
 
-In fact the pattern described here is known as a [proxy](proxy.md), and one is built into NetMQ. At this point you may not be surprised to learn that it is powered by a `NetMQPoller`.
+事實上，這裡描述的模式被稱為[proxy](proxy.md)，並且也被內置在NetMQ中。在這一點上，你可能不會訝異地發現它由`NetMQPoller`來實作。
 
 ## Example: ReceiveReady
 
-Let's use a `Poller` to easily service two sockets from a single thread:
+讓我們使用一個`Poller`來從一個執行緒簡單地服務兩個sockets：
 
     :::csharp
     using (var rep1 = new ResponseSocket("@tcp://*:5001"))
@@ -89,9 +89,9 @@ Let's use a `Poller` to easily service two sockets from a single thread:
         poller.Run();
     }
 
-This code sets up two sockets and bind them to different addresses. It then adds those sockets to a `NetMQPoller` using the collection initialiser (you could also call `Add(NetMQSocket)`). Event handlers are attached to each socket's `ReceiveReady` event. Finally the poller is started via `Run()`, which blocks until `Stop` is called on the poller.
+這段程式設置了兩個sockets，並綁定到不同的位址，並在一個`NetMQPoller`中使用集合初始化加入這兩個sockets(也可以使用`Add(NetMQSocket)`函式)，並在各別socket的`ReceiveReady`事件加上處理函式，最後poller由`Run()`啟動，並開始阻塞直到Poller的`Stop`函式被呼叫為止。
 
-Internally, the `NetMQPoller` solves the problem described above in an optimal fashion.
+在內部，`NetMQPoller`以最佳方式解決上述問題。
 
 ## Example: SendReady
 
@@ -99,11 +99,11 @@ Internally, the `NetMQPoller` solves the problem described above in an optimal f
 
 ## Timers
 
-Pollers have an additional feature: timers.
+Pollers有一個額外的功能：Timer。
 
-If you wish to perform some operation periodically, and need that operation to be performed on a thread which is allowed to use one or more sockets, you can add a `NetMQTimer` to the `NetMQPoller` along with the sockets you wish to use.
+如果你需要在一個執行緒當中對一或多個sockets，執行一些週期性的操作，你可以在`NetMQPoller`中加上一個`NetMQTimer`。
 
-This code sample will publish a message every second to all connected peers.
+這個範例會每秒推送一個訊息至所有已連線的端點。
 
     :::csharp
     var timer = new NetMQTimer(TimeSpan.FromSeconds(1));
@@ -123,9 +123,9 @@ This code sample will publish a message every second to all connected peers.
 
 ## Adding/removing sockets/timers
 
-Sockets and timers may be safely added and removed from the poller while it is running.
+Sockets和timers在執行時可以被安全的加入至或從Poller中移除。
 
-Note that implementations of `ISocketPollable` include `NetMQSocket`, `NetMQActor` and `NetMQBeacon`. Therefore a `NetMQPoller` can observe any of these types.
+注意`NetMQSocket`,`NetMQActor`and `NetMQBeacon`都實作了`ISocketPollable`，所以`NetMQPoller`可以監示所有這些型別。
 
 * `AddSocket(ISocketPollable)`
 * `RemoveSocket(ISocketPollable)`
@@ -136,15 +136,15 @@ Note that implementations of `ISocketPollable` include `NetMQSocket`, `NetMQActo
 
 ## Controlling polling
 
-So far we've seen `Run`. This devotes the calling thread to polling activity until the poller is cancelled, either from a socket/timer event handler, or from another thread.
+到目前為止，我們學到了`Run函式`。這讓執行緒用於輪詢活動，直到`Poller`被從`socket/timer`事件處理程序或從另一個執行緒中取消。
 
-If you wish to continue using the calling thread for other actions, you may call `RunAsync` instead, which calls `Run` in a new thread.
+如果您希望繼續使被調用執行緒進行其他操作，可以呼叫`RunAsync`，它會在新執行緒中呼叫`Run`。
 
-To stop a poller, use either `Stop` or `StopAsync`. The latter waits until the poller's loop has completely exited before returning, and may be necessary during graceful teardown of an application.
+要停止`Poller`，請使用`Stop`或`StopAsync`。後者會等待直到`Poller`的迴圈在返回之前完全離開，這在軟體完整的離開前是必需的。
 
 ## A more complex example
 
-Let's see a more involved example that uses much of what we've seen so far. We'll remove a `ResponseSocket` from the `NetMQPoller` once it receives its first message after which `ReceiveReady` will not fire for that socket, even if messages are available.
+讓我們看一個較複雜的範例，其中會使用我們目前為止看到的大部分工具。我們在接收到第一條訊息時將從`NetMQPoller`中刪除一個`ResponseSocket`，即使訊息是正確的，`ReceiveReady`也不會被觸發。
 
     :::csharp
     using (var rep = new ResponseSocket("@tcp://127.0.0.1:5002"))
@@ -180,19 +180,18 @@ Let's see a more involved example that uses much of what we've seen so far. We'l
         Thread.Sleep(1000);
     }
 
-Which when run gives this output now.
+輸出如下：
 
     :::text
     messageIn = Hello
     messageBack = World
 
-See how the `Hello Again` message was not received? This is due to the `ResponseSocket` being removed from the `NetMQPoller` during processing of the first message in the `ReceiveReady` event handler.
+看到為什麼`Hello Again`沒有收到嗎？這是因為在`RecieiveReady`中處理第一條訊息時將`ResponseSocket`從`NetMQPoller`中移除。
+
 
 ## Performance
 
-Receiving messages with poller is slower than directly calling Receive method on the socket. 
-When handling thousands of messages a second, or more, poller can be a bottleneck.
-However the solution is pretty simple, we just need to fetch all messages currently available with the socket using the Try* methods. Following is an example:
+使用`poller`接收消息比在socket上直接呼叫`Receive`函式慢。當處理數千條訊息時，第二個或更多的`poller`可能是瓶頸。但是解決方案很簡單，我們只需要使用`Try *`函式獲取當前可用的socket的所有訊息。以下是一個範例：
 
     :::csharp
     rep1.ReceiveReady += (s, a) =>
@@ -206,8 +205,7 @@ However the solution is pretty simple, we just need to fetch all messages curren
         }
     };
 
-The above solution can cause starvation of other sockets if socket is loaded with non-stop flow of messages.
-To solve this you can limit the number of messages that can be fetch in one batch.
+如果socket載入了不會停止的訊息串流，則上述解決方案可能導致其他socket的Starving。要解決這個問題，你可以限制一個批次中可以提取的訊息數量。
 
     :::csharp
     rep1.ReceiveReady += (s, a) =>

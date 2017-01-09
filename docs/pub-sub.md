@@ -3,18 +3,18 @@ Pub/Sub
 
 From [Wikipedia](http://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern):
 
-> Publish–subscribe is a messaging pattern where senders of messages, called publishers, do not program the messages to be sent directly to specific receivers, called subscribers. Instead, published messages are characterized into classes, without knowledge of what, if any, subscribers there may be. Similarly, subscribers express interest in one or more classes, and only receive messages that are of interest, without knowledge of what, if any, publishers there are.
+> 發布/訂閱（Publish/subscribe 或pub/sub）是一種訊息規範，訊息的傳送者（發布者）不是計劃傳送其訊息給特定的接收者（訂閱者）。而是發布的訊息分為不同的類別，而不需要知道什麼樣的訂閱者訂閱。訂閱者對一個或多個類別表達興趣，於是只接收感興趣的訊息，而不需要知道什麼樣的發布者發布的訊息。這種發布者和訂閱者的解耦可以允許更好的可延伸性和更為動態的網路拓撲.
 
-The _classes_ mentioned in this description can also be referred to as _topics_ or _filters_.
+上述所謂的_類別_也可以當成是一個_"主題"_或_"過濾器"_。
 
-NetMQ comes with support for Pub/Sub by way of two socket types:
+`NetMQ`用兩種socket型別支援`Pub/Sub`模式：
 
 + `PublisherSocket`
 + `SubscriberSocket`
 
 ## Topics
 
-ZeroMQ/NetMQ uses multipart [messages](message.md) to convey topic information. Topics are expressed as an array of bytes, though you may use a string and suitable `System.Text.Encoding`.
+`ZeroMQ/NetMQ`使用多段訊息傳送主題資訊，可用byte陣列來表示主題，或是字串並加上適當的`System.Text.Encoding`。
 
 A publisher must include the topic in the message's' first frame, prior to the message payload. For example, to publish a status message to subscribers of the `status` topic:
 
@@ -22,7 +22,7 @@ A publisher must include the topic in the message's' first frame, prior to the m
     // send a message on the 'status' topic
     pub.SendMoreFrame("status").SendFrame("All is well");
 
-Subscribers specify which topics they are interested in via the `Subscribe` method of `SubscriberSocket`:
+訂閱者使用`SubscriberSocket`的`Subscribe`函式指定他們有興趣的主題。
 
     :::csharp
     // subscribe to the 'status' topic
@@ -31,20 +31,20 @@ Subscribers specify which topics they are interested in via the `Subscribe` meth
 
 ## Topic heirarchies
 
-A message's topic is compared against subscribers' subscription topics using a prefix check.
+一個訊息的主題會用prefix檢查和訂閱者的訂閱主題比較。
 
-That is, a subscriber who subscribed to `topic` would receive messages with topics:
+也就是說，訂閱`主題`的訂閱者會接收具有主題的訊息：
 
 * `topic`
 * `topic/subtopic`
 * `topical`
 
-However it would not receive messages with topics:
+然而它不會接受這些主題：
 
 * `topi`
-* `TOPIC` (remember, it's a byte-wise comparison)
+* `TOPIC` （記住，它是以byte做為比較方式）
 
-A consequence of this prefix matching behavious is that you can receive all published messages by subscribing with an empty topic string:
+使用prefix比對行為的結果，可以讓你以空字串來訂閱所有發佈的訊息。
 
     :::csharp
     sub.Subscribe(""); // subscribe to all topics
@@ -52,10 +52,10 @@ A consequence of this prefix matching behavious is that you can receive all publ
 
 ## An Example
 
-Time for an example. This example is very simple, and follows these rules.
+到了介紹範例的時間了，這範例很簡單，並遵守下列規則：
 
-+ There is one publisher process, who randomly publishes a message to either `TopicA` or `TopicB` every 500ms.
-+ There may be many subscribers. The topic name is passed as a command line argument.
++ 有一個發佈者的process，會以500ms的時間隨機發佈主題為`TopicA`或'TopicB`的訊息。
++ 可能會有很多訂閱者，欲訂閱的主題名稱會以命令列參數代入程式中。
 
 ### Publisher
 
@@ -151,7 +151,7 @@ Time for an example. This example is very simple, and follows these rules.
         }
     }
 
-To run this, these three BAT files may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects.
+在這邊提供三個批次檔，讓你方便執行，不過要稍微修改一下路徑等一適合你的環境。
 
 ### RunPubSub.bat
 
@@ -175,7 +175,7 @@ To run this, these three BAT files may be useful, though you will need to change
     Subscriber.exe %topic%
 
 
-When run, you should see something like this:
+執行時輸出如下：
 
 ![](Images/PubSubUsingTopics.png)
 
@@ -185,13 +185,13 @@ Other Considerations
 
 ### High water mark
 
-The `SendHighWaterMark`/`ReceiveHighWaterMark` options set the high water mark for the specified socket. The high water mark is a hard limit on the maximum number of outstanding messages NetMQ shall queue in memory for any single peer that the specified socket is communicating with.
+SendHighWaterMark / ReceiveHighWaterMark選項可設定指定socket的high water mark。High water mark是對未完成訊息的最大數量的限制，NetMQ會將正在與指定的socket通訊的任何端點的訊息排入佇列中。
 
-If this limit has been reached the socket shall enter an exceptional state and depending on the socket type, NetMQ shall take appropriate action such as blocking or dropping sent messages.
+如果到達此限制，socket會進入異常狀態，並且根據socket類型，NetMQ應採取適當的措施，如阻止或丟棄發送的訊息。
 
-The default `SendHighWaterMark`/`ReceiveHighWaterMark` value is 1000. The value of zero means "no limit".
+預設的SendHighWaterMark / ReceiveHighWaterMark值為1000.零值表示“無限制”。
 
-You would set these 2 options using the `xxxxSocket.Options` property as follows:
+你也可以使用`xxxSocket.Options`屬性值設定下列兩個屬性：
 
 +  `pubSocket.Options.SendHighWatermark = 1000;`
 +  `pubSocket.Options.ReceiveHighWatermark = 1000;`

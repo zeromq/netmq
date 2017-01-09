@@ -1,21 +1,21 @@
 Push / Pull
 =====
 
-NetMQ comes with a `PushSocket` and a `PullSocket`. What are these and how should they be used?
+`NetMQ`提供了`PushSocket`和`PullSocket`，這些是什麼？要如何使用？
 
-Well a `PushSocket` is normally used to push to a `PullSocket`, whilst the `PullSocket` will pull from a `PushSocket`. Sounds obvious right!
+嗯，`PushSocket`一般是用來推送訊息至`PullSocket`，而`PullSocket`是用來從`PushSocket`取得訊息，聽起來很對吧！
 
-You would typically use this configuration of sockets to produce some distributed work, kind of like a <a href="http://zguide.zeromq.org/page:all#Divide-and-Conquer" target="_blank">divide and conquer</a> arrangement.
+你通常使用這種設定的socket來產生一些分佈式的工作，有點像 <a href="http://zguide.zeromq.org/page:all#Divide-and-Conquer" target="_blank">divide and conquer</a> 的安排。
 
-The idea is that you have something that generates work, and then distributes the work out to n-many workers. The workers each do some work, and push their results to some other process (could be a thread too) where the workers results are accumulated.
+這個想法是，你有一些產生工作的東西，然後將工作分配給多個工人。工人每個都做一些工作，並將結果推送到其他工序（可能是一個執行緒），工人的產出在那裡累積。
 
-In the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>, it shows an example that has the work generator just tell each worker to sleep for a period of time.
+在 <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> 中，它顯示了一個範例，其中work generator只是告訴每個工人睡眠一段時間。
 
-We toyed with creating a more elaborate example than this, but in the end felt that the example's simplicity was quite important, so we have stuck with the workload for each worker just being a value that tells the work to sleep for a number of milliseconds (thus simulating some actual work). This example, as I say, has been borrowed from the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>.
+我們試圖創建一個比這更複雜的例子，但是最終覺得這個例子的簡單性是相當重要的，所以我們讓每個工人的工作量變成一個代入值，告訴工作休眠幾毫秒（從而模擬一些實際工作）。這個例子，正如我所說，是從 <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> 借來的。
 
 In real life the work could obviously be anything, though you would more than likely want the work to be something that could be cut up and distributed without the work generator caring/knowing how many workers there are.
 
-Here is what we are trying to achieve :
+這裡是我們試圖實作的：
 
 ![](Images/Fanout.png)
 
@@ -174,7 +174,7 @@ Here is what we are trying to achieve :
 
 ## Running the sample
 
-To run this, these three BAT files may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects.
+要執行這個，這三個批次檔會很有用，若你選擇將此程式碼複製到新方案中，你需要更改路徑以符合。
 
 ### Run1Worker.bat
 
@@ -189,7 +189,7 @@ To run this, these three BAT files may be useful, though you will need to change
     start Worker.exe
 
 
-Which when run should give you some output like this in the Sink process console output (obviously your PC may run faster/slower than mine):
+在這個Sink的Process執行後，應該會在Console有如下的輸出：（顯然你的PC可能運行比我的更快/更慢）：
 
     :::text
     ====== SINK ======
@@ -212,7 +212,7 @@ Which when run should give you some output like this in the Sink process console
     start Worker.exe
     start Worker.exe
 
-Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine):
+在這個Sink的Process執行後，應該會在Console有如下的輸出：（顯然你的PC可能運行比我的更快/更慢）：
 
     :::text
     ====== SINK ======
@@ -238,7 +238,7 @@ Which when run should give you some output like this in the Sink process console
     start Worker.exe
 
 
-Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine):
+在這個Sink的Process執行後，應該會在Console有如下的輸出：（顯然你的PC可能運行比我的更快/更慢）：
 
     :::text
     ====== SINK ======
@@ -247,9 +247,9 @@ Which when run should give you some output like this in the Sink process console
     :.........:.........
     Total elapsed time 1492 msec
 
-There are a couple of points to be aware of with this pattern
+這個模式有幾個要注意的重點：
 
-+ The `Ventilator` uses a NetMQ `PushSocket` to distribute work to the `Worker`s, this is referred to as load balancing.
-+ The `Ventilator` and the `Sink` are the static parts of the system, where as `Worker`s are dynamic. It is trivial to add more `Worker`s, we can just spin up a new instance of a `Worker`s, and in theory the work gets done quicker.
-+ We need to synchronize the starting of the batch (when  `Worker`s are ready), as if we did not do that, the first `Worker`s that connected would get more messages that the rest, which is not really load balanced.
-+ The `Sink` uses a NetMQ `PullSocket` to accumulate the results from the `Worker`s.
++ `Ventilator`使用`NetMQ`中的`PushSocket`以將工作發佈至`Worker`，這也稱為負載平衡。
++ `Ventilator`和`Sink`是系統中固定的部份，而`Worker`是動態的，添加更多`Worker`的是很簡單的事，我們可以啟動一個新的`Worker`實體，在理論上，工作會更快完成（越多`Worker`越快）。
++ 我們要同步啟動批次檔（當`Worker`準備好時），如果沒有，最先連線的`Worker`會比其它的取得更多的訊息，那就不夠負載平衡了。
++ `Sink`使用`NetMQ`的`PullSocket`去累積`Worker`的產出。

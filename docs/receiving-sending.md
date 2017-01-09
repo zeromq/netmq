@@ -1,21 +1,21 @@
-If you have read the [Introduction](http://netmq.readthedocs.org/en/latest/introduction/) page you would have already seen an example of `ReceiveString()` and `SendString()`, but NetMQ allows us to send and receive more than just strings.
+如果你前面有讀過 [Introduction](http://netmq.readthedocs.org/en/latest/introduction/)，那你應該有看到範例中有使用到ReceiveString()和SendString()了，但NetMQ讓我們不只可以傳送和接收字串。
 
-In fact there are quite a few options available to you. Lets go through some of these options, shall we?
+實際上有不少可以使用的選項，讓我們來看其中的一部份吧！
 
 ---
 
 ## Receiving
 
-`IReceivingSocket` (which all the socket types inherit from) has two methods:
+`IReceivingSocket`(所有socket皆繼承自此介面)有兩個函式：
 
     :::csharp
     void Receive(ref Msg msg);
 
     bool TryReceive(ref Msg msg, TimeSpan timeout);
 
-The first blocks indefinitely until a message arrives, and the second allows control over a timeout (which may be zero).
+第一個函式會永遠阻塞直到訊息到達，第二個讓我們提供一個逾時時間(可能是零)。
 
-These methods offer great performance by reusing a `Msg` object. However much of the time you want a more convenient method to receive a `string`, `byte[]` and so on. NetMQ has many convenient methods provided as extension methods of `IReceivingSocket` in the `ReceivingSocketExtensions` class:
+這些函式依靠Msg物件的重覆使用提供我們很高的效能。然而大多時間你會想要更方便的函式來幫你接收`string`，`byte[]`等型別，NetMQ在`ReceivingSocketExtensions`類別中提供了很多`IReceivingSocket`型別的方便函式：
 
     :::csharp
     // Receiving byte[]
@@ -68,11 +68,11 @@ These methods offer great performance by reusing a `Msg` object. However much of
     bool TrySkipFrame(TimeSpan timeout)
     bool TrySkipFrame(TimeSpan timeout, out bool more)
 
-(Note the `this IReceivingSocket socket` argument is omitted from all of the above for readability.)
+注意為了可讀性`this IReceivingSocket socket`參數被省略掉了。
 
-These extension methods should meet most needs, but if they don't it's simple enough to write your own.
+這些擴充函式應符合大多數的需求，如果沒有的話你也可以很簡單的建立自己需要的。
 
-Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own
+這裡是上述擴充函式之一實作的方式，可以幫助你建立自己的：
 
     :::csharp
     public static string ReceiveFrameString(this IReceivingSocket socket, Encoding encoding, out bool more)
@@ -92,14 +92,14 @@ Here is an example of how one of the above extension methods is implemented, whi
 
 ## Sending
 
-A `NetMQSocket` (which all the socket types inherit from) has a single send method:
+一個`NetMQSocket`(所有socket皆繼承至此)有一個send函式。
 
     :::csharp
     public virtual void Send(ref Msg msg, SendReceiveOptions options)
 
-But you will likely not actually use this method. Often it's more convenient to use one of the many extension methods for `IOutgoingSocket`.
+如果你不想使用這個函式，也可以用為了`IOutgoingSocket`建立的其它方便的擴充函式。
 
-These extension methods are shown below, one of these should give you what you want, but if it doesn't you simply need to write an extra extension method to suit your needs.
+下面列出這些擴充函式，應該夠你使用，若是不足也可以自行建立。
 
     :::csharp
     public static class OutgoingSocketExtensions
@@ -119,7 +119,7 @@ These extension methods are shown below, one of these should give you what you w
         ....
     }
 
-Here is an example of how one of the above extension methods is implemented, which may help you should you wish to write your own:
+這裡是上述擴充函式之一實作的方式，可以幫助你建立自己的：
 
     :::csharp
     public static void Send(this IOutgoingSocket socket, string message,

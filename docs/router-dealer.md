@@ -12,9 +12,9 @@ From the [ZeroMQ guide](http://zguide.zeromq.org/page:all):
 >
 > Identities are a difficult concept to understand, but it's essential if you want to become a ZeroMQ expert. The ROUTER socket invents a random identity for each connection with which it works. If there are three REQ sockets connected to a ROUTER socket, it will invent three random identities, one for each REQ socket.
 
-So if we looked at a small example, let's say a `DealerSocket` socket has a 3-byte identity ABC. Internally, this means the `RouterSocket` socket keeps a hash table where it can search for ABC and find the TCP connection for the `DealerSocket` socket.
+所以我們來看一個較小的範例，我們有一個`DealerSocket`，帶有一個3 byte的示別碼"ABC"，在內部，這表示`RouterSocket`型別的socket內保有一個hash table，它可以搜尋"ABC"，並找到這一個`DealerSocket`的TCP連線。
 
-When we receive the message off the `DealerSocket` socket, we get three frames:
+當我們收到來自`DealerSocket`的訊息時，我們取得三個frames：
 
 ![](https://github.com/imatix/zguide/raw/master/images/fig28.png)
 
@@ -39,13 +39,13 @@ From [ZeroMQ guide, Identities and Addresses](http://zguide.zeromq.org/page:all#
 
 ## DealerSocket
 
-The NetMQ `DealerSocket` doesn't do anything particularly special, but what it does offer is the ability to work in a fully asynchronous manner.
+NetMQ的`DealerSocket`不做任何特別的事情，它提供的是以完全非同步方式工作的能力。
 
 Which if you recall was not something that other socket types could do, where the `ReceieveXXX` / `SendXXX` methods are blocking, and would also throw exceptions should you try to call
 things in the wrong order, or more than expected.
 
 
-The main selling point of a `DealerSocket` is its asynchronous abilities. Typically a `DealerSocket` would be used in conjunction with a `RouterSocket`, which is why we have decided to bundle the description of both these socket types into this documentation page.
+DealerSocket的主要賣點是它的非同步能力。通常，`DealerSocket`會與`RouterSocket`結合使用，這就是為什麼我們決定將這兩種socket型別的介紹放在一起。
 
 If you want to know more details about socket combinations involving `DealerSocket`s, then as ALWAYS the guide is your friend. In particular the <a href="http://zguide.zeromq.org/page:all#toc58" target="_blank">Request-Reply Combinations</a> page of the guide may be of interest.
 
@@ -54,10 +54,10 @@ If you want to know more details about socket combinations involving `DealerSock
 
 Time for an example. The best way to think of this example is summarized in the bullet points below:
 
-+ There is one server. It binds a `RouterSocket` which stores the inbound request's connection identity to work out how to route back the response message to the correct client socket.
-+ There are multiple clients, each in its own thread. These clients are `DealerSocket`s. The client socket will provide a fixed identity, such that the server (`RouterSocket`) will be able to use the identity supplied to correctly route back messages for this client.
+* 有一個伺服器，它綁定了一個`RouterSocket`，因此會儲存傳入的請求連線的示別資訊，所以可以正確的將訊息回應至client socket。
+* 有很多個client，每個client都屬於個別執行緒，這些client的型別是`DealerSocket`，這一個client socket會提供固定的示別碼，以讓伺服端(`DealerSocket`)可以正確的回應訊息。
 
-Ok so that is the overview. Let's see the code:
+程式碼如下：
 
     :::csharp
     public static void Main(string[] args)
@@ -163,7 +163,7 @@ Ok so that is the overview. Let's see the code:
         }
     }
 
-When run, this program should output something like this:
+執行後，輸出應如下所示：
 
 
     :::text
@@ -192,4 +192,4 @@ When run, this program should output something like this:
     REPLY client 1 back from server 08:05:56
     REPLY client 0 back from server 08:05:56
 
-Remember this is asynchronous code, so events may not occur in the order you logically expect.
+記住這是非同步的程式碼，所以事件的發生順序可能不如你所預期的。

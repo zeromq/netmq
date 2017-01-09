@@ -1,9 +1,9 @@
 XPub / XSub
 =====
 
-The [Pub/Sub](pub-sub.md) pattern is great for multiple subscribers and a single publisher, but if you need multiple publishers then the XPub/XSub pattern will be of interest.
+[Pub/Sub](pub-sub.md)適用於多個訂閱者和單一發佈者，但是如果您需要多個發佈者，那麼XPub / XSub模式會比較有趣。
 
-XPub/XSub can also assist with the so-called _dynamic discovery problem_. From the [ZeroMQ guide](http://zguide.zeromq.org/page:all#The-Dynamic-Discovery-Problem):
+XPub / XSub還可以協助所謂的 _dynamic discovery problem_. From the [ZeroMQ guide](http://zguide.zeromq.org/page:all#The-Dynamic-Discovery-Problem):
 
 > One of the problems you will hit as you design larger distributed architectures is discovery. That is, how do pieces know about each other? It's especially difficult if pieces come and go, so we call this the "dynamic discovery problem".
 >
@@ -26,7 +26,7 @@ XPub/XSub can also assist with the so-called _dynamic discovery problem_. From t
 
 ## An Example
 
-So now that we have gone through why you would use XPub/XSub, lets now look at an example that follows the above description. It is broken down into three components:
+所以現在我們已經了解了為什麼要使用XPub / XSub，現在讓我們看一個依上述描述的範例。分為三個部分：
 
 + Publisher
 + Intermediary
@@ -34,7 +34,7 @@ So now that we have gone through why you would use XPub/XSub, lets now look at a
 
 ### Publisher
 
-It can be seen that the `PublisherSocket` connnects to the `XSubscriberSocket` address
+可以看到`PublisherSocket`連線到`XSubscriberSocket`的位址。
 
     :::csharp
     using (var pubSocket = new PublisherSocket(">tcp://127.0.0.1:5678"))
@@ -65,7 +65,7 @@ It can be seen that the `PublisherSocket` connnects to the `XSubscriberSocket` a
 
 ### Intermediary
 
-The intermediary is responsible for relaying the messages bidirectionally between the `XPublisherSocket` and the `XSubscriberSocket`. NetMQ provides a `Proxy` class which makes this simple.
+`Intermediary`負責在`XPublisherSocket`和`XSubscriberSocket`之間雙向地中繼訊息。`NetMQ`提供了一個使用簡單的代理類別。
 
     :::csharp
     using (var xpubSocket = new XPublisherSocket("@tcp://127.0.0.1:1234"))
@@ -83,7 +83,7 @@ The intermediary is responsible for relaying the messages bidirectionally betwee
 
 ### Subscriber
 
-It can be seen that the `SubscriberSocket` connects to the `XPublisherSocket` address:
+可以看到`SubscriberSocket`連線到`XPublisherSocket`的位址。
 
     :::csharp
     string topic = /* ... */; // one of "TopicA" or "TopicB"
@@ -103,8 +103,8 @@ It can be seen that the `SubscriberSocket` connects to the `XPublisherSocket` ad
     }
 
 
-When run, it should look something like this:
+執行時，可以看到如下列輸出：
 
 ![](Images/XPubXSubDemo.png)
 
-Unlike the [Pub/Sub](pub-sub.md) pattern, we can have an arbitrary number of publishers and subscribers.
+不像[Pub/Sub](pub-sub.md)模式，我們可以有不定數量的發佈者及訂閱者。

@@ -1,11 +1,8 @@
 Timer
 =====
+一個`NetMQTimer`讓你可以執行週期性的動作。Timer實體可以加至`NetMQPoller`中，且它的`Elapsed`事件會依指定的`Interval`及`Enabled`屬性值被觸發。
 
-A `NetMQTimer` allows actions to be performed periodically. Timer instances may be added to a `NetMQPoller`, and their
-`Elapsed` event will fire according to the specified `Interval` and `Enabled` property values.
-
-The event is raised on the poller's thread.
-
+下列事件在poller執行緒中被喚起。
     :::csharp
     var timer = new NetMQTimer(TimeSpan.FromMilliseconds(100));
 

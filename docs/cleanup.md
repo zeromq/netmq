@@ -1,35 +1,27 @@
 Cleanup
 =======
 
-New with NetMQ version 4 we said goobye to NetMQContext. We can now create sockets with the new operator without the NetMQContext.
-Though this makes using the library simpler, it also adds complication to cleaning it up.
+NetMQ第4版中我們拿掉了NetMQContext，現在我們可以用新的運算子建立sockets了，雖然這讓函式庫使用上較簡單，但也增加了一些需要清除的複雜性。
 
-# Why does NetMQ need Cleanup?
+# 為什麼NetMQ需要清除
 
-NetMQ creates a few background threads. Also, when you call Dispose on a Socket the process is asynchronous and actually happens in a background thread.
-Because NetMQ threads are background threads you can actually exit the application without a proper cleanup of the NetMQ library, though it is not recommeneded.
+NetMQ在背景建立了一些執行緒。因此，當你在Socket上呼叫Dispose時，這個處理是非同步的且發生在背景執行緒中。而因為NetMQ的執行緒是屬於背景執行緒，所以你實際上可以不正確清除並離開程式，但不建議。
 
-When exiting AppDomain it might be more complicated, and you have to cleanup the NetMQ library.
+當離開AppDomain時會更複雜，所以你需要清除NetMQ。
 
 # What is Linger?
 
-Linger is the allowed time for the Socket to send all messages before getting disposed.
-So when we call Dispose on a Socket with Linger set to 1 second it might take up to 1 second to the socket to get diposed.
-In that time the library will try to send all the pending messages, if it finish before the linger the socket will get disposed before the time is up.
+Linger是socket在被dispose時傳送當下尚未傳送所有訊息的允許時間。所以當我們在一個Linger設為1秒的socket上呼叫Dispose時，它會最多花費一秒直到socket被disposed，此時函式庫會試著傳送所有等待中的訊息，如果它在linger時間到達前傳送完成，此socket會馬上被disposed。
 
-As said all this is happening in the background, so if the linger is set but we are not properly cleaning-up the library the linger will get ingored.
-So if the linger is important for you, make sure you properly cleanup the library.
+正如所說，這一切發生在背景中，所以若linger有被設置，但我們沒有正確清除函式庫，linger會被略過。如果linger對你很重要，要確保你正確的清除函式庫。
 
-With version 4 the default Linger of a socket is zero, it means that the library will not wait before disposing the socket.
-You can change the Linger for a Socket, but also change the default Linger for all Socket with NetMQConfig.Linger.
+第四版中預設的Linger值是零，表示函式庫不會在dispose前等待。你可以變更單一socket的linger值，也可以透過NetMQConfig.Linger設定所有linger的值。
 
 # How to Cleanup?
 
-The most important thing to know about cleanup is that you must call Dispose on all sockets before calling Cleanup. 
-Also make sure to cleanup any other resource from NetMQ library, like NetMQPoller, NetMQQueue and etc...
-If socket is not get disposed the NetMQConfig.Cleanup will block forever.
+關於cleanup最重要的是你要在呼叫Cleanup前呼叫所有socket的Dispose，也要確認NetMQ函式庫中的其它資源如NetMQPoller、NetMQQueue等被正確cleanup，如果socket沒有被disposed，那NetMQConfig.Cleanup會永遠阻塞。
 
-Lastly you need to call the NetMQConfig.Cleanup. You can do that in the last line of the Main method:
+最後你需要呼叫NetMQConfig.Cleanup，你可以如下所示的方式：
 
     :::csharp
 	static void Main(string[] args)
@@ -44,16 +36,15 @@ Lastly you need to call the NetMQConfig.Cleanup. You can do that in the last lin
 	    }
 	}
 
-If you are lazy and don't care about cleaning the library you can also call NetMQConfig.Cleanup with the block parameter set to false.
-When set to false the cleanup will not wait for Sockets to Send all messages and will just kill the background threads.
+如果你很懶惰，不關心清理函式庫，你也可以呼叫NetMQConfig.Cleanup並將block參數設為false。當設為false時，cleanup不會等待Sockets發送所有訊息，並且只會kill背景執行緒。
 
 # Tests
 
-When using NetMQ within your tests you also need to make sure you Cleanup the library.
+若你在你的測試中使用NetMQ，你也要確認你正確的對函式庫做cleanup。
 
-I suggest to just add global tear down to your tests and then call NetMQConfig.Cleanup.
+這邊建議可加一個全域的tear down在你的測試中，並呼叫NetMQConfig.Cleanup。
 
-This how to do it with NUnit:
+示範若是在NUnit中可以：
 
     :::csharp
     [SetUpFixture]
@@ -66,4 +57,4 @@ This how to do it with NUnit:
         }
     }
 
-In tests it is important to call Cleanup with block set to false so in case of failing test the entire process is not hanging.
+在測試中，呼叫Cleanup並代入false可讓你在測試失敗時不讓程式中斷。
