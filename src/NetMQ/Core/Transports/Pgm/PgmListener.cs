@@ -102,13 +102,12 @@ namespace NetMQ.Core.Transports.Pgm
         /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
-            //This case only concerns bound PGM Publishers and Subscribers on the same host after the Ethernet cable has been unplugged.
-            //GetMultipleQueuedCompletionStatus() still returns messages but trying to bind a Subscriber will throw a unhandled Exception,
-            //so this is caught here and a new socket is returned.
+            //This case only concerns bound PGM Subscribers after the Ethernet cable has been unplugged (Publisher on same host)
+            //or plugged in again (Publisher on different host).
             if (socketError == SocketError.Success)
             {
-                //Check if binding is required and if Publisher and Subscriber are on the same host using the same network interface
-                if (m_address.InterfaceAddress != null && m_acceptedSocket.Handle.RemoteEndPoint.Address.Equals(m_address.InterfaceAddress))
+                //Check if binding is required
+                if (m_address.InterfaceAddress != null)
                 {
                     try
                     {
