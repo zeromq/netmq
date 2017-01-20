@@ -102,11 +102,19 @@ namespace NetMQ.Core.Transports.Pgm
         /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
-            //This case only concerns bound PGM Subscribers after the Ethernet cable has been unplugged (Publisher on same host)
-            //or plugged in again (Publisher on different host).
-            if (socketError == SocketError.Success)
+            if (socketError != SocketError.Success)
             {
-                //Check if binding is required
+                m_socket.EventAcceptFailed(m_address.ToString(), socketError.ToErrorCode());
+
+                // dispose old object                
+                m_acceptedSocket.Handle.Dispose();
+
+                Accept();
+            }
+            else
+            {
+                //This if-case only concerns bound PGM Subscribers after the Ethernet cable has been unplugged (Publisher on same host)
+                //or plugged in again (Publisher on different host).
                 if (m_address.InterfaceAddress != null)
                 {
                     try
@@ -123,19 +131,7 @@ namespace NetMQ.Core.Transports.Pgm
                         return;
                     }
                 }
-            }
 
-            if (socketError != SocketError.Success)
-            {
-                m_socket.EventAcceptFailed(m_address.ToString(), socketError.ToErrorCode());
-
-                // dispose old object                
-                m_acceptedSocket.Handle.Dispose();
-
-                Accept();
-            }
-            else
-            {
                 m_acceptedSocket.InitOptions();
 
                 var pgmSession = new PgmSession(m_acceptedSocket, m_options);
