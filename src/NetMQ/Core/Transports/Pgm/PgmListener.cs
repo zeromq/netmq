@@ -113,6 +113,25 @@ namespace NetMQ.Core.Transports.Pgm
             }
             else
             {
+                //This if-case only concerns bound PGM Subscribers after the Ethernet cable has been unplugged (Publisher on same host)
+                //or plugged in again (Publisher on different host).
+                if (m_address.InterfaceAddress != null)
+                {
+                    try
+                    {
+                        m_acceptedSocket.Handle.SetSocketOption(PgmSocket.PgmLevel, PgmSocket.RM_ADD_RECEIVE_IF,
+                            m_address.InterfaceAddress.GetAddressBytes());
+                    }
+                    catch
+                    {
+                        // dispose old object      
+                        m_acceptedSocket.Handle.Dispose();
+
+                        Accept();
+                        return;
+                    }
+                }
+
                 m_acceptedSocket.InitOptions();
 
                 var pgmSession = new PgmSession(m_acceptedSocket, m_options);
