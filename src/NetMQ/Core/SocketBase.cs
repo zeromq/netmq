@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using AsyncIO;
 using JetBrains.Annotations;
@@ -689,6 +690,27 @@ namespace NetMQ.Core
                         }
                         paddr.Resolved = new PgmAddress();
                         paddr.Resolved.Resolve(address, m_options.IPv4Only);
+
+                        //Force a PGM Publisher Bind Exception to escalate here and not in a child thread. 
+                        var pgmAdr = (PgmAddress) paddr.Resolved;
+                        if (pgmAdr.InterfaceAddress != null)
+                        {
+                            AsyncSocket dummySocket = AsyncSocket.Create(AddressFamily.InterNetwork,
+                                SocketType.Dgram, ProtocolType.Udp);
+                            try
+                            {
+                                dummySocket.Bind(IPAddress.Parse(pgmAdr.InterfaceAddress.ToString()), 0);
+                            }
+                            catch (SocketException ex)
+                            {
+                                throw NetMQException.Create(ex.SocketErrorCode, ex);
+                            }
+                            finally
+                            {
+                                dummySocket.Dispose();
+                            }
+                        }
+
                         break;
                     }
             }
