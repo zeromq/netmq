@@ -127,12 +127,12 @@ Sockets and timers may be safely added and removed from the poller while it is r
 
 Note that implementations of `ISocketPollable` include `NetMQSocket`, `NetMQActor` and `NetMQBeacon`. Therefore a `NetMQPoller` can observe any of these types.
 
-* `AddSocket(ISocketPollable)`
-* `RemoveSocket(ISocketPollable)`
-* `AddTimer(NetMQTimer)`
-* `RemoveTimer(NetMQTimer)`
-* `AddPollInSocket(System.Net.Sockets.Socket, Action<Socket>)`
-* `RemovePollInSocket(System.Net.Sockets.Socket)`
+* `Add(ISocketPollable)`
+* `Remove(ISocketPollable)`
+* `Add(NetMQTimer)`
+* `Remove(NetMQTimer)`
+* `Add(System.Net.Sockets.Socket, Action<Socket>)`
+* `Remove(System.Net.Sockets.Socket)`
 
 ## Controlling polling
 
