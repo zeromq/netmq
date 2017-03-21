@@ -55,8 +55,7 @@ namespace NetMQ
         /// <param name="args">the subclass of EventArgs that the event-handler will receive</param>
         public void Fire([NotNull] object sender, [NotNull] T args)
         {
-            var temp = m_event;
-            temp?.Invoke(sender, args);
+            m_event?.Invoke(sender, args);
         }
 
         public void Dispose()
