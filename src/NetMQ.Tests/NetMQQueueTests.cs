@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET35
+using System;
 using System.Threading;
 using NUnit.Framework;
 
@@ -56,3 +57,4 @@ namespace NetMQ.Tests
         }
     }
 }
+#endif

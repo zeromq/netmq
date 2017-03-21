@@ -9,6 +9,8 @@ using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 #if !NET35
 using System.Threading.Tasks;
+#endif
+#if NET40
 using System.ComponentModel;
 #endif
 

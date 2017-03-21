@@ -39,10 +39,12 @@ namespace NetMQ.Core.Utils
         /// </summary>
         private static long s_lastTime;
 
+#if !NETSTANDARD1_3
         /// <summary>
         /// This flag indicates whether the rdtsc instruction is supported on this platform.
         /// </summary>
         private static readonly bool s_rdtscSupported;
+#endif
 
         static Clock()
         {

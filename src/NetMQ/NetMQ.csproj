@@ -1,235 +1,71 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{82934BAC-07FB-41AC-AE59-46FEE6026A40}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NetMQ</RootNamespace>
+    <Description>A 100% native C# port of the lightweight high performance messaging library ZeroMQ</Description>
+    <AssemblyTitle>NetMQ</AssemblyTitle>
+    <VersionPrefix>4.0.0.0</VersionPrefix>
+    <!--monoandroid60;xamarinios10-->
+    <TargetFrameworks>netstandard1.3;net35;net40</TargetFrameworks>
+    <DebugType>portable</DebugType>
     <AssemblyName>NetMQ</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\NetMQ.XML</DocumentationFile>
-    <NoWarn>CS1591</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>./NetMQ.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <PackageId>NetMQ</PackageId>
+    <PackageTags>ZeroMQ;0MQ;CLRZMQ;NetMQ;Messaging;ZMQ;transport;distributed</PackageTags>
+    <PackageIconUrl>https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQ.ico</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/zeromq/netmq</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/zeromq/netmq/blob/master/COPYING.LESSER</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/zeromq/netmq</RepositoryUrl>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.3' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.0</NetStandardImplicitPackageVersion>
   </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>NetMQ.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>bin\Release\NetMQ.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>CS1591</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>bin\Release\NetMQ.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>CS1591</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="AsyncIO">
-      <HintPath>..\packages\AsyncIO.0.1.18.0\lib\net40\AsyncIO.dll</HintPath>
-    </Reference>
-    <Reference Include="JetBrains.Annotations">
-      <HintPath>..\packages\JetBrains.Annotations.10.0.0\lib\net20\JetBrains.Annotations.dll</HintPath>
-    </Reference>
+    <PackageReference Include="AsyncIO" Version="0.1.26" />
+    <PackageReference Include="JetBrains.Annotations" Version="10.4.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.1.0" />
+    <PackageReference Include="System.Threading" Version="4.0.11" />
+    <PackageReference Include="System.Threading.Thread" Version="4.0.0" />
+    <PackageReference Include="System.Net.NetworkInformation" Version="4.1.0" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <Compile Remove="NetMQQueue.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+<!--
+  <ItemGroup Condition=" '$(TargetFramework)' == 'monoandroid60' ">
+    <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Core\Utils\StopSignaler.cs" />
-    <Compile Include="Core\Utils\Switch.cs" />
-    <Compile Include="DnsEndPoint.cs" />
-    <Compile Include="EmptyArray.cs" />
-    <Compile Include="NetMQConfig.cs" />
-    <Compile Include="INetMQPoller.cs" />
-    <Compile Include="ISocketPollableCollection.cs" />
-    <Compile Include="NetMQActor.cs" />
-    <Compile Include="EventDelegator.cs" />
-    <Compile Include="InterfaceCollection.cs" />
-    <Compile Include="ISocketPollable.cs" />
-    <Compile Include="IReceivingSocket.cs" />
-    <Compile Include="NetMQBeacon.cs" />
-    <Compile Include="NetMQQueue.cs" />
-    <Compile Include="NetMQProactor.cs" />
-    <Compile Include="NetMQPoller.cs" />
-    <Compile Include="NetMQSelector.cs" />
-    <Compile Include="NetworkOrderBitsConverter.cs" />
-    <Compile Include="OutgoingSocketExtensions.cs" />
-    <Compile Include="NetMQFrame.cs" />
-    <Compile Include="IOutgoingSocket.cs" />
-    <Compile Include="Monitoring\NetMQMonitorEventArgs.cs" />
-    <Compile Include="NetMQMessage.cs" />
-    <Compile Include="NetMQSocket.cs" />
-    <Compile Include="NetMQSocketEventArgs.cs" />
-    <Compile Include="ReceivingSocketExtensions.cs" />
-    <Compile Include="Sockets\DealerSocket.cs" />
-    <Compile Include="Monitoring\NetMQMonitor.cs" />
-    <Compile Include="NetMQException.cs" />
-    <Compile Include="Sockets\PairSocket.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Proxy.cs" />
-    <Compile Include="Sockets\PublisherSocket.cs" />
-    <Compile Include="Sockets\PullSocket.cs" />
-    <Compile Include="Sockets\PushSocket.cs" />
-    <Compile Include="Sockets\RequestSocket.cs" />
-    <Compile Include="Sockets\ResponseSocket.cs" />
-    <Compile Include="Sockets\RouterSocket.cs" />
-    <Compile Include="SocketOptions.cs" />
-    <Compile Include="Sockets\StreamSocket.cs" />
-    <Compile Include="Sockets\SubscriberSocket.cs" />
-    <Compile Include="Sockets\XPublisherSocket.cs" />
-    <Compile Include="Sockets\XSubscriberSocket.cs" />
-    <Compile Include="NetMQTimer.cs" />
-    <Compile Include="Core\Address.cs" />
-    <Compile Include="Endianness.cs" />
-    <Compile Include="SocketEvents.cs" />
-    <Compile Include="PollEvents.cs" />
-    <Compile Include="Core\Utils\AtomicCounter.cs" />
-    <Compile Include="BufferPool.cs" />
-    <Compile Include="Core\Utils\ByteArrayEqualityComparer.cs" />
-    <Compile Include="Core\Utils\StringLib.cs" />
-    <Compile Include="Core\Transports\ByteArraySegment.cs" />
-    <Compile Include="Core\Utils\Clock.cs" />
-    <Compile Include="Core\Command.cs" />
-    <Compile Include="Core\CommandType.cs" />
-    <Compile Include="Core\Config.cs" />
-    <Compile Include="Core\Ctx.cs" />
-    <Compile Include="Core\Patterns\Dealer.cs" />
-    <Compile Include="Core\Transports\V1Decoder.cs" />
-    <Compile Include="Core\Transports\DecoderBase.cs" />
-    <Compile Include="Core\Patterns\Utils\ArrayExtensions.cs" />
-    <Compile Include="Core\Patterns\Utils\Distribution.cs" />
-    <Compile Include="Core\Transports\V1Encoder.cs" />
-    <Compile Include="Core\Transports\EncoderBase.cs" />
-    <Compile Include="ErrorCode.cs" />
-    <Compile Include="Core\ErrorHelper.cs" />
-    <Compile Include="Core\Transports\IDecoder.cs" />
-    <Compile Include="Core\Transports\IEncoder.cs" />
-    <Compile Include="Core\Transports\IEngine.cs" />
-    <Compile Include="Core\IMsgSink.cs" />
-    <Compile Include="Core\IMsgSource.cs" />
-    <Compile Include="Core\IOObject.cs" />
-    <Compile Include="Core\IOThread.cs" />
-    <Compile Include="Core\Transports\Ipc\IpcAddress.cs" />
-    <Compile Include="Core\Transports\Ipc\IpcConnector.cs" />
-    <Compile Include="Core\Transports\Ipc\IpcListener.cs" />
-    <Compile Include="Core\IPollEvents.cs" />
-    <Compile Include="Core\IProactorEvents.cs" />
-    <Compile Include="Core\ITimerEvent.cs" />
-    <Compile Include="Core\Patterns\Utils\FairQueueing.cs" />
-    <Compile Include="Core\Patterns\Utils\LoadBalancer.cs" />
-    <Compile Include="Core\Mailbox.cs" />
-    <Compile Include="Core\MonitorEvent.cs" />
-    <Compile Include="Msg.cs" />
-    <Compile Include="Core\Patterns\Utils\MultiTrie.cs" />
-    <None Include="NetMQ.nuspec" />
-    <None Include="NetMQ.snk" />
-    <Compile Include="Core\Utils\OpCode.cs" />
-    <Compile Include="Core\Options.cs" />
-    <Compile Include="Core\Own.cs" />
-    <Compile Include="Core\Patterns\Pair.cs" />
-    <Compile Include="Core\Transports\Pgm\PgmAddress.cs" />
-    <Compile Include="Core\Transports\Pgm\PgmListener.cs" />
-    <Compile Include="Core\Transports\Pgm\PgmSender.cs" />
-    <Compile Include="Core\Transports\Pgm\PgmSession.cs" />
-    <Compile Include="Core\Transports\Pgm\PgmSocket.cs" />
-    <Compile Include="Core\Pipe.cs" />
-    <Compile Include="Core\Utils\Poller.cs" />
-    <Compile Include="Core\Utils\PollerBase.cs" />
-    <Compile Include="Core\Utils\Proactor.cs" />
-    <Compile Include="Core\Patterns\Pub.cs" />
-    <Compile Include="Core\Patterns\Pull.cs" />
-    <Compile Include="Core\Patterns\Push.cs" />
-    <Compile Include="Core\Transports\RawDecoder.cs" />
-    <Compile Include="Core\Transports\RawEncoder.cs" />
-    <Compile Include="Core\Reaper.cs" />
-    <Compile Include="Core\Patterns\Rep.cs" />
-    <Compile Include="Core\Patterns\Req.cs" />
-    <Compile Include="Core\Patterns\Router.cs" />
-    <Compile Include="Core\SessionBase.cs" />
-    <Compile Include="Core\Utils\Signaler.cs" />
-    <Compile Include="Core\SocketBase.cs" />
-    <Compile Include="Core\Patterns\Stream.cs" />
-    <Compile Include="Core\Transports\StreamEngine.cs" />
-    <Compile Include="Core\Patterns\Sub.cs" />
-    <Compile Include="Core\Transports\Tcp\TcpAddress.cs" />
-    <Compile Include="Core\Transports\Tcp\TcpConnector.cs" />
-    <Compile Include="Core\Transports\Tcp\TcpListener.cs" />
-    <Compile Include="Core\Patterns\Utils\Trie.cs" />
-    <Compile Include="Core\Transports\V2Decoder.cs" />
-    <Compile Include="Core\Transports\V2Encoder.cs" />
-    <Compile Include="Core\Transports\V2Protocol.cs" />
-    <Compile Include="Core\Patterns\XPub.cs" />
-    <Compile Include="Core\Patterns\XSub.cs" />
-    <Compile Include="Core\Utils\SocketUtility.cs" />
-    <Compile Include="Core\YPipe.cs" />
-    <Compile Include="Core\Utils\YQueue.cs" />
-    <Compile Include="ZmqSocketType.cs" />
-    <Compile Include="Core\ZmqSocketOption.cs" />
-    <Compile Include="Core\ZObject.cs" />
-    <None Include="packages.NetMQ.config" />
-    <Compile Include="SendReceiveConstants.cs" />
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'xamarinios10' ">
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+-->
+
 </Project>
