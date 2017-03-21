@@ -130,10 +130,10 @@ NetMQ also has some examples of a few of these patterns written using the NetMQ 
 
 Here are some links to the patterns that are available within the NetMQ codebase:
 
-+ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Brokerless%20Reliability%20(Freelance%20Pattern)/Model%20One" target="_blank">Brokerless Reliability Pattern - Freelance Model one</a>
-+ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Load%20Balancing%20Pattern" target="_blank">Load Balancer Patterns</a>
-+ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Lazy%20Pirate" target="_blank">Lazy Pirate Pattern</a>
-+ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Simple%20Pirate" target="_blank">Simple Pirate Pattern</a>
++ <a href="https://github.com/NetMQ/Samples/blob/master/src/Brokerless%20Reliability%20(Freelance%20Pattern)/Model%20One" target="_blank">Brokerless Reliability Pattern - Freelance Model one</a>
++ <a href="https://github.com/NetMQ/Samples/blob/master/src/Load%20Balancing%20Pattern" target="_blank">Load Balancer Patterns</a>
++ <a href="https://github.com/NetMQ/Samples/blob/master/src/Pirate%20Pattern/Lazy%20Pirate" target="_blank">Lazy Pirate Pattern</a>
++ <a href="https://github.com/NetMQ/Samples/blob/master/src/Pirate%20Pattern/Simple%20Pirate" target="_blank">Simple Pirate Pattern</a>
 
 For other patterns, the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>
 will be your first port of call

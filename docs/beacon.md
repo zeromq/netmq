@@ -24,7 +24,7 @@ to discover one another, configured only via a shared port number.
 
 The source for sample project is available online at:
 
-https://github.com/zeromq/netmq/blob/master/src/Samples/Beacon/BeaconDemo/Bus.cs
+https://github.com/NetMQ/Samples/blob/master/src/Beacon/BeaconDemo/Bus.cs
 
 
 ## Further reading
