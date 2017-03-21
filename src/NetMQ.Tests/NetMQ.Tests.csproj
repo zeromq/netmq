@@ -20,7 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-preview-20170106-08" />
     <PackageReference Include="dotnet-test-nunit-with-labels" Version="3.4.0-alpha7" />
-    <PackageReference Include="NUnit" Version="3.4.1" />
+    <PackageReference Include="NUnit" Version="3.6.1" />
     <PackageReference Include="JetBrains.Annotations" Version="10.4.0">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
