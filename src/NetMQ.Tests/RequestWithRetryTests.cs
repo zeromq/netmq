@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET35
+using System;
 using System.Diagnostics;
 using NetMQ.Sockets;
 using NUnit.Framework;
@@ -205,3 +206,4 @@ namespace NetMQ.Tests
 
     }
 }
+#endif

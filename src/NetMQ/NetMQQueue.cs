@@ -1,3 +1,4 @@
+#if !NET35
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -155,3 +156,4 @@ namespace NetMQ
         }
     }
 }
+#endif
