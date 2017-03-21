@@ -256,6 +256,43 @@ namespace NetMQ
 
         #endregion
 
+        #region Contains
+
+        public Task<bool> ContainsAsync([NotNull] ISocketPollable socket)
+        {
+            if (socket == null)
+                throw new ArgumentNullException(nameof(socket));
+            CheckDisposed();
+
+            var tcs = new TaskCompletionSource<bool>();
+            Run(() => tcs.SetResult(m_sockets.Contains(socket)));
+            return tcs.Task;
+        }
+
+        public Task<bool> ContainsAsync([NotNull] NetMQTimer timer)
+        {
+            if (timer == null)
+                throw new ArgumentNullException(nameof(timer));
+            CheckDisposed();
+
+            var tcs = new TaskCompletionSource<bool>();
+            Run(() => tcs.SetResult(m_timers.Contains(timer)));
+            return tcs.Task;
+        }
+
+        public Task<bool> ContainsAsync([NotNull] Socket socket)
+        {
+            if (socket == null)
+                throw new ArgumentNullException(nameof(socket));
+            CheckDisposed();
+
+            var tcs = new TaskCompletionSource<bool>();
+            Run(() => tcs.SetResult(m_pollinSockets.ContainsKey(socket)));
+            return tcs.Task;
+        }
+
+        #endregion
+
         #region Start / Stop
 
         /// <summary>
