@@ -4,7 +4,8 @@
     <Description>A 100% native C# port of the lightweight high performance messaging library ZeroMQ</Description>
     <AssemblyTitle>NetMQ</AssemblyTitle>
     <VersionPrefix>4.0.0.0</VersionPrefix>
-    <TargetFrameworks>netstandard1.3;net35;net40;monoandroid60;xamarinios10</TargetFrameworks>
+    <!--monoandroid60;xamarinios10-->
+    <TargetFrameworks>netstandard1.3;net35;net40</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>NetMQ</AssemblyName>
     <AssemblyOriginatorKeyFile>./NetMQ.snk</AssemblyOriginatorKeyFile>
@@ -50,21 +51,22 @@
     <Reference Include="System" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <Compile Remove="NetMQQueue.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <Reference Include="System.ServiceModel" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
+<!--
   <ItemGroup Condition=" '$(TargetFramework)' == 'monoandroid60' ">
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceModel" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
-    <Compile Remove="NetMQQueue.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'xamarinios10' ">
@@ -73,5 +75,6 @@
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
+-->
 
 </Project>
