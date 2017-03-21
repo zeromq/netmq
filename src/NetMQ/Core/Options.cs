@@ -268,7 +268,7 @@ namespace NetMQ.Core
         /// Controls the maximum datagram size for PGM.
         /// </summary>
         public int PgmMaxTransportServiceDataUnitLength { get; set; }
-        
+
         /// <summary>
         /// Assign the given optionValue to the specified option.
         /// </summary>

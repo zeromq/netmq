@@ -26,7 +26,7 @@ namespace NetMQ.Core.Utils
         {
             m_value = amount;
         }
-        
+
         /// <summary>
         /// Add the given amount to the counter-value, in an atomic thread-safe manner.
         /// </summary>

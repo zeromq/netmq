@@ -156,7 +156,7 @@ namespace NetMQ.Core
         /// The number of I/O threads to launch.
         /// </summary>
         private int m_ioThreadCount = DefaultIOThreads;
-        
+
         /// <summary>
         /// This object is used to synchronize access to context options.
         /// </summary>
@@ -171,7 +171,7 @@ namespace NetMQ.Core
         /// This is the thread-id to assign to the Reaper (value is 1).
         /// </summary>
         public const int ReaperTid = 1;
-        
+
         /// <summary>Throws <see cref="ObjectDisposedException"/> if this is already disposed.</summary>
         /// <exception cref="ObjectDisposedException">This object has already been disposed.</exception>
         public void CheckDisposed()
@@ -218,21 +218,21 @@ namespace NetMQ.Core
                         }
                         else if (m_sockets.Count == 0)
                             m_reaper.Stop();
-                        
+
                     }
                     finally
                     {
                         Monitor.Exit(m_slotSync);
                     }
                 }
-                
+
                 // Wait till reaper thread closes all the sockets.
                 Command command;
                 var found = m_termMailbox.TryRecv(-1, out command);
 
                 Debug.Assert(found);
                 Debug.Assert(command.CommandType == CommandType.Done);
-                Monitor.Enter(m_slotSync);                                                
+                Monitor.Enter(m_slotSync);
             }
             Monitor.Exit(m_slotSync);
 
@@ -272,7 +272,7 @@ namespace NetMQ.Core
                 lock (m_optSync)
                     m_maxSockets = value;
             }
-        }       
+        }
 
         /// <summary>
         /// Create and return a new socket of the given type, and initialize this Ctx if this is the first one.

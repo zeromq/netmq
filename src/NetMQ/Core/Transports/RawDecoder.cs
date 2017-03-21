@@ -68,7 +68,7 @@ namespace NetMQ.Core.Transports
                 {
                     // NOTE: This is just to break out of process_buffer
                     // raw_message_ready should never get called in state machine w/o
-                    // message_ready_size from stream_engine.    
+                    // message_ready_size from stream_engine.
                     NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
                         1, RawMessageReadyState);
                 }

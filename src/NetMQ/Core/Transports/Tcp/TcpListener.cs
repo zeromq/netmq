@@ -122,7 +122,7 @@ namespace NetMQ.Core.Transports.Tcp
             try
             {
                 m_handle = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                
+
                 Debug.Assert(m_handle != null);
 
                 if (!m_options.IPv4Only && m_address.Address.AddressFamily == AddressFamily.InterNetworkV6)
@@ -216,7 +216,7 @@ namespace NetMQ.Core.Transports.Tcp
                     // running in an I/O thread, there must be at least one available.
                     IOThread ioThread = ChooseIOThread(m_options.Affinity);
 
-                    // Create and launch a session object. 
+                    // Create and launch a session object.
                     // TODO: send null in address parameter, is unneeded in this case
                     SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
                     session.IncSeqnum();
@@ -232,14 +232,14 @@ namespace NetMQ.Core.Transports.Tcp
                 case SocketError.ConnectionReset:
                 case SocketError.NoBufferSpaceAvailable:
                 case SocketError.TooManyOpenSockets:
-                {                    
+                {
                     m_socket.EventAcceptFailed(m_endpoint, socketError.ToErrorCode());
 
                     Accept();
                     break;
                 }
                 default:
-                {                   
+                {
                     NetMQException exception = NetMQException.Create(socketError);
 
                     m_socket.EventAcceptFailed(m_endpoint, exception.ErrorCode);
@@ -265,7 +265,7 @@ namespace NetMQ.Core.Transports.Tcp
             {
                 m_socket.EventCloseFailed(m_endpoint, ex.SocketErrorCode.ToErrorCode());
             }
-           
+
             m_handle = null;
         }
 

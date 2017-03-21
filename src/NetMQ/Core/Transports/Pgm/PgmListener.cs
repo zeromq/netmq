@@ -106,7 +106,7 @@ namespace NetMQ.Core.Transports.Pgm
             {
                 m_socket.EventAcceptFailed(m_address.ToString(), socketError.ToErrorCode());
 
-                // dispose old object                
+                // dispose old object
                 m_acceptedSocket.Handle.Dispose();
 
                 Accept();
@@ -124,7 +124,7 @@ namespace NetMQ.Core.Transports.Pgm
                     }
                     catch
                     {
-                        // dispose old object      
+                        // dispose old object
                         m_acceptedSocket.Handle.Dispose();
 
                         Accept();

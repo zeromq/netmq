@@ -12,10 +12,10 @@ namespace NetMQ
         private static Ctx s_ctx;
         private static int s_threadPoolSize = Ctx.DefaultIOThreads;
         private static int s_maxSockets = Ctx.DefaultMaxSockets;
-        private static readonly object s_sync;     
-           
+        private static readonly object s_sync;
+
         static NetMQConfig()
-        {                        
+        {
             s_sync = new object();
             s_linger = TimeSpan.Zero;
         }
@@ -47,7 +47,7 @@ namespace NetMQ
             lock (s_sync)
             {
                 if (s_ctx != null)
-                {                    
+                {
                     s_ctx.Terminate(block);
                     s_ctx = null;
                 }
@@ -74,7 +74,7 @@ namespace NetMQ
             {
                 lock (s_sync)
                 {
-                    return s_linger;                    
+                    return s_linger;
                 }
             }
             set
@@ -106,8 +106,6 @@ namespace NetMQ
                     if (s_ctx != null)
                         s_ctx.IOThreadCount = value;
                 }
-                
-                
             }
         }
 
@@ -130,7 +128,6 @@ namespace NetMQ
                     if (s_ctx != null)
                         s_ctx.MaxSockets = value;
                 }
-                
             }
         }
 
@@ -164,7 +161,7 @@ namespace NetMQ
 
         /// <summary>
         /// /// Method is obsolete, context created automatically
-        /// </summary>        
+        /// </summary>
         [Obsolete("Context is created automatically")]
         public static void ContextCreate(bool block = false)
         {

@@ -100,7 +100,7 @@ namespace NetMQ.Core.Patterns.Utils
 
         public bool RecvPipe(Pipe[] pipe, ref Msg msg)
         {
-            // Deallocate old content of the message.			
+            // Deallocate old content of the message.
             msg.Close();
 
             // Round-robin over the pipes to get the next message.

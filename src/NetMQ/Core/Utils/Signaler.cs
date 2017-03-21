@@ -45,7 +45,7 @@ namespace NetMQ.Core.Utils
                 listener.NoDelay = true;
                 listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-                // using ephemeral port            
+                // using ephemeral port
                 listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
                 listener.Listen(1);
 
@@ -75,7 +75,7 @@ namespace NetMQ.Core.Utils
             {
 #if NET35
                 m_writeSocket.Close();
-#else 
+#else
                 m_writeSocket.Dispose();
 #endif
             }
@@ -88,7 +88,7 @@ namespace NetMQ.Core.Utils
                 m_readSocket.Close();
 #else
                 m_readSocket.Dispose();
-#endif                
+#endif
             }
             catch (SocketException)
             {}

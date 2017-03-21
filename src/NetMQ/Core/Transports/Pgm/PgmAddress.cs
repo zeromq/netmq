@@ -58,7 +58,7 @@ namespace NetMQ.Core.Transports.Pgm
             {
                 // Parse the port number (0 is not a valid port).
                 port = Convert.ToInt32(portStr);
-                
+
                 if (port == 0)
                     throw new InvalidException($"In PgmAddress.Resolve({name},{ip4Only}), portStr ({portStr}) must denote a valid nonzero integer.");
             }
@@ -85,8 +85,8 @@ namespace NetMQ.Core.Transports.Pgm
 
             IPEndPoint endpoint = Address;
 
-            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
-                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port 
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6
+                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port
                 : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 

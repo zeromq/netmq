@@ -69,12 +69,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <summary>
         /// Adds the pipe to the distributor object.
         /// </summary>
-        /// <param name="pipe"></param>  
+        /// <param name="pipe"></param>
         public void Attach([NotNull] Pipe pipe)
         {
             // If we are in the middle of sending a message, we'll add new pipe
             // into the list of eligible pipes. Otherwise we add it to the list
-            // of active pipes. 
+            // of active pipes.
             if (m_more)
             {
                 m_pipes.Add(pipe);
@@ -140,7 +140,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <summary>
         /// Activates pipe that have previously reached high watermark.
         /// </summary>
-        /// <param name="pipe"></param>  
+        /// <param name="pipe"></param>
         public void Activated([NotNull] Pipe pipe)
         {
             // Move the pipe from passive to eligible state.
@@ -205,7 +205,7 @@ namespace NetMQ.Core.Patterns.Utils
                 {
                     if (!Write(m_pipes[i], ref msg))
                     {
-                        --i; //  Retry last write because index will have been swapped                    
+                        --i; //  Retry last write because index will have been swapped
                     }
                 }
 

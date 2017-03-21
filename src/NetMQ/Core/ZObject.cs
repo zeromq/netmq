@@ -2,7 +2,7 @@
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
     Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
-    
+
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
@@ -115,7 +115,7 @@ namespace NetMQ.Core
         /// </summary>
         protected void SendStop()
         {
-            // 'stop' command goes always from administrative thread to the current object. 
+            // 'stop' command goes always from administrative thread to the current object.
             m_ctx.SendCommand(m_threadId, new Command(this, CommandType.Stop));
         }
 

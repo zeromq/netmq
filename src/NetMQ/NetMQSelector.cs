@@ -7,7 +7,7 @@ using NetMQ.Core;
 using NetMQ.Core.Utils;
 
 namespace NetMQ
-{   
+{
     /// <summary>
     /// For selecting on NetMQSocket or regualr .net Socket.
     /// This is for advanced usages, for most cases NetMQPoller is the suggested alternative.

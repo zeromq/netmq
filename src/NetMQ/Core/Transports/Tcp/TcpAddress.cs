@@ -44,8 +44,8 @@ namespace NetMQ.Core.Transports.Tcp
 
             var endpoint = Address;
 
-            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
-                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port 
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6
+                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port
                 : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
@@ -96,10 +96,10 @@ namespace NetMQ.Core.Transports.Tcp
             // Interpret * as Any.
             if (addrStr == "*")
             {
-                ipAddress = ip4Only 
-                    ? IPAddress.Any 
+                ipAddress = ip4Only
+                    ? IPAddress.Any
                     : IPAddress.IPv6Any;
-            }            
+            }
             else if (!IPAddress.TryParse(addrStr, out ipAddress))
             {
 #if NETSTANDARD1_3
@@ -108,15 +108,15 @@ namespace NetMQ.Core.Transports.Tcp
                 var availableAddresses = Dns.GetHostEntry(addrStr).AddressList;
 #endif
 
-                ipAddress = ip4Only 
-                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork) 
+                ipAddress = ip4Only
+                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                     : availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork || ip.AddressFamily == AddressFamily.InterNetworkV6);
 
                 if (ipAddress == null)
                     throw new InvalidException($"TcpAddress.Resolve, unable to find an IP address for {name}");
             }
 
-            Address = new IPEndPoint(ipAddress, port);             
+            Address = new IPEndPoint(ipAddress, port);
         }
 
         /// <summary>

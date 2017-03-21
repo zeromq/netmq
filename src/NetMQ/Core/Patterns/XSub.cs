@@ -205,8 +205,8 @@ namespace NetMQ.Core.Patterns
             }
             finally
             {
-                // set it before returning and before SendToAll (which destroys a message): 
-                // the first part of every message 
+                // set it before returning and before SendToAll (which destroys a message):
+                // the first part of every message
                 // (including the very first) will have it as false
                 // when true, we do not check for the first byte
                 m_moreOut = msgMore;
@@ -258,7 +258,7 @@ namespace NetMQ.Core.Patterns
                 }
 
                 // Check whether the message matches at least one subscription.
-                // Non-initial parts of the message are passed 
+                // Non-initial parts of the message are passed
                 if (m_moreIn || !m_options.Filter || Match(msg))
                 {
                     m_moreIn = msg.HasMore;

@@ -114,7 +114,7 @@ namespace NetMQ.Core.Patterns
 
                         // Push it to the reply pipe.
                         isMessageAvailable = base.XSend(ref msg);
-                        
+
                         if (!isMessageAvailable)
                             return false;
 

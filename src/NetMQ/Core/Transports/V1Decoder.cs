@@ -70,7 +70,7 @@ namespace NetMQ.Core.Transports
         }
 
         /// <summary>
-        /// Set the receiver of decoded messages.    
+        /// Set the receiver of decoded messages.
         /// </summary>
         public override void SetMsgSink(IMsgSink msgSink)
         {

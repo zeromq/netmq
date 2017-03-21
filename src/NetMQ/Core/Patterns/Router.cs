@@ -5,17 +5,17 @@
     Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
-        
+
     0MQ is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
-    
+
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-        
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -126,7 +126,7 @@ namespace NetMQ.Core.Patterns
         private int m_nextPeerId;
 
         /// <summary>
-        /// If true, report EHOSTUNREACH to the caller instead of silently dropping 
+        /// If true, report EHOSTUNREACH to the caller instead of silently dropping
         /// the message targeting an unknown peer.
         /// </summary>
         private bool m_mandatory;
@@ -372,7 +372,7 @@ namespace NetMQ.Core.Patterns
                 msg.Close();
             }
 
-            // Detach the message from the data buffer.            
+            // Detach the message from the data buffer.
             msg.InitEmpty();
 
             return true;
@@ -418,7 +418,7 @@ namespace NetMQ.Core.Patterns
 
             // It's possible that we receive peer's identity. That happens
             // after reconnection. The current implementation assumes that
-            // the peer always uses the same identity.            
+            // the peer always uses the same identity.
             while (isMessageAvailable && msg.IsIdentity)
                 isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
 
@@ -567,10 +567,10 @@ namespace NetMQ.Core.Patterns
                     identity = msg.CloneData();
                     msg.Close();
 
-                    Outpipe existPipe;                 
+                    Outpipe existPipe;
 
                     if (m_outpipes.TryGetValue(identity, out existPipe))
-                    {                        
+                    {
                         if (!m_handover)
                         {
                             // Ignore peers with duplicate ID.
@@ -584,7 +584,7 @@ namespace NetMQ.Core.Patterns
                             var newIdentity = new byte[5];
                             byte[] result = BitConverter.GetBytes(m_nextPeerId++);
                             Buffer.BlockCopy(result, 0, newIdentity, 1, 4);
-                            existPipe.Pipe.Identity = newIdentity;                        
+                            existPipe.Pipe.Identity = newIdentity;
                             m_outpipes.Add(newIdentity, existPipe);
 
                             //  Remove the existing identity entry to allow the new

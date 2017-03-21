@@ -632,7 +632,7 @@ namespace NetMQ.Core.Transports
         private void Activate()
         {
             // Handshaking was successful.
-            // Switch into the normal message flow.            
+            // Switch into the normal message flow.
             m_state = State.Active;
 
             m_outsize = 0;

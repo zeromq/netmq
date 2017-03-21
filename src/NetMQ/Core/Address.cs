@@ -64,7 +64,7 @@ namespace NetMQ.Core
         public interface IZAddress
         {
             void Resolve([NotNull] string name, bool ip4Only);
-            
+
             [CanBeNull] IPEndPoint Address { get; }
             [NotNull] string Protocol { get; }
         }
@@ -124,7 +124,7 @@ namespace NetMQ.Core
                 return Protocol + "://" + AddressString;
             }
 
-            return null; //TODO: REVIEW - Although not explicitly prohibited, returning null from ToString seems sketchy; return string.Empty? 
+            return null; //TODO: REVIEW - Although not explicitly prohibited, returning null from ToString seems sketchy; return string.Empty?
         }
 
         [NotNull]

@@ -165,7 +165,7 @@ namespace NetMQ.Core.Utils
                 {
                     sb.Append("Ttl=");
                     sb.Append(socket.Ttl);
-                }               
+                }
                 sb.Append(")");
 #else
                 sb.Append("Socket");

@@ -148,7 +148,7 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            // DEALER socket doesn't use identities. We can safely drop it and 
+            // DEALER socket doesn't use identities. We can safely drop it and
             while (true)
             {
                 bool isMessageAvailable = m_fairQueueing.Recv(ref msg);

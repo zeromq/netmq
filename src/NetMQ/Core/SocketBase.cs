@@ -1209,7 +1209,7 @@ namespace NetMQ.Core
 
         /// <summary>
         /// Handle input-ready events by receiving and processing any incoming commands.
-        /// </summary>        
+        /// </summary>
         public virtual void InEvent()
         {
             // This function is invoked only once the socket is running in the context

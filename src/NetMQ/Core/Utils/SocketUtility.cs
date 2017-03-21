@@ -19,27 +19,27 @@ namespace NetMQ.Core.Utils
         /// <param name="checkError">a list of Sockets to check for errors</param>
         /// <param name="microSeconds">a timeout value, in microseconds. A value of -1 indicates an infinite timeout.</param>
         /// <remarks>
-        /// If you are in a listening state, readability means that a call to Accept will succeed without blocking. 
+        /// If you are in a listening state, readability means that a call to Accept will succeed without blocking.
         /// If you have already accepted the connection, readability means that data is available for reading. In these cases,
         /// all receive operations will succeed without blocking. Readability can also indicate whether the remote Socket
         /// has shut down the connection - in which case a call to Receive will return immediately, with zero bytes returned.
-        /// 
+        ///
         /// Select returns when at least one of the sockets of interest (ie any of the sockets in the checkRead, checkWrite, or checkError
         /// lists) meets its specified criteria, or the microSeconds parameter is exceeded - whichever comes first.
         /// Setting microSeconds to -1 specifies an infinite timeout.
-        /// 
+        ///
         /// If you make a non-blocking call to Connect, writability means that you have connected successfully. If you already
         /// have a connection established, writability means that all send operations will succeed without blocking.
         /// If you have made a non-blocking call to Connect, the checkError parameter identifies sockets that have not connected successfully.
-        /// 
+        ///
         /// See this reference for further details of the operation of the Socket.Select method:
         /// https://msdn.microsoft.com/en-us/library/system.net.sockets.socket.select(v=vs.110).aspx
-        /// 
+        ///
         /// This may possibly throw an ArgumentNullException, if all three lists are null or empty,
         /// and a SocketException if an error occurred when attempting to access a socket.
-        /// 
+        ///
         /// Use the Poll method if you only want to determine the status of a single Socket.
-        /// 
+        ///
         /// This method cannot detect certain kinds of connection problems,
         /// such as a broken network cable, or that the remote host was shut down ungracefully.
         /// You must attempt to send or receive data to detect these kinds of errors.

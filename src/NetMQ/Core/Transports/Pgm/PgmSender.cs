@@ -93,7 +93,7 @@ namespace NetMQ.Core.Transports.Pgm
                 msg.Close();
             }
 
-            AddSocket(m_socket);            
+            AddSocket(m_socket);
 
             if (!m_delayedStart)
             {
@@ -101,7 +101,7 @@ namespace NetMQ.Core.Transports.Pgm
             }
             else
             {
-                m_state = State.Delaying;                
+                m_state = State.Delaying;
                 AddTimer(GetNewReconnectIvl(), ReconnectTimerId);
             }
         }
@@ -122,7 +122,7 @@ namespace NetMQ.Core.Transports.Pgm
 
         public void Terminate()
         {
-            Destroy();            
+            Destroy();
         }
 
         public void ActivateOut()
@@ -193,7 +193,7 @@ namespace NetMQ.Core.Transports.Pgm
                 {
                     if (socketError == SocketError.ConnectionReset)
                         Error();
-                    else                    
+                    else
                         throw NetMQException.Create(socketError.ToErrorCode());
                 }
             }
@@ -208,7 +208,7 @@ namespace NetMQ.Core.Transports.Pgm
             // If write buffer is empty,  try to read new data from the encoder.
             if (m_writeSize == 0)
             {
-                // First two bytes (sizeof uint16_t) are used to store message 
+                // First two bytes (sizeof uint16_t) are used to store message
                 // offset in following steps. Note that by passing our buffer to
                 // the get data function we prevent it from returning its own buffer.
                 var bf = new ByteArraySegment(m_outBuffer, sizeof(ushort));
@@ -244,9 +244,9 @@ namespace NetMQ.Core.Transports.Pgm
 
         private void Error()
         {
-            Debug.Assert(m_session != null);            
-            m_session.Detach();     
-            Destroy();       
+            Debug.Assert(m_session != null);
+            m_session.Detach();
+            Destroy();
         }
 
         private void Destroy()
@@ -295,6 +295,6 @@ namespace NetMQ.Core.Transports.Pgm
         public override void InCompleted(SocketError socketError, int bytesTransferred)
         {
             throw new NotImplementedException();
-        }        
+        }
     }
 }

@@ -77,12 +77,12 @@ namespace NetMQ.Core
         /// This indicates more messages are to be received.
         /// </summary>
         ReceiveMore = 13,
- 
+
         /// <summary>
         /// The file descriptor associated with the specified socket.
         /// </summary>
         Handle = 14,
- 
+
         /// <summary>
         /// The event state for the specified socket.
         /// This is a combination of:
@@ -90,9 +90,9 @@ namespace NetMQ.Core
         ///   PollOut - at least one messsage may be sent without blocking
         /// </summary>
         Events = 15,
-        
+
         Type = 16,
-        
+
         /// <summary>
         /// This option specifies the linger period for the specified socket,
         /// which determines how long pending messages which have yet to be sent to a peer
@@ -191,7 +191,7 @@ namespace NetMQ.Core
         /// A value of 1 returns an EHOSTUNREACH error code if the message cannot be routed.
         /// </summary>
         RouterMandatory = 33,
-        
+
         /// <summary>
         /// Whether to use TCP keep-alive on this socket.
         /// 0 = no, 1 = yes,
@@ -206,7 +206,7 @@ namespace NetMQ.Core
         /// The TCP keepalive period is required by socket implementers to be configurable and by default is
         /// set to no less than 2 hours.
         /// In 0MQ, -1 (the default value) means to just leave it to the OS default.
-        /// </remarks>        
+        /// </remarks>
         TcpKeepaliveIdle = 36,
 
         /// <summary>
@@ -259,14 +259,14 @@ namespace NetMQ.Core
 
         /// <summary>
         /// The low-water mark for message transmission. This is the number of messages that should be processed
-        /// before transmission is unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// before transmission is unblocked (in case it was blocked by reaching high-watermark). The default value is
         /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
         /// </summary>
         SendLowWatermark = 46,
 
         /// <summary>
-        /// The low-water mark for message reception. This is the number of messages that should be processed 
-        /// before reception is unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// The low-water mark for message reception. This is the number of messages that should be processed
+        /// before reception is unblocked (in case it was blocked by reaching high-watermark). The default value is
         /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
         /// </summary>
         ReceiveLowWatermark = 47,

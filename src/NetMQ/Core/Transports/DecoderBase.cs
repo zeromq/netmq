@@ -34,7 +34,7 @@ namespace NetMQ.Core.Transports
     /// Knowing the amount in advance is a property
     /// of the protocol used. 0MQ framing protocol is based size-prefixed
     /// paradigm, which qualifies it to be parsed by this class.
-    /// 
+    ///
     /// On the other hand, XML-based transports (like XMPP or SOAP) don't allow
     /// for knowing the size of data to read in advance and should use different
     /// decoding algorithms.

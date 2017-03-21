@@ -26,7 +26,7 @@ namespace NetMQ.Core.Utils
                 Cancelled = false;
             }
 
-            [NotNull] 
+            [NotNull]
             public IProactorEvents ProactorEvents { get; }
             public bool Cancelled { get; set; }
         }

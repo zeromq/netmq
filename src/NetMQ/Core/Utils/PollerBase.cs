@@ -90,7 +90,7 @@ namespace NetMQ.Core.Utils
             {
 #if NETSTANDARD1_3
                 return Volatile.Read(ref m_load);
-#else                
+#else
                 Thread.MemoryBarrier();
                 return m_load;
 #endif
@@ -215,7 +215,7 @@ namespace NetMQ.Core.Utils
                     timer.Sink.TimerEvent(timer.Id);
                 }
 
-                // Remove it from the list of active timers.		
+                // Remove it from the list of active timers.
                 timers.Clear();
                 m_timers.Remove(key);
                 i--;

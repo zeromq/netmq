@@ -206,6 +206,6 @@ namespace NetMQ.Core
                 m_poller.RemoveHandle(m_mailboxHandle);
                 m_poller.Stop();
             }
-        }        
+        }
     }
 }

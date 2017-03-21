@@ -21,7 +21,7 @@ namespace NetMQ
     public sealed class NetMQPoller :
 #if !NET35
         TaskScheduler,
-#endif        
+#endif
 #if NET40
         ISynchronizeInvoke,
 #endif
@@ -47,7 +47,6 @@ namespace NetMQ
         #region Scheduling
 
 #if !NET35
-
         private readonly NetMQQueue<Task> m_tasksQueue = new NetMQQueue<Task>();
         private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);
 
@@ -292,7 +291,7 @@ namespace NetMQ
 
             m_switch.SwitchOn();
             try
-            {                
+            {
                 // Recalculate all timers now
                 foreach (var timer in m_timers)
                 {

@@ -1,4 +1,4 @@
-#language: csharp  
+#language: csharp
 
 # dotnet cli require Ubuntu 14.04
 sudo: required
@@ -21,7 +21,7 @@ os:
 #  - osx
   - linux
 
-env:  
+env:
   - CLI_VERSION=latest
 
 before_install:
@@ -44,9 +44,9 @@ install:
 
  # Add dotnet to PATH
   - export PATH="$DOTNET_INSTALL_DIR:$PATH"
-  
+
 script:
   - dotnet restore src/
-  
+
   # testing only netcoreapp1.0 on linux and osx
   - dotnet test src/NetMQ.Tests -f netcoreapp1.0 --labels=All

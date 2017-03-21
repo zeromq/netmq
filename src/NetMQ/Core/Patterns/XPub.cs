@@ -1,20 +1,20 @@
-/*      
+/*
     Copyright (c) 2010-2011 250bpm s.r.o.
     Copyright (c) 2011 VMware, Inc.
     Copyright (c) 2010-2015 Other contributors as noted in the AUTHORS file
-        
+
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
-        
+
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-        
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -53,7 +53,7 @@ namespace NetMQ.Core.Patterns
         private bool m_verbose;
 
         /// <summary>
-        /// 
+        ///
         /// The default value is false.
         /// </summary>
         private bool m_manual;
@@ -182,8 +182,8 @@ namespace NetMQ.Core.Patterns
                     }
                     else
                     {
-                        var unique = sub[0] == 0 
-                            ? m_subscriptions.Remove(sub.Data, sub.Offset + 1, size - 1, pipe) 
+                        var unique = sub[0] == 0
+                            ? m_subscriptions.Remove(sub.Data, sub.Offset + 1, size - 1, pipe)
                             : m_subscriptions.Add(sub.Data, sub.Offset + 1, size - 1, pipe);
 
                         // If the subscription is not a duplicate, store it so that it can be
@@ -247,7 +247,7 @@ namespace NetMQ.Core.Patterns
                     m_broadcastEnabled = (bool)optionValue;
                     return true;
                 }
-                case ZmqSocketOption.Identity: 
+                case ZmqSocketOption.Identity:
                 {
                     if (m_manual && m_lastPipe != null)
                     {
@@ -307,7 +307,7 @@ namespace NetMQ.Core.Patterns
                     {
                         m_welcomeMessage.InitEmpty();
                     }
-                    
+
                     return true;
                 }
             }
@@ -380,8 +380,8 @@ namespace NetMQ.Core.Patterns
         /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
-            
-            // If there is at least one 
+
+            // If there is at least one
             if (m_pendingMessages.Count == 0)
             {
                 return false;

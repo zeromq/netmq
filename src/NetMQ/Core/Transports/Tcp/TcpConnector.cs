@@ -202,7 +202,7 @@ namespace NetMQ.Core.Transports.Tcp
             {
                 OutCompleted(ex.SocketErrorCode, 0);
             }
-            // TerminatingException can occur in above call to EventConnectDelayed via 
+            // TerminatingException can occur in above call to EventConnectDelayed via
             // MonitorEvent.Write if corresponding PairSocket has been sent Term command
             catch (TerminatingException)
             {}

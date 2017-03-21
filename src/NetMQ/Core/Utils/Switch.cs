@@ -21,7 +21,7 @@ namespace NetMQ.Core.Utils
                 lock (m_sync)
                 {
                     return m_status;
-                }                
+                }
             }
         }
 
@@ -54,12 +54,12 @@ namespace NetMQ.Core.Utils
             lock (m_sync)
             {
                 if (!m_status)
-                {                  
+                {
                     m_status = true;
                     Monitor.PulseAll(m_sync);
                 }
             }
-            
+
         }
 
         public void SwitchOff()
