@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="AsyncIO" Version="0.1.26" />
-    <PackageReference Include="JetBrains.Annotations" Version="10.1.5">
+    <PackageReference Include="JetBrains.Annotations" Version="10.4.0">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
