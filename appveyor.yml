@@ -1,0 +1,18 @@
+version: 1.0.{build}
+skip_tags: true
+branches:
+  only:
+  - master
+image: Visual Studio 2017
+configuration: Release
+before_build:
+  appveyor-retry dotnet restore src
+build:
+  project: src/NetMQ.sln
+  parallel: true
+  verbosity: minimal
+test:
+  assemblies:
+    - NetMQ.Tests.dll
+test_script:
+  - dotnet test src\NetMQ.Tests\NetMQ.Tests.csproj --configuration Release --no-build

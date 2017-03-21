@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.gitattributes = ..\.gitattributes
 		..\.gitignore = ..\.gitignore
 		..\.travis.yml = ..\.travis.yml
+		..\appveyor.yml = ..\appveyor.yml
 		..\COPYING.LESSER = ..\COPYING.LESSER
 		..\mkdocs.yml = ..\mkdocs.yml
 		..\README.md = ..\README.md
