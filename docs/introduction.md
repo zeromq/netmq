@@ -1,36 +1,33 @@
-Introduction
+介紹
 =====
 
-So you are looking for a messaging library, you might have become frustrated with WCF or MSMQ (we know we have been there too) and heard that ZeroMQ is very fast and then you got here, NetMQ, the .NET port of ZeroMQ (also known as ØMQ).
+所以你正在找訊息函式庫，也許你對WCF跟MSMQ感到沮喪(我們也是…)，且聽說ZeroMQ很快，所以你找到這裡，NetMQ，一個Zero(或稱ØMQ)的.Net移植。
 
-So yes, NetMQ is a messaging library and it is fast, but NetMQ has a bit of learning curve. Hopefully you will pick it up quickly.
+是的，NetMQ是一個訊息函式庫，而且很快，但需要一點學習時間，期望你能夠快速地掌握它。
 
+## 從那裡開始
 
-## Where to start
+`ZeroMQ`和`NetMQ`不是那些你下載後，看一下範例就會的函式庫，它背後有一些原則，要先瞭解後才能順利應用，所以最佳的開始的地方是[ZeroMQ guide](http://zguide.zeromq.org/page:all)，讀一或兩次後，再回來這篇文章。
 
-ZeroMQ and NetMQ is not just a library that you download, look at the some code samples and then you are done. There is a philosophy behind it and to make good use of it you have to understand it. So the best place to start is with the [ZeroMQ guide](http://zguide.zeromq.org/page:all). Read it, even twice, and then come back here.
+## ZeroMQ中的Zero
 
+`ZeroMQ`的哲理是從**Zero**開始。**Zero**是指`Zero broker`(`ZeroMQ`沒有中介者)、零延遲、零成本(免費的)及零管理。
 
-## The Zero in ZeroMQ
-
-The philosophy of ZeroMQ starts with the _zero_. The zero is for zero broker (ZeroMQ is brokerless), zero latency, zero cost (it's free), and zero administration.
-
-More generally, "zero" refers to the culture of minimalism that permeates the project. We add power by removing complexity rather than by exposing new functionality.
+更進一步說，**"zero"**代表滲透整個專案的極簡主義的文化。我們通過消除複雜性而不是增加新函式來提供功能。
 
 
-## Getting the library
+## 取得函式庫
 
-You can get NetMQ library from [NuGet](https://nuget.org/packages/NetMQ/).
+你可以從[NuGet](https://nuget.org/packages/NetMQ/)取得函式庫。
+
+## 傳送及接收
+
+由於`NetMQ`就是關於`sockets`的，所以傳送及接收是很自然的預期。更由於這屬於NetMQ的一般區域，所以另有一個關於[接收與傳送](https://netmq.readthedocs.io/en/latest/receiving-sending/)的介紹頁面。
 
 
-## Sending and receiving
+## 第一個範例
 
-Since NetMQ is all about the sockets, it is only natural that one would expect to able to send/receive. Since this is such a common area of NetMQ, there is a dedicated documentation page on [receiving and sending](receiving-sending.md).
-
-
-## First example
-
-So let's start with some code, the "Hello world" example (of course).
+讓我們開始第一個範例吧，(當然)是**"Hello world"**了：
 
 ### Server
 
@@ -53,9 +50,9 @@ So let's start with some code, the "Hello world" example (of course).
         }
     }
 
-The server creates a socket of type response (you can read more on the [request-response](request-response.md) chapter), binds it to port 5555 and then waits for messages.
+伺服端建立了一個`response`的`socket`型別(在[request-response](request-response.md))章節有更多介紹)，將它綁定到port 5555然後等待訊息。
 
-You can also see that we have zero configuration, we are just sending strings. NetMQ can send much more than strings, but NetMQ doesn't come with any serialization feature and you have to do it by hand, but you will learn some cool tricks for that below ([Multipart messages](#multipart-messages)).
+你可以看到我們不用任何設定，只需要傳送字串。`NetMQ`不只可以傳送字串，雖然它沒有實作序列化的功能(你需要自己實作)，不過你可以在後續學到一些很酷的技巧([Multipart messages](#multipart-messages)。
 
 ### Client
 
@@ -74,11 +71,11 @@ You can also see that we have zero configuration, we are just sending strings. N
         }
     }
 
-The client create a socket of type request, connect and start sending messages.
+`Client端`建立了一個`request`的`socket`型別，連線並開始傳送訊息。
 
-Both the `Send` and `Receive` methods are blocking (by default). For the receive it is simple: if there are no messages the method will block. For sending it is more complicated and depends on the socket type. For request sockets, if the high watermark is reached or no peer is connected the method will block.
+傳送及接收函式(預設)是阻塞式的。對接收來說很簡單：如果沒有收到訊息它會阻塞；而傳送較複雜一點，且跟它的socket型別有關。對request sockets來說，如果到達high watermark，且沒有另一端的連線，函式會阻塞。
 
-You can however call `TrySend` and `TryReceive` to avoid the waiting. The operation returns `false` if it would have blocked.
+然而你可以呼叫`TrySend`和`TryReceive`以避免等待，如果需要等待，它會回傳false。
 
     :::csharp
     string message;
@@ -90,31 +87,30 @@ You can however call `TrySend` and `TryReceive` to avoid the waiting. The operat
 
 ## Bind vs Connect
 
-In the above you may have noticed that the server used `Bind` while the client used `Connect`. Why is this, and what is the difference?
+上述範例中你可能會注意到server端使用Bind而client端使用Connect，為什麼？有什麼不同嗎？
 
-ZeroMQ creates queues per underlying connection. If your socket is connected to three peer sockets, then there are three messages queues behind the scenes.
+`ZeroMQ`為每個潛在的連線建立佇列。如果你的socket連線到三個socket端點，背後實際有三個佇列存在。
 
-With `Bind`, you allow peers to connect to you, thus you don't know how many peers there will be in the future and you cannot create the queues in advance. Instead, queues are created as individual peers connect to the bound socket.
+使用`Bind`，可以讓其它端點和你建立連接，因為你不知道未來會有多少端點且無法先建立佇列，相反，佇列會在每個端點bound後建立。
 
-With `Connect`, ZeroMQ knows that there's going to be at least a single peer and thus it can create a single queue immediately. This applies to all socket types except ROUTER, where queues are only created after the peer we connect to has acknowledge our connection.
+使用`Connect`，`ZeroMQ`知道至少會有一個端點，因此它會馬上建立佇列，除了ROUTE型別外的所有型別都是如此，而ROUTE型別只會在我們連線的每個端點有了回應後才建立佇列。
 
-Consequently, when sending a message to bound socket with no peers, or a ROUTER with no live connections, there's no queue to store the message to.
+因此，當傳送訊息至沒有綁定的端點的socket或至沒有連線的ROUTE時，將沒有可以儲存訊息的佇列存在。
 
 ### When should I use bind and when connect?
 
-As a general rule use bind from the most stable points in your architecture, and use connect from dynamic components with volatile endpoints. For request/reply, the service provider might be point where you bind and the client uses connect. Just like plain old TCP.
+作為一般規則，在架構中最穩定的端點上使用**bind**，在動態的、易變的端點上使用**connect**。對request/reply型來說，伺服端使用**bind**，而client端使用**connect**，如同傳統的TCP一樣。
 
 If you can't figure out which parts are more stable (i.e. peer-to-peer), consider a stable device in the middle, which all sides can connect to.
+如果你無法確認那一部份會比較穩定(例如點對點連線)，可以考慮在中間放一個穩定的可讓所有端點連線的裝置。
 
-You can read more about this at the [ZeroMQ FAQ](http://zeromq.org/area:faq) under the _"Why do I see different behavior when I bind a socket versus connect a socket?"_ section.
+你可 進一步閱讀[ZeroMQ FAQ](http://zeromq.org/area:faq)中的_"Why do I see different behavior when I bind a socket versus connect a socket?"_部份。
 
+## Multipart messages 多段訊息
 
-## Multipart messages
+ZeroMQ/NetMQ在frame的概念上工作，大多數的訊息都可以想成含有一或多個frame。NetMQ提供一些方便的函式讓你傳送字串訊息，然而你也應該瞭解多段frame的概念及如何應用。
 
-ZeroMQ/NetMQ work on the concept of frames, as such most messages are considered to be made up of one or more frames. NetMQ provides some convenience methods to allow you to send string messages. You should however, familiarise yourself with the the idea of multiple frames and how they work.
-
-This is covered in much more detail in the [Message](message.md) documentation page.
-
+在[Message](message.md)章節有更多說明。
 
 ## Patterns
 

@@ -1,10 +1,9 @@
 Queue
 ======
 
-`NetMQQueue<T>` is a producer-consumer queue that supports multiple producers and a single consumer.
+`NetMQQueue<T>`是一個支援多個生產者及單一消費者的生產者/消費者佇列。
 
-You should add the queue to a `NetMQPoller`, and attach the consumer to its `ReceiveReady` event.
-Producers call `Enqueue(T)`.
+你應該將佇列加至`NetMQPoller`中，且在`ReceiveReady`事件中加上消費者程式碼，而生產者會呼叫`Enque(T)`將資料加入。
 
 This class can eliminate boilerplate code associated with marshalling operations onto a single thread.
 

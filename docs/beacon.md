@@ -1,31 +1,23 @@
 Beacon
 ======
+`NetMQBeacon`實作了在區域網路中點對點的discovery服務。
 
-`NetMQBeacon` implements a peer-to-peer discovery service for local networks.
+一個`beacon`可在區域網路中透過UDP做擴播或捕捉service announcements，你可以定義廣播出去的beacon，也可以設定過濾器以過濾接收到的beacons。Beacons會在背景非同步的執行傳送及接收的動作。
 
-A beacon can broadcast and/or capture service announcements using UDP messages on the local area network.
-You can define the format of your outgoing beacons, and set a filter that validates incoming beacons.
-Beacons are sent and received asynchronously in the background.
+我們可以使用`NetMQBeacon`自動地在網路中尋找及連線至其它`NetMQ/CZMQ`的服務而不需要一個中央的設定。請注意若要使用`NetMQBeacon`在你的架構中需要支援廣播(broadcast)服務。而目前大部份的服端服務商並不支援。
 
-We can use the `NetMQBeacon` to discover and connect to other NetMQ/CZMQ services in the network automatically
-without central configuration. Please note that to use `NetMQBeacon` your infrastructure must support broadcast.
-Most cloud providers doesn't support broadcast.
-
-This implementation uses IPv4 UDP broadcasts, and is a port of [zbeacon from czmq](https://github.com/zeromq/czmq#toc4-425)
-with some extensions, though it maintains network compatibility.
+這個實作使用IPv4 UDP廣播，屬於[zbeacon from czmq](https://github.com/zeromq/czmq#toc4-425)並加上維護網路相容性的擴充函式。
 
 ## Example: Implementing a Bus
+`NetMQBeacon`可以用來建立簡單的bus系統，讓一組節點僅需透過一個共享的埠號即可找到其它的節點。
 
-`NetMQBeacon` can be used to create a simple bus that allows a set of nodes
-to discover one another, configured only via a shared port number.
+- 每個bus的節點綁定至一個subscriber socket且靠publisher socket連線至其它節點。
+- 每個節點會透過`NetMQBeacon`去公告它的存在及尋找其它節點，我們將使用`NetMQActor`來實作我們的節點。
 
-* Each bus node binds a subscriber socket and connects to other nodes with a publisher socket.
-* Each node will use `NetMQBeacon` to announce its existence and to discover other nodes. We will also use `NetMQActor` to implement our node.
+範例在此：
 
-The source for sample project is available online at:
-
-https://github.com/zeromq/netmq/blob/master/src/Samples/Beacon/BeaconDemo/Bus.cs
-
+[bus.cs](https://github.com/NetMQ/Samples/blob/master/src/Beacon/BeaconDemo/Bus.cs)
+(原文連結有誤，此處已修改)
 
 ## Further reading
 

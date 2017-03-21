@@ -1,7 +1,7 @@
 Proactor
 ========
 
-`NetMQProactor` quickly processes messages received on a socket using a dedicated thread.
+`NetMQProactor`會使用專有的執行緒處理在socket上收到的訊息。
 
     :::csharp
     using (var receiveSocket = new DealerSocket(">tcp://localhost:5555"))
@@ -11,5 +11,4 @@ Proactor
         // ...
     }
 
-Internally the proactor creates a `NetMQPoller` for the socket, and a `NetMQActor` to coordinate
-the poller thread and disposal.
+在內部，proactor為socket建了一個`NetMQPoller`，以及一個`NetMQActor`處理poller執行緒及disposal。

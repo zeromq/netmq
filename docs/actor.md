@@ -23,17 +23,17 @@ From [Wikipedia's Actor Model page](http://en.wikipedia.org/wiki/Actor_model):
 >
 > The Actor model is characterized by inherent concurrency of computation within and among actors, dynamic creation of actors, inclusion of actor addresses in messages, and interaction only through direct asynchronous message passing with no restriction on message arrival order.
 
-A nice way to think of Actors is that they may be used to alleviate some of synchronization concerns of using shared data structures. This is achieved by your application code talking to actors via message passing/receiving. The actor itself may pass messages to other actors, or work on the passed message itself. By using message passing rather than using shared data structures, it may help to think of the actor (or any subsequent actors its send messages to) working on a copy of the data rather than working on the same shared structures. Which kind of gets rid of the need to worry about nasty things like lock(s) and any nasty timing issues that may arise from carrying out multi threaded code. If the actor is working with its own copy of the data then we should have no issues with other threads wanting to work with the data  the actor has, as the only place that data can be is within the actor itself, that is unless we pass another message to a different actor. If we were to do that though the new message to the other actor would also be a copy of the data, so would also be thread safe.
+一個很好的思考Actors的方式是─他們是用來減輕一些在同步化時使用共享資料結構需要注意的地方。這是在你的程式中與actor通過訊息傳送/接收實作的。Actor本身可以將訊息傳送給其他actor，或者處理傳送的訊息本身。通過使用訊息傳送而不是使用共享資料結構，它有助於讓你認為actor（或其發送訊息的任何後續actor）實際上是在資料的拷貝上工作，而不是在相同的共享資料結構上工作。讓我們擺脫了多執行緒程式中需要擔心的可怕事情，如鎖和任何討厭的定時問題。如果actor使用自己的資料拷貝，那麼我們應該沒有其他的執行緒想要使用此actor所擁有的資料的問題，因為資料只在actor本身之內可見，unless we pass another message to a different actor。如果我們這樣做，新的訊息給另一個actor也只是另一個資料的拷貝，因此也是執行緒安全的。
 
 I hope you see what I am trying to explain there, maybe a diagram may help.
 
 ## Multi-threading with shared data
 
-A fairly common thing to do is have multiple threads running to speed things up, but then you realise that your threads need to mutate the state of some shared data structure, so then you have to involve threading synchronization primitives (most commonly `lock(..)` statements, to create your user defined critical sections). This will work, but now you are introducing artificial delays due to having to wait for the lock to be released so you can run Thread X’s code.
+一個相當普遍的事情是用多個執行緒運行以加快速度，然後你發現到你的執行緒需要改變一些共享資料的狀態，那麼你會涉及到執行緒同步（最常見的 lock(..) statements, 以建立自己的 critical sections）。這有用，但現在你正引入人為的延遲，由於必須等待鎖被釋放，所以你可以執行執行緒X的程式。
 
 ![](Images/ActorTrad.png)
 
-To take this one step further, let's see some code that may illustrate this further. Imagine we had this sort of data structure representing a very slim bank account:
+更進一步，讓我們看看一些程式，可以說明這一點。想像一下，我們有一個資料結構代表非常簡單的銀行帳戶：
 
     :::csharp
     public class Account
@@ -58,7 +58,7 @@ To take this one step further, let's see some code that may illustrate this furt
         }
     }
 
-Nothing fancy there, just some fields. So lets now move onto looking at some threading code, I have chosen to just show two threads acting on a shared `Account` instance.
+這裡沒有什麼特別的，只是一些欄位。讓我們來看一些執行緒程式，我選擇只顯示兩個執行緒共用Account實體的程式。
 
     :::csharp
     static void Main()
@@ -107,11 +107,11 @@ Nothing fancy there, just some fields. So lets now move onto looking at some thr
         task2.Wait();
     }
 
-This may be an example that you think may not actually happen in real life, and to be honest this scenario may not popup in real life, as who would do something as silly as crediting an account in one thread, and debiting it in another…we are all diligent developers, we would not let this one into the code would we?
+你也許認為這個範例不會發生在現實生活中，誠實的說，這真的不會發生，誰會真的在一個執行緒當中存款，而在另一個執行緒中取款呢…我們都是聰明的開發者，不會這樣寫的，不是嗎？
 
-To be honest whether the actual example has real world merit or not, the point remains the same, since we have more than one thread accessing a shared data structure, access to it must be synchronized, which is typically done using a lock(..) statement, as can be seen in the code.
+老實說，不管這個範例是否會在現實生活中出現，要點出的問題仍然是相同的，因為我們有多個執行緒存取共用資料結構，存取時必須同步，且通常使用lock（.. ）語法，如同程式所見。
 
-Now don’t get me wrong the above code does work, as shown in the output below:
+現在不要誤會我，上面的程式碼可正常工作，如下面的輸出所示：
 
     :::text
     Thread Id 6, Account balance before: 0
@@ -121,27 +121,27 @@ Now don’t get me wrong the above code does work, as shown in the output below:
     Thread Id 10, Subtracting 4 to balance
     Thread Id 10, Account balance after: 6
 
-Perhaps there might be a more interesting way though!
+也許可能有一個更有趣的方式！
 
 
 ## Actor model
 
-The actor model, takes a different approach, where by message passing is used, which may involve some form of serialization as the messages are pass down the wire, which kind of guarantees no shared structures to contend with. Now I am not saying all Actor frameworks use message passing down the wire (serialization) but the code presented in this article does.
+Actor模型採用不同的方法，其中使用訊息傳遞的方式可能會涉及某種形式的序列化，因為訊息是向下傳遞的，保證沒有共享結構的競爭。我不是說所有的Actor框架都使用訊息傳遞（序列化），但本文中提供的程式碼是。
 
-The basic idea is that each thread would talk to an actor, and send/receive message with the actor.
+基本思想是每個執行緒都會與一個actor交談，並與actor傳送/接收訊息。
 
-If you wanted to get even more isolation, you could use thread local storage where each thread could have its own copy of the actor which it, and it alone talks to.
+如果你想要得到更多的隔離性，你可以使用執行緒的local storage，每個執行緒可以有自己的actor的副本。
 
 ![](Images/ActorPass.png)
 
-Anyway enough talking, I am sure some of you want to see the code right?
+談的夠多了，讓我們來看程式碼吧…
 
 
 ## Actor demo
 
-We will stick with the same type of example as we did when we used a more traditional locking/shared data approach.
+我們會持續使用和傳統上的locking/sahred data相同類型的範例。
 
-Firstly lets introduce a few helper classes
+讓我們先介紹幾個helper類別：
 
 ### AccountAction
 
@@ -162,7 +162,7 @@ Firstly lets introduce a few helper classes
 
 ### Account
 
-This is the same as before:
+和之前的一樣。
 
     :::csharp
     public class Account
@@ -189,10 +189,9 @@ This is the same as before:
 
 ### AccountActioner
 
-And here is the entire code for an `Actor` that deals with `Account` actions. This example is deliberately simplistic, where we only debit/credit an `Account`
-by an amount. You could send any command to the `Actor`, and the `Actor` is really a general purpose in process messaging system.
+以下是處理帳戶操作的Actor的完整程式。這個例子是故意簡單化的，我們只用一筆金額借/貸一個帳戶。你可以發送任何命令到Actor，而Actor只是一個一般化的處理訊息的系統。
 
-Anyway here is the `Actor` code:
+程式碼如下：
 
     :::csharp
     public class AccountActioner
@@ -298,7 +297,7 @@ Anyway here is the `Actor` code:
 
 ### Tying it all together
 
-You would communicate with this `Actor` code using something like the following. Again, this could use any commands you want&mdash;this example just shows how to debit/credit an `Account`.
+你可以使用下列程式碼和Actor溝通，再次地說，你可以使用任何命令，這個範例只顯示對一個帳戶的借/貸。
 
     :::csharp
     class Program
@@ -337,8 +336,8 @@ You would communicate with this `Actor` code using something like the following.
         }
     }
 
-When you run this code you should see something like this:
+執行時應可以看見如下輸出：
 
 ![](Images/ActorsOut.png)
 
-We hope that gives you a taster of what you could do with an `Actor`
+我們希望這可以讓你知道可以用一個Actor做些什麼事…

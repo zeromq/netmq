@@ -1,4 +1,4 @@
-Message Structure
+Message Structure 訊息結構
 ===
 
 So if you have come here after looking at some of the introductory material, you may have come across an example or two, maybe even a "hello world" example resembling:
@@ -22,37 +22,34 @@ So if you have come here after looking at some of the introductory material, you
         Console.ReadLine();
     }
 
-Where you may have noticed (or perhaps not) that the NetMQ socket(s) have a `ReceiveFrameString()` method. This is good, and extremely useful, but you may be fooled into thinking this is what you should be using all the time.
+也許你有注意到(或沒有)NetMQ的socket有一個`ReceiveFrameString()`函式，這是一個很好且有用的函式，但如果你認為只能用它那就不對了。
 
-Truth is ZeroMQ, and therefore NetMQ are really frame based, which implies some form of protocol. Some of you may balk at this prospect, and may curse, and think damm it, I am not a protocol designer I was not expecting to get my hands that dirty.
+事實是ZeroMQ/NetMQ是基於frame的，意味著它們實現某種型式的協定。 Some of you may balk at this prospect, and may curse, and think damm it, I am not a protocol designer I was not expecting to get my hands that dirty.
 
 While it is true that if you wish to come up with some complex and elaborate architecture you would be best of coming up with a nice protocol, thankfully you will not need to do this all the time. This is largely down to ZeroMQ/NetMQ's clever sockets that abstract away a lot of that from you, and the way in which you can treat the sockets as building blocks to build complex architecture (think lego).
 
-One precanned example of this is the [RouterSocket](router-dealer.md) which makes very clever use of frames for you out of the box. Where it effectively onion skins the current message with the senders return address, so that when it gets a message back (say from a worker socket), it can use that frame information again to obtain the correct return address and send it back to the correct socket.
+一個例子是[RouterSocket](router-dealer.md)，它與眾不同且聰明地使用frame，它在傳送者訊息上加了一層代表回傳位址的資訊，所以當它接收到一個回傳訊息(從另一個工作的socket)，它可以使用收到的frame訊息來獲得來源位址，並依此位址回傳訊息至正確的socket。
 
-So that is one inbuilt use of frames that you should be aware of, but frames are not limited to [RouterSocket](router-dealer.md), you can use them yourself for all sorts of things, here are some examples:
+所以你應該注意的一個內建的frame的使用的例子，但frame並不限制在[RouterSocket](router-dealer.md)類型，你可以在所有的地方使用，如下列範例：
 
-+ You may decide to have `frame[0]` denote the specific message type of following frame(s).
-  This allows receivers to discard message types they are disinterested in without wasting time deserialising a message they do not care about anyway.
-  ZeroMQ/NetMQ uses this approach in its [Pub-Sub sockets](pub-sub.md), and you can replicate or extend this idea.
-+ You may decide to use `frame[0]` as some sort of command, `frame[1]` and some sort of parameter and have `frame[2]` as the message payload (where it may contain some serialized object).
++ 你也許想讓`frame[0]`表示接下來的frame的型態，這讓接收者可以去掉不感興趣的訊息，且不需要花費時間反序列化訊息，ZeroMQ/NetMQ在[Pub-Sub sockets](pub-sub.md)中使用這個想法，你可以替換或是擴充它。
++ 你也許想讓`frame[0]`代表某種命令，`frame[1]`代表參數，`frame[2]`代表實際訊息內容(也許包含序列化的物件)。
 
-These are just some examples. You can use frames however you wish really, although some socket types expect or produce certain frame structures.
+這只是一些範例，實際上你可以用任何你想的方式來操作frame，雖然一些socket型別會期待或產生特定的frame結構。
 
-When you work with multipart messages (frames) you must send/receive all the parts of the message you want to work with.
+當你使用多段訊息(frames)時你需要一次傳送/接收所有區段的訊息。
 
-There is also an inbuilt concept of "more" which you can integrate for. We will see some examples of this in just a moment.
+有一個內建的"more"的概念可以讓你整合使用，稍後會有更多例子。
 
+## Creating multipart messages 建立多段訊息
 
-## Creating multipart messages
-
-Creating multipart messages is fairly simple, and there are two ways of doing so.
+建立多段訊息很簡單，有兩個方式可以達成。
 
 ### Building a message object
 
-You may build a `NetMQMessage` object and add frame data directly into it via one of the many `Append(...)` method overloads. There are overloads for appending `Blob`, `NetMQFrame`, `byte[]`, `int`, `long` and `string`.
+你可以建立`NetMQMessage`物件並透過`Append(...)`覆載函式來加上frame資料，也有其它覆載可讓你加上`Blob`, `NetMQFrae`, `byte[]`, `int`, `long`及`string`等。
 
-Here is a simple example where we create a new message containing two frames, each containing string values:
+下列是一個加上兩個frame的訊息的範例，每個frame都包含一個字串值：
 
     :::csharp
     var message = new NetMQMessage();
@@ -62,24 +59,23 @@ Here is a simple example where we create a new message containing two frames, ea
 
 ### Sending frame by frame
 
-Another way of sending multipart messages is to use `SendMoreFrame` extension methods. This doesn't have as many overloads as `SendMessage` but it allows you to send `byte[]` and `string` data quite easily. Here is an example with identical behaviour to that we have just seen:
+另一個傳送多段訊息的方法是使用`SendMoreFrame`擴充函式，這不像`SendMessage`一樣有很多覆載，但是它讓可以讓你很簡單地傳送`byte[]`,`string`資料。這是一個和前述範例相像的範例：
 
     :::csharp
     server.SendMoreFrame("IAmFrame0")
           .SendFrame("IAmFrame1");
 
-To send more than two frames, chain together multiple `SendMoreFrame` calls. Just be sure to always end the chain with `SendFrame`!
+要傳送超過兩個frame，可將多個`SendMoreFrame`呼叫鏈結在一起，只要確定最後一個是`SendFrame`！
 
+## Reading multipart messages 讀取多段訊息
 
-## Reading multipart messages
-
-Reading multiple frames can also be done in two ways.
+讀取多段訊息也有兩個方法。
 
 ### Receiving individual frames
 
-You can read frames from the socket one by one. The out-param `more` will tell you whether or not this is the last frame in the message.
+你可以從socket中一次讀出一個frame。Out參數`more`會告訴你目前是不是最後一個訊息。
 
-You may use the NetMQ convenience `ReceiveFrameString(out more)` method multiple times, where you would need to know if there was more than one message part to read, which you would need to track in a bool variable. This is shown below
+你也可以使用方便的NetMQ函式`ReceiveFrameString(out more)`多次，只需要知道是不是還有frame待讀取，所以要追蹤`more`變數的狀態，如下範例：
 
     :::csharp
     // server sends a message with two frames
@@ -95,7 +91,7 @@ You may use the NetMQ convenience `ReceiveFrameString(out more)` method multiple
         Console.WriteLine("more={0}", more);
     }
 
-This loop would execute twice. The first time, `more` will be set `true`. The second time around, `false`. The output would be:
+這個迴圈將執行兩次。第一次，`more`將被設為**true**。第二次，**false**。輸出將是：
 
     :::text
     frame=A
@@ -103,9 +99,9 @@ This loop would execute twice. The first time, `more` will be set `true`. The se
     frame=Hello
     more=false
 
-### Reading entire messages
+### Reading entire messages 讀取整個訊息
 
-An easier way is to use the `ReceiveMultipartMessage()` method which gives you an object containing all the frames of the message.
+一個更簡單的方法是使用`ReceiveMultipartMessage()`函式，它提供一個包含消息的所有frame的物件。
 
     :::csharp
     NetMQMessage message = client.ReceiveMultipartMessage();
@@ -113,14 +109,14 @@ An easier way is to use the `ReceiveMultipartMessage()` method which gives you a
     Console.WriteLine("message[0]={0}", message[0].ConvertToString());
     Console.WriteLine("message[1]={0}", message[1].ConvertToString());
 
-The output of which would be:
+輸出會是：
 
     :::text
     message.FrameCount=2
     message[0]=A
     message[1]=Hello
 
-Other approaches exist, including:
+也有其它功能，如：
 
     :::csharp
     IEnumerable<string> framesAsStrings = client.ReceiveMultipartStrings();
@@ -130,7 +126,7 @@ Other approaches exist, including:
 
 ## A Full Example
 
-Just to solidify this information here is a complete example showing everything we have discussed above:
+這裡有一個完整的範例，以加深至目前為止我們談論的印象：
 
     :::csharp
     using (var server = new ResponseSocket("@tcp://127.0.0.1:5556"))
@@ -169,7 +165,7 @@ Just to solidify this information here is a complete example showing everything 
         Console.ReadLine();
     }
 
-Which when run will give you some output like this:
+執行後的輸出如下：
 
     :::text
     Client sending

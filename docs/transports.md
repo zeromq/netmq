@@ -1,22 +1,22 @@
 Transport Protocols
 ===
 
-NetMQ comes with support for three main protocols
+NetMQ支援三種主要的協定：
 
 + TCP (`tcp://`)
 + InProc (`inproc://`)
 + PGM (`pgm://`) &mdash; requires MSMQ and running as administrator
 
-Each of these is discussed below.
+下面會一一介紹。
 
 
 ## TCP
 
-TCP is the most commonly used protocol. As such, most example code will use TCP.
+TCP是最常用到的協定，因此，大部份的程式碼會使用TCP展示。
 
 ### Example
 
-Here is another trivial example:
+又一個簡單的範例：
 
     :::csharp
     using (var server = new ResponseSocket())
@@ -38,7 +38,7 @@ Here is another trivial example:
         Console.WriteLine("Received {0}", message);
     }
 
-This code outputs:
+輸出：
 
     :::text
     Sending Hello
@@ -48,30 +48,31 @@ This code outputs:
 
 ### Address format
 
-Notice the format of the address string passed to `Bind()` and `Connect()`. For TCP connections, it will resemble:
+注意位址格式字串會傳送給`Bind()`及`Connect()`函式。
+在TCP連線中，它會被組成：
 
     :::text
     tcp://*:5555
 
-This is made up of three parts:
+這由三個部份構成：
 
-1. The protocol (`tcp`)
-2. The host (an IP address, host name, or the wildcard `*` to match any)
-3. The port number (`5555`)
+ 1. 協議（tcp）
+ 2. 主機（IP地址，主機名或匹配`"*"`的wildcard）
+ 3. 埠號（5555）
 
 
 ## InProc
 
-InProc (in-process) allows you to connect sockets running with the same process. This is actually quite useful, and you may do this for several reasons:
+InProc (in-process)讓你可以在同一個process中用sockets連線溝通，這很有用，有幾個理由：
 
-+ To do away with shared state/locks. When you send data down the wire (socket) there is no shared state to worry about. Each end of the socket will have its own copy.
-+ Being able to communicate between very disparate parts of a system.
++ 取消共享狀態/鎖。當你傳送資料至socket時不需要擔心共享狀態。Socket的每一端都有自己的副本。
++ 能夠在系統的不同的部分之間進行通信。
 
-NetMQ comes with several components that use InProc, such the as [Actor model](actor.md) and [Devices](devices.md), which are discussed in their relevant documentation pages.
+NetMQ提供了幾個使用InProc的組件，例如[Actor模型](actor.md)和Devices，在相關文件中會再討論。
 
 ### Example
 
-For now let's demonstrate a simple InProc arrangement by sending a string (for simplicity) between two threads.
+現在讓我們通過在兩個執行緒之間傳送一個字串（為了簡單起見）展示一個簡單的InProc。
 
     :::csharp
     using (var end1 = new PairSocket())
@@ -95,7 +96,7 @@ For now let's demonstrate a simple InProc arrangement by sending a string (for s
         Task.WaitAll(new[] { end1Task, end2Task });
     }
 
-This outputs something similar to:
+輸出：
 
     :::text
     ThreadId = 12
@@ -105,15 +106,16 @@ This outputs something similar to:
 
 ### Address format
 
-Notice the format of the address string passed to `Bind()` and `Connect()`. For InProc connections, it will resemble:
+注意位址格式字串會傳送給`Bind()`及`Connect()`函式。
+在InProc連線中，它會被組成：
 
     :::text
     inproc://inproc-demo
 
-This is made up of two parts:
+這由兩個部份構成：
 
-1. The protocol (`inproc`)
-2. The identifier (`inproc-demo` which can be any string, uniquely identified within the scope of the process)
+1. 協定(inproc)
+2. 辨識名稱（inproc-demo可以是任何字串，在process範圍內是唯一的名稱）
 
 
 ## PGM
