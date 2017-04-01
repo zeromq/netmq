@@ -257,7 +257,7 @@ namespace NetMQ
         #endregion
 
         #region Contains
-
+#if !NET35
         public Task<bool> ContainsAsync([NotNull] ISocketPollable socket)
         {
             if (socket == null)
@@ -290,7 +290,7 @@ namespace NetMQ
             Run(() => tcs.SetResult(m_pollinSockets.ContainsKey(socket)));
             return tcs.Task;
         }
-
+#endif
         #endregion
 
         #region Start / Stop
