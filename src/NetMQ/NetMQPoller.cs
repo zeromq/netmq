@@ -570,7 +570,7 @@ namespace NetMQ
         /// </remarks>
         public void Dispose()
         {
-            if (Interlocked.CompareExchange(ref m_disposeState, (int)DisposeState.Disposing, 0) == (int)DisposeState.Disposing)
+            if (Interlocked.CompareExchange(ref m_disposeState, (int)DisposeState.Disposing, (int)DisposeState.Undisposed) == (int)DisposeState.Disposing)
                 return;
 
             // If this poller is already started, signal the polling thread to stop
