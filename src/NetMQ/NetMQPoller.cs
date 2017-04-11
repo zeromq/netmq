@@ -565,6 +565,9 @@ namespace NetMQ
         /// <summary>
         /// Stops and disposes the poller. The poller may not be used once disposed.
         /// </summary>
+        /// <remarks>
+        /// Note that you cannot dispose the poller on the poller's thread. Doing so results in a deadlock.
+        /// </remarks>
         public void Dispose()
         {
             if (Interlocked.CompareExchange(ref m_disposeState, (int)DisposeState.Disposing, 0) == (int)DisposeState.Disposing)
