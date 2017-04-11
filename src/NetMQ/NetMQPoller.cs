@@ -304,14 +304,25 @@ namespace NetMQ
         /// <summary>
         /// Runs the poller in a background thread, returning once the poller has started.
         /// </summary>
-        /// <param name="threadName">The optional thread name to use. If unspecified, <c>"NetMQPollerThread"</c> is used.</param>
+        /// <remarks>
+        /// The created thread is named <c>"NetMQPollerThread"</c>. Use <see cref="RunAsync(string)"/> to specify the thread name.
+        /// </remarks>
         public void RunAsync()
+        {
+            RunAsync("NetMQPollerThread");
+        }
+
+        /// <summary>
+        /// Runs the poller in a background thread, returning once the poller has started.
+        /// </summary>
+        /// <param name="threadName">The thread name to use.</param>
+        public void RunAsync(string threadName)
         {
             CheckDisposed();
             if (IsRunning)
                 throw new InvalidOperationException("NetMQPoller is already running");
 
-            var thread = new Thread(Run) { Name = "NetMQPollerThread" };
+            var thread = new Thread(Run) { Name = threadName };
             thread.Start();
 
             m_switch.WaitForOn();
