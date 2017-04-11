@@ -158,6 +158,12 @@ namespace NetMQ
         /// </summary>
         public bool IsRunning => m_switch.Status;
 
+#if NET35
+        private bool IsPollerThread => m_pollerThread != Thread.CurrentThread;
+#else
+        private bool IsPollerThread => !m_isSchedulerThread.Value;
+#endif
+
         #region Add / Remove
 
         /// <summary>
@@ -296,15 +302,27 @@ namespace NetMQ
         #region Start / Stop
 
         /// <summary>
-        /// Runs the poller in a background thread, returning immediately.
+        /// Runs the poller in a background thread, returning once the poller has started.
         /// </summary>
+        /// <remarks>
+        /// The created thread is named <c>"NetMQPollerThread"</c>. Use <see cref="RunAsync(string)"/> to specify the thread name.
+        /// </remarks>
         public void RunAsync()
+        {
+            RunAsync("NetMQPollerThread");
+        }
+
+        /// <summary>
+        /// Runs the poller in a background thread, returning once the poller has started.
+        /// </summary>
+        /// <param name="threadName">The thread name to use.</param>
+        public void RunAsync(string threadName)
         {
             CheckDisposed();
             if (IsRunning)
                 throw new InvalidOperationException("NetMQPoller is already running");
 
-            var thread = new Thread(Run) { Name = "NetMQPollerThread" };
+            var thread = new Thread(Run) { Name = threadName };
             thread.Start();
 
             m_switch.WaitForOn();
@@ -474,11 +492,7 @@ namespace NetMQ
             m_stopSignaler.RequestStop();
 
             // If 'stop' was requested from the scheduler thread, we cannot block
-#if NET35
-            if (m_pollerThread != Thread.CurrentThread)
-#else
-            if (!m_isSchedulerThread.Value)
-#endif
+            if (IsPollerThread)
             {
                 m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
@@ -564,9 +578,17 @@ namespace NetMQ
         /// <summary>
         /// Stops and disposes the poller. The poller may not be used once disposed.
         /// </summary>
+        /// <remarks>
+        /// Note that you cannot dispose the poller on the poller's thread. Doing so results in a deadlock.
+        /// </remarks>
         public void Dispose()
         {
-            if (Interlocked.CompareExchange(ref m_disposeState, (int)DisposeState.Disposing, 0) == (int)DisposeState.Disposing)
+            // Attempting to dispose from the poller thread would cause a deadlock.
+            // Throw an exception to improve the debugging experience.
+            if (IsPollerThread)
+                throw new InvalidOperationException("Cannot dispose poller from the poller thread.");
+
+            if (Interlocked.CompareExchange(ref m_disposeState, (int)DisposeState.Disposing, (int)DisposeState.Undisposed) != (int)DisposeState.Undisposed)
                 return;
 
             // If this poller is already started, signal the polling thread to stop

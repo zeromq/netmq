@@ -45,3 +45,4 @@ _ReSharper*/
 
 #Ignore lock files
 *.lock.json
+.idea/
