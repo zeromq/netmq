@@ -296,8 +296,9 @@ namespace NetMQ
         #region Start / Stop
 
         /// <summary>
-        /// Runs the poller in a background thread, returning immediately.
+        /// Runs the poller in a background thread, returning once the poller has started.
         /// </summary>
+        /// <param name="threadName">The optional thread name to use. If unspecified, <c>"NetMQPollerThread"</c> is used.</param>
         public void RunAsync()
         {
             CheckDisposed();
