@@ -572,6 +572,11 @@ namespace NetMQ
         /// </remarks>
         public void Dispose()
         {
+            // Attempting to dispose from the poller thread would cause a deadlock.
+            // Throw an exception to improve the debugging experience.
+            if (IsPollerThread)
+                throw new InvalidOperationException("Cannot dispose poller from the poller thread.");
+
             if (Interlocked.CompareExchange(ref m_disposeState, (int)DisposeState.Disposing, (int)DisposeState.Undisposed) != (int)DisposeState.Undisposed)
                 return;
 
