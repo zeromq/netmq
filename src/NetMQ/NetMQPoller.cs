@@ -158,6 +158,12 @@ namespace NetMQ
         /// </summary>
         public bool IsRunning => m_switch.Status;
 
+#if NET35
+        private bool IsPollerThread => m_pollerThread != Thread.CurrentThread;
+#else
+        private bool IsPollerThread => !m_isSchedulerThread.Value;
+#endif
+
         #region Add / Remove
 
         /// <summary>
@@ -475,11 +481,7 @@ namespace NetMQ
             m_stopSignaler.RequestStop();
 
             // If 'stop' was requested from the scheduler thread, we cannot block
-#if NET35
-            if (m_pollerThread != Thread.CurrentThread)
-#else
-            if (!m_isSchedulerThread.Value)
-#endif
+            if (IsPollerThread)
             {
                 m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
