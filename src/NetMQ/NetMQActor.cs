@@ -149,19 +149,16 @@ namespace NetMQ
             m_self = self;
             m_shim = shim;
 
-            EventHandler<NetMQSocketEventArgs> onReceive = (sender, e) =>
-                m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
-
-            EventHandler<NetMQSocketEventArgs> onSend = (sender, e) =>
-                m_sendEvent.Fire(this, new NetMQActorEventArgs(this));
+            void OnReceive(object sender, NetMQSocketEventArgs e) => m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
+            void OnSend   (object sender, NetMQSocketEventArgs e) => m_sendEvent   .Fire(this, new NetMQActorEventArgs(this));
 
             m_receiveEvent = new EventDelegator<NetMQActorEventArgs>(
-                () => m_self.ReceiveReady += onReceive,
-                () => m_self.ReceiveReady -= onReceive);
+                () => m_self.ReceiveReady += OnReceive,
+                () => m_self.ReceiveReady -= OnReceive);
 
             m_sendEvent = new EventDelegator<NetMQActorEventArgs>(
-                () => m_self.SendReady += onSend,
-                () => m_self.SendReady -= onSend);
+                () => m_self.SendReady += OnSend,
+                () => m_self.SendReady -= OnSend);
 
             var random = new Random();
 

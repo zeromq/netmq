@@ -30,14 +30,13 @@ namespace NetMQ.Tests
             var value = 0.0;
             var callCount = 0;
 
-            EventHandler<Args<double>> delegatorHandler
-                = (sender, args) =>
-                {
-                    value = args.Value;
-                    callCount++;
-                };
+            void DelegatorHandler(object sender, Args<double> args)
+            {
+                value = args.Value;
+                callCount++;
+            }
 
-            delegator.Event += delegatorHandler;
+            delegator.Event += DelegatorHandler;
 
             Assert.IsNotNull(Source);
 
@@ -51,7 +50,7 @@ namespace NetMQ.Tests
             Assert.AreEqual(6.0, value);
             Assert.AreEqual(2, callCount);
 
-            delegator.Event -= delegatorHandler;
+            delegator.Event -= DelegatorHandler;
 
             Assert.IsNull(Source);
         }

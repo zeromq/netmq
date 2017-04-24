@@ -254,12 +254,11 @@ namespace NetMQ
         {
             m_actor = NetMQActor.Create(new Shim());
 
-            EventHandler<NetMQActorEventArgs> onReceive = (sender, e) =>
-                m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
+            void OnReceive(object sender, NetMQActorEventArgs e) => m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
 
             m_receiveEvent = new EventDelegator<NetMQBeaconEventArgs>(
-                () => m_actor.ReceiveReady += onReceive,
-                () => m_actor.ReceiveReady -= onReceive);
+                () => m_actor.ReceiveReady += OnReceive,
+                () => m_actor.ReceiveReady -= OnReceive);
         }
 
         /// <summary>

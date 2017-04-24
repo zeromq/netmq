@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using NetMQ.Sockets;
+using NUnit.Framework;
 
 namespace NetMQ.Tests
 {
@@ -8,7 +9,7 @@ namespace NetMQ.Tests
         [Test]
         public void Simple()
         {
-            ShimAction shimAction = shim =>
+            void ShimAction(PairSocket shim)
             {
                 shim.SignalOK();
 
@@ -27,9 +28,9 @@ namespace NetMQ.Tests
                         shim.SendFrame("World");
                     }
                 }
-            };
+            }
 
-            using (var actor = NetMQActor.Create(shimAction))
+            using (var actor = NetMQActor.Create((ShimAction)ShimAction))
             {
                 actor.SendMoreFrame("Hello").SendFrame("Hello");
 

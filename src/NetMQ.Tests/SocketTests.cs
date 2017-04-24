@@ -740,7 +740,7 @@ namespace NetMQ.Tests
                 {
                     for (int i = 0; i < 2; i++)
                     {
-                        ParameterizedThreadStart threadMmethod = state =>
+                        void ThreadMethod(object state)
                         {
                             byte[] routerId = (byte[]) state;
                             byte[] workerId = Guid.NewGuid().ToByteArray();
@@ -756,9 +756,9 @@ namespace NetMQ.Tests
                                 workerSocket.SendMultipartMessage(workerReadyMsg);
                                 Thread.Sleep(1000);
                             }
-                        };
+                        }
 
-                        var workerThread = new Thread(threadMmethod)
+                        var workerThread = new Thread((ParameterizedThreadStart)ThreadMethod)
                         {
                             IsBackground = true,
                             Name = "worker" + i
