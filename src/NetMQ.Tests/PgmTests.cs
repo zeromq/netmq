@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NetMQ.Core;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NUnit.Framework;

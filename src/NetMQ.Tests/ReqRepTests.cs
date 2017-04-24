@@ -1,5 +1,4 @@
-﻿using System.Net.Sockets;
-using NetMQ.Sockets;
+﻿using NetMQ.Sockets;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
