@@ -108,7 +108,7 @@ namespace NetMQ
             m_tasksQueue.Enqueue(task);
         }
 
-        private void Run([NotNull] Action action)
+        public void Run([NotNull] Action action)
         {
             if (CanExecuteTaskInline)
                 action();
