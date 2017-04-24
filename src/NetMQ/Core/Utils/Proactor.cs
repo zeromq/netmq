@@ -101,9 +101,8 @@ namespace NetMQ.Core.Utils
                 // Execute any due timers.
                 int timeout = ExecuteTimers();
 
-                int removed;
 
-                if (!m_completionPort.GetMultipleQueuedCompletionStatus(timeout != 0 ? timeout : -1, completionStatuses, out removed))
+                if (!m_completionPort.GetMultipleQueuedCompletionStatus(timeout != 0 ? timeout : -1, completionStatuses, out int removed))
                     continue;
 
                 for (int i = 0; i < removed; i++)

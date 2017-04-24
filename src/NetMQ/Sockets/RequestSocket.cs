@@ -95,8 +95,7 @@ namespace NetMQ.Sockets
 
                     requestSocket.SendFrame(requestString);
 
-                    string frameString;
-                    if (requestSocket.TryReceiveFrameString(requestTimeout, out frameString))
+                    if (requestSocket.TryReceiveFrameString(requestTimeout, out string frameString))
                     {
                         progressPublisher?.SendFrame(ProgressTopic.Success.ToString());
 

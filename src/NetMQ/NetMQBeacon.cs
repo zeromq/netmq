@@ -163,8 +163,7 @@ namespace NetMQ
 
             private void OnUdpReady(Socket socket)
             {
-                string peerName;
-                var frame = ReceiveUdpFrame(out peerName);
+                var frame = ReceiveUdpFrame(out string peerName);
 
                 // If filter is set, check that beacon matches it
                 var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);
@@ -449,8 +448,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a beacon message was received, otherwise <c>false</c>.</returns>
         public bool TryReceive(TimeSpan timeout, out BeaconMessage message)
         {
-            string peerName;
-            if (!m_actor.TryReceiveFrameString(timeout, out peerName))
+            if (!m_actor.TryReceiveFrameString(timeout, out string peerName))
             {
                 message = default(BeaconMessage);
                 return false;

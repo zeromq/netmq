@@ -24,8 +24,7 @@ namespace NetMQ.Tests
         {
             using (var queue = new NetMQQueue<int>())
             {
-                int result;
-                Assert.IsFalse(queue.TryDequeue(out result, TimeSpan.FromMilliseconds(100)));
+                Assert.IsFalse(queue.TryDequeue(out int result, TimeSpan.FromMilliseconds(100)));
 
                 queue.Enqueue(1);
 

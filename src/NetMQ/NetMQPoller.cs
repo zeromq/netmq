@@ -136,8 +136,7 @@ namespace NetMQ
                 Debug.Assert(IsRunning);
 
                 // Try to dequeue and execute all pending tasks
-                Task task;
-                while (m_tasksQueue.TryDequeue(out task, TimeSpan.Zero))
+                while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
                     TryExecuteTask(task);
             };
 
@@ -432,8 +431,7 @@ namespace NetMQ
                         }
                         else if (item.ResultEvent.HasError() || item.ResultEvent.HasIn())
                         {
-                            Action<Socket> action;
-                            if (m_pollinSockets.TryGetValue(item.FileDescriptor, out action))
+                            if (m_pollinSockets.TryGetValue(item.FileDescriptor, out Action<Socket> action))
                                 action(item.FileDescriptor);
                         }
                     }

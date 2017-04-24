@@ -66,8 +66,7 @@ namespace NetMQ.Core.Transports.Pgm
             if (addrStr == "*")
                 addrStr = "0.0.0.0";
 
-            IPAddress ipAddress;
-            if (!IPAddress.TryParse(addrStr, out ipAddress))
+            if (!IPAddress.TryParse(addrStr, out IPAddress ipAddress))
                 throw new InvalidException($"In PgmAddress.Resolve({name},{ip4Only}), addrStr ({addrStr}) must be a valid IPAddress.");
 
             Address = new IPEndPoint(ipAddress, port);

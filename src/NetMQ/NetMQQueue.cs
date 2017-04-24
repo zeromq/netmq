@@ -94,8 +94,7 @@ namespace NetMQ
         {
             m_reader.TryReceive(ref m_dequeueMsg, SendReceiveConstants.InfiniteTimeout);
 
-            T result;
-            m_queue.TryDequeue(out result);
+            m_queue.TryDequeue(out T result);
 
             return result;
         }

@@ -48,8 +48,7 @@ namespace NetMQ.Tests
 
                 Assert.AreEqual("Hello", listener.Receive().String);
 
-                BeaconMessage message;
-                Assert.IsFalse(listener.TryReceive(TimeSpan.FromMilliseconds(300), out message));
+                Assert.IsFalse(listener.TryReceive(TimeSpan.FromMilliseconds(300), out BeaconMessage message));
             }
         }
 
@@ -71,8 +70,7 @@ namespace NetMQ.Tests
 
                 Assert.AreEqual("Hello", listener.Receive().String);
 
-                BeaconMessage message;
-                Assert.IsFalse(listener.TryReceive(TimeSpan.FromMilliseconds(300), out message));
+                Assert.IsFalse(listener.TryReceive(TimeSpan.FromMilliseconds(300), out BeaconMessage message));
             }
         }
 
@@ -90,8 +88,7 @@ namespace NetMQ.Tests
                 // this should send one broadcast message and stop
                 speaker.Publish("Hello", s_publishInterval);
 
-                BeaconMessage message;
-                Assert.IsFalse(listener.TryReceive(TimeSpan.FromMilliseconds(300), out message));
+                Assert.IsFalse(listener.TryReceive(TimeSpan.FromMilliseconds(300), out BeaconMessage message));
             }
         }
 

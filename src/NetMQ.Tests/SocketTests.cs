@@ -196,11 +196,10 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
                 req.Connect("tcp://127.0.0.1:" + port);
 
-                bool more;
 
                 req.SendFrame("1");
 
-                Assert.AreEqual("1", rep.ReceiveFrameString(out more));
+                Assert.AreEqual("1", rep.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
 
                 rep.SendFrame("2");
