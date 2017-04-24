@@ -8,9 +8,9 @@ namespace NetMQ.Tests
     {
         [Test]
         [TestCase("tcp://localhost")]
-        [TestCase("tcp://127.0.0.1")]        
+        [TestCase("tcp://127.0.0.1")]
         public void SimpleReqRep(string address)
-        {            
+        {
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             {
@@ -29,7 +29,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void SendingTwoRequestsInaRow()
-        {            
+        {
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             {
@@ -46,7 +46,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void ReceiveBeforeSending()
-        {            
+        {
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             {
@@ -58,8 +58,8 @@ namespace NetMQ.Tests
         }
 
         [Test]
-        public void SendMessageInResponeBeforeReceiving()
-        {            
+        public void SendMessageInResponseBeforeReceiving()
+        {
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             {
@@ -72,7 +72,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void SendMultipartMessage()
-        {            
+        {
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             {

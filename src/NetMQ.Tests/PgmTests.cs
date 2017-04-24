@@ -23,7 +23,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void SimplePubSub()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -42,7 +42,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void BindBothSockets()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -61,7 +61,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void ConnectBothSockets()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -81,7 +81,7 @@ namespace NetMQ.Tests
         [Test]
         public void UseInterface()
         {
-#if NETCOREAPP1_0            
+#if NETCOREAPP1_0
             var hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).Result;
 #else
             var hostEntry = Dns.GetHostEntry(Dns.GetHostName());
@@ -91,7 +91,7 @@ namespace NetMQ.Tests
                 .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork)
                 .Select(addr => addr.ToString())
                 .FirstOrDefault();
-            
+
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -113,7 +113,7 @@ namespace NetMQ.Tests
         {
             const int MegaBit = 1024;
             const int MegaByte = 1024;
-            
+
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -145,7 +145,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void TwoSubscribers()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             using (var sub2 = new SubscriberSocket())
@@ -170,7 +170,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void TwoPublishers()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var pub2 = new PublisherSocket())
             using (var sub = new SubscriberSocket())
@@ -205,7 +205,7 @@ namespace NetMQ.Tests
             var subReady = new ManualResetEvent(false);
 
             Task subTask = Task.Factory.StartNew(() =>
-            {                
+            {
                 using (var sub = new SubscriberSocket())
                 {
                     sub.Bind("pgm://224.0.0.1:5555");
@@ -226,7 +226,7 @@ namespace NetMQ.Tests
             subReady.WaitOne();
 
             Task pubTask = Task.Factory.StartNew(() =>
-            {                
+            {
                 using (var pub = new PublisherSocket())
                 {
                     pub.Connect("pgm://224.0.0.1:5555");
@@ -241,14 +241,14 @@ namespace NetMQ.Tests
             });
 
             pubTask.Wait();
-            subTask.Wait();            
+            subTask.Wait();
 
             Assert.AreEqual(1000, count);
         }
 
         [Test]
         public void LargeMessage()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -296,7 +296,7 @@ namespace NetMQ.Tests
                         sub.Unbind(address);
 
                         Assert.That(closed.Wait(1000), Is.True, "Unbind failed to report Closed event to the Monitor");
-                        var duration = DateTime.Now - time;                        
+                        var duration = DateTime.Now - time;
 
                         monitor.Stop();
 
