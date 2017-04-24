@@ -69,7 +69,7 @@ namespace NetMQ.Core
             /// Get the Options of this Endpoint.
             /// </summary>
             [NotNull]
-            public Options Options { get; private set; }
+            public Options Options { get; }
         }
 
         #endregion

@@ -25,7 +25,7 @@ namespace NetMQ
         /// Get the NetMQBeacon object that this holds.
         /// </summary>
         [NotNull]
-        public NetMQBeacon Beacon { get; private set; }
+        public NetMQBeacon Beacon { get; }
     }
 
     public sealed class NetMQBeacon : IDisposable, ISocketPollable

@@ -41,7 +41,7 @@ namespace NetMQ
         /// Get the NetMQActor that this exception references.
         /// </summary>
         [NotNull]
-        public NetMQActor Actor { get; private set; }
+        public NetMQActor Actor { get; }
     }
 
     #endregion

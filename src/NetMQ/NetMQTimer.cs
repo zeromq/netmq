@@ -22,7 +22,7 @@ namespace NetMQ
         /// Get the NetMQTimer that this has a reference to.
         /// </summary>
         [NotNull]
-        public NetMQTimer Timer { get; private set; }
+        public NetMQTimer Timer { get; }
     }
 
     /// <summary>

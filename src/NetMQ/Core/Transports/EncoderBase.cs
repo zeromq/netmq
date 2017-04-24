@@ -71,7 +71,7 @@ namespace NetMQ.Core.Transports
         /// <summary>
         /// Get the Endianness (Big or Little) that this EncoderBase uses.
         /// </summary>
-        public Endianness Endian { get; private set; }
+        public Endianness Endian { get; }
 
         public abstract void SetMsgSource(IMsgSource msgSource);
 

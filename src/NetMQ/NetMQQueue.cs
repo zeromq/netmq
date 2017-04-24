@@ -14,7 +14,7 @@ namespace NetMQ
             Queue = queue;
         }
 
-        public NetMQQueue<T> Queue { get; private set; }
+        public NetMQQueue<T> Queue { get; }
     }
 
     /// <summary>

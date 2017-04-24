@@ -28,12 +28,12 @@ namespace NetMQ
         /// <summary>
         /// Get the 'address' of this network interface, as an IPAddress.
         /// </summary>
-        [NotNull] public IPAddress Address { get; private set; }
+        [NotNull] public IPAddress Address { get; }
 
         /// <summary>
         /// Get the 'broadcast-address' of this network interface, as an IPAddress.
         /// </summary>
-        [NotNull] public IPAddress BroadcastAddress { get; private set; }
+        [NotNull] public IPAddress BroadcastAddress { get; }
     }
 
     /// <summary>

@@ -68,7 +68,7 @@ namespace NetMQ.Core.Transports
             State = -1;
         }
 
-        public Endianness Endian { get; private set; }
+        public Endianness Endian { get; }
 
         public abstract void SetMsgSink(IMsgSink msgSink);
 
