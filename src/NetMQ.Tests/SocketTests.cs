@@ -758,7 +758,7 @@ namespace NetMQ.Tests
                             }
                         }
 
-                        var workerThread = new Thread((ParameterizedThreadStart)ThreadMethod)
+                        var workerThread = new Thread(ThreadMethod)
                         {
                             IsBackground = true,
                             Name = "worker" + i

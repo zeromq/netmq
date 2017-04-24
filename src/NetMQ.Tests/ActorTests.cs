@@ -30,7 +30,7 @@ namespace NetMQ.Tests
                 }
             }
 
-            using (var actor = NetMQActor.Create((ShimAction)ShimAction))
+            using (var actor = NetMQActor.Create(ShimAction))
             {
                 actor.SendMoreFrame("Hello").SendFrame("Hello");
 
