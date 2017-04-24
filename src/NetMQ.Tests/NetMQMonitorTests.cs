@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using NUnit.Framework;
+using Xunit;
 
 namespace NetMQ.Tests
 {
-    [TestFixture(Category = "Monitor")]
+    [Trait("Category", "Monitor")]
     public class NetMQMonitorTests
     {
-        [Test]
+        [Fact]
         public void Monitoring()
         {
             using (var rep = new ResponseSocket())
@@ -42,34 +42,34 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(200);
 
-                Assert.IsTrue(listening);
-                Assert.IsTrue(accepted);
+                Assert.True(listening);
+                Assert.True(accepted);
 
                 monitor.Stop();
 
                 Thread.Sleep(200);
 
-                Assert.IsTrue(monitorTask.IsCompleted);                
-            }            
+                Assert.True(monitorTask.IsCompleted);
+            }
         }
 
 #if !NET35
-        [Test]
+        [Fact]
         public void StartAsync()
-        {          
+        {
             using (var rep = new ResponseSocket())
             using (var monitor = new NetMQMonitor(rep, "inproc://foo", SocketEvents.Closed))
             {
                 var task = monitor.StartAsync();
                 Thread.Sleep(200);
-                Assert.AreEqual(TaskStatus.Running, task.Status);
+                Assert.Equal(TaskStatus.Running, task.Status);
                 monitor.Stop();
                 Assert.True(task.Wait(TimeSpan.FromMilliseconds(1000)));
             }
         }
 #endif
 
-        [Test]
+        [Fact]
         public void NoHangWhenMonitoringUnboundInprocAddress()
         {
             using (var monitor = new NetMQMonitor(new PairSocket(), "inproc://unbound-inproc-address", ownsSocket: true))
@@ -77,20 +77,13 @@ namespace NetMQ.Tests
                 var task = Task.Factory.StartNew(monitor.Start);
                 monitor.Stop();
 
-                try
-                {
-                    task.Wait(TimeSpan.FromMilliseconds(1000));
-                    Assert.Fail("Exception expected");
-                }
-                catch (AggregateException ex)
-                {
-                    Assert.AreEqual(1, ex.InnerExceptions.Count);
-                    Assert.IsTrue(ex.InnerExceptions.Single() is EndpointNotFoundException);
-                }
+                var ex = Assert.Throws<AggregateException>(() => task.Wait(TimeSpan.FromMilliseconds(1000)));
+                Assert.Equal(1, ex.InnerExceptions.Count);
+                Assert.True(ex.InnerExceptions.Single() is EndpointNotFoundException);
             }
         }
 
-        [Test]
+        [Fact]
         public void ErrorCodeTest()
         {
             using (var req = new RequestSocket())
@@ -118,17 +111,17 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(200);
 
-                Assert.IsTrue(eventArrived);
+                Assert.True(eventArrived);
 
                 monitor.Stop();
 
                 Thread.Sleep(200);
 
-                Assert.IsTrue(monitorTask.IsCompleted);
+                Assert.True(monitorTask.IsCompleted);
             }
         }
 
-        [Test]
+        [Fact]
         public void MonitorDisposeProperlyWhenDisposedAfterMonitoredTcpSocket()
         {
             // The bug:
@@ -151,14 +144,14 @@ namespace NetMQ.Tests
                     req.Connect("tcp://127.0.0.1:" + port);
 
                     req.SendFrame("question");
-                    Assert.That(res.ReceiveFrameString(), Is.EqualTo("question"));
+                    Assert.Equal("question", res.ReceiveFrameString());
                     res.SendFrame("response");
-                    Assert.That(req.ReceiveFrameString(), Is.EqualTo("response"));
+                    Assert.Equal("response", req.ReceiveFrameString());
                 }
                 Thread.Sleep(100);
                 // Monitor.Dispose should complete
                 var completed = Task.Factory.StartNew(() => monitor.Dispose()).Wait(1000);
-                Assert.That(completed, Is.True);
+                Assert.True(completed);
             }
             // NOTE If this test fails, it will hang because context.Dispose will block
         }

@@ -1,13 +1,12 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
     public class StreamTests
     {
-        [Test]
+        [Fact]
         public void StreamToStream()
         {
             using (var server = new StreamSocket())
@@ -28,12 +27,12 @@ namespace NetMQ.Tests
                 client.SendMoreFrame(clientId).SendFrame(request);
 
                 byte[] serverId = server.ReceiveFrameBytes();
-                Assert.AreEqual(request, server.ReceiveFrameString());
+                Assert.Equal(request, server.ReceiveFrameString());
 
                 server.SendMoreFrame(serverId).SendFrame(response);
 
-                CollectionAssert.AreEqual(clientId, client.ReceiveFrameBytes());
-                Assert.AreEqual(response, client.ReceiveFrameString());
+                Assert.Equal(clientId, client.ReceiveFrameBytes());
+                Assert.Equal(response, client.ReceiveFrameString());
             }
         }
     }

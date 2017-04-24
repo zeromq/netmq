@@ -41,16 +41,16 @@ namespace NetMQ.Tests.InProcActors.Echo
 
                     string command = msg[0].ConvertToString();
 
-                    if (command == NetMQActor.EndShimMessage)
-                        break;
-
-                    if (command == "ECHO")
+                    switch (command)
                     {
-                        shim.SendFrame($"ECHO BACK : {msg[1].ConvertToString()}");
-                    }
-                    else
-                    {
-                        shim.SendFrame("Error: invalid message to actor");
+                        case NetMQActor.EndShimMessage:
+                            return;
+                        case "ECHO":
+                            shim.SendFrame($"ECHO BACK : {msg[1].ConvertToString()}");
+                            break;
+                        default:
+                            shim.SendFrame("Error: invalid message to actor");
+                            break;
                     }
                 }
                 // You WILL need to decide what Exceptions should be caught here, this is for

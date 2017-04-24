@@ -1,9 +1,8 @@
 ﻿using System;
-using NUnit.Framework;
+using Xunit;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
     public class EventDelegatorTests
     {
         private class Args<T> : EventArgs
@@ -14,7 +13,7 @@ namespace NetMQ.Tests
 
         private event EventHandler<Args<int>> Source;
 
-        [Test]
+        [Fact]
         public void Basics()
         {
             EventHandler<Args<int>> sourceHandler = null;
@@ -25,7 +24,7 @@ namespace NetMQ.Tests
 
             sourceHandler = (sender, args) => delegator.Fire(this, new Args<double>(args.Value / 2.0));
 
-            Assert.IsNull(Source);
+            Assert.Null(Source);
 
             var value = 0.0;
             var callCount = 0;
@@ -38,21 +37,21 @@ namespace NetMQ.Tests
 
             delegator.Event += DelegatorHandler;
 
-            Assert.IsNotNull(Source);
+            Assert.NotNull(Source);
 
-            Assert.AreEqual(0, callCount);
+            Assert.Equal(0, callCount);
 
             Source(this, new Args<int>(5));
-            Assert.AreEqual(2.5, value);
-            Assert.AreEqual(1, callCount);
+            Assert.Equal(2.5, value);
+            Assert.Equal(1, callCount);
 
             Source(this, new Args<int>(12));
-            Assert.AreEqual(6.0, value);
-            Assert.AreEqual(2, callCount);
+            Assert.Equal(6.0, value);
+            Assert.Equal(2, callCount);
 
             delegator.Event -= DelegatorHandler;
 
-            Assert.IsNull(Source);
+            Assert.Null(Source);
         }
     }
 }

@@ -1,11 +1,10 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
     public class NetworkOrderBitsConverterTests
     {
-        [Test]
+        [Fact]
         public void TestInt64()
         {
             unchecked
@@ -19,19 +18,19 @@ namespace NetMQ.Tests
         {
             byte[] buffer = NetworkOrderBitsConverter.GetBytes(num);
 
-            Assert.AreEqual(8, buffer.Length);
-            CollectionAssert.AreEqual(bytes, buffer);
+            Assert.Equal(8, buffer.Length);
+            Assert.Equal(bytes, buffer);
 
-            Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt64(buffer));
+            Assert.Equal(num, NetworkOrderBitsConverter.ToInt64(buffer));
 
             NetworkOrderBitsConverter.PutInt64(num, buffer);
 
-            CollectionAssert.AreEqual(bytes, buffer);
+            Assert.Equal(bytes, buffer);
 
-            Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt64(buffer));
+            Assert.Equal(num, NetworkOrderBitsConverter.ToInt64(buffer));
         }
 
-        [Test]
+        [Fact]
         public void TestInt32()
         {
             unchecked
@@ -45,19 +44,19 @@ namespace NetMQ.Tests
         {
             byte[] buffer = NetworkOrderBitsConverter.GetBytes(num);
 
-            Assert.AreEqual(4, buffer.Length);
-            CollectionAssert.AreEqual(bytes, buffer);
+            Assert.Equal(4, buffer.Length);
+            Assert.Equal(bytes, buffer);
 
-            Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt32(buffer));
+            Assert.Equal(num, NetworkOrderBitsConverter.ToInt32(buffer));
 
             NetworkOrderBitsConverter.PutInt32(num, buffer);
 
-            CollectionAssert.AreEqual(bytes, buffer);
+            Assert.Equal(bytes, buffer);
 
-            Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt32(buffer));
+            Assert.Equal(num, NetworkOrderBitsConverter.ToInt32(buffer));
         }
 
-        [Test]
+        [Fact]
         public void TestInt16()
         {
             unchecked
@@ -71,19 +70,19 @@ namespace NetMQ.Tests
         {
             byte[] buffer = NetworkOrderBitsConverter.GetBytes(num);
 
-            Assert.AreEqual(2, buffer.Length);
-            CollectionAssert.AreEqual(bytes, buffer);
+            Assert.Equal(2, buffer.Length);
+            Assert.Equal(bytes, buffer);
 
-            Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt16(buffer));
+            Assert.Equal(num, NetworkOrderBitsConverter.ToInt16(buffer));
 
             NetworkOrderBitsConverter.PutInt16(num, buffer);
 
-            CollectionAssert.AreEqual(bytes, buffer);
+            Assert.Equal(bytes, buffer);
 
-            Assert.AreEqual(num, NetworkOrderBitsConverter.ToInt16(buffer));
+            Assert.Equal(num, NetworkOrderBitsConverter.ToInt16(buffer));
         }
 
-//        [Test]
+//        [Fact]
 //        public void PutInt64Perf()
 //        {
 //            for (var j = 0; j < 10; j++)

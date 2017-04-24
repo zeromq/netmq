@@ -1,7 +1,10 @@
-﻿using NUnit.Framework;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace NetMQ.Tests
 {
+/*
     [SetUpFixture]
     public class Setup
     {
@@ -11,4 +14,5 @@ namespace NetMQ.Tests
             NetMQConfig.Cleanup(false);
         }
     }
+*/
 }

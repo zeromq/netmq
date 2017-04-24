@@ -1,12 +1,11 @@
 ﻿using NetMQ.Core.Utils;
-using NUnit.Framework;
+using Xunit;
 
 namespace NetMQ.Tests.Core
 {
-    [TestFixture]
     public class YQueueTests
     {
-        [Test]
+        [Fact]
         public void PushingToQueueShouldIncreaseBackPosition()
         {
             string one = "One";
@@ -14,16 +13,16 @@ namespace NetMQ.Tests.Core
             string three = "Three";
 
             var queue = new YQueue<string>(100);
-            Assert.AreEqual(0, queue.BackPos, "Initial back position should be 0");
+            Assert.Equal(0, queue.BackPos);
             queue.Push(ref one);
-            Assert.AreEqual(1, queue.BackPos, "Back position should be incremented after push");
+            Assert.Equal(1, queue.BackPos);
             queue.Push(ref two);
-            Assert.AreEqual(2, queue.BackPos, "Back position should be incremented after push");
+            Assert.Equal(2, queue.BackPos);
             queue.Push(ref three);
-            Assert.AreEqual(3, queue.BackPos, "Back position should be incremented after push");
+            Assert.Equal(3, queue.BackPos);
         }
 
-        [Test]
+        [Fact]
         public void PoppingFromQueueShouldIncreaseFrontPosition()
         {
             var queue = new YQueue<string>(100);
@@ -35,16 +34,16 @@ namespace NetMQ.Tests.Core
             queue.Push(ref one);
             queue.Push(ref two);
             queue.Push(ref three);
-            Assert.AreEqual(0, queue.FrontPos, "Initial front position should be 0");
+            Assert.Equal(0, queue.FrontPos);
             queue.Pop();
-            Assert.AreEqual(1, queue.FrontPos, "Front position should be incremented after pop");
+            Assert.Equal(1, queue.FrontPos);
             queue.Pop();
-            Assert.AreEqual(2, queue.FrontPos, "Front position should be incremented after pop");
+            Assert.Equal(2, queue.FrontPos);
             queue.Pop();
-            Assert.AreEqual(3, queue.FrontPos, "Front position should be incremented after pop");
+            Assert.Equal(3, queue.FrontPos);
         }
 
-        [Test]
+        [Fact]
         public void QueuedItemsShouldBeReturned()
         {
             string one = "One";
@@ -55,12 +54,12 @@ namespace NetMQ.Tests.Core
             queue.Push(ref one);
             queue.Push(ref two);
             queue.Push(ref three);
-            Assert.AreEqual("One", queue.Pop(), "First element pushed should be the first popped");
-            Assert.AreEqual("Two", queue.Pop(), "Second element pushed should be the second popped");
-            Assert.AreEqual("Three", queue.Pop(), "Third element pushed should be the third popped");
+            Assert.Equal("One", queue.Pop());
+            Assert.Equal("Two", queue.Pop());
+            Assert.Equal("Three", queue.Pop());
         }
 
-        [Test]
+        [Fact]
         public void SmallChunkSizeShouldNotAffectBehavior()
         {
             string one = "One";
@@ -75,15 +74,16 @@ namespace NetMQ.Tests.Core
             queue.Push(ref three);
             queue.Push(ref four);
             queue.Push(ref five);
-            Assert.AreEqual("One", queue.Pop());
-            Assert.AreEqual("Two", queue.Pop());
-            Assert.AreEqual("Three", queue.Pop());
-            Assert.AreEqual("Four", queue.Pop());
-            Assert.AreEqual("Five", queue.Pop());
-            Assert.AreEqual(queue.FrontPos, queue.BackPos, "On empty queue the front position should be equal to back position");
+            Assert.Equal("One", queue.Pop());
+            Assert.Equal("Two", queue.Pop());
+            Assert.Equal("Three", queue.Pop());
+            Assert.Equal("Four", queue.Pop());
+            Assert.Equal("Five", queue.Pop());
+            // On empty queue the front position should be equal to back position
+            Assert.Equal(queue.FrontPos, queue.BackPos);
         }
 
-        [Test]
+        [Fact]
         public void UnpushShouldRemoveLastPushedItem()
         {
             string one = "One";
@@ -94,13 +94,15 @@ namespace NetMQ.Tests.Core
             queue.Push(ref one);
             queue.Push(ref two);
             queue.Push(ref three);
-            Assert.AreEqual(3, queue.BackPos, "Ensuring that Back position is 3");
-            Assert.AreEqual("Three", queue.Unpush(), "Unpush should return the last item in a queue");
-            Assert.AreEqual(2, queue.BackPos, "Back position should be decremented after unpush");
-            Assert.AreEqual("Two", queue.Unpush(), "Unpush should return the last item in a queue");
-            Assert.AreEqual(1, queue.BackPos, "Back position should be decremented after unpush");
-            Assert.AreEqual("One", queue.Unpush(), "Unpush should return the last item in a queue");
-            Assert.AreEqual(0, queue.BackPos, "Back position should be decremented after unpush");
+            // Back position should be decremented after unpush
+            Assert.Equal(3, queue.BackPos);
+            // Unpush should return the last item in a queue
+            Assert.Equal("Three", queue.Unpush());
+            Assert.Equal(2, queue.BackPos);
+            Assert.Equal("Two", queue.Unpush());
+            Assert.Equal(1, queue.BackPos);
+            Assert.Equal("One", queue.Unpush());
+            Assert.Equal(0, queue.BackPos);
         }
     }
 }

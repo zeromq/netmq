@@ -1,12 +1,11 @@
-﻿using NetMQ.Sockets;
-using NUnit.Framework;
+using NetMQ.Sockets;
+using Xunit;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
     public class ActorTests
     {
-        [Test]
+        [Fact]
         public void Simple()
         {
             void ShimAction(PairSocket shim)
@@ -23,8 +22,8 @@ namespace NetMQ.Tests
 
                     if (command == "Hello")
                     {
-                        Assert.AreEqual(2, msg.FrameCount);
-                        Assert.AreEqual("Hello", msg[1].ConvertToString());
+                        Assert.Equal(2, msg.FrameCount);
+                        Assert.Equal("Hello", msg[1].ConvertToString());
                         shim.SendFrame("World");
                     }
                 }
@@ -34,7 +33,7 @@ namespace NetMQ.Tests
             {
                 actor.SendMoreFrame("Hello").SendFrame("Hello");
 
-                Assert.AreEqual("World", actor.ReceiveFrameString());
+                Assert.Equal("World", actor.ReceiveFrameString());
             }
         }
     }

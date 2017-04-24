@@ -1,61 +1,59 @@
 ﻿using System;
-using NUnit.Framework;
+using Xunit;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
     public class MsgTests
     {
-        [SetUp]
-        public void SetUp()
+        public MsgTests()
         {
             BufferPool.SetGCBufferPool();
         }
 
-        [Test]
+        [Fact]
         public void Constructor()
         {
             var msg = new Msg();
 
-            Assert.AreEqual(0, msg.Size);
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.IsNull(msg.Data);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsFalse(msg.IsDelimiter);
-            Assert.IsFalse(msg.IsIdentity);
-            Assert.IsFalse(msg.IsInitialised);
+            Assert.Equal(0, msg.Size);
+            Assert.Equal(MsgType.Uninitialised, msg.MsgType);
+            Assert.Equal(MsgFlags.None, msg.Flags);
+            Assert.Null(msg.Data);
+            Assert.False(msg.HasMore);
+            Assert.False(msg.IsDelimiter);
+            Assert.False(msg.IsIdentity);
+            Assert.False(msg.IsInitialised);
             Assert.Throws<NullReferenceException>(() => msg[0] = 1);
-            Assert.Throws<FaultException>(msg.Close);
+            Assert.Throws<FaultException>((Action)msg.Close);
         }
 
-        [Test]
+        [Fact]
         public void Flags()
         {
             var msg = new Msg();
 
-            Assert.AreEqual(MsgFlags.None, msg.Flags);
+            Assert.Equal(MsgFlags.None, msg.Flags);
 
             msg.SetFlags(MsgFlags.Identity);
 
-            Assert.IsTrue(msg.IsIdentity);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsFalse(msg.IsShared);
-            Assert.AreEqual(MsgFlags.Identity, msg.Flags);
+            Assert.True(msg.IsIdentity);
+            Assert.False(msg.HasMore);
+            Assert.False(msg.IsShared);
+            Assert.Equal(MsgFlags.Identity, msg.Flags);
 
             msg.SetFlags(MsgFlags.More);
 
-            Assert.IsTrue(msg.IsIdentity);
-            Assert.IsTrue(msg.HasMore);
-            Assert.IsFalse(msg.IsShared);
-            Assert.AreEqual(MsgFlags.Identity | MsgFlags.More, msg.Flags);
+            Assert.True(msg.IsIdentity);
+            Assert.True(msg.HasMore);
+            Assert.False(msg.IsShared);
+            Assert.Equal(MsgFlags.Identity | MsgFlags.More, msg.Flags);
 
             msg.SetFlags(MsgFlags.Shared);
 
-            Assert.IsTrue(msg.IsIdentity);
-            Assert.IsTrue(msg.HasMore);
-            Assert.IsTrue(msg.IsShared);
-            Assert.AreEqual(MsgFlags.Identity | MsgFlags.More | MsgFlags.Shared, msg.Flags);
+            Assert.True(msg.IsIdentity);
+            Assert.True(msg.HasMore);
+            Assert.True(msg.IsShared);
+            Assert.Equal(MsgFlags.Identity | MsgFlags.More | MsgFlags.Shared, msg.Flags);
 
             msg.SetFlags(MsgFlags.Identity);
             msg.SetFlags(MsgFlags.More);
@@ -64,110 +62,110 @@ namespace NetMQ.Tests
             msg.SetFlags(MsgFlags.Shared);
             msg.SetFlags(MsgFlags.Shared);
 
-            Assert.AreEqual(MsgFlags.Identity | MsgFlags.More | MsgFlags.Shared, msg.Flags);
+            Assert.Equal(MsgFlags.Identity | MsgFlags.More | MsgFlags.Shared, msg.Flags);
 
             msg.ResetFlags(MsgFlags.Shared);
 
-            Assert.IsTrue(msg.IsIdentity);
-            Assert.IsTrue(msg.HasMore);
-            Assert.IsFalse(msg.IsShared);
-            Assert.AreEqual(MsgFlags.Identity | MsgFlags.More, msg.Flags);
+            Assert.True(msg.IsIdentity);
+            Assert.True(msg.HasMore);
+            Assert.False(msg.IsShared);
+            Assert.Equal(MsgFlags.Identity | MsgFlags.More, msg.Flags);
 
             msg.ResetFlags(MsgFlags.More);
 
-            Assert.IsTrue(msg.IsIdentity);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsFalse(msg.IsShared);
-            Assert.AreEqual(MsgFlags.Identity, msg.Flags);
+            Assert.True(msg.IsIdentity);
+            Assert.False(msg.HasMore);
+            Assert.False(msg.IsShared);
+            Assert.Equal(MsgFlags.Identity, msg.Flags);
 
             msg.ResetFlags(MsgFlags.Identity);
 
-            Assert.IsFalse(msg.IsIdentity);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsFalse(msg.IsShared);
-            Assert.AreEqual(MsgFlags.None, msg.Flags);
+            Assert.False(msg.IsIdentity);
+            Assert.False(msg.HasMore);
+            Assert.False(msg.IsShared);
+            Assert.Equal(MsgFlags.None, msg.Flags);
         }
 
-        [Test]
+        [Fact]
         public void InitEmpty()
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            Assert.AreEqual(0, msg.Size);
-            Assert.AreEqual(MsgType.Empty, msg.MsgType);
-            Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.IsNull(msg.Data);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsFalse(msg.IsDelimiter);
-            Assert.IsFalse(msg.IsIdentity);
-            Assert.IsTrue(msg.IsInitialised);
+            Assert.Equal(0, msg.Size);
+            Assert.Equal(MsgType.Empty, msg.MsgType);
+            Assert.Equal(MsgFlags.None, msg.Flags);
+            Assert.Null(msg.Data);
+            Assert.False(msg.HasMore);
+            Assert.False(msg.IsDelimiter);
+            Assert.False(msg.IsIdentity);
+            Assert.True(msg.IsInitialised);
 
             msg.Close();
 
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.Equal(MsgType.Uninitialised, msg.MsgType);
+            Assert.Null(msg.Data);
         }
 
-        [Test]
+        [Fact]
         public void InitDelimiter()
         {
             var msg = new Msg();
             msg.InitDelimiter();
 
-            Assert.AreEqual(0, msg.Size);
-            Assert.AreEqual(MsgType.Delimiter, msg.MsgType);
-            Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.IsNull(msg.Data);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsTrue(msg.IsDelimiter);
-            Assert.IsFalse(msg.IsIdentity);
-            Assert.IsTrue(msg.IsInitialised);
+            Assert.Equal(0, msg.Size);
+            Assert.Equal(MsgType.Delimiter, msg.MsgType);
+            Assert.Equal(MsgFlags.None, msg.Flags);
+            Assert.Null(msg.Data);
+            Assert.False(msg.HasMore);
+            Assert.True(msg.IsDelimiter);
+            Assert.False(msg.IsIdentity);
+            Assert.True(msg.IsInitialised);
 
             msg.Close();
 
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.Equal(MsgType.Uninitialised, msg.MsgType);
+            Assert.Null(msg.Data);
         }
 
-        [Test]
+        [Fact]
         public void InitGC()
         {
             var msg = new Msg();
             var bytes = new byte[200];
             msg.InitGC(bytes, 100);
 
-            Assert.AreEqual(100, msg.Size);
-            Assert.AreEqual(MsgType.GC, msg.MsgType);
-            Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.AreSame(bytes, msg.Data);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsFalse(msg.IsDelimiter);
-            Assert.IsFalse(msg.IsIdentity);
-            Assert.IsTrue(msg.IsInitialised);
+            Assert.Equal(100, msg.Size);
+            Assert.Equal(MsgType.GC, msg.MsgType);
+            Assert.Equal(MsgFlags.None, msg.Flags);
+            Assert.Same(bytes, msg.Data);
+            Assert.False(msg.HasMore);
+            Assert.False(msg.IsDelimiter);
+            Assert.False(msg.IsIdentity);
+            Assert.True(msg.IsInitialised);
 
             msg.Close();
 
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.Equal(MsgType.Uninitialised, msg.MsgType);
+            Assert.Null(msg.Data);
         }
 
 
-        [Test]
+        [Fact]
         public void InitGCOffset()
         {
             var msg = new Msg();
             var bytes = new byte[200];
             msg.InitGC(bytes, 100, 50);
 
-            Assert.AreEqual(50, msg.Size);
-            Assert.AreEqual(MsgType.GC, msg.MsgType);
-            Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.AreSame(bytes, msg.Data);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsFalse(msg.IsDelimiter);
-            Assert.IsFalse(msg.IsIdentity);
-            Assert.IsTrue(msg.IsInitialised);
+            Assert.Equal(50, msg.Size);
+            Assert.Equal(MsgType.GC, msg.MsgType);
+            Assert.Equal(MsgFlags.None, msg.Flags);
+            Assert.Same(bytes, msg.Data);
+            Assert.False(msg.HasMore);
+            Assert.False(msg.IsDelimiter);
+            Assert.False(msg.IsIdentity);
+            Assert.True(msg.IsInitialised);
 
             var src = new byte[100];
             for (int i = 50; i < 100; i++) {
@@ -182,11 +180,11 @@ namespace NetMQ.Tests
 
             msg.Close();
 
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.Equal(MsgType.Uninitialised, msg.MsgType);
+            Assert.Null(msg.Data);
         }
 
-        [Test]
+        [Fact]
         public void InitPool()
         {
             var pool = new MockBufferPool();
@@ -194,49 +192,51 @@ namespace NetMQ.Tests
 
             var msg = new Msg();
 
-            Assert.AreEqual(0, pool.TakeCallCount);
+            Assert.Equal(0, pool.TakeCallCount);
 
             msg.InitPool(100);
 
-            Assert.AreEqual(1, pool.TakeCallCount);
-            Assert.AreEqual(100, pool.TakeSize[0]);
+            Assert.Equal(1, pool.TakeCallCount);
+            Assert.Equal(100, pool.TakeSize[0]);
 
-            Assert.AreEqual(100, msg.Size);
-            Assert.AreEqual(MsgType.Pool, msg.MsgType);
-            Assert.AreEqual(MsgFlags.None, msg.Flags);
-            Assert.IsNotNull(msg.Data);
-            Assert.AreEqual(100, msg.Data.Length);
-            Assert.IsFalse(msg.HasMore);
-            Assert.IsFalse(msg.IsDelimiter);
-            Assert.IsFalse(msg.IsIdentity);
-            Assert.IsTrue(msg.IsInitialised);
+            Assert.Equal(100, msg.Size);
+            Assert.Equal(MsgType.Pool, msg.MsgType);
+            Assert.Equal(MsgFlags.None, msg.Flags);
+            Assert.NotNull(msg.Data);
+            Assert.Equal(100, msg.Data.Length);
+            Assert.False(msg.HasMore);
+            Assert.False(msg.IsDelimiter);
+            Assert.False(msg.IsIdentity);
+            Assert.True(msg.IsInitialised);
 
-            Assert.AreEqual(0, pool.ReturnCallCount);
+            Assert.Equal(0, pool.ReturnCallCount);
 
             var bytes = msg.Data;
 
             msg.Close();
 
-            Assert.AreEqual(1, pool.ReturnCallCount);
-            Assert.AreSame(bytes, pool.ReturnBuffer[0]);
+            Assert.Equal(1, pool.ReturnCallCount);
+            Assert.Same(bytes, pool.ReturnBuffer[0]);
 
-            Assert.AreEqual(MsgType.Uninitialised, msg.MsgType);
-            Assert.IsNull(msg.Data);
+            Assert.Equal(MsgType.Uninitialised, msg.MsgType);
+            Assert.Null(msg.Data);
         }
 
-        [Test]
+        [Fact]
         public void CopyUninitialisedThrows()
         {
             var msg = new Msg();
 
-            Assert.IsFalse(msg.IsInitialised);
+            Assert.False(msg.IsInitialised);
 
             var msgCopy = new Msg();
 
-            Assert.Throws<FaultException>(() => msgCopy.Copy(ref msg), "Cannot copy an uninitialised Msg.");
+            var exception = Assert.Throws<FaultException>(() => msgCopy.Copy(ref msg));
+
+            Assert.Equal("Cannot copy an uninitialised Msg.", exception.Message);
         }
 
-        [Test]
+        [Fact]
         public void CopyPooled()
         {
             var pool = new MockBufferPool();
@@ -245,25 +245,25 @@ namespace NetMQ.Tests
             var msg = new Msg();
             msg.InitPool(100);
 
-            Assert.IsFalse(msg.IsShared);
+            Assert.False(msg.IsShared);
 
             var copy = new Msg();
             copy.Copy(ref msg);
 
-            Assert.IsTrue(msg.IsShared);
-            Assert.IsTrue(copy.IsShared);
+            Assert.True(msg.IsShared);
+            Assert.True(copy.IsShared);
 
             msg.Close();
 
-            Assert.AreEqual(0, pool.ReturnCallCount);
-            Assert.IsFalse(msg.IsInitialised);
-            Assert.IsNull(msg.Data);
+            Assert.Equal(0, pool.ReturnCallCount);
+            Assert.False(msg.IsInitialised);
+            Assert.Null(msg.Data);
 
             copy.Close();
 
-            Assert.AreEqual(1, pool.ReturnCallCount);
-            Assert.IsFalse(copy.IsInitialised);
-            Assert.IsNull(copy.Data);
+            Assert.Equal(1, pool.ReturnCallCount);
+            Assert.False(copy.IsInitialised);
+            Assert.Null(copy.Data);
         }
     }
 }
