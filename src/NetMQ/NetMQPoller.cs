@@ -18,8 +18,6 @@ using Switch = NetMQ.Core.Utils.Switch;
 
 namespace NetMQ
 {
-    /// <summary>
-    /// </summary>
     public sealed class NetMQPoller :
 #if !NET35
         TaskScheduler,
@@ -77,8 +75,6 @@ namespace NetMQ
         /// </example>
         public bool CanExecuteTaskInline => m_isSchedulerThread.Value;
 
-        /// <summary>
-        /// </summary>
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             if (task == null)
@@ -103,8 +99,6 @@ namespace NetMQ
             throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// </summary>
         protected override void QueueTask(Task task)
         {
             if (task == null)
@@ -130,8 +124,6 @@ namespace NetMQ
 
         #endregion
 
-        /// <summary>
-        /// </summary>
         public NetMQPoller()
         {
             m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
@@ -166,8 +158,6 @@ namespace NetMQ
 
         #region Add / Remove
 
-        /// <summary>
-        /// </summary>
         public void Add(ISocketPollable socket)
         {
             if (socket == null)
@@ -186,8 +176,6 @@ namespace NetMQ
             });
         }
 
-        /// <summary>
-        /// </summary>
         public void Add([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -197,8 +185,6 @@ namespace NetMQ
             Run(() => m_timers.Add(timer));
         }
 
-        /// <summary>
-        /// </summary>
         public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
@@ -216,8 +202,6 @@ namespace NetMQ
             });
         }
 
-        /// <summary>
-        /// </summary>
         public void Remove(ISocketPollable socket)
         {
             if (socket == null)
@@ -232,8 +216,6 @@ namespace NetMQ
             });
         }
 
-        /// <summary>
-        /// </summary>
         public void Remove([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -245,8 +227,6 @@ namespace NetMQ
             Run(() => m_timers.Remove(timer));
         }
 
-        /// <summary>
-        /// </summary>
         public void Remove([NotNull] Socket socket)
         {
             if (socket == null)

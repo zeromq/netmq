@@ -29,8 +29,6 @@ namespace NetMQ.Sockets
         {
         }
 
-        /// <summary>
-        /// </summary>
         public override bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
         {
             throw new NotSupportedException("Subscriber socket doesn't support sending");

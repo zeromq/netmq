@@ -7,19 +7,13 @@ using System.Collections;
 
 namespace NetMQ
 {
-    /// <summary>
-    /// </summary>
     public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
-        /// <summary>
-        /// </summary>
         public NetMQQueueEventArgs(NetMQQueue<T> queue)
         {
             Queue = queue;
         }
 
-        /// <summary>
-        /// </summary>
         public NetMQQueue<T> Queue { get; private set; }
     }
 
@@ -125,8 +119,6 @@ namespace NetMQ
 
         #region IEnumerator
 
-        /// <summary>
-        /// </summary>
         public IEnumerator<T> GetEnumerator() => m_queue.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() { yield return GetEnumerator(); }

@@ -28,12 +28,8 @@ namespace NetMQ
         public NetMQBeacon Beacon { get; private set; }
     }
 
-    /// <summary>
-    /// </summary>
     public sealed class NetMQBeacon : IDisposable, ISocketPollable
     {
-        /// <summary>
-        /// </summary>
         public const int UdpFrameMax = 255;
 
         private const string ConfigureCommand = "CONFIGURE";
@@ -466,8 +462,6 @@ namespace NetMQ
             return true;
         }
 
-        /// <summary>
-        /// </summary>
         public void Dispose()
         {
             m_actor.Dispose();

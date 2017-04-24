@@ -9,17 +9,9 @@ namespace NetMQ
     [Flags]
     public enum PollEvents
     {
-        /// <summary>
-        /// </summary>
         None = 0x0,
-        /// <summary>
-        /// </summary>
         PollIn = 0x1,
-        /// <summary>
-        /// </summary>
         PollOut = 0x2,
-        /// <summary>
-        /// </summary>
         PollError = 0x4
     }
 
