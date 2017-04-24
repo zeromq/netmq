@@ -85,7 +85,7 @@ namespace NetMQ
         /// </remarks>
         public int Interval
         {
-            get { return m_interval; }
+            get => m_interval;
             set
             {
                 m_interval = value;
@@ -102,7 +102,7 @@ namespace NetMQ
         /// </remarks>
         public bool Enable
         {
-            get { return m_enable; }
+            get => m_enable;
             set
             {
                 if (m_enable == value)

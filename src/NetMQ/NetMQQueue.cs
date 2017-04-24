@@ -9,11 +9,7 @@ namespace NetMQ
 {
     public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
-        public NetMQQueueEventArgs(NetMQQueue<T> queue)
-        {
-            Queue = queue;
-        }
-
+        public NetMQQueueEventArgs(NetMQQueue<T> queue) => Queue = queue;
         public NetMQQueue<T> Queue { get; }
     }
 
@@ -61,8 +57,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQQueueEventArgs<T>> ReceiveReady
         {
-            add { m_eventDelegator.Event += value; }
-            remove { m_eventDelegator.Event -= value; }
+            add => m_eventDelegator.Event += value;
+            remove => m_eventDelegator.Event -= value;
         }
 
         NetMQSocket ISocketPollable.Socket => m_reader;

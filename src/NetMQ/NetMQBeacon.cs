@@ -322,8 +322,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
         {
-            add { m_receiveEvent.Event += value; }
-            remove { m_receiveEvent.Event -= value; }
+            add => m_receiveEvent.Event += value;
+            remove => m_receiveEvent.Event -= value;
         }
 
         /// <summary>

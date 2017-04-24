@@ -94,7 +94,7 @@ namespace NetMQ
         /// <exception cref="ArgumentOutOfRangeException">The value must be between zero and BufferSize.</exception>
         public int MessageSize
         {
-            get { return m_messageSize; }
+            get => m_messageSize;
             set
             {
                 if (value < 0 || value > BufferSize)

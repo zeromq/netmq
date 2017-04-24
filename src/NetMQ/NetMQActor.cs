@@ -286,8 +286,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQActorEventArgs> ReceiveReady
         {
-            add { m_receiveEvent.Event += value; }
-            remove { m_receiveEvent.Event -= value; }
+            add => m_receiveEvent.Event += value;
+            remove => m_receiveEvent.Event -= value;
         }
 
         /// <summary>
@@ -295,8 +295,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQActorEventArgs> SendReady
         {
-            add { m_sendEvent.Event += value; }
-            remove { m_sendEvent.Event -= value; }
+            add => m_sendEvent.Event += value;
+            remove => m_sendEvent.Event -= value;
         }
 
         NetMQSocket ISocketPollable.Socket => m_self;

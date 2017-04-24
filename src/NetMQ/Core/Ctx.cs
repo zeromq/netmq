@@ -251,7 +251,7 @@ namespace NetMQ.Core
 
         public int IOThreadCount
         {
-            get { return m_ioThreadCount; }
+            get => m_ioThreadCount;
             set
             {
                 if (value < 0)
@@ -263,7 +263,7 @@ namespace NetMQ.Core
 
         public int MaxSockets
         {
-            get { return m_maxSockets; }
+            get => m_maxSockets;
             set
             {
                 if (value <= 0)
