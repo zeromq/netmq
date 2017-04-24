@@ -215,6 +215,21 @@ namespace NetMQ
             });
         }
 
+        public void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable
+        {
+            if (socket == null)
+                throw new ArgumentNullException(nameof(socket));
+            CheckDisposed();
+
+            Run(() =>
+            {
+                socket.Socket.EventsChanged -= OnSocketEventsChanged;
+                m_sockets.Remove(socket.Socket);
+                m_isPollSetDirty = true;
+                socket.Dispose();
+            });
+        }
+
         public void Remove([NotNull] NetMQTimer timer)
         {
             if (timer == null)
