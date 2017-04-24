@@ -8,7 +8,7 @@ namespace NetMQ.Sockets
     /// </summary>
     public class PairSocket : NetMQSocket
     {
-        private static int s_sequence = 0;
+        private static int s_sequence;
 
         /// <summary>
         /// Create a new PairSocket and attach socket to zero or more endpoints.
