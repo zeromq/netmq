@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using NetMQ.Core;
 
 namespace NetMQ
@@ -9,7 +10,7 @@ namespace NetMQ
     {
         private static TimeSpan s_linger;
 
-        private static Ctx s_ctx;
+        [CanBeNull] private static Ctx s_ctx;
         private static int s_threadPoolSize = Ctx.DefaultIOThreads;
         private static int s_maxSockets = Ctx.DefaultMaxSockets;
         private static readonly object s_sync;
