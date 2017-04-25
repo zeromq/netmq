@@ -492,7 +492,7 @@ namespace NetMQ
             m_stopSignaler.RequestStop();
 
             // If 'stop' was requested from the scheduler thread, we cannot block
-            if (IsPollerThread)
+            if (!IsPollerThread)
             {
                 m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
