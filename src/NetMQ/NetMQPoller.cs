@@ -205,10 +205,21 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
+            if (socket.IsDisposed)
+                throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
             Run(() =>
             {
+                // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
+                if (socket.IsDisposed)
+                    throw new InvalidOperationException(
+                        $"{nameof(NetMQPoller)}.{nameof(Remove)} was called from a non-poller thread, " +
+                        "so ran asynchronously. " +
+                        $"The {socket.GetType().Name} being removed was disposed while the remove " +
+                        $"operation waited to start on the poller thread. Use {nameof(RemoveAndDispose)} " +
+                        "instead, which will enqueue the remove and dispose to happen on the poller thread.");
+
                 socket.Socket.EventsChanged -= OnSocketEventsChanged;
                 m_sockets.Remove(socket.Socket);
                 m_isPollSetDirty = true;
@@ -219,10 +230,21 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
+            if (socket.IsDisposed)
+                throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
             Run(() =>
             {
+                // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
+                if (socket.IsDisposed)
+                    throw new InvalidOperationException(
+                        $"{nameof(NetMQPoller)}.{nameof(RemoveAndDispose)} was called from a non-poller thread, " +
+                        "so ran asynchronously. " +
+                        $"The {socket.GetType().Name} being removed was disposed while the remove " +
+                        $"operation waited to start on the poller thread. When using {nameof(RemoveAndDispose)} " +
+                        "you should not dispose the pollable object .");
+
                 socket.Socket.EventsChanged -= OnSocketEventsChanged;
                 m_sockets.Remove(socket.Socket);
                 m_isPollSetDirty = true;

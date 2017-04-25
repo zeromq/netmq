@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Sockets;
 
@@ -246,6 +247,7 @@ namespace NetMQ
 
         [CanBeNull] private string m_boundTo;
         [CanBeNull] private string m_hostName;
+        private int m_isDisposed;
 
         /// <summary>
         /// Create a new NetMQBeacon.
@@ -459,11 +461,17 @@ namespace NetMQ
             return true;
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
+            if (Interlocked.CompareExchange(ref m_isDisposed, 1, 0) != 0)
+                return;
             m_actor.Dispose();
             m_receiveEvent.Dispose();
         }
+
+        /// <inheritdoc />
+        public bool IsDisposed => m_isDisposed != 0;
     }
 
     /// <summary>

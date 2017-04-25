@@ -12,5 +12,10 @@ namespace NetMQ
         /// </summary>
         [NotNull]
         NetMQSocket Socket { get; }
+
+        /// <summary>
+        /// Gets whether the object has been disposed.
+        /// </summary>
+        bool IsDisposed { get; }
     }
 }

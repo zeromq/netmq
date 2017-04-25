@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using NetMQ.Sockets;
 
 namespace NetMQ.Core.Utils
@@ -7,6 +8,7 @@ namespace NetMQ.Core.Utils
     {
         private readonly PairSocket m_writer;
         private readonly PairSocket m_reader;
+        private int m_isDisposed;
 
         public StopSignaler()
         {
@@ -24,8 +26,12 @@ namespace NetMQ.Core.Utils
 
         NetMQSocket ISocketPollable.Socket => m_reader;
 
+        public bool IsDisposed => m_isDisposed != 0;
+
         public void Dispose()
         {
+            if (Interlocked.CompareExchange(ref m_isDisposed, 1, 0) != 0)
+                return;
             m_reader.Dispose();
             m_writer.Dispose();
         }
