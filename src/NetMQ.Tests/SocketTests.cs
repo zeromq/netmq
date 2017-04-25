@@ -163,7 +163,7 @@ namespace NetMQ.Tests
         }
 
         [Fact, Trait("Category", "Explicit")]
-        public void TestKeepAlive()
+        public void TestKeepalive()
         {
             // there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
             using (var rep = new ResponseSocket())

@@ -27,8 +27,8 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public void SendingTwoRequestsInaRow()
-        {
+        public void SendingTwoRequestsInARow()
+        {            
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             {

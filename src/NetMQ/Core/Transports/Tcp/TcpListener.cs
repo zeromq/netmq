@@ -129,7 +129,7 @@ namespace NetMQ.Core.Transports.Tcp
                 {
                     try
                     {
-                        // This is not supported on old windows operation system and might throw exception
+                        // This is not supported on old windows operating systems and might throw exception
                         m_handle.SetSocketOption(SocketOptionLevel.IPv6, IPv6Only, 0);
                     }
                     catch
