@@ -480,8 +480,12 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Stops the poller, blocking until stopped.
+        /// Stops the poller.
         /// </summary>
+        /// <remarks>
+        /// If called from a thread other than the poller thread, this method will block until the poller has stopped.
+        /// If called from the poller thread it is not possible to block.
+        /// </remarks>
         public void Stop()
         {
             CheckDisposed();
