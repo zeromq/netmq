@@ -25,8 +25,14 @@ namespace NetMQ
         {
             get
             {
+                // Optimise for the case where the value is non-null, and we don't need to acquire the lock
+                var c = s_ctx;
+                if (c != null)
+                    return c;
+
                 lock (s_sync)
                 {
+                    // Check again whether it's null now that we have the lock
                     if (s_ctx == null)
                     {
                         s_ctx = new Ctx();
