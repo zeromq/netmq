@@ -609,9 +609,10 @@ namespace NetMQ
         /// Stops and disposes the poller. The poller may not be used once disposed.
         /// </summary>
         /// <remarks>
-        /// Note that you cannot dispose the poller on the poller's thread. Doing so results in a deadlock.
+        /// Note that you cannot dispose the poller on the poller's thread. Doing so immediately throws an exception.
         /// </remarks>
         /// <exception cref="NetMQException">A socket in the poller has been disposed.</exception>
+        /// <exception cref="InvalidOperationException">Dispose called from the poller thread.</exception>
         public void Dispose()
         {
             // Attempting to dispose from the poller thread would cause a deadlock.

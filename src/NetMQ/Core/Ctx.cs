@@ -33,7 +33,6 @@ namespace NetMQ.Core
     /// associated with the NetMQ library. This contains the sockets, and manages interaction
     /// between them.
     /// </summary>
-    /// <remarks>Internal analog of the public <see cref="NetMQContext"/> class.</remarks>
     internal sealed class Ctx
     {
         internal const int DefaultIOThreads = 1;
