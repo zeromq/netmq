@@ -10,21 +10,17 @@ namespace NetMQ.Core.Utils
     {
         private const int CompletionStatusArraySize = 100;
 
-        private readonly string m_name;
+        private readonly Dictionary<AsyncSocket, Item> m_sockets;
         private readonly CompletionPort m_completionPort;
+        private readonly string m_name;
+
         private Thread m_worker;
         private bool m_stopping;
         private bool m_stopped;
 
-        private readonly Dictionary<AsyncSocket, Item> m_sockets;
-
         private class Item
         {
-            public Item([NotNull] IProactorEvents proactorEvents)
-            {
-                ProactorEvents = proactorEvents;
-                Cancelled = false;
-            }
+            public Item([NotNull] IProactorEvents proactorEvents) => ProactorEvents = proactorEvents;
 
             [NotNull]
             public IProactorEvents ProactorEvents { get; }
@@ -121,27 +117,27 @@ namespace NetMQ.Core.Utils
 
                             if (!item.Cancelled)
                             {
-                                    switch (completion.OperationType)
-                                    {
-                                        case OperationType.Accept:
-                                        case OperationType.Receive:
-                                            item.ProactorEvents.InCompleted(
-                                                completion.SocketError,
-                                                completion.BytesTransferred);
-                                            break;
-                                        case OperationType.Connect:
-                                        case OperationType.Disconnect:
-                                        case OperationType.Send:
-                                            item.ProactorEvents.OutCompleted(
-                                                completion.SocketError,
-                                                completion.BytesTransferred);
-                                            break;
-                                        default:
-                                            throw new ArgumentOutOfRangeException();
-                                    }
+                                switch (completion.OperationType)
+                                {
+                                    case OperationType.Accept:
+                                    case OperationType.Receive:
+                                        item.ProactorEvents.InCompleted(
+                                            completion.SocketError,
+                                            completion.BytesTransferred);
+                                        break;
+                                    case OperationType.Connect:
+                                    case OperationType.Disconnect:
+                                    case OperationType.Send:
+                                        item.ProactorEvents.OutCompleted(
+                                            completion.SocketError,
+                                            completion.BytesTransferred);
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException();
                                 }
                             }
                         }
+                    }
                     catch (TerminatingException)
                     { }
                 }

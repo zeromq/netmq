@@ -203,8 +203,6 @@ namespace NetMQ.Tests
                 }
             }
         }
-
-
     }
 }
 #endif

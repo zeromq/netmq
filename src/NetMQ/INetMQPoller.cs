@@ -2,7 +2,7 @@ using System;
 
 namespace NetMQ
 {
-    public interface INetMQPoller: IDisposable
+    public interface INetMQPoller : IDisposable
     {
         void Run();
         void RunAsync();

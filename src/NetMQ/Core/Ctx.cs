@@ -212,12 +212,9 @@ namespace NetMQ.Core
                             socket.Stop();
 
                         if (!block)
-                        {
                             m_reaper.ForceStop();
-                        }
                         else if (m_sockets.Count == 0)
                             m_reaper.Stop();
-
                     }
                     finally
                     {
