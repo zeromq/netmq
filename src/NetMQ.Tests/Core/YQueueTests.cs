@@ -69,7 +69,6 @@ namespace NetMQ.Tests.Core
             string four = "Four";
             string five = "Five";
 
-
             var queue = new YQueue<string>(2);
             queue.Push(ref one);
             queue.Push(ref two);

@@ -74,9 +74,7 @@ namespace NetMQ
         public void Start()
         {
             if (Interlocked.CompareExchange(ref m_state, StateStarting, StateStopped) != StateStopped)
-            {
                 throw new InvalidOperationException("Proxy has already been started");
-            }
 
             m_frontend.ReceiveReady += OnFrontendReady;
             m_backend.ReceiveReady += OnBackendReady;

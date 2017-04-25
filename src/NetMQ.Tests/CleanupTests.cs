@@ -13,16 +13,16 @@ namespace NetMQ.Tests
         {
             const int count = 1000;
 
-            NetMQConfig.Linger = TimeSpan.FromSeconds(0.5);           
+            NetMQConfig.Linger = TimeSpan.FromSeconds(0.5);
 
             using (var client = new DealerSocket(">tcp://localhost:5557"))
-            {                
+            {
                 // Sending a lot of messages
                 client.Options.SendHighWatermark = count;
                 for (int i = 0; i < count; i++)
                 {
                     client.SendFrame("Hello");
-                }                
+                }
             }
 
             Stopwatch stopwatch = Stopwatch.StartNew();

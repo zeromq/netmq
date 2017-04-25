@@ -11,14 +11,13 @@ namespace NetMQ.Sockets
         private static int s_sequence = 0;
 
         /// <summary>
-        /// Create a new PairSocket and attach socket to zero or more endpoints.               
-        /// </summary>                
+        /// Create a new PairSocket and attach socket to zero or more endpoints.
+        /// </summary>
         /// <param name="connectionString">List of NetMQ endpoints, separated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
         /// Default action is connect (if endpoint doesn't start with '@' or '>')</param>
-        /// <example><code>var socket = new PairSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>                 
+        /// <example><code>var socket = new PairSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>
         public PairSocket(string connectionString = null) : base(ZmqSocketType.Pair, connectionString, DefaultAction.Connect)
         {
-            
         }
 
         /// <summary>

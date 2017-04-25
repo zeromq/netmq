@@ -13,7 +13,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void Monitoring()
-        {            
+        {
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             using (var monitor = new NetMQMonitor(rep, $"inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
@@ -71,7 +71,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void NoHangWhenMonitoringUnboundInprocAddress()
-        {                        
+        {
             using (var monitor = new NetMQMonitor(new PairSocket(), "inproc://unbound-inproc-address", ownsSocket: true))
             {
                 var task = Task.Factory.StartNew(monitor.Start);
@@ -92,7 +92,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void ErrorCodeTest()
-        {            
+        {
             using (var req = new RequestSocket())
             using (var rep = new ResponseSocket())
             using (var monitor = new NetMQMonitor(req, "inproc://rep.inproc", SocketEvents.ConnectDelayed))
@@ -137,7 +137,7 @@ namespace NetMQ.Tests
             // When we dispose of the monitor
             // Then our monitor is Faulted with a EndpointNotFoundException
             // And monitor can't be stopped or disposed
-            
+
             using (var res = new ResponseSocket())
             {
                 NetMQMonitor monitor;
@@ -161,6 +161,6 @@ namespace NetMQ.Tests
                 Assert.That(completed, Is.True);
             }
             // NOTE If this test fails, it will hang because context.Dispose will block
-        }        
+        }
     }
 }

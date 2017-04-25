@@ -33,7 +33,7 @@
         }
 
         /// <summary>
-        /// Get or set the type of payment-card to be used, 
+        /// Get or set the type of payment-card to be used,
         /// which is either TransactionType.Debit or TransactionType.Credit.
         /// </summary>
         public TransactionType TransactionType { get; set; }

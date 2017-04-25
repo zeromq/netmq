@@ -49,13 +49,9 @@ namespace NetMQ
 
             m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
 
-            m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(() =>
-            {
-                m_reader.ReceiveReady += OnReceiveReady;
-            }, () =>
-            {
-                m_reader.ReceiveReady -= OnReceiveReady;
-            });
+            m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(
+                () => m_reader.ReceiveReady += OnReceiveReady,
+                () => m_reader.ReceiveReady -= OnReceiveReady);
 
             m_dequeueMsg = new Msg();
             m_dequeueMsg.InitEmpty();
@@ -118,13 +114,12 @@ namespace NetMQ
         {
             m_queue.Enqueue(value);
 
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitGC(EmptyArray<byte>.Instance, 0);
 
             lock (m_writer)
-            {
                 m_writer.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
-            }
+
             msg.Close();
         }
 
@@ -132,15 +127,9 @@ namespace NetMQ
 
         /// <summary>
         /// </summary>
-        public IEnumerator<T> GetEnumerator()
-        {
-            return m_queue.GetEnumerator();
-        }
+        public IEnumerator<T> GetEnumerator() => m_queue.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            yield return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() { yield return GetEnumerator(); }
 
         #endregion
 

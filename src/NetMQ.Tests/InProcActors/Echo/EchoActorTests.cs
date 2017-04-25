@@ -25,7 +25,7 @@ namespace NetMQ.Tests.InProcActors.Echo
         public void BadCommandTests(string command)
         {
             const string actorMessage = "whatever";
-            
+
             using (var actor = NetMQActor.Create(new EchoShimHandler()))
             {
                 actor.SendMoreFrame(command);

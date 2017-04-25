@@ -250,7 +250,7 @@ namespace NetMQ.Monitoring
         /// </summary>
         /// <exception cref="InvalidOperationException">The Monitor must not have already started nor attached to a poller.</exception>
         public void Start()
-        {            
+        {
             if (IsRunning)
                 throw new InvalidOperationException("Monitor already started");
 

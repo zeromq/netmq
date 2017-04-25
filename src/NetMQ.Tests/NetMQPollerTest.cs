@@ -270,7 +270,7 @@ namespace NetMQ.Tests
                     if (router2Arrived == 1)
                     {
                         poller.Add(router3);
-                        poller.Add(router4);                        
+                        poller.Add(router4);
                     }
 
                     signal2.Set();
@@ -382,7 +382,7 @@ namespace NetMQ.Tests
 
                     e.Socket.SendMoreFrame(identity).SendFrame("3");
                 };
-                
+
                 Task pollerTask = Task.Factory.StartNew(poller.Run);
 
                 // Send three messages. Only the first will be processed, as then handler removes

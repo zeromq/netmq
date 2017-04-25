@@ -157,7 +157,7 @@ namespace NetMQ
                 m_udpSocket?.Close();
 #else
                 m_udpSocket?.Dispose();
-#endif                      
+#endif
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)

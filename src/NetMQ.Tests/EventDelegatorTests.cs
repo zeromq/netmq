@@ -8,11 +8,7 @@ namespace NetMQ.Tests
     {
         private class Args<T> : EventArgs
         {
-            public Args(T value)
-            {
-                Value = value;
-            }
-
+            public Args(T value) => Value = value;
             public T Value { get; }
         }
 

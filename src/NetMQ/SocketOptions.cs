@@ -258,7 +258,7 @@ namespace NetMQ
         /// Set the RouterSocket behavior when an unroutable message is encountered.
         /// A value of false is the default and discards the message silently when it cannot be routed.
         /// A value of true causes throw of HostUnreachableException if the message cannot be routed.
-        /// </summary>       
+        /// </summary>
         public bool RouterMandatory
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.RouterMandatory, value); }
