@@ -68,9 +68,11 @@ namespace NetMQ
         /// </summary>
         /// <remarks>
         /// This also affects the termination of the socket's context.
+        /// <para />
         /// -1: Specifies infinite linger period. Pending messages shall not be discarded after the socket is closed;
         /// attempting to terminate the socket's context shall block until all pending messages have been sent to a peer.
-        /// 0: The default value of 0 specifies an no linger period. Pending messages shall be discarded immediately when the socket is closed.
+        /// <para />
+        /// 0: The default value of <see cref="TimeSpan.Zero"/> specifies no linger period. Pending messages shall be discarded immediately when the socket is closed.
         /// Positive values specify an upper bound for the linger period. Pending messages shall not be discarded after the socket is closed;
         /// attempting to terminate the socket's context shall block until either all pending messages have been sent to a peer,
         /// or the linger period expires, after which any pending messages shall be discarded.
@@ -163,11 +165,10 @@ namespace NetMQ
         [Obsolete("Use Cleanup method")]
         public static void ContextTerminate(bool block = true)
         {
-
         }
 
         /// <summary>
-        /// /// Method is obsolete, context created automatically
+        /// Method is obsolete, context created automatically
         /// </summary>
         [Obsolete("Context is created automatically")]
         public static void ContextCreate(bool block = false)
