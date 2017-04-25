@@ -21,7 +21,7 @@ namespace NetMQ.Tests
     [Trait("Category", "PGM")]
     public class PgmTests
     {
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void SimplePubSub()
         {
             using (var pub = new PublisherSocket())
@@ -39,7 +39,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void BindBothSockets()
         {
             using (var pub = new PublisherSocket())
@@ -57,7 +57,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void ConnectBothSockets()
         {
             using (var pub = new PublisherSocket())
@@ -75,7 +75,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void UseInterface()
         {
 #if NETCOREAPP1_0
@@ -104,7 +104,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void SetPgmSettings()
         {
             const int MegaBit = 1024;
@@ -138,7 +138,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void TwoSubscribers()
         {
             using (var pub = new PublisherSocket())
@@ -162,7 +162,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void TwoPublishers()
         {
             using (var pub = new PublisherSocket())
@@ -188,7 +188,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void Sending1000Messages()
         {
             // creating two different context and sending 1000 messages
@@ -238,7 +238,7 @@ namespace NetMQ.Tests
             Assert.Equal(1000, count);
         }
 
-        [Fact]
+        [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void LargeMessage()
         {
             using (var pub = new PublisherSocket())
@@ -265,7 +265,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Theory]
+        [Theory(Skip = "Requires MSMQ for PGM sockets")]
         [InlineData("pgm://239.0.0.1:1000")]
         [InlineData("tcp://localhost:60000")]
         public void SubscriberCleanupOnUnbind(string address)
