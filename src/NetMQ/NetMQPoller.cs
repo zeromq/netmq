@@ -159,9 +159,9 @@ namespace NetMQ
         public bool IsRunning => m_switch.Status;
 
 #if NET35
-        private bool IsPollerThread => m_pollerThread != Thread.CurrentThread;
+        private bool IsPollerThread => ReferenceEquals(m_pollerThread, Thread.CurrentThread);
 #else
-        private bool IsPollerThread => !m_isSchedulerThread.Value;
+        private bool IsPollerThread => m_isSchedulerThread.Value;
 #endif
 
         #region Add / Remove
