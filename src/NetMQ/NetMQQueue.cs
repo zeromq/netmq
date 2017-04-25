@@ -123,7 +123,7 @@ namespace NetMQ
             msg.Close();
         }
 
-        #region IENumerator methods
+        #region IEnumerator
 
         /// <summary>
         /// </summary>

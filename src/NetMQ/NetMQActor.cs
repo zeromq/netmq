@@ -231,7 +231,7 @@ namespace NetMQ
         #endregion
 
         /// <summary>
-        /// Execute the shimhandler's Run method, signal ok and then dispose of the shim.
+        /// Execute the shim handler's Run method, signal ok and then dispose of the shim.
         /// </summary>
         private void RunShim()
         {

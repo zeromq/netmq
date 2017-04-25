@@ -100,7 +100,7 @@ namespace NetMQ
         /// shall linger in memory after a socket is closed.
         /// </summary>
         /// <remarks>
-        /// If socket created with Context default is -1 if socket createw without socket (using new keyword) default is zero.
+        /// If socket created with Context default is -1 if socket created without socket (using new keyword) default is zero.
         /// If context is used this also affects the termination of context, otherwise this affects the exit of the process.
         /// -1: Specifies an infinite linger period. Pending messages shall not be discarded after the socket is closed;
         /// attempting to terminate the socket's context shall block until all pending messages have been sent to a peer.

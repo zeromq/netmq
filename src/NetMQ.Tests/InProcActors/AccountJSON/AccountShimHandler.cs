@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace NetMQ.Tests.InProcActors.AccountJSON
 {
     /// <summary>
-    /// This hander class is specific implementation that you would need
+    /// This handler class is specific implementation that you would need
     /// to implement per actor. This essentially contains your commands/protocol
     /// and should deal with any command workload, as well as sending back to the
     /// other end of the PairSocket which calling code would receive by using the
@@ -53,7 +53,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
 
                         string accountJson = msg[2].ConvertToString();
                         var account = JsonConvert.DeserializeObject<Account>(accountJson);
-                        AmmendAccount(accountAction, account);
+                        AmendAccount(accountAction, account);
                         shim.SendFrame(JsonConvert.SerializeObject(account));
                     }
                     else
@@ -70,7 +70,7 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
             }
         }
 
-        private static void AmmendAccount(AccountAction action, Account account)
+        private static void AmendAccount(AccountAction action, Account account)
         {
             decimal currentAmount = account.Balance;
             account.Balance = action.TransactionType == TransactionType.Debit
