@@ -15,7 +15,7 @@ namespace NetMQ
         /// </summary>
         /// <remarks>
         /// The call  blocks until the message can be sent and cannot be interrupted.
-        /// Wether the message can be sent depends on the socket type.
+        /// Whether the message can be sent depends on the socket type.
         /// </remarks>
         /// <param name="socket">The socket to send the message on.</param>
         /// <param name="msg">An object with message's data to send.</param>
