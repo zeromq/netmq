@@ -48,27 +48,27 @@ namespace NetMQ
 
             if (!string.IsNullOrEmpty(connectionString))
             {
-                var endpoints =
-                    connectionString.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(a => a.Trim()).Where(a=> !string.IsNullOrEmpty(a));
+                var endpoints = connectionString
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(a => a.Trim())
+                    .Where(a => !string.IsNullOrEmpty(a));
 
-                foreach (string endpoint in endpoints)
+                foreach (var endpoint in endpoints)
                 {
-                    if (endpoint[0] == '@')
+                    switch (endpoint[0])
                     {
-                        Bind(endpoint.Substring(1));
-                    }
-                    else if (endpoint[0] == '>')
-                    {
-                        Connect(endpoint.Substring(1));
-                    }
-                    else if (defaultAction == DefaultAction.Connect)
-                    {
-                        Connect(endpoint);
-                    }
-                    else
-                    {
-                        Bind(endpoint);
+                        case '@':
+                            Bind(endpoint.Substring(1));
+                            break;
+                        case '>':
+                            Connect(endpoint.Substring(1));
+                            break;
+                        default:
+                            if (defaultAction == DefaultAction.Connect)
+                                Connect(endpoint);
+                            else
+                                Bind(endpoint);
+                            break;
                     }
                 }
             }
