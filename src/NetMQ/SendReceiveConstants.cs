@@ -3,8 +3,6 @@ using System.Text;
 
 namespace NetMQ
 {
-    /// <summary>
-    /// </summary>
     public static class SendReceiveConstants
     {
         /// <summary>

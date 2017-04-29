@@ -25,15 +25,11 @@ namespace NetMQ
         /// Get the NetMQBeacon object that this holds.
         /// </summary>
         [NotNull]
-        public NetMQBeacon Beacon { get; private set; }
+        public NetMQBeacon Beacon { get; }
     }
 
-    /// <summary>
-    /// </summary>
     public sealed class NetMQBeacon : IDisposable, ISocketPollable
     {
-        /// <summary>
-        /// </summary>
         public const int UdpFrameMax = 255;
 
         private const string ConfigureCommand = "CONFIGURE";
@@ -157,7 +153,7 @@ namespace NetMQ
                 m_udpSocket?.Close();
 #else
                 m_udpSocket?.Dispose();
-#endif                      
+#endif
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
@@ -167,8 +163,7 @@ namespace NetMQ
 
             private void OnUdpReady(Socket socket)
             {
-                string peerName;
-                var frame = ReceiveUdpFrame(out peerName);
+                var frame = ReceiveUdpFrame(out string peerName);
 
                 // If filter is set, check that beacon matches it
                 var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);
@@ -259,12 +254,11 @@ namespace NetMQ
         {
             m_actor = NetMQActor.Create(new Shim());
 
-            EventHandler<NetMQActorEventArgs> onReceive = (sender, e) =>
-                m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
+            void OnReceive(object sender, NetMQActorEventArgs e) => m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
 
             m_receiveEvent = new EventDelegator<NetMQBeaconEventArgs>(
-                () => m_actor.ReceiveReady += onReceive,
-                () => m_actor.ReceiveReady -= onReceive);
+                () => m_actor.ReceiveReady += OnReceive,
+                () => m_actor.ReceiveReady -= OnReceive);
         }
 
         /// <summary>
@@ -327,8 +321,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
         {
-            add { m_receiveEvent.Event += value; }
-            remove { m_receiveEvent.Event -= value; }
+            add => m_receiveEvent.Event += value;
+            remove => m_receiveEvent.Event -= value;
         }
 
         /// <summary>
@@ -453,8 +447,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a beacon message was received, otherwise <c>false</c>.</returns>
         public bool TryReceive(TimeSpan timeout, out BeaconMessage message)
         {
-            string peerName;
-            if (!m_actor.TryReceiveFrameString(timeout, out peerName))
+            if (!m_actor.TryReceiveFrameString(timeout, out string peerName))
             {
                 message = default(BeaconMessage);
                 return false;
@@ -466,8 +459,6 @@ namespace NetMQ
             return true;
         }
 
-        /// <summary>
-        /// </summary>
         public void Dispose()
         {
             m_actor.Dispose();

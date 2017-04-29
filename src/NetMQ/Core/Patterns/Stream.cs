@@ -150,9 +150,8 @@ namespace NetMQ.Core.Patterns
         /// <param name="pipe">the Pipe that is being removed</param>
         protected override void XTerminated(Pipe pipe)
         {
-            Outpipe old;
 
-            m_outpipes.TryGetValue(pipe.Identity, out old);
+            m_outpipes.TryGetValue(pipe.Identity, out Outpipe old);
             m_outpipes.Remove(pipe.Identity);
 
             Debug.Assert(old != null);
@@ -221,8 +220,7 @@ namespace NetMQ.Core.Patterns
                         ? msg.Data
                         : msg.CloneData();
 
-                    Outpipe op;
-                    if (m_outpipes.TryGetValue(identity, out op))
+                    if (m_outpipes.TryGetValue(identity, out Outpipe op))
                     {
                         m_currentOut = op.Pipe;
                         if (!m_currentOut.CheckWrite())

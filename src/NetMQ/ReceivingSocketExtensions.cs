@@ -43,8 +43,7 @@ namespace NetMQ
         [NotNull]
         public static byte[] ReceiveFrameBytes([NotNull] this IReceivingSocket socket)
         {
-            bool more;
-            return socket.ReceiveFrameBytes(out more);
+            return socket.ReceiveFrameBytes(out bool more);
         }
 
         /// <summary>
@@ -83,8 +82,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameBytes([NotNull] this IReceivingSocket socket, out byte[] bytes)
         {
-            bool more;
-            return socket.TryReceiveFrameBytes(out bytes, out more);
+            return socket.TryReceiveFrameBytes(out bytes, out bool more);
         }
 
         /// <summary>
@@ -115,8 +113,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameBytes([NotNull] this IReceivingSocket socket, TimeSpan timeout, out byte[] bytes)
         {
-            bool more;
-            return socket.TryReceiveFrameBytes(timeout, out bytes, out more);
+            return socket.TryReceiveFrameBytes(timeout, out bytes, out bool more);
         }
 
         /// <summary>
@@ -273,8 +270,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveFrameString([NotNull] this IReceivingSocket socket)
         {
-            bool more;
-            return socket.ReceiveFrameString(SendReceiveConstants.DefaultEncoding, out more);
+            return socket.ReceiveFrameString(SendReceiveConstants.DefaultEncoding, out bool more);
         }
 
         /// <summary>
@@ -299,8 +295,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveFrameString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding)
         {
-            bool more;
-            return socket.ReceiveFrameString(encoding, out more);
+            return socket.ReceiveFrameString(encoding, out bool more);
         }
 
         /// <summary>
@@ -342,8 +337,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, out string frameString)
         {
-            bool more;
-            return socket.TryReceiveFrameString(TimeSpan.Zero, SendReceiveConstants.DefaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(TimeSpan.Zero, SendReceiveConstants.DefaultEncoding, out frameString, out bool more);
         }
 
         /// <summary>
@@ -369,8 +363,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, out string frameString)
         {
-            bool more;
-            return socket.TryReceiveFrameString(TimeSpan.Zero, encoding, out frameString, out more);
+            return socket.TryReceiveFrameString(TimeSpan.Zero, encoding, out frameString, out bool more);
         }
 
         /// <summary>
@@ -401,8 +394,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, out string frameString)
         {
-            bool more;
-            return socket.TryReceiveFrameString(timeout, SendReceiveConstants.DefaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(timeout, SendReceiveConstants.DefaultEncoding, out frameString, out bool more);
         }
 
         /// <summary>
@@ -430,8 +422,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, [NotNull] Encoding encoding, out string frameString)
         {
-            bool more;
-            return socket.TryReceiveFrameString(timeout, encoding, out frameString, out more);
+            return socket.TryReceiveFrameString(timeout, encoding, out frameString, out bool more);
         }
 
         /// <summary>

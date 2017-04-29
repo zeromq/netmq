@@ -32,7 +32,7 @@ namespace NetMQ
         /// Get the NetMQSocket that this references.
         /// </summary>
         [NotNull]
-        public NetMQSocket Socket { get; private set; }
+        public NetMQSocket Socket { get; }
 
         /// <summary>
         /// Get whether at least one message may be received by the socket without blocking.

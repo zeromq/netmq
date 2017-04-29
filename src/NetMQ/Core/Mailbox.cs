@@ -69,8 +69,7 @@ namespace NetMQ.Core
             // Get the pipe into passive state. That way, if the users starts by
             // polling on the associated file descriptor it will get woken up when
             // new command is posted.
-            Command cmd;
-            bool ok = m_commandPipe.TryRead(out cmd);
+            bool ok = m_commandPipe.TryRead(out Command cmd);
             Debug.Assert(!ok);
 
 #if DEBUG
@@ -160,8 +159,7 @@ namespace NetMQ.Core
             // polling on the associated file descriptor it will get woken up when
             // new command is posted.
 
-            Command cmd;
-            bool ok = m_commandPipe.TryRead(out cmd);
+            bool ok = m_commandPipe.TryRead(out Command cmd);
 
             Debug.Assert(!ok);
 

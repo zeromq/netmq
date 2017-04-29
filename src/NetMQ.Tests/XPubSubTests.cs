@@ -31,9 +31,8 @@ namespace NetMQ.Tests
                 pub.SendMoreFrame("A");
                 pub.SendFrame("Hello");
 
-                bool more;
 
-                Assert.AreEqual("A", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("A", sub.ReceiveFrameString(out bool more));
                 Assert.IsTrue(more);
 
                 Assert.AreEqual("Hello", sub.ReceiveFrameString(out more));
@@ -80,8 +79,7 @@ namespace NetMQ.Tests
 
                 pub.SendFrame("Hello");
 
-                bool more;
-                Assert.AreEqual("Hello", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("Hello", sub.ReceiveFrameString(out bool more));
                 Assert.False(more);
             }
         }
@@ -234,8 +232,7 @@ namespace NetMQ.Tests
                 pub.SendMoreFrame("A");
                 pub.SendFrame("Hello from the first publisher");
 
-                bool more;
-                Assert.AreEqual("A", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("A", sub.ReceiveFrameString(out bool more));
                 Assert.IsTrue(more);
                 Assert.AreEqual("Hello from the first publisher", sub.ReceiveFrameString(out more));
                 Assert.False(more);
@@ -299,9 +296,8 @@ namespace NetMQ.Tests
                 pub.SendMoreFrame("A");
                 pub.SendFrame("Hello");
 
-                bool more;
 
-                Assert.AreEqual("A", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("A", sub.ReceiveFrameString(out bool more));
                 Assert.IsTrue(more);
 
                 Assert.AreEqual("Hello", sub.ReceiveFrameString(out more));
@@ -314,8 +310,7 @@ namespace NetMQ.Tests
                 pub.SendMoreFrame("A");
                 pub.SendFrame("Hello");
 
-                string str;
-                Assert.IsFalse(sub.TryReceiveFrameString(out str));
+                Assert.IsFalse(sub.TryReceiveFrameString(out string str));
             }
         }
 

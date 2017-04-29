@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using NUnit.Framework;
 
 namespace NetMQ.Tests
@@ -80,8 +79,7 @@ namespace NetMQ.Tests
             var expected1 = PushFrame("Hello");
             var expected2 = PushFrame("World");
 
-            bool more;
-            byte[] actual1 = m_socket.ReceiveFrameBytes(out more);
+            byte[] actual1 = m_socket.ReceiveFrameBytes(out bool more);
 
             Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, m_socket.LastTimeout);
             Assert.IsTrue(more);
@@ -105,8 +103,7 @@ namespace NetMQ.Tests
         {
             var expected = PushFrame("Hello");
 
-            byte[] actual;
-            Assert.IsTrue(m_socket.TryReceiveFrameBytes(out actual));
+            Assert.IsTrue(m_socket.TryReceiveFrameBytes(out byte[] actual));
 
             Assert.AreEqual(TimeSpan.Zero, m_socket.LastTimeout);
             Assert.IsTrue(actual.SequenceEqual(expected));
@@ -124,9 +121,7 @@ namespace NetMQ.Tests
             var expected1 = PushFrame("Hello");
             var expected2 = PushFrame("World");
 
-            bool more;
-            byte[] actual;
-            Assert.IsTrue(m_socket.TryReceiveFrameBytes(out actual, out more));
+            Assert.IsTrue(m_socket.TryReceiveFrameBytes(out byte[] actual, out bool more));
 
             Assert.AreEqual(TimeSpan.Zero, m_socket.LastTimeout);
             Assert.IsTrue(actual.SequenceEqual(expected1));

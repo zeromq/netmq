@@ -196,11 +196,10 @@ namespace NetMQ.Tests
                 var port = rep.BindRandomPort("tcp://127.0.0.1");
                 req.Connect("tcp://127.0.0.1:" + port);
 
-                bool more;
 
                 req.SendFrame("1");
 
-                Assert.AreEqual("1", rep.ReceiveFrameString(out more));
+                Assert.AreEqual("1", rep.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
 
                 rep.SendFrame("2");
@@ -244,11 +243,11 @@ namespace NetMQ.Tests
                 {
                     pub.SendFrame(largeMessage);
 
-                    byte[] recvMesage = sub.ReceiveFrameBytes();
+                    byte[] recvMessage = sub.ReceiveFrameBytes();
 
                     for (int j = 0; j < 12000; j++)
                     {
-                        Assert.AreEqual(largeMessage[j], recvMesage[j]);
+                        Assert.AreEqual(largeMessage[j], recvMessage[j]);
                     }
                 }
             }
@@ -276,15 +275,15 @@ namespace NetMQ.Tests
 
                 pub.SendFrame(largerBuffer, 128);
 
-                byte[] recvMesage = sub.ReceiveFrameBytes();
+                byte[] recvMessage = sub.ReceiveFrameBytes();
 
-                Assert.AreEqual(128, recvMesage.Length);
-                Assert.AreEqual(0xD, recvMesage[124]);
-                Assert.AreEqual(0xE, recvMesage[125]);
-                Assert.AreEqual(0xE, recvMesage[126]);
-                Assert.AreEqual(0xD, recvMesage[127]);
+                Assert.AreEqual(128, recvMessage.Length);
+                Assert.AreEqual(0xD, recvMessage[124]);
+                Assert.AreEqual(0xE, recvMessage[125]);
+                Assert.AreEqual(0xE, recvMessage[126]);
+                Assert.AreEqual(0xD, recvMessage[127]);
 
-                Assert.AreNotEqual(largerBuffer.Length, recvMesage.Length);
+                Assert.AreNotEqual(largerBuffer.Length, recvMessage.Length);
             }
         }
 
@@ -297,7 +296,7 @@ namespace NetMQ.Tests
                 router.Options.RouterRawSocket = true;
                 var port = router.BindRandomPort("tcp://127.0.0.1");
 
-                clientSocket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));                
+                clientSocket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));
                 clientSocket.NoDelay = true;
 
                 byte[] clientMessage = Encoding.ASCII.GetBytes("HelloRaw");
@@ -349,7 +348,7 @@ namespace NetMQ.Tests
 
                     localDealer.SendFrame("test");
 
-                    Assert.AreEqual("test", connectingDealer.ReceiveFrameString());                    
+                    Assert.AreEqual("test", connectingDealer.ReceiveFrameString());
                 }
             }
         }
@@ -701,12 +700,12 @@ namespace NetMQ.Tests
             var readyMsg = Encoding.UTF8.GetBytes("RDY");
             var freeWorkers = new Queue<byte[]>();
 
-            using (var backendsRouter = new RouterSocket())
+            using (var backendRouter = new RouterSocket())
             {
-                backendsRouter.Options.Identity = Guid.NewGuid().ToByteArray();
-                backendsRouter.Bind("inproc://backend");
+                backendRouter.Options.Identity = Guid.NewGuid().ToByteArray();
+                backendRouter.Bind("inproc://backend");
 
-                backendsRouter.ReceiveReady += (o, e) =>
+                backendRouter.ReceiveReady += (o, e) =>
                 {
                     // Handle worker activity on backend
                     while (e.Socket.HasIn)
@@ -737,11 +736,11 @@ namespace NetMQ.Tests
                     }
                 };
 
-                using (var poller = new NetMQPoller {backendsRouter})
+                using (var poller = new NetMQPoller {backendRouter})
                 {
                     for (int i = 0; i < 2; i++)
                     {
-                        ParameterizedThreadStart threadMmethod = state =>
+                        void ThreadMethod(object state)
                         {
                             byte[] routerId = (byte[]) state;
                             byte[] workerId = Guid.NewGuid().ToByteArray();
@@ -757,15 +756,15 @@ namespace NetMQ.Tests
                                 workerSocket.SendMultipartMessage(workerReadyMsg);
                                 Thread.Sleep(1000);
                             }
-                        };
+                        }
 
-                        var workerThread = new Thread(threadMmethod)
+                        var workerThread = new Thread(ThreadMethod)
                         {
                             IsBackground = true,
                             Name = "worker" + i
                         };
 
-                        workerThread.Start(backendsRouter.Options.Identity);
+                        workerThread.Start(backendRouter.Options.Identity);
                     }
 
                     poller.RunAsync();
@@ -779,67 +778,59 @@ namespace NetMQ.Tests
         [Test]
         public void ConnectionStringDefault()
         {
-            using (ResponseSocket response = new ResponseSocket("tcp://127.0.0.1:51500"))
+            using (var response = new ResponseSocket("tcp://127.0.0.1:51500"))
+            using (var request = new RequestSocket("tcp://127.0.0.1:51500"))
             {
-                using (RequestSocket request = new RequestSocket("tcp://127.0.0.1:51500"))
-                {
-                    request.SendFrame("Hello");
+                request.SendFrame("Hello");
 
-                    Assert.AreEqual("Hello", response.ReceiveFrameString());
-                }
+                Assert.AreEqual("Hello", response.ReceiveFrameString());
             }
         }
 
         [Test]
         public void ConnectionStringSpecifyDefault()
         {
-            using (ResponseSocket response = new ResponseSocket("@tcp://127.0.0.1:51501"))
+            using (var response = new ResponseSocket("@tcp://127.0.0.1:51501"))
+            using (var request = new RequestSocket(">tcp://127.0.0.1:51501"))
             {
-                using (RequestSocket request = new RequestSocket(">tcp://127.0.0.1:51501"))
-                {
-                    request.SendFrame("Hello");
+                request.SendFrame("Hello");
 
-                    Assert.AreEqual("Hello", response.ReceiveFrameString());
-                }
+                Assert.AreEqual("Hello", response.ReceiveFrameString());
             }
         }
 
         [Test]
         public void ConnectionStringSpecifyNonDefault()
         {
-            using (ResponseSocket response = new ResponseSocket(">tcp://127.0.0.1:51502"))
+            using (var response = new ResponseSocket(">tcp://127.0.0.1:51502"))
+            using (var request = new RequestSocket("@tcp://127.0.0.1:51502"))
             {
-                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:51502"))
-                {
-                    request.SendFrame("Hello");
+                request.SendFrame("Hello");
 
-                    Assert.AreEqual("Hello", response.ReceiveFrameString());
-                }
+                Assert.AreEqual("Hello", response.ReceiveFrameString());
             }
         }
 
         [Test]
         public void ConnectionStringWithWhiteSpace()
         {
-            using (ResponseSocket response = new ResponseSocket(" >tcp://127.0.0.1:51503 "))
+            using (var response = new ResponseSocket(" >tcp://127.0.0.1:51503 "))
+            using (var request = new RequestSocket("@tcp://127.0.0.1:51503, "))
             {
-                using (RequestSocket request = new RequestSocket("@tcp://127.0.0.1:51503, "))
-                {
-                    request.SendFrame("Hello");
+                request.SendFrame("Hello");
 
-                    Assert.AreEqual("Hello", response.ReceiveFrameString());
-                }
+                Assert.AreEqual("Hello", response.ReceiveFrameString());
             }
         }
 
         [Test]
         public void ConnectionStringMultipleAddresses()
         {
-            using (DealerSocket server1 = new DealerSocket("@tcp://127.0.0.1:51504"))
-            using (DealerSocket server2 = new DealerSocket("@tcp://127.0.0.1:51505,@tcp://127.0.0.1:51506"))
-            using (DealerSocket client = new DealerSocket("tcp://127.0.0.1:51504,tcp://127.0.0.1:51505,tcp://127.0.0.1:51506"))
+            using (var server1 = new DealerSocket("@tcp://127.0.0.1:51504"))
+            using (var server2 = new DealerSocket("@tcp://127.0.0.1:51505,@tcp://127.0.0.1:51506"))
+            using (var client = new DealerSocket("tcp://127.0.0.1:51504,tcp://127.0.0.1:51505,tcp://127.0.0.1:51506"))
             {
-                // send three helloes
+                // send three hello messages
                 client.SendFrame("Hello");
                 client.SendFrame("Hello");
                 client.SendFrame("Hello");
@@ -867,10 +858,12 @@ namespace NetMQ.Tests
         }
     }
 
-    public static class NetMqSocketHelper
+    internal static class NetMQSocketExtensions
     {
+        private static long Counter;
+
         /// <summary>
-        /// Unbind the socket from last endpoint and wait until the underlaying socket was unbound and disposed.
+        /// Unbind the socket from last endpoint and wait until the underlying socket was unbound and disposed.
         /// It will also dispose the NetMQSocket
         /// </summary>
         /// <param name="sub"></param>
@@ -894,7 +887,5 @@ namespace NetMQ.Tests
                 monitorTask.Wait();
             }
         }
-
-        public static long Counter;
     }
 }

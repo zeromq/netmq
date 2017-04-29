@@ -41,7 +41,7 @@ namespace NetMQ
         /// Get the NetMQActor that this exception references.
         /// </summary>
         [NotNull]
-        public NetMQActor Actor { get; private set; }
+        public NetMQActor Actor { get; }
     }
 
     #endregion
@@ -149,19 +149,16 @@ namespace NetMQ
             m_self = self;
             m_shim = shim;
 
-            EventHandler<NetMQSocketEventArgs> onReceive = (sender, e) =>
-                m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
-
-            EventHandler<NetMQSocketEventArgs> onSend = (sender, e) =>
-                m_sendEvent.Fire(this, new NetMQActorEventArgs(this));
+            void OnReceive(object sender, NetMQSocketEventArgs e) => m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
+            void OnSend   (object sender, NetMQSocketEventArgs e) => m_sendEvent   .Fire(this, new NetMQActorEventArgs(this));
 
             m_receiveEvent = new EventDelegator<NetMQActorEventArgs>(
-                () => m_self.ReceiveReady += onReceive,
-                () => m_self.ReceiveReady -= onReceive);
+                () => m_self.ReceiveReady += OnReceive,
+                () => m_self.ReceiveReady -= OnReceive);
 
             m_sendEvent = new EventDelegator<NetMQActorEventArgs>(
-                () => m_self.SendReady += onSend,
-                () => m_self.SendReady -= onSend);
+                () => m_self.SendReady += OnSend,
+                () => m_self.SendReady -= OnSend);
 
             var random = new Random();
 
@@ -231,7 +228,7 @@ namespace NetMQ
         #endregion
 
         /// <summary>
-        /// Execute the shimhandler's Run method, signal ok and then dispose of the shim.
+        /// Execute the shim handler's Run method, signal ok and then dispose of the shim.
         /// </summary>
         private void RunShim()
         {
@@ -286,8 +283,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQActorEventArgs> ReceiveReady
         {
-            add { m_receiveEvent.Event += value; }
-            remove { m_receiveEvent.Event -= value; }
+            add => m_receiveEvent.Event += value;
+            remove => m_receiveEvent.Event -= value;
         }
 
         /// <summary>
@@ -295,8 +292,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQActorEventArgs> SendReady
         {
-            add { m_sendEvent.Event += value; }
-            remove { m_sendEvent.Event -= value; }
+            add => m_sendEvent.Event += value;
+            remove => m_sendEvent.Event -= value;
         }
 
         NetMQSocket ISocketPollable.Socket => m_self;

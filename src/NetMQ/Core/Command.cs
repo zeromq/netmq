@@ -52,7 +52,7 @@ namespace NetMQ.Core
         /// Get the argument to this command.
         /// </summary>
         [CanBeNull]
-        public object Arg { get; private set; }
+        public object Arg { get; }
 
         /// <summary>
         /// Override of ToString, which returns a string in the form [ command-type, destination ].

@@ -8,7 +8,7 @@ namespace NetMQ
     /// Forwards messages bidirectionally between two sockets. You can also specify a control socket tn which proxied messages will be sent.
     /// </summary>
     /// <remarks>
-    /// This class must be explicitly started by calling <see cref="Start"/>. If an external <see cref="Poller"/> has been specified,
+    /// This class must be explicitly started by calling <see cref="Start"/>. If an external <see cref="NetMQPoller"/> has been specified,
     /// then that call will block until <see cref="Stop"/> is called.
     /// <para/>
     /// If using an external <see cref="NetMQPoller"/>, ensure the front and back end sockets have been added to it.
@@ -74,9 +74,7 @@ namespace NetMQ
         public void Start()
         {
             if (Interlocked.CompareExchange(ref m_state, StateStarting, StateStopped) != StateStopped)
-            {
                 throw new InvalidOperationException("Proxy has already been started");
-            }
 
             m_frontend.ReceiveReady += OnFrontendReady;
             m_backend.ReceiveReady += OnBackendReady;

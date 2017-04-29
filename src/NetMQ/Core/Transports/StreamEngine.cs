@@ -400,10 +400,10 @@ namespace NetMQ.Core.Transports
                             // Send the 'length' and 'flags' fields of the identity message.
                             // The 'length' field is encoded in the long format.
 
-                            m_greetingOutputBuffer[m_outsize++] = ((byte)0xff);
+                            m_greetingOutputBuffer[m_outsize++] = 0xff;
                             m_greetingOutputBuffer.PutLong(m_options.Endian, (long)m_options.IdentitySize + 1, 1);
                             m_outsize += 8;
-                            m_greetingOutputBuffer[m_outsize++] = ((byte)0x7f);
+                            m_greetingOutputBuffer[m_outsize++] = 0x7f;
 
                             m_outpos = new ByteArraySegment(m_greetingOutputBuffer);
 

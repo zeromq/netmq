@@ -34,8 +34,7 @@ namespace NetMQ.Tests
 
                 rep.ReceiveReady += (s, e) =>
                 {
-                    bool more;
-                    Assert.AreEqual("Hello", e.Socket.ReceiveFrameString(out more));
+                    Assert.AreEqual("Hello", e.Socket.ReceiveFrameString(out bool more));
                     Assert.False(more);
 
                     e.Socket.SendFrame("World");
@@ -45,8 +44,7 @@ namespace NetMQ.Tests
 
                 req.SendFrame("Hello");
 
-                bool more2;
-                Assert.AreEqual("World", req.ReceiveFrameString(out more2));
+                Assert.AreEqual("World", req.ReceiveFrameString(out bool more2));
                 Assert.IsFalse(more2);
 
                 poller.Stop();
@@ -270,7 +268,7 @@ namespace NetMQ.Tests
                     if (router2Arrived == 1)
                     {
                         poller.Add(router3);
-                        poller.Add(router4);                        
+                        poller.Add(router4);
                     }
 
                     signal2.Set();
@@ -310,8 +308,7 @@ namespace NetMQ.Tests
                 poller.Stop();
 
                 router1.SkipFrame();
-                bool more;
-                Assert.AreEqual("1", router1.ReceiveFrameString(out more));
+                Assert.AreEqual("1", router1.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
 
                 Assert.AreEqual(1, router1Arrived);
@@ -352,8 +349,7 @@ namespace NetMQ.Tests
                     // identity
                     e.Socket.SkipFrame();
 
-                    bool more;
-                    Assert.AreEqual("Hello", e.Socket.ReceiveFrameString(out more));
+                    Assert.AreEqual("Hello", e.Socket.ReceiveFrameString(out bool more));
                     Assert.False(more);
 
                     // cancelling the socket
@@ -382,7 +378,7 @@ namespace NetMQ.Tests
 
                     e.Socket.SendMoreFrame(identity).SendFrame("3");
                 };
-                
+
                 Task pollerTask = Task.Factory.StartNew(poller.Run);
 
                 // Send three messages. Only the first will be processed, as then handler removes

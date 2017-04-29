@@ -26,18 +26,18 @@ namespace NetMQ.Monitoring
         /// Gets the <see cref="NetMQMonitor"/> that raised this event.
         /// </summary>
         [NotNull]
-        public NetMQMonitor Monitor { get; private set; }
+        public NetMQMonitor Monitor { get; }
 
         /// <summary>
         /// Gets the address of the event.
         /// </summary>
         [NotNull]
-        public string Address { get; private set; }
+        public string Address { get; }
 
         /// <summary>
         /// Gets the type of socket event that occurred.
         /// </summary>
-        public SocketEvents SocketEvent { get; private set; }
+        public SocketEvents SocketEvent { get; }
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ namespace NetMQ.Monitoring
         /// Gets the socket upon which this event occurred.
         /// </summary>
         [NotNull]
-        public AsyncSocket Socket { get; private set; }
+        public AsyncSocket Socket { get; }
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Gets the error code associated with this event.
         /// </summary>
-        public ErrorCode ErrorCode { get; private set; }
+        public ErrorCode ErrorCode { get; }
     }
 
     /// <summary>
@@ -110,6 +110,6 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Gets the interval, in milliseconds.
         /// </summary>
-        public int Interval { get; private set; }
+        public int Interval { get; }
     }
 }

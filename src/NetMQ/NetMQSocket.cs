@@ -2,7 +2,9 @@
 using System.Linq;
 using JetBrains.Annotations;
 using NetMQ.Core;
+#if NET40
 using NetMQ.Core.Utils;
+#endif
 
 namespace NetMQ
 {

@@ -371,8 +371,8 @@ namespace NetMQ
         /// <returns></returns>
         public byte this[int index]
         {
-            get { return Data[Offset + index]; }
-            set { Data[Offset + index] = value; }
+            get => Data[Offset + index];
+            set => Data[Offset + index] = value;
         }
 
         /// <summary>

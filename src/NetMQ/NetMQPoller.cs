@@ -18,8 +18,6 @@ using Switch = NetMQ.Core.Utils.Switch;
 
 namespace NetMQ
 {
-    /// <summary>
-    /// </summary>
     public sealed class NetMQPoller :
 #if !NET35
         TaskScheduler,
@@ -77,8 +75,6 @@ namespace NetMQ
         /// </example>
         public bool CanExecuteTaskInline => m_isSchedulerThread.Value;
 
-        /// <summary>
-        /// </summary>
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             if (task == null)
@@ -103,8 +99,6 @@ namespace NetMQ
             throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// </summary>
         protected override void QueueTask(Task task)
         {
             if (task == null)
@@ -114,7 +108,7 @@ namespace NetMQ
             m_tasksQueue.Enqueue(task);
         }
 
-        private void Run([NotNull] Action action)
+        public void Run([NotNull] Action action)
         {
             if (CanExecuteTaskInline)
                 action();
@@ -130,8 +124,6 @@ namespace NetMQ
 
         #endregion
 
-        /// <summary>
-        /// </summary>
         public NetMQPoller()
         {
             m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
@@ -144,8 +136,7 @@ namespace NetMQ
                 Debug.Assert(IsRunning);
 
                 // Try to dequeue and execute all pending tasks
-                Task task;
-                while (m_tasksQueue.TryDequeue(out task, TimeSpan.Zero))
+                while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
                     TryExecuteTask(task);
             };
 
@@ -166,8 +157,6 @@ namespace NetMQ
 
         #region Add / Remove
 
-        /// <summary>
-        /// </summary>
         public void Add(ISocketPollable socket)
         {
             if (socket == null)
@@ -186,8 +175,6 @@ namespace NetMQ
             });
         }
 
-        /// <summary>
-        /// </summary>
         public void Add([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -197,8 +184,6 @@ namespace NetMQ
             Run(() => m_timers.Add(timer));
         }
 
-        /// <summary>
-        /// </summary>
         public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
@@ -216,8 +201,6 @@ namespace NetMQ
             });
         }
 
-        /// <summary>
-        /// </summary>
         public void Remove(ISocketPollable socket)
         {
             if (socket == null)
@@ -232,8 +215,21 @@ namespace NetMQ
             });
         }
 
-        /// <summary>
-        /// </summary>
+        public void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable
+        {
+            if (socket == null)
+                throw new ArgumentNullException(nameof(socket));
+            CheckDisposed();
+
+            Run(() =>
+            {
+                socket.Socket.EventsChanged -= OnSocketEventsChanged;
+                m_sockets.Remove(socket.Socket);
+                m_isPollSetDirty = true;
+                socket.Dispose();
+            });
+        }
+
         public void Remove([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -245,8 +241,6 @@ namespace NetMQ
             Run(() => m_timers.Remove(timer));
         }
 
-        /// <summary>
-        /// </summary>
         public void Remove([NotNull] Socket socket)
         {
             if (socket == null)
@@ -452,8 +446,7 @@ namespace NetMQ
                         }
                         else if (item.ResultEvent.HasError() || item.ResultEvent.HasIn())
                         {
-                            Action<Socket> action;
-                            if (m_pollinSockets.TryGetValue(item.FileDescriptor, out action))
+                            if (m_pollinSockets.TryGetValue(item.FileDescriptor, out Action<Socket> action))
                                 action(item.FileDescriptor);
                         }
                     }
@@ -480,8 +473,12 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Stops the poller, blocking until stopped.
+        /// Stops the poller.
         /// </summary>
+        /// <remarks>
+        /// If called from a thread other than the poller thread, this method will block until the poller has stopped.
+        /// If called from the poller thread it is not possible to block.
+        /// </remarks>
         public void Stop()
         {
             CheckDisposed();
@@ -492,7 +489,7 @@ namespace NetMQ
             m_stopSignaler.RequestStop();
 
             // If 'stop' was requested from the scheduler thread, we cannot block
-            if (IsPollerThread)
+            if (!IsPollerThread)
             {
                 m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);

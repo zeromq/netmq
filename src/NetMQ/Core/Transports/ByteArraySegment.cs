@@ -347,8 +347,8 @@ namespace NetMQ.Core.Transports
         /// <param name="i">the index of the byte to access</param>
         public byte this[int i]
         {
-            get { return m_innerBuffer[i + Offset]; }
-            set { m_innerBuffer[i + Offset] = value; }
+            get => m_innerBuffer[i + Offset];
+            set => m_innerBuffer[i + Offset] = value;
         }
 
         /// <summary>

@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NetMQ.Core;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using NUnit.Framework;
@@ -24,7 +23,7 @@ namespace NetMQ.Tests
     {
         [Test]
         public void SimplePubSub()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -35,15 +34,14 @@ namespace NetMQ.Tests
 
                 pub.SendFrame("Hi");
 
-                bool more;
-                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
             }
         }
 
         [Test]
         public void BindBothSockets()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -54,15 +52,14 @@ namespace NetMQ.Tests
 
                 pub.SendFrame("Hi");
 
-                bool more;
-                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
             }
         }
 
         [Test]
         public void ConnectBothSockets()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -73,8 +70,7 @@ namespace NetMQ.Tests
 
                 pub.SendFrame("Hi");
 
-                bool more;
-                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
             }
         }
@@ -82,7 +78,7 @@ namespace NetMQ.Tests
         [Test]
         public void UseInterface()
         {
-#if NETCOREAPP1_0            
+#if NETCOREAPP1_0
             var hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).Result;
 #else
             var hostEntry = Dns.GetHostEntry(Dns.GetHostName());
@@ -92,7 +88,7 @@ namespace NetMQ.Tests
                 .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork)
                 .Select(addr => addr.ToString())
                 .FirstOrDefault();
-            
+
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -103,8 +99,7 @@ namespace NetMQ.Tests
 
                 pub.SendFrame("Hi");
 
-                bool more;
-                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
             }
         }
@@ -114,7 +109,7 @@ namespace NetMQ.Tests
         {
             const int MegaBit = 1024;
             const int MegaByte = 1024;
-            
+
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -132,8 +127,7 @@ namespace NetMQ.Tests
 
                 pub.SendFrame("Hi");
 
-                bool more;
-                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
 
                 Assert.AreEqual(2, pub.Options.MulticastHops);
@@ -146,7 +140,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void TwoSubscribers()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             using (var sub2 = new SubscriberSocket())
@@ -160,8 +154,7 @@ namespace NetMQ.Tests
 
                 pub.SendFrame("Hi");
 
-                bool more;
-                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
 
                 Assert.AreEqual("Hi", sub2.ReceiveFrameString(out more));
@@ -171,7 +164,7 @@ namespace NetMQ.Tests
 
         [Test]
         public void TwoPublishers()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var pub2 = new PublisherSocket())
             using (var sub = new SubscriberSocket())
@@ -184,9 +177,8 @@ namespace NetMQ.Tests
 
                 pub.SendFrame("Hi");
 
-                bool more;
 
-                Assert.AreEqual("Hi", sub.ReceiveFrameString(out more));
+                Assert.AreEqual("Hi", sub.ReceiveFrameString(out bool more));
                 Assert.IsFalse(more);
 
                 pub2.SendFrame("Hi2");
@@ -206,7 +198,7 @@ namespace NetMQ.Tests
             var subReady = new ManualResetEvent(false);
 
             Task subTask = Task.Factory.StartNew(() =>
-            {                
+            {
                 using (var sub = new SubscriberSocket())
                 {
                     sub.Bind("pgm://224.0.0.1:5555");
@@ -216,8 +208,7 @@ namespace NetMQ.Tests
 
                     while (count < 1000)
                     {
-                        bool more;
-                        Assert.AreEqual(count, BitConverter.ToInt32(sub.ReceiveFrameBytes(out more), 0));
+                        Assert.AreEqual(count, BitConverter.ToInt32(sub.ReceiveFrameBytes(out bool more), 0));
                         Assert.IsFalse(more);
                         count++;
                     }
@@ -227,7 +218,7 @@ namespace NetMQ.Tests
             subReady.WaitOne();
 
             Task pubTask = Task.Factory.StartNew(() =>
-            {                
+            {
                 using (var pub = new PublisherSocket())
                 {
                     pub.Connect("pgm://224.0.0.1:5555");
@@ -242,14 +233,14 @@ namespace NetMQ.Tests
             });
 
             pubTask.Wait();
-            subTask.Wait();            
+            subTask.Wait();
 
             Assert.AreEqual(1000, count);
         }
 
         [Test]
         public void LargeMessage()
-        {            
+        {
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
             {
@@ -297,7 +288,7 @@ namespace NetMQ.Tests
                         sub.Unbind(address);
 
                         Assert.That(closed.Wait(1000), Is.True, "Unbind failed to report Closed event to the Monitor");
-                        var duration = DateTime.Now - time;                        
+                        var duration = DateTime.Now - time;
 
                         monitor.Stop();
 

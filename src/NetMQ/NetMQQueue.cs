@@ -7,20 +7,10 @@ using System.Collections;
 
 namespace NetMQ
 {
-    /// <summary>
-    /// </summary>
     public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
-        /// <summary>
-        /// </summary>
-        public NetMQQueueEventArgs(NetMQQueue<T> queue)
-        {
-            Queue = queue;
-        }
-
-        /// <summary>
-        /// </summary>
-        public NetMQQueue<T> Queue { get; private set; }
+        public NetMQQueueEventArgs(NetMQQueue<T> queue) => Queue = queue;
+        public NetMQQueue<T> Queue { get; }
     }
 
     /// <summary>
@@ -49,13 +39,9 @@ namespace NetMQ
 
             m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
 
-            m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(() =>
-            {
-                m_reader.ReceiveReady += OnReceiveReady;
-            }, () =>
-            {
-                m_reader.ReceiveReady -= OnReceiveReady;
-            });
+            m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(
+                () => m_reader.ReceiveReady += OnReceiveReady,
+                () => m_reader.ReceiveReady -= OnReceiveReady);
 
             m_dequeueMsg = new Msg();
             m_dequeueMsg.InitEmpty();
@@ -71,8 +57,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQQueueEventArgs<T>> ReceiveReady
         {
-            add { m_eventDelegator.Event += value; }
-            remove { m_eventDelegator.Event -= value; }
+            add => m_eventDelegator.Event += value;
+            remove => m_eventDelegator.Event -= value;
         }
 
         NetMQSocket ISocketPollable.Socket => m_reader;
@@ -104,8 +90,7 @@ namespace NetMQ
         {
             m_reader.TryReceive(ref m_dequeueMsg, SendReceiveConstants.InfiniteTimeout);
 
-            T result;
-            m_queue.TryDequeue(out result);
+            m_queue.TryDequeue(out T result);
 
             return result;
         }
@@ -118,29 +103,20 @@ namespace NetMQ
         {
             m_queue.Enqueue(value);
 
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitGC(EmptyArray<byte>.Instance, 0);
 
             lock (m_writer)
-            {
                 m_writer.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
-            }
+
             msg.Close();
         }
 
-        #region IENumerator methods
+        #region IEnumerator
 
-        /// <summary>
-        /// </summary>
-        public IEnumerator<T> GetEnumerator()
-        {
-            return m_queue.GetEnumerator();
-        }
+        public IEnumerator<T> GetEnumerator() => m_queue.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            yield return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() { yield return GetEnumerator(); }
 
         #endregion
 

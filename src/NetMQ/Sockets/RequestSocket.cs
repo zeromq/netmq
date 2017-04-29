@@ -11,14 +11,13 @@ namespace NetMQ.Sockets
     public class RequestSocket : NetMQSocket
     {
         /// <summary>
-        /// Create a new RequestSocket and attach socket to zero or more endpoints.               
-        /// </summary>                
+        /// Create a new RequestSocket and attach socket to zero or more endpoints.
+        /// </summary>
         /// <param name="connectionString">List of NetMQ endpoints, separated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
         /// Default action is connect (if endpoint doesn't start with '@' or '>')</param>
-        /// <example><code>var socket = new RequestSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>  
+        /// <example><code>var socket = new RequestSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>
         public RequestSocket(string connectionString = null) : base(ZmqSocketType.Req, connectionString, DefaultAction.Connect)
         {
-
         }
 
         /// <summary>
@@ -30,21 +29,11 @@ namespace NetMQ.Sockets
         {
         }
 
-        /// <summary>
-        /// </summary>
         public enum ProgressTopic
         {
-            /// <summary>
-            /// </summary>
             Send,
-            /// <summary>
-            /// </summary>
             Retry,
-            /// <summary>
-            /// </summary>
             Failure,
-            /// <summary>
-            /// </summary>
             Success
         }
 
@@ -106,8 +95,7 @@ namespace NetMQ.Sockets
 
                     requestSocket.SendFrame(requestString);
 
-                    string frameString;
-                    if (requestSocket.TryReceiveFrameString(requestTimeout, out frameString))
+                    if (requestSocket.TryReceiveFrameString(requestTimeout, out string frameString))
                     {
                         progressPublisher?.SendFrame(ProgressTopic.Success.ToString());
 
