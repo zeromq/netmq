@@ -403,6 +403,28 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void RemoveThrowsIfSocketAlreadyDisposed()
+        {
+            var socket = new RouterSocket();
+
+            var poller = new NetMQPoller { socket };
+
+            // Dispose the socket.
+            // It is incorrect to have a disposed socket in a poller.
+            // Disposed sockets can throw into the poller's thread.
+            socket.Dispose();
+
+            // Remove throws if the removed socket
+            var ex = Assert.Throws<ArgumentException>(() => poller.Remove(socket));
+
+            Assert.True(ex.Message.StartsWith("Must not be disposed."));
+            Assert.AreEqual("socket", ex.ParamName);
+
+            // Still dispose it. It throws after cleanup.
+            Assert.Throws<NetMQException>(() => poller.Dispose());
+        }
+
+        [Test]
         public void DisposeThrowsIfSocketAlreadyDisposed()
         {
             var socket = new RouterSocket();
