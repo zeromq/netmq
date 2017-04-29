@@ -600,6 +600,7 @@ namespace NetMQ
         /// <remarks>
         /// Note that you cannot dispose the poller on the poller's thread. Doing so results in a deadlock.
         /// </remarks>
+        /// <exception cref="NetMQException">A socket in the poller has been disposed.</exception>
         public void Dispose()
         {
             // Attempting to dispose from the poller thread would cause a deadlock.
@@ -625,7 +626,11 @@ namespace NetMQ
 #endif
 
             foreach (var socket in m_sockets)
+            {
+                if (socket.IsDisposed)
+                    throw new NetMQException($"Invalid state detected: {nameof(NetMQPoller)} contains a disposed {nameof(NetMQSocket)}. Sockets must be either removed before being disposed, or disposed after the poller is disposed.");
                 socket.EventsChanged -= OnSocketEventsChanged;
+            }
 
             m_disposeState = (int)DisposeState.Disposed;
         }

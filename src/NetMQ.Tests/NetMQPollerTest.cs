@@ -403,6 +403,24 @@ namespace NetMQ.Tests
         }
 
         [Test]
+        public void DisposeThrowsIfSocketAlreadyDisposed()
+        {
+            var socket = new RouterSocket();
+
+            var poller = new NetMQPoller { socket };
+
+            // Dispose the socket.
+            // It is incorrect to have a disposed socket in a poller.
+            // Disposed sockets can throw into the poller's thread.
+            socket.Dispose();
+
+            // Dispose throws if a polled socket is disposed
+            var ex = Assert.Throws<NetMQException>(() => poller.Dispose());
+
+            Assert.AreEqual("Invalid state detected: NetMQPoller contains a disposed NetMQSocket. Sockets must be either removed before being disposed, or disposed after the poller is disposed.", ex.Message);
+        }
+
+        [Test]
         public void SimpleTimer()
         {
             // TODO it is not really clear what this test is actually testing -- maybe split it into a few smaller tests
