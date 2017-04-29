@@ -161,10 +161,21 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
+            if (socket.IsDisposed)
+                throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
             Run(() =>
             {
+                // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
+                if (socket.IsDisposed)
+                    throw new InvalidOperationException(
+                        $"{nameof(NetMQPoller)}.{nameof(Add)} was called from a non-poller thread, " +
+                        "so ran asynchronously. " +
+                        $"The {socket.GetType().Name} being added was disposed while the addition " +
+                        "operation waited to start on the poller thread. You must remove a socket " +
+                        "before disposing it, or dispose the poller first.");
+
                 if (m_sockets.Contains(socket.Socket))
                     return;
 
