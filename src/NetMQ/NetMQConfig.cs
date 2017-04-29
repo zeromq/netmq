@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using NetMQ.Core;
 
 namespace NetMQ
@@ -9,7 +10,7 @@ namespace NetMQ
     {
         private static TimeSpan s_linger;
 
-        private static Ctx s_ctx;
+        [CanBeNull] private static Ctx s_ctx;
         private static int s_threadPoolSize = Ctx.DefaultIOThreads;
         private static int s_maxSockets = Ctx.DefaultMaxSockets;
         private static readonly object s_sync;
@@ -24,8 +25,14 @@ namespace NetMQ
         {
             get
             {
+                // Optimise for the case where the value is non-null, and we don't need to acquire the lock
+                var c = s_ctx;
+                if (c != null)
+                    return c;
+
                 lock (s_sync)
                 {
+                    // Check again whether it's null now that we have the lock
                     if (s_ctx == null)
                     {
                         s_ctx = new Ctx();
@@ -61,9 +68,11 @@ namespace NetMQ
         /// </summary>
         /// <remarks>
         /// This also affects the termination of the socket's context.
+        /// <para />
         /// -1: Specifies infinite linger period. Pending messages shall not be discarded after the socket is closed;
         /// attempting to terminate the socket's context shall block until all pending messages have been sent to a peer.
-        /// 0: The default value of 0 specifies an no linger period. Pending messages shall be discarded immediately when the socket is closed.
+        /// <para />
+        /// 0: The default value of <see cref="TimeSpan.Zero"/> specifies no linger period. Pending messages shall be discarded immediately when the socket is closed.
         /// Positive values specify an upper bound for the linger period. Pending messages shall not be discarded after the socket is closed;
         /// attempting to terminate the socket's context shall block until either all pending messages have been sent to a peer,
         /// or the linger period expires, after which any pending messages shall be discarded.
@@ -156,11 +165,10 @@ namespace NetMQ
         [Obsolete("Use Cleanup method")]
         public static void ContextTerminate(bool block = true)
         {
-
         }
 
         /// <summary>
-        /// /// Method is obsolete, context created automatically
+        /// Method is obsolete, context created automatically
         /// </summary>
         [Obsolete("Context is created automatically")]
         public static void ContextCreate(bool block = false)
