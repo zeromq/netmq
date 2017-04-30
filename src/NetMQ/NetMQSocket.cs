@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Core;
 #if NET40
@@ -22,7 +23,7 @@ namespace NetMQ
 
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
-        private bool m_isClosed;
+        private int m_isClosed;
 
         internal enum DefaultAction
         {
@@ -47,27 +48,27 @@ namespace NetMQ
 
             if (!string.IsNullOrEmpty(connectionString))
             {
-                var endpoints =
-                    connectionString.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(a => a.Trim()).Where(a=> !string.IsNullOrEmpty(a));
+                var endpoints = connectionString
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(a => a.Trim())
+                    .Where(a => !string.IsNullOrEmpty(a));
 
-                foreach (string endpoint in endpoints)
+                foreach (var endpoint in endpoints)
                 {
-                    if (endpoint[0] == '@')
+                    switch (endpoint[0])
                     {
-                        Bind(endpoint.Substring(1));
-                    }
-                    else if (endpoint[0] == '>')
-                    {
-                        Connect(endpoint.Substring(1));
-                    }
-                    else if (defaultAction == DefaultAction.Connect)
-                    {
-                        Connect(endpoint);
-                    }
-                    else
-                    {
-                        Bind(endpoint);
+                        case '@':
+                            Bind(endpoint.Substring(1));
+                            break;
+                        case '>':
+                            Connect(endpoint.Substring(1));
+                            break;
+                        default:
+                            if (defaultAction == DefaultAction.Connect)
+                                Connect(endpoint);
+                            else
+                                Bind(endpoint);
+                            break;
                     }
                 }
             }
@@ -244,10 +245,8 @@ namespace NetMQ
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose()"/>.</summary>
         public void Close()
         {
-            if (m_isClosed)
+            if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) != 0)
                 return;
-
-            m_isClosed = true;
 
             m_socketHandle.CheckDisposed();
             m_socketHandle.Close();
@@ -333,7 +332,7 @@ namespace NetMQ
         /// <param name="events">the given PollEvents that dictates when of the two events to raise</param>
         internal void InvokeEvents(object sender, PollEvents events)
         {
-            if (m_isClosed)
+            if (m_isClosed != 0)
                 return;
 
             m_socketEventArgs.Init(events);
@@ -528,6 +527,9 @@ namespace NetMQ
 
             Close();
         }
+
+        /// <inheritdoc />
+        public bool IsDisposed => m_isClosed != 0;
 
         #endregion
     }

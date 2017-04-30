@@ -140,6 +140,8 @@ namespace NetMQ
         private readonly EventDelegator<NetMQActorEventArgs> m_receiveEvent;
         private readonly EventDelegator<NetMQActorEventArgs> m_sendEvent;
 
+        private int m_isDisposed;
+
         #region Creating Actor
 
         private NetMQActor(PairSocket self, PairSocket shim, [NotNull] IShimHandler shimHandler)
@@ -302,9 +304,7 @@ namespace NetMQ
 
         #region Disposing
 
-        /// <summary>
-        /// Release any contained resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);
@@ -317,6 +317,8 @@ namespace NetMQ
         /// <param name="disposing">true if managed resources are to be released</param>
         protected virtual void Dispose(bool disposing)
         {
+            if (Interlocked.CompareExchange(ref m_isDisposed, 1, 0) != 0)
+                return;
             if (!disposing)
                 return;
 
@@ -329,6 +331,9 @@ namespace NetMQ
             m_sendEvent.Dispose();
             m_receiveEvent.Dispose();
         }
+
+        /// <inheritdoc />
+        public bool IsDisposed => m_isDisposed != 0;
 
         #endregion
     }

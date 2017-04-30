@@ -62,6 +62,7 @@ namespace NetMQ
         }
 
         NetMQSocket ISocketPollable.Socket => m_reader;
+        public bool IsDisposed { get; }
 
         /// <summary>
         /// Try to dequeue an item from the queue. Dequeueing and item is not thread safe.

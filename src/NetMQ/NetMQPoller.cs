@@ -161,10 +161,21 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
+            if (socket.IsDisposed)
+                throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
             Run(() =>
             {
+                // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
+                if (socket.IsDisposed)
+                    throw new InvalidOperationException(
+                        $"{nameof(NetMQPoller)}.{nameof(Add)} was called from a non-poller thread, " +
+                        "so ran asynchronously. " +
+                        $"The {socket.GetType().Name} being added was disposed while the addition " +
+                        "operation waited to start on the poller thread. You must remove a socket " +
+                        "before disposing it, or dispose the poller first.");
+
                 if (m_sockets.Contains(socket.Socket))
                     return;
 
@@ -205,10 +216,21 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
+            if (socket.IsDisposed)
+                throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
             Run(() =>
             {
+                // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
+                if (socket.IsDisposed)
+                    throw new InvalidOperationException(
+                        $"{nameof(NetMQPoller)}.{nameof(Remove)} was called from a non-poller thread, " +
+                        "so ran asynchronously. " +
+                        $"The {socket.GetType().Name} being removed was disposed while the remove " +
+                        $"operation waited to start on the poller thread. Use {nameof(RemoveAndDispose)} " +
+                        "instead, which will enqueue the remove and dispose to happen on the poller thread.");
+
                 socket.Socket.EventsChanged -= OnSocketEventsChanged;
                 m_sockets.Remove(socket.Socket);
                 m_isPollSetDirty = true;
@@ -219,10 +241,21 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
+            if (socket.IsDisposed)
+                throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
             Run(() =>
             {
+                // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
+                if (socket.IsDisposed)
+                    throw new InvalidOperationException(
+                        $"{nameof(NetMQPoller)}.{nameof(RemoveAndDispose)} was called from a non-poller thread, " +
+                        "so ran asynchronously. " +
+                        $"The {socket.GetType().Name} being removed was disposed while the remove " +
+                        $"operation waited to start on the poller thread. When using {nameof(RemoveAndDispose)} " +
+                        "you should not dispose the pollable object .");
+
                 socket.Socket.EventsChanged -= OnSocketEventsChanged;
                 m_sockets.Remove(socket.Socket);
                 m_isPollSetDirty = true;
@@ -578,6 +611,7 @@ namespace NetMQ
         /// <remarks>
         /// Note that you cannot dispose the poller on the poller's thread. Doing so results in a deadlock.
         /// </remarks>
+        /// <exception cref="NetMQException">A socket in the poller has been disposed.</exception>
         public void Dispose()
         {
             // Attempting to dispose from the poller thread would cause a deadlock.
@@ -603,7 +637,11 @@ namespace NetMQ
 #endif
 
             foreach (var socket in m_sockets)
+            {
+                if (socket.IsDisposed)
+                    throw new NetMQException($"Invalid state detected: {nameof(NetMQPoller)} contains a disposed {nameof(NetMQSocket)}. Sockets must be either removed before being disposed, or disposed after the poller is disposed.");
                 socket.EventsChanged -= OnSocketEventsChanged;
+            }
 
             m_disposeState = (int)DisposeState.Disposed;
         }
