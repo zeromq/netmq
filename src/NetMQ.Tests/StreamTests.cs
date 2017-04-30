@@ -4,8 +4,10 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
-    public class StreamTests
+    public class StreamTests : IClassFixture<CleanupAfterFixture>
     {
+        public StreamTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void StreamToStream()
         {

@@ -3,8 +3,10 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class ReqRepTests
+    public class ReqRepTests : IClassFixture<CleanupAfterFixture>
     {
+        public ReqRepTests() => NetMQConfig.Cleanup();
+
         [Theory]
         [InlineData("tcp://localhost")]
         [InlineData("tcp://127.0.0.1")]
@@ -28,7 +30,7 @@ namespace NetMQ.Tests
 
         [Fact]
         public void SendingTwoRequestsInARow()
-        {            
+        {
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
             {

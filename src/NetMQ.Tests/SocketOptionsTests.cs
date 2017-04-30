@@ -4,8 +4,10 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class SocketOptionsTests
+    public class SocketOptionsTests : IClassFixture<CleanupAfterFixture>
     {
+        public SocketOptionsTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void DefaultValues()
         {

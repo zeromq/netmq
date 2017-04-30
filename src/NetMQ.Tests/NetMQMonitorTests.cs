@@ -9,14 +9,16 @@ using Xunit;
 namespace NetMQ.Tests
 {
     [Trait("Category", "Monitor")]
-    public class NetMQMonitorTests
+    public class NetMQMonitorTests : IClassFixture<CleanupAfterFixture>
     {
+        public NetMQMonitorTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void Monitoring()
         {
             using (var rep = new ResponseSocket())
             using (var req = new RequestSocket())
-            using (var monitor = new NetMQMonitor(rep, $"inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
+            using (var monitor = new NetMQMonitor(rep, "inproc://rep.inproc", SocketEvents.Accepted | SocketEvents.Listening))
             {
                 var listening = false;
                 var accepted = false;

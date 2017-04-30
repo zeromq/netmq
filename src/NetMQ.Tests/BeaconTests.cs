@@ -7,9 +7,11 @@ using Xunit;
 namespace NetMQ.Tests
 {
     [Trait("Category", "Beacon")]
-    public class BeaconTests
+    public class BeaconTests : IClassFixture<CleanupAfterFixture>
     {
         private static readonly TimeSpan s_publishInterval = TimeSpan.FromMilliseconds(100);
+
+        public BeaconTests() => NetMQConfig.Cleanup();
 
         [Fact]
         public void SimplePublishSubscribe()

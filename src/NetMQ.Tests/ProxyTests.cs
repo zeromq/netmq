@@ -5,8 +5,11 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class ProxyTests : IClassFixture<NetMQConfigFixture>
+    public class ProxyTests : IClassFixture<CleanupAfterFixture>
     {
+        /// <summary>Clean up before each test.</summary>
+        public ProxyTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void SendAndReceive()
         {

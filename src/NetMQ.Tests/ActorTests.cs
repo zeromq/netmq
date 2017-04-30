@@ -3,8 +3,10 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class ActorTests
+    public class ActorTests : IClassFixture<CleanupAfterFixture>
     {
+        public ActorTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void Simple()
         {

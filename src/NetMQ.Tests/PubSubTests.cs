@@ -6,8 +6,10 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class PubSubTests : IClassFixture<NetMQConfigFixture>
+    public class PubSubTests : IClassFixture<CleanupAfterFixture>
     {
+        public PubSubTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void TopicPubSub()
         {

@@ -6,8 +6,10 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class RequestWithRetryTests : IClassFixture<NetMQConfigFixture>
+    public class RequestWithRetryTests : IClassFixture<CleanupAfterFixture>
     {
+        public RequestWithRetryTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void RequestResponseMultipartMessageWithRetrySucceedsFirstTry()
         {

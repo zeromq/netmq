@@ -4,8 +4,10 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class NetMQProactorTests
+    public class NetMQProactorTests : IClassFixture<CleanupAfterFixture>
     {
+        public NetMQProactorTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void ReceiveMessage()
         {

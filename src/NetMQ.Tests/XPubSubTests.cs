@@ -7,8 +7,10 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
-    public class XPubSubTests
+    public class XPubSubTests : IClassFixture<CleanupAfterFixture>
     {
+        public XPubSubTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void TopicPubSub()
         {

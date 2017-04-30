@@ -15,8 +15,10 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class SocketTests : IClassFixture<NetMQConfigFixture>
+    public class SocketTests : IClassFixture<CleanupAfterFixture>
     {
+        public SocketTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void CheckTryReceive()
         {

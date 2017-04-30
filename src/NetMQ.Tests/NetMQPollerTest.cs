@@ -17,8 +17,10 @@ using System.Collections.Concurrent;
 namespace NetMQ.Tests
 {
     [Trait("Category", "Poller")]
-    public class NetMQPollerTest
+    public class NetMQPollerTest : IClassFixture<CleanupAfterFixture>
     {
+        public NetMQPollerTest() => NetMQConfig.Cleanup();
+
         #region Socket polling tests
 
         [Fact]

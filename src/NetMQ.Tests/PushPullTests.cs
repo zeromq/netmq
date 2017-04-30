@@ -3,11 +3,13 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class PushPullTests
+    public class PushPullTests : IClassFixture<CleanupAfterFixture>
     {
+        public PushPullTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void SimplePushPull()
-        {            
+        {
             using (var pullSocket = new PullSocket())
             using (var pushSocket = new PushSocket())
             {
@@ -22,7 +24,7 @@ namespace NetMQ.Tests
 
         [Fact]
         public void EmptyMessage()
-        {            
+        {
             using (var pullSocket = new PullSocket())
             using (var pushSocket = new PushSocket())
             {

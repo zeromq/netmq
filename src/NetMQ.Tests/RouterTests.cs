@@ -8,8 +8,10 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
-    public class RouterTests
+    public class RouterTests : IClassFixture<CleanupAfterFixture>
     {
+        public RouterTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void Mandatory()
         {
@@ -60,7 +62,7 @@ namespace NetMQ.Tests
                 var cnt = 0;
                 client.ReceiveReady += (sender, e) =>
                 {
-                    e.Socket.ReceiveMultipartStrings();                  
+                    e.Socket.ReceiveMultipartStrings();
                     cnt++;
                     if (cnt == 2)
                     {
@@ -110,7 +112,7 @@ namespace NetMQ.Tests
                     dealer2.Options.Identity = Encoding.ASCII.GetBytes("ID");
                     dealer2.Connect("inproc://127.0.0.1:5555");
 
-                    // We have new peer which should take over, however we are still reading a message                    
+                    // We have new peer which should take over, however we are still reading a message
                     var message = router.ReceiveFrameString();
                     Assert.Equal("Hello", message);
                     message = router.ReceiveFrameString();

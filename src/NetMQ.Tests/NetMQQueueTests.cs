@@ -5,8 +5,10 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class NetMQQueueTests
+    public class NetMQQueueTests : IClassFixture<CleanupAfterFixture>
     {
+        public NetMQQueueTests() => NetMQConfig.Cleanup();
+
         [Fact]
         public void EnqueueDequeue()
         {
