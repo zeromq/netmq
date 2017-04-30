@@ -73,8 +73,6 @@ namespace NetMQ.Core
 
         #endregion
 
-        private bool m_disposed;
-
         /// <summary>
         /// Sockets belonging to this context. We need the list so that
         /// we can notify the sockets when zmq_term() is called. The sockets
@@ -171,14 +169,6 @@ namespace NetMQ.Core
         /// </summary>
         public const int ReaperTid = 1;
 
-        /// <summary>Throws <see cref="ObjectDisposedException"/> if this is already disposed.</summary>
-        /// <exception cref="ObjectDisposedException">This object has already been disposed.</exception>
-        public void CheckDisposed()
-        {
-            if (m_disposed)
-                throw new ObjectDisposedException(GetType().FullName);
-        }
-
         /// <summary>
         /// This function is called when user invokes zmq_term. If there are
         /// no more sockets open it'll cause all the infrastructure to be shut
@@ -187,8 +177,6 @@ namespace NetMQ.Core
         /// </summary>
         public void Terminate(bool block)
         {
-            m_disposed = true;
-
             Monitor.Enter(m_slotSync);
 
             if (!m_starting)
@@ -241,8 +229,6 @@ namespace NetMQ.Core
             m_reaper?.Destroy();
 
             m_termMailbox.Close();
-
-            m_disposed = true;
         }
 
         public int IOThreadCount
