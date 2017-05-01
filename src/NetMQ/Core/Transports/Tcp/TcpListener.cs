@@ -22,7 +22,9 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+#if NETSTANDARD1_3
 using System.Runtime.InteropServices;
+#endif
 using AsyncIO;
 using JetBrains.Annotations;
 
@@ -47,10 +49,12 @@ namespace NetMQ.Core.Transports.Tcp
         [CanBeNull]
         private AsyncSocket m_handle;
 
+/*
         /// <summary>
         /// socket being accepted
         /// </summary>
-        //private AsyncSocket m_acceptedSocket;
+        private AsyncSocket m_acceptedSocket;
+*/
 
         /// <summary>
         /// Socket the listener belongs to.
