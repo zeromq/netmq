@@ -8,32 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
-using NUnit.Framework;
+using Xunit;
 
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable ExceptionNotDocumented
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
-    public class SocketTests
+    public class SocketTests : IClassFixture<CleanupAfterFixture>
     {
-        [OneTimeSetUp]
-        public void SetUp()
-        {
-            // Doing cleanup once so tests will not be affected by already ran tests
-            NetMQConfig.Cleanup(false);
-        }
+        public SocketTests() => NetMQConfig.Cleanup();
 
-        [TearDown]
-        public void TearDown()
-        {
-            // In CI it takes time for the background threads to complete the socket async dispose
-            // cleanup the library to avoid the issue
-            NetMQConfig.Cleanup();
-        }
-
-        [Test]
+        [Fact]
         public void CheckTryReceive()
         {
             using (var router = new RouterSocket())
@@ -42,11 +28,11 @@ namespace NetMQ.Tests
 
                 var msg = new Msg();
                 msg.InitEmpty();
-                Assert.IsFalse(router.TryReceive(ref msg, TimeSpan.Zero));
+                Assert.False(router.TryReceive(ref msg, TimeSpan.Zero));
             }
         }
 
-        [Test]
+        [Fact]
         public void CheckTrySendSucceeds()
         {
             using (var router = new RouterSocket())
@@ -61,11 +47,11 @@ namespace NetMQ.Tests
 
                 Thread.Sleep(100);
 
-                Assert.IsTrue(dealer.TrySendFrame("1"));
+                Assert.True(dealer.TrySendFrame("1"));
             }
         }
 
-        [Test]
+        [Fact]
         public void CheckTrySendFails()
         {
             using (var dealer = new DealerSocket())
@@ -77,13 +63,13 @@ namespace NetMQ.Tests
                 Thread.Sleep(100);
 
                 var success = dealer.TrySendFrame("1");
-                Assert.IsTrue(success); // because the SendHighWatermark allows it into the buffers
+                Assert.True(success); // because the SendHighWatermark allows it into the buffers
                 success = dealer.TrySendFrame("2");
-                Assert.IsFalse(success);
+                Assert.False(success);
             }
         }
 
-        [Test]
+        [Fact]
         public void LargeMessage()
         {
             using (var pub = new PublisherSocket())
@@ -101,11 +87,11 @@ namespace NetMQ.Tests
 
                 byte[] msg2 = sub.ReceiveFrameBytes();
 
-                Assert.AreEqual(300, msg2.Length);
+                Assert.Equal(300, msg2.Length);
             }
         }
 
-        [Test]
+        [Fact]
         public void ReceiveMessageWithTimeout()
         {
             {
@@ -135,12 +121,12 @@ namespace NetMQ.Tests
                         pubSync.Set();
 
                         NetMQMessage msg = null;
-                        Assert.IsFalse(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(100), ref msg));
+                        Assert.False(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(100), ref msg));
 
-                        Assert.IsTrue(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(waitTime), ref msg));
+                        Assert.True(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(waitTime), ref msg));
                         Assert.NotNull(msg);
-                        Assert.AreEqual(1, msg.FrameCount);
-                        Assert.AreEqual(300, msg.First.MessageSize);
+                        Assert.Equal(1, msg.FrameCount);
+                        Assert.Equal(300, msg.First.MessageSize);
                         pubSync.Set();
                     }
                 }, TaskCreationOptions.LongRunning);
@@ -152,7 +138,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void LargeMessageLittleEndian()
         {
             using (var pub = new PublisherSocket())
@@ -174,12 +160,12 @@ namespace NetMQ.Tests
 
                 byte[] msg2 = sub.ReceiveFrameBytes();
 
-                Assert.AreEqual(300, msg2.Length);
+                Assert.Equal(300, msg2.Length);
             }
         }
 
-        [Test, Explicit]
-        public void TestKeepAlive()
+        [Fact, Trait("Category", "Explicit")]
+        public void TestKeepalive()
         {
             // there is no way to test tcp keep alive without disconnect the cable, we just testing that is not crashing the system
             using (var rep = new ResponseSocket())
@@ -199,33 +185,31 @@ namespace NetMQ.Tests
 
                 req.SendFrame("1");
 
-                Assert.AreEqual("1", rep.ReceiveFrameString(out bool more));
-                Assert.IsFalse(more);
+                Assert.Equal("1", rep.ReceiveFrameString(out bool more));
+                Assert.False(more);
 
                 rep.SendFrame("2");
 
-                Assert.AreEqual("2", req.ReceiveFrameString(out more));
-                Assert.IsFalse(more);
+                Assert.Equal("2", req.ReceiveFrameString(out more));
+                Assert.False(more);
 
-                Assert.IsTrue(req.Options.TcpKeepalive);
-                Assert.AreEqual(TimeSpan.FromSeconds(5), req.Options.TcpKeepaliveIdle);
-                Assert.AreEqual(TimeSpan.FromSeconds(1), req.Options.TcpKeepaliveInterval);
+                Assert.True(req.Options.TcpKeepalive);
+                Assert.Equal(TimeSpan.FromSeconds(5), req.Options.TcpKeepaliveIdle);
+                Assert.Equal(TimeSpan.FromSeconds(1), req.Options.TcpKeepaliveInterval);
 
-                Assert.IsTrue(rep.Options.TcpKeepalive);
-                Assert.AreEqual(TimeSpan.FromSeconds(5), rep.Options.TcpKeepaliveIdle);
-                Assert.AreEqual(TimeSpan.FromSeconds(1), rep.Options.TcpKeepaliveInterval);
+                Assert.True(rep.Options.TcpKeepalive);
+                Assert.Equal(TimeSpan.FromSeconds(5), rep.Options.TcpKeepaliveIdle);
+                Assert.Equal(TimeSpan.FromSeconds(1), rep.Options.TcpKeepaliveInterval);
             }
         }
 
-        [Test]
+        [Fact]
         public void MultipleLargeMessages()
         {
             var largeMessage = new byte[12000];
 
             for (int i = 0; i < 12000; i++)
-            {
                 largeMessage[i] = (byte)(i % 256);
-            }
 
             using (var pub = new PublisherSocket())
             using (var sub = new SubscriberSocket())
@@ -245,15 +229,12 @@ namespace NetMQ.Tests
 
                     byte[] recvMessage = sub.ReceiveFrameBytes();
 
-                    for (int j = 0; j < 12000; j++)
-                    {
-                        Assert.AreEqual(largeMessage[j], recvMessage[j]);
-                    }
+                    Assert.Equal(largeMessage, recvMessage);
                 }
             }
         }
 
-        [Test]
+        [Fact]
         public void LargerBufferLength()
         {
             var largerBuffer = new byte[256];
@@ -277,17 +258,17 @@ namespace NetMQ.Tests
 
                 byte[] recvMessage = sub.ReceiveFrameBytes();
 
-                Assert.AreEqual(128, recvMessage.Length);
-                Assert.AreEqual(0xD, recvMessage[124]);
-                Assert.AreEqual(0xE, recvMessage[125]);
-                Assert.AreEqual(0xE, recvMessage[126]);
-                Assert.AreEqual(0xD, recvMessage[127]);
+                Assert.Equal(128, recvMessage.Length);
+                Assert.Equal(0xD, recvMessage[124]);
+                Assert.Equal(0xE, recvMessage[125]);
+                Assert.Equal(0xE, recvMessage[126]);
+                Assert.Equal(0xD, recvMessage[127]);
 
-                Assert.AreNotEqual(largerBuffer.Length, recvMessage.Length);
+                Assert.NotEqual(largerBuffer.Length, recvMessage.Length);
             }
         }
 
-        [Test]
+        [Fact]
         public void RawSocket()
         {
             using (var router = new RouterSocket())
@@ -302,7 +283,7 @@ namespace NetMQ.Tests
                 byte[] clientMessage = Encoding.ASCII.GetBytes("HelloRaw");
 
                 int bytesSent = clientSocket.Send(clientMessage);
-                Assert.Greater(bytesSent, 0);
+                Assert.True(bytesSent > 0);
 
                 byte[] id = router.ReceiveFrameBytes();
                 byte[] message = router.ReceiveFrameBytes();
@@ -312,13 +293,13 @@ namespace NetMQ.Tests
                 var buffer = new byte[16];
 
                 int bytesRead = clientSocket.Receive(buffer);
-                Assert.Greater(bytesRead, 0);
+                Assert.True(bytesRead > 0);
 
-                Assert.AreEqual(Encoding.ASCII.GetString(buffer, 0, bytesRead), "HelloRaw");
+                Assert.Equal(Encoding.ASCII.GetString(buffer, 0, bytesRead), "HelloRaw");
             }
         }
 
-        [Test]
+        [Fact]
         public void BindRandom()
         {
             using (var randomDealer = new DealerSocket())
@@ -329,11 +310,11 @@ namespace NetMQ.Tests
 
                 randomDealer.SendFrame("test");
 
-                Assert.AreEqual("test", connectingDealer.ReceiveFrameString());
+                Assert.Equal("test", connectingDealer.ReceiveFrameString());
             }
         }
 
-        [Test]
+        [Fact]
         public void BindToLocal()
         {
             var validAliasesForLocalHost = new[] { "127.0.0.1", "localhost", Dns.GetHostName() };
@@ -348,12 +329,12 @@ namespace NetMQ.Tests
 
                     localDealer.SendFrame("test");
 
-                    Assert.AreEqual("test", connectingDealer.ReceiveFrameString());
+                    Assert.Equal("test", connectingDealer.ReceiveFrameString());
                 }
             }
         }
 
-        [Test, Category("IPv6"), Explicit]
+        [Fact, Trait("Category", "IPv6"), Trait("Category", "Explicit")]
         public void Ipv6ToIpv4()
         {
             using (var localDealer = new DealerSocket())
@@ -366,11 +347,11 @@ namespace NetMQ.Tests
 
                 connectingDealer.SendFrame("test");
 
-                Assert.AreEqual("test", localDealer.ReceiveFrameString());
+                Assert.Equal("test", localDealer.ReceiveFrameString());
             }
         }
 
-        [Test, Category("IPv6"), Explicit]
+        [Fact, Trait("Category", "IPv6"), Trait("Category", "Explicit")]
         public void Ipv6ToIpv6()
         {
             using (var localDealer = new DealerSocket())
@@ -384,11 +365,11 @@ namespace NetMQ.Tests
 
                 connectingDealer.SendFrame("test");
 
-                Assert.AreEqual("test", localDealer.ReceiveFrameString());
+                Assert.Equal("test", localDealer.ReceiveFrameString());
             }
         }
 
-        [Test]
+        [Fact]
         public void HasInTest()
         {
             using (var server = new RouterSocket())
@@ -397,7 +378,7 @@ namespace NetMQ.Tests
                 var port = server.BindRandomPort("tcp://*");
 
                 // no one sent a message so it should be false
-                Assert.IsFalse(server.HasIn);
+                Assert.False(server.HasIn);
 
                 client.Connect("tcp://localhost:" + port);
 
@@ -405,7 +386,7 @@ namespace NetMQ.Tests
                 Thread.Sleep(100);
 
                 // now we have one client connected but didn't send a message yet
-                Assert.IsFalse(server.HasIn);
+                Assert.False(server.HasIn);
 
                 client.SendFrame("1");
 
@@ -413,19 +394,19 @@ namespace NetMQ.Tests
                 Thread.Sleep(100);
 
                 // the has in should indicate a message is ready
-                Assert.IsTrue(server.HasIn);
+                Assert.True(server.HasIn);
 
                 server.SkipFrame(); // identity
                 string message = server.ReceiveFrameString();
 
-                Assert.AreEqual(message, "1");
+                Assert.Equal(message, "1");
 
                 // we read the message, it should false again
-                Assert.IsFalse(server.HasIn);
+                Assert.False(server.HasIn);
             }
         }
 
-        [Test]
+        [Fact]
         public void DisposeImmediately()
         {
             using (var server = new DealerSocket())
@@ -434,7 +415,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void HasOutTest()
         {
             using (var server = new DealerSocket())
@@ -444,26 +425,26 @@ namespace NetMQ.Tests
                     var port = server.BindRandomPort("tcp://*");
 
                     // no client is connected so we don't have out
-                    Assert.IsFalse(server.HasOut);
+                    Assert.False(server.HasOut);
 
-                    Assert.IsFalse(client.HasOut);
+                    Assert.False(client.HasOut);
 
                     client.Connect("tcp://localhost:" + port);
 
                     Thread.Sleep(200);
 
                     // client is connected so server should have out now, client as well
-                    Assert.IsTrue(server.HasOut);
-                    Assert.IsTrue(client.HasOut);
+                    Assert.True(server.HasOut);
+                    Assert.True(client.HasOut);
                 }
 
                 //Thread.Sleep(2000);
                 // client is disposed,server shouldn't have out now
-                //Assert.IsFalse(server.HasOut);
+                //Assert.False(server.HasOut);
             }
         }
 
-        [Test, TestCase("tcp"), TestCase("inproc")]
+        [Theory, InlineData("tcp"), InlineData("inproc")]
         public void Disconnect(string protocol)
         {
             using (var server1 = new DealerSocket())
@@ -515,7 +496,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test, TestCase("tcp"), TestCase("inproc")]
+        [Theory, InlineData("tcp"), InlineData("inproc")]
         public void Unbind(string protocol)
         {
             using (var server = new DealerSocket())
@@ -581,7 +562,7 @@ namespace NetMQ.Tests
                         client1.SendFrame("1");
                         server.SkipFrame();
 
-                        Assert.IsFalse(client2.TrySendFrame(TimeSpan.FromSeconds(2), "2"));
+                        Assert.False(client2.TrySendFrame(TimeSpan.FromSeconds(2), "2"));
                     }
                     else
                     {
@@ -591,7 +572,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void BindRandomThenUnbind()
         {
             using (var pub = new PublisherSocket())
@@ -620,7 +601,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void ReconnectOnRouterBug()
         {
             {
@@ -637,7 +618,7 @@ namespace NetMQ.Tests
 
                         router.SendMoreFrame("dealer").SendFrame("Hello");
                         var message = dealer.ReceiveFrameString();
-                        Assert.That(message == "Hello");
+                        Assert.Equal("Hello", message);
 
                         router.Disconnect("tcp://localhost:6667");
                         Thread.Sleep(1000);
@@ -646,13 +627,13 @@ namespace NetMQ.Tests
 
                         router.SendMoreFrame("dealer").SendFrame("Hello");
                         message = dealer.ReceiveFrameString();
-                        Assert.That(message == "Hello");
+                        Assert.Equal("Hello", message);
                     }
                 }
             }
         }
 
-        [Test]
+        [Fact]
         public void RouterMandatoryTrueThrowsHostUnreachableException()
         {
             {
@@ -673,26 +654,24 @@ namespace NetMQ.Tests
         }
 
 
-        [Test]
+        [Fact]
         public void RouterMandatoryFalseDiscardsMessageSilently()
         {
+            using (var dealer = new DealerSocket())
             {
-                using (var dealer = new DealerSocket())
+                dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
+                dealer.Bind("tcp://localhost:6667");
+
+                using (var router = new RouterSocket())
                 {
-                    dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
-                    dealer.Bind("tcp://localhost:6667");
+                    router.Connect("tcp://localhost:8889");
 
-                    using (var router = new RouterSocket())
-                    {
-                        router.Connect("tcp://localhost:8889");
-
-                        Assert.DoesNotThrow(() => router.SendMoreFrame("dealer").SendFrame("Hello"));
-                    }
+                    router.SendMoreFrame("dealer").SendFrame("Hello");
                 }
             }
         }
 
-        [Test]
+        [Fact]
         public void InprocRouterDealerTest()
         {
             // The main thread simply starts several clients and a server, and then
@@ -770,12 +749,12 @@ namespace NetMQ.Tests
                     poller.RunAsync();
                     Thread.Sleep(1000);
                     poller.Stop();
-                    Assert.AreEqual(2, freeWorkers.Count);
+                    Assert.Equal(2, freeWorkers.Count);
                 }
             }
         }
 
-        [Test]
+        [Fact]
         public void ConnectionStringDefault()
         {
             using (var response = new ResponseSocket("tcp://127.0.0.1:51500"))
@@ -783,11 +762,11 @@ namespace NetMQ.Tests
             {
                 request.SendFrame("Hello");
 
-                Assert.AreEqual("Hello", response.ReceiveFrameString());
+                Assert.Equal("Hello", response.ReceiveFrameString());
             }
         }
 
-        [Test]
+        [Fact]
         public void ConnectionStringSpecifyDefault()
         {
             using (var response = new ResponseSocket("@tcp://127.0.0.1:51501"))
@@ -795,11 +774,11 @@ namespace NetMQ.Tests
             {
                 request.SendFrame("Hello");
 
-                Assert.AreEqual("Hello", response.ReceiveFrameString());
+                Assert.Equal("Hello", response.ReceiveFrameString());
             }
         }
 
-        [Test]
+        [Fact]
         public void ConnectionStringSpecifyNonDefault()
         {
             using (var response = new ResponseSocket(">tcp://127.0.0.1:51502"))
@@ -807,11 +786,11 @@ namespace NetMQ.Tests
             {
                 request.SendFrame("Hello");
 
-                Assert.AreEqual("Hello", response.ReceiveFrameString());
+                Assert.Equal("Hello", response.ReceiveFrameString());
             }
         }
 
-        [Test]
+        [Fact]
         public void ConnectionStringWithWhiteSpace()
         {
             using (var response = new ResponseSocket(" >tcp://127.0.0.1:51503 "))
@@ -819,11 +798,11 @@ namespace NetMQ.Tests
             {
                 request.SendFrame("Hello");
 
-                Assert.AreEqual("Hello", response.ReceiveFrameString());
+                Assert.Equal("Hello", response.ReceiveFrameString());
             }
         }
 
-        [Test]
+        [Fact]
         public void ConnectionStringMultipleAddresses()
         {
             using (var server1 = new DealerSocket("@tcp://127.0.0.1:51504"))
@@ -835,13 +814,13 @@ namespace NetMQ.Tests
                 client.SendFrame("Hello");
                 client.SendFrame("Hello");
 
-                Assert.AreEqual("Hello", server1.ReceiveFrameString());
-                Assert.AreEqual("Hello", server2.ReceiveFrameString());
-                Assert.AreEqual("Hello", server2.ReceiveFrameString());
+                Assert.Equal("Hello", server1.ReceiveFrameString());
+                Assert.Equal("Hello", server2.ReceiveFrameString());
+                Assert.Equal("Hello", server2.ReceiveFrameString());
             }
         }
 
-        [Test]
+        [Fact]
         public void TestRebindSamePort()
         {
             int port;
@@ -877,7 +856,7 @@ namespace NetMQ.Tests
 
                 monitor.Closed += (sender, args) => closed.Set();
 
-                Assert.IsNotNull(sub.Options.LastEndpoint);
+                Assert.NotNull(sub.Options.LastEndpoint);
 
                 sub.Unbind(sub.Options.LastEndpoint);
                 closed.Wait(1000);

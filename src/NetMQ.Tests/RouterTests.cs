@@ -1,5 +1,5 @@
 ﻿using System;
-using NUnit.Framework;
+using Xunit;
 using System.Text;
 using System.Threading;
 using NetMQ.Sockets;
@@ -8,10 +8,11 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
-    public class RouterTests
+    public class RouterTests : IClassFixture<CleanupAfterFixture>
     {
-        [Test]
+        public RouterTests() => NetMQConfig.Cleanup();
+
+        [Fact]
         public void Mandatory()
         {
             using (var router = new RouterSocket())
@@ -26,31 +27,30 @@ namespace NetMQ.Tests
 
                     dealer.SendFrame("Hello");
 
-                    Assert.AreEqual("1", router.ReceiveFrameString());
-                    Assert.AreEqual("Hello", router.ReceiveFrameString());
+                    Assert.Equal("1", router.ReceiveFrameString());
+                    Assert.Equal("Hello", router.ReceiveFrameString());
                 }
 
                 Thread.Sleep(100);
 
                 Assert.Throws<HostUnreachableException>(() => router.SendMoreFrame("1").SendFrame("Hello"));
             }
-            
         }
 
-        [Test]
+        [Fact]
         public void ReceiveReadyDot35Bug()
         {
             // In .NET 3.5, we saw an issue where ReceiveReady would be raised every second despite nothing being received
             using (var server = new RouterSocket())
             {
                 server.BindRandomPort("tcp://127.0.0.1");
-                server.ReceiveReady += (s, e) => Assert.Fail("Should not receive");
+                server.ReceiveReady += (s, e) => Assert.True(false, "Should not receive");
 
-                Assert.IsFalse(server.Poll(TimeSpan.FromMilliseconds(1500)));
+                Assert.False(server.Poll(TimeSpan.FromMilliseconds(1500)));
             }
         }
 
-        [Test]
+        [Fact]
         public void TwoMessagesFromRouterToDealer()
         {
             using (var server = new RouterSocket())
@@ -62,7 +62,7 @@ namespace NetMQ.Tests
                 var cnt = 0;
                 client.ReceiveReady += (sender, e) =>
                 {
-                    e.Socket.ReceiveMultipartStrings();                  
+                    e.Socket.ReceiveMultipartStrings();
                     cnt++;
                     if (cnt == 2)
                     {
@@ -82,7 +82,7 @@ namespace NetMQ.Tests
                 client.SendFrame(request);
 
                 byte[] serverId = server.ReceiveFrameBytes();
-                Assert.AreEqual(request, server.ReceiveFrameString());
+                Assert.Equal(request, server.ReceiveFrameString());
 
                 // two messages in a row, not frames
                 server.SendMoreFrame(serverId).SendFrame(response);
@@ -92,7 +92,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void Handover()
         {
             using (var router = new RouterSocket())
@@ -105,28 +105,28 @@ namespace NetMQ.Tests
                 dealer1.SendMoreFrame("Hello").SendFrame("World");
 
                 var identity = router.ReceiveFrameString();
-                Assert.AreEqual("ID", identity);
+                Assert.Equal("ID", identity);
 
                 using (var dealer2 = new DealerSocket())
                 {
                     dealer2.Options.Identity = Encoding.ASCII.GetBytes("ID");
                     dealer2.Connect("inproc://127.0.0.1:5555");
 
-                    // We have new peer which should take over, however we are still reading a message                    
+                    // We have new peer which should take over, however we are still reading a message
                     var message = router.ReceiveFrameString();
-                    Assert.AreEqual("Hello", message);
+                    Assert.Equal("Hello", message);
                     message = router.ReceiveFrameString();
-                    Assert.AreEqual("World", message);
+                    Assert.Equal("World", message);
 
                     dealer2.SendMoreFrame("Hello").SendFrame("World");
                     identity = router.ReceiveFrameString();
-                    Assert.AreEqual("ID", identity);
+                    Assert.Equal("ID", identity);
 
                     message = router.ReceiveFrameString();
-                    Assert.AreEqual("Hello", message);
+                    Assert.Equal("Hello", message);
 
                     message = router.ReceiveFrameString();
-                    Assert.AreEqual("World", message);
+                    Assert.Equal("World", message);
                 }
             }
         }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
+using Xunit;
 
 namespace NetMQ.Tests
 {
@@ -19,7 +19,7 @@ namespace NetMQ.Tests
             if (m_frames.Count == 0)
                 return false;
 
-            byte[] bytes = m_frames.Dequeue();
+            var bytes = m_frames.Dequeue();
 
             msg.InitGC(bytes, bytes.Length);
 
@@ -29,177 +29,161 @@ namespace NetMQ.Tests
             return true;
         }
 
-        public void PushFrame(byte[] frame)
+        public byte[] PushFrame(string s)
         {
-            m_frames.Enqueue(frame);
+            var bytes = Encoding.ASCII.GetBytes(s);
+            m_frames.Enqueue(bytes);
+            return bytes;
         }
     }
 
-    [TestFixture]
     public class ReceivingSocketExtensionsTests
     {
-        #region Test support
-
-        private MockReceivingSocket m_socket;
-
-        [SetUp]
-        public void SetUp()
-        {
-            m_socket = new MockReceivingSocket();
-        }
-        
-        private byte[] PushFrame(string hello)
-        {
-            byte[] expected = Encoding.ASCII.GetBytes(hello);
-            m_socket.PushFrame(expected);
-            return expected;
-        }
-
-        #endregion
+        private readonly MockReceivingSocket m_socket = new MockReceivingSocket();
 
         #region ReceiveFrameBytes
 
-        [Test]
+        [Fact]
         public void ReceiveFrameBytesSingleFrame()
         {
-            var expected = PushFrame("Hello");
+            var expected = m_socket.PushFrame("Hello");
 
             byte[] actual = m_socket.ReceiveFrameBytes();
 
-            Assert.IsTrue(actual.SequenceEqual(expected));
-            Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, m_socket.LastTimeout);
+            Assert.True(actual.SequenceEqual(expected));
+            Assert.Equal(SendReceiveConstants.InfiniteTimeout, m_socket.LastTimeout);
 
             // The buffer is copied into a new array
-            Assert.AreNotSame(expected, actual);
+            Assert.NotSame(expected, actual);
         }
 
-        [Test]
+        [Fact]
         public void ReceiveFrameBytesMultiFrame()
         {
-            var expected1 = PushFrame("Hello");
-            var expected2 = PushFrame("World");
+            var expected1 = m_socket.PushFrame("Hello");
+            var expected2 = m_socket.PushFrame("World");
 
             byte[] actual1 = m_socket.ReceiveFrameBytes(out bool more);
 
-            Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, m_socket.LastTimeout);
-            Assert.IsTrue(more);
-            Assert.IsTrue(actual1.SequenceEqual(expected1));
-            Assert.AreNotSame(expected1, actual1);
+            Assert.Equal(SendReceiveConstants.InfiniteTimeout, m_socket.LastTimeout);
+            Assert.True(more);
+            Assert.True(actual1.SequenceEqual(expected1));
+            Assert.NotSame(expected1, actual1);
 
             byte[] actual2 = m_socket.ReceiveFrameBytes(out more);
 
-            Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, m_socket.LastTimeout);
-            Assert.IsFalse(more);
-            Assert.IsTrue(actual2.SequenceEqual(expected2));
-            Assert.AreNotSame(expected2, actual2);
+            Assert.Equal(SendReceiveConstants.InfiniteTimeout, m_socket.LastTimeout);
+            Assert.False(more);
+            Assert.True(actual2.SequenceEqual(expected2));
+            Assert.NotSame(expected2, actual2);
         }
 
         #endregion
 
         #region TryReceiveFrameBytes
 
-        [Test]
+        [Fact]
         public void TryReceiveFrameBytes()
         {
-            var expected = PushFrame("Hello");
+            var expected = m_socket.PushFrame("Hello");
 
-            Assert.IsTrue(m_socket.TryReceiveFrameBytes(out byte[] actual));
+            Assert.True(m_socket.TryReceiveFrameBytes(out byte[] actual));
 
-            Assert.AreEqual(TimeSpan.Zero, m_socket.LastTimeout);
-            Assert.IsTrue(actual.SequenceEqual(expected));
-            Assert.AreNotSame(expected, actual);
+            Assert.Equal(TimeSpan.Zero, m_socket.LastTimeout);
+            Assert.True(actual.SequenceEqual(expected));
+            Assert.NotSame(expected, actual);
 
-            Assert.IsFalse(m_socket.TryReceiveFrameBytes(out actual));
+            Assert.False(m_socket.TryReceiveFrameBytes(out actual));
 
-            Assert.AreEqual(TimeSpan.Zero, m_socket.LastTimeout);
-            Assert.IsNull(actual);
+            Assert.Equal(TimeSpan.Zero, m_socket.LastTimeout);
+            Assert.Null(actual);
         }
 
-        [Test]
+        [Fact]
         public void TryReceiveFrameBytesWithMore()
         {
-            var expected1 = PushFrame("Hello");
-            var expected2 = PushFrame("World");
+            var expected1 = m_socket.PushFrame("Hello");
+            var expected2 = m_socket.PushFrame("World");
 
-            Assert.IsTrue(m_socket.TryReceiveFrameBytes(out byte[] actual, out bool more));
+            Assert.True(m_socket.TryReceiveFrameBytes(out byte[] actual, out bool more));
 
-            Assert.AreEqual(TimeSpan.Zero, m_socket.LastTimeout);
-            Assert.IsTrue(actual.SequenceEqual(expected1));
-            Assert.IsTrue(more);
-            Assert.AreNotSame(expected1, actual);
+            Assert.Equal(TimeSpan.Zero, m_socket.LastTimeout);
+            Assert.True(actual.SequenceEqual(expected1));
+            Assert.True(more);
+            Assert.NotSame(expected1, actual);
 
-            Assert.IsTrue(m_socket.TryReceiveFrameBytes(out actual, out more));
+            Assert.True(m_socket.TryReceiveFrameBytes(out actual, out more));
 
-            Assert.AreEqual(TimeSpan.Zero, m_socket.LastTimeout);
-            Assert.IsTrue(actual.SequenceEqual(expected2));
-            Assert.IsFalse(more);
-            Assert.AreNotSame(expected1, actual);
+            Assert.Equal(TimeSpan.Zero, m_socket.LastTimeout);
+            Assert.True(actual.SequenceEqual(expected2));
+            Assert.False(more);
+            Assert.NotSame(expected1, actual);
 
-            Assert.IsFalse(m_socket.TryReceiveFrameBytes(out actual, out more));
+            Assert.False(m_socket.TryReceiveFrameBytes(out actual, out more));
         }
 
         #endregion
 
         #region ReceiveMultipartBytes
 
-        [Test]
+        [Fact]
         public void ReceiveMultipartBytes()
         {
-            var expected = PushFrame("Hello");
+            var expected = m_socket.PushFrame("Hello");
 
             List<byte[]> actual = m_socket.ReceiveMultipartBytes();
 
-            Assert.AreEqual(1, actual.Count);
-            Assert.AreEqual(4, actual.Capacity);
-            Assert.IsTrue(actual[0].SequenceEqual(expected));
-            Assert.AreNotSame(expected, actual[0]);
+            Assert.Equal(1, actual.Count);
+            Assert.Equal(4, actual.Capacity);
+            Assert.True(actual[0].SequenceEqual(expected));
+            Assert.NotSame(expected, actual[0]);
         }
 
-        [Test]
+        [Fact]
         public void ReceiveMultipartBytesWithExpectedFrameCount()
         {
-            var expected = PushFrame("Hello");
+            var expected = m_socket.PushFrame("Hello");
 
             List<byte[]> actual = m_socket.ReceiveMultipartBytes(expectedFrameCount: 1);
 
-            Assert.AreEqual(1, actual.Count);
-            Assert.AreEqual(1, actual.Capacity);
-            Assert.IsTrue(actual[0].SequenceEqual(expected));
-            Assert.AreNotSame(expected, actual[0]);
+            Assert.Equal(1, actual.Count);
+            Assert.Equal(1, actual.Capacity);
+            Assert.True(actual[0].SequenceEqual(expected));
+            Assert.NotSame(expected, actual[0]);
         }
 
         #endregion
 
         #region ReceiveMultipartStrings
 
-        [Test]
+        [Fact]
         public void ReceiveMultipartStrings()
         {
             const string expected = "Hello";
 
-            PushFrame(expected);
+            m_socket.PushFrame(expected);
 
             List<string> actual = m_socket.ReceiveMultipartStrings();
 
-            Assert.AreEqual(1, actual.Count);
-            Assert.AreEqual(4, actual.Capacity);
-            Assert.AreEqual(expected, actual[0]);
-            Assert.AreNotSame(expected, actual[0]);
+            Assert.Equal(1, actual.Count);
+            Assert.Equal(4, actual.Capacity);
+            Assert.Equal(expected, actual[0]);
+            Assert.NotSame(expected, actual[0]);
         }
 
-        [Test]
+        [Fact]
         public void ReceiveMultipartStringsWithExpectedFrameCount()
         {
             const string expected = "Hello";
 
-            PushFrame(expected);
+            m_socket.PushFrame(expected);
 
             List<string> actual = m_socket.ReceiveMultipartStrings(expectedFrameCount: 1);
 
-            Assert.AreEqual(1, actual.Count);
-            Assert.AreEqual(1, actual.Capacity);
-            Assert.AreEqual(expected, actual[0]);
-            Assert.AreNotSame(expected, actual[0]);
+            Assert.Equal(1, actual.Count);
+            Assert.Equal(1, actual.Capacity);
+            Assert.Equal(expected, actual[0]);
+            Assert.NotSame(expected, actual[0]);
         }
 
         #endregion

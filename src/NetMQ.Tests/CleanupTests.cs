@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using NetMQ.Sockets;
-using NUnit.Framework;
+using Xunit;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
-    public class CleanupTests
+    public class CleanupTests : IClassFixture<CleanupAfterFixture>
     {
-        [Test]
+        public CleanupTests() => NetMQConfig.Cleanup();
+
+        [Fact]
         public void Block()
         {
             const int count = 1000;
@@ -19,20 +20,19 @@ namespace NetMQ.Tests
             {
                 // Sending a lot of messages
                 client.Options.SendHighWatermark = count;
+
                 for (int i = 0; i < count; i++)
-                {
                     client.SendFrame("Hello");
-                }
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            NetMQConfig.Cleanup();
-            stopwatch.Stop();
+            var stopwatch = Stopwatch.StartNew();
 
-            Assert.Greater(stopwatch.ElapsedMilliseconds, 500);
+            NetMQConfig.Cleanup(block: true);
+
+            Assert.True(stopwatch.ElapsedMilliseconds > 500);
         }
 
-        [Test]
+        [Fact]
         public void NoBlock()
         {
             const int count = 1000;
@@ -43,24 +43,24 @@ namespace NetMQ.Tests
             {
                 // Sending a lot of messages
                 client.Options.SendHighWatermark = count;
+
                 for (int i = 0; i < count; i++)
-                {
                     client.SendFrame("Hello");
-                }
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            NetMQConfig.Cleanup(false);
-            stopwatch.Stop();
+            var stopwatch = Stopwatch.StartNew();
 
-            Assert.Less(stopwatch.ElapsedMilliseconds, 500);
+            NetMQConfig.Cleanup(block: false);
+
+            Assert.True(stopwatch.ElapsedMilliseconds < 500);
         }
 
-        [Test]
+        [Fact]
         public void NoBlockNoDispose()
         {
-            var client = new DealerSocket(">tcp://localhost:5557");
-            NetMQConfig.Cleanup(false);
+            new DealerSocket(">tcp://localhost:5557");
+
+            NetMQConfig.Cleanup(block: false);
         }
     }
 }

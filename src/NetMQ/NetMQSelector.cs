@@ -9,9 +9,12 @@ using NetMQ.Core.Utils;
 namespace NetMQ
 {
     /// <summary>
-    /// For selecting on NetMQSocket or regualr .net Socket.
-    /// This is for advanced usages, for most cases NetMQPoller is the suggested alternative.
+    /// For selecting on <see cref="NetMQSocket"/> and regular .NET <see cref="Socket"/> objects.
     /// </summary>
+    /// <remarks>
+    /// This is for advanced scenarios only.
+    /// Most use cases are better served by <see cref="NetMQPoller"/>.
+    /// </remarks>
     public sealed class NetMQSelector
     {
         private readonly List<Socket> m_checkRead = new List<Socket>();
@@ -36,11 +39,8 @@ namespace NetMQ
             }
 
             public Socket FileDescriptor { get; }
-
             public NetMQSocket Socket { get; }
-
             public PollEvents Event { get; }
-
             public PollEvents ResultEvent { get; set; }
         }
 
@@ -60,9 +60,7 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(items));
 
             if (itemsCount == 0)
-            {
                 return false;
-            }
 
             bool firstPass = true;
             int numberOfEvents = 0;
