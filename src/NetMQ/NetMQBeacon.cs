@@ -295,7 +295,7 @@ namespace NetMQ
 
                 try
                 {
-#if NETSTANDARD1_3
+#if NETSTANDARD1_3 || UAP
                     return m_hostName = Dns.GetHostEntryAsync(boundTo).Result.HostName;
 #else
                     return m_hostName = Dns.GetHostEntry(boundTo).HostName;

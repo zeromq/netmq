@@ -1,4 +1,4 @@
-﻿#if !NETSTANDARD1_3
+﻿#if !NETSTANDARD1_3 && !UAP
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
