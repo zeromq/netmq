@@ -62,14 +62,7 @@ namespace System.Threading
             }
 
             _task = new Task(() => _start(), _tokenSource.Token, TaskCreationOptions.LongRunning);
-            if (IsBackground)
-            {
-                _task.Start();
-            }
-            else
-            {
-                _task.RunSynchronously();
-            }
+            _task.Start();
         }
 
         public void Start(object obj)
@@ -85,14 +78,7 @@ namespace System.Threading
             }
 
             _task = new Task(() => _parameterizedStart(obj), _tokenSource.Token, TaskCreationOptions.LongRunning);
-            if (IsBackground)
-            {
-                _task.Start();
-            }
-            else
-            {
-                _task.RunSynchronously();
-            }
+            _task.Start();
         }
 
         public void Join()
