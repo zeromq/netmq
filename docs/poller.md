@@ -227,4 +227,4 @@ To solve this you can limit the number of messages that can be fetch in one batc
 
 ## Further Reading
 
-A good place to look for more information and code samples is the [`Poller` unit test source](https://github.com/zeromq/netmq/blob/master/src/NetMQ.Tests/PollerTests.cs).
+A good place to look for more information and code samples is the [`Poller` unit test source](https://github.com/zeromq/netmq/blob/master/src/NetMQ.Tests/NetMQPollerTest.cs).
