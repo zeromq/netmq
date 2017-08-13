@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using JetBrains.Annotations;
 using NetMQ.Sockets;
+using System.Runtime.InteropServices;
 
 namespace NetMQ
 {
@@ -105,8 +106,25 @@ namespace NetMQ
                     {
                         if (interfaceAddress == null || @interface.Address.Equals(interfaceAddress))
                         {
-                            sendTo = @interface.BroadcastAddress;
-                            bindTo = @interface.Address;
+							// because windows and unix differ in how they handle broadcast addressing this needs to be platform specific
+							// on windows any interface can recieve broadcast by requesting to enable broadcast on the socket
+							// on linux to recieve broadcast you must bind to the broadcast address specifically
+							//bindTo = @interface.Address;
+							sendTo = @interface.BroadcastAddress;
+#if NET35 || NET40
+							if (Environment.OSVersion.Platform==PlatformID.Unix)
+#else
+							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+#endif						
+							{
+								bindTo = @interface.BroadcastAddress;
+							}
+							else
+							{
+								bindTo = @interface.Address;
+							}
+							sendTo = @interface.BroadcastAddress;
+
                             break;
                         }
                     }
@@ -239,7 +257,7 @@ namespace NetMQ
             }
         }
 
-        #endregion
+#endregion
 
         private readonly NetMQActor m_actor;
 
