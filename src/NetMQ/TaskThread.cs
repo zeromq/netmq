@@ -5,18 +5,17 @@ using System.Threading.Tasks;
 
 namespace System.Threading
 {
-    public delegate void ParameterizedThreadStart(object obj);
-    public delegate void ThreadStart();
+    internal delegate void ParameterizedThreadStart(object obj);
+    internal delegate void ThreadStart();
 
-    public class ThreadStateException : Exception
+    internal class ThreadStateException : Exception
     {
         public ThreadStateException(string message = "", Exception innerException = null)
             : base(message, innerException)
         { }
     }
 
-
-    public class Thread
+    internal class Thread
     {
         private Task _task;
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
