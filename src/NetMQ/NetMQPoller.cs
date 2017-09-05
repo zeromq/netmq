@@ -580,7 +580,7 @@ namespace NetMQ
             m_stopSignaler.RequestStop();
         }
 
-#endregion
+        #endregion
 
         private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
         {
@@ -619,7 +619,7 @@ namespace NetMQ
             m_isPollSetDirty = false;
         }
 
-#region IEnumerable
+        #region IEnumerable
 
         /// <summary>This class only implements <see cref="IEnumerable"/> in order to support collection initialiser syntax.</summary>
         /// <returns>An empty enumerator.</returns>
@@ -628,9 +628,9 @@ namespace NetMQ
             yield break;
         }
 
-#endregion
+        #endregion
 
-#region IDisposable
+        #region IDisposable
 
         private enum DisposeState
         {
@@ -687,9 +687,9 @@ namespace NetMQ
             m_disposeState = (int)DisposeState.Disposed;
         }
 
-#endregion
+        #endregion
 
-#region ISynchronizeInvoke
+        #region ISynchronizeInvoke
 
 #if NET40
         IAsyncResult ISynchronizeInvoke.BeginInvoke(Delegate method, object[] args)
@@ -718,9 +718,9 @@ namespace NetMQ
         bool ISynchronizeInvoke.InvokeRequired => !CanExecuteTaskInline;
 #endif
 
-#endregion
+        #endregion
 
-#region Synchronisation context
+        #region Synchronisation context
 
 #if !NET35
         private sealed class NetMQSynchronizationContext : SynchronizationContext
@@ -749,6 +749,6 @@ namespace NetMQ
         }
 #endif
 
-#endregion
+        #endregion
     }
 }
