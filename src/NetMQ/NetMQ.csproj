@@ -6,7 +6,7 @@
     <Version>4.0.0.0</Version>
     <PackageVersion>4.0.0.0</PackageVersion>
     <!--monoandroid60;xamarinios10-->
-    <TargetFrameworks>netstandard1.3;net35;net40;uap10.0</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3;net40;uap10.0</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>NetMQ</AssemblyName>
     <AssemblyOriginatorKeyFile>./NetMQ.snk</AssemblyOriginatorKeyFile>
