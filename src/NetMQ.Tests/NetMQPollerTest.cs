@@ -48,8 +48,6 @@ namespace NetMQ.Tests
 
                 Assert.Equal("World", req.ReceiveFrameString(out bool more2));
                 Assert.False(more2);
-
-                poller.Stop();
             }
         }
 
@@ -91,8 +89,6 @@ namespace NetMQ.Tests
                 Assert.True(listeningEvent.WaitOne(300));
                 Assert.True(connectedEvent.WaitOne(300));
                 Assert.True(acceptedEvent.WaitOne(300));
-
-                poller.Stop();
             }
         }
 
