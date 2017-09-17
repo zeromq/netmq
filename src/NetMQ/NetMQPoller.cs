@@ -47,7 +47,7 @@ namespace NetMQ
         #region Scheduling
 
 #if !NET35
-        private readonly NetMQQueue<Task> m_tasksQueue = new NetMQQueue<Task>();
+        private readonly NetMQQueue<TaskOrPostCallback> m_tasksQueue = new NetMQQueue<TaskOrPostCallback>();
         private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(task));
             CheckDisposed();
 
-            m_tasksQueue.Enqueue(task);
+            m_tasksQueue.Enqueue(new TaskOrPostCallback(task));
         }
 
         public void Run([NotNull] Action action)
@@ -136,8 +136,8 @@ namespace NetMQ
                 Debug.Assert(IsRunning);
 
                 // Try to dequeue and execute all pending tasks
-                while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
-                    TryExecuteTask(task);
+                while (m_tasksQueue.TryDequeue(out TaskOrPostCallback task, TimeSpan.Zero))
+                    task.Execute(this);
             };
 
             m_sockets.Add(((ISocketPollable)m_tasksQueue).Socket);
@@ -703,18 +703,63 @@ namespace NetMQ
             }
 
             /// <summary>Dispatches an asynchronous message to a synchronization context.</summary>
-            public override void Post(SendOrPostCallback d, object state)
+            public override void Post([NotNull] SendOrPostCallback d, [CanBeNull] object state)
             {
-                var task = new Task(() => d(state));
-                task.Start(m_poller);
+                if (d == null) throw new ArgumentNullException(nameof(d));
+
+                m_poller.m_tasksQueue.Enqueue(new TaskOrPostCallback(d, state));
             }
 
             /// <summary>Dispatches a synchronous message to a synchronization context.</summary>
-            public override void Send(SendOrPostCallback d, object state)
+            public override void Send(SendOrPostCallback d, [CanBeNull] object state)
             {
                 var task = new Task(() => d(state));
                 task.Start(m_poller);
                 task.Wait();
+            }
+        }
+
+
+        private struct TaskOrPostCallback
+        {
+            [CanBeNull]
+            private readonly Task task;
+
+            /// <summary>
+            /// Used by <see cref="NetMQSynchronizationContext.Post"/>. In contrast
+            /// to <see cref="Task"/>s queued on the poller, exceptions thrown by these actions
+            /// are not caught and put into a Task (which will never be observed);
+            /// instead, they simply propagate up on the poller thread.
+            /// </summary>
+            [CanBeNull]
+            private readonly SendOrPostCallback postCallback;
+
+            [CanBeNull]
+            private readonly object postCallbackState;
+
+            public TaskOrPostCallback([CanBeNull] Task task)
+            {
+                this.task = task;
+                postCallback = null;
+                postCallbackState = null;
+            }
+
+            public TaskOrPostCallback
+            (SendOrPostCallback postCallback,
+             [CanBeNull] object postCallbackState)
+            {
+                this.postCallback = postCallback;
+                this.postCallbackState = postCallbackState;
+                task = null;
+            }
+
+            public void Execute(NetMQPoller poller)
+            {
+                if (task != null) poller.TryExecuteTask(task);
+                else if (postCallback != null) postCallback(postCallbackState);
+                else
+                    throw new InvalidOperationException(
+                        $"Internal error: {nameof(task)} and {nameof(postCallbackState)} are both null.");
             }
         }
 #endif
