@@ -693,7 +693,7 @@ namespace NetMQ
         #region Synchronisation context
 
 #if !NET35
-        private sealed class NetMQSynchronizationContext : SynchronizationContext
+        internal sealed class NetMQSynchronizationContext : SynchronizationContext
         {
             private readonly NetMQPoller m_poller;
 

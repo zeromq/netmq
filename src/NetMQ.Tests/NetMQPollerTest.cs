@@ -1021,6 +1021,63 @@ namespace NetMQ.Tests
         }
 #endif
 
-#endregion
+        #endregion
+
+        #region NetMQSynchronizationContext tests
+
+#if !NET35
+        [Fact]
+        public void PostExceptionNotDiscarded()
+        {
+            using (var poller = new NetMQPoller())
+            {
+                var pollerTask = Task.Factory.StartNew(
+                    () =>
+                    {
+                        poller.Run();
+                        Trace.WriteLine("Poller exited normally.");
+                    },
+                    CancellationToken.None,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+
+                var sc = GetSyncContext(poller);
+
+                sc.Post(
+                    _ =>
+                    {
+                        Trace.WriteLine("In Post delegate");
+                        throw new TestException();
+                    },
+                    null);
+
+                var aggEx = Assert.Throws<AggregateException>(
+                    () => { Assert.True(pollerTask.Wait(5000), "Timeout"); });
+
+                Assert.Collection(
+                    aggEx.InnerExceptions,
+                    e => Assert.IsType<TestException>(e));
+            }
+        }
+
+        private NetMQPoller.NetMQSynchronizationContext GetSyncContext(NetMQPoller poller)
+        {
+            var sc = Task.Factory.StartNew(
+                () => SynchronizationContext.Current,
+                CancellationToken.None,
+                TaskCreationOptions.None,
+                poller).Result;
+
+            return Assert.IsType<NetMQPoller.NetMQSynchronizationContext>(sc);
+        }
+
+        private class TestException : Exception
+        {
+
+        }
+#endif
+
+        #endregion
+
     }
 }
