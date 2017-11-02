@@ -231,6 +231,12 @@ namespace NetMQ.Core
         /// </summary>
         [CanBeNull]
         public byte[] Identity { get; set; }
+        
+        /// <summary>
+        /// Get or set the byte-array that comprises the routing id of this Pipe.
+        /// </summary>
+        [CanBeNull]
+        public byte[] RoutingId { get; set; }
 
         /// <summary>
         /// Checks if there is at least one message to read in the pipe.

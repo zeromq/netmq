@@ -115,6 +115,8 @@ namespace NetMQ.Core
         /// The initial value is 0, until the Identity property is set.
         /// </summary>
         public byte IdentitySize { get; set; }
+        
+        public byte[] LastPeerRoutingId { get; set; }
 
         /// <summary>
         /// Get or set whether this allows the use of IPv4 sockets only.
@@ -493,6 +495,9 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.DisableTimeWait:
                     return DisableTimeWait;
+                    
+                case ZmqSocketOption.LastPeerRoutingId:
+                    return LastPeerRoutingId;
 
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);

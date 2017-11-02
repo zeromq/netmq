@@ -69,6 +69,8 @@
         /// <summary>
         /// This denotes a Stream socket - which is a parent-class to the other socket types.
         /// </summary>
-        Stream = 11
+        Stream = 11,
+        
+        Peer = 19
     }
 }

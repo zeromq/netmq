@@ -148,6 +148,8 @@ namespace NetMQ.Core
                     return new Pair.PairSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Stream:
                     return new Stream.StreamSession(ioThread, connect, socket, options, addr);
+                case ZmqSocketType.Peer:
+                    return new Peer.PeerSession(ioThread, connect, socket, options, addr);
                 default:
                     throw new InvalidException("SessionBase.Create called with invalid SocketType of " + options.SocketType);
             }
@@ -550,7 +552,8 @@ namespace NetMQ.Core
             // For delayed connect situations, terminate the pipe
             // and reestablish later on
             if (m_pipe != null && m_options.DelayAttachOnConnect
-                && m_addr.Protocol != Address.PgmProtocol && m_addr.Protocol != Address.EpgmProtocol)
+                && m_addr.Protocol != Address.PgmProtocol && m_addr.Protocol != Address.EpgmProtocol && 
+                m_options.SocketType != ZmqSocketType.Peer)
             {
                 m_pipe.Hiccup();
                 m_pipe.Terminate(false);
