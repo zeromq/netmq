@@ -183,6 +183,8 @@ namespace NetMQ.Core
                     return new XSub(parent, threadId, socketId);
                 case ZmqSocketType.Stream:
                     return new Stream(parent, threadId, socketId);
+                case ZmqSocketType.Peer:
+                    return new Peer(parent, threadId, socketId);
                 default:
                     throw new InvalidException("SocketBase.Create called with invalid type of " + type);
             }
@@ -696,7 +698,7 @@ namespace NetMQ.Core
             bool icanhasall = protocol == Address.PgmProtocol || protocol == Address.EpgmProtocol;
             Pipe newPipe = null;
 
-            if (!m_options.DelayAttachOnConnect || icanhasall)
+            if (!m_options.DelayAttachOnConnect || icanhasall || m_options.SocketType == ZmqSocketType.Peer)
             {
                 // Create a bi-directional pipe.
                 ZObject[] parents = { this, session };
@@ -1284,7 +1286,7 @@ namespace NetMQ.Core
 
         public void Hiccuped(Pipe pipe)
         {
-            if (m_options.DelayAttachOnConnect)
+            if (m_options.DelayAttachOnConnect && m_options.SocketType != ZmqSocketType.Peer)
                 pipe.Terminate(false);
             else
                 // Notify derived sockets of the hiccup
@@ -1531,6 +1533,8 @@ namespace NetMQ.Core
                     return "PULL";
                 case ZmqSocketType.Push:
                     return "PUSH";
+                case ZmqSocketType.Peer:
+                    return "PEER";
                 default:
                     return "UNKNOWN";
             }

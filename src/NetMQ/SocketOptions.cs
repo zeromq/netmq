@@ -385,6 +385,11 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Get the last PEER allocated routing id
+        /// </summary>
+        public byte[] LastPeerRoutingId => m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.LastPeerRoutingId);
+
+        /// <summary>
         /// Controls the maximum datagram size for PGM.
         /// </summary>
         public int PgmMaxTransportServiceDataUnitLength

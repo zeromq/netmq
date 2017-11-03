@@ -6,7 +6,7 @@ branches:
 image: Visual Studio 2017
 configuration: Release
 before_build:
-  appveyor-retry dotnet restore src
+  appveyor-retry dotnet restore src/NetMQ.sln
 build:
   project: src/NetMQ.sln
   parallel: true

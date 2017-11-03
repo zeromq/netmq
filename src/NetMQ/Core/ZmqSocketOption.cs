@@ -277,9 +277,16 @@ namespace NetMQ.Core
         RouterHandover = 48,
 
         /// <summary>
+        /// Returns the last peer routing id connect to the PEER socket
+        /// </summary>
+        LastPeerRoutingId = 49,
+        
+        /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
         Endian = 1000,
+        
+        
 
         /// <summary>
         /// Specifies the max datagram size for PGM.
