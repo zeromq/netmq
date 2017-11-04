@@ -104,6 +104,10 @@ namespace NetMQ
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
             CheckDisposed();
+            
+            // We are not allowing new tasks will disposing
+            if (m_disposeState == (int)DisposeState.Disposing)
+                throw new ObjectDisposedException("NetMQPoller");
 
             m_tasksQueue.Enqueue(task);
         }
@@ -484,6 +488,12 @@ namespace NetMQ
                         }
                     }
                 }
+                                
+#if !NET35           
+                // Try to dequeue and execute all pending tasks before stopping poller
+                while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
+                    TryExecuteTask(task);
+#endif
             }
             finally
             {
