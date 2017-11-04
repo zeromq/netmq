@@ -109,8 +109,8 @@ namespace NetMQ
         }
 
         public void Run([NotNull] Action action)
-        {
-            if (CanExecuteTaskInline)
+        {            
+            if (!IsRunning || CanExecuteTaskInline)
                 action();
             else
                 new Task(action).Start(this);
@@ -218,8 +218,7 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(socket));
             if (socket.IsDisposed)
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
-            CheckDisposed();
-            CheckCanRemove();
+            CheckDisposed();            
 
             Run(() =>
             {
@@ -245,7 +244,6 @@ namespace NetMQ
             if (socket.IsDisposed)
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
-            CheckCanRemove();
 
             Run(() =>
             {
@@ -269,8 +267,7 @@ namespace NetMQ
         {
             if (timer == null)
                 throw new ArgumentNullException(nameof(timer));
-            CheckDisposed();
-            CheckCanRemove();
+            CheckDisposed();            
 
             timer.When = -1;
 
@@ -281,8 +278,7 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
-            CheckDisposed();
-            CheckCanRemove();
+            CheckDisposed();            
 
             Run(() =>
             {
@@ -607,12 +603,6 @@ namespace NetMQ
         {
             if (m_disposeState == (int)DisposeState.Disposed)
                 throw new ObjectDisposedException("NetMQPoller");
-        }
-
-        private void CheckCanRemove()
-        {
-            if (!IsRunning)
-                throw new InvalidOperationException("Cannot remove object - NetMQPoller is not running");
         }
 
         /// <summary>
