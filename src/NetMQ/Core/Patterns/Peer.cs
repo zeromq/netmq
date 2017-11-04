@@ -246,7 +246,9 @@ namespace NetMQ.Core.Patterns
                 msg.InitEmpty();
 
                 return true;
-            }                        
+            }
+
+            m_sendingState = State.RoutingId;
     
             //  Peer sockets do not allow multipart data (ZMQ_SNDMORE)
             if (msg.HasMore) 

@@ -32,6 +32,14 @@ namespace NetMQ.Tests
                 msg = peer2.ReceiveFrameString();
                 
                 Assert.Equal(msg, "World");
+                
+                peer1.SendMoreFrame(peer2Identity);
+                peer1.SendFrame("World2");
+                
+                peer2.ReceiveFrameBytes();
+                msg = peer2.ReceiveFrameString();
+                
+                Assert.Equal(msg, "World2");
             }
         }
 
