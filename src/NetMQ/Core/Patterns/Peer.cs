@@ -214,9 +214,7 @@ namespace NetMQ.Core.Patterns
                 // If we have malformed message (prefix with no subsequent message)
                 // then just silently ignore it.                
                 if (msg.HasMore)
-                {
-                    m_sendingState = State.Data;
-                    
+                {                                       
                     // Find the pipe associated with the routingId stored in the prefix.                    
                     var routingId = msg.Size == msg.Data.Length
                         ? msg.Data
@@ -226,8 +224,7 @@ namespace NetMQ.Core.Patterns
                     {
                         m_currentOut = op.Pipe;
                         if (!m_currentOut.CheckWrite())
-                        {
-                            m_sendingState = State.RoutingId;
+                        {                            
                             op.Active = false;
                             m_currentOut = null;
 
@@ -239,6 +236,8 @@ namespace NetMQ.Core.Patterns
                     }
                     else
                         throw new HostUnreachableException("In Peer.XSend");
+                    
+                    m_sendingState = State.Data;
                 }
 
                 // Detach the message from the data buffer.

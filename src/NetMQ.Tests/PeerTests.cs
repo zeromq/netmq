@@ -44,6 +44,30 @@ namespace NetMQ.Tests
         }
 
         [Fact]
+        public void CanSendAfterUnreachableException()
+        {
+            using (var peer1 = new PeerSocket())
+            {
+                var wrongKey = new byte[] { 0, 0, 0, 0 };
+
+                Assert.Throws<HostUnreachableException>(() => peer1.SendMoreFrame(wrongKey));                               
+                
+                using (var peer2 = new PeerSocket("@inproc://peertopeer"))
+                {
+                    var peer2Identity = peer1.ConnectPeer("inproc://peertopeer");
+
+                    peer1.SendMoreFrame(peer2Identity);
+                    peer1.SendFrame("Hello");
+                    
+                    peer2.ReceiveFrameBytes();
+                    var msg = peer2.ReceiveFrameString();
+
+                    Assert.Equal(msg, "Hello");
+                }
+            }
+        }
+
+        [Fact]
         public void ExceptionWhenSendingToPeerWhichDoesnExist()
         {
             using (var peer1 = new PeerSocket("@inproc://peertopeer2"))
