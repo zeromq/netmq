@@ -11,10 +11,10 @@ namespace NetMQ.Tests
         [Fact]
         public void SendReceive()
         {                        
-            using (var peer1 = new PeerSocket("@inproc://peer"))
+            using (var peer1 = new PeerSocket("@inproc://peertopeer"))
             using (var peer2 = new PeerSocket())
             {
-                var peer1Identity = peer2.ConnectPeer("inproc://peer");
+                var peer1Identity = peer2.ConnectPeer("inproc://peertopeer");
 
                 peer2.SendMoreFrame(peer1Identity);
                 peer2.SendFrame("Hello");
@@ -32,13 +32,45 @@ namespace NetMQ.Tests
                 msg = peer2.ReceiveFrameString();
                 
                 Assert.Equal(msg, "World");
+                
+                peer1.SendMoreFrame(peer2Identity);
+                peer1.SendFrame("World2");
+                
+                peer2.ReceiveFrameBytes();
+                msg = peer2.ReceiveFrameString();
+                
+                Assert.Equal(msg, "World2");
+            }
+        }
+
+        [Fact]
+        public void CanSendAfterUnreachableException()
+        {
+            using (var peer1 = new PeerSocket())
+            {
+                var wrongKey = new byte[] { 0, 0, 0, 0 };
+
+                Assert.Throws<HostUnreachableException>(() => peer1.SendMoreFrame(wrongKey));                               
+                
+                using (var peer2 = new PeerSocket("@inproc://peertopeer"))
+                {
+                    var peer2Identity = peer1.ConnectPeer("inproc://peertopeer");
+
+                    peer1.SendMoreFrame(peer2Identity);
+                    peer1.SendFrame("Hello");
+                    
+                    peer2.ReceiveFrameBytes();
+                    var msg = peer2.ReceiveFrameString();
+
+                    Assert.Equal(msg, "Hello");
+                }
             }
         }
 
         [Fact]
         public void ExceptionWhenSendingToPeerWhichDoesnExist()
         {
-            using (var peer1 = new PeerSocket("@inproc://peer"))
+            using (var peer1 = new PeerSocket("@inproc://peertopeer2"))
             {
                 Assert.Throws<HostUnreachableException>(() =>
                 {
@@ -52,8 +84,8 @@ namespace NetMQ.Tests
         [Fact]
         public void DropMultipartMessages()
         {
-            using (var peer1 = new PeerSocket("@inproc://peer"))
-            using (var dealer = new DealerSocket(">inproc://peer"))
+            using (var peer1 = new PeerSocket("@inproc://peertopeer3"))
+            using (var dealer = new DealerSocket(">inproc://peertopeer3"))
             {
                 dealer.SendMoreFrame("This should be dropped");
                 dealer.SendFrame("This as well");
