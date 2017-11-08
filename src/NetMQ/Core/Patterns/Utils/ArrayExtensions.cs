@@ -45,7 +45,7 @@ namespace NetMQ.Core.Patterns.Utils
 
         public static void Swap<T>([NotNull] this List<T> items, int index1, int index2) where T : class
         {
-            if (index1 == index2)
+            if (index1 == index2) 
                 return;
 
             T item1 = items[index1];

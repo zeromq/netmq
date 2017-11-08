@@ -242,7 +242,19 @@ namespace NetMQ
 
             private void SendUdpFrame(NetMQFrame frame)
             {
-                m_udpSocket.SendTo(frame.Buffer, 0, frame.MessageSize, SocketFlags.None, m_broadcastAddress);
+                try
+                {
+                    m_udpSocket.SendTo(frame.Buffer, 0, frame.MessageSize, SocketFlags.None, m_broadcastAddress);
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.SocketErrorCode != SocketError.AddressNotAvailable) { throw; }
+
+                    // Initiate Creation of new Udp here to solve issue related to 'sudden' network change.
+                    // On windows (7 OR 10) incorrect/previous ip address might still exist instead of new Ip 
+                    // due to network change which causes crash (if no try/catch and keep trying to send to incorrect/not available address.
+                    // This approach would solve the issue...
+                }
             }
 
             private NetMQFrame ReceiveUdpFrame(out string peerName)
