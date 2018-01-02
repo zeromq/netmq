@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.0;netcoreapp1.0;net451</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.0;netcoreapp1.0;net452</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>NetMQ.Tests</AssemblyName>
     <AssemblyOriginatorKeyFile>../NetMQ/NetMQ.snk</AssemblyOriginatorKeyFile>

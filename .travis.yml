@@ -3,4 +3,4 @@ mono: none
 dotnet: 2.1.3
 script:
   - dotnet restore src/NetMQ.sln
-  - cd src/NetMQ.Tests; dotnet xunit -f netcoreapp2.0 -fxversion 2.0.4 -verbose
+  - cd src/NetMQ.Tests; dotnet xunit -f netcoreapp2.0 -fxversion 2.0.4 -verbose -parallel none
