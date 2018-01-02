@@ -351,7 +351,7 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact, Trait("Category", "IPv6"), Trait("Category", "Explicit")]
+        [Fact(Skip = "Timing out on Linux"), Trait("Category", "IPv6"), Trait("Category", "Explicit")]
         public void Ipv6ToIpv6()
         {
             using (var localDealer = new DealerSocket())
