@@ -9,7 +9,7 @@ build_script:
 test_script:
   - cd src\NetMQ.Tests
   - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f netcoreapp2.0 -fxversion 2.0.3
-  # - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f netcoreapp1.0 -fxversion 1.0.5
+  - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f netcoreapp1.0 -fxversion 1.0.5
   - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f net452
 
 artifacts:

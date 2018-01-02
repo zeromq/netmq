@@ -20,9 +20,9 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
     <PackageReference Include="JetBrains.Annotations" Version="10.4.0" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+    <PackageReference Include="xunit" Version="2.4.0-beta1-build3908" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0-beta1-build3908" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta1-build3908" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
