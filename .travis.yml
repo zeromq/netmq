@@ -1,11 +1,6 @@
 language: csharp
 mono: none
 dotnet: 2.1.3
-addons:
-  apt:
-    packages:
-    - dotnet-sharedframework-microsoft.netcore.app-1.1.5
 script:
   - dotnet restore src/NetMQ.sln
-  # testing only netcoreapp1.0 on linux and osx
-  - dotnet test src/NetMQ.Tests/NetMQ.Tests.csproj -f netcoreapp1.0
+  - dotnet test src/NetMQ.Tests/NetMQ.Tests.csproj -f netcoreapp2.0
