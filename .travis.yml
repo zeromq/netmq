@@ -1,7 +1,10 @@
 language: csharp
 mono: none
-dotnet:
-  - 1.1.5
+dotnet: 2.1.3
+addons:
+  apt:
+    packages:
+    - dotnet-sharedframework-microsoft.netcore.app-1.1.5
 script:
   - dotnet --version
   - dotnet restore src/NetMQ.sln
