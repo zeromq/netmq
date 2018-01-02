@@ -6,7 +6,7 @@ addons:
     packages:
     - dotnet-sharedframework-microsoft.netcore.app-1.1.5
 script:
-  - dotnet --version
+  - dotnet --info
   - dotnet restore src/NetMQ.sln
   # testing only netcoreapp1.0 on linux and osx
   - dotnet test src/NetMQ.Tests/NetMQ.Tests.csproj -f netcoreapp1.0
