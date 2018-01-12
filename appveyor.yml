@@ -7,6 +7,10 @@ build_script:
   - msbuild src/NetMQ.sln /p:Configuration=Release /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION% /verbosity:minimal
   - dotnet pack src/NetMQ/NetMQ.csproj -c Release --no-build /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION%
 test_script:
-  - dotnet test src\NetMQ.Tests\NetMQ.Tests.csproj --configuration Release --no-build
+  - cd src\NetMQ.Tests
+  - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f netcoreapp2.0 -fxversion 2.0.3
+  - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f netcoreapp1.0 -fxversion 1.0.5
+  - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f net452
+
 artifacts:
   - path: '**\*.nupkg'
