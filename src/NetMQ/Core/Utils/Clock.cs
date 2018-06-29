@@ -39,7 +39,7 @@ namespace NetMQ.Core.Utils
         /// </summary>
         private static long s_lastTime;
 
-#if !NETSTANDARD1_3 && !UAP
+#if !NETSTANDARD1_6
         /// <summary>
         /// This flag indicates whether the rdtsc instruction is supported on this platform.
         /// </summary>
@@ -48,7 +48,7 @@ namespace NetMQ.Core.Utils
 
         static Clock()
         {
-#if !NETSTANDARD1_3 && !UAP
+#if !NETSTANDARD1_6
             try
             {
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT ||
@@ -109,7 +109,7 @@ namespace NetMQ.Core.Utils
         /// </summary>
         public static long Rdtsc()
         {
-#if NETSTANDARD1_3 || UAP
+#if NETSTANDARD1_6
             return 0;
 #else
             return s_rdtscSupported ? (long)Opcode.Rdtsc() : 0;
