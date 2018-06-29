@@ -88,7 +88,7 @@ namespace NetMQ.Core.Utils
         {
             get
             {
-#if NETSTANDARD1_3 || UAP
+#if NETSTANDARD1_6
                 return Volatile.Read(ref m_load);
 #else
                 Thread.MemoryBarrier();
