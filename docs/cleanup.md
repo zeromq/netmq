@@ -1,7 +1,7 @@
 Cleanup
 =======
 
-New with NetMQ version 4 we said goobye to NetMQContext. We can now create sockets with the new operator without the NetMQContext.
+New with NetMQ version 4 we said goodbye to NetMQContext. We can now create sockets with the new operator without the NetMQContext.
 Though this makes using the library simpler, it also adds complication to cleaning it up.
 
 # Why does NetMQ need Cleanup?
