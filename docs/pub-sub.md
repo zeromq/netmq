@@ -77,7 +77,7 @@ Time for an example. This example is very simple, and follows these rules.
                 {
                     Console.WriteLine("Publisher socket binding...");
                     pubSocket.Options.SendHighWatermark = 1000;
-                    pubSocket.Bind("tcp://localhost:12345");
+                    pubSocket.Bind("tcp://*:12345");
 
                     for (var i = 0; i < 100; i++)
                     {
