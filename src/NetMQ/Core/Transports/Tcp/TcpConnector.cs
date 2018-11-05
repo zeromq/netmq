@@ -246,7 +246,8 @@ namespace NetMQ.Core.Transports.Tcp
                 m_handleValid = false;
 
                 try {
-                    m_s.NoDelay = true;
+                    if (!m_s.NoDelay)
+                        m_s.NoDelay = true;
                 } catch (ArgumentException ex) {
                     // OSX sometime fail while the socket is still connecting
                 }

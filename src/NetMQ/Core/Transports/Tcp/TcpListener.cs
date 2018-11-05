@@ -193,6 +193,7 @@ namespace NetMQ.Core.Transports.Tcp
                     // TODO: check TcpFilters
                     var acceptedSocket = m_handle.GetAcceptedSocket();
 
+                    if (!acceptedSocket.NoDelay)
                         acceptedSocket.NoDelay = true;
 
                     if (m_options.TcpKeepalive != -1)

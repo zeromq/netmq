@@ -24,3 +24,4 @@ Contributors
 * Dale Brubaker &mdash; [@dalebrubaker](https://github.com/dalebrubaker)
 * Calin Pirtea &mdash; [@pcalin](https://github.com/pcalin)
 * Osiris Pedroso &mdash; [@opedroso](https://github.com/opedroso)
+* Anders Gustafsson &mdash; [@anders9ustafsson](https://github.com/anders9ustafsson)
