@@ -1,6 +1,9 @@
 ﻿#if !NET35
 using System;
+using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
+using NetMQ.Sockets;
 using Xunit;
 
 namespace NetMQ.Tests
@@ -17,6 +20,27 @@ namespace NetMQ.Tests
                 queue.Enqueue(1);
 
                 Assert.Equal(1, queue.Dequeue());
+            }
+        }
+
+        [Fact]
+        public void EnqueueShouldNotBlockWhenCapacityIsZero()
+        {
+            using (var mockSocket = new PairSocket())
+            using (var queue = new NetMQQueue<int>())
+            {
+                int socketWatermarkCapacity = mockSocket.Options.SendHighWatermark + mockSocket.Options.ReceiveHighWatermark;
+
+                Task task = Task.Run(() =>
+                {
+                    for (int i = 0; i < socketWatermarkCapacity + 100; i++)
+                    {
+                        queue.Enqueue(i);
+                    }
+                });
+
+                bool completed = task.Wait(TimeSpan.FromSeconds(1));
+                Assert.True(completed, "Enqueue task should have completed " + socketWatermarkCapacity + " enqueue within 1 second");
             }
         }
 
