@@ -359,6 +359,7 @@ namespace NetMQ
             m_switch.WaitForOn();
         }
 
+#if NET35
         /// <summary>
         /// Runs the poller on the caller's thread. Only returns when <see cref="Stop"/> or <see cref="StopAsync"/> are called from another thread.
         /// </summary>
@@ -368,16 +369,68 @@ namespace NetMQ
             if (IsRunning)
                 throw new InvalidOperationException("NetMQPoller is already running");
 
-#if NET35
             m_pollerThread = Thread.CurrentThread;
-#else
-            var oldSynchronisationContext = SynchronizationContext.Current;
-            SynchronizationContext.SetSynchronizationContext(new NetMQSynchronizationContext(this));
-            m_isSchedulerThread.Value = true;
-#endif
             m_stopSignaler.Reset();
-
             m_switch.SwitchOn();
+
+            try
+            {
+                RunPoller();
+            }
+            finally
+            {
+                m_pollerThread = null;
+                m_switch.SwitchOff();
+            }
+        }
+#else
+        /// <summary>
+        /// Runs the poller on the caller's thread. Only returns when <see cref="Stop"/> or <see cref="StopAsync"/> are called from another thread.
+        /// </summary>
+        public void Run()
+        {
+            Run(new NetMQSynchronizationContext(this));
+        }
+
+        /// <summary>
+        /// Runs the poller on the caller's thread. Only returns when <see cref="Stop" /> or <see cref="StopAsync" /> are called from another thread.
+        /// </summary>
+        /// <param name="syncContext">The synchronization context that will be used.</param>
+         public void Run(SynchronizationContext syncContext)
+         {
+            if (syncContext == null)
+                throw new ArgumentNullException("Must supply a Synchronization Context");
+
+            CheckDisposed();
+            if (IsRunning)
+                throw new InvalidOperationException("NetMQPoller is already running");
+
+            var oldSynchronisationContext = SynchronizationContext.Current;
+            SynchronizationContext.SetSynchronizationContext(syncContext);
+            m_isSchedulerThread.Value = true;
+
+            m_stopSignaler.Reset();
+            m_switch.SwitchOn();
+
+            try
+            {
+                RunPoller();
+            }
+            finally
+            {
+                m_isSchedulerThread.Value = false;
+                SynchronizationContext.SetSynchronizationContext(oldSynchronisationContext);
+                m_switch.SwitchOff();
+            }
+
+        }
+#endif
+
+        /// <summary>
+        /// Runs the poller on the caller's thread. Only returns when <see cref="Stop"/> or <see cref="StopAsync"/> are called from another thread.
+        /// </summary>
+        private void RunPoller()
+        {
             try
             {
                 // Recalculate all timers now
@@ -497,21 +550,8 @@ namespace NetMQ
             }
             finally
             {
-                try
-                {
-                    foreach (var socket in m_sockets.ToList())
-                        Remove(socket);
-                }
-                finally
-                {
-#if NET35
-                    m_pollerThread = null;
-#else
-                    m_isSchedulerThread.Value = false;
-                    SynchronizationContext.SetSynchronizationContext(oldSynchronisationContext);
-#endif
-                    m_switch.SwitchOff();
-                }
+                foreach (var socket in m_sockets.ToList())
+                    Remove(socket);
             }
         }
 
