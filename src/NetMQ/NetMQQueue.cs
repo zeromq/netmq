@@ -35,9 +35,10 @@ namespace NetMQ
                 throw new ArgumentOutOfRangeException(nameof(capacity));
 
             m_queue = new ConcurrentQueue<T>();
-            PairSocket.CreateSocketPair(out m_writer, out m_reader);
-
-            m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
+            PairSocket.CreateSocketPair(out m_writer,
+                                        out m_reader,
+                                        writer => writer.Options.SendHighWatermark = capacity / 2,
+                                        reader => reader.Options.ReceiveHighWatermark = capacity / 2);
 
             m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(
                 () => m_reader.ReceiveReady += OnReceiveReady,
