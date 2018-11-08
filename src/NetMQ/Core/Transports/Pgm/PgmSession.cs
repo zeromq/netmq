@@ -68,7 +68,19 @@ namespace NetMQ.Core.Transports.Pgm
         public void BeginReceive()
         {
             m_data.Reset();
-            m_handle.Receive((byte[])m_data);
+            try 
+            { 
+                m_handle.Receive((byte[])m_data); 
+            } 
+            catch (SocketException ex) 
+            { 
+                // For a UDP datagram socket, this error would indicate that a previous  
+                // send operation resulted in an ICMP "Port Unreachable" message. 
+                if (ex.SocketErrorCode == SocketError.ConnectionReset) 
+                    Error(); 
+                else 
+                    throw NetMQException.Create(ex.SocketErrorCode, ex); 
+            } 
         }
 
         public void ActivateIn()
