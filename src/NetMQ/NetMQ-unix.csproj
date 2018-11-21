@@ -8,7 +8,7 @@
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AsyncIO" Version="0.1.40" />
+    <PackageReference Include="AsyncIO" Version="0.1.61" />
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.4.0" />
   </ItemGroup>
