@@ -322,14 +322,14 @@ namespace NetMQ
         /// Copy the given byte-array data to this Msg's Data buffer.
         /// </summary>
         /// <param name="src">the source byte-array to copy from</param>
-        /// <param name="i">index within the internal Data array to copy that byte to</param>
+        /// <param name="dstOffset">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([CanBeNull] byte[] src, int destOffset, int len)
+        public void Put([CanBeNull] byte[] src, int dstOffset, int len)
         {
             if (len == 0 || src == null)
                 return;
 
-            Buffer.BlockCopy(src, 0, Data, destOffset, len);
+            Buffer.BlockCopy(src, 0, Data, dstOffset, len);
         }
 
         /// <summary>
@@ -337,12 +337,12 @@ namespace NetMQ
         /// </summary>
         /// <param name="src">the source byte-array to copy from</param>
         /// <param name="srcOffset">first byte in the source byte-array</param>
-        /// <param name="i">index within the internal Data array to copy that byte to</param>
+        /// <param name="dstOffset">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([CanBeNull] byte[] src, int srcOffset, int destOffset, int len) {
+        public void Put([CanBeNull] byte[] src, int srcOffset, int dstOffset, int len) {
             if (len == 0 || src == null)
                 return;
-            Buffer.BlockCopy(src, srcOffset, Data, destOffset, len);
+            Buffer.BlockCopy(src, srcOffset, Data, dstOffset, len);
         }
 
         /// <summary>
