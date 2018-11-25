@@ -324,7 +324,7 @@ namespace NetMQ
         /// <param name="src">the source byte-array to copy from</param>
         /// <param name="dstOffset">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([CanBeNull] byte[] src, int dstOffset, int len)
+        public void Put([NotNull] byte[] src, int dstOffset, int len)
         {
             if (len == 0 || src == null)
                 return;
@@ -339,7 +339,7 @@ namespace NetMQ
         /// <param name="srcOffset">first byte in the source byte-array</param>
         /// <param name="dstOffset">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([CanBeNull] byte[] src, int srcOffset, int dstOffset, int len) {
+        public void Put([NotNull] byte[] src, int srcOffset, int dstOffset, int len) {
             if (len == 0 || src == null)
                 return;
             Buffer.BlockCopy(src, srcOffset, Data, dstOffset, len);
