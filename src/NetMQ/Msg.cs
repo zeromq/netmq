@@ -276,8 +276,8 @@ namespace NetMQ
                 }
                 else
                 {
-                    m_refCount.Set(amount);
-                    Flags |= MsgFlags.Shared;
+					m_refCount.Increase(amount);	// <= change from set to increase; as that seems to be with the main function is for.
+					Flags |= MsgFlags.Shared;
                 }
             }
         }

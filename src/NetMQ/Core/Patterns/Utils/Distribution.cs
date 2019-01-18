@@ -215,12 +215,13 @@ namespace NetMQ.Core.Patterns.Utils
                 return;
             }
 
-            // Add matching-1 references to the message. We already hold one reference,
-            // that's why -1.
-            msg.AddReferences(m_matching - 1);
+			// When a msg is created, it actually has zero references, as it doesn't count its own reference. 
+			// Add to the current based off the number of copies we had to create. Add to the reference so that
+			// when the class counter hits zero we can return the buffers.
+			msg.AddReferences(m_matching);	// <= modified here to remove the -1, as it didn't seem to line up with the msg structure atomiccounter as it starts at zero, with only copies having a reference count.
 
-            // Push copy of the message to each matching pipe.
-            int failed = 0;
+			// Push copy of the message to each matching pipe.
+			int failed = 0;
             for (int i = 0; i < m_matching; ++i)
             {
                 if (!Write(m_pipes[i], ref msg))
