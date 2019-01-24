@@ -1,6 +1,7 @@
 language: csharp
 mono: none
-dotnet: 2.1.3
+dotnet: 2.1.502
 script:
   - dotnet restore src/NetMQ.sln
-  - cd src/NetMQ.Tests; dotnet xunit -f netcoreapp2.0 -fxversion 2.0.4 -verbose -parallel none
+  - dotnet build -v q -f netstandard2.0 src/NetMQ/NetMQ.csproj
+  - dotnet test -v n -p:ParallelizeTestCollections=false -f netcoreapp2.1 --filter Category!=Beacon src/NetMQ.Tests/NetMQ.Tests.csproj

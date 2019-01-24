@@ -5,12 +5,12 @@ using System.Threading;
 using NetMQ.Sockets;
 
 namespace NetMQ.Tests
-{    
+{
     public class PeerTests : IClassFixture<CleanupAfterFixture>
     {
         [Fact]
         public void SendReceive()
-        {                        
+        {
             using (var peer1 = new PeerSocket("@inproc://peertopeer"))
             using (var peer2 = new PeerSocket())
             {
@@ -22,24 +22,24 @@ namespace NetMQ.Tests
                 // peer2 identity
                 var peer2Identity = peer1.ReceiveFrameBytes();
                 var msg = peer1.ReceiveFrameString();
-                
-                Assert.Equal(msg, "Hello");
-                
+
+                Assert.Equal("Hello",msg);
+
                 peer1.SendMoreFrame(peer2Identity);
                 peer1.SendFrame("World");
-                
+
                 peer2.ReceiveFrameBytes();
                 msg = peer2.ReceiveFrameString();
-                
-                Assert.Equal(msg, "World");
-                
+
+                Assert.Equal("World", msg);
+
                 peer1.SendMoreFrame(peer2Identity);
                 peer1.SendFrame("World2");
-                
+
                 peer2.ReceiveFrameBytes();
                 msg = peer2.ReceiveFrameString();
-                
-                Assert.Equal(msg, "World2");
+
+                Assert.Equal("World2", msg);
             }
         }
 
@@ -50,19 +50,19 @@ namespace NetMQ.Tests
             {
                 var wrongKey = new byte[] { 0, 0, 0, 0 };
 
-                Assert.Throws<HostUnreachableException>(() => peer1.SendMoreFrame(wrongKey));                               
-                
+                Assert.Throws<HostUnreachableException>(() => peer1.SendMoreFrame(wrongKey));
+
                 using (var peer2 = new PeerSocket("@inproc://peertopeer"))
                 {
                     var peer2Identity = peer1.ConnectPeer("inproc://peertopeer");
 
                     peer1.SendMoreFrame(peer2Identity);
                     peer1.SendFrame("Hello");
-                    
+
                     peer2.ReceiveFrameBytes();
                     var msg = peer2.ReceiveFrameString();
 
-                    Assert.Equal(msg, "Hello");
+                    Assert.Equal("Hello",msg);
                 }
             }
         }
@@ -79,8 +79,8 @@ namespace NetMQ.Tests
                 });
             }
         }
-        
-        
+
+
         [Fact]
         public void DropMultipartMessages()
         {
@@ -94,9 +94,9 @@ namespace NetMQ.Tests
                 peer1.ReceiveFrameBytes();
                 var message = peer1.ReceiveFrameString();
 
-                Assert.Equal(message, "Hello");
+                Assert.Equal("Hello", message);
             }
         }
-        
+
     }
 }

@@ -415,7 +415,7 @@ namespace NetMQ.Tests
             // Adding a disposed socket throws
             var ex = Assert.Throws<ArgumentException>(() => poller.Add(socket));
 
-            Assert.True(ex.Message.StartsWith("Must not be disposed."));
+            Assert.StartsWith("Must not be disposed.", ex.Message);
             Assert.Equal("socket", ex.ParamName);
 
             // Still dispose it. It throws after cleanup.
@@ -437,7 +437,7 @@ namespace NetMQ.Tests
             // Remove throws if the removed socket
             var ex = Assert.Throws<ArgumentException>(() => poller.Remove(socket));
 
-            Assert.True(ex.Message.StartsWith("Must not be disposed."));
+            Assert.StartsWith("Must not be disposed.", ex.Message);
             Assert.Equal("socket", ex.ParamName);
 
             // Still dispose it. It throws after cleanup.

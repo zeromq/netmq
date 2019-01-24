@@ -225,20 +225,8 @@ namespace NetMQ.Core.Transports.Tcp
                 Close();
 
                 // Try again to connect after a time,
-                // as long as the error is one of these..
-                if (socketError == SocketError.ConnectionRefused || socketError == SocketError.TimedOut ||
-                    socketError == SocketError.ConnectionAborted ||
-                    socketError == SocketError.HostUnreachable || socketError == SocketError.NetworkUnreachable ||
-                    socketError == SocketError.NetworkDown || socketError == SocketError.AccessDenied ||
-                    socketError == SocketError.OperationAborted)
-                {
-                    if (m_options.ReconnectIvl >= 0)
-                        AddReconnectTimer();
-                }
-                else
-                {
-                    throw NetMQException.Create(socketError);
-                }
+                if (m_options.ReconnectIvl >= 0)
+                    AddReconnectTimer();
             }
             else
             {
