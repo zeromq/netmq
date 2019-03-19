@@ -34,24 +34,21 @@ So let's start with some code, the "Hello world" example (of course).
 
 ### Server
 
-    :::csharp
-    using (var server = new ResponseSocket())
+``` csharp
+using (var server = new ResponseSocket())
+{
+    server.Bind("tcp://*:5555");
+    while (true)
     {
-        server.Bind("tcp://*:5555");
-
-        while (true)
-        {
-            var message = server.ReceiveFrameString();
-
-            Console.WriteLine("Received {0}", message);
-
-            // processing the request
-            Thread.Sleep(100);
-
-            Console.WriteLine("Sending World");
-            server.SendFrame("World");
-        }
+        var message = server.ReceiveFrameString();
+        Console.WriteLine("Received {0}", message);
+        // processing the request
+        Thread.Sleep(100);
+        Console.WriteLine("Sending World");
+        server.SendFrame("World");
     }
+}
+```
 
 The server creates a socket of type response (you can read more on the [request-response](request-response.md) chapter), binds it to port 5555 and then waits for messages.
 
@@ -59,20 +56,19 @@ You can also see that we have zero configuration, we are just sending strings. N
 
 ### Client
 
-    :::csharp
-    using (var client = new RequestSocket())
+``` csharp
+using (var client = new RequestSocket())
+{
+    client.Connect("tcp://localhost:5555");
+    for (int i = 0; i < 10; i++)
     {
-        client.Connect("tcp://localhost:5555");
-
-        for (int i = 0; i < 10; i++)
-        {
-            Console.WriteLine("Sending Hello");
-            client.SendFrame("Hello");
-
-            var message = client.ReceiveFrameString();
-            Console.WriteLine("Received {0}", message);
-        }
+        Console.WriteLine("Sending Hello");
+        client.SendFrame("Hello");
+        var message = client.ReceiveFrameString();
+        Console.WriteLine("Received {0}", message);
     }
+}
+```
 
 The client create a socket of type request, connect and start sending messages.
 
@@ -80,12 +76,13 @@ Both the `Send` and `Receive` methods are blocking (by default). For the receive
 
 You can however call `TrySend` and `TryReceive` to avoid the waiting. The operation returns `false` if it would have blocked.
 
-    :::csharp
-    string message;
-    if (client.TryReceiveFrameString(out message))
-        Console.WriteLine("Received {0}", message);
-    else
-        Console.WriteLine("No message received");
+``` csharp
+string message;
+if (client.TryReceiveFrameString(out message))
+    Console.WriteLine("Received {0}", message);
+else
+    Console.WriteLine("No message received");
+```
 
 
 ## Bind vs Connect

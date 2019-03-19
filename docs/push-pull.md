@@ -21,104 +21,95 @@ Here is what we are trying to achieve :
 
 ## Ventilator
 
-    :::csharp
-    using System;
-    using NetMQ;
-
-    namespace Ventilator
+``` csharp
+using System;
+using NetMQ;
+namespace Ventilator
+{
+    public class Program
     {
-        public class Program
+        public static void Main(string[] args)
         {
-            public static void Main(string[] args)
+            // Task Ventilator
+            // Binds PUSH socket to tcp://localhost:5557
+            // Sends batch of tasks to workers via that socket
+            Console.WriteLine("====== VENTILATOR ======");
+            using (var sender = new PushSocket("@tcp://*:5557"))
+            using (var sink = new PullSocket(">tcp://localhost:5558"))
             {
-                // Task Ventilator
-                // Binds PUSH socket to tcp://localhost:5557
-                // Sends batch of tasks to workers via that socket
-                Console.WriteLine("====== VENTILATOR ======");
-
-                using (var sender = new PushSocket("@tcp://*:5557"))
-                using (var sink = new PullSocket(">tcp://localhost:5558"))
+                Console.WriteLine("Press enter when worker are ready");
+                Console.ReadLine();
+                //the first message it "0" and signals start of batch
+                //see the Sink.csproj Program.cs file for where this is used
+                Console.WriteLine("Sending start of batch to Sink");
+                sink.SendFrame("0");
+                Console.WriteLine("Sending tasks to workers");
+                //initialise random number generator
+                Random rand = new Random(0);
+                //expected costs in Ms
+                int totalMs = 0;
+                //send 100 tasks (workload for tasks, is just some random sleep time that
+                //the workers can perform, in real life each work would do more than sleep
+                for (int taskNumber = 0; taskNumber < 100; taskNumber++)
                 {
-                    Console.WriteLine("Press enter when worker are ready");
-                    Console.ReadLine();
-
-                    //the first message it "0" and signals start of batch
-                    //see the Sink.csproj Program.cs file for where this is used
-                    Console.WriteLine("Sending start of batch to Sink");
-                    sink.SendFrame("0");
-
-                    Console.WriteLine("Sending tasks to workers");
-
-                    //initialise random number generator
-                    Random rand = new Random(0);
-
-                    //expected costs in Ms
-                    int totalMs = 0;
-
-                    //send 100 tasks (workload for tasks, is just some random sleep time that
-                    //the workers can perform, in real life each work would do more than sleep
-                    for (int taskNumber = 0; taskNumber < 100; taskNumber++)
-                    {
-                        //Random workload from 1 to 100 msec
-                        int workload = rand.Next(0, 100);
-                        totalMs += workload;
-                        Console.WriteLine("Workload : {0}", workload);
-                        sender.SendFrame(workload.ToString());
-                    }
-                    Console.WriteLine("Total expected cost : {0} msec", totalMs);
-                    Console.WriteLine("Press Enter to quit");
-                    Console.ReadLine();
+                    //Random workload from 1 to 100 msec
+                    int workload = rand.Next(0, 100);
+                    totalMs += workload;
+                    Console.WriteLine("Workload : {0}", workload);
+                    sender.SendFrame(workload.ToString());
                 }
+                Console.WriteLine("Total expected cost : {0} msec", totalMs);
+                Console.WriteLine("Press Enter to quit");
+                Console.ReadLine();
             }
         }
     }
+}
+```
 
 ## Worker
 
-    :::csharp
-    using System;
-    using System.Threading;
-    using NetMQ;
-
-    namespace Worker
+``` csharp
+using System;
+using System.Threading;
+using NetMQ;
+namespace Worker
+{
+    public class Program
     {
-        public class Program
+        public static void Main(string[] args)
         {
-            public static void Main(string[] args)
+            // Task Worker
+            // Connects PULL socket to tcp://localhost:5557
+            // collects workload for socket from Ventilator via that socket
+            // Connects PUSH socket to tcp://localhost:5558
+            // Sends results to Sink via that socket
+            Console.WriteLine("====== WORKER ======");
+            using (var receiver = new PullSocket(">tcp://localhost:5557"))
+            using (var sender = new PushSocket(">tcp://localhost:5558"))
             {
-                // Task Worker
-                // Connects PULL socket to tcp://localhost:5557
-                // collects workload for socket from Ventilator via that socket
-                // Connects PUSH socket to tcp://localhost:5558
-                // Sends results to Sink via that socket
-                Console.WriteLine("====== WORKER ======");
-
-                using (var receiver = new PullSocket(">tcp://localhost:5557"))
-                using (var sender = new PushSocket(">tcp://localhost:5558"))
+                //process tasks forever
+                while (true)
                 {
-                    //process tasks forever
-                    while (true)
-                    {
-                        //workload from the vetilator is a simple delay
-                        //to simulate some work being done, see
-                        //Ventilator.csproj Proram.cs for the workload sent
-                        //In real life some more meaningful work would be done
-                        string workload = receiver.ReceiveFrameString();
-
-                        //simulate some work being done
-                        Thread.Sleep(int.Parse(workload));
-
-                        //send results to sink, sink just needs to know worker
-                        //is done, message content is not important, just the presence of
-                        //a message means worker is done.
-                        //See Sink.csproj Proram.cs
-                        Console.WriteLine("Sending to Sink");
-                        sender.SendFrame(string.Empty);
-                    }
+                    //workload from the vetilator is a simple delay
+                    //to simulate some work being done, see
+                    //Ventilator.csproj Proram.cs for the workload sent
+                    //In real life some more meaningful work would be done
+                    string workload = receiver.ReceiveFrameString();
+                    //simulate some work being done
+                    Thread.Sleep(int.Parse(workload));
+                    //send results to sink, sink just needs to know worker
+                    //is done, message content is not important, just the presence of
+                    //a message means worker is done.
+                    //See Sink.csproj Proram.cs
+                    Console.WriteLine("Sending to Sink");
+                    sender.SendFrame(string.Empty);
                 }
             }
         }
     }
+}
+```
 
 ## Sink
 
@@ -178,74 +169,80 @@ To run this, these three BAT files may be useful, though you will need to change
 
 ### Run1Worker.bat
 
-    :::text
-    cd Ventilator/bin/Debug
-    start Ventilator.exe
-    cd../../..
-    cd Sink/bin/Debug
-    start Sink.exe
-    cd../../..
-    cd Worker/bin/Debug
-    start Worker.exe
+``` text
+cd Ventilator/bin/Debug
+start Ventilator.exe
+cd../../..
+cd Sink/bin/Debug
+start Sink.exe
+cd../../..
+cd Worker/bin/Debug
+start Worker.exe
+```
 
 
 Which when run should give you some output like this in the Sink process console output (obviously your PC may run faster/slower than mine):
 
-    :::text
-    ====== SINK ======
-    Seen start of batch
-    :.........:.........:.........:.........:.........:.........:.........:.........
-    :.........:.........
-    Total elapsed time 5695 msec
+``` text
+====== SINK ======
+Seen start of batch
+:.........:.........:.........:.........:.........:.........:.........:.........
+:.........:.........
+Total elapsed time 5695 msec
+```
 
 
 ### Run2Workers.bat
 
-    :::text
-    cd Ventilator/bin/Debug
-    start Ventilator.exe
-    cd../../..
-    cd Sink/bin/Debug
-    start Sink.exe
-    cd../../..
-    cd Worker/bin/Debug
-    start Worker.exe
-    start Worker.exe
+``` text
+cd Ventilator/bin/Debug
+start Ventilator.exe
+cd../../..
+cd Sink/bin/Debug
+start Sink.exe
+cd../../..
+cd Worker/bin/Debug
+start Worker.exe
+start Worker.exe
+```
 
 Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine):
 
-    :::text
-    ====== SINK ======
-    Seen start of batch
-    :.........:.........:.........:.........:.........:.........:.........:.........
-    :.........:.........
-    Total elapsed time 2959 msec
+``` text
+====== SINK ======
+Seen start of batch
+:.........:.........:.........:.........:.........:.........:.........:.........
+:.........:.........
+Total elapsed time 2959 msec
+```
 
 
 ### Run4Workers.bat
 
-    :::text
-    cd Ventilator/bin/Debug
-    start Ventilator.exe
-    cd../../..
-    cd Sink/bin/Debug
-    start Sink.exe
-    cd../../..
-    cd Worker/bin/Debug
-    start Worker.exe
-    start Worker.exe
-    start Worker.exe
-    start Worker.exe
+``` text
+cd Ventilator/bin/Debug
+start Ventilator.exe
+cd../../..
+cd Sink/bin/Debug
+start Sink.exe
+cd../../..
+cd Worker/bin/Debug
+start Worker.exe
+start Worker.exe
+start Worker.exe
+start Worker.exe
+```
 
 
 Which when run should give you some output like this in the Sink process console output (obviously you PC may run faster/slower than mine):
 
-    :::text
-    ====== SINK ======
-    Seen start of batch
-    :.........:.........:.........:.........:.........:.........:.........:.........
-    :.........:.........
-    Total elapsed time 1492 msec
+``` text
+====== SINK ======
+Seen start of batch
+:.........:.........:.........:.........:.........:.........:.........:.........
+:.........:.........
+Total elapsed time 1492 msec
+```
 
 There are a couple of points to be aware of with this pattern
 
