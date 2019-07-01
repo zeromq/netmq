@@ -649,5 +649,46 @@ namespace NetMQ
         }
 
         #endregion
+
+        #region Sending Routing Key
+
+        /// <summary>
+        /// Send routing key over <paramref name="socket"/>.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="routingKey">the routing key to send</param>
+        public static void SendMoreFrame([NotNull] this IOutgoingSocket socket, RoutingKey routingKey)
+        {
+            socket.SendMoreFrame(routingKey.Bytes);
+        }
+
+        /// <summary>
+        /// Attempt to transmit routing key over <paramref name="socket"/>.
+        /// If message cannot be sent immediately, return <c>false</c>.
+        /// Routing is always sent as more frame.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="routingKey">the routing key to send</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TrySendFrame([NotNull] this IOutgoingSocket socket, RoutingKey routingKey)
+        {
+            return socket.TrySendFrame(routingKey.Bytes, true);
+        }
+
+        /// <summary>
+        /// Attempt to transmit routing key over <paramref name="socket"/>.
+        /// If message cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
+        /// Routing is always sent as more frame.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="timeout">The maximum period of time to try to send a message.</param>
+        /// <param name="routingKey">the routing key to send</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TrySendFrame([NotNull] this IOutgoingSocket socket, TimeSpan timeout, RoutingKey routingKey)
+        {
+            return socket.TrySendFrame(timeout, routingKey.Bytes, true);
+        }
+
+        #endregion
     }
 }
