@@ -153,6 +153,11 @@ namespace NetMQ
         /// </summary>
         public bool IsRunning => m_switch.Status;
 
+        /// <summary>
+        /// Get whether this object is currently disposed
+        /// </summary>
+        public bool IsDisposed => m_disposeState == (int)DisposeState.Disposed;
+
 #if NET35
         private bool IsPollerThread => ReferenceEquals(m_pollerThread, Thread.CurrentThread);
 #else
@@ -651,7 +656,7 @@ namespace NetMQ
 
         private void CheckDisposed()
         {
-            if (m_disposeState == (int)DisposeState.Disposed)
+            if (IsDisposed)
                 throw new ObjectDisposedException("NetMQPoller");
         }
 
