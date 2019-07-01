@@ -36,71 +36,69 @@ So now that we have gone through why you would use XPub/XSub, lets now look at a
 
 It can be seen that the `PublisherSocket` connnects to the `XSubscriberSocket` address
 
-    :::csharp
-    using (var pubSocket = new PublisherSocket(">tcp://127.0.0.1:5678"))
+``` csharp
+using (var pubSocket = new PublisherSocket(">tcp://127.0.0.1:5678"))
+{
+    Console.WriteLine("Publisher socket connecting...");
+    pubSocket.Options.SendHighWatermark = 1000;
+    var rand = new Random(50);
+    
+    while (true)
     {
-        Console.WriteLine("Publisher socket connecting...");
-        pubSocket.Options.SendHighWatermark = 1000;
-
-        var rand = new Random(50);
-        
-        while (true)
+        var randomizedTopic = rand.NextDouble();
+        if (randomizedTopic > 0.5)
         {
-            var randomizedTopic = rand.NextDouble();
-            if (randomizedTopic > 0.5)
-            {
-                var msg = "TopicA msg-" + randomizedTopic;
-                Console.WriteLine("Sending message : {0}", msg);
-                pubSocket.SendMore("TopicA").Send(msg);
-            }
-            else
-            {
-                var msg = "TopicB msg-" + randomizedTopic;
-                Console.WriteLine("Sending message : {0}", msg);
-                pubSocket.SendMore("TopicB").Send(msg);
-            }
+            var msg = "TopicA msg-" + randomizedTopic;
+            Console.WriteLine("Sending message : {0}", msg);
+            pubSocket.SendMore("TopicA").Send(msg);
+        }
+        else
+        {
+            var msg = "TopicB msg-" + randomizedTopic;
+            Console.WriteLine("Sending message : {0}", msg);
+            pubSocket.SendMore("TopicB").Send(msg);
         }
     }
+}
+```
 
 
 ### Intermediary
 
 The intermediary is responsible for relaying the messages bidirectionally between the `XPublisherSocket` and the `XSubscriberSocket`. NetMQ provides a `Proxy` class which makes this simple.
 
-    :::csharp
-    using (var xpubSocket = new XPublisherSocket("@tcp://127.0.0.1:1234"))
-    using (var xsubSocket = new XSubscriberSocket("@tcp://127.0.0.1:5678"))
-    {
-        Console.WriteLine("Intermediary started, and waiting for messages");
-
-        // proxy messages between frontend / backend
-        var proxy = new Proxy(xsubSocket, xpubSocket);
-
-        // blocks indefinitely
-        proxy.Start();
-    }
+``` csharp
+using (var xpubSocket = new XPublisherSocket("@tcp://127.0.0.1:1234"))
+using (var xsubSocket = new XSubscriberSocket("@tcp://127.0.0.1:5678"))
+{
+    Console.WriteLine("Intermediary started, and waiting for messages");
+    // proxy messages between frontend / backend
+    var proxy = new Proxy(xsubSocket, xpubSocket);
+    // blocks indefinitely
+    proxy.Start();
+}
+```
 
 
 ### Subscriber
 
 It can be seen that the `SubscriberSocket` connects to the `XPublisherSocket` address:
 
-    :::csharp
-    string topic = /* ... */; // one of "TopicA" or "TopicB"
-
-    using (var subSocket = new SubscriberSocket(">tcp://127.0.0.1:1234"))
+``` csharp
+string topic = /* ... */; // one of "TopicA" or "TopicB"
+using (var subSocket = new SubscriberSocket(">tcp://127.0.0.1:1234"))
+{
+    subSocket.Options.ReceiveHighWatermark = 1000;
+    subSocket.Subscribe(topic);
+    Console.WriteLine("Subscriber socket connecting...");
+    while (true)
     {
-        subSocket.Options.ReceiveHighWatermark = 1000;
-        subSocket.Subscribe(topic);
-        Console.WriteLine("Subscriber socket connecting...");
-
-        while (true)
-        {
-            string messageTopicReceived = subSocket.ReceiveString();
-            string messageReceived = subSocket.ReceiveString();
-            Console.WriteLine(messageReceived);
-        }
+        string messageTopicReceived = subSocket.ReceiveString();
+        string messageReceived = subSocket.ReceiveString();
+        Console.WriteLine(messageReceived);
     }
+}
+```
 
 
 When run, it should look something like this:

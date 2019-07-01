@@ -6,12 +6,10 @@ A `NetMQTimer` allows actions to be performed periodically. Timer instances may 
 
 The event is raised on the poller's thread.
 
-    :::csharp
-    var timer = new NetMQTimer(TimeSpan.FromMilliseconds(100));
-
-    timer.Elapsed += (sender, args) => { /* handle timer event */ };
-
-    using (var poller = new NetMQPoller { timer })
-    {
-        poller.Run();
-    }
+``` csharp
+var timer = new NetMQTimer(TimeSpan.FromMilliseconds(100));
+timer.Elapsed += (sender, args) => { /* handle timer event */ };
+using (var poller = new NetMQPoller { timer })
+{
+    poller.Run();
+}
