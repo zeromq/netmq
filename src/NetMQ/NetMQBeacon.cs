@@ -111,11 +111,11 @@ namespace NetMQ
 							// on linux to recieve broadcast you must bind to the broadcast address specifically
 							//bindTo = @interface.Address;
 							sendTo = @interface.BroadcastAddress;
-#if NET35 || NET40
+#if NET35 || NET40 || NET47
 							if (Environment.OSVersion.Platform==PlatformID.Unix)
 #else
 							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-#endif						
+#endif
 							{
 								bindTo = @interface.BroadcastAddress;
 							}
@@ -251,7 +251,7 @@ namespace NetMQ
                     if (ex.SocketErrorCode != SocketError.AddressNotAvailable) { throw; }
 
                     // Initiate Creation of new Udp here to solve issue related to 'sudden' network change.
-                    // On windows (7 OR 10) incorrect/previous ip address might still exist instead of new Ip 
+                    // On windows (7 OR 10) incorrect/previous ip address might still exist instead of new Ip
                     // due to network change which causes crash (if no try/catch and keep trying to send to incorrect/not available address.
                     // This approach would solve the issue...
                 }

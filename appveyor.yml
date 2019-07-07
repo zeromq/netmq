@@ -8,7 +8,7 @@ build_script:
   - dotnet pack src/NetMQ/NetMQ.csproj -c Release --no-build /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION%
 test_script:
   - dotnet test --configuration Release --no-build -f netcoreapp2.1 src\NetMQ.Tests\NetMQ.Tests.csproj
-  - dotnet test --configuration Release --no-build -f net462 src\NetMQ.Tests\NetMQ.Tests.csproj
+  - dotnet test --configuration Release --no-build -f net47 src\NetMQ.Tests\NetMQ.Tests.csproj
 
 artifacts:
   - path: '**\*.nupkg'
