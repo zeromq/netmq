@@ -39,6 +39,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D
 		..\docs\timer.md = ..\docs\timer.md
 		..\docs\transports.md = ..\docs\transports.md
 		..\docs\xpub-xsub.md = ..\docs\xpub-xsub.md
+		..\docs\async-await.md = ..\docs\async-await.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetMQ", "NetMQ\NetMQ.csproj", "{49C06317-631D-435F-BE51-A26618FBC2C1}"

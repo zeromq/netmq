@@ -5,6 +5,7 @@ pages:
 - Introduction: introduction.md
 - Concepts:
   - Receiving and Sending: receiving-sending.md
+  - Async/Await: async-await.md
   - Messages: message.md
   - Transports: transports.md
   - Cleanup: cleanup.md
