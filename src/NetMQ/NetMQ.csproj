@@ -6,7 +6,7 @@
     <Version>4.0.0.0</Version>
     <PackageVersion>4.0.0.0</PackageVersion>
     <!--monoandroid60;xamarinios10-->
-    <TargetFrameworks>netstandard1.6;netstandard2.0;net40</TargetFrameworks>
+    <TargetFrameworks>net40;net47;netstandard1.6;netstandard2.0</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>NetMQ</AssemblyName>
     <AssemblyOriginatorKeyFile>./NetMQ.snk</AssemblyOriginatorKeyFile>
@@ -39,6 +39,7 @@
     <BaseFrameworkPathOverrideForMono Condition="'$(BaseFrameworkPathOverrideForMono)' == '' AND '$(TargetIsMono)' == 'true' AND EXISTS('/usr/local/lib/mono')">/usr/local/lib/mono</BaseFrameworkPathOverrideForMono>
 
     <FrameworkPathOverride Condition="'$(BaseFrameworkPathOverrideForMono)' != '' AND '$(TargetFramework)' == 'net40'">$(BaseFrameworkPathOverrideForMono)/4.0-api</FrameworkPathOverride>
+    <FrameworkPathOverride Condition="'$(BaseFrameworkPathOverrideForMono)' != '' AND '$(TargetFramework)' == 'net47'">$(BaseFrameworkPathOverrideForMono)/4.7-api</FrameworkPathOverride>
 
   </PropertyGroup>
 
@@ -84,11 +85,7 @@
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.4.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.1.0" />
-    <PackageReference Include="System.Net.NetworkInformation" Version="4.1.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
@@ -102,6 +99,13 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ValueTuple" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>

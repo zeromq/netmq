@@ -104,7 +104,7 @@ namespace NetMQ
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
             CheckDisposed();
-            
+
             // We are not allowing new tasks will disposing
             if (m_disposeState == (int)DisposeState.Disposing)
                 throw new ObjectDisposedException("NetMQPoller");
@@ -113,7 +113,7 @@ namespace NetMQ
         }
 
         public void Run([NotNull] Action action)
-        {            
+        {
             if (!IsRunning || CanExecuteTaskInline)
                 action();
             else
@@ -222,7 +222,7 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(socket));
             if (socket.IsDisposed)
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
-            CheckDisposed();            
+            CheckDisposed();
 
             Run(() =>
             {
@@ -271,7 +271,7 @@ namespace NetMQ
         {
             if (timer == null)
                 throw new ArgumentNullException(nameof(timer));
-            CheckDisposed();            
+            CheckDisposed();
 
             timer.When = -1;
 
@@ -282,7 +282,7 @@ namespace NetMQ
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
-            CheckDisposed();            
+            CheckDisposed();
 
             Run(() =>
             {
@@ -541,8 +541,8 @@ namespace NetMQ
                         }
                     }
                 }
-                                
-#if !NET35           
+
+#if !NET35
                 // Try to dequeue and execute all pending tasks before stopping poller
                 while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
                     TryExecuteTask(task);
@@ -726,37 +726,6 @@ namespace NetMQ
         }
 
         bool ISynchronizeInvoke.InvokeRequired => !CanExecuteTaskInline;
-#endif
-
-        #endregion
-
-        #region Synchronisation context
-
-#if !NET35
-        private sealed class NetMQSynchronizationContext : SynchronizationContext
-        {
-            private readonly NetMQPoller m_poller;
-
-            public NetMQSynchronizationContext(NetMQPoller poller)
-            {
-                m_poller = poller;
-            }
-
-            /// <summary>Dispatches an asynchronous message to a synchronization context.</summary>
-            public override void Post(SendOrPostCallback d, object state)
-            {
-                var task = new Task(() => d(state));
-                task.Start(m_poller);
-            }
-
-            /// <summary>Dispatches a synchronous message to a synchronization context.</summary>
-            public override void Send(SendOrPostCallback d, object state)
-            {
-                var task = new Task(() => d(state));
-                task.Start(m_poller);
-                task.Wait();
-            }
-        }
 #endif
 
         #endregion
