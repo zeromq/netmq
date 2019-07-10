@@ -15,7 +15,7 @@ namespace NetMQ
     /// <remarks>
     /// Various options are available in this base class, though their affect can vary by socket type.
     /// </remarks>
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
+    public abstract class NetMQSocket : INetMQSocket
     {
         private readonly SocketBase m_socketHandle;
         private readonly NetMQSocketEventArgs m_socketEventArgs;
