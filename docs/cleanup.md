@@ -32,7 +32,7 @@ If socket is not get disposed the NetMQConfig.Cleanup will block forever.
 Lastly you need to call the NetMQConfig.Cleanup. You can do that in the last line of the Main method:
 
 ``` csharp
-tic void Main(string[] args)
+ static void Main(string[] args)
  try
  {
      // Do you logic here
