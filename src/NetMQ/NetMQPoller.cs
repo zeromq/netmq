@@ -570,8 +570,6 @@ namespace NetMQ
         public void Stop()
         {
             CheckDisposed();
-            if (!IsRunning)
-                throw new InvalidOperationException("NetMQPoller is not running");
 
             // Signal the poller to stop
             m_stopSignaler.RequestStop();
