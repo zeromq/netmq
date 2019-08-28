@@ -28,20 +28,28 @@ namespace NetMQ.Tests
                     var (routingKey, _) = await server.ReceiveRoutingKeyAsync();
                     var (message, _) = await server.ReceiveFrameStringAsync();
 
-                    Assert.Equal(message, "Hello");
+                    Assert.Equal("Hello", message);
 
                     server.SendMoreFrame(routingKey);
                     server.SendFrame(new[] { (byte) 0 });
 
                     var (bytes, _) = await client.ReceiveFrameBytesAsync();
 
-                    Assert.Equal(bytes[0], 0);
+                    Assert.Equal(new[] { (byte) 0 }, bytes);
                 }
             }
 
             using (var runtime = new NetMQRuntime())
             {
-                runtime.Run(ReceiveAsync());
+                var t = ReceiveAsync();
+                runtime.Run(t);
+
+                if (t.IsFaulted && t.Exception is AggregateException exc)
+                {
+                    throw exc.GetBaseException();
+                }
+            }
+        }        
             }
         }
     }
