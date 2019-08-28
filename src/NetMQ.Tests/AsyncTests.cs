@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Sockets;
 using Xunit;
@@ -50,6 +51,37 @@ namespace NetMQ.Tests
                 }
             }
         }        
+
+        [Fact]
+        public void SupportCancellation()
+        {
+            async Task ReceiveAsync()
+            {
+                using (var server = new RouterSocket("inproc://async"))
+                {
+                    var cts = new CancellationTokenSource();
+                    cts.CancelAfter(1000);
+                    await Assert.ThrowsAsync<TaskCanceledException>(
+                        async () => await server.ReceiveMultipartMessageAsync(cancellationToken: cts.Token)
+                    );
+                    await Assert.ThrowsAsync<TaskCanceledException>(
+                        async () => await server.ReceiveFrameBytesAsync(cts.Token)
+                    );
+                    await Assert.ThrowsAsync<TaskCanceledException>(
+                        async () => await server.ReceiveFrameStringAsync(cts.Token)
+                    );
+                }
+            }
+
+            using (var runtime = new NetMQRuntime())
+            {
+                var t = ReceiveAsync();
+                runtime.Run(t);
+
+                if (t.IsFaulted && t.Exception is AggregateException exc)
+                {
+                    throw exc.GetBaseException();
+                }
             }
         }
     }
