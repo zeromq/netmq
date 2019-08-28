@@ -19,6 +19,41 @@ namespace NetMQ
     [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
     public static class AsyncReceiveExtensions
     {
+        #region Receiving frames as a multipart message
+
+        /// <summary>
+        /// Receive a single frame from <paramref name="socket"/>, asynchronously.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
+        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
+        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
+        /// <returns>The content of the received message.</returns>
+        [NotNull]
+        public static async Task<NetMQMessage> ReceiveMultipartMessageAsync(
+            [NotNull] this NetMQSocket socket, 
+            int expectedFrameCount = 4,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var message = new NetMQMessage(expectedFrameCount);
+
+            while (true)
+            {
+                (byte[] bytes, bool more) = await socket.ReceiveFrameBytesAsync(cancellationToken);
+                message.Append(bytes);
+
+                if (!more)
+                {
+                    break;
+                }
+            }
+
+            return message;
+        }
+
+        #endregion
+
         #region Receiving a frame as a byte array
 
         /// <summary>

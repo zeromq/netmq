@@ -50,7 +50,39 @@ namespace NetMQ.Tests
                     throw exc.GetBaseException();
                 }
             }
-        }        
+        }
+        
+        [Fact]
+        public void ReceiveMultipartMessage()
+        {
+            async Task ReceiveAsync()
+            {
+                using (var server = new RouterSocket("inproc://async"))
+                using (var client = new DealerSocket("inproc://async"))
+                {
+                    var req = new NetMQMessage();
+                    req.Append("Hello");
+                    req.Append(new byte[]{ 0x00, 0x01, 0x02, 0x03 });
+
+                    client.SendMultipartMessage(req);
+
+                    NetMQMessage received = await server.ReceiveMultipartMessageAsync();
+                    Assert.Equal("Hello", received[1].ConvertToString());
+                    Assert.Equal(new byte[]{ 0x00, 0x01, 0x02, 0x03 }, received[2].Buffer);
+                }
+            }
+
+            using (var runtime = new NetMQRuntime())
+            {
+                var t = ReceiveAsync();
+                runtime.Run(t);
+
+                if (t.IsFaulted && t.Exception is AggregateException exc)
+                {
+                    throw exc.GetBaseException();
+                }
+            }
+        }
 
         [Fact]
         public void SupportCancellation()
