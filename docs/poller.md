@@ -221,6 +221,9 @@ rep1.ReceiveReady += (s, a) =>
     }
 };
 ```
+## Dispose
+
+Poller must be disposed before the socket(s) it contains. Otherwise a `System.ObjectDisposedException` will be thrown.
 
 ## Further Reading
 
