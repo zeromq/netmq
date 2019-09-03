@@ -79,7 +79,8 @@ namespace NetMQ
         {
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
-            CheckDisposed();
+            if (IsDisposed)
+                return false;
 
             return CanExecuteTaskInline && TryExecuteTask(task);
         }
@@ -685,8 +686,10 @@ namespace NetMQ
                 Debug.Assert(!IsRunning);
             }
 
+            m_sockets.Remove(((ISocketPollable)m_stopSignaler).Socket);
             m_stopSignaler.Dispose();
 #if !NET35
+            m_sockets.Remove(((ISocketPollable)m_tasksQueue).Socket);
             m_tasksQueue.Dispose();
 #endif
 
