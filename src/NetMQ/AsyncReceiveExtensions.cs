@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
-
 
 namespace NetMQ
 {
@@ -19,15 +19,54 @@ namespace NetMQ
     [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
     public static class AsyncReceiveExtensions
     {
+        #region Receiving frames as a multipart message
+
+        /// <summary>
+        /// Receive a single frame from <paramref name="socket"/>, asynchronously.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="expectedFrameCount">Specifies the initial capacity of the <see cref="List{T}"/> used
+        /// to buffer results. If the number of frames is known, set it here. If more frames arrive than expected,
+        /// an extra allocation will occur, but the result will still be correct.</param>
+        /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
+        /// <returns>The content of the received message.</returns>
+        [NotNull]
+        public static async Task<NetMQMessage> ReceiveMultipartMessageAsync(
+            [NotNull] this NetMQSocket socket, 
+            int expectedFrameCount = 4,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var message = new NetMQMessage(expectedFrameCount);
+
+            while (true)
+            {
+                (byte[] bytes, bool more) = await socket.ReceiveFrameBytesAsync(cancellationToken);
+                message.Append(bytes);
+
+                if (!more)
+                {
+                    break;
+                }
+            }
+
+            return message;
+        }
+
+        #endregion
+
         #region Receiving a frame as a byte array
 
         /// <summary>
         /// Receive a single frame from <paramref name="socket"/>, asynchronously.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>The content of the received message frame and boolean indicate if another frame of the same message follows.</returns>
         [NotNull]
-        public static Task<(byte[], bool)> ReceiveFrameBytesAsync([NotNull] this NetMQSocket socket)
+        public static Task<(byte[], bool)> ReceiveFrameBytesAsync(
+            [NotNull] this NetMQSocket socket, 
+            CancellationToken cancellationToken = default(CancellationToken)
+        )
         {
             if (NetMQRuntime.Current == null)
                 throw new InvalidOperationException("NetMQRuntime must be created before calling async functions");
@@ -47,6 +86,7 @@ namespace NetMQ
             }
 
             TaskCompletionSource<(byte[], bool)> source = new TaskCompletionSource<(byte[], bool)>();
+            cancellationToken.Register(() => source.SetCanceled());
 
             void Listener(object sender, NetMQSocketEventArgs args)
             {
@@ -74,11 +114,15 @@ namespace NetMQ
         /// Receive a single frame from <paramref name="socket"/>, asynchronously, and decode as a string using <see cref="SendReceiveConstants.DefaultEncoding"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>The content of the received message frame as a string and a boolean indicate if another frame of the same message follows.</returns>
         [NotNull]
-        public static Task<(string, bool)> ReceiveFrameStringAsync([NotNull] this NetMQSocket socket)
+        public static Task<(string, bool)> ReceiveFrameStringAsync(
+            [NotNull] this NetMQSocket socket,
+            CancellationToken cancellationToken = default(CancellationToken)
+        )
         {
-            return socket.ReceiveFrameStringAsync(SendReceiveConstants.DefaultEncoding);
+            return socket.ReceiveFrameStringAsync(SendReceiveConstants.DefaultEncoding, cancellationToken);
         }
 
 
@@ -87,9 +131,13 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="encoding">The encoding used to convert the frame's data to a string.</param>
+        /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>The content of the received message frame as a string and boolean indicate if another frame of the same message follows..</returns>
         [NotNull]
-        public static Task<(string, bool)> ReceiveFrameStringAsync([NotNull] this NetMQSocket socket, [NotNull] Encoding encoding)
+        public static Task<(string, bool)> ReceiveFrameStringAsync(
+            [NotNull] this NetMQSocket socket, 
+            [NotNull] Encoding encoding,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (NetMQRuntime.Current == null)
                 throw new InvalidOperationException("NetMQRuntime must be created before calling async functions");
@@ -110,6 +158,7 @@ namespace NetMQ
             }
 
             TaskCompletionSource<(string, bool)> source = new TaskCompletionSource<(string,bool)>();
+            cancellationToken.Register(() => source.SetCanceled());
 
             void Listener(object sender, NetMQSocketEventArgs args)
             {
