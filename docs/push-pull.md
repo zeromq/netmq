@@ -91,9 +91,9 @@ namespace Worker
                 //process tasks forever
                 while (true)
                 {
-                    //workload from the vetilator is a simple delay
+                    //workload from the ventilator is a simple delay
                     //to simulate some work being done, see
-                    //Ventilator.csproj Proram.cs for the workload sent
+                    //Ventilator.csproj Program.cs for the workload sent
                     //In real life some more meaningful work would be done
                     string workload = receiver.ReceiveFrameString();
                     //simulate some work being done
@@ -101,7 +101,7 @@ namespace Worker
                     //send results to sink, sink just needs to know worker
                     //is done, message content is not important, just the presence of
                     //a message means worker is done.
-                    //See Sink.csproj Proram.cs
+                    //See Sink.csproj Program.cs
                     Console.WriteLine("Sending to Sink");
                     sender.SendFrame(string.Empty);
                 }
