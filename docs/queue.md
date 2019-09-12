@@ -18,3 +18,4 @@ using (var poller = new NetMQPoller { queue })
     queue.Enqueue(new DoSomethingCommand());
     queue.Enqueue(new DoSomethingElseCommand());
 }
+```
