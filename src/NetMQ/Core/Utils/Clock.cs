@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace NetMQ.Core.Utils
 {
@@ -38,6 +39,8 @@ namespace NetMQ.Core.Utils
         /// Physical time corresponding to the TSC above (in milliseconds).
         /// </summary>
         private static long s_lastTime;
+
+        private static SpinLock s_spinLock;
 
 #if !NETSTANDARD1_6
         /// <summary>
@@ -67,6 +70,7 @@ namespace NetMQ.Core.Utils
                 s_rdtscSupported = false;
             }
 #endif
+            s_spinLock = new SpinLock();
         }
 
         /// <summary>
@@ -94,14 +98,27 @@ namespace NetMQ.Core.Utils
                 return NowUs() / 1000;
             }
 
-            if (tsc - s_lastTsc <= Config.ClockPrecision / 2 && tsc >= s_lastTsc)
+            bool hasLock = false;
+
+            try
             {
+                s_spinLock.Enter(ref hasLock);
+                if (tsc - s_lastTsc <= Config.ClockPrecision / 2 && tsc >= s_lastTsc)
+                {
+                    return s_lastTime;
+                }
+
+                s_lastTsc = tsc;
+                s_lastTime = NowUs() / 1000;
                 return s_lastTime;
             }
-
-            s_lastTsc = tsc;
-            s_lastTime = NowUs() / 1000;
-            return s_lastTime;
+            finally
+            {
+                if (hasLock)
+                {
+                    s_spinLock.Exit();
+                }
+            }
         }
 
         /// <summary>
