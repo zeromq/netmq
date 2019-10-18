@@ -66,8 +66,6 @@ using (var client = new RequestSocket(">tcp://localhost:5556"))  // connect
 
 ## Contributing
 
-[![Issue Stats](http://issuestats.com/github/zeromq/netmq/badge/pr?style=flat)](http://issuestats.com/github/zeromq/netmq) [![Issue Stats](http://issuestats.com/github/zeromq/netmq/badge/issue?style=flat)](http://issuestats.com/github/zeromq/netmq)
-
 We need help, so if you have good knowledge of C# and ZeroMQ just grab one of the issues and add a pull request.
 We are using [C4.1 process](http://rfc.zeromq.org/spec:22), so make sure you read this before.
 
