@@ -1,4 +1,3 @@
-using System;
 using JetBrains.Annotations;
 using NetMQ.Monitoring;
 
@@ -14,6 +13,5 @@ namespace NetMQ
     {
         void Add([NotNull] ISocketPollable socket);
         void Remove([NotNull] ISocketPollable socket);
-        void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable;
     }
 }
