@@ -401,6 +401,82 @@ namespace NetMQ.Tests
         }
 
         [Fact]
+        public async void RemoveAndDisposeSocket()
+        {
+            //set up poller, start it
+            var patient = new NetMQPoller();
+            patient.RunAsync();
+            
+            Assert.True(patient.IsRunning);
+
+            //create a pub-sub pair
+            var port = 55667;
+            var conn = $"tcp://127.0.0.1:{port}";
+
+            var pub = new PublisherSocket();
+            pub.Bind(conn);
+
+            var sub = new SubscriberSocket();
+            sub.Connect(conn);
+            sub.SubscribeToAnyTopic();
+
+            //handle callbacks from poller thread
+            sub.ReceiveReady += (s, e) =>
+            {
+                var msg = e.Socket.ReceiveFrameString();
+
+                Debug.WriteLine($"sub has data: {msg}");
+            };
+
+            //add the subscriber socket to poller
+            patient.Add(sub);
+
+            //set up pub on separate thread
+            var canceller = new CancellationTokenSource();
+
+            var pubAction = new Action(async () =>
+            {
+                var token = canceller.Token;
+
+                uint i = 0;
+
+                while(!token.IsCancellationRequested)
+                {
+                    pub.SendFrame($"Hello-{++i}");
+
+                    // send ~ 5Hz
+                    await Task.Delay(200);
+                }
+            });
+
+            //var pubThread = new Task(pubAction, canceller.Token, TaskCreationOptions.LongRunning | TaskCreationOptions.AttachedToParent);
+            //pubThread.Start();
+
+            var pubThread = Task.Run(pubAction);
+
+            //allow a little time to run
+            await Task.Delay(5000);
+
+            //now try to remove the sub from poller
+            patient.Remove(sub);
+
+            // dispose the sub (this will cause exception on poller's worker-thread) and it can't be caught!
+            sub.Dispose();
+
+            //allow for poller to continue running
+            await Task.Delay(3000);
+
+            patient.Stop();
+            Assert.False(patient.IsRunning);
+
+            canceller.Cancel();
+
+            //patient?.Dispose();
+            pub?.Dispose();
+            sub?.Dispose();
+        }
+
+        [Fact]
         public void AddThrowsIfSocketAlreadyDisposed()
         {
             var poller = new NetMQPoller();
