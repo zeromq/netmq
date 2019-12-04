@@ -455,7 +455,7 @@ namespace NetMQ.Tests
             var pubThread = Task.Run(pubAction);
 
             //allow a little time to run
-            await Task.Delay(5000);
+            await Task.Delay(2000);
 
             //now try to remove the sub from poller
             await patient.Remove(sub);
@@ -465,7 +465,7 @@ namespace NetMQ.Tests
             sub = null;
 
             //allow for poller to continue running
-            await Task.Delay(3000);
+            await Task.Delay(2000);
 
             patient.Stop();
             Assert.False(patient.IsRunning);
