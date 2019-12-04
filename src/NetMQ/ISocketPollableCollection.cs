@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NetMQ.Monitoring;
 
@@ -13,7 +14,7 @@ namespace NetMQ
     public interface ISocketPollableCollection
     {
         void Add([NotNull] ISocketPollable socket);
-        void Remove([NotNull] ISocketPollable socket);
+        Task Remove([NotNull] ISocketPollable socket);
         void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable;
     }
 }

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 #if !NET35
@@ -112,12 +113,25 @@ namespace NetMQ
             m_tasksQueue.Enqueue(task);
         }
 
-        public void Run([NotNull] Action action)
+        public Task Run([NotNull] Action action)
         {
+            Task t = new Task(action);
+
             if (!IsRunning || CanExecuteTaskInline)
+            {
                 action();
+
+                var tcs = new TaskCompletionSource<object>();
+                tcs.SetResult(null);
+
+                t = tcs.Task;
+            }
             else
-                new Task(action).Start(this);
+            {
+                t.Start(this);
+            }
+
+            return t;
         }
 #else
         private void Run(Action action)
@@ -221,7 +235,7 @@ namespace NetMQ
             });
         }
 
-        public void Remove(ISocketPollable socket)
+        public Task Remove(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -229,7 +243,7 @@ namespace NetMQ
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
-            Run(() =>
+            return Run(() =>
             {
                 // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
                 if (socket.IsDisposed)
