@@ -235,7 +235,7 @@ namespace NetMQ
             });
         }
 
-        public Task Remove(ISocketPollable socket)
+        public async void Remove(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -243,7 +243,7 @@ namespace NetMQ
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
-            return Run(() =>
+            await Run(() =>
             {
                 // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
                 if (socket.IsDisposed)

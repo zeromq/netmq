@@ -458,7 +458,7 @@ namespace NetMQ.Tests
             await Task.Delay(2000);
 
             //now try to remove the sub from poller
-            await patient.Remove(sub);
+            patient.Remove(sub);
 
             // dispose the sub (this will cause exception on poller's worker-thread) and it can't be caught!
             sub.Dispose();
@@ -500,7 +500,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public async void RemoveThrowsIfSocketAlreadyDisposed()
+        public void RemoveThrowsIfSocketAlreadyDisposed()
         {
             var socket = new RouterSocket();
 
@@ -512,8 +512,19 @@ namespace NetMQ.Tests
             socket.Dispose();
 
             // Remove throws if the removed socket
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => poller.Remove(socket));
+            //var ex = Assert.Throws<ArgumentException>(() => poller.Remove(socket));
 
+            ArgumentException ex = null;
+
+            try
+            {
+                poller.Remove(socket);
+            }
+            catch (ArgumentException argEx)
+            {
+                ex = argEx;
+            }
+            Assert.NotNull(ex);
             Assert.StartsWith("Must not be disposed.", ex.Message);
             Assert.Equal("socket", ex.ParamName);
 
