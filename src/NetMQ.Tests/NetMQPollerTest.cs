@@ -401,7 +401,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public async void RemoveAndDisposeSocket()
+        public async void DisposeSocketAfterRemoval()
         {
             //set up poller, start it
             var patient = new NetMQPoller();
