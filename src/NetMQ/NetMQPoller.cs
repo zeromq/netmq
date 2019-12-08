@@ -284,7 +284,7 @@ namespace NetMQ
 
             timer.When = -1;
 
-            Run(() => m_timers.Remove(timer));
+            Run(() => m_timers.Remove(timer)).Wait();
         }
 
         public void Remove([NotNull] Socket socket)
@@ -297,7 +297,8 @@ namespace NetMQ
             {
                 m_pollinSockets.Remove(socket);
                 m_isPollSetDirty = true;
-            });
+            })
+            .Wait();
         }
 
         #endregion
