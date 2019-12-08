@@ -347,6 +347,9 @@ namespace NetMQ.Tests
                     // identity
                     e.Socket.SkipFrame();
 
+
+                    //**Note: bad to assert from worker thread!  
+                    // If it fails, the test will crash, not report failure!
                     Assert.Equal("Hello", e.Socket.ReceiveFrameString(out bool more));
                     Assert.False(more);
 
@@ -401,6 +404,77 @@ namespace NetMQ.Tests
         }
 
         [Fact]
+        public async void RemoveAndDisposeSocket()
+        {
+            //set up poller, start it
+            var patient = new NetMQPoller();
+            patient.RunAsync();
+
+            Assert.True(patient.IsRunning);
+
+            //create a pub-sub pair
+            var port = 55667;
+            var conn = $"tcp://127.0.0.1:{port}";
+
+            var pub = new PublisherSocket();
+            pub.Bind(conn);
+
+            var sub = new SubscriberSocket();
+            sub.Connect(conn);
+            sub.SubscribeToAnyTopic();
+
+            //handle callbacks from poller thread
+            sub.ReceiveReady += (s, e) =>
+            {
+                var msg = e.Socket.ReceiveFrameString();
+
+                Debug.WriteLine($"sub has data: {msg}");
+            };
+
+            //add the subscriber socket to poller
+            patient.Add(sub);
+
+            //set up pub on separate thread
+            var canceller = new CancellationTokenSource();
+
+            var pubAction = new Action(async () =>
+            {
+                var token = canceller.Token;
+
+                uint i = 0;
+
+                while (!token.IsCancellationRequested)
+                {
+                    pub.SendFrame($"Hello-{++i}");
+
+                    // send ~ 5Hz
+                    await Task.Delay(200);
+                }
+            });
+
+            var pubThread = Task.Run(pubAction);
+
+            //allow a little time to run
+            await Task.Delay(2000);
+
+            //now try to remove the sub from poller
+            patient.RemoveAndDispose(sub);
+
+            Assert.True(sub.IsDisposed);
+
+            //allow for poller to continue running
+            await Task.Delay(2000);
+
+            patient.Stop();
+            Assert.False(patient.IsRunning);
+
+            canceller.Cancel();
+
+            pub?.Dispose();
+            patient?.Dispose();
+        }
+
+        [Fact]
         public async void DisposeSocketAfterRemoval()
         {
             //set up poller, start it
@@ -448,9 +522,6 @@ namespace NetMQ.Tests
                     await Task.Delay(200);
                 }
             });
-
-            //var pubThread = new Task(pubAction, canceller.Token, TaskCreationOptions.LongRunning | TaskCreationOptions.AttachedToParent);
-            //pubThread.Start();
 
             var pubThread = Task.Run(pubAction);
 
@@ -542,6 +613,11 @@ namespace NetMQ.Tests
             // Dispose the socket.
             // It is incorrect to have a disposed socket in a poller.
             // Disposed sockets can throw into the poller's thread.
+
+            //**JASells: And what does that have to do with removing one?  Should check for disposed 
+            // socket on Add, not Remove!  Check only internally on to avoid accessing a potentially,
+            // disposed socket, but otherwise, removing it from the list is safe, and preferable to 
+            // throwing exception since it makes the poller more resilient to unintended mis-use!
             socket.Dispose();
 
             // Dispose throws if a polled socket is disposed

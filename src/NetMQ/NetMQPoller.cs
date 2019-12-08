@@ -269,28 +269,11 @@ namespace NetMQ
 
         public void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable
         {
-            if (socket == null)
-                throw new ArgumentNullException(nameof(socket));
-            if (socket.IsDisposed)
-                throw new ArgumentException("Must not be disposed.", nameof(socket));
-            CheckDisposed();
+            //call the remove method
+            Remove(socket);
 
-            Run(() =>
-            {
-                // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
-                if (socket.IsDisposed)
-                    throw new InvalidOperationException(
-                        $"{nameof(NetMQPoller)}.{nameof(RemoveAndDispose)} was called from a non-poller thread, " +
-                        "so ran asynchronously. " +
-                        $"The {socket.GetType().Name} being removed was disposed while the remove " +
-                        $"operation waited to start on the poller thread. When using {nameof(RemoveAndDispose)} " +
-                        "you should not dispose the pollable object .");
-
-                socket.Socket.EventsChanged -= OnSocketEventsChanged;
-                m_sockets.Remove(socket.Socket);
-                m_isPollSetDirty = true;
-                socket.Dispose();
-            });
+            //dispose of socket
+            socket.Dispose();
         }
 
         public void Remove([NotNull] NetMQTimer timer)
