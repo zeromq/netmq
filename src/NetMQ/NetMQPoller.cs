@@ -115,24 +115,37 @@ namespace NetMQ
 
         public Task Run([NotNull] Action action)
         {
-            Task t = new Task(action);
+            Task t;
 
             if (!IsRunning || CanExecuteTaskInline)
             {
                 action();
 
-                var tcs = new TaskCompletionSource<object>();
-                tcs.SetResult(null);
-
-                t = tcs.Task;
+                t = FromResult<object>(null);
             }
             else
             {
+                t = new Task(action);
                 t.Start(this);
             }
 
             return t;
         }
+
+        /// <summary>
+        /// Provides a completed task with the result for a syncronously run action.
+        /// this only needed for .NET40.  Depricated by <see cref="Task.FromResult()"/> in 4.5+
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private static Task<TResult> FromResult<TResult>(TResult result)
+        {
+            var tcs = new TaskCompletionSource<TResult>();
+            tcs.SetResult(result);
+            return tcs.Task;
+        }
+
 #else
         private void Run(Action action)
         {
@@ -140,7 +153,7 @@ namespace NetMQ
         }
 #endif
 
-        #endregion
+#endregion
 
         public NetMQPoller()
         {
