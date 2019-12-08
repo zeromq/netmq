@@ -583,19 +583,8 @@ namespace NetMQ.Tests
             socket.Dispose();
 
             // Remove throws if the removed socket
-            //var ex = Assert.Throws<ArgumentException>(() => poller.Remove(socket));
+            var ex = Assert.Throws<ArgumentException>(() => poller.Remove(socket));
 
-            ArgumentException ex = null;
-
-            try
-            {
-                poller.Remove(socket);
-            }
-            catch (ArgumentException argEx)
-            {
-                ex = argEx;
-            }
-            Assert.NotNull(ex);
             Assert.StartsWith("Must not be disposed.", ex.Message);
             Assert.Equal("socket", ex.ParamName);
 
