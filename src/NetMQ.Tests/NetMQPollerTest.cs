@@ -347,7 +347,6 @@ namespace NetMQ.Tests
                     // identity
                     e.Socket.SkipFrame();
 
-
                     //**Note: bad to assert from worker thread!  
                     // If it fails, the test will crash, not report failure!
                     Assert.Equal("Hello", e.Socket.ReceiveFrameString(out bool more));
@@ -544,7 +543,6 @@ namespace NetMQ.Tests
             canceller.Cancel();
 
             pub?.Dispose();
-            sub?.Dispose();// left here for dev testing when prior .Dispose() call may be commented out
             patient?.Dispose();
         }
 
