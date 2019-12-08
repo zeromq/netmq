@@ -235,15 +235,20 @@ namespace NetMQ
             });
         }
 
-        public async void Remove(ISocketPollable socket)
+        public void Remove(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
+
+            // JASells: not sure I agree with this thow.
+            // If trying to remove a disposed socket, why complain?  It *might* work.  The issue
+            // is if the poller's thread tries to actually service the socket before the remove call...
+
             if (socket.IsDisposed)
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
-            await Run(() =>
+            Run(() =>
             {
                 // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
                 if (socket.IsDisposed)
@@ -257,7 +262,9 @@ namespace NetMQ
                 socket.Socket.EventsChanged -= OnSocketEventsChanged;
                 m_sockets.Remove(socket.Socket);
                 m_isPollSetDirty = true;
-            });
+            })
+            .Wait(); 
+            // keep the API syncronous by blocking the calling thread via Wait(), else RemoveThrowsIfSocketAlreadyDisposed() test fails
         }
 
         public void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable
