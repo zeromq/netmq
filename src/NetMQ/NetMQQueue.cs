@@ -66,6 +66,16 @@ namespace NetMQ
         public bool IsDisposed { get; }
 
         /// <summary>
+        /// Gets the number of items contained in the queue.
+        /// </summary>
+        public int Count => m_queue.Count;
+
+        /// <summary>
+        /// Gets a value that indicates whether the queue is empty.
+        /// </summary>
+        public bool IsEmpty => m_queue.IsEmpty;
+
+        /// <summary>
         /// Try to dequeue an item from the queue. Dequeueing and item is not thread safe.
         /// </summary>
         /// <param name="result">Will be filled with the item upon success</param>
