@@ -37,8 +37,9 @@ So now that we have gone through why you would use XPub/XSub, lets now look at a
 It can be seen that the `PublisherSocket` connnects to the `XSubscriberSocket` address
 
 ``` csharp
-using (var pubSocket = new PublisherSocket(">tcp://127.0.0.1:5678"))
+using (var pubSocket = new PublisherSocket())
 {
+    pubSocket.Connect("tcp://127.0.0.1:5678");
     Console.WriteLine("Publisher socket connecting...");
     pubSocket.Options.SendHighWatermark = 1000;
     var rand = new Random(50);
@@ -68,9 +69,11 @@ using (var pubSocket = new PublisherSocket(">tcp://127.0.0.1:5678"))
 The intermediary is responsible for relaying the messages bidirectionally between the `XPublisherSocket` and the `XSubscriberSocket`. NetMQ provides a `Proxy` class which makes this simple.
 
 ``` csharp
-using (var xpubSocket = new XPublisherSocket("@tcp://127.0.0.1:1234"))
-using (var xsubSocket = new XSubscriberSocket("@tcp://127.0.0.1:5678"))
+using (var xpubSocket = new XPublisherSocket())
+using (var xsubSocket = new XSubscriberSocket())
 {
+    xpubSocket.Bind("tcp://127.0.0.1:1234");
+    xsubSocket.Bind("tcp://127.0.0.1:5678");
     Console.WriteLine("Intermediary started, and waiting for messages");
     // proxy messages between frontend / backend
     var proxy = new Proxy(xsubSocket, xpubSocket);
@@ -86,8 +89,9 @@ It can be seen that the `SubscriberSocket` connects to the `XPublisherSocket` ad
 
 ``` csharp
 string topic = /* ... */; // one of "TopicA" or "TopicB"
-using (var subSocket = new SubscriberSocket(">tcp://127.0.0.1:1234"))
+using (var subSocket = new SubscriberSocket())
 {
+    subSocket.Connect("tcp://127.0.0.1:1234");
     subSocket.Options.ReceiveHighWatermark = 1000;
     subSocket.Subscribe(topic);
     Console.WriteLine("Subscriber socket connecting...");
