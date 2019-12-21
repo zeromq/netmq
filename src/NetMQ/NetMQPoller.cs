@@ -125,8 +125,7 @@ namespace NetMQ
             }
             else
             {
-                t = new Task(action);
-                t.Start(this);
+                t = Task.Factory.StartNew(action);
             }
 
             return t;
@@ -255,7 +254,7 @@ namespace NetMQ
 
             // JASells: not sure I agree with this thow.
             // If trying to remove a disposed socket, why complain?  It *might* work.  The issue
-            // is if the poller's thread tries to actually service the socket before the remove call...
+            // is if the poller's thread tries to actually service the disposed socket before the remove call...
 
             if (socket.IsDisposed)
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
@@ -276,8 +275,9 @@ namespace NetMQ
                 m_sockets.Remove(socket.Socket);
                 m_isPollSetDirty = true;
             })
-            .Wait(); 
-            // keep the API syncronous by blocking the calling thread via Wait(), else RemoveThrowsIfSocketAlreadyDisposed() test fails
+            .GetAwaiter()
+            .GetResult(); 
+            // keep the API syncronous blocking the calling thread here, else RemoveThrowsIfSocketAlreadyDisposed() test fails
         }
 
         public void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable
