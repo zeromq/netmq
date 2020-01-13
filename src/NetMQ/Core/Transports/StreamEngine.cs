@@ -62,8 +62,10 @@ namespace NetMQ.Core.Transports
             Closed,
             SendingGreeting,
             ReceivingGreeting,
-            SendingRestOfGreeting,
-            ReceivingRestOfGreeting
+            SendingMajorVersion,
+            SendingSocketType,
+            ReceivingMajorVersion,
+            ReceivingResfOfGreeting
         }
 
         private enum ReceiveState
@@ -508,7 +510,7 @@ namespace NetMQ.Core.Transports
                                     // handshake is done
                                     Activate();
                                 }
-                                else if (m_greetingBytesRead < 10)
+                                else if (m_greetingBytesRead < PreambleSize)
                                 {
                                     var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
                                     BeginRead(greetingSegment, PreambleSize - m_greetingBytesRead);
@@ -517,11 +519,9 @@ namespace NetMQ.Core.Transports
                                 {
                                     // The peer is using versioned protocol.
                                     // Send the rest of the greeting.
-                                    m_outpos[m_outsize++] = 1; // Protocol version
-                                    m_outpos[m_outsize++] = (byte)m_options.SocketType;
-
-                                    m_handshakeState = HandshakeState.SendingRestOfGreeting;
-
+                                    m_outpos[m_outsize++] = 1; // Protocol version, TODO: send 3
+                                    m_handshakeState = HandshakeState.SendingMajorVersion;
+                                    
                                     BeginWrite(m_outpos, m_outsize);
                                 }
                             }
@@ -535,7 +535,7 @@ namespace NetMQ.Core.Transports
                             break;
                     }
                     break;
-                case HandshakeState.SendingRestOfGreeting:
+                case HandshakeState.SendingMajorVersion:
                     switch (action)
                     {
                         case Action.OutCompleted:
@@ -558,7 +558,7 @@ namespace NetMQ.Core.Transports
                                 {
                                     var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
 
-                                    m_handshakeState = HandshakeState.ReceivingRestOfGreeting;
+                                    m_handshakeState = HandshakeState.ReceivingMajorVersion;
                                     BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
                                 }
                             }
@@ -572,7 +572,120 @@ namespace NetMQ.Core.Transports
                             break;
                     }
                     break;
-                case HandshakeState.ReceivingRestOfGreeting:
+                case HandshakeState.ReceivingMajorVersion:
+                    switch (action)
+                    {
+                        case Action.InCompleted:
+                            bytesReceived = EndRead(socketError, bytesTransferred);
+
+                            if (bytesReceived == -1)
+                            {
+                                Error();
+                            }
+                            else
+                            {
+                                m_greetingBytesRead += bytesReceived;
+
+                                if (m_greetingBytesRead <= VersionPos)
+                                {
+                                    var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
+                                }
+                                else if (m_greeting[VersionPos] == 0 || m_greeting[VersionPos] == 1)
+                                {
+                                    m_outpos[m_outsize++] = (byte)m_options.SocketType;
+                                    m_handshakeState = HandshakeState.SendingSocketType;
+                                    
+                                    BeginWrite(m_outpos, m_outsize);
+                                }
+                                else
+                                {
+                                    // We will use ZMTP 3 here
+                                    m_outpos[m_outsize++] = (byte)m_options.SocketType;
+                                    m_handshakeState = HandshakeState.SendingSocketType;
+                                    
+                                    BeginWrite(m_outpos, m_outsize);
+                                }
+                            }
+                            break;
+                        case Action.ActivateIn:
+                        case Action.ActivateOut:
+                            // nothing to do
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case HandshakeState.SendingSocketType:
+                    switch (action)
+                    {
+                        case Action.OutCompleted:
+                            bytesSent = EndWrite(socketError, bytesTransferred);
+
+                            if (bytesSent == -1)
+                            {
+                                Error();
+                            }
+                            else
+                            {
+                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outsize -= bytesSent;
+
+                                if (m_outsize > 0)
+                                {
+                                    BeginWrite(m_outpos, m_outsize);
+                                }
+                                else
+                                {
+                                    if (m_greetingBytesRead < GreetingSize)
+                                    {
+                                        var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                        BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
+                                        m_handshakeState = HandshakeState.ReceivingResfOfGreeting;
+                                    }
+                                    else
+                                    {
+                                        if (m_greeting[VersionPos] == 0)
+                                        {
+                                            m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
+                                            m_encoder.SetMsgSource(m_session);
+
+                                            m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize,
+                                                m_options.Endian);
+                                            m_decoder.SetMsgSink(m_session);
+                                            
+                                            Activate ();
+                                        }
+                                        else if (m_greeting[VersionPos] == 1)
+                                        {
+                                            m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                            m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
+
+                                            Activate ();
+                                        }
+                                        else
+                                        {
+                                            // We will use ZMTP 3 here
+                                            m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                            m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
+
+                                            Activate ();
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case Action.ActivateIn:
+                        case Action.ActivateOut:
+                            // nothing to do
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case HandshakeState.ReceivingResfOfGreeting:
                     switch (action)
                     {
                         case Action.InCompleted:
@@ -595,22 +708,30 @@ namespace NetMQ.Core.Transports
                                 {
                                     if (m_greeting[VersionPos] == 0)
                                     {
-                                        // ZMTP/1.0 framing.
                                         m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
                                         m_encoder.SetMsgSource(m_session);
 
-                                        m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
+                                        m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize,
+                                            m_options.Endian);
                                         m_decoder.SetMsgSink(m_session);
+                                            
+                                        Activate ();
+                                    }
+                                    else if (m_greeting[VersionPos] == 1)
+                                    {
+                                        m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
+
+                                        Activate ();
                                     }
                                     else
                                     {
-                                        // v1 framing protocol.
+                                        // We will use ZMTP 3 here
                                         m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
                                         m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
-                                    }
 
-                                    // handshake is done
-                                    Activate();
+                                        Activate ();
+                                    }
                                 }
                             }
                             break;
