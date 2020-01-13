@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-
 namespace NetMQ
 {
     public class NetMQRuntime : IDisposable
@@ -55,7 +54,7 @@ namespace NetMQ
 
         public void Run(CancellationToken cancellationToken, params Task[] tasks)
         {
-            var registration = cancellationToken.Register(() => m_poller.Stop(), true);
+            var registration = cancellationToken.Register(() => m_poller.StopAsync(), false);
 
             Task.WhenAll(tasks).ContinueWith(t => m_poller.Stop(), cancellationToken);
 
@@ -68,7 +67,6 @@ namespace NetMQ
         {
             foreach (var socket in m_sockets)
             {
-                m_poller.Remove(socket);
                 socket.DetachFromRuntime();
             }
 

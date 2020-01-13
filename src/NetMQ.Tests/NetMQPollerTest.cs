@@ -418,8 +418,7 @@ namespace NetMQ.Tests
             Assert.StartsWith("Must not be disposed.", ex.Message);
             Assert.Equal("socket", ex.ParamName);
 
-            // Still dispose it. It throws after cleanup.
-            Assert.Throws<NetMQException>(() => poller.Dispose());
+            poller.Dispose();
         }
 
         [Fact]
