@@ -122,6 +122,6 @@ namespace NetMQ.Core.Transports
             return DecodeResult.MessageReady;
         }
 
-        public override bool GetMsg(MsgSink sink) => sink(ref m_inProgress);
+        public override PushMsgResult GetMsg(MsgSink sink) => sink(ref m_inProgress);
     }
 }

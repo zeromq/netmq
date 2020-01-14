@@ -87,8 +87,8 @@ namespace NetMQ.Core.Transports.Pgm
         {
             if (m_state == State.Stuck)
             {
-                bool isMsgPushed = m_decoder.GetMsg(m_session.PushMsg);
-                if (isMsgPushed)
+                var pushResult = m_decoder.GetMsg(m_session.PushMsg);
+                if (pushResult == PushMsgResult.Ok)
                 {
                     m_state = State.Receiving;
                     ProcessInput();
@@ -165,11 +165,17 @@ namespace NetMQ.Core.Transports.Pgm
                 if (result == DecodeResult.Processing)
                     break;
                 
-                var isMessagedPushed = m_decoder.GetMsg(m_session.PushMsg);
-                if (!isMessagedPushed)
+                var pushResult = m_decoder.GetMsg(m_session.PushMsg);
+                if (pushResult == PushMsgResult.Full)
                 {
                     m_state = State.Stuck;
                     m_session.Flush();
+                    return;
+                }
+                else if (pushResult == PushMsgResult.Error)
+                {
+                    m_joined = false;
+                    Error();
                     return;
                 }
             }

@@ -33,6 +33,13 @@ using NetMQ.Core.Transports.Tcp;
 
 namespace NetMQ.Core
 {
+    internal enum PushMsgResult
+    {
+        Ok,
+        Full,
+        Error
+    }
+    
     internal class SessionBase : Own,
         Pipe.IPipeEvents, IProactorEvents,
         IMsgSource
@@ -242,15 +249,15 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">the Msg to push to the pipe</param>
         /// <returns>true if the Msg was successfully sent</returns>
-        public virtual bool PushMsg(ref Msg msg)
+        public virtual PushMsgResult PushMsg(ref Msg msg)
         {
             if (m_pipe != null && m_pipe.Write(ref msg))
             {
                 msg.InitEmpty();
-                return true;
+                return PushMsgResult.Ok;
             }
 
-            return false;
+            return PushMsgResult.Full;
         }
 
         /// <summary>

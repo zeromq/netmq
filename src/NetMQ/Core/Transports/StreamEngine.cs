@@ -309,8 +309,8 @@ namespace NetMQ.Core.Transports
                             // if we stuck let's continue, other than that nothing to do
                             if (m_receivingState == ReceiveState.Stuck)
                             {
-                                bool isMsgPushed = m_decoder.GetMsg(WriteMsg);
-                                if (isMsgPushed)
+                                var pushResult = m_decoder.GetMsg(WriteMsg);
+                                if (pushResult == PushMsgResult.Ok)
                                 {
                                     m_receivingState = ReceiveState.Active;
                                     m_session.Flush();
@@ -782,11 +782,16 @@ namespace NetMQ.Core.Transports
                 if (result == DecodeResult.Processing)
                     break;
 
-                bool isMessagePushed = m_decoder.GetMsg(WriteMsg);
-                if (!isMessagePushed)
+                var pushResult = m_decoder.GetMsg(WriteMsg);
+                if (pushResult == PushMsgResult.Full)
                 {
                     m_receivingState = ReceiveState.Stuck;
                     m_session.Flush();
+                    return;
+                }
+                else if (pushResult == PushMsgResult.Error)
+                {
+                    Error();
                     return;
                 }
             }
@@ -904,7 +909,7 @@ namespace NetMQ.Core.Transports
             }
         }
 
-        private bool WriteMsg(ref Msg msg)
+        private PushMsgResult WriteMsg(ref Msg msg)
         {
             if ((m_identityReceived && !m_subscriptionRequired) || m_options.RawSocket)
                 return m_session.PushMsg(ref msg);
@@ -912,9 +917,9 @@ namespace NetMQ.Core.Transports
             if (!m_identityReceived) {
                 if (m_options.RecvIdentity) {
                     msg.SetFlags(MsgFlags.Identity);
-                    var isMessagedPushed = m_session.PushMsg(ref msg);
-                    if (!isMessagedPushed)
-                        return false;
+                    var pushResult = m_session.PushMsg(ref msg);
+                    if (pushResult != PushMsgResult.Ok)
+                        return pushResult;
                 }
                 else {
                     msg.Close();
@@ -931,13 +936,13 @@ namespace NetMQ.Core.Transports
                 msg.InitPool(1);
                 msg.Put((byte)1);
 
-                bool isMessagePushed = m_session.PushMsg(ref msg);
-                if (!isMessagePushed)
-                    return false;
+                var pushResult = m_session.PushMsg(ref msg);
+                if (pushResult != PushMsgResult.Ok)
+                    return pushResult;
                 m_subscriptionRequired = false;
             }
 
-            return true;
+            return PushMsgResult.Ok;
         }
 
         /// <summary>

@@ -36,6 +36,6 @@ namespace NetMQ.Core.Transports
             throw new NotImplementedException();
         }
 
-        public override bool GetMsg(MsgSink sink) => sink(ref m_inProgress);
+        public override PushMsgResult GetMsg(MsgSink sink) => sink(ref m_inProgress);
     }
 }

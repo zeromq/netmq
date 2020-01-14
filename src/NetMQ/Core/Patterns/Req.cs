@@ -187,9 +187,8 @@ namespace NetMQ.Core.Patterns
             {
                 m_state = State.Bottom;
             }
-
-            /// <exception cref="FaultException">ReqSession must be in a valid state when PushMsg is called.</exception>
-            public override bool PushMsg(ref Msg msg)
+            
+            public override PushMsgResult PushMsg(ref Msg msg)
             {
                 // TODO the flags checks here don't check specific bits -- should they use HasMore instead? does this work with shared Msg objects?
 
@@ -213,7 +212,7 @@ namespace NetMQ.Core.Patterns
                         break;
                 }
 
-                throw new FaultException("Req.PushMsg default failure.");
+                return PushMsgResult.Error;
             }
 
             protected override void Reset()
