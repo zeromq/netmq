@@ -65,41 +65,14 @@ namespace NetMQ.Core.Transports
 
             // TODO: use buffer pool
             m_buf = new byte[bufsize];
-            State = -1;
         }
 
         public Endianness Endian { get; }
-
-        public abstract void SetMsgSink(IMsgSink msgSink);
-
-
-        /// <summary>
-        /// Returns true if the decoder has been fed all required data
-        /// but cannot proceed with the next decoding step.
-        /// False is returned if the decoder has encountered an error.
-        /// </summary>
-        public virtual bool Stalled()
-        {
-            // Check whether there was decoding error.
-            if (!Next())
-                return false;
-
-            while (m_toRead == 0)
-            {
-                if (!Next())
-                {
-                    if (!Next())
-                        return false;
-                    return true;
-                }
-            }
-            return false;
-        }
-
+        
         /// <summary>
         /// Returns a buffer to be filled with binary data.
         /// </summary>
-        public void GetBuffer(out ByteArraySegment data, out int size)
+        public virtual void GetBuffer(out ByteArraySegment data, out int size)
         {
             // If we are expected to read large message, we'll opt for zero-
             // copy, i.e. we'll ask caller to fill the data directly to the
@@ -124,18 +97,13 @@ namespace NetMQ.Core.Transports
 
         /// <summary>
         /// Processes the data in the buffer previously allocated using
-        /// get_buffer function. size argument specifies the number of bytes
-        /// actually filled into the buffer. Function returns number of
-        /// bytes actually processed.
+        /// GetBuffer function. size argument specifies the number of bytes
+        /// actually filled into the buffer.
         /// </summary>
-        public int ProcessBuffer(ByteArraySegment data, int size)
+        public virtual DecodeResult Decode (ByteArraySegment data, int size, out int bytesUsed)
         {
-            // Check if we had an error in previous attempt.
-            if (State < 0)
-            {
-                return -1;
-            }
-
+            bytesUsed = 0;
+            
             // In case of zero-copy simply adjust the pointers, no copying
             // is required. Also, run the state machine in case all the data
             // were processed.
@@ -143,58 +111,47 @@ namespace NetMQ.Core.Transports
             {
                 m_readPos.AdvanceOffset(size);
                 m_toRead -= size;
+                bytesUsed = size;
 
                 while (m_toRead == 0)
                 {
-                    if (!Next())
-                    {
-                        if (State < 0)
-                        {
-                            return -1;
-                        }
-                        return size;
-                    }
+                    var result = Next();
+                    if (result != DecodeResult.MessageReady)
+                        return result;
                 }
-                return size;
+
+                return DecodeResult.Processing;
             }
 
-            int pos = 0;
-            while (true)
-            {
-
+            while (bytesUsed < size) {
+                // Copy the data from buffer to the message.
+                int toCopy = Math.Min(m_toRead, size - bytesUsed);
+                
+                // Only copy when destination address is different from the
+                // current address in the buffer.
+                data.CopyTo(bytesUsed, m_readPos, 0, toCopy);
+                m_readPos.AdvanceOffset(toCopy);
+                m_toRead -= toCopy;
+                bytesUsed += toCopy;
+                
                 // Try to get more space in the message to fill in.
                 // If none is available, return.
                 while (m_toRead == 0)
                 {
-                    if (!Next())
-                    {
-                        if (State < 0)
-                        {
-                            return -1;
-                        }
-
-                        return pos;
-                    }
+                    var result = Next();
+                    if (result != DecodeResult.Processing)
+                        return result;
                 }
-
-                // If there are no more data in the buffer, return.
-                if (pos == size)
-                    return pos;
-
-                // Copy the data from buffer to the message.
-                int toCopy = Math.Min(m_toRead, size - pos);
-                data.CopyTo(pos, m_readPos, 0, toCopy);
-                m_readPos.AdvanceOffset(toCopy);
-                pos += toCopy;
-                m_toRead -= toCopy;
             }
+
+            return DecodeResult.Processing;
         }
 
         protected void NextStep(ByteArraySegment readPos, int toRead, int state)
         {
             m_readPos = readPos;
             m_toRead = toRead;
-            this.State = state;
+            State = state;
         }
 
         protected int State
@@ -203,17 +160,9 @@ namespace NetMQ.Core.Transports
             set;
         }
 
-        protected void DecodingError()
-        {
-            State = -1;
-        }
+        public abstract bool GetMsg(MsgSink sink);
 
-        public virtual bool MessageReadySize(int msgSize)
-        {
-            Debug.Assert(false);
-            return false;
-        }
 
-        protected abstract bool Next();
+        protected abstract DecodeResult Next();
     }
 }

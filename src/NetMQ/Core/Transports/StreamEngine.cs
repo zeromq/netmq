@@ -28,7 +28,7 @@ using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports
 {
-    internal sealed class StreamEngine : IEngine, IProactorEvents, IMsgSink
+    internal sealed class StreamEngine : IEngine, IProactorEvents
     {
         private class StateMachineAction
         {
@@ -53,8 +53,7 @@ namespace NetMQ.Core.Transports
         {
             Closed,
             Handshaking,
-            Active,
-            Stalled,
+            Active
         }
 
         private enum HandshakeState
@@ -95,6 +94,7 @@ namespace NetMQ.Core.Transports
         // Preamble (10 bytes) + version (1 byte) + socket type (1 byte).
         private const int GreetingSize = 12;
         private const int PreambleSize = 10;
+        private const int GreetingSizeV3 = 64;
 
         // Position of the version field in the greeting.
         private const int VersionPos = 10;
@@ -105,7 +105,8 @@ namespace NetMQ.Core.Transports
         private ByteArraySegment m_inpos;
         private int m_insize;
         private DecoderBase m_decoder;
-        private bool m_ioEnabled;
+        private bool m_subscriptionRequired;
+        private bool m_identityReceived;
 
         private ByteArraySegment m_outpos;
         private int m_outsize;
@@ -113,7 +114,7 @@ namespace NetMQ.Core.Transports
 
         // The receive buffer holding the greeting message
         // that we are receiving from the peer.
-        private readonly byte[] m_greeting = new byte[12];
+        private readonly byte[] m_greeting = new byte[64];
 
         // The number of bytes of the greeting message that
         // we have already received.
@@ -122,7 +123,7 @@ namespace NetMQ.Core.Transports
 
         // The send buffer holding the greeting message
         // that we are sending to the peer.
-        private readonly ByteArraySegment m_greetingOutputBuffer = new byte[12];
+        private readonly ByteArraySegment m_greetingOutputBuffer = new byte[64];
 
         // The session this engine is attached to.
         private SessionBase m_session;
@@ -150,12 +151,12 @@ namespace NetMQ.Core.Transports
 
         // queue for actions that happen during the state machine
         private readonly Queue<StateMachineAction> m_actionsQueue;
+        
 
         public StreamEngine(AsyncSocket handle, Options options, string endpoint)
         {
             m_handle = handle;
             m_insize = 0;
-            m_ioEnabled = false;
             m_sendingState = SendState.Idle;
             m_receivingState = ReceiveState.Idle;
             m_outsize = 0;
@@ -167,6 +168,8 @@ namespace NetMQ.Core.Transports
             m_encoder = null;
             m_decoder = null;
             m_actionsQueue = new Queue<StateMachineAction>();
+            m_subscriptionRequired = false;
+            m_identityReceived = false;
 
             // Set the socket buffer limits for the underlying socket.
             if (m_options.SendBuffer != 0)
@@ -212,7 +215,6 @@ namespace NetMQ.Core.Transports
             // Connect to I/O threads poller object.
             m_ioObject.Plug(ioThread);
             m_ioObject.AddSocket(m_handle);
-            m_ioEnabled = true;
 
             FeedAction(Action.Start, SocketError.Success, 0);
         }
@@ -229,20 +231,14 @@ namespace NetMQ.Core.Transports
             m_plugged = false;
 
             // remove handle from proactor.
-            if (m_ioEnabled)
-            {
-                m_ioObject.RemoveSocket(m_handle);
-                m_ioEnabled = false;
-            }
-
+            m_ioObject.RemoveSocket(m_handle);
+            
             // Disconnect from I/O threads poller object.
             m_ioObject.Unplug();
 
             m_state = State.Closed;
 
             // Disconnect from session object.
-            m_encoder?.SetMsgSource(null);
-            m_decoder?.SetMsgSink(null);
             m_session = null;
         }
 
@@ -250,6 +246,7 @@ namespace NetMQ.Core.Transports
         {
             Debug.Assert(m_session != null);
             m_socket.EventDisconnected(m_endpoint, m_handle);
+            m_session.Flush();
             m_session.Detach();
             Unplug();
             Destroy();
@@ -282,7 +279,7 @@ namespace NetMQ.Core.Transports
                             if (m_options.RawSocket)
                             {
                                 m_encoder = new RawEncoder(Config.OutBatchSize, m_session, m_options.Endian);
-                                m_decoder = new RawDecoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
+                                m_decoder = new RawDecoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                 Activate();
                             }
@@ -312,8 +309,13 @@ namespace NetMQ.Core.Transports
                             // if we stuck let's continue, other than that nothing to do
                             if (m_receivingState == ReceiveState.Stuck)
                             {
-                                m_receivingState = ReceiveState.Active;
-                                ProcessInput();
+                                bool isMsgPushed = m_decoder.GetMsg(WriteMsg);
+                                if (isMsgPushed)
+                                {
+                                    m_receivingState = ReceiveState.Active;
+                                    m_session.Flush();
+                                    ProcessInput();    
+                                }
                             }
                             break;
                         case Action.OutCompleted:
@@ -344,22 +346,6 @@ namespace NetMQ.Core.Transports
                             break;
                         default:
                             Debug.Assert(false);
-                            break;
-                    }
-                    break;
-                case State.Stalled:
-                    switch (action)
-                    {
-                        case Action.ActivateIn:
-                            // There was an input error but the engine could not
-                            // be terminated (due to the stalled decoder).
-                            // Flush the pending message and terminate the engine now.
-                            m_decoder.ProcessBuffer(m_inpos, 0);
-                            Debug.Assert(!m_decoder.Stalled());
-                            m_session.Flush();
-                            Error();
-                            break;
-                        case Action.ActivateOut:
                             break;
                     }
                     break;
@@ -479,7 +465,6 @@ namespace NetMQ.Core.Transports
                                     m_encoder.SetMsgSource(m_session);
 
                                     m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
-                                    m_decoder.SetMsgSink(m_session);
 
                                     // We have already sent the message header.
                                     // Since there is no way to tell the encoder to
@@ -504,8 +489,9 @@ namespace NetMQ.Core.Transports
                                     // message into the incoming message stream. To put this
                                     // message right after the identity message, we temporarily
                                     // divert the message stream from session to ourselves.
-                                    if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
-                                        m_decoder.SetMsgSink(this);
+                                    if (m_options.SocketType == ZmqSocketType.Pub ||
+                                        m_options.SocketType == ZmqSocketType.Xpub)
+                                        m_subscriptionRequired = true;
 
                                     // handshake is done
                                     Activate();
@@ -653,14 +639,13 @@ namespace NetMQ.Core.Transports
 
                                             m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize,
                                                 m_options.Endian);
-                                            m_decoder.SetMsgSink(m_session);
                                             
                                             Activate ();
                                         }
                                         else if (m_greeting[VersionPos] == 1)
                                         {
                                             m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
-                                            m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
+                                            m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                             Activate ();
                                         }
@@ -668,7 +653,7 @@ namespace NetMQ.Core.Transports
                                         {
                                             // We will use ZMTP 3 here
                                             m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
-                                            m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
+                                            m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                             Activate ();
                                         }
@@ -713,14 +698,13 @@ namespace NetMQ.Core.Transports
 
                                         m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize,
                                             m_options.Endian);
-                                        m_decoder.SetMsgSink(m_session);
                                             
                                         Activate ();
                                     }
                                     else if (m_greeting[VersionPos] == 1)
                                     {
                                         m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
-                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
+                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                         Activate ();
                                     }
@@ -728,7 +712,7 @@ namespace NetMQ.Core.Transports
                                     {
                                         // We will use ZMTP 3 here
                                         m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
-                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_session, m_options.Endian);
+                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                         Activate ();
                                     }
@@ -776,78 +760,40 @@ namespace NetMQ.Core.Transports
 
         private void ProcessInput()
         {
-            bool disconnection = false;
-            int processed;
-
             if (m_insize == -1)
             {
                 m_insize = 0;
-                disconnection = true;
+                Error();
+                return; 
             }
-
-            if (m_options.RawSocket)
+            
+            while (m_insize > 0)
             {
-                if (m_insize == 0 || !m_decoder.MessageReadySize(m_insize))
-                {
-                    processed = 0;
-                }
-                else
-                {
-                    processed = m_decoder.ProcessBuffer(m_inpos, m_insize);
-                }
-            }
-            else
-            {
-                // Push the data to the decoder.
-                processed = m_decoder.ProcessBuffer(m_inpos, m_insize);
-            }
+                var result = m_decoder.Decode(m_inpos, m_insize, out var processed);
+                m_inpos.AdvanceOffset(processed);
+                m_insize -= processed;
 
-            if (processed == -1)
-            {
-                disconnection = true;
-            }
-            else
-            {
-                // Stop polling for input if we got stuck.
-                if (processed < m_insize)
-                {
-                    m_receivingState = ReceiveState.Stuck;
-
-                    m_inpos.AdvanceOffset(processed);
-                    m_insize -= processed;
-                }
-                else
-                {
-                    m_inpos = null;
-                    m_insize = 0;
-                }
-            }
-
-            // Flush all messages the decoder may have produced.
-            m_session.Flush();
-
-            // An input error has occurred. If the last decoded message
-            // has already been accepted, we terminate the engine immediately.
-            // Otherwise, we stop waiting for socket events and postpone
-            // the termination until after the message is accepted.
-            if (disconnection)
-            {
-                if (m_decoder.Stalled())
-                {
-                    m_ioObject.RemoveSocket(m_handle);
-                    m_ioEnabled = false;
-                    m_state = State.Stalled;
-                }
-                else
+                if (result == DecodeResult.Error)
                 {
                     Error();
+                    return;
+                }
+                
+                if (result == DecodeResult.Processing)
+                    break;
+
+                bool isMessagePushed = m_decoder.GetMsg(WriteMsg);
+                if (!isMessagePushed)
+                {
+                    m_receivingState = ReceiveState.Stuck;
+                    m_session.Flush();
+                    return;
                 }
             }
-            else if (m_receivingState != ReceiveState.Stuck)
-            {
-                m_decoder.GetBuffer(out m_inpos, out m_insize);
-                BeginRead(m_inpos, m_insize);
-            }
+
+            m_session.Flush();
+            m_decoder.GetBuffer(out m_inpos, out m_insize);
+            BeginRead(m_inpos, m_insize);
         }
 
         /// <summary>
@@ -879,33 +825,7 @@ namespace NetMQ.Core.Transports
         {
             FeedAction(Action.ActivateOut, SocketError.Success, 0);
         }
-
-        public bool PushMsg(ref Msg msg)
-        {
-            Debug.Assert(m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub);
-
-            // The first message is identity.
-            // Let the session process it.
-
-            m_session.PushMsg(ref msg);
-
-            // Inject the subscription message so that the ZMQ 2.x peer
-            // receives our messages.
-            msg.InitPool(1);
-            msg.Put((byte)1);
-
-            bool isMessagePushed = m_session.PushMsg(ref msg);
-
-            m_session.Flush();
-
-            // Once we have injected the subscription message, we can
-            // Divert the message flow back to the session.
-            Debug.Assert(m_decoder != null);
-            m_decoder.SetMsgSink(m_session);
-
-            return isMessagePushed;
-        }
-
+        
         /// <param name="socketError">the SocketError that resulted from the write - which could be Success (no error at all)</param>
         /// <param name="bytesTransferred">this indicates the number of bytes that were transferred in the write</param>
         /// <returns>the number of bytes transferred if successful, -1 otherwise</returns>
@@ -982,6 +902,42 @@ namespace NetMQ.Core.Transports
             {
                 EnqueueAction(Action.InCompleted, ex.SocketErrorCode, 0);
             }
+        }
+
+        private bool WriteMsg(ref Msg msg)
+        {
+            if ((m_identityReceived && !m_subscriptionRequired) || m_options.RawSocket)
+                return m_session.PushMsg(ref msg);
+
+            if (!m_identityReceived) {
+                if (m_options.RecvIdentity) {
+                    msg.SetFlags(MsgFlags.Identity);
+                    var isMessagedPushed = m_session.PushMsg(ref msg);
+                    if (!isMessagedPushed)
+                        return false;
+                }
+                else {
+                    msg.Close();
+                    msg.InitEmpty();
+                }
+
+                m_identityReceived = true;
+            }
+
+            //  Inject the subscription message, so that also
+            //  ZMQ 2.x peers receive published messages.
+            if (m_subscriptionRequired) {
+                msg.Close();
+                msg.InitPool(1);
+                msg.Put((byte)1);
+
+                bool isMessagePushed = m_session.PushMsg(ref msg);
+                if (!isMessagePushed)
+                    return false;
+                m_subscriptionRequired = false;
+            }
+
+            return true;
         }
 
         /// <summary>

@@ -79,8 +79,6 @@ namespace NetMQ.Core.Patterns
             m_fairQueueing = new FairQueueing();
             m_loadBalancer = new LoadBalancer();
 
-            m_options.RecvIdentity = true;
-
             m_prefetchedMsg = new Msg();
             m_prefetchedMsg.InitEmpty();
         }
@@ -118,52 +116,13 @@ namespace NetMQ.Core.Patterns
         }
 
         /// <summary>
-        /// For a Dealer socket: If there's a pre-fetched message, snatch that.
-        /// Otherwise, dump any identity messages and get the first non-identity message,
-        /// or return false if there are no messages available.
+        /// Get a message from FairQueuing data structure
         /// </summary>
         /// <param name="msg">a Msg to receive the message into</param>
         /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
-            return ReceiveInternal(ref msg);
-        }
-
-        /// <summary>
-        /// If there's a pre-fetched message, snatch that.
-        /// Otherwise, dump any identity messages and get the first non-identity message,
-        /// or return false if there are no messages available.
-        /// </summary>
-        /// <param name="msg">a Msg to receive the message into</param>
-        /// <returns>false if there were no messages to receive</returns>
-        private bool ReceiveInternal(ref Msg msg)
-        {
-            // If there is a prefetched message, return it.
-            if (m_prefetched)
-            {
-                msg.Move(ref m_prefetchedMsg);
-
-                m_prefetched = false;
-
-                return true;
-            }
-
-            // DEALER socket doesn't use identities. We can safely drop it and
-            while (true)
-            {
-                bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
-
-                if (!isMessageAvailable)
-                {
-                    return false;
-                }
-
-                // Stop when we get any message that is not an Identity.
-                if (!msg.IsIdentity)
-                    break;
-            }
-
-            return true;
+            return m_fairQueueing.Recv(ref msg);
         }
 
         /// <summary>
@@ -173,18 +132,7 @@ namespace NetMQ.Core.Patterns
         /// <returns></returns>
         protected override bool XHasIn()
         {
-            // We may already have a message pre-fetched.
-            if (m_prefetched)
-                return true;
-
-            // Try to read the next message to the pre-fetch buffer.
-            bool isMessageAvailable = ReceiveInternal(ref m_prefetchedMsg);
-
-            if (!isMessageAvailable)
-                return false;
-
-            m_prefetched = true;
-            return true;
+            return m_fairQueueing.HasIn();
         }
 
         protected override bool XHasOut()

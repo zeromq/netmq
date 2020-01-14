@@ -35,7 +35,7 @@ namespace NetMQ.Core
 {
     internal class SessionBase : Own,
         Pipe.IPipeEvents, IProactorEvents,
-        IMsgSink, IMsgSource
+        IMsgSource
     {
         /// <summary>
         /// If true, this session (re)connects to the peer. Otherwise, it's
@@ -95,11 +95,6 @@ namespace NetMQ.Core
         /// If true, identity has been sent to the network.
         /// </summary>
         private bool m_identitySent;
-
-        /// <summary>
-        /// If true, identity has been received from the network.
-        /// </summary>
-        private bool m_identityReceived;
 
         /// <summary>
         /// Protocol and address to use when connecting.
@@ -176,7 +171,6 @@ namespace NetMQ.Core
             if (options.RawSocket)
             {
                 m_identitySent = true;
-                m_identityReceived = true;
             }
 
             m_terminatingPipes = new HashSet<Pipe>();
@@ -250,20 +244,6 @@ namespace NetMQ.Core
         /// <returns>true if the Msg was successfully sent</returns>
         public virtual bool PushMsg(ref Msg msg)
         {
-            // First message to receive is identity (if required).
-            if (!m_identityReceived)
-            {
-                msg.SetFlags(MsgFlags.Identity);
-                m_identityReceived = true;
-
-                if (!m_options.RecvIdentity)
-                {
-                    msg.Close();
-                    msg.InitEmpty();
-                    return true;
-                }
-            }
-
             if (m_pipe != null && m_pipe.Write(ref msg))
             {
                 msg.InitEmpty();
@@ -282,12 +262,10 @@ namespace NetMQ.Core
             if (m_options.RawSocket)
             {
                 m_identitySent = true;
-                m_identityReceived = true;
             }
             else
             {
                 m_identitySent = false;
-                m_identityReceived = false;
             }
         }
 

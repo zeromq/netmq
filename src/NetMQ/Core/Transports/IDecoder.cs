@@ -2,16 +2,20 @@ using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports
 {
+    internal enum DecodeResult
+    {
+        Error,
+        Processing,
+        MessageReady
+    }
+
+    internal delegate bool MsgSink(ref Msg msg); 
+    
     internal interface IDecoder
     {
-        void SetMsgSink([CanBeNull] IMsgSink msgSink);
-
         void GetBuffer(out ByteArraySegment data, out int size);
 
-        int ProcessBuffer([NotNull] ByteArraySegment data, int size);
-
-        bool MessageReadySize(int msgSize);
-
-        bool Stalled();
+        DecodeResult Decode ([NotNull] ByteArraySegment data, int size, out int processed);
+        bool GetMsg(MsgSink sink);
     }
 }
