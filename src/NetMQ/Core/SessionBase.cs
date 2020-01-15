@@ -41,8 +41,7 @@ namespace NetMQ.Core
     }
     
     internal class SessionBase : Own,
-        Pipe.IPipeEvents, IProactorEvents,
-        IMsgSource
+        Pipe.IPipeEvents, IProactorEvents
     {
         /// <summary>
         /// If true, this session (re)connects to the peer. Otherwise, it's
@@ -97,11 +96,6 @@ namespace NetMQ.Core
         /// True is linger timer is running.
         /// </summary>
         private bool m_hasLingerTimer;
-
-        /// <summary>
-        /// If true, identity has been sent to the network.
-        /// </summary>
-        private bool m_identitySent;
 
         /// <summary>
         /// Protocol and address to use when connecting.
@@ -174,12 +168,6 @@ namespace NetMQ.Core
             m_socket = socket;
             m_ioThread = ioThread;
             m_addr = addr;
-
-            if (options.RawSocket)
-            {
-                m_identitySent = true;
-            }
-
             m_terminatingPipes = new HashSet<Pipe>();
         }
 
@@ -222,19 +210,8 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">a reference to a Msg to put the message into</param>
         /// <returns>true if the Msg is successfully sent</returns>
-        public virtual bool PullMsg(ref Msg msg)
+        public bool PullMsg(ref Msg msg)
         {
-            // First message to send is identity
-            if (!m_identitySent)
-            {
-                msg.InitPool(m_options.IdentitySize);
-                msg.Put(m_options.Identity, 0, m_options.IdentitySize);
-                m_identitySent = true;
-                m_incompleteIn = false;
-
-                return true;
-            }
-
             if (m_pipe == null || !m_pipe.Read(ref msg))
             {
                 return false;
@@ -265,15 +242,6 @@ namespace NetMQ.Core
         /// </summary>
         protected virtual void Reset()
         {
-            // Restore identity flags.
-            if (m_options.RawSocket)
-            {
-                m_identitySent = true;
-            }
-            else
-            {
-                m_identitySent = false;
-            }
         }
 
         /// <summary>

@@ -107,6 +107,7 @@ namespace NetMQ.Core.Transports
         private DecoderBase m_decoder;
         private bool m_subscriptionRequired;
         private bool m_identityReceived;
+        private bool m_identitySent;
 
         private ByteArraySegment m_outpos;
         private int m_outsize;
@@ -152,7 +153,6 @@ namespace NetMQ.Core.Transports
         // queue for actions that happen during the state machine
         private readonly Queue<StateMachineAction> m_actionsQueue;
         
-
         public StreamEngine(AsyncSocket handle, Options options, string endpoint)
         {
             m_handle = handle;
@@ -170,6 +170,7 @@ namespace NetMQ.Core.Transports
             m_actionsQueue = new Queue<StateMachineAction>();
             m_subscriptionRequired = false;
             m_identityReceived = false;
+            m_identitySent = false;
 
             // Set the socket buffer limits for the underlying socket.
             if (m_options.SendBuffer != 0)
@@ -185,6 +186,8 @@ namespace NetMQ.Core.Transports
         public void Destroy()
         {
             Debug.Assert(!m_plugged);
+
+            m_encoder?.Dispose();
 
             if (m_handle != null)
             {
@@ -278,7 +281,7 @@ namespace NetMQ.Core.Transports
                         case Action.Start:
                             if (m_options.RawSocket)
                             {
-                                m_encoder = new RawEncoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                m_encoder = new RawEncoder(Config.OutBatchSize, m_options.Endian);
                                 m_decoder = new RawDecoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                 Activate();
@@ -357,8 +360,23 @@ namespace NetMQ.Core.Transports
             if (m_outsize == 0)
             {
                 m_outpos = null;
-                m_encoder.GetData(ref m_outpos, ref m_outsize);
-
+                m_outsize = m_encoder.Encode(ref m_outpos, 0);
+                
+                while (m_outsize < Config.OutBatchSize)
+                {
+                    Msg msg = new Msg();
+                    if (!ReadMsg(ref msg))
+                        break;
+                    m_encoder.LoadMsg(ref msg);
+                    ByteArraySegment buffer = null;
+                    if (m_outpos != null)
+                        buffer = m_outpos + m_outsize;
+                    var n = m_encoder.Encode(ref buffer, Config.OutBatchSize - m_outsize);
+                    if (m_outpos == null)
+                        m_outpos = buffer;
+                    m_outsize += n;
+                }
+                
                 if (m_outsize == 0)
                 {
                     m_sendingState = SendState.Idle;
@@ -462,8 +480,6 @@ namespace NetMQ.Core.Transports
                                 if (m_greeting[0] != 0xff || (m_greetingBytesRead == 10 && (m_greeting[9] & 0x01) == 0))
                                 {
                                     m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
-                                    m_encoder.SetMsgSource(m_session);
-
                                     m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                     // We have already sent the message header.
@@ -474,12 +490,9 @@ namespace NetMQ.Core.Transports
                                     var tmp = new byte[10];
                                     var bufferp = new ByteArraySegment(tmp);
 
-                                    int bufferSize = headerSize;
-
-                                    m_encoder.GetData(ref bufferp, ref bufferSize);
-
+                                    int bufferSize = m_encoder.Encode(ref bufferp, headerSize);
                                     Debug.Assert(bufferSize == headerSize);
-
+                                    
                                     // Make sure the decoder sees the data we have already received.
                                     m_inpos = new ByteArraySegment(m_greeting);
                                     m_insize = m_greetingBytesRead;
@@ -635,8 +648,6 @@ namespace NetMQ.Core.Transports
                                         if (m_greeting[VersionPos] == 0)
                                         {
                                             m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
-                                            m_encoder.SetMsgSource(m_session);
-
                                             m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize,
                                                 m_options.Endian);
                                             
@@ -644,7 +655,7 @@ namespace NetMQ.Core.Transports
                                         }
                                         else if (m_greeting[VersionPos] == 1)
                                         {
-                                            m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                            m_encoder = new V2Encoder(Config.OutBatchSize, m_options.Endian);
                                             m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                             Activate ();
@@ -652,7 +663,7 @@ namespace NetMQ.Core.Transports
                                         else
                                         {
                                             // We will use ZMTP 3 here
-                                            m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                            m_encoder = new V2Encoder(Config.OutBatchSize, m_options.Endian);
                                             m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                             Activate ();
@@ -694,8 +705,6 @@ namespace NetMQ.Core.Transports
                                     if (m_greeting[VersionPos] == 0)
                                     {
                                         m_encoder = new V1Encoder(Config.OutBatchSize, m_options.Endian);
-                                        m_encoder.SetMsgSource(m_session);
-
                                         m_decoder = new V1Decoder(Config.InBatchSize, m_options.MaxMessageSize,
                                             m_options.Endian);
                                             
@@ -703,7 +712,7 @@ namespace NetMQ.Core.Transports
                                     }
                                     else if (m_greeting[VersionPos] == 1)
                                     {
-                                        m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                        m_encoder = new V2Encoder(Config.OutBatchSize, m_options.Endian);
                                         m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                         Activate ();
@@ -711,7 +720,7 @@ namespace NetMQ.Core.Transports
                                     else
                                     {
                                         // We will use ZMTP 3 here
-                                        m_encoder = new V2Encoder(Config.OutBatchSize, m_session, m_options.Endian);
+                                        m_encoder = new V2Encoder(Config.OutBatchSize, m_options.Endian);
                                         m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
 
                                         Activate ();
@@ -909,6 +918,24 @@ namespace NetMQ.Core.Transports
             }
         }
 
+        bool ReadMsg (ref Msg msg)
+        {
+            if (m_identitySent || m_options.RawSocket)
+                return m_session.PullMsg(ref msg);
+
+            if (m_options.IdentitySize > 0)
+            {
+                msg.InitPool(m_options.IdentitySize);
+                Buffer.BlockCopy(m_options.Identity, 0, msg.Data, 0, m_options.Identity.Length);    
+            }
+            else 
+                msg.InitEmpty();
+            
+            m_identitySent = true;
+            
+            return true;
+        }
+        
         private PushMsgResult WriteMsg(ref Msg msg)
         {
             if ((m_identityReceived && !m_subscriptionRequired) || m_options.RawSocket)

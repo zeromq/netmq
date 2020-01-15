@@ -10,73 +10,39 @@ namespace NetMQ.Core.Transports
         private const int MessageReadyState = 1;
 
         private readonly ByteArraySegment m_tmpbuf = new byte[9];
-        private Msg m_inProgress;
-
-        private IMsgSource m_msgSource;
-
-        public V2Encoder(int bufferSize, IMsgSource session, Endianness endian)
+        
+        public V2Encoder(int bufferSize, Endianness endian)
             : base(bufferSize, endian)
         {
-            m_inProgress = new Msg();
-            m_inProgress.InitEmpty();
-
-            m_msgSource = session;
-
             // Write 0 bytes to the batch and go to message_ready state.
             NextStep(m_tmpbuf, 0, MessageReadyState, true);
         }
 
-        public override void SetMsgSource(IMsgSource msgSource)
-        {
-            m_msgSource = msgSource;
-        }
-
-        protected override bool Next()
+        protected override void Next()
         {
             switch (State)
             {
                 case SizeReadyState:
-                    return SizeReady();
+                    SizeReady();
+                    break;
+                    
                 case MessageReadyState:
-                    return MessageReady();
-                default:
-                    return false;
+                    MessageReady();
+                    break;
             }
         }
 
-        private bool SizeReady()
+        private void SizeReady()
         {
             // Write message body into the buffer.
             NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
-                m_inProgress.Size, MessageReadyState, !m_inProgress.HasMore);
-            return true;
+                m_inProgress.Size, MessageReadyState, true);
         }
 
-        private bool MessageReady()
+        private void MessageReady()
         {
-            // Release the content of the old message.
-            m_inProgress.Close();
-
             m_tmpbuf.Reset();
-
-            // Read new message. If there is none, return false.
-            // Note that new state is set only if write is successful. That way
-            // unsuccessful write will cause retry on the next state machine
-            // invocation.
-
-            if (m_msgSource == null)
-            {
-                m_inProgress.InitEmpty();
-                return false;
-            }
-
-            bool messagedPulled = m_msgSource.PullMsg(ref m_inProgress);
-            if (!messagedPulled)
-            {
-                m_inProgress.InitEmpty();
-                return false;
-            }
-
+            
             int protocolFlags = 0;
             if (m_inProgress.HasMore)
                 protocolFlags |= V2Protocol.MoreFlag;
@@ -98,7 +64,6 @@ namespace NetMQ.Core.Transports
                 m_tmpbuf[1] = (byte)(size);
                 NextStep(m_tmpbuf, 2, SizeReadyState, false);
             }
-            return true;
         }
     }
 }
