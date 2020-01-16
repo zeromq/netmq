@@ -133,7 +133,7 @@ namespace NetMQ.Tests
 
             List<byte[]> actual = m_socket.ReceiveMultipartBytes();
 
-            Assert.Equal(1, actual.Count);
+            Assert.Single(actual);
             Assert.Equal(4, actual.Capacity);
             Assert.True(actual[0].SequenceEqual(expected));
             Assert.NotSame(expected, actual[0]);
@@ -146,7 +146,7 @@ namespace NetMQ.Tests
 
             List<byte[]> actual = m_socket.ReceiveMultipartBytes(expectedFrameCount: 1);
 
-            Assert.Equal(1, actual.Count);
+            Assert.Single(actual);
             Assert.Equal(1, actual.Capacity);
             Assert.True(actual[0].SequenceEqual(expected));
             Assert.NotSame(expected, actual[0]);
@@ -165,7 +165,7 @@ namespace NetMQ.Tests
 
             List<string> actual = m_socket.ReceiveMultipartStrings();
 
-            Assert.Equal(1, actual.Count);
+            Assert.Single(actual);
             Assert.Equal(4, actual.Capacity);
             Assert.Equal(expected, actual[0]);
             Assert.NotSame(expected, actual[0]);
@@ -180,7 +180,7 @@ namespace NetMQ.Tests
 
             List<string> actual = m_socket.ReceiveMultipartStrings(expectedFrameCount: 1);
 
-            Assert.Equal(1, actual.Count);
+            Assert.Single(actual);
             Assert.Equal(1, actual.Capacity);
             Assert.Equal(expected, actual[0]);
             Assert.NotSame(expected, actual[0]);

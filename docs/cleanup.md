@@ -31,18 +31,17 @@ If socket is not get disposed the NetMQConfig.Cleanup will block forever.
 
 Lastly you need to call the NetMQConfig.Cleanup. You can do that in the last line of the Main method:
 
-    :::csharp
-	static void Main(string[] args)
-	{
-	    try
-	    {
-	        // Do you logic here
-	    }
-	    finally
-	    {
-	        NetMQConfig.Cleanup();
-	    }
-	}
+``` csharp
+ static void Main(string[] args)
+ try
+ {
+     // Do you logic here
+ }
+ finally
+ {
+     NetMQConfig.Cleanup();
+ }
+```
 
 If you are lazy and don't care about cleaning the library you can also call NetMQConfig.Cleanup with the block parameter set to false.
 When set to false the cleanup will not wait for Sockets to Send all messages and will just kill the background threads.
@@ -55,15 +54,16 @@ I suggest to just add global tear down to your tests and then call NetMQConfig.C
 
 This how to do it with NUnit:
 
-    :::csharp
-    [SetUpFixture]
-    public class Setup
+``` csharp
+[SetUpFixture]
+public class Setup
+{
+    [OneTimeTearDown]
+    public void TearDown()
     {
-        [OneTimeTearDown]
-        public void TearDown()
-        {
-            NetMQConfig.Cleanup(false);
-        }
+        NetMQConfig.Cleanup(false);
     }
+}
+```
 
 In tests it is important to call Cleanup with block set to false so in case of failing test the entire process is not hanging.

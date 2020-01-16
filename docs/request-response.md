@@ -27,25 +27,21 @@ Here is a small example where the `RequestSocket` and `ResponseSocket`s are both
 
 Example:
 
-    :::csharp
-    using (var responseSocket = new ResponseSocket("@tcp://*:5555"))
-    using (var requestSocket = new RequestSocket(">tcp://localhost:5555"))
-    {
-        Console.WriteLine("requestSocket : Sending 'Hello'");
-        requestSocket.SendFrame("Hello");
-
-        var message = responseSocket.ReceiveFrameString();
-
-        Console.WriteLine("responseSocket : Server Received '{0}'", message);
-
-        Console.WriteLine("responseSocket Sending 'World'");
-        responseSocket.SendFrame("World");
-
-        message = requestSocket.ReceiveFrameString();
-        Console.WriteLine("requestSocket : Received '{0}'", message);
-
-        Console.ReadLine();
-    }
+``` csharp
+using (var responseSocket = new ResponseSocket("@tcp://*:5555"))
+using (var requestSocket = new RequestSocket(">tcp://localhost:5555"))
+{
+    Console.WriteLine("requestSocket : Sending 'Hello'");
+    requestSocket.SendFrame("Hello");
+    var message = responseSocket.ReceiveFrameString();
+    Console.WriteLine("responseSocket : Server Received '{0}'", message);
+    Console.WriteLine("responseSocket Sending 'World'");
+    responseSocket.SendFrame("World");
+    message = requestSocket.ReceiveFrameString();
+    Console.WriteLine("requestSocket : Received '{0}'", message);
+    Console.ReadLine();
+}
+```
 
 When you run this demo code you should see something like this:
 

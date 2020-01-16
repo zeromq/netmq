@@ -15,7 +15,7 @@ namespace NetMQ.Tests
             {
                 Assert.Null(socket.Options.Identity);
 //                Assert.Null(socket.Options.TcpAcceptFilter);
-                Assert.Equal(false, socket.Options.ReceiveMore);
+                Assert.False(socket.Options.ReceiveMore);
             }
         }
 
@@ -28,7 +28,7 @@ namespace NetMQ.Tests
                 Assert.Equal(1L, socket.Options.Affinity);
 
                 socket.Options.Identity = new[] { (byte)1 };
-                Assert.Equal(1, socket.Options.Identity.Length);
+                Assert.Single(socket.Options.Identity);
                 Assert.Equal(1, socket.Options.Identity[0]);
 
                 socket.Options.MulticastRate = 100;
@@ -67,7 +67,7 @@ namespace NetMQ.Tests
                 Assert.Equal(100, socket.Options.MulticastHops);
 
                 socket.Options.IPv4Only = true;
-                Assert.Equal(true, socket.Options.IPv4Only);
+                Assert.True(socket.Options.IPv4Only);
 
                 Assert.Null(socket.Options.LastEndpoint);
 
@@ -75,7 +75,7 @@ namespace NetMQ.Tests
 //                Assert.Equal(true, socket.Options.RouterMandatory);
 
                 socket.Options.TcpKeepalive = true;
-                Assert.Equal(true, socket.Options.TcpKeepalive);
+                Assert.True(socket.Options.TcpKeepalive);
 
 //                socket.Options.TcpKeepaliveCnt = 100;
 //                Assert.Equal(100, socket.Options.TcpKeepaliveCnt);
@@ -87,7 +87,7 @@ namespace NetMQ.Tests
                 Assert.Equal(TimeSpan.FromMilliseconds(100), socket.Options.TcpKeepaliveInterval);
 
                 socket.Options.DelayAttachOnConnect = true;
-                Assert.Equal(true, socket.Options.DelayAttachOnConnect);
+                Assert.True(socket.Options.DelayAttachOnConnect);
 
                 socket.Options.RouterRawSocket = true;
 //                Assert.Equal(true, socket.Options.RouterRawSocket);

@@ -295,7 +295,7 @@ namespace NetMQ.Tests
                 int bytesRead = clientSocket.Receive(buffer);
                 Assert.True(bytesRead > 0);
 
-                Assert.Equal(Encoding.ASCII.GetString(buffer, 0, bytesRead), "HelloRaw");
+                Assert.Equal("HelloRaw", Encoding.ASCII.GetString(buffer, 0, bytesRead));
             }
         }
 
@@ -399,7 +399,7 @@ namespace NetMQ.Tests
                 server.SkipFrame(); // identity
                 string message = server.ReceiveFrameString();
 
-                Assert.Equal(message, "1");
+                Assert.Equal("1", message);
 
                 // we read the message, it should false again
                 Assert.False(server.HasIn);

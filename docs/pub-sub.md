@@ -18,15 +18,17 @@ ZeroMQ/NetMQ uses multipart [messages](message.md) to convey topic information. 
 
 A publisher must include the topic in the message's' first frame, prior to the message payload. For example, to publish a status message to subscribers of the `status` topic:
 
-    :::csharp
-    // send a message on the 'status' topic
-    pub.SendMoreFrame("status").SendFrame("All is well");
+``` csharp
+// send a message on the 'status' topic
+pub.SendMoreFrame("status").SendFrame("All is well");
+```
 
 Subscribers specify which topics they are interested in via the `Subscribe` method of `SubscriberSocket`:
 
-    :::csharp
-    // subscribe to the 'status' topic
-    sub.Subscribe("status");
+``` csharp
+// subscribe to the 'status' topic
+sub.Subscribe("status");
+```
 
 
 ## Topic heirarchies
@@ -46,8 +48,9 @@ However it would not receive messages with topics:
 
 A consequence of this prefix matching behavious is that you can receive all published messages by subscribing with an empty topic string:
 
-    :::csharp
-    sub.Subscribe(""); // subscribe to all topics
+``` csharp
+sub.Subscribe(""); // subscribe to all topics
+```
 
 
 ## An Example
@@ -59,113 +62,109 @@ Time for an example. This example is very simple, and follows these rules.
 
 ### Publisher
 
-    :::csharp
-    using System;
-    using System.Threading;
-    using NetMQ;
-    using NetMQ.Sockets;
-
-    namespace Publisher
+``` csharp
+using System;
+using System.Threading;
+using NetMQ;
+using NetMQ.Sockets;
+namespace Publisher
+{
+    class Program
     {
-        class Program
+        static void Main(string[] args)
         {
-            static void Main(string[] args)
+            Random rand = new Random(50);
+            using (var pubSocket = new PublisherSocket())
             {
-                Random rand = new Random(50);
-
-                using (var pubSocket = new PublisherSocket())
+                Console.WriteLine("Publisher socket binding...");
+                pubSocket.Options.SendHighWatermark = 1000;
+                pubSocket.Bind("tcp://*:12345");
+                for (var i = 0; i < 100; i++)
                 {
-                    Console.WriteLine("Publisher socket binding...");
-                    pubSocket.Options.SendHighWatermark = 1000;
-                    pubSocket.Bind("tcp://*:12345");
-
-                    for (var i = 0; i < 100; i++)
+                    var randomizedTopic = rand.NextDouble();
+                    if (randomizedTopic > 0.5)
                     {
-                        var randomizedTopic = rand.NextDouble();
-                        if (randomizedTopic > 0.5)
-                        {
-                            var msg = "TopicA msg-" + i;
-                            Console.WriteLine("Sending message : {0}", msg);
-                            pubSocket.SendMoreFrame("TopicA").SendFrame(msg);
-                        }
-                        else
-                        {
-                            var msg = "TopicB msg-" + i;
-                            Console.WriteLine("Sending message : {0}", msg);
-                            pubSocket.SendMoreFrame("TopicB").SendFrame(msg);
-                        }
-
-                        Thread.Sleep(500);
+                        var msg = "TopicA msg-" + i;
+                        Console.WriteLine("Sending message : {0}", msg);
+                        pubSocket.SendMoreFrame("TopicA").SendFrame(msg);
                     }
+                    else
+                    {
+                        var msg = "TopicB msg-" + i;
+                        Console.WriteLine("Sending message : {0}", msg);
+                        pubSocket.SendMoreFrame("TopicB").SendFrame(msg);
+                    }
+                    Thread.Sleep(500);
                 }
             }
         }
     }
+}
+```
 
 
 ### Subscriber
 
-    :::csharp
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using NetMQ;
-    using NetMQ.Sockets;
-
-    namespace SubscriberA
+``` csharp
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using NetMQ;
+using NetMQ.Sockets;
+namespace SubscriberA
+{
+    class Program
     {
-        class Program
+        public static IList<string> allowableCommandLineArgs
+            = new [] { "TopicA", "TopicB", "All" };
+        static void Main(string[] args)
         {
-            public static IList<string> allowableCommandLineArgs
-                = new [] { "TopicA", "TopicB", "All" };
-
-            static void Main(string[] args)
+            if (args.Length != 1 || !allowableCommandLineArgs.Contains(args[0]))
             {
-                if (args.Length != 1 || !allowableCommandLineArgs.Contains(args[0]))
+                Console.WriteLine("Expected one argument, either " +
+                                  "'TopicA', 'TopicB' or 'All'");
+                Environment.Exit(-1);
+            }
+            string topic = args[0] == "All" ? "" : args[0];
+            Console.WriteLine("Subscriber started for Topic : {0}", topic);
+            using (var subSocket = new SubscriberSocket())
+            {
+                subSocket.Options.ReceiveHighWatermark = 1000;
+                subSocket.Connect("tcp://localhost:12345");
+                subSocket.Subscribe(topic);
+                Console.WriteLine("Subscriber socket connecting...");
+                while (true)
                 {
-                    Console.WriteLine("Expected one argument, either " +
-                                      "'TopicA', 'TopicB' or 'All'");
-                    Environment.Exit(-1);
-                }
-
-                string topic = args[0] == "All" ? "" : args[0];
-                Console.WriteLine("Subscriber started for Topic : {0}", topic);
-
-                using (var subSocket = new SubscriberSocket())
-                {
-                    subSocket.Options.ReceiveHighWatermark = 1000;
-                    subSocket.Connect("tcp://localhost:12345");
-                    subSocket.Subscribe(topic);
-                    Console.WriteLine("Subscriber socket connecting...");
-                    while (true)
-                    {
-                        string messageTopicReceived = subSocket.ReceiveFrameString();
-                        string messageReceived = subSocket.ReceiveFrameString();
-                        Console.WriteLine(messageReceived);
-                    }
+                    string messageTopicReceived = subSocket.ReceiveFrameString();
+                    string messageReceived = subSocket.ReceiveFrameString();
+                    Console.WriteLine(messageReceived);
                 }
             }
         }
     }
+}
+```
 
 To run this, these three BAT files may be useful, though you will need to change them to suit your code location should you choose to copy this example code into a new set of projects.
 
 ### RunPubSub.bat
 
-    :::text
-    start RunPublisher.bat
-    start RunSubscriber "TopicA"
-    start RunSubscriber "TopicB"
-    start RunSubscriber "All"
+``` text
+start RunPublisher.bat
+start RunSubscriber "TopicA"
+start RunSubscriber "TopicB"
+start RunSubscriber "All"
+```
 
 ### RunPublisher.bat
 
-    :::text
-    cd Publisher\bin\Debug
-    Publisher.exe
+``` text
+cd Publisher\bin\Debug
+Publisher.exe
+```
 
 ### RunSubscriber.bat
 

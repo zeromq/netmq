@@ -15,7 +15,7 @@ namespace NetMQ
     /// <remarks>
     /// Various options are available in this base class, though their affect can vary by socket type.
     /// </remarks>
-    public abstract class NetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
+    public abstract class NetMQSocket : INetMQSocket
     {
         private readonly SocketBase m_socketHandle;
         private readonly NetMQSocketEventArgs m_socketEventArgs;
@@ -24,6 +24,10 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs> m_receiveReady;
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
         private int m_isClosed;
+
+        #if NETSTANDARD2_0 || NET47
+        private NetMQRuntime m_runtime;
+        #endif
 
         internal enum DefaultAction
         {
@@ -245,10 +249,19 @@ namespace NetMQ
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose()"/>.</summary>
         public void Close()
         {
+            #if NETSTANDARD2_0 || NET47
+            if (m_runtime != null)
+            {
+                m_runtime.Remove(this);
+                m_runtime  = null;
+            }
+            #endif
+
             if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) != 0)
                 return;
 
             m_socketHandle.CheckDisposed();
+
             m_socketHandle.Close();
         }
 
@@ -377,6 +390,26 @@ namespace NetMQ
         }
 
         #endregion
+
+        #if NETSTANDARD2_0 || NET47
+
+        internal void AttachToRuntime()
+        {
+            if (m_runtime == null)
+            {
+                m_runtime = NetMQRuntime.Current;
+                m_runtime.Add(this);
+            }
+            else if (m_runtime != NetMQRuntime.Current)
+                throw new InvalidOperationException("socket can only be associate with one NetMQRuntime");
+        }
+
+        internal void DetachFromRuntime()
+        {
+            m_runtime = null;
+        }
+
+        #endif
 
         /// <summary>
         /// Listen to the given endpoint for SocketEvent events.
