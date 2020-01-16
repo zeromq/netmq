@@ -374,7 +374,6 @@ namespace NetMQ.Core.Patterns
             Buffer.BlockCopy(result, 0, identity, 1, 4);
 
             m_options.Identity = identity;
-            m_options.IdentitySize = (byte)identity.Length;
 
             pipe.Identity = identity;
 

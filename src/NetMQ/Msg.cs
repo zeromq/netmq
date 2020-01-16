@@ -34,7 +34,14 @@ namespace NetMQ
 
         /// <summary>Indicates that more frames of the same message follow.</summary>
         More = 1,
-
+        
+        /// <summary>
+        /// Command frame (see ZMTP spec)
+        /// Command types, use only bits 2-5 and compare with ==, not bitwise,
+        /// a command can never be of more that one type at the same time 
+        /// </summary>
+        Command = 2,
+        
         /// <summary>Indicates that this frame conveys the identity of a connected peer.</summary>
         Identity = 64,
 
@@ -124,7 +131,9 @@ namespace NetMQ
         /// Get the "Has-More" flag, which when set on a message-queue frame indicates that there are more frames to follow.
         /// </summary>
         public bool HasMore => (Flags & MsgFlags.More) == MsgFlags.More;
-
+        
+        internal bool HasCommand => (Flags & MsgFlags.Command) == MsgFlags.Command;
+        
         /// <summary>
         /// Get whether the <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
         /// Only applies to pooled message types.

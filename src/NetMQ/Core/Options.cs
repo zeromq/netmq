@@ -58,6 +58,7 @@ namespace NetMQ.Core
             TcpKeepaliveIntvl = -1;
             DisableTimeWait = false;
             PgmMaxTransportServiceDataUnitLength = Config.PgmMaxTPDU;
+            MechanismType = MechanismType.Null;
         }
 
         /// <summary>
@@ -114,7 +115,15 @@ namespace NetMQ.Core
         /// Get or set the size of the socket-identity byte-array.
         /// The initial value is 0, until the Identity property is set.
         /// </summary>
-        public byte IdentitySize { get; set; }
+        public byte IdentitySize {
+            get
+            {
+                if (Identity != null)
+                    return (byte)Identity.Length;
+
+                return 0;
+            }
+        }
         
         public byte[] LastPeerRoutingId { get; set; }
 
@@ -270,6 +279,8 @@ namespace NetMQ.Core
         /// Controls the maximum datagram size for PGM.
         /// </summary>
         public int PgmMaxTransportServiceDataUnitLength { get; set; }
+        
+        public MechanismType MechanismType { get; set; }
 
         /// <summary>
         /// Assign the given optionValue to the specified option.
@@ -315,7 +326,6 @@ namespace NetMQ.Core
                         throw new InvalidException($"In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {val.Length}, should be 1..255.");
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
-                    IdentitySize = (byte)Identity.Length;
                     break;
 
                 case ZmqSocketOption.Rate:

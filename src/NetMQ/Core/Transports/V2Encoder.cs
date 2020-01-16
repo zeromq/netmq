@@ -48,6 +48,8 @@ namespace NetMQ.Core.Transports
                 protocolFlags |= V2Protocol.MoreFlag;
             if (m_inProgress.Size > 255)
                 protocolFlags |= V2Protocol.LargeFlag;
+            if (m_inProgress.HasCommand)
+                protocolFlags |= V2Protocol.CommandFlag;
             m_tmpbuf[0] = (byte)protocolFlags;
 
             // Encode the message length. For messages less then 256 bytes,

@@ -53,14 +53,15 @@ namespace NetMQ
         /// - return a 32-bit integer derived from the 4 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the integer from</param>
+        /// <param name="offset">offset</param>
         /// <returns></returns>
-        public static int ToInt32([NotNull] byte[] buffer)
+        public static int ToInt32([NotNull] byte[] buffer, int offset  = 0)
         {
             return 
-                buffer[0] << 24 |
-                buffer[1] << 16 | 
-                buffer[2] <<  8 | 
-                buffer[3];
+                buffer[offset] << 24 |
+                buffer[offset + 1] << 16 | 
+                buffer[offset + 2] <<  8 | 
+                buffer[offset + 3];
         }
 
         /// <summary>
@@ -83,12 +84,12 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the integer to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the integer's bytes into</param>
-        public static void PutInt32(int value, [NotNull] byte[] buffer)
+        public static void PutInt32(int value, [NotNull] byte[] buffer, int offset = 0)
         {
-            buffer[0] = (byte)(value >> 24);
-            buffer[1] = (byte)(value >> 16);
-            buffer[2] = (byte)(value >>  8);
-            buffer[3] = (byte) value;
+            buffer[offset] = (byte)(value >> 24);
+            buffer[offset + 1] = (byte)(value >> 16);
+            buffer[offset + 2] = (byte)(value >>  8);
+            buffer[offset + 3] = (byte) value;
         }
 
         /// <summary>

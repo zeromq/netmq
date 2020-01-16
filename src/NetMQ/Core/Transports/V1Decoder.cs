@@ -170,6 +170,6 @@ namespace NetMQ.Core.Transports
             return DecodeResult.MessageReady;
         }
         
-        public override PushMsgResult GetMsg(MsgSink sink) => sink(ref m_inProgress);
+        public override PushMsgResult PushMsg(ProcessMsgDelegate sink) => sink(ref m_inProgress);
     }
 }

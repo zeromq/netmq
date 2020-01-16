@@ -87,12 +87,9 @@ namespace NetMQ.Core.Transports.Pgm
             var msg = new Msg();
             msg.InitEmpty();
 
-            bool ok = session.PullMsg(ref msg);
-
-            if (ok)
-            {
+            var pullResult = session.PullMsg(ref msg);
+            if (pullResult == PullMsgResult.Ok)
                 msg.Close();
-            }
 
             AddSocket(m_socket);
 
@@ -222,7 +219,7 @@ namespace NetMQ.Core.Transports.Pgm
                     if (!m_moreFlag && offset == 0xffff)
                         offset = (ushort) bytes;
                     Msg msg = new Msg();
-                    if (!m_session.PullMsg(ref msg))
+                    if (m_session.PullMsg(ref msg) != PullMsgResult.Ok)
                         break;
                     m_moreFlag = msg.HasMore;
                     m_encoder.LoadMsg(ref msg);

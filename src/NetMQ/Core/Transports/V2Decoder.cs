@@ -52,6 +52,8 @@ namespace NetMQ.Core.Transports
             int first = m_tmpbuf[0];
             if ((first & V2Protocol.MoreFlag) > 0)
                 m_msgFlags |= MsgFlags.More;
+            if ((first & V2Protocol.CommandFlag) > 0)
+                m_msgFlags |= MsgFlags.Command;
 
             // The payload length is either one or eight bytes,
             // depending on whether the 'large' bit is set.
@@ -122,6 +124,6 @@ namespace NetMQ.Core.Transports
             return DecodeResult.MessageReady;
         }
 
-        public override PushMsgResult GetMsg(MsgSink sink) => sink(ref m_inProgress);
+        public override PushMsgResult PushMsg(ProcessMsgDelegate sink) => sink(ref m_inProgress);
     }
 }

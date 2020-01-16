@@ -160,7 +160,7 @@ namespace NetMQ.Core.Transports
             set;
         }
 
-        public abstract PushMsgResult GetMsg(MsgSink sink);
+        public abstract PushMsgResult PushMsg(ProcessMsgDelegate sink);
 
 
         protected abstract DecodeResult Next();

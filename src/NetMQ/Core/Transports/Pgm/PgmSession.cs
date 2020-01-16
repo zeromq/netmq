@@ -87,7 +87,7 @@ namespace NetMQ.Core.Transports.Pgm
         {
             if (m_state == State.Stuck)
             {
-                var pushResult = m_decoder.GetMsg(m_session.PushMsg);
+                var pushResult = m_decoder.PushMsg(m_session.PushMsg);
                 if (pushResult == PushMsgResult.Ok)
                 {
                     m_state = State.Receiving;
@@ -165,7 +165,7 @@ namespace NetMQ.Core.Transports.Pgm
                 if (result == DecodeResult.Processing)
                     break;
                 
-                var pushResult = m_decoder.GetMsg(m_session.PushMsg);
+                var pushResult = m_decoder.PushMsg(m_session.PushMsg);
                 if (pushResult == PushMsgResult.Full)
                 {
                     m_state = State.Stuck;
@@ -237,7 +237,7 @@ namespace NetMQ.Core.Transports.Pgm
             var msg = new Msg();
             msg.InitEmpty();
 
-            while (m_session.PullMsg(ref msg))
+            while (m_session.PullMsg(ref msg) == PullMsgResult.Ok)
             {
                 msg.Close();
             }

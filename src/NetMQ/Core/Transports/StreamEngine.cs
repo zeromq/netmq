@@ -23,13 +23,38 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text;
 using AsyncIO;
 using JetBrains.Annotations;
+using NetMQ.Core.Mechanisms;
+using NetMQ.Core.Patterns;
+using NetMQ.Core.Utils;
 
 namespace NetMQ.Core.Transports
 {
+    delegate PullMsgResult NextMsgDelegate (ref Msg msg);
+    delegate PushMsgResult ProcessMsgDelegate(ref Msg msg);
+    
     internal sealed class StreamEngine : IEngine, IProactorEvents
     {
+        private readonly byte[] NullMechanismBytes = new byte[20]
+        {
+            (byte) 'N', (byte) 'U', (byte) 'L', (byte) 'L', 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        };
+        
+        private readonly byte[] PlainMechanismBytes = new byte[20]
+        {
+            (byte) 'P', (byte) 'L', (byte) 'A', (byte) 'I', (byte) 'N', 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        };
+        
+        private readonly byte[] CurveMechanismBytes = new byte[20]
+        {
+            (byte) 'C', (byte) 'U', (byte) 'R', (byte) 'V', (byte) 'E', 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        };
+        
         private class StateMachineAction
         {
             public StateMachineAction(Action action, SocketError socketError, int bytesTransferred)
@@ -64,7 +89,9 @@ namespace NetMQ.Core.Transports
             SendingMajorVersion,
             SendingSocketType,
             ReceivingMajorVersion,
-            ReceivingResfOfGreeting
+            ReceivingResfOfV2Greeting,
+            SendingV3Greeting,
+            ReceiveV3Greeting
         }
 
         private enum ReceiveState
@@ -106,8 +133,6 @@ namespace NetMQ.Core.Transports
         private int m_insize;
         private DecoderBase m_decoder;
         private bool m_subscriptionRequired;
-        private bool m_identityReceived;
-        private bool m_identitySent;
 
         private ByteArraySegment m_outpos;
         private int m_outsize;
@@ -149,7 +174,12 @@ namespace NetMQ.Core.Transports
 
         private State m_state;
         private HandshakeState m_handshakeState;
-
+        
+        private NextMsgDelegate m_nextMsg;
+        private ProcessMsgDelegate m_processMsg;
+        
+        private Mechanism m_mechanism;
+        
         // queue for actions that happen during the state machine
         private readonly Queue<StateMachineAction> m_actionsQueue;
         
@@ -167,11 +197,13 @@ namespace NetMQ.Core.Transports
             m_socket = null;
             m_encoder = null;
             m_decoder = null;
+            m_mechanism = null;
             m_actionsQueue = new Queue<StateMachineAction>();
             m_subscriptionRequired = false;
-            m_identityReceived = false;
-            m_identitySent = false;
-
+            
+            m_nextMsg = RoutingIdMsg;
+            m_processMsg = ProcessRoutingIdMsg;
+            
             // Set the socket buffer limits for the underlying socket.
             if (m_options.SendBuffer != 0)
             {
@@ -283,7 +315,9 @@ namespace NetMQ.Core.Transports
                             {
                                 m_encoder = new RawEncoder(Config.OutBatchSize, m_options.Endian);
                                 m_decoder = new RawDecoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
-
+                                m_nextMsg = m_session.PullMsg;
+                                m_processMsg = m_session.PushMsg;
+                                    
                                 Activate();
                             }
                             else
@@ -312,7 +346,7 @@ namespace NetMQ.Core.Transports
                             // if we stuck let's continue, other than that nothing to do
                             if (m_receivingState == ReceiveState.Stuck)
                             {
-                                var pushResult = m_decoder.GetMsg(WriteMsg);
+                                var pushResult = m_decoder.PushMsg(m_processMsg);
                                 if (pushResult == PushMsgResult.Ok)
                                 {
                                     m_receivingState = ReceiveState.Active;
@@ -365,7 +399,7 @@ namespace NetMQ.Core.Transports
                 while (m_outsize < Config.OutBatchSize)
                 {
                     Msg msg = new Msg();
-                    if (!ReadMsg(ref msg))
+                    if (m_nextMsg(ref msg) != PullMsgResult.Ok)
                         break;
                     m_encoder.LoadMsg(ref msg);
                     ByteArraySegment buffer = null;
@@ -518,7 +552,7 @@ namespace NetMQ.Core.Transports
                                 {
                                     // The peer is using versioned protocol.
                                     // Send the rest of the greeting.
-                                    m_outpos[m_outsize++] = 1; // Protocol version, TODO: send 3
+                                    m_outpos[m_outsize++] = 3; // Protocol version
                                     m_handshakeState = HandshakeState.SendingMajorVersion;
                                     
                                     BeginWrite(m_outpos, m_outsize);
@@ -599,10 +633,30 @@ namespace NetMQ.Core.Transports
                                 }
                                 else
                                 {
-                                    // We will use ZMTP 3 here
-                                    m_outpos[m_outsize++] = (byte)m_options.SocketType;
-                                    m_handshakeState = HandshakeState.SendingSocketType;
+                                    m_outpos[m_outsize++] = 0; // Minor version
+                                            
+                                    switch (m_options.MechanismType)
+                                    {
+                                        case MechanismType.Null:
+                                            m_outpos.PutBytes(NullMechanismBytes, m_outsize);
+                                            m_outsize += 20;
+                                            break;
+                                        case MechanismType.Plain:
+                                            m_outpos.PutBytes(PlainMechanismBytes, m_outsize);
+                                            m_outsize += 20;
+                                            break;
+                                        case MechanismType.Curve:
+                                            m_outpos.PutBytes(CurveMechanismBytes, m_outsize);
+                                            m_outsize += 20;
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
                                     
+                                    m_outpos.Fill(0, m_outsize, 32);
+                                    m_outsize += 32;
+                                            
+                                    m_handshakeState = HandshakeState.SendingV3Greeting;
                                     BeginWrite(m_outpos, m_outsize);
                                 }
                             }
@@ -641,7 +695,7 @@ namespace NetMQ.Core.Transports
                                     {
                                         var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
                                         BeginRead(greetingSegment, GreetingSize - m_greetingBytesRead);
-                                        m_handshakeState = HandshakeState.ReceivingResfOfGreeting;
+                                        m_handshakeState = HandshakeState.ReceivingResfOfV2Greeting;
                                     }
                                     else
                                     {
@@ -662,11 +716,7 @@ namespace NetMQ.Core.Transports
                                         }
                                         else
                                         {
-                                            // We will use ZMTP 3 here
-                                            m_encoder = new V2Encoder(Config.OutBatchSize, m_options.Endian);
-                                            m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
-
-                                            Activate ();
+                                            throw new Exception("No socket type for ZMTP 3");
                                         }
                                     }
                                 }
@@ -681,7 +731,7 @@ namespace NetMQ.Core.Transports
                             break;
                     }
                     break;
-                case HandshakeState.ReceivingResfOfGreeting:
+                case HandshakeState.ReceivingResfOfV2Greeting:
                     switch (action)
                     {
                         case Action.InCompleted:
@@ -718,13 +768,106 @@ namespace NetMQ.Core.Transports
                                         Activate ();
                                     }
                                     else
-                                    {
-                                        // We will use ZMTP 3 here
-                                        m_encoder = new V2Encoder(Config.OutBatchSize, m_options.Endian);
-                                        m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
-
-                                        Activate ();
+                                    {    
+                                        throw new Exception("No V2Greeting for ZMTP 3");
                                     }
+                                }
+                            }
+                            break;
+                        case Action.ActivateIn:
+                        case Action.ActivateOut:
+                            // nothing to do
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case HandshakeState.SendingV3Greeting:
+                    switch (action)
+                    {
+                        case Action.OutCompleted:
+                            bytesSent = EndWrite(socketError, bytesTransferred);
+
+                            if (bytesSent == -1)
+                            {
+                                Error();
+                            }
+                            else
+                            {
+                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outsize -= bytesSent;
+
+                                if (m_outsize > 0)
+                                {
+                                    BeginWrite(m_outpos, m_outsize);
+                                }
+                                else
+                                {
+                                    var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    BeginRead(greetingSegment, GreetingSizeV3 - m_greetingBytesRead);
+                                    m_handshakeState = HandshakeState.ReceiveV3Greeting;
+                                }
+                            }
+                            break;
+                        case Action.ActivateIn:
+                        case Action.ActivateOut:
+                            // nothing to do
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    break;
+                case HandshakeState.ReceiveV3Greeting:
+                    switch (action)
+                    {
+                        case Action.InCompleted:
+                            bytesReceived = EndRead(socketError, bytesTransferred);
+
+                            if (bytesReceived == -1)
+                            {
+                                Error();
+                            }
+                            else
+                            {
+                                m_greetingBytesRead += bytesReceived;
+
+                                if (m_greetingBytesRead < GreetingSizeV3)
+                                {
+                                    var greetingSegment = new ByteArraySegment(m_greeting, m_greetingBytesRead);
+                                    BeginRead(greetingSegment, GreetingSizeV3 - m_greetingBytesRead);
+                                }
+                                else
+                                {
+                                    m_encoder = new V2Encoder(Config.OutBatchSize, m_options.Endian);
+                                    m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
+                                    
+                                    if (m_options.MechanismType == MechanismType.Null
+                                        && ByteArrayUtility.AreEqual(m_greeting, 12, NullMechanismBytes, 0, 20))
+                                        m_mechanism = new NullMechanism(m_session, m_options);
+                                    else if (m_options.MechanismType == MechanismType.Plain
+                                             && ByteArrayUtility.AreEqual(m_greeting, 12, PlainMechanismBytes, 0, 20))
+                                    {
+                                        Error(); // Not yet supported
+                                        return;
+                                    }
+                                    else if (m_options.MechanismType == MechanismType.Curve
+                                             && ByteArrayUtility.AreEqual(m_greeting, 12, CurveMechanismBytes, 0, 20))
+                                    {
+                                        Error(); // Not yet supported
+                                        return;
+                                    }
+                                    else {
+                                        // Unsupported mechanism
+                                        Error();
+                                        return;
+                                    }
+                                    
+                                    m_nextMsg = NextHandshakeCommand;
+                                    m_processMsg = ProcessHandshakeCommand;
+                                    
+                                    Activate ();
                                 }
                             }
                             break;
@@ -791,7 +934,7 @@ namespace NetMQ.Core.Transports
                 if (result == DecodeResult.Processing)
                     break;
 
-                var pushResult = m_decoder.GetMsg(WriteMsg);
+                var pushResult = m_decoder.PushMsg(m_processMsg);
                 if (pushResult == PushMsgResult.Full)
                 {
                     m_receivingState = ReceiveState.Stuck;
@@ -918,58 +1061,150 @@ namespace NetMQ.Core.Transports
             }
         }
 
-        bool ReadMsg (ref Msg msg)
+        PullMsgResult RoutingIdMsg (ref Msg msg)
         {
-            if (m_identitySent || m_options.RawSocket)
-                return m_session.PullMsg(ref msg);
-
-            if (m_options.IdentitySize > 0)
+            if (m_options.IdentitySize == 0)
+                msg.InitEmpty();
+            else
             {
                 msg.InitPool(m_options.IdentitySize);
-                Buffer.BlockCopy(m_options.Identity, 0, msg.Data, 0, m_options.Identity.Length);    
+                msg.Put(m_options.Identity, 0, m_options.IdentitySize);
             }
+            
+            m_nextMsg = m_session.PullMsg;
+            return PullMsgResult.Ok;
+        }
+
+        PushMsgResult ProcessRoutingIdMsg (ref Msg msg)
+        {
+            if (m_options.RecvIdentity) 
+            {
+                msg.SetFlags(MsgFlags.Identity);
+                m_session.PushMsg(ref msg);
+            } 
             else 
+            {
+                msg.Close();
                 msg.InitEmpty();
+            }
+
+            if (m_subscriptionRequired)
+            {
+                Msg subscription = new Msg();
+                subscription.Close();
+                subscription.InitPool(1);
+                subscription.Put((byte)1);
+                
+                m_session.PushMsg(ref subscription);
+            }
             
-            m_identitySent = true;
-            
-            return true;
+            m_processMsg = m_session.PushMsg;
+            return PushMsgResult.Ok;
+        }
+
+        PullMsgResult NextHandshakeCommand (ref Msg msg)
+        {
+            if (m_mechanism.State == MechanismState.Ready) 
+            {
+                MechanismReady();
+                return PullAndEncode (ref msg);
+            }
+            else if (m_mechanism.State == MechanismState.Error) 
+            {
+                return PullMsgResult.Error;
+            } 
+            else 
+            {
+                var result = m_mechanism.NextHandshakeCommand(ref msg);
+
+                if (result == PullMsgResult.Ok)
+                    msg.SetFlags(MsgFlags.Command);
+
+                return result;
+            }
+        }
+
+        PushMsgResult ProcessHandshakeCommand (ref Msg msg)
+        {
+            var result = m_mechanism.ProcessHandshakeCommand(ref msg);
+            if (result == PushMsgResult.Ok) 
+            {
+                if (m_mechanism.State == MechanismState.Ready)
+                    MechanismReady();
+                else if (m_mechanism.State == MechanismState.Error)
+                    return PushMsgResult.Error;
+                
+                if (m_sendingState == SendState.Idle)
+                {
+                    m_sendingState = SendState.Active;
+                    BeginSending();
+                }
+            }
+
+            return result;
         }
         
-        private PushMsgResult WriteMsg(ref Msg msg)
+        void MechanismReady ()
         {
-            if ((m_identityReceived && !m_subscriptionRequired) || m_options.RawSocket)
-                return m_session.PushMsg(ref msg);
-
-            if (!m_identityReceived) {
-                if (m_options.RecvIdentity) {
-                    msg.SetFlags(MsgFlags.Identity);
-                    var pushResult = m_session.PushMsg(ref msg);
-                    if (pushResult != PushMsgResult.Ok)
-                        return pushResult;
+            // TODO: Start heartbeat
+            
+            if (m_options.RecvIdentity) {
+                Msg identity = new Msg();
+                identity.InitPool(m_mechanism.PeerIdentity.Length);
+                identity.Put(m_mechanism.PeerIdentity, 0, m_mechanism.PeerIdentity.Length);
+                var pushResult = m_session.PushMsg(ref identity);
+                if (pushResult == PushMsgResult.Full) {
+                    // If the write is failing at this stage with
+                    // an EAGAIN the pipe must be being shut down,
+                    // so we can just bail out of the routing id set.
+                    return;
                 }
-                else {
-                    msg.Close();
-                    msg.InitEmpty();
-                }
-
-                m_identityReceived = true;
+                
+                m_session.Flush();
             }
 
-            //  Inject the subscription message, so that also
-            //  ZMQ 2.x peers receive published messages.
-            if (m_subscriptionRequired) {
-                msg.Close();
-                msg.InitPool(1);
-                msg.Put((byte)1);
+            m_nextMsg = PullAndEncode;
+            m_processMsg = DecodeAndPush;
+        }
+        
+        PullMsgResult PullAndEncode (ref Msg msg)
+        {
+            var result = m_session.PullMsg(ref msg); 
+            if (result != PullMsgResult.Ok)
+                return result;
 
-                var pushResult = m_session.PushMsg(ref msg);
-                if (pushResult != PushMsgResult.Ok)
-                    return pushResult;
-                m_subscriptionRequired = false;
-            }
+            return m_mechanism.Encode(ref msg);
+        }
 
-            return PushMsgResult.Ok;
+        PushMsgResult DecodeAndPush (ref Msg msg)
+        {
+            var result = m_mechanism.Decode(ref msg);
+            if (result != PushMsgResult.Ok)
+                return result;
+            
+            if (msg.HasCommand)
+                ProcessCommandMessage(ref msg);
+
+            result = m_session.PushMsg(ref msg);
+            if (result == PushMsgResult.Full) 
+                m_processMsg = PushOneThenDecodeAndPush;
+                
+            return result;
+        }
+        
+        PushMsgResult PushOneThenDecodeAndPush (ref Msg msg)
+        {
+            var result = m_session.PushMsg(ref msg);
+            if (result == PushMsgResult.Ok)
+                m_processMsg = DecodeAndPush;
+            return result;
+        }
+        
+        void ProcessCommandMessage (ref Msg msg)
+        {
+            byte commandNameSize = msg[0];
+            
+            // TODO: process command
         }
 
         /// <summary>

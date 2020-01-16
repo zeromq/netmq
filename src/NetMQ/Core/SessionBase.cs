@@ -39,6 +39,13 @@ namespace NetMQ.Core
         Full,
         Error
     }
+
+    internal enum PullMsgResult
+    {
+        Ok,
+        Empty,
+        Error
+    }
     
     internal class SessionBase : Own,
         Pipe.IPipeEvents, IProactorEvents
@@ -210,15 +217,13 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">a reference to a Msg to put the message into</param>
         /// <returns>true if the Msg is successfully sent</returns>
-        public bool PullMsg(ref Msg msg)
+        public PullMsgResult PullMsg(ref Msg msg)
         {
             if (m_pipe == null || !m_pipe.Read(ref msg))
-            {
-                return false;
-            }
+                return PullMsgResult.Empty;
             m_incompleteIn = msg.HasMore;
 
-            return true;
+            return PullMsgResult.Ok;
         }
 
         /// <summary>
@@ -228,6 +233,9 @@ namespace NetMQ.Core
         /// <returns>true if the Msg was successfully sent</returns>
         public virtual PushMsgResult PushMsg(ref Msg msg)
         {
+            if (msg.HasCommand)
+                return PushMsgResult.Ok;
+            
             if (m_pipe != null && m_pipe.Write(ref msg))
             {
                 msg.InitEmpty();
@@ -271,7 +279,7 @@ namespace NetMQ.Core
                     var msg = new Msg();
                     msg.InitEmpty();
 
-                    if (!PullMsg(ref msg))
+                    if (PullMsg(ref msg) != PullMsgResult.Ok)
                     {
                         Debug.Assert(!m_incompleteIn);
                         break;
