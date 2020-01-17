@@ -37,6 +37,10 @@ namespace NetMQ.Core.Transports
     
     internal sealed class StreamEngine : IEngine, IProactorEvents
     {
+        const int HeartbeatIntervalTimerId = 1;
+        const int HeartbeatTimeoutTimerId = 2;
+        const int HeartbeatTtlTimerId = 3;
+        
         private readonly byte[] NullMechanismBytes = new byte[20]
         {
             (byte) 'N', (byte) 'U', (byte) 'L', (byte) 'L', 0, 0, 0, 0, 0, 0,
@@ -184,6 +188,11 @@ namespace NetMQ.Core.Transports
         // queue for actions that happen during the state machine
         private readonly Queue<StateMachineAction> m_actionsQueue;
 
+        private bool m_hasHeartbeatTimer;
+        private bool m_hasTtlTimer;
+        private bool m_hasTimeoutTimer;
+        private int m_heartbeatTimeout;
+
         public StreamEngine(AsyncSocket handle, Options options, string endpoint)
         {
             m_handle = handle;
@@ -205,7 +214,17 @@ namespace NetMQ.Core.Transports
             m_nextMsg = RoutingIdMsg;
             m_processMsg = ProcessRoutingIdMsg;
             m_pongMsg = new Msg();
-
+            
+            m_hasHeartbeatTimer = false;
+            m_hasTtlTimer = false;
+            m_hasTimeoutTimer = false;
+            
+            if (m_options.HeartbeatInterval > 0) {
+                m_heartbeatTimeout = m_options.HeartbeatTimeout;
+                if (m_heartbeatTimeout == -1)
+                    m_heartbeatTimeout = m_options.HeartbeatInterval;
+            }
+            
             // Set the socket buffer limits for the underlying socket.
             if (m_options.SendBuffer != 0)
             {
@@ -266,6 +285,21 @@ namespace NetMQ.Core.Transports
         {
             Debug.Assert(m_plugged);
             m_plugged = false;
+            
+            if (m_hasTtlTimer) {
+                m_ioObject.CancelTimer(HeartbeatTtlTimerId);
+                m_hasTtlTimer = false;
+            }
+
+            if (m_hasTimeoutTimer) {
+                m_ioObject.CancelTimer(HeartbeatTimeoutTimerId);
+                m_hasTimeoutTimer = false;
+            }
+
+            if (m_hasHeartbeatTimer) {
+                m_ioObject.CancelTimer(HeartbeatIntervalTimerId);
+                m_hasHeartbeatTimer = false;
+            }
 
             // remove handle from proactor.
             m_ioObject.RemoveSocket(m_handle);
@@ -1148,7 +1182,11 @@ namespace NetMQ.Core.Transports
         
         void MechanismReady ()
         {
-            // TODO: Start heartbeat
+            if (m_options.HeartbeatInterval > 0)
+            {
+                m_ioObject.AddTimer(m_options.HeartbeatInterval, HeartbeatIntervalTimerId);
+                m_hasHeartbeatTimer = true;
+            }
             
             if (m_options.RecvIdentity) {
                 Msg identity = new Msg();
@@ -1184,6 +1222,16 @@ namespace NetMQ.Core.Transports
             if (result != PushMsgResult.Ok)
                 return result;
             
+            if (m_hasTimeoutTimer) {
+                m_hasTimeoutTimer = false;
+                m_ioObject.CancelTimer(HeartbeatTimeoutTimerId);
+            }
+            
+            if (m_hasTtlTimer) {
+                m_hasTtlTimer = false;
+                m_ioObject.CancelTimer(HeartbeatTtlTimerId);
+            }
+            
             if (msg.HasCommand)
                 ProcessCommandMessage(ref msg);
 
@@ -1199,6 +1247,33 @@ namespace NetMQ.Core.Transports
             var result = m_session.PushMsg(ref msg);
             if (result == PushMsgResult.Ok)
                 m_processMsg = DecodeAndPush;
+            return result;
+        }
+        
+        PullMsgResult ProducePingMessage (ref Msg msg)
+        {
+            // 16-bit TTL + \4PING == 7
+            int pingTtlLength = V3Protocol.PingCommand.Length + 1 + 2;
+
+            msg.InitPool(pingTtlLength);
+            msg.SetFlags(MsgFlags.Command);
+            
+            // Copy in the command message
+            msg[0] = (byte) V3Protocol.PingCommand.Length;
+            msg.Put(Encoding.ASCII.GetBytes(V3Protocol.PingCommand), 1, V3Protocol.PingCommand.Length);
+            
+            NetworkOrderBitsConverter.PutUInt16((ushort)m_options.HeartbeatTtl, msg.Data, 
+                msg.Offset + 1 + V3Protocol.PingCommand.Length);
+
+            var result = m_mechanism.Encode(ref msg);
+            m_nextMsg = PullAndEncode;
+            
+            if (!m_hasTimeoutTimer && m_heartbeatTimeout > 0) 
+            {
+                m_ioObject.AddTimer(m_heartbeatTimeout, HeartbeatTimeoutTimerId);
+                m_hasTimeoutTimer = true;
+            }
+            
             return result;
         }
         
@@ -1231,8 +1306,17 @@ namespace NetMQ.Core.Transports
             // Malformed ping command
             if (msg.Size < pingTtlLength)
                 return;
-            
-            // TODO: ping ttl is not implemented, so we ignore the ttl for now
+
+            ushort remoteHeartbeatTtl = NetworkOrderBitsConverter.ToUInt16(msg.Data,
+                msg.Offset + V3Protocol.PingCommand.Length + 1);
+            // The remote heartbeat is in 10ths of a second
+            // so we multiply it by 100 to get the timer interval in ms.
+            remoteHeartbeatTtl *= 100;
+
+            if (!m_hasTtlTimer && remoteHeartbeatTtl > 0) {
+                m_ioObject.AddTimer(remoteHeartbeatTtl, HeartbeatTtlTimerId);
+                m_hasTtlTimer = true;
+            }
             
             //  As per ZMTP 3.1 the PING command might contain an up to 16 bytes
             //  context which needs to be PONGed back, so build the pong message
@@ -1250,7 +1334,7 @@ namespace NetMQ.Core.Transports
             m_nextMsg = ProducePongMessage;
             BeginSending();
         }
-
+        
         /// <summary>
         /// This would be called when a timer expires, although here it only throws NotSupportedException.
         /// </summary>
@@ -1258,7 +1342,28 @@ namespace NetMQ.Core.Transports
         /// <exception cref="NotSupportedException">TimerEvent is not supported on StreamEngine.</exception>
         public void TimerEvent(int id)
         {
-            throw new NotSupportedException();
+            if (id == HeartbeatIntervalTimerId)
+            {
+                m_nextMsg = ProducePingMessage;
+                BeginSending();
+                m_ioObject.AddTimer(m_options.HeartbeatInterval, HeartbeatIntervalTimerId);
+            } 
+            else if (id == HeartbeatTtlTimerId) 
+            {
+                m_hasTtlTimer = false;
+                Error();
+            } 
+            else if (id == HeartbeatTimeoutTimerId) 
+            {
+                m_hasTimeoutTimer = false;
+                Error();
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException();    
+            }
+
+            
         }
     }
 }

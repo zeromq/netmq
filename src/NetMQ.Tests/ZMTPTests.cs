@@ -78,6 +78,7 @@ namespace NetMQ.Tests
             using (var socket = new DealerSocket())
             {
                 int port = raw.BindRandomPort("tcp://*");
+                socket.Options.HeartbeatInterval = TimeSpan.FromMilliseconds(100);
                 socket.Connect($"tcp://localhost:{port}");
 
                 var routingId = raw.ReceiveFrameBytes();
@@ -128,6 +129,11 @@ namespace NetMQ.Tests
                 raw.SkipFrame(); // RoutingId
                 var ping = raw.ReceiveFrameBytes();
                 Assert.Equal(new byte[9] {4,7,4,(byte)'P', (byte)'O', (byte)'N', (byte)'G', (byte)'H', (byte)'I'}, ping);
+                
+                // We should receive ping now
+                raw.SkipFrame();
+                ping = raw.ReceiveFrameBytes();
+                Assert.Equal(new byte[9] {4,7,4,(byte)'P', (byte)'I', (byte)'N', (byte)'G', 0, 0}, ping);
             }
         }
 

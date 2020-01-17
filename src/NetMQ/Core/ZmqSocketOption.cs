@@ -282,6 +282,23 @@ namespace NetMQ.Core
         LastPeerRoutingId = 49,
         
         /// <summary>
+        /// Time in milliseconds between sending heartbeat PING messages.
+        /// </summary>
+        HeartbeatInterval = 54,
+        
+        /// <summary>
+        /// If remote peer receives a PING message and doesn't receive another
+        /// message within the ttl value, it should close the connection
+        /// (measured in tenths of a second)
+        /// </summary>
+        HeartbeatTtl = 55,
+        
+        /// <summary>
+        /// Time in milliseconds to wait for a PING response before disconnecting
+        /// </summary>
+        HeartbeatTimeout = 56,
+        
+        /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
         Endian = 1000,
@@ -291,6 +308,6 @@ namespace NetMQ.Core
         /// <summary>
         /// Specifies the max datagram size for PGM.
         /// </summary>
-        PgmMaxTransportServiceDataUnitLength = 1001
+        PgmMaxTransportServiceDataUnitLength = 1001,
     }
 }

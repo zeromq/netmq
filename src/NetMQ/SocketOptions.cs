@@ -397,5 +397,34 @@ namespace NetMQ
             get => m_socket.GetSocketOptionX<int>(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength);
             set => m_socket.SetSocketOption(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength, value);
         }
+
+        /// <summary>
+        /// If remote peer receives a PING message and doesn't receive another
+        /// message within the ttl value, it should close the connection
+        /// (measured in tenths of a second)
+        /// </summary>
+        public TimeSpan HeartbeatTtl
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTtl);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTtl, value);
+        }
+
+        /// <summary>
+        /// Time in milliseconds between sending heartbeat PING messages.
+        /// </summary>
+        public TimeSpan HeartbeatInterval
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatInterval);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatInterval, value);
+        }
+        
+        /// <summary>
+        /// Time in milliseconds to wait for a PING response before disconnecting
+        /// </summary>
+        public TimeSpan HeartbeatTimeout
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTimeout);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTimeout, value);
+        }
     }
 }

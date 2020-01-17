@@ -63,6 +63,19 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Given a 16-bit integer, and a byte-array buffer and offset,
+        /// - write the 2 bytes of that integer into the buffer starting at that offset, in Big-endian order.
+        /// </summary>
+        /// <param name="value">the short to convert into bytes</param>
+        /// <param name="buffer">the byte-array to write the short's bytes into</param>
+        /// <param name="offset">Offset</param>
+        public static void PutUInt16(ushort value, [NotNull] byte[] buffer, int offset = 0)
+        {
+            buffer[offset] = (byte)(value >> 8);
+            buffer[offset + 1] = (byte) value;
+        }
+
+        /// <summary>
         /// Given a byte-array assumed to be in Big-endian order, and an offset into it
         /// - return a 32-bit integer derived from the 4 bytes starting at that offset.
         /// </summary>

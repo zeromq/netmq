@@ -59,6 +59,9 @@ namespace NetMQ.Core
             DisableTimeWait = false;
             PgmMaxTransportServiceDataUnitLength = Config.PgmMaxTPDU;
             MechanismType = MechanismType.Null;
+            HeartbeatTtl = 0;
+            HeartbeatInterval = 0;
+            HeartbeatTimeout = -1;
         }
 
         /// <summary>
@@ -281,7 +284,25 @@ namespace NetMQ.Core
         public int PgmMaxTransportServiceDataUnitLength { get; set; }
         
         public MechanismType MechanismType { get; set; }
-
+        
+        /// <summary>
+        /// If remote peer receives a PING message and doesn't receive another
+        /// message within the ttl value, it should close the connection
+        /// (measured in tenths of a second)
+        /// </summary>
+        public int HeartbeatTtl { get; set; }
+        
+        /// <summary>
+        /// Time in milliseconds between sending heartbeat PING messages.
+        /// </summary>
+        public int HeartbeatInterval { get; set; }
+        
+        /// <summary>
+        /// Time in milliseconds to wait for a PING response before disconnecting
+        /// </summary>
+        public int HeartbeatTimeout { get; set; }
+        
+        
         /// <summary>
         /// Assign the given optionValue to the specified option.
         /// </summary>
@@ -412,6 +433,20 @@ namespace NetMQ.Core
                 case ZmqSocketOption.PgmMaxTransportServiceDataUnitLength:
                     PgmMaxTransportServiceDataUnitLength = (int)optionValue;
                     break;
+                
+                case ZmqSocketOption.HeartbeatInterval:
+                    HeartbeatInterval = (int) optionValue;
+                    break;
+
+                case ZmqSocketOption.HeartbeatTtl:
+                    // Convert this to deciseconds from milliseconds
+                    HeartbeatTtl = (int) optionValue;
+                    HeartbeatTtl /= 100;
+                    break;
+
+                case ZmqSocketOption.HeartbeatTimeout:
+                    HeartbeatTimeout = (int) optionValue;
+                    break;
 
                 default:
                     throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOption of " + option);
@@ -508,7 +543,18 @@ namespace NetMQ.Core
                     
                 case ZmqSocketOption.LastPeerRoutingId:
                     return LastPeerRoutingId;
+                
+                case ZmqSocketOption.HeartbeatInterval:
+                    return HeartbeatInterval;
 
+                case ZmqSocketOption.HeartbeatTtl:
+                    return HeartbeatTtl * 100;
+
+                case ZmqSocketOption.HeartbeatTimeout:
+                    if (HeartbeatTimeout == -1)
+                        return HeartbeatInterval;
+                    return HeartbeatTimeout;
+                
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);
             }
