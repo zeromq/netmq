@@ -3,7 +3,6 @@ using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports
 {
-    
     /// <summary>
     /// Interface IEncoder mandates SetMsgSource and GetData methods.
     /// </summary>

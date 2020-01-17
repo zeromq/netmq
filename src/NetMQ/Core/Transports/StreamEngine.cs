@@ -183,7 +183,6 @@ namespace NetMQ.Core.Transports
         
         // queue for actions that happen during the state machine
         private readonly Queue<StateMachineAction> m_actionsQueue;
-        
 
         public StreamEngine(AsyncSocket handle, Options options, string endpoint)
         {

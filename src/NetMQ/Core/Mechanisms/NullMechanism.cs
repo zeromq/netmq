@@ -15,7 +15,6 @@ namespace NetMQ.Core.Mechanisms
 
         public NullMechanism(SessionBase session, Options options) : base(session, options)
         {
-            
         }
 
         public override MechanismState State

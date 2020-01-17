@@ -16,7 +16,6 @@ namespace NetMQ.Core.Transports
             m_buffer = new byte[bufferSize];
         }
 
-
         public override void GetBuffer(out ByteArraySegment data, out int size)
         {
             data = new ByteArraySegment(m_buffer);
