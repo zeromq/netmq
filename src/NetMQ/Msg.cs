@@ -276,7 +276,10 @@ namespace NetMQ
                 }
                 else
                 {
-                    m_refCount.Set(amount);
+                    // Because msg is not yet shared we add 1 to the amount to represent the current copy of the msg.
+                    // We can set the amount in a none thread-safe way because the message is not yet shared and
+                    // therefore only being used by one thread
+                    m_refCount.Set(amount + 1);
                     Flags |= MsgFlags.Shared;
                 }
             }
