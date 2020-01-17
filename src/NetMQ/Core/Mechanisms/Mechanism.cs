@@ -2,17 +2,19 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using NetMQ.Core.Utils;
+using NetMQ.Utils;
 
 namespace NetMQ.Core.Mechanisms
 {
-    internal enum MechanismState 
+    internal enum MechanismStatus 
     {
         Handshaking,
         Ready,
         Error
     }
 
-    internal abstract class Mechanism
+    internal abstract class Mechanism : IDisposable
     {
         static class SocketNames
         {
@@ -57,6 +59,11 @@ namespace NetMQ.Core.Mechanisms
         /// <returns></returns>
         public abstract PushMsgResult ProcessHandshakeCommand (ref Msg msg);
 
+        /// <summary>
+        /// Dispose the mechanism resources
+        /// </summary>
+        public abstract void Dispose();
+
         public virtual PullMsgResult Encode(ref Msg msg)
         {
             return PullMsgResult.Ok;
@@ -70,7 +77,7 @@ namespace NetMQ.Core.Mechanisms
         /// <summary>
         /// Returns the status of this mechanism.
         /// </summary>
-        public abstract MechanismState State { get; }
+        public abstract MechanismStatus Status { get; }
         
         public byte[] PeerIdentity { get; set; }
 
@@ -117,29 +124,29 @@ namespace NetMQ.Core.Mechanisms
             }
         }
         
-        protected int AddProperty(byte[] output, int outputOffset, string name, byte[] value)
+        protected int AddProperty(Span<byte> output, string name, byte[] value)
         {
             if (name.Length > 255)
                 throw new ArgumentException("property name length exceed maximum size");
             
             int totalLength =  GetPropertyLength(name, value.Length);
-            if (totalLength > (output.Length - outputOffset))
+            if (totalLength > output.Length)
                 throw new Exception("totalLength of property exceed maximum size");
 
-            output[outputOffset] = (byte) name.Length;
-            outputOffset += NameLengthSize;
-            System.Text.Encoding.ASCII.GetBytes(name, 0, name.Length, output, outputOffset);
-            outputOffset += name.Length;
-            NetworkOrderBitsConverter.PutInt32(value.Length, output, outputOffset);
-            outputOffset += ValueLengthSize;
-            Buffer.BlockCopy(value, 0, output, outputOffset, value.Length);
+            output[0] = (byte) name.Length;
+            output = output.Slice(NameLengthSize);
+            System.Text.Encoding.ASCII.GetBytes(name, output);
+            output = output.Slice(name.Length);
+            NetworkOrderBitsConverter.PutInt32(value.Length, output);
+            output = output.Slice(ValueLengthSize);
+            value.CopyTo(output);
             
             return totalLength;
         }
 
-        protected int AddProperty(byte[] output, int outputOffset, string name, string value)
+        protected int AddProperty(Span<byte> output, string name, string value)
         {
-            return AddProperty(output, outputOffset, name, System.Text.Encoding.ASCII.GetBytes(value));
+            return AddProperty(output, name, Encoding.ASCII.GetBytes(value));
         }
 
         protected  int GetPropertyLength(string name, int valueLength)
@@ -147,13 +154,12 @@ namespace NetMQ.Core.Mechanisms
             return NameLengthSize + name.Length + ValueLengthSize + valueLength;
         }
 
-        protected  int AddBasicProperties(byte[] output, int offset)
+        protected void AddBasicProperties(Span<byte> output)
         {
-            int initialOffset = offset;
-            
             //  Add socket type property
             string socketName = GetSocketName(Options.SocketType);
-            offset += AddProperty(output, offset, ZmtpPropertySocketType, socketName);
+            int written = AddProperty(output, ZmtpPropertySocketType, socketName);
+            output = output.Slice(written);
             
             //  Add identity property
             if (Options.SocketType == ZmqSocketType.Req || 
@@ -161,12 +167,16 @@ namespace NetMQ.Core.Mechanisms
                 Options.SocketType == ZmqSocketType.Router)
             {
                 if (Options.Identity != null)
-                    offset += AddProperty(output, offset, ZmtpPropertyIdentity, Options.Identity);
-                else                     
-                    offset += AddProperty(output, offset, ZmtpPropertyIdentity, new byte[0]);
+                {
+                    written = AddProperty(output, ZmtpPropertyIdentity, Options.Identity);
+                    output = output.Slice(written);
+                }
+                else
+                {
+                    written = AddProperty(output, ZmtpPropertyIdentity, new byte[0]);
+                    output = output.Slice(written);
+                }
             }
-
-            return offset - initialOffset;
         }
 
         protected int BasicPropertiesLength
@@ -191,9 +201,9 @@ namespace NetMQ.Core.Mechanisms
             int commandSize = 1 + prefix.Length + BasicPropertiesLength;
             msg.InitPool(commandSize);
             msg.Put((byte)prefix.Length, 0);
-            Encoding.ASCII.GetBytes(prefix, 0, prefix.Length, msg.Data, msg.Offset + 1);
+            msg.Put(Encoding.ASCII, prefix, 1);
             
-            AddBasicProperties(msg.Data, msg.Offset + prefix.Length + 1);
+            AddBasicProperties(msg.Slice(prefix.Length + 1));
         }
 
         /// <summary>
@@ -202,34 +212,28 @@ namespace NetMQ.Core.Mechanisms
         /// name and value as size-specified strings.
         /// </summary>
         /// <returns>Returns true on success and false on error.</returns>
-        protected bool ParseMetadata(byte[] source, int offset, int length)
+        protected bool ParseMetadata(Span<byte> source)
         {
-            int bytesLeft = length;
-            
-            while (bytesLeft > 1)
+            while (source.Length > 1)
             {
-                int nameLength = source[offset];
-                offset += NameLengthSize;
-                bytesLeft -= NameLengthSize;
-                if (bytesLeft < nameLength)
+                int nameLength = source[0];
+                source = source.Slice(NameLengthSize);
+                if (source.Length < nameLength)
                     break;
 
-                string name = Encoding.ASCII.GetString(source, offset, nameLength);
-                offset += nameLength;
-                bytesLeft -= nameLength;
-                if (bytesLeft < ValueLengthSize)
+                string name = SpanUtility.ToAscii(source.Slice(0, nameLength));
+                source = source.Slice(nameLength);
+                if (source.Length < ValueLengthSize)
                     break;
 
-                int valueLength = NetworkOrderBitsConverter.ToInt32(source, offset);
-                offset += ValueLengthSize;
-                bytesLeft -= ValueLengthSize;
-                if (bytesLeft < valueLength)
+                int valueLength = NetworkOrderBitsConverter.ToInt32(source);
+                source = source.Slice(ValueLengthSize);
+                if (source.Length < valueLength)
                     break;
                 
                 byte[] value = new byte[valueLength];
-                Buffer.BlockCopy(source, offset, value, 0, valueLength);
-                offset += valueLength;
-                bytesLeft -= valueLength;
+                source.Slice(0, valueLength).CopyTo(value);
+                source = source.Slice(valueLength);
 
                 if (name == ZmtpPropertyIdentity && Options.RecvIdentity)
                     PeerIdentity = value;
@@ -245,7 +249,7 @@ namespace NetMQ.Core.Mechanisms
                 }
             }
             
-            if (bytesLeft > 0)
+            if (source.Length > 0)
                 return false;
 
             return true;
@@ -312,6 +316,17 @@ namespace NetMQ.Core.Mechanisms
                 return false;
             }
             return true;
+        }
+        
+        protected bool IsCommand(string command, ref Msg msg)
+        {
+            if (msg.Size >= command.Length + 1)
+            {
+                string msgCommand = msg.GetString(Encoding.ASCII, 1, msg[0]);
+                return msgCommand == command && msg[0] == command.Length;
+            }
+
+            return false;
         }
     }
 }

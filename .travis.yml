@@ -1,7 +1,15 @@
 language: csharp
 mono: none
-dotnet: 2.1.502
+dotnet: 3.1
+
+addons:
+  apt:
+    packages:
+      - dotnet-sdk-2.2
+
+
 script:
   - dotnet restore src/NetMQ.sln
   - dotnet build -v q -f netstandard2.0 src/NetMQ/NetMQ.csproj
-  - dotnet test -v n -p:ParallelizeTestCollections=false -f netcoreapp2.1 --filter Category!=Beacon src/NetMQ.Tests/NetMQ.Tests.csproj
+  - dotnet test -v n --logger "Console;noprogress=true" -p:ParallelizeTestCollections=false -f netcoreapp2.1 --filter Category!=Beacon src/NetMQ.Tests/NetMQ.Tests.csproj -- RunConfiguration.ReporterSwitch=verbose
+

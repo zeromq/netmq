@@ -56,7 +56,11 @@ namespace NetMQ.Core
             TcpKeepaliveIntvl = -1;
             DisableTimeWait = false;
             PgmMaxTransportServiceDataUnitLength = Config.PgmMaxTPDU;
-            MechanismType = MechanismType.Null;
+            Mechanism = MechanismType.Null;
+            AsServer = false;
+            CurvePublicKey = new byte[32];
+            CurveSecretKey = new byte[32];
+            CurveServerKey = new byte[32];
             HeartbeatTtl = 0;
             HeartbeatInterval = 0;
             HeartbeatTimeout = -1;
@@ -267,7 +271,30 @@ namespace NetMQ.Core
         /// </summary>
         public int PgmMaxTransportServiceDataUnitLength { get; set; }
         
-        public MechanismType MechanismType { get; set; }
+        /// <summary>
+        /// Security mechanism for all connections on this socket
+        /// </summary>
+        public MechanismType Mechanism { get; set; }
+        
+        /// <summary>
+        /// If peer is acting as server for PLAIN or CURVE mechanisms
+        /// </summary>
+        public bool AsServer { get; set; }
+        
+        /// <summary>
+        /// Security credentials for CURVE mechanism
+        /// </summary>
+        public byte[] CurvePublicKey { get; set; }
+        
+        /// <summary>
+        /// Security credentials for CURVE mechanism
+        /// </summary>
+        public byte[] CurveSecretKey { get; set; }
+        
+        /// <summary>
+        /// Security credentials for CURVE mechanism
+        /// </summary>
+        public byte[] CurveServerKey { get; set; }
         
         /// <summary>
         /// If remote peer receives a PING message and doesn't receive another
@@ -417,7 +444,7 @@ namespace NetMQ.Core
                 case ZmqSocketOption.PgmMaxTransportServiceDataUnitLength:
                     PgmMaxTransportServiceDataUnitLength = (int)optionValue;
                     break;
-                
+
                 case ZmqSocketOption.HeartbeatInterval:
                     HeartbeatInterval = (int) optionValue;
                     break;
@@ -432,6 +459,41 @@ namespace NetMQ.Core
                     HeartbeatTimeout = (int) optionValue;
                     break;
 
+                case ZmqSocketOption.CurveServer:
+                    AsServer = (bool) optionValue;
+                    Mechanism = AsServer ? MechanismType.Curve : MechanismType.Null;
+                    break;
+                
+                case ZmqSocketOption.CurvePublicKey:
+                {
+                    var key = (byte[]) optionValue;
+                    if (key.Length != 32)
+                        throw new InvalidException("Curve key size must be 32 bytes");
+                    Mechanism = MechanismType.Curve;
+                    Buffer.BlockCopy(key, 0, CurvePublicKey, 0, 32);
+                    break;
+                }
+
+                case ZmqSocketOption.CurveSecretKey:
+                {
+                    var key = (byte[]) optionValue;
+                    if (key.Length != 32)
+                        throw new InvalidException("Curve key size must be 32 bytes");
+                    Mechanism = MechanismType.Curve;
+                    Buffer.BlockCopy(key, 0, CurveSecretKey, 0, 32);
+                    break;
+                }
+
+                case ZmqSocketOption.CurveServerKey:
+                {
+                    var key = (byte[]) optionValue;
+                    if (key.Length != 32)
+                        throw new InvalidException("Curve key size must be 32 bytes");
+                    Mechanism = MechanismType.Curve;
+                    Buffer.BlockCopy(key, 0, CurveServerKey, 0, 32);
+                    break;
+                }
+                
                 default:
                     throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOption of " + option);
             }
@@ -538,6 +600,18 @@ namespace NetMQ.Core
                     if (HeartbeatTimeout == -1)
                         return HeartbeatInterval;
                     return HeartbeatTimeout;
+                
+                case ZmqSocketOption.CurveServer:
+                    return Mechanism == MechanismType.Curve && AsServer;
+                
+                case ZmqSocketOption.CurvePublicKey:
+                    return CurvePublicKey;
+                    
+                case ZmqSocketOption.CurveSecretKey:
+                    return CurveSecretKey;
+                
+                case ZmqSocketOption.CurveServerKey:
+                    return CurveServerKey;
                 
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);

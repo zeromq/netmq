@@ -675,7 +675,7 @@ namespace NetMQ.Core.Transports
                                 {
                                     m_outpos[m_outsize++] = 0; // Minor version
                                             
-                                    switch (m_options.MechanismType)
+                                    switch (m_options.Mechanism)
                                     {
                                         case MechanismType.Null:
                                             m_outpos.PutBytes(NullMechanismBytes, m_outsize);
@@ -883,20 +883,22 @@ namespace NetMQ.Core.Transports
                                     m_encoder = new V2Encoder(Config.OutBatchSize, m_options.Endian);
                                     m_decoder = new V2Decoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
                                     
-                                    if (m_options.MechanismType == MechanismType.Null
+                                    if (m_options.Mechanism == MechanismType.Null
                                         && ByteArrayUtility.AreEqual(m_greeting, 12, NullMechanismBytes, 0, 20))
                                         m_mechanism = new NullMechanism(m_session, m_options);
-                                    else if (m_options.MechanismType == MechanismType.Plain
+                                    else if (m_options.Mechanism == MechanismType.Plain
                                              && ByteArrayUtility.AreEqual(m_greeting, 12, PlainMechanismBytes, 0, 20))
                                     {
                                         Error(); // Not yet supported
                                         return;
                                     }
-                                    else if (m_options.MechanismType == MechanismType.Curve
+                                    else if (m_options.Mechanism == MechanismType.Curve
                                              && ByteArrayUtility.AreEqual(m_greeting, 12, CurveMechanismBytes, 0, 20))
                                     {
-                                        Error(); // Not yet supported
-                                        return;
+                                        if (m_options.AsServer)
+                                            m_mechanism = new CurveServerMechanism(m_session, m_options);
+                                        else
+                                            m_mechanism = new CurveClientMechanism(m_session, m_options);
                                     }
                                     else {
                                         // Unsupported mechanism
@@ -1144,12 +1146,12 @@ namespace NetMQ.Core.Transports
 
         PullMsgResult NextHandshakeCommand (ref Msg msg)
         {
-            if (m_mechanism.State == MechanismState.Ready) 
+            if (m_mechanism.Status == MechanismStatus.Ready) 
             {
                 MechanismReady();
                 return PullAndEncode (ref msg);
             }
-            else if (m_mechanism.State == MechanismState.Error) 
+            else if (m_mechanism.Status == MechanismStatus.Error) 
             {
                 return PullMsgResult.Error;
             } 
@@ -1169,9 +1171,9 @@ namespace NetMQ.Core.Transports
             var result = m_mechanism.ProcessHandshakeCommand(ref msg);
             if (result == PushMsgResult.Ok) 
             {
-                if (m_mechanism.State == MechanismState.Ready)
+                if (m_mechanism.Status == MechanismStatus.Ready)
                     MechanismReady();
-                else if (m_mechanism.State == MechanismState.Error)
+                else if (m_mechanism.Status == MechanismStatus.Error)
                     return PushMsgResult.Error;
                 
                 if (m_sendingState == SendState.Idle)
