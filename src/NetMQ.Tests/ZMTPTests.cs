@@ -120,6 +120,14 @@ namespace NetMQ.Tests
                 raw.SkipFrame(); // RoutingId
                 msg = raw.ReceiveFrameBytes();
                 Assert.Equal(new byte[]{0,1,6}, msg);
+                
+                // Sending ping message
+                raw.SendMoreFrame(routingId).SendFrame(new byte[11] {4, 9, 4, (byte)'P', (byte)'I', (byte)'N', (byte)'G', 0, 0,(byte)'H', (byte)'I'});
+                
+                // Receive pong
+                raw.SkipFrame(); // RoutingId
+                var ping = raw.ReceiveFrameBytes();
+                Assert.Equal(new byte[9] {4,7,4,(byte)'P', (byte)'O', (byte)'N', (byte)'G', (byte)'H', (byte)'I'}, ping);
             }
         }
 

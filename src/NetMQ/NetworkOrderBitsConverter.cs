@@ -21,6 +21,20 @@ namespace NetMQ
 
             return (short)i;
         }
+        
+        /// <summary>
+        /// Given a byte-array assumed to be in Big-endian order, and an offset into it
+        /// - return a 16-bit integer derived from the 2 bytes starting at that offset.
+        /// </summary>
+        /// <param name="buffer">the byte-array to get the short from</param>
+        /// <returns></returns>
+        public static ushort ToUInt16([NotNull] byte[] buffer, int offset)
+        {
+            var i = buffer[offset] << 8 |
+                    buffer[offset + 1];
+
+            return (ushort)i;
+        }        
 
         /// <summary>
         /// Given a 16-bit integer, return it as a byte-array in Big-endian order.

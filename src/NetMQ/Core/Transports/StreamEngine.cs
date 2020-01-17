@@ -179,10 +179,12 @@ namespace NetMQ.Core.Transports
         private ProcessMsgDelegate m_processMsg;
         
         private Mechanism m_mechanism;
+        private Msg m_pongMsg;
         
         // queue for actions that happen during the state machine
         private readonly Queue<StateMachineAction> m_actionsQueue;
         
+
         public StreamEngine(AsyncSocket handle, Options options, string endpoint)
         {
             m_handle = handle;
@@ -203,7 +205,8 @@ namespace NetMQ.Core.Transports
             
             m_nextMsg = RoutingIdMsg;
             m_processMsg = ProcessRoutingIdMsg;
-            
+            m_pongMsg = new Msg();
+
             // Set the socket buffer limits for the underlying socket.
             if (m_options.SendBuffer != 0)
             {
@@ -1200,11 +1203,53 @@ namespace NetMQ.Core.Transports
             return result;
         }
         
+        PullMsgResult ProducePongMessage (ref Msg msg)
+        {
+            msg.Move(ref m_pongMsg);
+            m_nextMsg = PullAndEncode;
+            return m_mechanism.Encode(ref msg);
+        }
+        
         void ProcessCommandMessage (ref Msg msg)
         {
             byte commandNameSize = msg[0];
+
+            // Malformed command
+            if (msg.Size < commandNameSize + 1)
+                return;
+
+            string commandName = Encoding.ASCII.GetString(msg.Data, msg.Offset + 1, commandNameSize);
+            if (commandName == V3Protocol.PingCommand)
+                ProcessPingMessage(ref msg);
+        }
+
+        private void ProcessPingMessage(ref Msg msg)
+        {
+            // 16-bit TTL + \4PING == 7
+            int pingTtlLength = 1 + V3Protocol.PingCommand.Length + 2;
+            int pingMaxCtxLength = 16;
+
+            // Malformed ping command
+            if (msg.Size < pingTtlLength)
+                return;
             
-            // TODO: process command
+            // TODO: ping ttl is not implemented, so we ignore the ttl for now
+            
+            //  As per ZMTP 3.1 the PING command might contain an up to 16 bytes
+            //  context which needs to be PONGed back, so build the pong message
+            //  here and store it. Truncate it if it's too long.
+            //  Given the engine goes straight to out_event, sequential PINGs will
+            //  not be a problem.
+            int contextLength = Math.Min(msg.Size - pingTtlLength, pingMaxCtxLength);
+            m_pongMsg.InitPool(1 + V3Protocol.PongCommand.Length + contextLength);
+            m_pongMsg.SetFlags(MsgFlags.Command);
+            m_pongMsg[0] = (byte) V3Protocol.PongCommand.Length;
+            m_pongMsg.Put(Encoding.ASCII.GetBytes(V3Protocol.PongCommand), 1, V3Protocol.PongCommand.Length);
+            if (contextLength > 0)
+                m_pongMsg.Put(msg.Data, msg.Offset + pingTtlLength, 1 + V3Protocol.PongCommand.Length, contextLength);
+
+            m_nextMsg = ProducePongMessage;
+            BeginSending();
         }
 
         /// <summary>
