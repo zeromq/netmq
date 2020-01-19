@@ -70,6 +70,22 @@ namespace NetMQ.Tests
                 Assert.Equal(new byte[]{0,1,6}, msg);
             }
         }
+
+        [Fact]
+        public void HeartbeatEnabled()
+        {
+            using (var sub = new SubscriberSocket())
+            using (var pub = new PublisherSocket())
+            {
+                sub.Options.HeartbeatInterval = TimeSpan.FromMilliseconds(10);
+                sub.Options.HeartbeatTimeout = TimeSpan.FromMilliseconds(1);
+                
+                int port = pub.BindRandomPort("tcp://*");
+                sub.Connect($"tcp://localhost:{port}");
+                
+                Thread.Sleep(3000);
+            }
+        }
         
         [Fact]
         public void V3Test()
