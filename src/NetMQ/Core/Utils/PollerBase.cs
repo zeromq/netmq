@@ -208,9 +208,6 @@ namespace NetMQ.Core.Utils
                 // We DONT have to wait for this timeout-period, so get the list of timers that correspond to this key.
                 var timers = m_timers[key];
                 
-                // Remove it from the list of active timers.
-                m_timers.RemoveAt(0);
-
                 // Trigger the timers.
                 while (timers.Any())
                 {
@@ -220,6 +217,9 @@ namespace NetMQ.Core.Utils
                     // "Trigger" each timer by calling it's TimerEvent method with this timer's id.
                     timer.Sink.TimerEvent(timer.Id);
                 }
+                
+                // Remove it from the list of active timers.
+                m_timers.Remove(key);
             }
 
             // There are no more timers.
