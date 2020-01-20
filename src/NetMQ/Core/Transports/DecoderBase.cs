@@ -116,7 +116,7 @@ namespace NetMQ.Core.Transports
                 while (m_toRead == 0)
                 {
                     var result = Next();
-                    if (result != DecodeResult.MessageReady)
+                    if (result != DecodeResult.Processing)
                         return result;
                 }
 
