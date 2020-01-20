@@ -82,7 +82,8 @@ namespace NetMQ.Core.Transports
         {
             Closed,
             Handshaking,
-            Active
+            Active,
+            Error
         }
 
         private enum HandshakeState
@@ -316,6 +317,7 @@ namespace NetMQ.Core.Transports
         private void Error()
         {
             Debug.Assert(m_session != null);
+            m_state = State.Error;
             m_socket.EventDisconnected(m_endpoint, m_handle);
             m_session.Flush();
             m_session.Detach();
@@ -343,6 +345,8 @@ namespace NetMQ.Core.Transports
         {
             switch (m_state)
             {
+                case State.Error:
+                    break;
                 case State.Closed:
                     switch (action)
                     {
@@ -1332,7 +1336,12 @@ namespace NetMQ.Core.Transports
                 m_pongMsg.Put(msg.Data, msg.Offset + pingTtlLength, 1 + V3Protocol.PongCommand.Length, contextLength);
 
             m_nextMsg = ProducePongMessage;
-            BeginSending();
+
+            if (m_sendingState == SendState.Idle)
+            {
+                m_sendingState = SendState.Active;
+                BeginSending();
+            }
         }
         
         /// <summary>
@@ -1345,7 +1354,13 @@ namespace NetMQ.Core.Transports
             if (id == HeartbeatIntervalTimerId)
             {
                 m_nextMsg = ProducePingMessage;
-                BeginSending();
+                
+                if (m_sendingState == SendState.Idle)
+                {
+                    m_sendingState = SendState.Active;
+                    BeginSending();
+                }
+                
                 m_ioObject.AddTimer(m_options.HeartbeatInterval, HeartbeatIntervalTimerId);
             } 
             else if (id == HeartbeatTtlTimerId) 
