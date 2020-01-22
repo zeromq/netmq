@@ -21,6 +21,20 @@ namespace NetMQ
 
             return (short)i;
         }
+        
+        /// <summary>
+        /// Given a byte-array assumed to be in Big-endian order, and an offset into it
+        /// - return a 16-bit integer derived from the 2 bytes starting at that offset.
+        /// </summary>
+        /// <param name="buffer">the byte-array to get the short from</param>
+        /// <returns></returns>
+        public static ushort ToUInt16([NotNull] byte[] buffer, int offset)
+        {
+            var i = buffer[offset] << 8 |
+                    buffer[offset + 1];
+
+            return (ushort)i;
+        }        
 
         /// <summary>
         /// Given a 16-bit integer, return it as a byte-array in Big-endian order.
@@ -49,18 +63,32 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Given a 16-bit integer, and a byte-array buffer and offset,
+        /// - write the 2 bytes of that integer into the buffer starting at that offset, in Big-endian order.
+        /// </summary>
+        /// <param name="value">the short to convert into bytes</param>
+        /// <param name="buffer">the byte-array to write the short's bytes into</param>
+        /// <param name="offset">Offset</param>
+        public static void PutUInt16(ushort value, [NotNull] byte[] buffer, int offset = 0)
+        {
+            buffer[offset] = (byte)(value >> 8);
+            buffer[offset + 1] = (byte) value;
+        }
+
+        /// <summary>
         /// Given a byte-array assumed to be in Big-endian order, and an offset into it
         /// - return a 32-bit integer derived from the 4 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the integer from</param>
+        /// <param name="offset">offset</param>
         /// <returns></returns>
-        public static int ToInt32([NotNull] byte[] buffer)
+        public static int ToInt32([NotNull] byte[] buffer, int offset  = 0)
         {
             return 
-                buffer[0] << 24 |
-                buffer[1] << 16 | 
-                buffer[2] <<  8 | 
-                buffer[3];
+                buffer[offset] << 24 |
+                buffer[offset + 1] << 16 | 
+                buffer[offset + 2] <<  8 | 
+                buffer[offset + 3];
         }
 
         /// <summary>
@@ -83,12 +111,12 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the integer to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the integer's bytes into</param>
-        public static void PutInt32(int value, [NotNull] byte[] buffer)
+        public static void PutInt32(int value, [NotNull] byte[] buffer, int offset = 0)
         {
-            buffer[0] = (byte)(value >> 24);
-            buffer[1] = (byte)(value >> 16);
-            buffer[2] = (byte)(value >>  8);
-            buffer[3] = (byte) value;
+            buffer[offset] = (byte)(value >> 24);
+            buffer[offset + 1] = (byte)(value >> 16);
+            buffer[offset + 2] = (byte)(value >>  8);
+            buffer[offset + 3] = (byte) value;
         }
 
         /// <summary>

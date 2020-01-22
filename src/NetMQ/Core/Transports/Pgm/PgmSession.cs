@@ -87,18 +87,11 @@ namespace NetMQ.Core.Transports.Pgm
         {
             if (m_state == State.Stuck)
             {
-                Debug.Assert(m_decoder != null);
-                Debug.Assert(m_pendingData != null);
-
-                // Ask the decoder to process remaining data.
-                int n = m_decoder.ProcessBuffer(m_pendingData, m_pendingBytes);
-                m_pendingBytes -= n;
-                m_session.Flush();
-
-                if (m_pendingBytes == 0)
+                var pushResult = m_decoder.PushMsg(m_session.PushMsg);
+                if (pushResult == PushMsgResult.Ok)
                 {
                     m_state = State.Receiving;
-                    BeginReceive();
+                    ProcessInput();
                 }
             }
         }
@@ -147,26 +140,49 @@ namespace NetMQ.Core.Transports.Pgm
 
                     // Create and connect decoder for the peer.
                     m_decoder = new V1Decoder(0, m_options.MaxMessageSize, m_options.Endian);
-                    m_decoder.SetMsgSink(m_session);
                 }
 
                 // Push all the data to the decoder.
-                int processed = m_decoder.ProcessBuffer(m_data, bytesTransferred);
-                if (processed < bytesTransferred)
+                m_pendingBytes = bytesTransferred;
+                m_pendingData = new ByteArraySegment(m_data, 0);
+                ProcessInput();
+            }
+        }
+        
+        void ProcessInput ()
+        {
+            while (m_pendingBytes > 0) {
+                var result = m_decoder.Decode(m_pendingData, m_pendingBytes, out var processed);
+                m_pendingData.AdvanceOffset(processed);
+                m_pendingBytes -= processed;
+                if (result == DecodeResult.Error)
                 {
-                    // Save some state so we can resume the decoding process later.
-                    m_pendingBytes = bytesTransferred - processed;
-                    m_pendingData = new ByteArraySegment(m_data, processed);
-
-                    m_state = State.Stuck;
+                    m_joined = false;
+                    Error();
+                    return;
                 }
-                else
+                
+                if (result == DecodeResult.Processing)
+                    break;
+                
+                var pushResult = m_decoder.PushMsg(m_session.PushMsg);
+                if (pushResult == PushMsgResult.Full)
                 {
+                    m_state = State.Stuck;
                     m_session.Flush();
-
-                    BeginReceive();
+                    return;
+                }
+                else if (pushResult == PushMsgResult.Error)
+                {
+                    m_joined = false;
+                    Error();
+                    return;
                 }
             }
+            
+            m_session.Flush();
+            
+            BeginReceive();
         }
 
         private void Error()
@@ -179,9 +195,6 @@ namespace NetMQ.Core.Transports.Pgm
 
             // Disconnect from I/O threads poller object.
             m_ioObject.Unplug();
-
-            // Disconnect from session object.
-            m_decoder?.SetMsgSink(null);
 
             m_session = null;
 
@@ -224,7 +237,7 @@ namespace NetMQ.Core.Transports.Pgm
             var msg = new Msg();
             msg.InitEmpty();
 
-            while (m_session.PullMsg(ref msg))
+            while (m_session.PullMsg(ref msg) == PullMsgResult.Ok)
             {
                 msg.Close();
             }

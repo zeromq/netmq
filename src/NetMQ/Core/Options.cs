@@ -58,6 +58,10 @@ namespace NetMQ.Core
             TcpKeepaliveIntvl = -1;
             DisableTimeWait = false;
             PgmMaxTransportServiceDataUnitLength = Config.PgmMaxTPDU;
+            MechanismType = MechanismType.Null;
+            HeartbeatTtl = 0;
+            HeartbeatInterval = 0;
+            HeartbeatTimeout = -1;
         }
 
         /// <summary>
@@ -114,7 +118,15 @@ namespace NetMQ.Core
         /// Get or set the size of the socket-identity byte-array.
         /// The initial value is 0, until the Identity property is set.
         /// </summary>
-        public byte IdentitySize { get; set; }
+        public byte IdentitySize {
+            get
+            {
+                if (Identity != null)
+                    return (byte)Identity.Length;
+
+                return 0;
+            }
+        }
         
         public byte[] LastPeerRoutingId { get; set; }
 
@@ -270,7 +282,27 @@ namespace NetMQ.Core
         /// Controls the maximum datagram size for PGM.
         /// </summary>
         public int PgmMaxTransportServiceDataUnitLength { get; set; }
-
+        
+        public MechanismType MechanismType { get; set; }
+        
+        /// <summary>
+        /// If remote peer receives a PING message and doesn't receive another
+        /// message within the ttl value, it should close the connection
+        /// (measured in tenths of a second)
+        /// </summary>
+        public int HeartbeatTtl { get; set; }
+        
+        /// <summary>
+        /// Time in milliseconds between sending heartbeat PING messages.
+        /// </summary>
+        public int HeartbeatInterval { get; set; }
+        
+        /// <summary>
+        /// Time in milliseconds to wait for a PING response before disconnecting
+        /// </summary>
+        public int HeartbeatTimeout { get; set; }
+        
+        
         /// <summary>
         /// Assign the given optionValue to the specified option.
         /// </summary>
@@ -315,7 +347,6 @@ namespace NetMQ.Core
                         throw new InvalidException($"In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {val.Length}, should be 1..255.");
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
-                    IdentitySize = (byte)Identity.Length;
                     break;
 
                 case ZmqSocketOption.Rate:
@@ -401,6 +432,20 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.PgmMaxTransportServiceDataUnitLength:
                     PgmMaxTransportServiceDataUnitLength = (int)optionValue;
+                    break;
+                
+                case ZmqSocketOption.HeartbeatInterval:
+                    HeartbeatInterval = (int) optionValue;
+                    break;
+
+                case ZmqSocketOption.HeartbeatTtl:
+                    // Convert this to deciseconds from milliseconds
+                    HeartbeatTtl = (int) optionValue;
+                    HeartbeatTtl /= 100;
+                    break;
+
+                case ZmqSocketOption.HeartbeatTimeout:
+                    HeartbeatTimeout = (int) optionValue;
                     break;
 
                 default:
@@ -498,7 +543,18 @@ namespace NetMQ.Core
                     
                 case ZmqSocketOption.LastPeerRoutingId:
                     return LastPeerRoutingId;
+                
+                case ZmqSocketOption.HeartbeatInterval:
+                    return HeartbeatInterval;
 
+                case ZmqSocketOption.HeartbeatTtl:
+                    return HeartbeatTtl * 100;
+
+                case ZmqSocketOption.HeartbeatTimeout:
+                    if (HeartbeatTimeout == -1)
+                        return HeartbeatInterval;
+                    return HeartbeatTimeout;
+                
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);
             }

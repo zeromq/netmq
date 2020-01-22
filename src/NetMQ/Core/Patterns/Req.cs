@@ -176,7 +176,6 @@ namespace NetMQ.Core.Patterns
         {
             private enum State
             {
-                Identity,
                 Bottom,
                 Body
             }
@@ -186,11 +185,10 @@ namespace NetMQ.Core.Patterns
             public ReqSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
-                m_state = State.Identity;
+                m_state = State.Bottom;
             }
-
-            /// <exception cref="FaultException">ReqSession must be in a valid state when PushMsg is called.</exception>
-            public override bool PushMsg(ref Msg msg)
+            
+            public override PushMsgResult PushMsg(ref Msg msg)
             {
                 // TODO the flags checks here don't check specific bits -- should they use HasMore instead? does this work with shared Msg objects?
 
@@ -212,22 +210,15 @@ namespace NetMQ.Core.Patterns
                             return base.PushMsg(ref msg);
                         }
                         break;
-                    case State.Identity:
-                        if (msg.Flags == MsgFlags.None)
-                        {
-                            m_state = State.Bottom;
-                            return base.PushMsg(ref msg);
-                        }
-                        break;
                 }
 
-                throw new FaultException("Req.PushMsg default failure.");
+                return PushMsgResult.Error;
             }
 
             protected override void Reset()
             {
                 base.Reset();
-                m_state = State.Identity;
+                m_state = State.Bottom;
             }
         }
     }

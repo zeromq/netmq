@@ -192,9 +192,9 @@ namespace NetMQ.Core.Utils
 
             // Iterate through all of the timers..
             var keys = m_timers.Keys;
-            for (int i = 0; i < keys.Count; i++)
+            while (keys.Any())
             {
-                var key = keys[i];
+                var key = keys.First();
 
                 // If we have to wait to execute the item, same will be true about
                 // all the following items (multimap is sorted). Thus we can stop
@@ -207,18 +207,19 @@ namespace NetMQ.Core.Utils
 
                 // We DONT have to wait for this timeout-period, so get the list of timers that correspond to this key.
                 var timers = m_timers[key];
-
+                
                 // Trigger the timers.
-                foreach (var timer in timers)
+                while (timers.Any())
                 {
+                    var timer = timers.First();
+                    timers.RemoveAt(0);
+                    
                     // "Trigger" each timer by calling it's TimerEvent method with this timer's id.
                     timer.Sink.TimerEvent(timer.Id);
                 }
-
+                
                 // Remove it from the list of active timers.
-                timers.Clear();
                 m_timers.Remove(key);
-                i--;
             }
 
             // There are no more timers.
