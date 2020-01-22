@@ -1,6 +1,6 @@
 namespace NetMQ.Core.Utils
 {
-    public static class ByteArrayUtility
+    internal static class ByteArrayUtility
     {
         public static bool AreEqual(byte[] a, int aOffset, byte[] b, int bOffset, int count)
         {
