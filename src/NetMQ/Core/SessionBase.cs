@@ -393,8 +393,7 @@ namespace NetMQ.Core
                 ZObject[] parents = { this, m_socket };
                 int[] highWaterMarks = { m_options.ReceiveHighWatermark, m_options.SendHighWatermark };
                 int[] lowWaterMarks = { m_options.ReceiveLowWatermark, m_options.SendLowWatermark };
-                bool[] delays = { m_options.DelayOnClose, m_options.DelayOnDisconnect };
-                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks);
 
                 // Plug the local end of the pipe.
                 pipes[0].SetEventSink(this);

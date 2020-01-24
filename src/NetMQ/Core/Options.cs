@@ -36,8 +36,6 @@ namespace NetMQ.Core
         public Options()
         {
             Backlog = 100;
-            DelayOnClose = true;
-            DelayOnDisconnect = true;
             Endian = Endianness.Big;
             IPv4Only = true;
             Linger = -1;
@@ -82,21 +80,7 @@ namespace NetMQ.Core
         /// The default value is false.
         /// </summary>
         public bool DelayAttachOnConnect { get; set; }
-
-        /// <summary>
-        /// If true, session reads all the pending messages from the pipe and
-        /// sends them to the network when socket is closed.
-        /// The default value is true.
-        /// </summary>
-        public bool DelayOnClose { get; set; }
-
-        /// <summary>
-        /// If true, socket reads all the messages from the pipe and delivers
-        /// them to the user when the peer terminates.
-        /// The default value is true.
-        /// </summary>
-        public bool DelayOnDisconnect { get; set; }
-
+        
         /// <summary>
         /// Get or set the Endian-ness, which indicates whether the most-significant bits are placed higher or lower in memory.
         /// The default value is Endianness.Big.

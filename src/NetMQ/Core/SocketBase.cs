@@ -608,8 +608,7 @@ namespace NetMQ.Core
                 ZObject[] parents = { this, peer.Socket };
                 int[] highWaterMarks = { sndhwm, rcvhwm };
                 int[] lowWaterMarks = { sndlwm, rcvlwm };
-                bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks);
 
                 // Attach local end of the pipe to this socket object.
                 AttachPipe(pipes[0]);
@@ -704,8 +703,7 @@ namespace NetMQ.Core
                 ZObject[] parents = { this, session };
                 int[] hwms = { m_options.SendHighWatermark, m_options.ReceiveHighWatermark };
                 int[] lwms = { m_options.SendLowWatermark, m_options.ReceiveLowWatermark };
-                bool[] delays = { m_options.DelayOnDisconnect, m_options.DelayOnClose };
-                Pipe[] pipes = Pipe.PipePair(parents, hwms, lwms, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, hwms, lwms);
 
                 // Attach local end of the pipe to the socket object.
                 AttachPipe(pipes[0], icanhasall);
