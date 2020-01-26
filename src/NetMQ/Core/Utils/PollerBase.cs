@@ -137,41 +137,20 @@ namespace NetMQ.Core.Utils
         /// </remarks>
         public void CancelTimer([NotNull] ITimerEvent sink, int id)
         {
-            var foundTimers = new Dictionary<long, TimerInfo>();
+            bool removed = false;
 
             foreach (var pair in m_timers)
             {
                 var timer = pair.Value.FirstOrDefault(x => x.Id == id && x.Sink == sink);
-
-                if (timer == null)
-                    continue;
-
-                if (!foundTimers.ContainsKey(pair.Key))
+                
+                if (timer != null)
                 {
-                    foundTimers[pair.Key] = timer;
+                    removed = pair.Value.Remove(timer);
                     break;
                 }
             }
-
-            if (foundTimers.Count > 0)
-            {
-                foreach (var foundTimer in foundTimers)
-                {
-                    if (m_timers[foundTimer.Key].Count == 1)
-                    {
-                        m_timers.Remove(foundTimer.Key);
-                    }
-                    else
-                    {
-                        m_timers[foundTimer.Key].Remove(foundTimer.Value);
-                    }
-                }
-            }
-            else
-            {
-                // Timer not found.
-                Debug.Assert(false);
-            }
+            
+            Debug.Assert(removed);
         }
 
         /// <summary>
