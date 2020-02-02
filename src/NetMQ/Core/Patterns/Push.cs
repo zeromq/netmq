@@ -55,6 +55,11 @@ namespace NetMQ.Core.Patterns
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             Debug.Assert(pipe != null);
+            
+            // Don't delay pipe termination as there is no one
+            // to receive the delimiter.
+            pipe.SetNoDelay();
+            
             m_loadBalancer.Attach(pipe);
         }
 
