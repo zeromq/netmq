@@ -324,6 +324,11 @@ namespace NetMQ.Core.Transports
             CopyTo(0, otherSegment, 0, toCopy);
         }
 
+        public void CopyTo(Span<byte> span, int count)
+        {
+            new Span<byte>(m_innerBuffer, Offset, count).CopyTo(span);
+        }
+
         /// <summary>
         /// Write the bytes of this ByteArraySegment to the specified destination-ByteArraySegment.
         /// </summary>

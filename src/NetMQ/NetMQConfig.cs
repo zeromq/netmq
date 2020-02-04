@@ -4,6 +4,9 @@ using NetMQ.Core;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// Global configuration class for NetMQ
+    /// </summary>
     public static class NetMQConfig
     {
         private static TimeSpan s_linger;

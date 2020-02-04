@@ -17,18 +17,24 @@ namespace NetMQ.Monitoring
     /// To run a monitor instance, either:
     /// <list type="bullet">
     ///   <item>Call <see cref="Start"/> (blocking) and <see cref="Stop"/>, or</item>
-    ///   <item>Call <see cref="AttachToPoller"/> and <see cref="DetachFromPoller"/>.</item>
+    ///   <item>Call <see cref="AttachToPoller{T}"/> and <see cref="DetachFromPoller()"/>.</item>
     /// </list>
     /// </remarks>
     public class NetMQMonitor : IDisposable
     {
         [NotNull] private readonly NetMQSocket m_monitoringSocket;
         private readonly bool m_ownsMonitoringSocket;
-        [CanBeNull] private ISocketPollableCollection m_attachedPoller;
+        [CanBeNull] private INetMQPoller m_attachedPoller;
         private int m_cancel;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
 
+        /// <summary>
+        /// Create a new monitor object
+        /// </summary>
+        /// <param name="monitoredSocket">Socket to monitor</param>
+        /// <param name="endpoint">Bind endpoint</param>
+        /// <param name="eventsToMonitor">Flag enum of the events to monitored</param>
         public NetMQMonitor([NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
         {
             Endpoint = endpoint;
@@ -74,8 +80,8 @@ namespace NetMQ.Monitoring
         /// Get whether this monitor is currently running.
         /// </summary>
         /// <remarks>
-        /// Start the monitor running via either <see cref="Start"/> or <see cref="AttachToPoller"/>.
-        /// Stop the monitor via either <see cref="Stop"/> or <see cref="DetachFromPoller"/>.
+        /// Start the monitor running via either <see cref="Start"/> or <see cref="AttachToPoller{T}"/>.
+        /// Stop the monitor via either <see cref="Stop"/> or <see cref="DetachFromPoller()"/>.
         /// </remarks>
         public bool IsRunning { get; private set; }
 
@@ -84,7 +90,7 @@ namespace NetMQ.Monitoring
         /// </summary>
         /// <remarks>
         /// The higher the number the longer it may take the to stop the monitor.
-        /// This value has no effect when the monitor is run via <see cref="AttachToPoller"/>.
+        /// This value has no effect when the monitor is run via <see cref="AttachToPoller{T}"/>.
         /// </remarks>
         public TimeSpan Timeout { get; set; }
 
@@ -216,7 +222,14 @@ namespace NetMQ.Monitoring
             }
         }
 
-        public void AttachToPoller<T>(T poller) where T : ISocketPollableCollection
+        /// <summary>
+        /// Add the monitor object to a NetMQPoller, register to <see cref="EventReceived"/> to be signalled on new events
+        /// </summary>
+        /// <param name="poller"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void AttachToPoller<T>(T poller) where T : INetMQPoller
         {
             if (poller == null)
                 throw new ArgumentNullException(nameof(poller));
@@ -229,6 +242,9 @@ namespace NetMQ.Monitoring
             poller.Add(m_monitoringSocket);
         }
 
+        /// <summary>
+        /// Remove the monitor object from attached poller
+        /// </summary>
         public void DetachFromPoller()
         {
             DetachFromPoller(false);

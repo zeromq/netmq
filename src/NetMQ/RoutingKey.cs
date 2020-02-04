@@ -101,7 +101,6 @@ namespace NetMQ
         /// <summary>
         /// Return a numeric hashcode of the given byte-array.
         /// </summary>
-        /// <param name="data">the given byte-array to compute the hashcode of</param>
         /// <returns>an integer that contains a hashcode computed over the byte-array</returns>
         public override int GetHashCode()
         {

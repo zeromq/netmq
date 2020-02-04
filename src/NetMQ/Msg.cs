@@ -22,6 +22,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using JetBrains.Annotations;
 using NetMQ.Core.Utils;
@@ -98,6 +99,11 @@ namespace NetMQ
         /// Get the number of bytes within the Data property.
         /// </summary>
         public int Size { get; private set; }
+
+        /// <summary>
+        /// Returns true if msg is empty
+        /// </summary>
+        public bool IsEmpty => m_data == null || Size == 0;
 
         /// <summary>
         /// Gets the position of the first element in the Data property delimited by the message,
@@ -188,20 +194,47 @@ namespace NetMQ
         /// Return the internal buffer as Span
         /// </summary>
         /// <returns>The span</returns>
-        public Span<byte> Slice() => new Span<byte>(m_data, m_offset, Size);
-        
+        public Span<byte> Slice()
+        {
+            if (m_data == null)
+                return Span<byte>.Empty;
+            
+            return new Span<byte>(m_data, m_offset, Size);  
+        }
+
         /// <summary>
         /// Returns a slice of the internal buffer.
         /// </summary>
         /// <param name="offset">The offset to take the span from</param>
-        public Span<byte> Slice(int offset) => new Span<byte>(m_data, m_offset + offset, Size - offset);
+        public Span<byte> Slice(int offset)
+        {
+            if (m_data == null && offset > 0)
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            
+            if (m_offset + offset > Size)
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            
+            return new Span<byte>(m_data, m_offset + offset, Size - offset);  
+        }
 
         /// <summary>
         /// Returns a slice of the internal buffer.
         /// </summary>
         /// <param name="offset">The offset to take the span from</param>
         /// <param name="count">The size of the slice</param>
-        public Span<byte> Slice(int offset, int count) => new Span<byte>(m_data, m_offset + offset, count);
+        public Span<byte> Slice(int offset, int count)
+        {
+            if (m_data == null && offset > 0)
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            
+            if (m_offset + offset > Size)
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            
+            if (m_offset + offset + count > Size)
+                throw new ArgumentOutOfRangeException(nameof(offset));
+
+            return new Span<byte>(m_data, m_offset + offset, count);
+        }
 
         /// <summary>
         /// Copy the content of the message into a Span
@@ -210,6 +243,20 @@ namespace NetMQ
         public void CopyTo(Span<byte> span)
         {
             ((Span<byte>) this).CopyTo(span);
+        }
+        
+        /// <summary>
+        /// Return a copy of the internal buffer as byte array
+        /// </summary>
+        /// <returns>Byte array</returns>
+        public byte[] ToArray()
+        {
+            var data = new byte[Size];
+
+            if (Size > 0)
+                Buffer.BlockCopy(m_data, m_offset, data, 0, Size);
+
+            return data;
         }
         
         /// <summary>
@@ -473,6 +520,16 @@ namespace NetMQ
         {
             encoding.GetBytes(str, 0, str.Length, m_data, m_offset + index);
         }
+        /// <summary>
+        /// Copy the given byte-array data to this Msg's Data buffer.
+        /// </summary>
+        /// <param name="src">the source byte-array to copy from</param>
+        /// <param name="offset">index within the internal Data array to copy that byte to</param>
+        public void Put(Span<byte> src, int offset) 
+        {
+            src.CopyTo(Slice(offset));
+        }
+        
 
         /// <summary>
         /// Get and set the byte value in the <see cref="Data"/> buffer at a specific index.
@@ -550,7 +607,10 @@ namespace NetMQ
             src.InitEmpty();
         }
 
-        /// <summary>Returns a new array containing the first <see cref="Size"/> bytes of <see cref="Data"/>.</summary>
+        /// <summary>
+        /// Returns a new array containing the first <see cref="Size"/> bytes of <see cref="Data"/>.
+        /// Deprecated: use <see cref="ToArray()"/>
+        /// </summary>
         public byte[] CloneData()
         {
             var data = new byte[Size];
@@ -560,5 +620,20 @@ namespace NetMQ
 
             return data;
         }
+
+        #region Internal unsafe methods
+        
+        internal byte[] UnsafeToArray()
+        {
+            if (m_offset == 0 && m_data.Length == Size)
+                return m_data;
+            return CloneData();
+        }
+
+        internal byte[] UnsafeData => m_data;
+        internal int UnsafeOffset => m_offset;
+
+        #endregion
+
     }
 }

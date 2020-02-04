@@ -8,10 +8,12 @@ namespace NetMQ.Utils
 #if !NETSTANDARD2_1        
         public static unsafe void GetBytes(this Encoding encoding, string str, Span<byte> bytes)
         {
+            if (string.IsNullOrEmpty(str))
+                return;
+            
             fixed (char* s = str)
                 fixed (byte* p = bytes)
                     encoding.GetBytes(s, str.Length, p, bytes.Length);
-            
         }
 #endif        
     }

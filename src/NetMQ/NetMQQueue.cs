@@ -7,9 +7,17 @@ using System.Collections;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// Events args for NetMQQueue
+    /// </summary>
+    /// <typeparam name="T">The type of the queue</typeparam>
     public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
-        public NetMQQueueEventArgs(NetMQQueue<T> queue) => Queue = queue;
+        internal NetMQQueueEventArgs(NetMQQueue<T> queue) => Queue = queue;
+        
+        /// <summary>
+        /// The queue that invoked the event 
+        /// </summary>
         public NetMQQueue<T> Queue { get; }
     }
 
@@ -63,7 +71,11 @@ namespace NetMQ
         }
 
         NetMQSocket ISocketPollable.Socket => m_reader;
-        public bool IsDisposed { get; }
+        
+        /// <summary>
+        /// Returns true if the queue is disposed
+        /// </summary>
+        public bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Gets the number of items contained in the queue.
@@ -126,6 +138,7 @@ namespace NetMQ
 
         #region IEnumerator
 
+        /// <inheritdoc />
         public IEnumerator<T> GetEnumerator() => m_queue.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() { yield return GetEnumerator(); }
@@ -137,10 +150,15 @@ namespace NetMQ
         /// </summary>
         public void Dispose()
         {
+            if (IsDisposed)
+                return;
+
             m_eventDelegator.Dispose();
             m_writer.Dispose();
             m_reader.Dispose();
             m_dequeueMsg.Close();
+
+            IsDisposed = true;
         }
     }
 }

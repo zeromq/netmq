@@ -22,14 +22,30 @@ namespace NetMQ
 
             return (short)i;
         }
-        
+
         /// <summary>
         /// Given a byte-array assumed to be in Big-endian order, and an offset into it
         /// - return a 16-bit integer derived from the 2 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the short from</param>
+        /// <param name="offset">Offset to read from</param>
         /// <returns></returns>
         public static ushort ToUInt16([NotNull] byte[] buffer, int offset)
+        {
+            var i = buffer[offset] << 8 |
+                    buffer[offset + 1];
+
+            return (ushort)i;
+        }
+
+        /// <summary>
+        /// Given a byte-array assumed to be in Big-endian order, and an offset into it
+        /// - return a 16-bit integer derived from the 2 bytes starting at that offset.
+        /// </summary>
+        /// <param name="buffer">the byte-array to get the short from</param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        public static ushort ToUInt16(Span<byte> buffer, int offset)
         {
             var i = buffer[offset] << 8 |
                     buffer[offset + 1];
@@ -71,6 +87,19 @@ namespace NetMQ
         /// <param name="buffer">the byte-array to write the short's bytes into</param>
         /// <param name="offset">Offset</param>
         public static void PutUInt16(ushort value, [NotNull] byte[] buffer, int offset = 0)
+        {
+            buffer[offset] = (byte)(value >> 8);
+            buffer[offset + 1] = (byte) value;
+        }
+        
+        /// <summary>
+        /// Given a 16-bit integer, and a byte-array buffer and offset,
+        /// - write the 2 bytes of that integer into the buffer starting at that offset, in Big-endian order.
+        /// </summary>
+        /// <param name="value">the short to convert into bytes</param>
+        /// <param name="buffer">the byte-array to write the short's bytes into</param>
+        /// <param name="offset">Offset</param>
+        public static void PutUInt16(ushort value, Span<byte> buffer, int offset = 0)
         {
             buffer[offset] = (byte)(value >> 8);
             buffer[offset + 1] = (byte) value;
@@ -127,6 +156,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the integer to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the integer's bytes into</param>
+        /// <param name="offset">Offset to write to</param>
         public static void PutInt32(int value, [NotNull] byte[] buffer, int offset = 0)
         {
             buffer[offset] = (byte)(value >> 24);
@@ -169,6 +199,25 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// Given a byte-array assumed to be in Big-endian order, and an offset into it
+        /// - return a 64-bit integer derived from the 8 bytes starting at that offset.
+        /// </summary>
+        /// <param name="buffer">the byte-array to get the Int64 from</param>
+        /// <returns></returns>
+        public static long ToInt64(Span<byte> buffer)
+        {
+            return
+                (long)buffer[0] << 56 |
+                (long)buffer[1] << 48 |
+                (long)buffer[2] << 40 |
+                (long)buffer[3] << 32 |
+                (long)buffer[4] << 24 |
+                (long)buffer[5] << 16 |
+                (long)buffer[6] <<  8 |
+                (long)buffer[7];
+        }
+        
+        /// <summary>
         /// Given a 64-bit integer, return it as a byte-array in Big-endian order.
         /// </summary>
         /// <param name="value">The <c>long</c> value to convert from.</param>
@@ -200,13 +249,14 @@ namespace NetMQ
             buffer[7] = (byte) value;
         }
         
+        
         /// <summary>
         /// Given a 64-bit integer, and a byte-array buffer and offset,
         /// - write the 8 bytes of that integer into the buffer starting at that offset, in Big-endian order.
         /// </summary>
         /// <param name="value">the long value to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the long value's bytes into</param>
-        public static void PutUInt64(ulong value, Span<byte> buffer)
+        public static void PutInt64(long value, Span<byte> buffer)
         {
             buffer[0] = (byte)(value >> 56);
             buffer[1] = (byte)(value >> 48);
@@ -224,6 +274,25 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the long value to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the long value's bytes into</param>
+        public static void PutUInt64(ulong value, Span<byte> buffer)
+        {
+            buffer[0] = (byte)(value >> 56);
+            buffer[1] = (byte)(value >> 48);
+            buffer[2] = (byte)(value >> 40);
+            buffer[3] = (byte)(value >> 32);
+            buffer[4] = (byte)(value >> 24);
+            buffer[5] = (byte)(value >> 16);
+            buffer[6] = (byte)(value >> 8);
+            buffer[7] = (byte) value;
+        }
+
+        /// <summary>
+        /// Given a 64-bit integer, and a byte-array buffer and offset,
+        /// - write the 8 bytes of that integer into the buffer starting at that offset, in Big-endian order.
+        /// </summary>
+        /// <param name="value">the long value to convert into bytes</param>
+        /// <param name="buffer">the byte-array to write the long value's bytes into</param>
+        /// <param name="offset">Offset to write to</param>
         public static void PutUInt64(ulong value, byte[] buffer, int offset)
         {
             buffer[offset] = (byte)(value >> 56);
@@ -235,12 +304,13 @@ namespace NetMQ
             buffer[offset + 6] = (byte)(value >> 8);
             buffer[offset + 7] = (byte) value;
         }
-        
+
         /// <summary>
         /// Given a byte-array assumed to be in Big-endian order, and an offset into it
         /// - return a 64-bit integer derived from the 8 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the Int64 from</param>
+        /// <param name="offset">Offset to read from</param>
         /// <returns></returns>
         public static ulong ToUInt64([NotNull] byte[] buffer, int offset)
         {
@@ -254,12 +324,13 @@ namespace NetMQ
                 (ulong)buffer[offset + 6] <<  8 |
                 (ulong)buffer[offset + 7];
         }
-        
+
         /// <summary>
         /// Given a byte-array assumed to be in Big-endian order, and an offset into it
         /// - return a 64-bit integer derived from the 8 bytes starting at that offset.
         /// </summary>
         /// <param name="buffer">the byte-array to get the Int64 from</param>
+        /// <param name="offset">Offset to read from</param>
         /// <returns></returns>
         public static ulong ToUInt64(Span<byte> buffer, int offset)
         {

@@ -373,11 +373,18 @@ namespace NetMQ
             set => m_socket.SetSocketOption(ZmqSocketOption.Endian, value);
         }
 
+        /// <summary>
+        /// Enable Manual Publisher, Publisher won't add subscription automatically,
+        /// Subscribe must be called on the socket to add subscription. 
+        /// </summary>
         public bool ManualPublisher
         {
             set => m_socket.SetSocketOption(ZmqSocketOption.XPublisherManual, value);
         }
 
+        /// <summary>
+        /// Disable socket time-wait
+        /// </summary>
         public bool DisableTimeWait
         {
             get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DisableTimeWait);
