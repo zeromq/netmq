@@ -58,39 +58,15 @@ namespace NetMQ.Core.Patterns
         private readonly LoadBalancer m_loadBalancer;
 
         /// <summary>
-        /// Have we prefetched a message.
-        /// </summary>
-        private bool m_prefetched;
-
-        /// <summary>
-        /// The Msg that we have pre-fetched.
-        /// </summary>
-        private Msg m_prefetchedMsg;
-
-        /// <summary>
         /// Create a new Dealer socket that holds the prefetched message.
         /// </summary>
         public Dealer([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-            m_prefetched = false;
             m_options.SocketType = ZmqSocketType.Dealer;
 
             m_fairQueueing = new FairQueueing();
             m_loadBalancer = new LoadBalancer();
-
-            m_prefetchedMsg = new Msg();
-            m_prefetchedMsg.InitEmpty();
-        }
-
-        /// <summary>
-        /// Destroy this Dealer-socket and close out any pre-fetched Msg.
-        /// </summary>
-        public override void Destroy()
-        {
-            base.Destroy();
-
-            m_prefetchedMsg.Close();
         }
 
         /// <summary>
