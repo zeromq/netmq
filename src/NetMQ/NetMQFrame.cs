@@ -333,7 +333,7 @@ namespace NetMQ
         /// <summary>
         /// Return an array of bytes that carries the content of this NetMQFrames Buffer.
         /// </summary>
-        /// <param name="copy">if this argument is true - a new copy is made if BufferSize is equal to MessageSize</param>
+        /// <param name="copy">if this argument is true - a new copy is made if BufferSize is not equal to MessageSize</param>
         /// <returns>the Buffer as a byte-array, either newly-allocated or else (if copy is false) simply a reference to the actual Buffer</returns>
         [NotNull]
         public byte[] ToByteArray(bool copy = false)
