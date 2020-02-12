@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -316,7 +315,7 @@ namespace NetMQ
         /// That is only computed the first time this method is called.
         /// </summary>
         /// <returns>an integer that represents the computed hash-code</returns>
-        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             if (m_hash == 0)

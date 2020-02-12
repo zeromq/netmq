@@ -1,4 +1,6 @@
+using System;
 using System.Text;
+using NetMQ.Core.Utils;
 
 namespace NetMQ.Core.Mechanisms
 {
@@ -7,9 +9,8 @@ namespace NetMQ.Core.Mechanisms
         const string ReadyCommandName = "READY";
         private const string ErrorCommandName = "ERROR";
         private const int ErrorReasonLengthSize = 1;
-        
+
         bool m_readyCommandSent;
-        bool m_errorCommandSent;
         bool m_readyCommandReceived;
         bool m_errorCommandReceived;
 
@@ -17,49 +18,53 @@ namespace NetMQ.Core.Mechanisms
         {
         }
 
-        public override MechanismState State
+        public override void Dispose()
+        {
+        }
+
+        public override MechanismStatus Status
         {
             get
             {
                 if (m_readyCommandSent && m_readyCommandReceived)
-                    return MechanismState.Ready;
+                    return MechanismStatus.Ready;
 
-                bool commandSent = m_readyCommandSent || m_errorCommandSent;
+                bool commandSent = m_readyCommandSent;
                 bool commandReceived = m_readyCommandReceived || m_errorCommandReceived;
-                return commandSent && commandReceived ? MechanismState.Error : MechanismState.Handshaking;
+                return commandSent && commandReceived ? MechanismStatus.Error : MechanismStatus.Handshaking;
             }
         }
 
-        PushMsgResult ProcessReadyCommand(byte[] commandData, int offset, int count)
+        PushMsgResult ProcessReadyCommand(Span<byte> commandData)
         {
             m_readyCommandReceived = true;
-            if (!ParseMetadata(commandData, offset + ReadyCommandName.Length + 1, count - ReadyCommandName.Length - 1))
+            if (!ParseMetadata(commandData.Slice(ReadyCommandName.Length + 1)))
                 return PushMsgResult.Error;
 
             return PushMsgResult.Ok;
         }
-        
-        PushMsgResult ProcessErrorCommand(byte[] commandData, int offset, int count)
+
+        PushMsgResult ProcessErrorCommand(Span<byte> commandData)
         {
             int fixedPrefixSize = ErrorCommandName.Length + 1 + ErrorReasonLengthSize;
-            if (count < fixedPrefixSize)
+            if (commandData.Length < fixedPrefixSize)
                 return PushMsgResult.Error;
 
-            int errorReasonLength = commandData[offset + ErrorCommandName.Length + 1];
-            if (errorReasonLength > count - fixedPrefixSize)
+            int errorReasonLength = commandData[ErrorCommandName.Length + 1];
+            if (errorReasonLength > commandData.Length - fixedPrefixSize)
                 return PushMsgResult.Error;
 
-            string errorReason = Encoding.ASCII.GetString(commandData, offset + fixedPrefixSize, errorReasonLength);
-            
+            string errorReason = SpanUtility.ToAscii(commandData.Slice(fixedPrefixSize, errorReasonLength));
+
             // TODO: handle error, nothing todo at the moment as monitoring and zap are not yet implemented
-            
+
             m_errorCommandReceived = true;
             return PushMsgResult.Ok;
         }
 
         public override PullMsgResult NextHandshakeCommand(ref Msg msg)
         {
-            if (m_readyCommandSent || m_errorCommandSent)
+            if (m_readyCommandSent)
                 return PullMsgResult.Empty;
 
             MakeCommandWithBasicProperties(ref msg, ReadyCommandName);
@@ -67,36 +72,26 @@ namespace NetMQ.Core.Mechanisms
 
             return PullMsgResult.Ok;
         }
-        
-        bool IsCommand(string command, ref Msg msg)
-        {
-            if (msg.Size >= ReadyCommandName.Length + 1)
-            {
-                string msgCommand = Encoding.ASCII.GetString(msg.Data, msg.Offset + 1, msg[0]);
-                return msgCommand == command;
-            }
 
-            return false;
-        }
-        
         public override PushMsgResult ProcessHandshakeCommand(ref Msg msg)
         {
-            if (m_readyCommandReceived || m_errorCommandReceived) 
+            if (m_readyCommandReceived || m_errorCommandReceived)
                 return PushMsgResult.Error;
-            
+
             PushMsgResult result;
             if (IsCommand(ReadyCommandName, ref msg))
-                result = ProcessReadyCommand(msg.Data, msg.Offset, msg.Size);
+                result = ProcessReadyCommand(msg);
             else if (IsCommand(ErrorCommandName, ref msg))
-                result = ProcessErrorCommand(msg.Data, msg.Offset, msg.Size);
+                result = ProcessErrorCommand(msg);
             else
                 return PushMsgResult.Error;
 
-            if (result == PushMsgResult.Ok) {
+            if (result == PushMsgResult.Ok)
+            {
                 msg.Close();
                 msg.InitEmpty();
             }
-            
+
             return result;
         }
     }

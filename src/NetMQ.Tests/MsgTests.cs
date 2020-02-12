@@ -265,5 +265,22 @@ namespace NetMQ.Tests
             Assert.False(copy.IsInitialised);
             Assert.Null(copy.Data);
         }
+
+        [Fact]
+        public void ForeachMsg()
+        {
+            byte[] buffer =new byte[5] {1,2,3,4,5};
+            Msg msg = new Msg();
+            msg.InitGC(buffer, 1, 3);
+
+            int sum = 0;
+            
+            foreach (var b in msg)
+            {
+                sum += b;
+            }
+            
+            Assert.Equal(2 + 3 + 4, sum);
+        }
     }
 }
