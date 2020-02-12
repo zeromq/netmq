@@ -1,0 +1,12 @@
+coverage:
+  range: 65..95
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0.5%
+        base: auto
+
+comment:
+  require_changes: true
+  layout: "diff, files"
