@@ -601,11 +601,7 @@ namespace NetMQ.Tests
             // Dispose the socket.
             // It is incorrect to have a disposed socket in a poller.
             // Disposed sockets can throw into the poller's thread.
-
-            //**JASells: And what does that have to do with removing one?  Should check for disposed 
-            // socket on Add, not Remove!  Check only internally on to avoid accessing a potentially,
-            // disposed socket, but otherwise, removing it from the list is safe, and preferable to 
-            // throwing exception since it makes the poller more resilient to unintended mis-use!
+            
             socket.Dispose();
 
             // Dispose throws if a polled socket is disposed
