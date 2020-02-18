@@ -747,6 +747,7 @@ namespace NetMQ
 #endif
             // JASells: this appears to be running prematurely in test NetMWPollerTests.Monitoring
             // causing a objectDisposed exception in NetMQSelector.Select ~line 146
+            // Fixed by adding socket.IsDisposed check in NetMQSelector.Select @line 144
             foreach (var socket in m_sockets)
             {
                 if (socket.IsDisposed)
