@@ -160,7 +160,7 @@ namespace NetMQ
         }
 #endif
 
-#endregion
+    #endregion
 
         public NetMQPoller()
         {
