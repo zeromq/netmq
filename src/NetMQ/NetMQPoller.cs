@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 #if !NET35
@@ -26,7 +25,7 @@ namespace NetMQ
 #if NET40
         ISynchronizeInvoke,
 #endif
-        INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
+        INetMQPoller, ISocketPollableCollection, ISocketPollableCollectionAsync, IEnumerable, IDisposable
     {
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
@@ -113,7 +112,7 @@ namespace NetMQ
             m_tasksQueue.Enqueue(task);
         }
 
-        public Task Run([NotNull] Action action)
+        internal Task RunAsync([NotNull] Action action)
         {
             Task t;
 
@@ -129,6 +128,15 @@ namespace NetMQ
             }
 
             return t;
+        }
+
+        [Obsolete("potentially launches a new task to execute the action, but provides no sync mechanism.  Please use RemoveAsync() to remove sockets or timers")]
+        public void Run([NotNull] Action action)
+        {
+            if (!IsRunning || CanExecuteTaskInline)
+                action();
+            else
+                new Task(action).Start(this);
         }
 
         /// <summary>
@@ -200,7 +208,7 @@ namespace NetMQ
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
-            Run(() =>
+            RunAsync(() =>
             {
                 // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
                 if (socket.IsDisposed)
@@ -227,7 +235,7 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(timer));
             CheckDisposed();
 
-            Run(() => m_timers.Add(timer));
+            RunAsync(() => m_timers.Add(timer));
         }
 
         public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
@@ -238,7 +246,7 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(callback));
             CheckDisposed();
 
-            Run(() =>
+            RunAsync(() =>
             {
                 if (m_pollinSockets.ContainsKey(socket))
                     return;
@@ -247,7 +255,14 @@ namespace NetMQ
             });
         }
 
+        [Obsolete("potentially launches a new task to execute the action, but provides no sync mechanism.  Please use RemoveAsync() instead")]
         public void Remove(ISocketPollable socket)
+        {
+            // keeps the current public API intact, though flawed (no way to know when the task actually removes the socket).
+            RemoveAsync(socket);
+        }
+
+        public Task RemoveAsync(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -260,7 +275,7 @@ namespace NetMQ
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
 
-            Run(() =>
+            return RunAsync(() =>
             {
                 // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
                 if (socket.IsDisposed)
@@ -274,19 +289,40 @@ namespace NetMQ
                 socket.Socket.EventsChanged -= OnSocketEventsChanged;
                 m_sockets.Remove(socket.Socket);
                 m_isPollSetDirty = true;
-            })
-            .GetAwaiter()
-            .GetResult(); 
-            // keep the API syncronous blocking the calling thread here, else RemoveThrowsIfSocketAlreadyDisposed() test fails
+            });
         }
 
+        [Obsolete("potentially launches a new task to execute the action, but provides no sync mechanism.  Please use RemoveAndDisposeAsync() instead")]
         public void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable
         {
-            //call the remove method
-            Remove(socket);
+            // this implementation maintains *current* (flawed) behavior, since the task is not awaited
+            RemoveAndDisposeAsync(socket);
+        }
 
-            //dispose of socket
-            socket.Dispose();
+        public Task RemoveAndDisposeAsync<T>(T socket) where T : ISocketPollable, IDisposable
+        {
+            if (socket == null)
+                throw new ArgumentNullException(nameof(socket));
+            if (socket.IsDisposed)
+                throw new ArgumentException("Must not be disposed.", nameof(socket));
+            CheckDisposed();
+
+            return RunAsync(() =>
+            {
+                // Ensure the socket wasn't disposed while this code was waiting to be run on the poller thread
+                if (socket.IsDisposed)
+                    throw new InvalidOperationException(
+                        $"{nameof(NetMQPoller)}.{nameof(RemoveAndDispose)} was called from a non-poller thread, " +
+                        "so ran asynchronously. " +
+                        $"The {socket.GetType().Name} being removed was disposed while the remove " +
+                        $"operation waited to start on the poller thread. When using {nameof(RemoveAndDispose)} " +
+                        "you should not dispose the pollable object .");
+
+                socket.Socket.EventsChanged -= OnSocketEventsChanged;
+                m_sockets.Remove(socket.Socket);
+                m_isPollSetDirty = true;
+                socket.Dispose();
+            });
         }
 
         public void Remove([NotNull] NetMQTimer timer)
@@ -297,7 +333,7 @@ namespace NetMQ
 
             timer.When = -1;
 
-            Run(() => m_timers.Remove(timer)).GetAwaiter().GetResult();
+            RunAsync(() => m_timers.Remove(timer));
         }
 
         public void Remove([NotNull] Socket socket)
@@ -306,16 +342,14 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(socket));
             CheckDisposed();
 
-            Run(() =>
+            RunAsync(() =>
             {
                 if (m_pollinSockets.Keys.Contains(socket))
                 {
                     m_pollinSockets.Remove(socket);
                     m_isPollSetDirty = true;
                 }
-            })
-            .GetAwaiter()
-            .GetResult();
+            });
         }
 
         #endregion
@@ -329,7 +363,7 @@ namespace NetMQ
             CheckDisposed();
 
             var tcs = new TaskCompletionSource<bool>();
-            Run(() => tcs.SetResult(m_sockets.Contains(socket)));
+            RunAsync(() => tcs.SetResult(m_sockets.Contains(socket)));
             return tcs.Task;
         }
 
@@ -340,7 +374,7 @@ namespace NetMQ
             CheckDisposed();
 
             var tcs = new TaskCompletionSource<bool>();
-            Run(() => tcs.SetResult(m_timers.Contains(timer)));
+            RunAsync(() => tcs.SetResult(m_timers.Contains(timer)));
             return tcs.Task;
         }
 
@@ -351,7 +385,7 @@ namespace NetMQ
             CheckDisposed();
 
             var tcs = new TaskCompletionSource<bool>();
-            Run(() => tcs.SetResult(m_pollinSockets.ContainsKey(socket)));
+            RunAsync(() => tcs.SetResult(m_pollinSockets.ContainsKey(socket)));
             return tcs.Task;
         }
 #endif
@@ -711,7 +745,8 @@ namespace NetMQ
 #if !NET35
             m_tasksQueue.Dispose();
 #endif
-
+            // JASells: this appears to be running prematurely in test NetMWPollerTests.Monitoring
+            // causing a objectDisposed exception in NetMQSelector.Select ~line 146
             foreach (var socket in m_sockets)
             {
                 if (socket.IsDisposed)

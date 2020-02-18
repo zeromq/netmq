@@ -72,12 +72,12 @@ namespace NetMQ.Tests
                 int port = rep.BindRandomPort("tcp://127.0.0.1");
 
                 reqMonitor.Connected += (s, e) => connectedEvent.Set();
+                req.Connect("tcp://127.0.0.1:" + port);
 
                 reqMonitor.AttachToPoller(poller);
 
                 poller.RunAsync();
 
-                req.Connect("tcp://127.0.0.1:" + port);
                 req.SendFrame("a");
 
                 rep.SkipFrame();
@@ -457,7 +457,7 @@ namespace NetMQ.Tests
             await Task.Delay(2000);
 
             //now try to remove the sub from poller
-            patient.RemoveAndDispose(sub);
+            await patient.RemoveAndDisposeAsync(sub);
 
             Assert.True(sub.IsDisposed);
 
@@ -528,7 +528,7 @@ namespace NetMQ.Tests
             await Task.Delay(2000);
 
             //now try to remove the sub from poller
-            patient.Remove(sub);
+            await patient.RemoveAsync(sub);
 
             // dispose the sub (this will cause exception on poller's worker-thread) and it can't be caught!
             sub.Dispose();
