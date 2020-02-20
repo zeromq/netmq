@@ -248,8 +248,7 @@ namespace NetMQ
             buffer[6] = (byte)(value >> 8);
             buffer[7] = (byte) value;
         }
-        
-        
+
         /// <summary>
         /// Given a 64-bit integer, and a byte-array buffer and offset,
         /// - write the 8 bytes of that integer into the buffer starting at that offset, in Big-endian order.
