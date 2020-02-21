@@ -54,15 +54,15 @@ namespace NetMQ.Core.Patterns.Utils
         /// Add key to the trie. Returns true if it's a new subscription
         /// rather than a duplicate.
         /// </summary>
-        public bool Add([CanBeNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
+        public bool Add(Span<byte> prefix, [NotNull] Pipe pipe)
         {
-            return AddHelper(prefix, start, size, pipe);
+            return AddHelper(prefix, pipe);
         }
 
-        private bool AddHelper([CanBeNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
+        private bool AddHelper(Span<byte> prefix, [NotNull] Pipe pipe)
         {
             // We are at the node corresponding to the prefix. We are done.
-            if (size == 0)
+            if (prefix.Length == 0)
             {
                 bool result = m_pipes == null;
 
@@ -75,7 +75,7 @@ namespace NetMQ.Core.Patterns.Utils
 
             Debug.Assert(prefix != null);
 
-            byte currentCharacter = prefix[start];
+            byte currentCharacter = prefix[0];
 
             if (currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
             {
@@ -121,7 +121,7 @@ namespace NetMQ.Core.Patterns.Utils
                     ++m_liveNodes;
                 }
 
-                return m_next[0].AddHelper(prefix, start + 1, size - 1, pipe);
+                return m_next[0].AddHelper(prefix.Slice(1), pipe);
             }
             else
             {
@@ -131,7 +131,7 @@ namespace NetMQ.Core.Patterns.Utils
                     ++m_liveNodes;
                 }
 
-                return m_next[currentCharacter - m_minCharacter].AddHelper(prefix, start + 1, size - 1, pipe);
+                return m_next[currentCharacter - m_minCharacter].AddHelper(prefix.Slice(1), pipe);
             }
         }
 
@@ -280,18 +280,16 @@ namespace NetMQ.Core.Patterns.Utils
         /// actually removed rather than de-duplicated.
         /// </summary>
         /// <param name="prefix"></param>
-        /// <param name="start"></param>
-        /// <param name="size"></param>
         /// <param name="pipe"></param>
         /// <returns></returns>
-        public bool Remove([NotNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
+        public bool Remove(Span<byte> prefix, [NotNull] Pipe pipe)
         {
-            return RemoveHelper(prefix, start, size, pipe);
+            return RemoveHelper(prefix, pipe);
         }
 
-        private bool RemoveHelper([NotNull] byte[] prefix, int start, int size, [NotNull] Pipe pipe)
+        private bool RemoveHelper(Span<byte> prefix, [NotNull] Pipe pipe)
         {
-            if (size == 0)
+            if (prefix.Length == 0)
             {
                 if (m_pipes != null)
                 {
@@ -305,7 +303,7 @@ namespace NetMQ.Core.Patterns.Utils
                 return m_pipes == null;
             }
 
-            byte currentCharacter = prefix[start];
+            byte currentCharacter = prefix[0];
             if (m_count == 0 || currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
                 return false;
 
@@ -314,7 +312,7 @@ namespace NetMQ.Core.Patterns.Utils
             if (nextNode == null)
                 return false;
 
-            bool ret = nextNode.RemoveHelper(prefix, start + 1, size - 1, pipe);
+            bool ret = nextNode.RemoveHelper(prefix.Slice(1), pipe);
             if (nextNode.IsRedundant)
             {
                 Debug.Assert(m_count > 0);
@@ -394,11 +392,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <summary>
         /// Signal all the matching pipes.
         /// </summary>
-        public void Match([NotNull] byte[] data, int offset, int size, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        public void Match(Span<byte> data, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
         {
             MultiTrie current = this;
 
-            int index = offset;
+            int index = 0;
+            int size = data.Length;
 
             while (true)
             {

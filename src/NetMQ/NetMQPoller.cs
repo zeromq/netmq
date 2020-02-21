@@ -18,6 +18,9 @@ using Switch = NetMQ.Core.Utils.Switch;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// Enable polling on multiple NetMQSockets
+    /// </summary>
     public sealed class NetMQPoller :
 #if !NET35
         TaskScheduler,
@@ -25,7 +28,9 @@ namespace NetMQ
 #if NET40
         ISynchronizeInvoke,
 #endif
+#pragma warning disable 618
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
+#pragma warning restore 618
     {
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
@@ -75,6 +80,7 @@ namespace NetMQ
         /// </example>
         public bool CanExecuteTaskInline => m_isSchedulerThread.Value;
 
+        /// <inheritdoc />
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             if (task == null)
@@ -100,6 +106,7 @@ namespace NetMQ
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc />
         protected override void QueueTask(Task task)
         {
             if (task == null)
@@ -113,6 +120,10 @@ namespace NetMQ
             m_tasksQueue.Enqueue(task);
         }
 
+        /// <summary>
+        /// Run an action on the Poller thread
+        /// </summary>
+        /// <param name="action">The action to run</param>
         public void Run([NotNull] Action action)
         {
             if (!IsRunning || CanExecuteTaskInline)
@@ -129,6 +140,9 @@ namespace NetMQ
 
         #endregion
 
+        /// <summary>
+        /// Create a new NetMQPoller
+        /// </summary>
         public NetMQPoller()
         {
             m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
@@ -167,6 +181,10 @@ namespace NetMQ
 
         #region Add / Remove
 
+        /// <summary>
+        /// Add a socket to the poller
+        /// </summary>
+        /// <param name="socket">Socket to add to the poller</param>
         public void Add(ISocketPollable socket)
         {
             if (socket == null)
@@ -196,6 +214,11 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// Add the timer to the Poller, the timer will be invoked on the poller thread when interval elapsed.
+        /// </summary>
+        /// <param name="timer">The timer to add to poller</param>
+        /// <exception cref="ArgumentNullException">If timer is null</exception>
         public void Add([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -205,6 +228,13 @@ namespace NetMQ
             Run(() => m_timers.Add(timer));
         }
 
+        /// <summary>
+        /// Add a regular .Net Socket to the poller.
+        /// The callback will be invoked when the data is ready to be read from the socket
+        /// </summary>
+        /// <param name="socket">The socket to poll on</param>
+        /// <param name="callback">The callback to invoke when the socket is ready</param>
+        /// <exception cref="ArgumentNullException">If callback or socket are null</exception>
         public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
@@ -222,6 +252,13 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// Remove a socket from the poller
+        /// </summary>
+        /// <param name="socket">The socket to be removed</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
+        /// <exception cref="ArgumentException">If socket is already disposed</exception>
+        /// <exception cref="InvalidOperationException">If socket is getting disposed during the operation</exception>
         public void Remove(ISocketPollable socket)
         {
             if (socket == null)
@@ -247,6 +284,13 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// Remove the socket from the poller and dispose the socket
+        /// </summary>
+        /// <param name="socket">The socket to be removed</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
+        /// <exception cref="ArgumentException">If socket is disposed</exception>
+        /// <exception cref="InvalidOperationException">If socket got disposed during the operation</exception>
         public void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable
         {
             if (socket == null)
@@ -273,6 +317,11 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// Remove a timer from the poller
+        /// </summary>
+        /// <param name="timer">The timer to remove</param>
+        /// <exception cref="ArgumentNullException">If poller is null</exception>
         public void Remove([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -284,6 +333,11 @@ namespace NetMQ
             Run(() => m_timers.Remove(timer));
         }
 
+        /// <summary>
+        /// Remove the .Net socket from the poller
+        /// </summary>
+        /// <param name="socket">The socket to remove</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
         public void Remove([NotNull] Socket socket)
         {
             if (socket == null)
@@ -301,6 +355,13 @@ namespace NetMQ
 
         #region Contains
 #if !NET35
+        
+        /// <summary>
+        /// Check if poller contains the socket asynchronously.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <returns>True if the poller contains the socket.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if socket is null</exception>
         public Task<bool> ContainsAsync([NotNull] ISocketPollable socket)
         {
             if (socket == null)
@@ -312,6 +373,11 @@ namespace NetMQ
             return tcs.Task;
         }
 
+        /// <summary>
+        /// Check if poller contains the timer asynchronously.
+        /// </summary>
+        /// <returns>True if the poller contains the timer.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if timer is null</exception>
         public Task<bool> ContainsAsync([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -323,6 +389,12 @@ namespace NetMQ
             return tcs.Task;
         }
 
+        /// <summary>
+        /// Check if poller contains the socket asynchronously.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <returns>True if the poller contains the socket.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if socket is null</exception>
         public Task<bool> ContainsAsync([NotNull] Socket socket)
         {
             if (socket == null)

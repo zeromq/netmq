@@ -1,4 +1,5 @@
-﻿using NetMQ.Core;
+﻿using System;
+using NetMQ.Core;
 using NetMQ.Core.Patterns;
 
 namespace NetMQ.Sockets

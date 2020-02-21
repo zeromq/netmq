@@ -28,6 +28,7 @@ namespace NetMQ.Sockets
         {
         }
 
+        /// <inheritdoc />
         public override bool TrySend(ref Msg msg, TimeSpan timeout, bool more)
         {
             throw new NotSupportedException("Pull socket doesn't support sending");

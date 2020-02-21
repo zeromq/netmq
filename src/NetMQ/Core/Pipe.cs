@@ -178,9 +178,6 @@ namespace NetMQ.Core
         /// Second HWM is for messages passed from second pipe to the first pipe.</param>
         /// <param name="lowWaterMarks">First LWM is for messages passed from first pipe to the second pipe.
         /// Second LWM is for messages passed from second pipe to the first pipe.</param>
-        /// <param name="delays">Delay specifies how the pipe behaves when the peer terminates. If true
-        /// pipe receives all the pending messages before terminating, otherwise it
-        /// terminates straight away.</param>
         /// <returns>A pipe pair for bi-directional transfer of messages. </returns>
         [NotNull]
         public static Pipe[] PipePair([NotNull] ZObject[] parents, [NotNull] int[] highWaterMarks, [NotNull] int[] lowWaterMarks)

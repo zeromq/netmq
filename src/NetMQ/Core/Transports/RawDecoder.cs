@@ -25,7 +25,7 @@ namespace NetMQ.Core.Transports
         public override DecodeResult Decode(ByteArraySegment data, int size, out int bytesUsed)
         {
             m_inProgress.InitPool(size);
-            data.CopyTo(0, m_inProgress.Data, 0, size);
+            data.CopyTo(m_inProgress, size);
             bytesUsed = size;
             return DecodeResult.MessageReady;
         }

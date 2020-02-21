@@ -30,9 +30,21 @@ namespace NetMQ
         public NetMQBeacon Beacon { get; }
     }
 
+    /// <summary>
+    /// NetMQBeacon implements a peer-to-peer discovery service for local networks.
+    /// </summary>
+    /// <remarks>
+    /// A beacon can broadcast and/or capture service announcements using UDP messages on the local area network.
+    /// You can define the format of your outgoing beacons, and set a filter that validates incoming beacons.
+    /// Beacons are sent and received asynchronously in the background.
+    /// 
+    /// We can use the NetMQBeacon to discover and connect to other NetMQ/CZMQ services in the network automatically
+    /// without central configuration. Please note that to use NetMQBeacon your infrastructure must support broadcast.
+    /// Most cloud providers don't support broadcast.
+    /// </remarks>
     public sealed class NetMQBeacon : IDisposable, ISocketPollable
     {
-        public const int UdpFrameMax = 255;
+        private const int UdpFrameMax = 255;
 
         private const string ConfigureCommand = "CONFIGURE";
         private const string PublishCommand = "PUBLISH";

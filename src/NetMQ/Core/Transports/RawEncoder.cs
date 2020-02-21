@@ -15,7 +15,7 @@ namespace NetMQ.Core.Transports
         protected override void Next()
         {
             // Write message body into the buffer.
-            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
+            NextStep(new ByteArraySegment(m_inProgress.UnsafeData, m_inProgress.UnsafeOffset),
                 m_inProgress.Size, RawMessageReadyState, true);
         }
     }

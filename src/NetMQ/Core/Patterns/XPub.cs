@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -141,7 +142,7 @@ namespace NetMQ.Core.Patterns
             // If icanhasall is specified, the caller would like to subscribe
             // to all data on this pipe, implicitly.
             if (icanhasall)
-                m_subscriptions.Add(null, 0, 0, pipe);
+                m_subscriptions.Add(Span<byte>.Empty, pipe);
 
             // if welcome message was set, write one to the pipe.
             if (m_welcomeMessage.Size > 0)
@@ -183,8 +184,8 @@ namespace NetMQ.Core.Patterns
                     else
                     {
                         var unique = sub[0] == 0
-                            ? m_subscriptions.Remove(sub.Data, sub.Offset + 1, size - 1, pipe)
-                            : m_subscriptions.Add(sub.Data, sub.Offset + 1, size - 1, pipe);
+                            ? m_subscriptions.Remove(sub.Slice(1), pipe)
+                            : m_subscriptions.Add(sub.Slice(1), pipe);
 
                         // If the subscription is not a duplicate, store it so that it can be
                         // passed to used on next recv call.
@@ -273,7 +274,7 @@ namespace NetMQ.Core.Patterns
                     if (m_manual && m_lastPipe != null)
                     {
                         var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes((string)optionValue);
-                        m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
+                        m_subscriptions.Add(subscription, m_lastPipe);
                         m_lastPipe = null;
                         return true;
                     }
@@ -284,7 +285,7 @@ namespace NetMQ.Core.Patterns
                     if (m_manual && m_lastPipe != null)
                     {
                         var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes((string)optionValue);
-                        m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
+                        m_subscriptions.Remove(subscription, m_lastPipe);
                         m_lastPipe = null;
                         return true;
                     }
@@ -345,7 +346,7 @@ namespace NetMQ.Core.Patterns
             // For the first part of multipart message, find the matching pipes.
             if (!m_moreOut)
             {
-                m_subscriptions.Match(msg.Data, msg.Offset, msg.Size, s_markAsMatching, this);
+                m_subscriptions.Match(msg, s_markAsMatching, this);
             }
             // Send the message to all the pipes that were marked as matching
             // in the previous step.

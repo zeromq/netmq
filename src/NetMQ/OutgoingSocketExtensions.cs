@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
+using NetMQ.Utils;
 
 namespace NetMQ
 {
@@ -52,7 +53,7 @@ namespace NetMQ
         {
             var msg = new Msg();
             msg.InitPool(length);
-            Buffer.BlockCopy(data, 0, msg.Data, msg.Offset, length);
+            data.Slice(0, length).CopyTo(msg);
             socket.Send(ref msg, more);
             msg.Close();
         }
@@ -106,8 +107,7 @@ namespace NetMQ
         {
             var msg = new Msg();
             msg.InitPool(length);
-            Buffer.BlockCopy(data, 0, msg.Data, 0, length);
-
+            data.CopyTo(msg);
             if (!socket.TrySend(ref msg, timeout, more))
             {
                 msg.Close();
@@ -345,7 +345,7 @@ namespace NetMQ
             msg.InitPool(SendReceiveConstants.DefaultEncoding.GetByteCount(message));
 
             // Encode the string into the buffer
-            SendReceiveConstants.DefaultEncoding.GetBytes(message, 0, message.Length, msg.Data, 0);
+            SendReceiveConstants.DefaultEncoding.GetBytes(message, msg);
 
             socket.Send(ref msg, more);
             msg.Close();
@@ -390,7 +390,7 @@ namespace NetMQ
             msg.InitPool(SendReceiveConstants.DefaultEncoding.GetByteCount(message));
 
             // Encode the string into the buffer
-            SendReceiveConstants.DefaultEncoding.GetBytes(message, 0, message.Length, msg.Data, 0);
+            SendReceiveConstants.DefaultEncoding.GetBytes(message, msg);
 
             if (!socket.TrySend(ref msg, timeout, more))
             {
@@ -579,7 +579,7 @@ namespace NetMQ
 
             Msg msg = new Msg();
             msg.InitPool(8);
-            NetworkOrderBitsConverter.PutInt64(signalValue, msg.Data);
+            NetworkOrderBitsConverter.PutInt64(signalValue, msg);
 
             socket.Send(ref msg, false);
 
@@ -598,7 +598,7 @@ namespace NetMQ
 
             Msg msg = new Msg();
             msg.InitPool(8);
-            NetworkOrderBitsConverter.PutInt64(signalValue, msg.Data);
+            NetworkOrderBitsConverter.PutInt64(signalValue, msg);
 
             if (!socket.TrySend(ref msg, TimeSpan.Zero, false))
             {

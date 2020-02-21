@@ -32,16 +32,16 @@ namespace NetMQ.Tests
                 if (count == 0)
                 {
                     Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.Single(msg.Data);
-                    Assert.Equal(1, msg.Data[0]);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(1, msg.UnsafeData[0]);
                     Assert.True(more);
                     count++;
                 }
                 else
                 {
                     Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.Single(msg.Data);
-                    Assert.Equal(2, msg.Data[0]);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(2, msg.UnsafeData[0]);
                     Assert.False(more);
                     count++;
                 }
@@ -63,16 +63,16 @@ namespace NetMQ.Tests
                 if (count == 0)
                 {
                     Assert.Equal(TimeSpan.FromSeconds(1), timeout);
-                    Assert.Single(msg.Data);
-                    Assert.Equal(1, msg.Data[0]);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(1, msg.UnsafeData[0]);
                     Assert.True(more);
                     count++;
                 }
                 else
                 {
                     Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.Single(msg.Data);
-                    Assert.Equal(2, msg.Data[0]);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(2, msg.UnsafeData[0]);
                     Assert.False(more);
                     count++;
                 }
@@ -93,8 +93,8 @@ namespace NetMQ.Tests
             {
 
                 Assert.Equal(TimeSpan.FromSeconds(1), timeout);
-                Assert.Single(msg.Data);
-                Assert.Equal(1, msg.Data[0]);
+                Assert.Single(msg.UnsafeData);
+                Assert.Equal(1, msg.UnsafeData[0]);
                 Assert.True(more);
                 count++;
 
@@ -115,16 +115,16 @@ namespace NetMQ.Tests
                 if (count == 0)
                 {
                     Assert.Equal(TimeSpan.FromSeconds(0), timeout);
-                    Assert.Single(msg.Data);
-                    Assert.Equal(1, msg.Data[0]);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(1, msg.UnsafeData[0]);
                     Assert.True(more);
                     count++;
                 }
                 else
                 {
                     Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.Single(msg.Data);
-                    Assert.Equal(2, msg.Data[0]);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(2, msg.UnsafeData[0]);
                     Assert.False(more);
                     count++;
                 }
@@ -146,16 +146,16 @@ namespace NetMQ.Tests
                 if (count == 0)
                 {
                     Assert.Equal(TimeSpan.FromSeconds(0), timeout);
-                    Assert.Single(msg.Data);
-                    Assert.Equal(1, msg.Data[0]);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(1, msg.UnsafeData[0]);
                     Assert.True(more);
                     count++;
                 }
                 else
                 {
                     Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.Single(msg.Data);
-                    Assert.Equal(2, msg.Data[0]);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(2, msg.UnsafeData[0]);
                     Assert.False(more);
                     count++;
                 }
@@ -179,8 +179,8 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(TimeSpan.FromSeconds(0), timeout);
-                Assert.Single(msg.Data);
-                Assert.Equal(1, msg.Data[0]);
+                Assert.Single(msg.UnsafeData);
+                Assert.Equal(1, msg.UnsafeData[0]);
                 Assert.True(more);
                 count++;
 
@@ -201,7 +201,7 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.Empty(msg.Data);
+                Assert.Empty(msg.UnsafeData);
                 Assert.False(more);
                 return true;
             });
@@ -215,7 +215,7 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.Empty(msg.Data);
+                Assert.Empty(msg.UnsafeData);
                 Assert.True(more);
                 return true;
             });
@@ -230,7 +230,7 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(TimeSpan.Zero, timeout);
-                Assert.Empty(msg.Data);
+                Assert.Empty(msg.UnsafeData);
                 Assert.False(more);
                 return true;
             });
@@ -245,7 +245,7 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(TimeSpan.Zero, timeout);
-                Assert.Empty(msg.Data);
+                Assert.Empty(msg.UnsafeData);
                 Assert.False(more);
                 return false;
             });
@@ -259,9 +259,9 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.Equal(8, msg.Data.Length);
+                Assert.Equal(8, msg.UnsafeData.Length);
 
-                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.UnsafeData);
 
                 Assert.Equal(0x7766554433221100L, value);
 
@@ -278,9 +278,9 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(TimeSpan.Zero, timeout);
-                Assert.Equal(8, msg.Data.Length);
+                Assert.Equal(8, msg.UnsafeData.Length);
 
-                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.UnsafeData);
 
                 Assert.Equal(0x7766554433221100L, value);
 
@@ -297,9 +297,9 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(TimeSpan.Zero, timeout);
-                Assert.Equal(8, msg.Data.Length);
+                Assert.Equal(8, msg.UnsafeData.Length);
 
-                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.UnsafeData);
 
                 Assert.Equal(0x7766554433221100L, value);
 

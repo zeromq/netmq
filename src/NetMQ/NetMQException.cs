@@ -19,19 +19,34 @@ namespace NetMQ
 #endif
     public class NetMQException : Exception
     {
+        /// <summary>
+        /// Exception error code
+        /// </summary>
         public ErrorCode ErrorCode { get; }
 
         #region Exception contract & serialisation
 
         // For discussion of this contract, see https://msdn.microsoft.com/en-us/library/ms182151.aspx
 
+        /// <summary>
+        /// Create NetMQ Exception
+        /// </summary>
         public NetMQException()
         {}
 
+        /// <summary>
+        /// Create a new NetMQ exception
+        /// </summary>
+        /// <param name="message"></param>
         public NetMQException(string message)
             : base(message)
         {}
 
+        /// <summary>
+        /// Create a new NetMQ exception
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="innerException"></param>
         public NetMQException(string message, Exception innerException)
             : base(message, innerException)
         {}
@@ -45,6 +60,7 @@ namespace NetMQ
             ErrorCode = (ErrorCode)info.GetInt32("ErrorCode");
         }
 
+        /// <inheritdoc />
         [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
@@ -269,6 +285,10 @@ namespace NetMQ
         {
         }
 
+        /// <summary>
+        /// Create new TerminatingException
+        /// </summary>
+        /// <param name="message"></param>
         public TerminatingException([CanBeNull] string message)
             : this(null, message)
         {

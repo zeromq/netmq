@@ -241,6 +241,7 @@ namespace NetMQ.Core.Transports
         {
             Debug.Assert(!m_plugged);
 
+            m_mechanism?.Dispose();
             m_encoder?.Dispose();
 
             if (m_handle != null)
@@ -1268,8 +1269,7 @@ namespace NetMQ.Core.Transports
             msg[0] = (byte) V3Protocol.PingCommand.Length;
             msg.Put(Encoding.ASCII.GetBytes(V3Protocol.PingCommand), 1, V3Protocol.PingCommand.Length);
             
-            NetworkOrderBitsConverter.PutUInt16((ushort)m_options.HeartbeatTtl, msg.Data, 
-                msg.Offset + 1 + V3Protocol.PingCommand.Length);
+            NetworkOrderBitsConverter.PutUInt16((ushort)m_options.HeartbeatTtl, msg, 1 + V3Protocol.PingCommand.Length);
 
             var result = m_mechanism.Encode(ref msg);
             m_nextMsg = PullAndEncode;
@@ -1298,7 +1298,7 @@ namespace NetMQ.Core.Transports
             if (msg.Size < commandNameSize + 1)
                 return;
 
-            string commandName = Encoding.ASCII.GetString(msg.Data, msg.Offset + 1, commandNameSize);
+            string commandName = msg.GetString(Encoding.ASCII, 1, commandNameSize);
             if (commandName == V3Protocol.PingCommand)
                 ProcessPingMessage(ref msg);
         }
@@ -1313,8 +1313,7 @@ namespace NetMQ.Core.Transports
             if (msg.Size < pingTtlLength)
                 return;
 
-            ushort remoteHeartbeatTtl = NetworkOrderBitsConverter.ToUInt16(msg.Data,
-                msg.Offset + V3Protocol.PingCommand.Length + 1);
+            ushort remoteHeartbeatTtl = NetworkOrderBitsConverter.ToUInt16(msg, V3Protocol.PingCommand.Length + 1);
             // The remote heartbeat is in 10ths of a second
             // so we multiply it by 100 to get the timer interval in ms.
             remoteHeartbeatTtl *= 100;
@@ -1335,7 +1334,7 @@ namespace NetMQ.Core.Transports
             m_pongMsg[0] = (byte) V3Protocol.PongCommand.Length;
             m_pongMsg.Put(Encoding.ASCII.GetBytes(V3Protocol.PongCommand), 1, V3Protocol.PongCommand.Length);
             if (contextLength > 0)
-                m_pongMsg.Put(msg.Data, msg.Offset + pingTtlLength, 1 + V3Protocol.PongCommand.Length, contextLength);
+                m_pongMsg.Put(msg.Slice(pingTtlLength, contextLength), 1 + V3Protocol.PongCommand.Length);
 
             m_nextMsg = ProducePongMessage;
 
