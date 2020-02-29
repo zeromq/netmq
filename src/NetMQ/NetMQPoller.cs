@@ -820,10 +820,11 @@ namespace NetMQ
             m_sockets.Remove(((ISocketPollable)m_tasksQueue).Socket);
             m_tasksQueue.Dispose();
 #endif
-            // JASells: this appears to be running prematurely in test NetMWPollerTests.Monitoring
+            // JASells: this is running prematurely in test NetMWPollerTests.Monitoring 
             // causing a objectDisposed exception in NetMQSelector.Select ~line 146
             // Fixed by adding socket.IsDisposed check in NetMQSelector.Select @line 144.
-            // Similar check could be done in Poller to avoid servicing disposed sockets... there is already a null check.
+            // This check will also avoid servicing disposed sockets generally... 
+            // and so we can remove the disposed checks on sockets in Remove, RemoveAsync, RemoveAndDispose, RemvoeAndDisposeASync
             foreach (var socket in m_sockets)
             {
                 if (socket.IsDisposed)
