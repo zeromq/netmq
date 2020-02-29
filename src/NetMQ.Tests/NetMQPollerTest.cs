@@ -403,7 +403,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public async Task RemoveAndDisposeSocket()
+        public async Task RemoveAndDisposeSocketAsync()
         {
             //set up poller, start it
             var patient = new NetMQPoller();
@@ -451,7 +451,7 @@ namespace NetMQ.Tests
                 }
             });
 
-            var pubThread = Task.Run(pubAction);
+            Task.Run(pubAction);
 
             //allow a little time to run
             await Task.Delay(2000);
@@ -474,7 +474,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public async Task DisposeSocketAfterRemoval()
+        public async Task DisposeSocketAfterAsyncRemoval()
         {
             //set up poller, start it
             var patient = new NetMQPoller();
