@@ -18,7 +18,7 @@ namespace NetMQ.Tests
             Assert.Equal(0, msg.Size);
             Assert.Equal(MsgType.Uninitialised, msg.MsgType);
             Assert.Equal(MsgFlags.None, msg.Flags);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
             Assert.False(msg.HasMore);
             Assert.False(msg.IsDelimiter);
             Assert.False(msg.IsIdentity);
@@ -95,7 +95,7 @@ namespace NetMQ.Tests
             Assert.Equal(0, msg.Size);
             Assert.Equal(MsgType.Empty, msg.MsgType);
             Assert.Equal(MsgFlags.None, msg.Flags);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
             Assert.False(msg.HasMore);
             Assert.False(msg.IsDelimiter);
             Assert.False(msg.IsIdentity);
@@ -104,7 +104,7 @@ namespace NetMQ.Tests
             msg.Close();
 
             Assert.Equal(MsgType.Uninitialised, msg.MsgType);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
         }
 
         [Fact]
@@ -116,7 +116,7 @@ namespace NetMQ.Tests
             Assert.Equal(0, msg.Size);
             Assert.Equal(MsgType.Delimiter, msg.MsgType);
             Assert.Equal(MsgFlags.None, msg.Flags);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
             Assert.False(msg.HasMore);
             Assert.True(msg.IsDelimiter);
             Assert.False(msg.IsIdentity);
@@ -125,7 +125,7 @@ namespace NetMQ.Tests
             msg.Close();
 
             Assert.Equal(MsgType.Uninitialised, msg.MsgType);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
         }
 
         [Fact]
@@ -138,7 +138,7 @@ namespace NetMQ.Tests
             Assert.Equal(100, msg.Size);
             Assert.Equal(MsgType.GC, msg.MsgType);
             Assert.Equal(MsgFlags.None, msg.Flags);
-            Assert.Same(bytes, msg.Data);
+            Assert.Same(bytes, msg.UnsafeData);
             Assert.False(msg.HasMore);
             Assert.False(msg.IsDelimiter);
             Assert.False(msg.IsIdentity);
@@ -147,7 +147,7 @@ namespace NetMQ.Tests
             msg.Close();
 
             Assert.Equal(MsgType.Uninitialised, msg.MsgType);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
         }
 
 
@@ -161,7 +161,7 @@ namespace NetMQ.Tests
             Assert.Equal(50, msg.Size);
             Assert.Equal(MsgType.GC, msg.MsgType);
             Assert.Equal(MsgFlags.None, msg.Flags);
-            Assert.Same(bytes, msg.Data);
+            Assert.Same(bytes, msg.UnsafeData);
             Assert.False(msg.HasMore);
             Assert.False(msg.IsDelimiter);
             Assert.False(msg.IsIdentity);
@@ -181,7 +181,7 @@ namespace NetMQ.Tests
             msg.Close();
 
             Assert.Equal(MsgType.Uninitialised, msg.MsgType);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
         }
 
         [Fact]
@@ -202,8 +202,8 @@ namespace NetMQ.Tests
             Assert.Equal(100, msg.Size);
             Assert.Equal(MsgType.Pool, msg.MsgType);
             Assert.Equal(MsgFlags.None, msg.Flags);
-            Assert.NotNull(msg.Data);
-            Assert.Equal(100, msg.Data.Length);
+            Assert.NotNull(msg.UnsafeData);
+            Assert.Equal(100, msg.UnsafeData.Length);
             Assert.False(msg.HasMore);
             Assert.False(msg.IsDelimiter);
             Assert.False(msg.IsIdentity);
@@ -211,7 +211,7 @@ namespace NetMQ.Tests
 
             Assert.Equal(0, pool.ReturnCallCount);
 
-            var bytes = msg.Data;
+            var bytes = msg.UnsafeData;
 
             msg.Close();
 
@@ -219,7 +219,7 @@ namespace NetMQ.Tests
             Assert.Same(bytes, pool.ReturnBuffer[0]);
 
             Assert.Equal(MsgType.Uninitialised, msg.MsgType);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
         }
 
         [Fact]
@@ -257,13 +257,30 @@ namespace NetMQ.Tests
 
             Assert.Equal(0, pool.ReturnCallCount);
             Assert.False(msg.IsInitialised);
-            Assert.Null(msg.Data);
+            Assert.Null(msg.UnsafeData);
 
             copy.Close();
 
             Assert.Equal(1, pool.ReturnCallCount);
             Assert.False(copy.IsInitialised);
-            Assert.Null(copy.Data);
+            Assert.Null(copy.UnsafeData);
+        }
+
+        [Fact]
+        public void ForeachMsg()
+        {
+            byte[] buffer =new byte[5] {1,2,3,4,5};
+            Msg msg = new Msg();
+            msg.InitGC(buffer, 1, 3);
+
+            int sum = 0;
+            
+            foreach (var b in msg)
+            {
+                sum += b;
+            }
+            
+            Assert.Equal(2 + 3 + 4, sum);
         }
     }
 }

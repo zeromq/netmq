@@ -151,7 +151,7 @@ namespace NetMQ.Core
         /// </remarks>
         private Pipe(
             [NotNull] ZObject parent, [NotNull] YPipe<Msg> inboundPipe, [NotNull] YPipe<Msg> outboundPipe,
-            int inHighWatermark, int outHighWatermark, int predefinedLowWatermark, bool delay)
+            int inHighWatermark, int outHighWatermark, int predefinedLowWatermark)
             : base(parent)
         {
             m_parent = parent;
@@ -167,7 +167,7 @@ namespace NetMQ.Core
             m_peer = null;
             m_sink = null;
             m_state = State.Active;
-            m_delay = delay;
+            m_delay = true;
         }
 
         /// <summary>
@@ -178,12 +178,9 @@ namespace NetMQ.Core
         /// Second HWM is for messages passed from second pipe to the first pipe.</param>
         /// <param name="lowWaterMarks">First LWM is for messages passed from first pipe to the second pipe.
         /// Second LWM is for messages passed from second pipe to the first pipe.</param>
-        /// <param name="delays">Delay specifies how the pipe behaves when the peer terminates. If true
-        /// pipe receives all the pending messages before terminating, otherwise it
-        /// terminates straight away.</param>
         /// <returns>A pipe pair for bi-directional transfer of messages. </returns>
         [NotNull]
-        public static Pipe[] PipePair([NotNull] ZObject[] parents, [NotNull] int[] highWaterMarks, [NotNull] int[] lowWaterMarks, [NotNull] bool[] delays)
+        public static Pipe[] PipePair([NotNull] ZObject[] parents, [NotNull] int[] highWaterMarks, [NotNull] int[] lowWaterMarks)
         {
             // Creates two pipe objects. These objects are connected by two ypipes,
             // each to pass messages in one direction.
@@ -193,8 +190,8 @@ namespace NetMQ.Core
 
             var pipes = new[]
             {
-                new Pipe(parents[0], upipe1, upipe2, highWaterMarks[1], highWaterMarks[0], lowWaterMarks[1], delays[0]),
-                new Pipe(parents[1], upipe2, upipe1, highWaterMarks[0], highWaterMarks[1], lowWaterMarks[0], delays[1])
+                new Pipe(parents[0], upipe1, upipe2, highWaterMarks[1], highWaterMarks[0], lowWaterMarks[1]),
+                new Pipe(parents[1], upipe2, upipe1, highWaterMarks[0], highWaterMarks[1], lowWaterMarks[0])
             };
 
             pipes[0].SetPeer(pipes[1]);
@@ -204,6 +201,14 @@ namespace NetMQ.Core
         }
 
         public bool Active => m_state == State.Active;
+
+        /// <summary>
+        /// Set the pipe to not delay termination, for sockets that don't process inbound messages, e.g PUSH, PUB
+        /// </summary>
+        public void SetNoDelay()
+        {
+            m_delay = false;
+        }
 
         /// <summary>
         /// <see cref="PipePair"/> uses this function to let us know about the peer pipe object.

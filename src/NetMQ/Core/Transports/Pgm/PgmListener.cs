@@ -153,8 +153,11 @@ namespace NetMQ.Core.Transports.Pgm
         {
             m_acceptedSocket = new PgmSocket(m_options, PgmSocketType.Receiver, m_address);
             m_acceptedSocket.Init();
-
+            
+#pragma warning disable 618
+            // TODO: we must upgrade to GetAcceptedSocket, need to be tested on Windows with MSMQ installed
             m_handle.Accept(m_acceptedSocket.Handle);
+#pragma warning restore 618
         }
 
         /// <summary>

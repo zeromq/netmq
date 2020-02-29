@@ -4,6 +4,9 @@ using NetMQ.Core.Utils;
 
 namespace NetMQ
 {
+	/// <summary>
+	/// NetMQSocket interface, implement to fake the NetMQSocket in tests.
+	/// </summary>
 	public interface INetMQSocket : IOutgoingSocket, IReceivingSocket, ISocketPollable, IDisposable
 	{
 		/// <summary>
@@ -91,7 +94,7 @@ namespace NetMQ
 		/// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
 		void Unbind([NotNull] string address);
 
-		/// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="NetMQSocket.Dispose"/>.</summary>
+		/// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="NetMQSocket.Dispose()"/>.</summary>
 		void Close();
 
 		/// <summary>

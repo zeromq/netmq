@@ -11,6 +11,7 @@
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);netcoreapp1.0;portable-net45+win8</PackageTargetFallback>
     <IsTestProject>true</IsTestProject>
     <TargetFrameworks>netcoreapp2.1;net47</TargetFrameworks>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
     <PropertyGroup>
@@ -48,5 +49,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">
+    <PackageReference Include="ZeroMQ" Version="4.1.0.31" />
   </ItemGroup>
 </Project>

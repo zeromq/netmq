@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -316,7 +315,7 @@ namespace NetMQ
         /// That is only computed the first time this method is called.
         /// </summary>
         /// <returns>an integer that represents the computed hash-code</returns>
-        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             if (m_hash == 0)
@@ -333,7 +332,7 @@ namespace NetMQ
         /// <summary>
         /// Return an array of bytes that carries the content of this NetMQFrames Buffer.
         /// </summary>
-        /// <param name="copy">if this argument is true - a new copy is made if BufferSize is equal to MessageSize</param>
+        /// <param name="copy">if this argument is true - a new copy is made if BufferSize is not equal to MessageSize</param>
         /// <returns>the Buffer as a byte-array, either newly-allocated or else (if copy is false) simply a reference to the actual Buffer</returns>
         [NotNull]
         public byte[] ToByteArray(bool copy = false)

@@ -216,9 +216,7 @@ namespace NetMQ.Core.Patterns
                 if (msg.HasMore)
                 {                                       
                     // Find the pipe associated with the routingId stored in the prefix.                    
-                    var routingId = msg.Size == msg.Data.Length
-                        ? msg.Data
-                        : msg.CloneData();
+                    var routingId = msg.UnsafeToArray();
 
                     if (m_outpipes.TryGetValue(routingId, out Outpipe op))
                     {

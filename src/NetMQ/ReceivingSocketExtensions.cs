@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -11,9 +10,9 @@ namespace NetMQ
     /// Provides extension methods for the <see cref="IReceivingSocket"/> interface,
     /// via which messages may be received in several ways.
     /// </summary>
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
     public static class ReceivingSocketExtensions
     {
         /// <summary>
@@ -317,7 +316,7 @@ namespace NetMQ
             more = msg.HasMore;
 
             var str = msg.Size > 0
-                ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
+                ? msg.GetString(encoding)
                 : string.Empty;
 
             msg.Close();
@@ -445,7 +444,7 @@ namespace NetMQ
                 more = msg.HasMore;
 
                 frameString = msg.Size > 0
-                    ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
+                    ? msg.GetString(encoding)
                     : string.Empty;
 
                 msg.Close();
@@ -499,7 +498,7 @@ namespace NetMQ
             do
             {
                 socket.Receive(ref msg);
-                frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
+                frames.Add(msg.GetString(encoding));
             }
             while (msg.HasMore);
 
@@ -593,13 +592,13 @@ namespace NetMQ
                 frames.Clear();
 
             // Add the frame
-            frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
+            frames.Add(msg.GetString(encoding));
 
             // Rinse and repeat...
             while (msg.HasMore)
             {
                 socket.Receive(ref msg);
-                frames.Add(encoding.GetString(msg.Data, msg.Offset, msg.Size));
+                frames.Add(msg.GetString(encoding));
             }
 
             msg.Close();
@@ -738,7 +737,7 @@ namespace NetMQ
                 if (isMultiFrame || msg.Size != 8)
                     continue;
 
-                var signalValue = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var signalValue = NetworkOrderBitsConverter.ToInt64(msg);
 
                 if ((signalValue & 0x7FFFFFFFFFFFFF00L) == 0x7766554433221100L)
                 {
@@ -801,7 +800,7 @@ namespace NetMQ
                 if (isMultiFrame || msg.Size != 8)
                     continue;
 
-                var signalValue = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var signalValue = NetworkOrderBitsConverter.ToInt64(msg);
 
                 if ((signalValue & 0x7FFFFFFFFFFFFF00L) == 0x7766554433221100L)
                 {

@@ -1,8 +1,7 @@
-﻿#if NETSTANDARD2_0 || NET47
+﻿#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,11 +13,14 @@ namespace NetMQ
     /// Provides extension methods for the <see cref="NetMQSocket"/>,
     /// via which messages may be received asynchronously.
     /// </summary>
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
     public static class AsyncReceiveExtensions
     {
+        static Task<bool> s_trueTask = Task.FromResult(true);
+        static Task<bool> s_falseTask = Task.FromResult(false);
+
         #region Receiving frames as a multipart message
 
         /// <summary>
@@ -30,7 +32,6 @@ namespace NetMQ
         /// an extra allocation will occur, but the result will still be correct.</param>
         /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>The content of the received message.</returns>
-        [NotNull]
         public static async Task<NetMQMessage> ReceiveMultipartMessageAsync(
             [NotNull] this NetMQSocket socket, 
             int expectedFrameCount = 4,
@@ -150,7 +151,7 @@ namespace NetMQ
             if (socket.TryReceive(ref msg, TimeSpan.Zero))
             {
                 var str = msg.Size > 0
-                    ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
+                    ? msg.GetString(encoding)
                     : string.Empty;
 
                 msg.Close();
@@ -165,7 +166,7 @@ namespace NetMQ
                 if (socket.TryReceive(ref msg, TimeSpan.Zero))
                 {
                     var str = msg.Size > 0
-                        ? encoding.GetString(msg.Data, msg.Offset, msg.Size)
+                        ? msg.GetString(encoding)
                         : string.Empty;
                     bool more = msg.HasMore;
 
@@ -203,7 +204,8 @@ namespace NetMQ
             {
                 bool more = msg.HasMore;
                 msg.Close();
-                return Task.FromResult(more);
+
+                return more ? s_trueTask : s_falseTask;
             }
 
             TaskCompletionSource<bool> source = new TaskCompletionSource<bool>();

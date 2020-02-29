@@ -33,9 +33,22 @@ using NetMQ.Core.Transports.Tcp;
 
 namespace NetMQ.Core
 {
+    internal enum PushMsgResult
+    {
+        Ok,
+        Full,
+        Error
+    }
+
+    internal enum PullMsgResult
+    {
+        Ok,
+        Empty,
+        Error
+    }
+    
     internal class SessionBase : Own,
-        Pipe.IPipeEvents, IProactorEvents,
-        IMsgSink, IMsgSource
+        Pipe.IPipeEvents, IProactorEvents
     {
         /// <summary>
         /// If true, this session (re)connects to the peer. Otherwise, it's
@@ -90,16 +103,6 @@ namespace NetMQ.Core
         /// True is linger timer is running.
         /// </summary>
         private bool m_hasLingerTimer;
-
-        /// <summary>
-        /// If true, identity has been sent to the network.
-        /// </summary>
-        private bool m_identitySent;
-
-        /// <summary>
-        /// If true, identity has been received from the network.
-        /// </summary>
-        private bool m_identityReceived;
 
         /// <summary>
         /// Protocol and address to use when connecting.
@@ -172,13 +175,6 @@ namespace NetMQ.Core
             m_socket = socket;
             m_ioThread = ioThread;
             m_addr = addr;
-
-            if (options.RawSocket)
-            {
-                m_identitySent = true;
-                m_identityReceived = true;
-            }
-
             m_terminatingPipes = new HashSet<Pipe>();
         }
 
@@ -221,26 +217,13 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">a reference to a Msg to put the message into</param>
         /// <returns>true if the Msg is successfully sent</returns>
-        public virtual bool PullMsg(ref Msg msg)
+        public PullMsgResult PullMsg(ref Msg msg)
         {
-            // First message to send is identity
-            if (!m_identitySent)
-            {
-                msg.InitPool(m_options.IdentitySize);
-                msg.Put(m_options.Identity, 0, m_options.IdentitySize);
-                m_identitySent = true;
-                m_incompleteIn = false;
-
-                return true;
-            }
-
             if (m_pipe == null || !m_pipe.Read(ref msg))
-            {
-                return false;
-            }
+                return PullMsgResult.Empty;
             m_incompleteIn = msg.HasMore;
 
-            return true;
+            return PullMsgResult.Ok;
         }
 
         /// <summary>
@@ -248,29 +231,18 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">the Msg to push to the pipe</param>
         /// <returns>true if the Msg was successfully sent</returns>
-        public virtual bool PushMsg(ref Msg msg)
+        public virtual PushMsgResult PushMsg(ref Msg msg)
         {
-            // First message to receive is identity (if required).
-            if (!m_identityReceived)
-            {
-                msg.SetFlags(MsgFlags.Identity);
-                m_identityReceived = true;
-
-                if (!m_options.RecvIdentity)
-                {
-                    msg.Close();
-                    msg.InitEmpty();
-                    return true;
-                }
-            }
-
+            if (msg.HasCommand)
+                return PushMsgResult.Ok;
+            
             if (m_pipe != null && m_pipe.Write(ref msg))
             {
                 msg.InitEmpty();
-                return true;
+                return PushMsgResult.Ok;
             }
 
-            return false;
+            return PushMsgResult.Full;
         }
 
         /// <summary>
@@ -278,17 +250,6 @@ namespace NetMQ.Core
         /// </summary>
         protected virtual void Reset()
         {
-            // Restore identity flags.
-            if (m_options.RawSocket)
-            {
-                m_identitySent = true;
-                m_identityReceived = true;
-            }
-            else
-            {
-                m_identitySent = false;
-                m_identityReceived = false;
-            }
         }
 
         /// <summary>
@@ -318,7 +279,7 @@ namespace NetMQ.Core
                     var msg = new Msg();
                     msg.InitEmpty();
 
-                    if (!PullMsg(ref msg))
+                    if (PullMsg(ref msg) != PullMsgResult.Ok)
                     {
                         Debug.Assert(!m_incompleteIn);
                         break;
@@ -432,8 +393,7 @@ namespace NetMQ.Core
                 ZObject[] parents = { this, m_socket };
                 int[] highWaterMarks = { m_options.ReceiveHighWatermark, m_options.SendHighWatermark };
                 int[] lowWaterMarks = { m_options.ReceiveLowWatermark, m_options.SendLowWatermark };
-                bool[] delays = { m_options.DelayOnClose, m_options.DelayOnDisconnect };
-                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks);
 
                 // Plug the local end of the pipe.
                 pipes[0].SetEventSink(this);

@@ -8,7 +8,7 @@ Producers call `Enqueue(T)`.
 
 This class can eliminate boilerplate code associated with marshalling operations onto a single thread.
 
-``` csharp
+```csharp
 using (var queue = new NetMQQueue<ICommand>())
 using (var poller = new NetMQPoller { queue })
 {

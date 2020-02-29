@@ -36,8 +36,6 @@ namespace NetMQ.Core
         public Options()
         {
             Backlog = 100;
-            DelayOnClose = true;
-            DelayOnDisconnect = true;
             Endian = Endianness.Big;
             IPv4Only = true;
             Linger = -1;
@@ -58,6 +56,14 @@ namespace NetMQ.Core
             TcpKeepaliveIntvl = -1;
             DisableTimeWait = false;
             PgmMaxTransportServiceDataUnitLength = Config.PgmMaxTPDU;
+            Mechanism = MechanismType.Null;
+            AsServer = false;
+            CurvePublicKey = new byte[32];
+            CurveSecretKey = new byte[32];
+            CurveServerKey = new byte[32];
+            HeartbeatTtl = 0;
+            HeartbeatInterval = 0;
+            HeartbeatTimeout = -1;
         }
 
         /// <summary>
@@ -78,21 +84,7 @@ namespace NetMQ.Core
         /// The default value is false.
         /// </summary>
         public bool DelayAttachOnConnect { get; set; }
-
-        /// <summary>
-        /// If true, session reads all the pending messages from the pipe and
-        /// sends them to the network when socket is closed.
-        /// The default value is true.
-        /// </summary>
-        public bool DelayOnClose { get; set; }
-
-        /// <summary>
-        /// If true, socket reads all the messages from the pipe and delivers
-        /// them to the user when the peer terminates.
-        /// The default value is true.
-        /// </summary>
-        public bool DelayOnDisconnect { get; set; }
-
+        
         /// <summary>
         /// Get or set the Endian-ness, which indicates whether the most-significant bits are placed higher or lower in memory.
         /// The default value is Endianness.Big.
@@ -114,7 +106,15 @@ namespace NetMQ.Core
         /// Get or set the size of the socket-identity byte-array.
         /// The initial value is 0, until the Identity property is set.
         /// </summary>
-        public byte IdentitySize { get; set; }
+        public byte IdentitySize {
+            get
+            {
+                if (Identity != null)
+                    return (byte)Identity.Length;
+
+                return 0;
+            }
+        }
         
         public byte[] LastPeerRoutingId { get; set; }
 
@@ -270,7 +270,50 @@ namespace NetMQ.Core
         /// Controls the maximum datagram size for PGM.
         /// </summary>
         public int PgmMaxTransportServiceDataUnitLength { get; set; }
-
+        
+        /// <summary>
+        /// Security mechanism for all connections on this socket
+        /// </summary>
+        public MechanismType Mechanism { get; set; }
+        
+        /// <summary>
+        /// If peer is acting as server for PLAIN or CURVE mechanisms
+        /// </summary>
+        public bool AsServer { get; set; }
+        
+        /// <summary>
+        /// Security credentials for CURVE mechanism
+        /// </summary>
+        public byte[] CurvePublicKey { get; set; }
+        
+        /// <summary>
+        /// Security credentials for CURVE mechanism
+        /// </summary>
+        public byte[] CurveSecretKey { get; set; }
+        
+        /// <summary>
+        /// Security credentials for CURVE mechanism
+        /// </summary>
+        public byte[] CurveServerKey { get; set; }
+        
+        /// <summary>
+        /// If remote peer receives a PING message and doesn't receive another
+        /// message within the ttl value, it should close the connection
+        /// (measured in tenths of a second)
+        /// </summary>
+        public int HeartbeatTtl { get; set; }
+        
+        /// <summary>
+        /// Time in milliseconds between sending heartbeat PING messages.
+        /// </summary>
+        public int HeartbeatInterval { get; set; }
+        
+        /// <summary>
+        /// Time in milliseconds to wait for a PING response before disconnecting
+        /// </summary>
+        public int HeartbeatTimeout { get; set; }
+        
+        
         /// <summary>
         /// Assign the given optionValue to the specified option.
         /// </summary>
@@ -315,7 +358,6 @@ namespace NetMQ.Core
                         throw new InvalidException($"In Options.SetSocketOption(Identity,) optionValue yielded a byte-array of length {val.Length}, should be 1..255.");
                     Identity = new byte[val.Length];
                     val.CopyTo(Identity, 0);
-                    IdentitySize = (byte)Identity.Length;
                     break;
 
                 case ZmqSocketOption.Rate:
@@ -403,6 +445,55 @@ namespace NetMQ.Core
                     PgmMaxTransportServiceDataUnitLength = (int)optionValue;
                     break;
 
+                case ZmqSocketOption.HeartbeatInterval:
+                    HeartbeatInterval = (int) optionValue;
+                    break;
+
+                case ZmqSocketOption.HeartbeatTtl:
+                    // Convert this to deciseconds from milliseconds
+                    HeartbeatTtl = (int) optionValue;
+                    HeartbeatTtl /= 100;
+                    break;
+
+                case ZmqSocketOption.HeartbeatTimeout:
+                    HeartbeatTimeout = (int) optionValue;
+                    break;
+
+                case ZmqSocketOption.CurveServer:
+                    AsServer = (bool) optionValue;
+                    Mechanism = AsServer ? MechanismType.Curve : MechanismType.Null;
+                    break;
+                
+                case ZmqSocketOption.CurvePublicKey:
+                {
+                    var key = (byte[]) optionValue;
+                    if (key.Length != 32)
+                        throw new InvalidException("Curve key size must be 32 bytes");
+                    Mechanism = MechanismType.Curve;
+                    Buffer.BlockCopy(key, 0, CurvePublicKey, 0, 32);
+                    break;
+                }
+
+                case ZmqSocketOption.CurveSecretKey:
+                {
+                    var key = (byte[]) optionValue;
+                    if (key.Length != 32)
+                        throw new InvalidException("Curve key size must be 32 bytes");
+                    Mechanism = MechanismType.Curve;
+                    Buffer.BlockCopy(key, 0, CurveSecretKey, 0, 32);
+                    break;
+                }
+
+                case ZmqSocketOption.CurveServerKey:
+                {
+                    var key = (byte[]) optionValue;
+                    if (key.Length != 32)
+                        throw new InvalidException("Curve key size must be 32 bytes");
+                    Mechanism = MechanismType.Curve;
+                    Buffer.BlockCopy(key, 0, CurveServerKey, 0, 32);
+                    break;
+                }
+                
                 default:
                     throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOption of " + option);
             }
@@ -498,7 +589,30 @@ namespace NetMQ.Core
                     
                 case ZmqSocketOption.LastPeerRoutingId:
                     return LastPeerRoutingId;
+                
+                case ZmqSocketOption.HeartbeatInterval:
+                    return HeartbeatInterval;
 
+                case ZmqSocketOption.HeartbeatTtl:
+                    return HeartbeatTtl * 100;
+
+                case ZmqSocketOption.HeartbeatTimeout:
+                    if (HeartbeatTimeout == -1)
+                        return HeartbeatInterval;
+                    return HeartbeatTimeout;
+                
+                case ZmqSocketOption.CurveServer:
+                    return Mechanism == MechanismType.Curve && AsServer;
+                
+                case ZmqSocketOption.CurvePublicKey:
+                    return CurvePublicKey;
+                    
+                case ZmqSocketOption.CurveSecretKey:
+                    return CurveSecretKey;
+                
+                case ZmqSocketOption.CurveServerKey:
+                    return CurveServerKey;
+                
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);
             }

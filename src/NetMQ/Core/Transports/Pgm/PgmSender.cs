@@ -41,6 +41,7 @@ namespace NetMQ.Core.Transports.Pgm
         private PgmAddress m_pgmAddress;
         private SessionBase m_session;
         private int m_currentReconnectIvl;
+        private bool m_moreFlag;
 
         public PgmSender([NotNull] IOThread ioThread, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
             : base(ioThread)
@@ -54,6 +55,7 @@ namespace NetMQ.Core.Transports.Pgm
             m_writeSize = 0;
             m_encoder = new V1Encoder(0, m_options.Endian);
             m_currentReconnectIvl = m_options.ReconnectIvl;
+            m_moreFlag = false;
 
             m_state = State.Idle;
         }
@@ -80,18 +82,14 @@ namespace NetMQ.Core.Transports.Pgm
         public void Plug(IOThread ioThread, SessionBase session)
         {
             m_session = session;
-            m_encoder.SetMsgSource(session);
 
             // get the first message from the session because we don't want to send identities
             var msg = new Msg();
             msg.InitEmpty();
 
-            bool ok = session.PullMsg(ref msg);
-
-            if (ok)
-            {
+            var pullResult = session.PullMsg(ref msg);
+            if (pullResult == PullMsgResult.Ok)
                 msg.Close();
-            }
 
             AddSocket(m_socket);
 
@@ -211,22 +209,36 @@ namespace NetMQ.Core.Transports.Pgm
                 // First two bytes (sizeof uint16_t) are used to store message
                 // offset in following steps. Note that by passing our buffer to
                 // the get data function we prevent it from returning its own buffer.
-                var bf = new ByteArraySegment(m_outBuffer, sizeof(ushort));
-                int bfsz = m_outBufferSize - sizeof(ushort);
-                int offset = -1;
-                m_encoder.GetData(ref bf, ref bfsz, ref offset);
+                ushort offset = 0xffff;
+                var buffer = new ByteArraySegment(m_outBuffer, sizeof(ushort));
+                int bufferSize = m_outBufferSize - sizeof(ushort);
+                
+                int bytes = m_encoder.Encode(ref buffer, bufferSize);
+                while (bytes < bufferSize)
+                {
+                    if (!m_moreFlag && offset == 0xffff)
+                        offset = (ushort) bytes;
+                    Msg msg = new Msg();
+                    if (m_session.PullMsg(ref msg) != PullMsgResult.Ok)
+                        break;
+                    m_moreFlag = msg.HasMore;
+                    m_encoder.LoadMsg(ref msg);
+                    buffer = buffer + bytes;
+                    var n = m_encoder.Encode(ref buffer, bufferSize - bytes);
+                    bytes += n;
+                }
 
                 // If there are no data to write stop polling for output.
-                if (bfsz == 0)
+                if (bytes == 0)
                 {
                     m_state = State.ActiveSendingIdle;
                     return;
                 }
 
                 // Put offset information in the buffer.
-                m_writeSize = bfsz + sizeof(ushort);
+                m_writeSize = bytes + sizeof(ushort);
 
-                m_outBuffer.PutUnsignedShort(m_options.Endian, offset == -1 ? (ushort)0xffff : (ushort)offset, 0);
+                m_outBuffer.PutUnsignedShort(m_options.Endian, offset, 0);
             }
 
             try
@@ -258,7 +270,6 @@ namespace NetMQ.Core.Transports.Pgm
 
             m_pgmSocket.Dispose();
             RemoveSocket(m_socket);
-            m_encoder.SetMsgSource(null);
         }
 
         /// <summary>

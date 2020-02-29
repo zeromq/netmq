@@ -162,6 +162,11 @@ namespace NetMQ.Core.Transports
             Buffer.BlockCopy(Encoding.ASCII.GetBytes(s), 0, m_innerBuffer, Offset + i, length);
         }
 
+        public void PutBytes([NotNull] byte[] bytes, int i)
+        {
+            Buffer.BlockCopy(bytes, 0, m_innerBuffer, Offset + i, bytes.Length);
+        }
+        
         /// <summary>
         /// Encode the given String into a byte-array using the ASCII encoding
         /// and write that into the buffer.
@@ -319,6 +324,11 @@ namespace NetMQ.Core.Transports
             CopyTo(0, otherSegment, 0, toCopy);
         }
 
+        public void CopyTo(Span<byte> span, int count)
+        {
+            new Span<byte>(m_innerBuffer, Offset, count).CopyTo(span);
+        }
+
         /// <summary>
         /// Write the bytes of this ByteArraySegment to the specified destination-ByteArraySegment.
         /// </summary>
@@ -428,5 +438,13 @@ namespace NetMQ.Core.Transports
         }
 
         #endregion
+
+        public void Fill(byte value, int offset, int count)
+        {
+            for (int index = 0; index < count; index++)
+            {
+                this[offset + index] = value;
+            }
+        }
     }
 }

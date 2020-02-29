@@ -218,7 +218,38 @@ namespace NetMQ.Tests
                 sub.Connect("tcp://127.0.0.1:" + port);
                 sub.Subscribe("");
 
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
+
+                pub.SendFrame("");
+                sub.SkipFrame();
+
+                for (int i = 0; i < 100; i++)
+                {
+                    pub.SendFrame(largeMessage);
+
+                    byte[] recvMessage = sub.ReceiveFrameBytes();
+
+                    Assert.Equal(largeMessage, recvMessage);
+                }
+            }
+        }
+        
+        [Fact]
+        public void MultipleHugeMessages()
+        {
+            var largeMessage = new byte[20000];
+
+            for (int i = 0; i < largeMessage.Length; i++)
+                largeMessage[i] = (byte)(i % 256);
+
+            using (var pub = new PublisherSocket())
+            using (var sub = new SubscriberSocket())
+            {
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("");
+
+                Thread.Sleep(100);
 
                 pub.SendFrame("");
                 sub.SkipFrame();

@@ -181,7 +181,7 @@ namespace NetMQ.Core.Patterns
                 if (!m_moreOut && size > 0 && msg[0] == 1)
                 {
                     // Process the subscription.
-                    if (m_subscriptions.Add(msg.Data, msg.Offset + 1, size - 1))
+                    if (m_subscriptions.Add(msg.Slice(1)))
                     {
                         m_distribution.SendToAll(ref msg);
                         return true;
@@ -189,7 +189,7 @@ namespace NetMQ.Core.Patterns
                 }
                 else if (!m_moreOut && size > 0 && msg[0] == 0)
                 {
-                    if (m_subscriptions.Remove(msg.Data, msg.Offset + 1, size - 1))
+                    if (m_subscriptions.Remove(msg.Slice(1)))
                     {
                         m_distribution.SendToAll(ref msg);
                         return true;
@@ -321,7 +321,7 @@ namespace NetMQ.Core.Patterns
 
         private bool Match(Msg msg)
         {
-            return m_subscriptions.Check(msg.Data, msg.Offset, msg.Size);
+            return m_subscriptions.Check(msg);
         }
     }
 }

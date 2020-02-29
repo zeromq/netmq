@@ -71,6 +71,9 @@
         /// </summary>
         Stream = 11,
         
+        /// <summary>
+        /// This denotes a Peer socket.
+        /// </summary>
         Peer = 19
     }
 }

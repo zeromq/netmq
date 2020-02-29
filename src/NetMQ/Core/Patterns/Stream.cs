@@ -216,10 +216,7 @@ namespace NetMQ.Core.Patterns
                     // If there's no such pipe just silently ignore the message, unless
                     // mandatory is set.
 
-                    var identity = msg.Size == msg.Data.Length
-                        ? msg.Data
-                        : msg.CloneData();
-
+                    var identity = msg.UnsafeToArray();
                     if (m_outpipes.TryGetValue(identity, out Outpipe op))
                     {
                         m_currentOut = op.Pipe;
@@ -374,7 +371,6 @@ namespace NetMQ.Core.Patterns
             Buffer.BlockCopy(result, 0, identity, 1, 4);
 
             m_options.Identity = identity;
-            m_options.IdentitySize = (byte)identity.Length;
 
             pipe.Identity = identity;
 

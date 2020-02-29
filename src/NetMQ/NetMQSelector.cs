@@ -26,21 +26,46 @@ namespace NetMQ
         /// </summary>
         public sealed class Item
         {
+            /// <summary>
+            /// Create a new item for NetMQSocket
+            /// </summary>
+            /// <param name="socket"></param>
+            /// <param name="event"></param>
             public Item(NetMQSocket socket, PollEvents @event)
             {
                 Socket = socket;
                 Event = @event;
             }
 
+            /// <summary>
+            /// Create a new item for regular .net socket
+            /// </summary>
+            /// <param name="fileDescriptor"></param>
+            /// <param name="event"></param>
             public Item(Socket fileDescriptor, PollEvents @event)
             {
                 FileDescriptor = fileDescriptor;
                 Event = @event;
             }
 
+            /// <summary>
+            /// Item File Descriptor, regular .net Socket
+            /// </summary>
             public Socket FileDescriptor { get; }
+            
+            /// <summary>
+            /// Item NetMQSocket 
+            /// </summary>
             public NetMQSocket Socket { get; }
+            
+            /// <summary>
+            /// Events registered for
+            /// </summary>
             public PollEvents Event { get; }
+            
+            /// <summary>
+            /// Resulted events
+            /// </summary>
             public PollEvents ResultEvent { get; set; }
         }
 

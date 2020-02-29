@@ -14,5 +14,7 @@ namespace NetMQ.Core.Transports
         /// This is a constant-integer with the value 2.
         /// </summary>
         public const int LargeFlag = 2;
+
+        public const int CommandFlag = 4;
     }
 }

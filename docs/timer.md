@@ -13,3 +13,4 @@ using (var poller = new NetMQPoller { timer })
 {
     poller.Run();
 }
+```

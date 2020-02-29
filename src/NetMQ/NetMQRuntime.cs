@@ -1,13 +1,19 @@
-#if NETSTANDARD2_0 || NET47
+#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-
 namespace NetMQ
 {
+    /// <summary>
+    /// NetMQRuntime enable using NetMQSocket receive async methods.
+    /// You need to create an instance before calling any async methods.
+    /// To continue and process the Tasks call <see>
+    ///     <cref>Run</cref>
+    /// </see>
+    /// </summary>
     public class NetMQRuntime : IDisposable
     {
         private NetMQPoller m_poller;
@@ -16,6 +22,9 @@ namespace NetMQ
         private static readonly ThreadLocal<NetMQRuntime> s_current = new ThreadLocal<NetMQRuntime>();
         private List<NetMQSocket> m_sockets;
 
+        /// <summary>
+        /// Create a new NetMQRuntime, you can start calling async method after creating a runtime.
+        /// </summary>
         public NetMQRuntime()
         {
             m_poller = new NetMQPoller();
@@ -26,6 +35,9 @@ namespace NetMQ
             s_current.Value = this;
         }
 
+        /// <summary>
+        /// The current thread NetMQRuntime
+        /// </summary>
         public static NetMQRuntime Current
         {
             get { return s_current.Value; }
@@ -36,26 +48,35 @@ namespace NetMQ
             get { return Current.m_poller; }
         }
 
+        /// <summary>
+        /// Run the tasks to completion
+        /// </summary>
+        /// <param name="tasks">The list of tasks to run</param>
         public void Run(params Task[] tasks)
         {
             Run(CancellationToken.None, tasks);
         }
-
-        public void Add(NetMQSocket socket)
+        
+        internal void Add(NetMQSocket socket)
         {
             m_poller.Add(socket);
             m_sockets.Add(socket);
         }
 
-        public void Remove(NetMQSocket socket)
+        internal void Remove(NetMQSocket socket)
         {
             m_poller.Remove(socket);
             m_sockets.Remove(socket);
         }
 
+        /// <summary>
+        /// Run the tasks to completion
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token to cancel the run operation before all tasks run to completion</param>
+        /// <param name="tasks">The list of tasks to run</param>
         public void Run(CancellationToken cancellationToken, params Task[] tasks)
         {
-            var registration = cancellationToken.Register(() => m_poller.Stop(), true);
+            var registration = cancellationToken.Register(() => m_poller.StopAsync(), false);
 
             Task.WhenAll(tasks).ContinueWith(t => m_poller.Stop(), cancellationToken);
 
@@ -64,11 +85,13 @@ namespace NetMQ
             registration.Dispose();
         }
 
+        /// <summary>
+        /// Dispose the runtime, don't call Async method after disposing
+        /// </summary>
         public void Dispose()
         {
             foreach (var socket in m_sockets)
             {
-                m_poller.Remove(socket);
                 socket.DetachFromRuntime();
             }
 

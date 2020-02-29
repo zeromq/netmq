@@ -124,8 +124,8 @@ namespace NetMQ.Core
 
             s.TryRecv(ref msg, SendReceiveConstants.InfiniteTimeout);
 
-            int pos = msg.Offset;
-            ByteArraySegment data = msg.Data;
+            int pos = msg.UnsafeOffset;
+            ByteArraySegment data = msg.UnsafeData;
 
             var @event = (SocketEvents)data.GetInteger(Endianness.Little, pos);
             pos += 4;

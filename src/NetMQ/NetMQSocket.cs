@@ -25,7 +25,7 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs> m_sendReady;
         private int m_isClosed;
 
-        #if NETSTANDARD2_0 || NET47
+        #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
         private NetMQRuntime m_runtime;
         #endif
 
@@ -96,7 +96,7 @@ namespace NetMQ
         /// This event occurs when at least one message may be received from the socket without blocking.
         /// </summary>
         /// <remarks>
-        /// This event is raised when a <see cref="NetMQSocket"/> is added to a running <see cref="Poller"/>.
+        /// This event is raised when a <see cref="NetMQSocket"/> is added to a running <see cref="NetMQPoller"/>.
         /// </remarks>
         public event EventHandler<NetMQSocketEventArgs> ReceiveReady
         {
@@ -116,7 +116,7 @@ namespace NetMQ
         /// This event occurs when at least one message may be sent via the socket without blocking.
         /// </summary>
         /// <remarks>
-        /// This event is raised when a <see cref="NetMQSocket"/> is added to a running <see cref="Poller"/>.
+        /// This event is raised when a <see cref="NetMQSocket"/> is added to a running <see cref="NetMQPoller"/>.
         /// </remarks>
         public event EventHandler<NetMQSocketEventArgs> SendReady
         {
@@ -249,7 +249,7 @@ namespace NetMQ
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose()"/>.</summary>
         public void Close()
         {
-            #if NETSTANDARD2_0 || NET47
+            #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
             if (m_runtime != null)
             {
                 m_runtime.Remove(this);
@@ -391,7 +391,7 @@ namespace NetMQ
 
         #endregion
 
-        #if NETSTANDARD2_0 || NET47
+        #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
 
         internal void AttachToRuntime()
         {

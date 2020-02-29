@@ -373,11 +373,18 @@ namespace NetMQ
             set => m_socket.SetSocketOption(ZmqSocketOption.Endian, value);
         }
 
+        /// <summary>
+        /// Enable Manual Publisher, Publisher won't add subscription automatically,
+        /// Subscribe must be called on the socket to add subscription. 
+        /// </summary>
         public bool ManualPublisher
         {
             set => m_socket.SetSocketOption(ZmqSocketOption.XPublisherManual, value);
         }
 
+        /// <summary>
+        /// Disable socket time-wait
+        /// </summary>
         public bool DisableTimeWait
         {
             get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DisableTimeWait);
@@ -396,6 +403,91 @@ namespace NetMQ
         {
             get => m_socket.GetSocketOptionX<int>(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength);
             set => m_socket.SetSocketOption(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength, value);
+        }
+
+        /// <summary>
+        /// Defines whether the socket will act as server for CURVE security.
+        /// A value of true means the socket will act as CURVE server.
+        /// A value of false means the socket will not act as CURVE server, and its security role then depends on other option settings.
+        /// Setting this to false shall reset the socket security to NULL.
+        /// When you set this you must also set the server's secret key. A server socket does not need to know its own public key.
+        /// </summary>
+        public bool CurveServer
+        {
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.CurveServer);
+            set => m_socket.SetSocketOption(ZmqSocketOption.CurveServer, value);
+        }
+
+        /// <summary>
+        /// Sets the socket's long term curve key pair.
+        /// You must set this on both CURVE client and server sockets.
+        /// You can provide the key as 32 binary bytes.
+        /// To generate a certificate, use <see cref="NetMQCertificate"/>.
+        /// </summary>
+        public NetMQCertificate CurveCertificate
+        {
+            set
+            {
+                if (value.SecretKey == null)
+                    throw new ArgumentException("NetMQCertificate must have a secret key", nameof(value));
+                
+                m_socket.SetSocketOption(ZmqSocketOption.CurveSecretKey, value.SecretKey);
+                m_socket.SetSocketOption(ZmqSocketOption.CurvePublicKey, value.PublicKey);
+            } 
+        }
+        
+        /// <summary>
+        /// Sets the socket's long term server key.
+        /// You must set this on CURVE client sockets.
+        /// You can provide the key as 32 binary bytes.
+        /// This key must have been generated together with the server's secret key.
+        /// To generate a public/secret key pair, use <see cref="NetMQCertificate"/>.
+        /// </summary>
+        public byte[] CurveServerKey
+        {
+            get => m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.CurveServerKey);
+            set => m_socket.SetSocketOption(ZmqSocketOption.CurveServerKey, value);
+        }
+
+        /// <summary>
+        /// Sets the socket's long term server certificate.
+        /// You must set this on CURVE client sockets.
+        /// You can provide the key as 32 binary bytes.
+        /// This key must have been generated together with the server's secret key.
+        /// To generate a certificate, use <see cref="NetMQCertificate"/>.
+        /// </summary>
+        public NetMQCertificate CurveServerCertificate
+        {
+            set => m_socket.SetSocketOption(ZmqSocketOption.CurveServerKey, value.PublicKey);
+        }
+        
+        /// <summary>
+        /// If remote peer receives a PING message and doesn't receive another
+        /// message within the ttl value, it should close the connection
+        /// (measured in tenths of a second)
+        /// </summary>
+        public TimeSpan HeartbeatTtl
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTtl);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTtl, value);
+        }
+
+        /// <summary>
+        /// Time in milliseconds between sending heartbeat PING messages.
+        /// </summary>
+        public TimeSpan HeartbeatInterval
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatInterval);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatInterval, value);
+        }
+        
+        /// <summary>
+        /// Time in milliseconds to wait for a PING response before disconnecting
+        /// </summary>
+        public TimeSpan HeartbeatTimeout
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTimeout);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTimeout, value);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace NetMQ.Sockets
         {
         }
 
-        public enum ProgressTopic
+        private enum ProgressTopic
         {
             Send,
             Retry,
