@@ -153,20 +153,24 @@ namespace NetMQ
 
         /// <summary>
         /// Provides a completed task with the result for a syncronously run action.
-        /// this only needed for .NET40.  Depricated by <see cref="Task.FromResult()"/> in 4.5+
+        /// this provides a shim for 4.0 and 4.5 compatibility.
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="result"></param>
         /// <returns></returns>
         private static Task<TResult> FromResult<TResult>(TResult result)
         {
+#if NET40
             var tcs = new TaskCompletionSource<TResult>();
             tcs.SetResult(result);
             return tcs.Task;
+#else //NET45+
+            return Task.FromResult<TResult>(result);
+#endif
         }
 
-#else
-        private void Run(Action action)
+#else  //NET35
+            private void Run(Action action)
         {
             action();
         }
