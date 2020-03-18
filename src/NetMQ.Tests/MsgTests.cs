@@ -189,15 +189,20 @@ namespace NetMQ.Tests
         {
             var pool = new MockBufferPool();
             BufferPool.SetCustomBufferPool(pool);
+            
+            var counterPool = new MockCounterPool();
+            AtomicCounterPool.SetCustomCounterPool(counterPool);
 
             var msg = new Msg();
 
             Assert.Equal(0, pool.TakeCallCount);
+            Assert.Equal(0, counterPool.TakeCallCount);
 
             msg.InitPool(100);
 
             Assert.Equal(1, pool.TakeCallCount);
             Assert.Equal(100, pool.TakeSize[0]);
+            Assert.Equal(1, counterPool.TakeCallCount);
 
             Assert.Equal(100, msg.Size);
             Assert.Equal(MsgType.Pool, msg.MsgType);
@@ -210,6 +215,7 @@ namespace NetMQ.Tests
             Assert.True(msg.IsInitialised);
 
             Assert.Equal(0, pool.ReturnCallCount);
+            Assert.Equal(0, counterPool.ReturnCallCount);
 
             var bytes = msg.UnsafeData;
 
@@ -217,6 +223,8 @@ namespace NetMQ.Tests
 
             Assert.Equal(1, pool.ReturnCallCount);
             Assert.Same(bytes, pool.ReturnBuffer[0]);
+
+            Assert.Equal(1, counterPool.ReturnCallCount);
 
             Assert.Equal(MsgType.Uninitialised, msg.MsgType);
             Assert.Null(msg.UnsafeData);
@@ -240,7 +248,10 @@ namespace NetMQ.Tests
         public void CopyPooled()
         {
             var pool = new MockBufferPool();
-            BufferPool.SetCustomBufferPool(pool);
+            BufferPool.SetCustomBufferPool(pool); 
+            
+            var counterPool = new MockCounterPool();            
+            AtomicCounterPool.SetCustomCounterPool(counterPool);
 
             var msg = new Msg();
             msg.InitPool(100);
@@ -256,12 +267,14 @@ namespace NetMQ.Tests
             msg.Close();
 
             Assert.Equal(0, pool.ReturnCallCount);
+            Assert.Equal(1, counterPool.ReturnCallCount);
             Assert.False(msg.IsInitialised);
-            Assert.Null(msg.UnsafeData);
+            Assert.Null(msg.UnsafeData);            
 
             copy.Close();
 
             Assert.Equal(1, pool.ReturnCallCount);
+            Assert.Equal(2, counterPool.ReturnCallCount);
             Assert.False(copy.IsInitialised);
             Assert.Null(copy.UnsafeData);
         }

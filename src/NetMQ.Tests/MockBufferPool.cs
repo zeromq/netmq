@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace NetMQ.Tests
 {
+
     public sealed class MockBufferPool : IBufferPool
     {
         public int TakeCallCount { get; private set; }

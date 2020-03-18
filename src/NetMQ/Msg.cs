@@ -298,7 +298,7 @@ namespace NetMQ
             Size = 0;
             m_offset = 0;
             m_data = null;
-            m_refCount = null;
+            EnsureAtomicCounterNull();
         }
 
         /// <summary>
@@ -312,7 +312,8 @@ namespace NetMQ
             m_data = BufferPool.Take(size);
             Size = size;
             m_offset = 0;
-            m_refCount = new AtomicCounter();
+            EnsureAtomicCounterNull();
+            m_refCount = AtomicCounterPool.Take();
         }
 
         /// <summary>
@@ -337,7 +338,7 @@ namespace NetMQ
             m_data = data;
             Size = size;
             m_offset = offset;
-            m_refCount = null;
+            EnsureAtomicCounterNull();
         }
 
         /// <summary>
@@ -368,7 +369,7 @@ namespace NetMQ
                 if (!IsShared || m_refCount.Decrement() == 0)
                     BufferPool.Return(m_data);
 
-                m_refCount = null;
+                EnsureAtomicCounterNull();
             }
 
             // Uninitialise the frame
@@ -425,7 +426,7 @@ namespace NetMQ
 
             if (m_refCount.Decrement(amount) == 0)
             {
-                m_refCount = null;
+                EnsureAtomicCounterNull();
 
                 BufferPool.Return(m_data);
 
@@ -618,6 +619,15 @@ namespace NetMQ
                 Buffer.BlockCopy(m_data, m_offset, data, 0, Size);
 
             return data;
+        }
+
+        private void EnsureAtomicCounterNull()
+        {
+            if(m_refCount != null)
+            {
+                AtomicCounterPool.Return(m_refCount);
+                m_refCount = null;
+            }
         }
 
         #region Internal unsafe methods
