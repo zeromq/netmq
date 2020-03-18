@@ -4,7 +4,7 @@ using System.Threading;
 using JetBrains.Annotations;
 
 namespace NetMQ
-{
+{    
     /// <summary>
     /// The IBufferPool interface specifies two methods: Take, and Return.
     /// These provide for taking byte-array data from a common pool, and returning it.
