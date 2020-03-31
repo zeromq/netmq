@@ -404,11 +404,8 @@ namespace NetMQ
 
             RunAsync(() =>
             {
-                if (m_pollinSockets.Keys.Contains(socket))
-                {
-                    m_pollinSockets.Remove(socket);
-                    m_isPollSetDirty = true;
-                }
+                m_pollinSockets.Remove(socket);
+                m_isPollSetDirty = true;
             });
         }
 
