@@ -177,7 +177,7 @@ namespace NetMQ
         }
 #endif
 
-    #endregion
+        #endregion
 
         /// <summary>
         /// Create a new NetMQPoller
