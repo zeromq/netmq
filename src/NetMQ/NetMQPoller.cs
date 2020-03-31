@@ -132,7 +132,8 @@ namespace NetMQ
             }
             else
             {
-                t = Task.Factory.StartNew(action);
+                t = new Task(action);
+                t.Start(this);
             }
 
             return t;
