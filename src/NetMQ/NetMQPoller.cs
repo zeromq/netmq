@@ -310,10 +310,6 @@ namespace NetMQ
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
 
-            // JASells: not sure I agree with this thow.
-            // If trying to remove a disposed socket, why complain?  It *might* get removed before the poller thread accesses it.  
-            // The issue is if the poller's thread tries to actually service the disposed socket before the remove call...
-
             if (socket.IsDisposed)
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
             CheckDisposed();
