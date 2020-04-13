@@ -418,7 +418,7 @@ namespace NetMQ
         /// </remarks>
         public void RunAsync()
         {
-            RunAsync("NetMQPollerThread");
+            RunAsync("NetMQPoller");
         }
 
         /// <summary>
