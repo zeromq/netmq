@@ -30,13 +30,6 @@ namespace NetMQ.Core.Patterns
 {
     internal class XPub : SocketBase
     {
-        public class XPubSession : SessionBase
-        {
-            public XPubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         /// <summary>
         /// List of all subscriptions mapped to corresponding pipes.
         /// </summary>

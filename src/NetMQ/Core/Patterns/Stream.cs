@@ -33,13 +33,6 @@ namespace NetMQ.Core.Patterns
     {
         private static readonly Random s_random = new Random();
 
-        public class StreamSession : SessionBase
-        {
-            public StreamSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         private class Outpipe
         {
             public Outpipe([NotNull] Pipe pipe, bool active)

@@ -26,13 +26,6 @@ namespace NetMQ.Core.Patterns
 {
     internal sealed class Pair : SocketBase
     {
-        public class PairSession : SessionBase
-        {
-            public PairSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         private Pipe m_pipe;
 
         public Pair([NotNull] Ctx parent, int threadId, int socketId)

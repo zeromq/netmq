@@ -636,6 +636,28 @@ namespace NetMQ.Core
                     Debug.Assert(written);
                     pipes[1].Flush();
                 }
+                
+                //  If set, send the hello msg of the local socket to the peer.
+                if (m_options.CanSendHelloMsg && m_options.HelloMsg != null)
+                {
+                    var helloMsg = new Msg();
+                    helloMsg.InitPool(m_options.HelloMsg.Length);
+                    helloMsg.Put(m_options.HelloMsg, 0, m_options.HelloMsg.Length);
+                    bool written = pipes[0].Write(ref helloMsg);
+                    Debug.Assert(written);
+                    pipes[0].Flush();
+                }
+
+                //  If set, send the hello msg of the peer to the local socket.
+                if (peer.Options.CanSendHelloMsg && peer.Options.HelloMsg != null) 
+                {
+                    var helloMsg = new Msg();
+                    helloMsg.InitPool(peer.Options.HelloMsg.Length);
+                    helloMsg.Put(peer.Options.HelloMsg, 0, peer.Options.HelloMsg.Length);
+                    bool written = pipes[1].Write(ref helloMsg);
+                    Debug.Assert(written);
+                    pipes[1].Flush();
+                }
 
                 // Attach remote end of the pipe to the peer socket. Note that peer's
                 // seqnum was incremented in find_endpoint function. We don't need it

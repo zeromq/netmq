@@ -333,6 +333,11 @@ namespace NetMQ.Core
         HeartbeatTimeout = 56,
         
         /// <summary>
+        /// Hello Message to send to peer upon connecting
+        /// </summary>
+        HelloMessage = 57,
+        
+        /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
         Endian = 1000,

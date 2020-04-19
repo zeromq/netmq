@@ -489,5 +489,13 @@ namespace NetMQ
             get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTimeout);
             set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTimeout, value);
         }
+
+        /// <summary>
+        /// Set message to send to peer upon connecting
+        /// </summary>
+        public byte[] HelloMessage
+        {
+            set => m_socket.SetSocketOption(ZmqSocketOption.HelloMessage, value);
+        }
     }
 }
