@@ -376,7 +376,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="timer">The timer to remove</param>
         /// <exception cref="ArgumentNullException">If poller is null</exception>
-        [Obsolete("Queues an action on the poller's thread to remove the timer, but provides no sync mechanism.  Please use RemoveAndDisposeAsync() instead")]
+        [Obsolete("Queues an action on the poller's thread to remove the timer, but provides no sync mechanism.  Please use RemoveAsync() instead")]
         public void Remove([NotNull] NetMQTimer timer)
         {
             RemoveAsync(timer);
