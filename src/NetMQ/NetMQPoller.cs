@@ -392,7 +392,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">The socket to remove</param>
         /// <exception cref="ArgumentNullException">If socket is null</exception>
-        [Obsolete("Queues the action on the poller's thread, but provides no sync mechanism.  Please use RemoveAsync() instead")]
+        [Obsolete("Queues an action on the poller's thread, but provides no sync mechanism.  Please use RemoveAsync() instead")]
         public void Remove([NotNull] Socket socket)
         {
             RemoveAsync(socket);
