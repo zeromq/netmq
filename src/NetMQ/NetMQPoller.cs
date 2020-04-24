@@ -139,6 +139,23 @@ namespace NetMQ
             return t;
         }
 
+        internal Task<T> RunAsync<T>([NotNull] Func<T> action)
+        {
+            Task<T> t;
+
+            if (!IsRunning || CanExecuteTaskInline)
+            {
+                t = FromResult<T>(action());
+            }
+            else
+            {
+                t = new Task<T>(action);
+                t.Start(this);
+            }
+
+            return t;
+        }
+
         /// <summary>
         /// Run an action on the Poller thread
         /// </summary>
@@ -444,9 +461,7 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(socket));
             CheckDisposed();
 
-            var tcs = new TaskCompletionSource<bool>();
-            RunAsync(() => tcs.SetResult(m_sockets.Contains(socket)));
-            return tcs.Task;
+            return RunAsync(new Func<bool>(() => m_sockets.Contains(socket)));
         }
 
         /// <summary>
@@ -460,9 +475,7 @@ namespace NetMQ
                 throw new ArgumentNullException(nameof(timer));
             CheckDisposed();
 
-            var tcs = new TaskCompletionSource<bool>();
-            RunAsync(() => tcs.SetResult(m_timers.Contains(timer)));
-            return tcs.Task;
+            return RunAsync(new Func<bool>(() => m_timers.Contains(timer)));
         }
 
         /// <summary>
