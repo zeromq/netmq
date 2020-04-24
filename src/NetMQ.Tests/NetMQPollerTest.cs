@@ -1007,6 +1007,60 @@ namespace NetMQ.Tests
             }
         }
 
+        [Fact]
+        public async void NativeSocket_RemoveAsync()
+        {
+            using (var streamServer = new StreamSocket())
+            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+            {
+                int port = streamServer.BindRandomPort("tcp://*");
+
+                socket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));
+
+                var buffer = new byte[] { 1 };
+                socket.Send(buffer);
+
+                byte[] identity = streamServer.ReceiveFrameBytes();
+                byte[] message = streamServer.ReceiveFrameBytes();
+
+                Assert.Equal(buffer[0], message[0]);
+
+                var socketSignal = new ManualResetEvent(false);
+
+                using (var poller = new NetMQPoller())
+                {
+                    poller.Add(socket, s =>
+                    {
+                        socket.Receive(buffer);
+
+                        socketSignal.Set();
+                    });
+
+                    poller.RunAsync();
+
+                    // no message is waiting for the socket so it should fail
+                    Assert.False(socketSignal.WaitOne(100));
+
+                    // sending a message back to the socket
+                    streamServer.SendMoreFrame(identity).SendFrame("a");
+
+                    Assert.True(socketSignal.WaitOne(100));
+
+                    socketSignal.Reset();
+
+                    await poller.RemoveAsync(socket);
+
+                    // sending a message back to the socket
+                    streamServer.SendMoreFrame(identity).SendFrame("a");
+
+                    // we remove the native socket so it should fail
+                    Assert.False(socketSignal.WaitOne(100));
+
+                    poller.Stop();
+                }
+            }
+        }
+
         #endregion
 
         #region TaskScheduler tests

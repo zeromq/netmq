@@ -392,13 +392,24 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">The socket to remove</param>
         /// <exception cref="ArgumentNullException">If socket is null</exception>
+        [Obsolete("Queues the action on the poller's thread, but provides no sync mechanism.  Please use RemoveAsync() instead")]
         public void Remove([NotNull] Socket socket)
+        {
+            RemoveAsync(socket);
+        }
+
+        /// <summary>
+        /// Remove the .Net socket from the poller
+        /// </summary>
+        /// <param name="socket">The socket to remove</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
+        public Task RemoveAsync([NotNull] Socket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
             CheckDisposed();
 
-            RunAsync(() =>
+            return RunAsync(() =>
             {
                 m_pollinSockets.Remove(socket);
                 m_isPollSetDirty = true;
