@@ -711,6 +711,61 @@ namespace NetMQ.Tests
         }
 
         [Fact]
+        public async void RemoveTimer_Async()
+        {
+            using (var router = new RouterSocket())
+            using (var dealer = new DealerSocket())
+            using (var poller = new NetMQPoller { router })
+            {
+                int port = router.BindRandomPort("tcp://127.0.0.1");
+
+                dealer.Connect("tcp://127.0.0.1:" + port);
+
+                bool timerTriggered = false;
+
+                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(500));
+                timer.Elapsed += (s, a) => { timerTriggered = true; };
+
+                // The timer will fire after 100ms
+                poller.Add(timer);
+
+                bool messageArrived = false;
+
+                router.ReceiveReady += (s, e) =>
+                {
+                    router.SkipFrame();
+                    router.SkipFrame();
+                    messageArrived = true;
+                    //// Remove timer
+                    //poller.Remove(timer);
+                };
+
+                poller.RunAsync();
+
+                Thread.Sleep(20);
+
+                dealer.SendFrame("hello");
+
+                Thread.Sleep(300);
+
+                try
+                {
+                    await poller.RemoveAsync(timer);
+                }
+                catch (Exception ex)
+                {
+                    //ensure no exceptions thrown
+                    Assert.Null(ex);
+                }
+
+                poller.Stop();
+
+                Assert.True(messageArrived);
+                Assert.False(timerTriggered);
+            }
+        }
+
+        [Fact]
         public void RunMultipleTimes()
         {
             int count = 0;
