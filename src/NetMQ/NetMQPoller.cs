@@ -322,6 +322,13 @@ namespace NetMQ
             RemoveAsync(socket);
         }
 
+        /// <summary>
+        /// Remove a socket from the poller
+        /// </summary>
+        /// <param name="socket">The socket to be removed</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
+        /// <exception cref="ArgumentException">If socket is already disposed</exception>
+        /// <exception cref="InvalidOperationException">If socket is getting disposed during the operation</exception>
         public Task RemoveAsync(ISocketPollable socket)
         {
             if (socket == null)
@@ -362,6 +369,13 @@ namespace NetMQ
             RemoveAndDisposeAsync(socket);
         }
 
+        /// <summary>
+        /// Remove the socket from the poller and dispose the socket
+        /// </summary>
+        /// <param name="socket">The socket to be removed</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
+        /// <exception cref="ArgumentException">If socket is disposed</exception>
+        /// <exception cref="InvalidOperationException">If socket got disposed during the operation</exception>
         public Task RemoveAndDisposeAsync<T>(T socket) where T : ISocketPollable, IDisposable
         {
             if (socket == null)
