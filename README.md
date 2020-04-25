@@ -105,10 +105,6 @@ There are open issues in the issues tab that still need to be taken care of, fee
 
 ## Build Server
 
-[TeamCity at CodeBetter](http://teamcity.codebetter.com/project.html?projectId=project372&tab=projectOverview)
-
 ![Code Better](http://www.jetbrains.com/img/banners/Codebetter300x250.png)
 
 [YouTrack by JetBrains - keyboard-centric bug tracker](http://www.jetbrains.com/youtrack)
-
-[TeamCity by JetBrains - continuous integration server](http://www.jetbrains.com/teamcity)
