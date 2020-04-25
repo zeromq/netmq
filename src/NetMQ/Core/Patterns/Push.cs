@@ -27,13 +27,6 @@ namespace NetMQ.Core.Patterns
 {
     internal sealed class Push : SocketBase
     {
-        public class PushSession : SessionBase
-        {
-            public PushSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         /// <summary>
         /// Load balancer managing the outbound pipes.
         /// </summary>

@@ -130,29 +130,21 @@ namespace NetMQ.Core
                 case ZmqSocketType.Req:
                     return new Req.ReqSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Dealer:
-                    return new Dealer.DealerSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Rep:
-                    return new Rep.RepSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Router:
-                    return new Router.RouterSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pub:
-                    return new Pub.PubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Xpub:
-                    return new XPub.XPubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Sub:
-                    return new Sub.SubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Xsub:
-                    return new XSub.XSubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Push:
-                    return new Push.PushSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pull:
-                    return new Pull.PullSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pair:
-                    return new Pair.PairSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Stream:
-                    return new Stream.StreamSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Peer:
-                    return new Peer.PeerSession(ioThread, connect, socket, options, addr);
+                    if (options.CanSendHelloMsg && options.HelloMsg != null)
+                        return new HelloMsgSession(ioThread, connect, socket, options, addr);
+                    else
+                        return new SessionBase(ioThread, connect, socket, options, addr);
                 default:
                     throw new InvalidException("SessionBase.Create called with invalid SocketType of " + options.SocketType);
             }
@@ -217,7 +209,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">a reference to a Msg to put the message into</param>
         /// <returns>true if the Msg is successfully sent</returns>
-        public PullMsgResult PullMsg(ref Msg msg)
+        public virtual PullMsgResult PullMsg(ref Msg msg)
         {
             if (m_pipe == null || !m_pipe.Read(ref msg))
                 return PullMsgResult.Empty;

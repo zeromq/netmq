@@ -36,13 +36,6 @@ namespace NetMQ.Core.Patterns
     {
         private static readonly Random s_random = new Random();
 
-        public class RouterSession : SessionBase
-        {
-            public RouterSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            { }
-        }
-
         /// <summary>
         /// An instance of class Outpipe contains a Pipe and a boolean property Active.
         /// </summary>
@@ -152,6 +145,7 @@ namespace NetMQ.Core.Patterns
         {
             m_nextPeerId = s_random.Next();
             m_options.SocketType = ZmqSocketType.Router;
+            m_options.CanSendHelloMsg = true;
             m_fairQueueing = new FairQueueing();
             m_prefetchedId = new Msg();
             m_prefetchedId.InitEmpty();

@@ -54,6 +54,7 @@ namespace NetMQ.Core.Patterns
             m_receivingReply = false;
             m_messageBegins = true;
             m_options.SocketType = ZmqSocketType.Req;
+            m_options.CanSendHelloMsg = false;
         }
 
         /// <summary>
@@ -172,7 +173,7 @@ namespace NetMQ.Core.Patterns
             return base.XHasOut();
         }
 
-        public class ReqSession : DealerSession
+        public class ReqSession : SessionBase
         {
             private enum State
             {

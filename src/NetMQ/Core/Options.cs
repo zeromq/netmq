@@ -64,6 +64,8 @@ namespace NetMQ.Core
             HeartbeatTtl = 0;
             HeartbeatInterval = 0;
             HeartbeatTimeout = -1;
+            HelloMsg = null;
+            CanSendHelloMsg = false;
         }
 
         /// <summary>
@@ -313,6 +315,15 @@ namespace NetMQ.Core
         /// </summary>
         public int HeartbeatTimeout { get; set; }
         
+        /// <summary>
+        /// Hello msg to send to peer upon connecting
+        /// </summary>
+        public byte[] HelloMsg { get; set; }
+        
+        /// <summary>
+        /// Indicate of socket can send an hello msg
+        /// </summary>
+        public bool CanSendHelloMsg { get; set; }
         
         /// <summary>
         /// Assign the given optionValue to the specified option.
@@ -491,6 +502,22 @@ namespace NetMQ.Core
                         throw new InvalidException("Curve key size must be 32 bytes");
                     Mechanism = MechanismType.Curve;
                     Buffer.BlockCopy(key, 0, CurveServerKey, 0, 32);
+                    break;
+                }
+
+                case ZmqSocketOption.HelloMessage:
+                {
+                    if (optionValue == null)
+                    {
+                        HelloMsg = null;
+                    }
+                    else
+                    {
+                        var helloMsg = (byte[]) optionValue;
+                        HelloMsg = new byte[helloMsg.Length];
+                    
+                        Buffer.BlockCopy(helloMsg, 0, HelloMsg, 0, helloMsg.Length);
+                    }
                     break;
                 }
                 

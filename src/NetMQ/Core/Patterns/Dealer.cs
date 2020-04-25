@@ -32,24 +32,6 @@ namespace NetMQ.Core.Patterns
     internal class Dealer : SocketBase
     {
         /// <summary>
-        /// A DealerSession is a SessionBase subclass that is contained within the Dealer class.
-        /// </summary>
-        public class DealerSession : SessionBase
-        {
-            /// <summary>
-            /// Create a new DealerSession (which is just a SessionBase).
-            /// </summary>
-            /// <param name="ioThread">the I/O-thread to associate this with</param>
-            /// <param name="connect"></param>
-            /// <param name="socket"></param>
-            /// <param name="options"></param>
-            /// <param name="addr"></param>
-            public DealerSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
-        /// <summary>
         /// Messages are fair-queued from inbound pipes. And load-balanced to
         /// the outbound pipes.
         /// </summary>
@@ -64,6 +46,7 @@ namespace NetMQ.Core.Patterns
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Dealer;
+            m_options.CanSendHelloMsg = true;
 
             m_fairQueueing = new FairQueueing();
             m_loadBalancer = new LoadBalancer();

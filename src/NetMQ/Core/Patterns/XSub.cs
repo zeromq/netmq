@@ -28,16 +28,6 @@ namespace NetMQ.Core.Patterns
     internal class XSub : SocketBase
     {
         /// <summary>
-        /// An XSubSession is a subclass of SessionBase that provides nothing more.
-        /// </summary>
-        public class XSubSession : SessionBase
-        {
-            public XSubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
-        /// <summary>
         /// Fair queueing object for inbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;

@@ -27,13 +27,6 @@ namespace NetMQ.Core.Patterns
 {
     internal sealed class Sub : XSub
     {
-        public class SubSession : XSubSession
-        {
-            public SubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         public Sub([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {

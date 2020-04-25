@@ -109,5 +109,43 @@ namespace NetMQ.Tests
 //                Assert.Equal(true, socket.Options.ManualPublisher);
             }
         }
+
+        [Fact]
+        public void HelloMsgTcp()
+        {
+            // Create a router
+            using var router = new RouterSocket();
+            router.Options.HelloMessage = new byte[] {(byte)'H'};
+            
+            // bind router
+            int port = router.BindRandomPort("tcp://*");
+            
+            // create a dealer
+            using var dealer = new DealerSocket();
+            dealer.Connect($"tcp://localhost:{port}");
+
+            var msg = dealer.ReceiveFrameString();
+            
+            Assert.Equal("H", msg);
+        }
+        
+        [Fact]
+        public void HelloMsgInproc()
+        {
+            // Create a router
+            using var router = new RouterSocket();
+            router.Options.HelloMessage = new byte[] {(byte)'H'};
+            
+            // bind router
+            router.Bind("inproc://inproc-hello-msg");
+            
+            // create a dealer
+            using var dealer = new DealerSocket();
+            dealer.Connect("inproc://inproc-hello-msg");
+
+            var msg = dealer.ReceiveFrameString();
+            
+            Assert.Equal("H", msg);
+        }
     }
 }

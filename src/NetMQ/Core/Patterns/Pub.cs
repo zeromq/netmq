@@ -26,13 +26,6 @@ namespace NetMQ.Core.Patterns
 {
     internal sealed class Pub : XPub
     {
-        public class PubSession : XPubSession
-        {
-            public PubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
             // Don't delay pipe termination as there is no one

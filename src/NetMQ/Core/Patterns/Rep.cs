@@ -25,13 +25,6 @@ namespace NetMQ.Core.Patterns
 {
     internal sealed class Rep : Router
     {
-        public class RepSession : RouterSession
-        {
-            public RepSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         /// <summary>
         /// If true, we are in process of sending the reply. If false we are
         /// in process of receiving a request.
@@ -51,6 +44,7 @@ namespace NetMQ.Core.Patterns
             m_requestBegins = true;
 
             m_options.SocketType = ZmqSocketType.Rep;
+            m_options.CanSendHelloMsg = false;
         }
 
         /// <summary>
