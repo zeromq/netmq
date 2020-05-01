@@ -281,34 +281,32 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            var pipe = new Pipe[1];
-
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out Pipe pipe);
 
             // Drop any messages with more flag
             while (isMessageAvailable && msg.HasMore)
             {
                 // drop all frames of the current multi-frame message
-                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+                isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out pipe);
 
                 while (isMessageAvailable && msg.HasMore)
-                    isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+                    isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out pipe);
                 
                 // get the new message
-                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+                isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out pipe);
             }
 
             if (!isMessageAvailable)            
                 return false;            
 
-            Debug.Assert(pipe[0] != null);
+            Debug.Assert(pipe != null);
            
             // We are at the beginning of a message.
             // Keep the message part we have in the prefetch buffer
             // and return the ID of the peer instead.
             m_prefetchedMsg.Move(ref msg);
             
-            byte[] routingId = pipe[0].RoutingId;
+            byte[] routingId = pipe.RoutingId;
             msg.InitPool(routingId.Length);
             msg.Put(routingId, 0, routingId.Length);
             msg.SetFlags(MsgFlags.More);

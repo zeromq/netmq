@@ -400,22 +400,20 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            var pipe = new Pipe[1];
-
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out Pipe pipe);
 
             // It's possible that we receive peer's identity. That happens
             // after reconnection. The current implementation assumes that
             // the peer always uses the same identity.
             while (isMessageAvailable && msg.IsIdentity)
-                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+                isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out pipe);
 
             if (!isMessageAvailable)
             {
                 return false;
             }
 
-            Debug.Assert(pipe[0] != null);
+            Debug.Assert(pipe != null);
 
             // If we are in the middle of reading a message, just return the next part.
             if (m_moreIn)
@@ -440,9 +438,9 @@ namespace NetMQ.Core.Patterns
                 m_prefetchedMsg.Move(ref msg);
 
                 m_prefetched = true;
-                m_currentIn = pipe[0];
+                m_currentIn = pipe;
 
-                byte[] identity = pipe[0].Identity;
+                byte[] identity = pipe.Identity;
                 msg.InitPool(identity.Length);
                 msg.Put(identity, 0, identity.Length);
                 msg.SetFlags(MsgFlags.More);
@@ -477,9 +475,7 @@ namespace NetMQ.Core.Patterns
 
             // Try to read the next message.
             // The message, if read, is kept in the pre-fetch buffer.
-            var pipe = new Pipe[1];
-
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref m_prefetchedMsg, out Pipe pipe);
 
             // It's possible that we receive peer's identity. That happens
             // after reconnection. The current implementation assumes that
@@ -487,15 +483,15 @@ namespace NetMQ.Core.Patterns
             // TODO: handle the situation when the peer changes its identity.
             while (isMessageAvailable && m_prefetchedMsg.IsIdentity)
             {
-                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
+                isMessageAvailable = m_fairQueueing.RecvPipe(ref m_prefetchedMsg, out pipe);
             }
 
             if (!isMessageAvailable)
                 return false;
 
-            Debug.Assert(pipe[0] != null);
+            Debug.Assert(pipe != null);
 
-            byte[] identity = pipe[0].Identity;
+            byte[] identity = pipe.Identity;
             m_prefetchedId = new Msg();
             m_prefetchedId.InitPool(identity.Length);
             m_prefetchedId.Put(identity, 0, identity.Length);
@@ -503,7 +499,7 @@ namespace NetMQ.Core.Patterns
 
             m_prefetched = true;
             m_identitySent = false;
-            m_currentIn = pipe[0];
+            m_currentIn = pipe;
 
             return true;
         }

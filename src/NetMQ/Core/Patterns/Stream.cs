@@ -288,22 +288,20 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            var pipe = new Pipe[1];
-
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref m_prefetchedMsg, out Pipe pipe);
 
             if (!isMessageAvailable)
             {
                 return false;
             }
 
-            Debug.Assert(pipe[0] != null);
+            Debug.Assert(pipe != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
 
             // We have received a frame with TCP data.
             // Rather than sending this frame, we keep it in prefetched
             // buffer and send a frame with peer's ID.
-            byte[] identity = pipe[0].Identity;
+            byte[] identity = pipe.Identity;
             msg.InitPool(identity.Length);
             msg.Put(identity, 0, identity.Length);
             msg.SetFlags(MsgFlags.More);
@@ -322,19 +320,18 @@ namespace NetMQ.Core.Patterns
 
             // Try to read the next message.
             // The message, if read, is kept in the pre-fetch buffer.
-            var pipe = new Pipe[1];
-
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref m_prefetchedMsg);
+    
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref m_prefetchedMsg, out Pipe pipe);
 
             if (!isMessageAvailable)
             {
                 return false;
             }
 
-            Debug.Assert(pipe[0] != null);
+            Debug.Assert(pipe != null);
             Debug.Assert(!m_prefetchedMsg.HasMore);
 
-            byte[] identity = pipe[0].Identity;
+            byte[] identity = pipe.Identity;
             m_prefetchedId = new Msg();
             m_prefetchedId.InitPool(identity.Length);
             m_prefetchedId.Put(identity, 0, identity.Length);
