@@ -497,5 +497,22 @@ namespace NetMQ
         {
             set => m_socket.SetSocketOption(ZmqSocketOption.HelloMessage, value);
         }
+
+        /// <summary>
+        /// relax strict alternation between request and reply on REQ sockets
+        /// </summary>
+        public bool Relaxed
+        {
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.Relaxed);
+            set => m_socket.SetSocketOption(ZmqSocketOption.Relaxed, value);
+        }
+        /// <summary>
+        /// match replies with requests on REQ sockets
+        /// </summary>
+        public bool Correlate
+        {
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.Correlate);
+            set => m_socket.SetSocketOption(ZmqSocketOption.Correlate, value);
+        }
     }
 }
