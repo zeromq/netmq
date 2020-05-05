@@ -176,6 +176,37 @@ namespace NetMQ.Tests
             }
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ReplyIsForLatestRequestIfRelaxedAndCorrelateEnabled(bool correlate)
+        {
+            using (var rep = new ResponseSocket())
+            using (var req = new RequestSocket())
+            {
+                var port = rep.BindRandomPort($"tcp://127.0.0.1");
+
+                req.Connect($"tcp://127.0.0.1:{port}");
+                req.Options.Correlate = correlate;
+                req.Options.Relaxed = true;
+          
+                req.SendFrame("Request1");
+                req.SendFrame("Request2");
+
+                rep.SendFrame(rep.ReceiveFrameString());
+                rep.SendFrame(rep.ReceiveFrameString());
+
+                if (correlate)
+                {
+                    Assert.Equal("Request2", req.ReceiveFrameString());
+                }
+                else
+                {
+                    Assert.Equal("Request1", req.ReceiveFrameString());
+                }
+            }
+        }
+
         internal void RouterBounce(ref RouterSocket router)
         {
             bool more;

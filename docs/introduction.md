@@ -165,11 +165,12 @@ NetMQ comes with several options that will effect how things work.
 
 Depending on the type of sockets you are using, or the topology you are attempting to create, you may find that you need to set some ZeroMQ options. In NetMQ this is done using the `NetMQSocket.Options` property.
 
-Here is a listing of the available properties that you may set on a `NetMQSocket`. It is hard to say exactly which of these values you may need to set, as that obviously depends entirely on what you are trying to achieve. All I can do is list the options, and make you aware of them. So here they are:
+Here is a listing of the available options that you may set on a `NetMQSocket`. It is hard to say exactly which of these values you may need to set, as that obviously depends entirely on what you are trying to achieve. All I can do is list the options, and make you aware of them. So here they are:
 
 + `Affinity`
 + `BackLog`
 + `CopyMessages`
++ `Correlate`
 + `DelayAttachOnConnect`
 + `Endian`
 + `GetLastEndpoint`
@@ -185,6 +186,7 @@ Here is a listing of the available properties that you may set on a `NetMQSocket
 + `ReceiveBuffer`
 + `ReconnectInterval`
 + `ReconnectIntervalMax`
++ `Relaxed`
 + `SendHighWaterMark`
 + `SendTimeout`
 + `SendBuffer`
@@ -194,4 +196,4 @@ Here is a listing of the available properties that you may set on a `NetMQSocket
 + `TcpKeepaliveInterval`
 + `XPubVerbose`
 
-We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that if you have read something in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> that mentions some option, that this is most likely the place you will need to set it/read from it.
+We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that if you have read something in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> that mentions some option, that this is most likely the place you will need to set it/read from it.  Also, the socket options are described in the <a href="http://api.zeromq.org/master:zmq-setsockopt" target="_blank">zmq_setsockopt</a> documentation.
