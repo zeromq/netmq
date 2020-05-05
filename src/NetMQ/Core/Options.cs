@@ -66,6 +66,8 @@ namespace NetMQ.Core
             HeartbeatTimeout = -1;
             HelloMsg = null;
             CanSendHelloMsg = false;
+            Correlate = false;
+            Relaxed = false;
         }
 
         /// <summary>
@@ -324,7 +326,10 @@ namespace NetMQ.Core
         /// Indicate of socket can send an hello msg
         /// </summary>
         public bool CanSendHelloMsg { get; set; }
-        
+
+        public bool Correlate { get; set; }
+        public bool Relaxed { get; set; }
+
         /// <summary>
         /// Assign the given optionValue to the specified option.
         /// </summary>
@@ -520,6 +525,18 @@ namespace NetMQ.Core
                     }
                     break;
                 }
+
+                case ZmqSocketOption.Relaxed:
+                    {
+                        Relaxed = (bool)optionValue;
+                        break;
+                    }
+
+                case ZmqSocketOption.Correlate:
+                    {
+                        Correlate = (bool)optionValue;
+                        break;
+                    }
                 
                 default:
                     throw new InvalidException("Options.SetSocketOption called with invalid ZmqSocketOption of " + option);

@@ -75,6 +75,17 @@ namespace NetMQ.Core.Patterns
         }
 
         /// <summary>
+        /// Transmit the given message.  The <c>Send</c> method calls this to do the actual sending.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <param name="pipe">the pipe that the message was transmitted on (output)</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
+        protected bool XSendPipe(ref Msg msg, out Pipe pipe)
+        {
+            return m_loadBalancer.SendPipe(ref msg, out pipe);
+        }
+
+        /// <summary>
         /// Get a message from FairQueuing data structure
         /// </summary>
         /// <param name="msg">a Msg to receive the message into</param>
@@ -82,6 +93,17 @@ namespace NetMQ.Core.Patterns
         protected override bool XRecv(ref Msg msg)
         {
             return m_fairQueueing.Recv(ref msg);
+        }
+
+        /// <summary>
+        /// Get a message from FairQueuing data structure
+        /// </summary>
+        /// <param name="msg">a Msg to receive the message into</param>
+        /// <param name="pipe">a specific Pipe to receive on</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
+        protected bool XRecvPipe(ref Msg msg, out Pipe pipe)
+        {
+            return m_fairQueueing.RecvPipe(ref msg, out pipe);
         }
 
         /// <summary>
