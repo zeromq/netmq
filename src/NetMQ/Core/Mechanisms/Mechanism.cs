@@ -31,6 +31,8 @@ namespace NetMQ.Core.Mechanisms
             public const string Xsub = "XSUB";
             public const string Stream = "STREAM";    
             public const string Peer = "PEER";
+            public const string Server = "SERVER";
+            public const string Client = "CLIENT";
         }
         
         const int NameLengthSize = sizeof(byte);
@@ -119,6 +121,10 @@ namespace NetMQ.Core.Mechanisms
                     return SocketNames.Stream;
                 case ZmqSocketType.Peer:
                     return SocketNames.Peer;
+                case ZmqSocketType.Server:
+                    return SocketNames.Server;
+                case ZmqSocketType.Client:
+                    return SocketNames.Client;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(socketType), socketType, null);
             }
@@ -300,6 +306,10 @@ namespace NetMQ.Core.Mechanisms
                     return type == SocketNames.Push;
                 case ZmqSocketType.Push:
                     return type == SocketNames.Pull;
+                case ZmqSocketType.Server:
+                    return type == SocketNames.Client;
+                case ZmqSocketType.Client:
+                    return type == SocketNames.Server;
                 case ZmqSocketType.Peer:
                     return type == SocketNames.Peer;
                 default:

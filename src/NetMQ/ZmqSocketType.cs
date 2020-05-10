@@ -72,6 +72,16 @@
         Stream = 11,
         
         /// <summary>
+        /// This denotes an Server socket.
+        /// </summary>
+        Server = 12,
+        
+        /// <summary>
+        /// This denotes an Client socket.
+        /// </summary>
+        Client = 13,
+        
+        /// <summary>
         /// This denotes a Peer socket.
         /// </summary>
         Peer = 19

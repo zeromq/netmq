@@ -94,6 +94,7 @@ namespace NetMQ
 
         private byte[] m_data;
         private int m_offset;
+        private uint m_routingId;
 
         /// <summary>
         /// Get the number of bytes within the Data property.
@@ -180,6 +181,28 @@ namespace NetMQ
         #endregion
 
         /// <summary>
+        /// Routing id of the message, for SERVER and PEER sockets only.
+        /// </summary>
+        public uint RoutingId
+        {
+            get => m_routingId;
+            set
+            {
+                if (value == 0)
+                    throw new InvalidException("RoutingId cannot be zero.");
+                m_routingId = value;
+            }
+        }
+
+        /// <summary>
+        /// Reset routing id back to zero
+        /// </summary>
+        internal void ResetRoutingId()
+        {
+            m_routingId = 0;
+        }
+
+        /// <summary>
         /// Get the byte-array that represents the data payload of this <see cref="Msg"/>.
         /// Deprecated: use <see cref="Slice()" /> or implicit casting to Span
         /// </summary>
@@ -189,7 +212,7 @@ namespace NetMQ
         /// </remarks>
         [Obsolete("Use implicit casting to Span or Slice instead")]
         public byte[] Data => m_data;
-
+        
         /// <summary>
         /// Return the internal buffer as Span
         /// </summary>
