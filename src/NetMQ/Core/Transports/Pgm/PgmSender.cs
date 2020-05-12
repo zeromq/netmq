@@ -214,18 +214,19 @@ namespace NetMQ.Core.Transports.Pgm
                 int bufferSize = m_outBufferSize - sizeof(ushort);
                 
                 int bytes = m_encoder.Encode(ref buffer, bufferSize);
+                int lastBytes = bytes;
                 while (bytes < bufferSize)
                 {
                     if (!m_moreFlag && offset == 0xffff)
-                        offset = (ushort) bytes;
+                        offset = (ushort)bytes;
                     Msg msg = new Msg();
                     if (m_session.PullMsg(ref msg) != PullMsgResult.Ok)
                         break;
                     m_moreFlag = msg.HasMore;
                     m_encoder.LoadMsg(ref msg);
-                    buffer = buffer + bytes;
-                    var n = m_encoder.Encode(ref buffer, bufferSize - bytes);
-                    bytes += n;
+                    buffer = buffer + lastBytes;
+                    lastBytes = m_encoder.Encode(ref buffer, bufferSize - bytes);
+                    bytes += lastBytes;
                 }
 
                 // If there are no data to write stop polling for output.
