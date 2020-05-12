@@ -77,7 +77,20 @@ namespace NetMQ.Core.Transports.Pgm
                 // For a UDP datagram socket, this error would indicate that a previous  
                 // send operation resulted in an ICMP "Port Unreachable" message. 
                 if (ex.SocketErrorCode == SocketError.ConnectionReset) 
-                    Error(); 
+                    Error();
+                // ** Berkeley Description: A connection abort was caused internal to your host machine. 
+                // The software caused a connection abort because there is no space on the socket's queue 
+                // and the socket cannot receive further connections.
+                // ** WinSock description: The error can occur when the local network system aborts a connection. 
+                // This would occur if WinSock aborts an established connection after data retransmission 
+                // fails (receiver never acknowledges data sent on a datastream socket).
+                // ** Windows Sockets Error Codes: Software caused connection abort.
+                // An established connection was aborted by the software in your host computer, 
+                // possibly due to a data transmission time -out or protocol error.
+                // ** WSARecv Error Code Description: The virtual circuit was terminated due to a 
+                // time -out or other failure.
+                else if (ex.SocketErrorCode == SocketError.ConnectionAborted)
+                    Error();   
                 else 
                     throw NetMQException.Create(ex.SocketErrorCode, ex); 
             } 
