@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.9
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30104.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance", "{1D49A4C6-C03C-4F72-9A27-42C8E5219BBA}"
 EndProject
@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.travis.yml = ..\.travis.yml
 		..\appveyor.yml = ..\appveyor.yml
 		..\COPYING.LESSER = ..\COPYING.LESSER
+		Directory.Build.targets = Directory.Build.targets
 		..\mkdocs.yml = ..\mkdocs.yml
 		..\README.md = ..\README.md
 	EndProjectSection
@@ -19,6 +20,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D7A0-489E-9530-0F972DAE1167}"
 	ProjectSection(SolutionItems) = preProject
 		..\docs\actor.md = ..\docs\actor.md
+		..\docs\async-await.md = ..\docs\async-await.md
 		..\docs\beacon.md = ..\docs\beacon.md
 		..\docs\cleanup.md = ..\docs\cleanup.md
 		..\docs\devices.md = ..\docs\devices.md
@@ -39,7 +41,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{FF13931E-D
 		..\docs\timer.md = ..\docs\timer.md
 		..\docs\transports.md = ..\docs\transports.md
 		..\docs\xpub-xsub.md = ..\docs\xpub-xsub.md
-		..\docs\async-await.md = ..\docs\async-await.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetMQ", "NetMQ\NetMQ.csproj", "{49C06317-631D-435F-BE51-A26618FBC2C1}"
