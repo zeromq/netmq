@@ -9,7 +9,7 @@ before_build:
 
 build_script:
   - dotnet restore src/NetMQ.sln
-  - dotnet build src/NetMQ.sln /p:Configuration=Release /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION% /verbosity:minimal
+  - dotnet build src/NetMQ.sln /p:Configuration=Release /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION% /P:ContinuousIntegrationBuild=true /verbosity:minimal
   - dotnet pack src/NetMQ/NetMQ.csproj -c Release --no-build /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION%
 
 test_script:
