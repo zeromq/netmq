@@ -2,25 +2,26 @@
 
   <PropertyGroup>
     <Description>A 100% native C# port of the lightweight high performance messaging library ZeroMQ</Description>
-    <AssemblyTitle>NetMQ</AssemblyTitle>
     <Version>4.0.0.0</Version>
-    <PackageVersion>4.0.0.0</PackageVersion>
     <LangVersion>8.0</LangVersion>
     <TargetFrameworks>net45;net47;netstandard2.0;netstandard2.1</TargetFrameworks>
     <DebugType>portable</DebugType>
-    <AssemblyName>NetMQ</AssemblyName>
     <AssemblyOriginatorKeyFile>./NetMQ.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageId>NetMQ</PackageId>
     <PackageTags>ZeroMQ;0MQ;CLRZMQ;NetMQ;Messaging;ZMQ;transport;distributed</PackageTags>
-    <PackageIconUrl>https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQ.ico</PackageIconUrl>
+    <PackageIcon>NetMQLogoSquare-256px.png</PackageIcon>
     <PackageProjectUrl>https://github.com/zeromq/netmq</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/zeromq/netmq/blob/master/COPYING.LESSER</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/zeromq/netmq</RepositoryUrl>
-	<IncludeSymbols>true</IncludeSymbols>
+    <RepositoryUrl>https://github.com/zeromq/netmq.git</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Deterministic>true</Deterministic>
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
     <IncludeSource>true</IncludeSource>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   
@@ -29,8 +30,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Include the logo in the nupkg file -->
+    <None Include="$(MSBuildThisFileDirectory)\..\..\img\NetMQLogoSquare-256px.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AsyncIO" Version="0.1.69" />
     <PackageReference Include="JetBrains.Annotations" Version="10.4.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="NaCl.Net" Version="0.1.6-pre" />
   </ItemGroup>
   

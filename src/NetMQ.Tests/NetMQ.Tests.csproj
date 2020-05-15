@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <DebugType>portable</DebugType>
-    <AssemblyName>NetMQ.Tests</AssemblyName>
     <AssemblyOriginatorKeyFile>../NetMQ/NetMQ.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageId>NetMQ.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);netcoreapp1.0;portable-net45+win8</PackageTargetFallback>
     <IsTestProject>true</IsTestProject>
