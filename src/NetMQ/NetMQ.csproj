@@ -2,17 +2,13 @@
 
   <PropertyGroup>
     <Description>A 100% native C# port of the lightweight high performance messaging library ZeroMQ</Description>
-    <AssemblyTitle>NetMQ</AssemblyTitle>
     <Version>4.0.0.0</Version>
-    <PackageVersion>4.0.0.0</PackageVersion>
     <LangVersion>8.0</LangVersion>
     <TargetFrameworks>net45;net47;netstandard2.0;netstandard2.1</TargetFrameworks>
     <DebugType>portable</DebugType>
-    <AssemblyName>NetMQ</AssemblyName>
     <AssemblyOriginatorKeyFile>./NetMQ.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageId>NetMQ</PackageId>
     <PackageTags>ZeroMQ;0MQ;CLRZMQ;NetMQ;Messaging;ZMQ;transport;distributed</PackageTags>
     <PackageIconUrl>https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQ.ico</PackageIconUrl>
     <PackageProjectUrl>https://github.com/zeromq/netmq</PackageProjectUrl>
