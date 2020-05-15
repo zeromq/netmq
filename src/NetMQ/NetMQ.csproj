@@ -10,7 +10,7 @@
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageTags>ZeroMQ;0MQ;CLRZMQ;NetMQ;Messaging;ZMQ;transport;distributed</PackageTags>
-    <PackageIconUrl>https://raw.githubusercontent.com/zeromq/netmq/master/img/NetMQ.ico</PackageIconUrl>
+    <PackageIcon>NetMQLogoSquare-256px.png</PackageIcon>
     <PackageProjectUrl>https://github.com/zeromq/netmq</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/zeromq/netmq/blob/master/COPYING.LESSER</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
@@ -23,6 +23,11 @@
   <PropertyGroup Condition=" '$(TargetFramework)' != 'netstandard2.1' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Include the logo in the nupkg file -->
+    <None Include="$(MSBuildThisFileDirectory)\..\..\img\NetMQLogoSquare-256px.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AsyncIO" Version="0.1.69" />
