@@ -14,8 +14,8 @@
     <PackageProjectUrl>https://github.com/zeromq/netmq</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/zeromq/netmq/blob/master/COPYING.LESSER</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/zeromq/netmq</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
+    <RepositoryUrl>https://github.com/zeromq/netmq.git</RepositoryUrl>
     <IncludeSource>true</IncludeSource>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
