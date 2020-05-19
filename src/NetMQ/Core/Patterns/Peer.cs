@@ -73,7 +73,7 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// Outbound pipes indexed by the peer IDs.
         /// </summary>
-        private readonly Dictionary<byte[], Outpipe> m_outpipes;
+        private readonly Dictionary<uint, Outpipe> m_outpipes;
 
         /// <summary>
         /// The pipe we are currently writing to.
@@ -94,7 +94,7 @@ namespace NetMQ.Core.Patterns
         /// Peer ID are generated. It's a simple increment and wrap-over
         /// algorithm. This value is the next ID to use (if not used already).
         /// </summary>
-        private int m_nextPeerId;
+        private uint m_nextPeerId;
         
         /// <summary>
         /// Create a new Router instance with the given parent-Ctx, thread-id, and socket-id.
@@ -105,13 +105,13 @@ namespace NetMQ.Core.Patterns
         public Peer([NotNull] Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-            m_nextPeerId = s_random.Next();
+            m_nextPeerId = (uint) s_random.Next();
             m_options.SocketType = ZmqSocketType.Peer;
             m_options.CanSendHelloMsg = true;
             m_fairQueueing = new FairQueueing();      
             m_prefetchedMsg = new Msg();
             m_prefetchedMsg.InitEmpty();            
-            m_outpipes = new Dictionary<byte[], Outpipe>(new ByteArrayEqualityComparer());
+            m_outpipes = new Dictionary<uint, Outpipe>();
             m_sendingState = State.RoutingId;
             m_receivingState = State.RoutingId;            
         }
@@ -131,7 +131,7 @@ namespace NetMQ.Core.Patterns
         {
             Debug.Assert(pipe != null);
 
-            byte[] routingId = BitConverter.GetBytes(m_nextPeerId);
+            uint routingId = m_nextPeerId;
                         
             pipe.RoutingId = routingId;
             m_outpipes.Add(routingId, new Outpipe(pipe, true));
@@ -210,7 +210,7 @@ namespace NetMQ.Core.Patterns
                 if (msg.HasMore)
                 {                                       
                     // Find the pipe associated with the routingId stored in the prefix.                    
-                    var routingId = msg.UnsafeToArray();
+                    var routingId = BitConverter.ToUInt32(msg.UnsafeToArray(), 0);
 
                     if (m_outpipes.TryGetValue(routingId, out Outpipe op))
                     {
@@ -306,7 +306,7 @@ namespace NetMQ.Core.Patterns
             // and return the ID of the peer instead.
             m_prefetchedMsg.Move(ref msg);
             
-            byte[] routingId = pipe.RoutingId;
+            byte[] routingId = BitConverter.GetBytes(pipe.RoutingId);
             msg.InitPool(routingId.Length);
             msg.Put(routingId, 0, routingId.Length);
             msg.SetFlags(MsgFlags.More);

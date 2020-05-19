@@ -26,13 +26,6 @@ using NetMQ.Core.Utils;
 
 namespace NetMQ.Core
 {
-    internal interface IMailbox
-    {
-        void Send([NotNull] Command command);
-
-        void Close();
-    }
-
     internal interface IMailboxEvent
     {
         void Ready();
@@ -92,11 +85,16 @@ namespace NetMQ.Core
             }
         }
 
+        public bool TryRecv(int timeout, out Command command)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public bool TryRecv(out Command command)
         {
             return m_commandPipe.TryRead(out command);
         }
-
+        
         public void RaiseEvent()
         {
             if (!m_disposed)

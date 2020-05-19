@@ -6,7 +6,7 @@ namespace NetMQ
 {
     /// <summary>
     /// A SocketOptions is simply a convenient way to access the options of a particular socket.
-    /// This class holds a reference to the socket, and it's properties provide a concise way
+    /// This class holds a reference to the socket, and its properties provide a concise way
     /// to access that socket's option values -- instead of calling GetSocketOption/SetSocketOption.
     /// </summary>
     public class SocketOptions
