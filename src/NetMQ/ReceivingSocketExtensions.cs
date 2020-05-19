@@ -315,12 +315,16 @@ namespace NetMQ
 
             more = msg.HasMore;
 
-            var str = msg.Size > 0
-                ? msg.GetString(encoding)
-                : string.Empty;
-
-            msg.Close();
-            return str;
+            try
+            {
+                return msg.Size > 0
+                    ? msg.GetString(encoding)
+                    : string.Empty;
+            }
+            finally
+            {
+                msg.Close();    
+            }
         }
 
         #endregion
@@ -443,12 +447,17 @@ namespace NetMQ
             {
                 more = msg.HasMore;
 
-                frameString = msg.Size > 0
-                    ? msg.GetString(encoding)
-                    : string.Empty;
-
-                msg.Close();
-                return true;
+                try
+                {
+                    frameString = msg.Size > 0
+                        ? msg.GetString(encoding)
+                        : string.Empty;
+                    return true;
+                }
+                finally
+                {
+                    msg.Close();    
+                }
             }
 
             frameString = null;

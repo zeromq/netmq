@@ -386,12 +386,17 @@ namespace NetMQ
 
             var routingId = msg.RoutingId;
 
-            var str = msg.Size > 0
-                ? msg.GetString(encoding)
-                : string.Empty;
-
-            msg.Close();
-            return (routingId, str);
+            try
+            {
+                var str = msg.Size > 0
+                    ? msg.GetString(encoding)
+                    : string.Empty;
+                return (routingId, str);
+            }
+            finally
+            {
+                msg.Close();    
+            }
         }
         
         #endregion
@@ -462,12 +467,17 @@ namespace NetMQ
             {
                 routingId = msg.RoutingId;
 
-                str = msg.Size > 0
-                    ? msg.GetString(encoding)
-                    : string.Empty;
-
-                msg.Close();
-                return true;
+                try
+                {
+                    str = msg.Size > 0
+                        ? msg.GetString(encoding)
+                        : string.Empty;
+                    return true;
+                }
+                finally
+                {
+                    msg.Close();    
+                }
             }
 
             str = null;

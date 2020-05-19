@@ -32,7 +32,7 @@ namespace NetMQ
             msg.Close();
             return data;
         }
-        
+
         #endregion
 
         #region Immediate
@@ -61,7 +61,8 @@ namespace NetMQ
         /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
         /// <param name="bytes">The content of the received message, or <c>null</c> if no message was available.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TryReceiveBytes([NotNull] this IThreadSafeInSocket socket, TimeSpan timeout, out byte[] bytes)
+        public static bool TryReceiveBytes([NotNull] this IThreadSafeInSocket socket, TimeSpan timeout,
+            out byte[] bytes)
         {
             var msg = new Msg();
             msg.InitEmpty();
@@ -80,9 +81,9 @@ namespace NetMQ
         }
 
         #endregion
-        
+
         #region Async
-        
+
         /// <summary>
         /// Receive a bytes from <paramref name="socket"/> asynchronously.
         /// </summary>
@@ -92,16 +93,16 @@ namespace NetMQ
         {
             if (TryReceiveBytes(socket, out var bytes))
                 return new ValueTask<byte[]>(bytes);
-            
+
             // TODO: this is a hack, eventually we need kind of IO ThreadPool for thread-safe socket to wait on asynchronously
             // and probably implement IValueTaskSource
             return new ValueTask<byte[]>(Task.Factory.StartNew(socket.ReceiveBytes, TaskCreationOptions.LongRunning));
         }
-        
+
         #endregion
-        
+
         #endregion
-        
+
         #region Receiving string
 
         #region Blocking
@@ -128,15 +129,19 @@ namespace NetMQ
             msg.InitEmpty();
 
             socket.Receive(ref msg);
-            
-            var str = msg.Size > 0
-                ? msg.GetString(encoding)
-                : string.Empty;
 
-            msg.Close();
-            return str;
+            try
+            {
+                return msg.Size > 0
+                    ? msg.GetString(encoding)
+                    : string.Empty;
+            }
+            finally
+            {
+                msg.Close();
+            }
         }
-        
+
         #endregion
 
         #region Immediate
@@ -161,7 +166,8 @@ namespace NetMQ
         /// <param name="encoding">The encoding used to convert the data to a string.</param>
         /// <param name="str">The content of the received message, or <c>null</c> if no message was available.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TryReceiveString([NotNull] this IThreadSafeInSocket socket, [NotNull] Encoding encoding, out string str)
+        public static bool TryReceiveString([NotNull] this IThreadSafeInSocket socket, [NotNull] Encoding encoding,
+            out string str)
         {
             return socket.TryReceiveString(TimeSpan.Zero, encoding, out str);
         }
@@ -192,19 +198,25 @@ namespace NetMQ
         /// <param name="encoding">The encoding used to convert the data to a string.</param>
         /// <param name="str">The content of the received message, or <c>null</c> if no message was available.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TryReceiveString([NotNull] this IThreadSafeInSocket socket, TimeSpan timeout, [NotNull] Encoding encoding, out string str)
+        public static bool TryReceiveString([NotNull] this IThreadSafeInSocket socket, TimeSpan timeout,
+            [NotNull] Encoding encoding, out string str)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
             if (socket.TryReceive(ref msg, timeout))
             {
-                str = msg.Size > 0
-                    ? msg.GetString(encoding)
-                    : string.Empty;
-
-                msg.Close();
-                return true;
+                try
+                {
+                    str = msg.Size > 0
+                        ? msg.GetString(encoding)
+                        : string.Empty;
+                    return true;
+                }
+                finally
+                {
+                    msg.Close();    
+                }
             }
 
             str = null;
@@ -213,9 +225,9 @@ namespace NetMQ
         }
 
         #endregion
-        
+
         #region Async
-        
+
         /// <summary>
         /// Receive a string from <paramref name="socket"/> asynchronously.
         /// </summary>
@@ -225,7 +237,7 @@ namespace NetMQ
         {
             if (TryReceiveString(socket, out var msg))
                 return new ValueTask<string>(msg);
-                    
+
             // TODO: this is a hack, eventually we need kind of IO ThreadPool for thread-safe socket to wait on asynchronously
             // and probably implement IValueTaskSource
             return new ValueTask<string>(Task.Factory.StartNew(socket.ReceiveString, TaskCreationOptions.LongRunning));
