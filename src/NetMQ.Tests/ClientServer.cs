@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using NetMQ;
 using NetMQ.Sockets;
 using Xunit;
@@ -58,6 +61,17 @@ namespace NetMQ.Tests
             await server.SendAsync(routingId, "World");
             var serverMsg = await client.ReceiveStringAsync();
             Assert.Equal("World", serverMsg);
+        }
+
+        [Fact]
+        public async void AsyncWithCancellationToken()
+        {
+            using CancellationTokenSource source = new CancellationTokenSource();
+            using var server = new ServerSocket();
+            
+            source.CancelAfter(100);
+
+            await Assert.ThrowsAsync<OperationCanceledException>(async () => await server.ReceiveStringAsync(source.Token));
         }
     }
 }
