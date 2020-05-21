@@ -10,7 +10,7 @@ namespace NetMQ
     /// <remarks>
     /// This interface provides an abstraction over the legacy Poller and newer <see cref="NetMQPoller"/> classes for use in <see cref="NetMQMonitor"/>.
     /// </remarks>
-    [Obsolete("Use INetMQPoller instead")]
+    [Obsolete("Use INetMQPoller instead. This should be made internal, to avoid major re-work of NetMQMonitor, but prevent accidental mis-use from applications")]
     public interface ISocketPollableCollection
     {
         /// <summary>

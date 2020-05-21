@@ -166,7 +166,7 @@ namespace NetMQ
 
                     selectItem.ResultEvent = PollEvents.None;
 
-                    if (selectItem.Socket != null)
+                    if (selectItem.Socket != null && !selectItem.Socket.IsDisposed)
                     {
                         var events = (PollEvents)selectItem.Socket.GetSocketOption(ZmqSocketOption.Events);
 

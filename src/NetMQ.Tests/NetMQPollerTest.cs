@@ -72,12 +72,12 @@ namespace NetMQ.Tests
                 int port = rep.BindRandomPort("tcp://127.0.0.1");
 
                 reqMonitor.Connected += (s, e) => connectedEvent.Set();
+                req.Connect("tcp://127.0.0.1:" + port);
 
                 reqMonitor.AttachToPoller(poller);
 
                 poller.RunAsync();
 
-                req.Connect("tcp://127.0.0.1:" + port);
                 req.SendFrame("a");
 
                 rep.SkipFrame();
@@ -347,6 +347,8 @@ namespace NetMQ.Tests
                     // identity
                     e.Socket.SkipFrame();
 
+                    //**Note: bad to assert from worker thread!  
+                    // If it fails, the test will crash, not report failure!
                     Assert.Equal("Hello", e.Socket.ReceiveFrameString(out bool more));
                     Assert.False(more);
 
@@ -398,6 +400,151 @@ namespace NetMQ.Tests
                 pollerTask.Wait(1);
                 Assert.True(pollerTask.IsCompleted);
             }
+        }
+
+        [Fact]
+        public async Task RemoveAndDisposeSocketAsync()
+        {
+            //set up poller, start it
+            var patient = new NetMQPoller();
+            patient.RunAsync();
+
+            Assert.True(patient.IsRunning);
+
+            //create a pub-sub pair
+            var port = 55667;
+            var conn = $"tcp://127.0.0.1:{port}";
+
+            var pub = new PublisherSocket();
+            pub.Bind(conn);
+
+            var sub = new SubscriberSocket();
+            sub.Connect(conn);
+            sub.SubscribeToAnyTopic();
+
+            //handle callbacks from poller thread
+            sub.ReceiveReady += (s, e) =>
+            {
+                var msg = e.Socket.ReceiveFrameString();
+
+                Debug.WriteLine($"sub has data: {msg}");
+            };
+
+            //add the subscriber socket to poller
+            patient.Add(sub);
+
+            //set up pub on separate thread
+            var canceller = new CancellationTokenSource();
+
+            var pubAction = new Action(async () =>
+            {
+                var token = canceller.Token;
+
+                uint i = 0;
+
+                while (!token.IsCancellationRequested)
+                {
+                    pub.SendFrame($"Hello-{++i}");
+
+                    // send ~ 5Hz
+                    await Task.Delay(200);
+                }
+            });
+
+            Task.Run(pubAction);
+
+            //allow a little time to run
+            await Task.Delay(2000);
+
+            //now try to remove the sub from poller
+            await patient.RemoveAndDisposeAsync(sub);
+
+            Assert.True(sub.IsDisposed);
+
+            //allow for poller to continue running
+            await Task.Delay(2000);
+
+            patient.Stop();
+            Assert.False(patient.IsRunning);
+
+            canceller.Cancel();
+
+            pub?.Dispose();
+            patient?.Dispose();
+        }
+
+        [Fact]
+        public async Task DisposeSocketAfterAsyncRemoval()
+        {
+            //set up poller, start it
+            var patient = new NetMQPoller();
+            patient.RunAsync();
+            
+            Assert.True(patient.IsRunning);
+
+            //create a pub-sub pair
+            var port = 55667;
+            var conn = $"tcp://127.0.0.1:{port}";
+
+            var pub = new PublisherSocket();
+            pub.Bind(conn);
+
+            var sub = new SubscriberSocket();
+            sub.Connect(conn);
+            sub.SubscribeToAnyTopic();
+
+            //handle callbacks from poller thread
+            sub.ReceiveReady += (s, e) =>
+            {
+                var msg = e.Socket.ReceiveFrameString();
+
+                Debug.WriteLine($"sub has data: {msg}");
+            };
+
+            //add the subscriber socket to poller
+            patient.Add(sub);
+
+            //set up pub on separate thread
+            var canceller = new CancellationTokenSource();
+
+            var pubAction = new Action(async () =>
+            {
+                var token = canceller.Token;
+
+                uint i = 0;
+
+                while(!token.IsCancellationRequested)
+                {
+                    pub.SendFrame($"Hello-{++i}");
+
+                    // send ~ 5Hz
+                    await Task.Delay(200);
+                }
+            });
+
+            var pubThread = Task.Run(pubAction);
+
+            //allow a little time to run
+            await Task.Delay(2000);
+
+            //now try to remove the sub from poller
+            await patient.RemoveAsync(sub);
+
+            // dispose the sub (this will cause exception on poller's worker-thread) and it can't be caught!
+            sub.Dispose();
+            sub = null;
+
+            //allow for poller to continue running
+            await Task.Delay(2000);
+
+            patient.Stop();
+            Assert.False(patient.IsRunning);
+
+            canceller.Cancel();
+
+            pub?.Dispose();
+            patient?.Dispose();
+            canceller?.Dispose();
         }
 
         [Fact]
@@ -453,6 +600,7 @@ namespace NetMQ.Tests
             // Dispose the socket.
             // It is incorrect to have a disposed socket in a poller.
             // Disposed sockets can throw into the poller's thread.
+            
             socket.Dispose();
 
             // Dispose throws if a polled socket is disposed
@@ -554,6 +702,61 @@ namespace NetMQ.Tests
                 dealer.SendFrame("hello");
 
                 Thread.Sleep(300);
+
+                poller.Stop();
+
+                Assert.True(messageArrived);
+                Assert.False(timerTriggered);
+            }
+        }
+
+        [Fact]
+        public async void RemoveTimer_Async()
+        {
+            using (var router = new RouterSocket())
+            using (var dealer = new DealerSocket())
+            using (var poller = new NetMQPoller { router })
+            {
+                int port = router.BindRandomPort("tcp://127.0.0.1");
+
+                dealer.Connect("tcp://127.0.0.1:" + port);
+
+                bool timerTriggered = false;
+
+                var timer = new NetMQTimer(TimeSpan.FromMilliseconds(500));
+                timer.Elapsed += (s, a) => { timerTriggered = true; };
+
+                // The timer will fire after 100ms
+                poller.Add(timer);
+
+                bool messageArrived = false;
+
+                router.ReceiveReady += (s, e) =>
+                {
+                    router.SkipFrame();
+                    router.SkipFrame();
+                    messageArrived = true;
+                    //// Remove timer
+                    //poller.Remove(timer);
+                };
+
+                poller.RunAsync();
+
+                Thread.Sleep(20);
+
+                dealer.SendFrame("hello");
+
+                Thread.Sleep(300);
+
+                try
+                {
+                    await poller.RemoveAsync(timer);
+                }
+                catch (Exception ex)
+                {
+                    //ensure no exceptions thrown
+                    Assert.Null(ex);
+                }
 
                 poller.Stop();
 
@@ -847,6 +1050,60 @@ namespace NetMQ.Tests
                     Assert.True(socketSignal.WaitOne(100));
 
                     socketSignal.Reset();
+
+                    // sending a message back to the socket
+                    streamServer.SendMoreFrame(identity).SendFrame("a");
+
+                    // we remove the native socket so it should fail
+                    Assert.False(socketSignal.WaitOne(100));
+
+                    poller.Stop();
+                }
+            }
+        }
+
+        [Fact]
+        public async void NativeSocket_RemoveAsync()
+        {
+            using (var streamServer = new StreamSocket())
+            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+            {
+                int port = streamServer.BindRandomPort("tcp://*");
+
+                socket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));
+
+                var buffer = new byte[] { 1 };
+                socket.Send(buffer);
+
+                byte[] identity = streamServer.ReceiveFrameBytes();
+                byte[] message = streamServer.ReceiveFrameBytes();
+
+                Assert.Equal(buffer[0], message[0]);
+
+                var socketSignal = new ManualResetEvent(false);
+
+                using (var poller = new NetMQPoller())
+                {
+                    poller.Add(socket, s =>
+                    {
+                        socket.Receive(buffer);
+
+                        socketSignal.Set();
+                    });
+
+                    poller.RunAsync();
+
+                    // no message is waiting for the socket so it should fail
+                    Assert.False(socketSignal.WaitOne(100));
+
+                    // sending a message back to the socket
+                    streamServer.SendMoreFrame(identity).SendFrame("a");
+
+                    Assert.True(socketSignal.WaitOne(100));
+
+                    socketSignal.Reset();
+
+                    await poller.RemoveAsync(socket);
 
                     // sending a message back to the socket
                     streamServer.SendMoreFrame(identity).SendFrame("a");
