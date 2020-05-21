@@ -1,10 +1,11 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Threading;
 #if !NET35
 using System.Threading.Tasks;
 #endif
 using AsyncIO;
-using JetBrains.Annotations;
 using NetMQ.Core;
 using NetMQ.Sockets;
 
@@ -22,9 +23,9 @@ namespace NetMQ.Monitoring
     /// </remarks>
     public class NetMQMonitor : IDisposable
     {
-        [NotNull] private readonly NetMQSocket m_monitoringSocket;
+        private readonly NetMQSocket m_monitoringSocket;
         private readonly bool m_ownsMonitoringSocket;
-        [CanBeNull] private INetMQPoller m_attachedPoller;
+        private INetMQPoller? m_attachedPoller;
         private int m_cancel;
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
@@ -35,7 +36,7 @@ namespace NetMQ.Monitoring
         /// <param name="monitoredSocket">Socket to monitor</param>
         /// <param name="endpoint">Bind endpoint</param>
         /// <param name="eventsToMonitor">Flag enum of the events to monitored</param>
-        public NetMQMonitor([NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
+        public NetMQMonitor(NetMQSocket monitoredSocket, string endpoint, SocketEvents eventsToMonitor)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -61,7 +62,7 @@ namespace NetMQ.Monitoring
         /// A flag indicating whether ownership of <paramref name="socket"/> is transferred to the monitor.
         /// If <c>true</c>, disposing the monitor will also dispose <paramref name="socket"/>.
         /// </param>
-        public NetMQMonitor([NotNull] NetMQSocket socket, [NotNull] string endpoint, bool ownsSocket = false)
+        public NetMQMonitor(NetMQSocket socket, string endpoint, bool ownsSocket = false)
         {
             Endpoint = endpoint;
             Timeout = TimeSpan.FromSeconds(0.5);
@@ -99,57 +100,57 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Raised whenever any monitored event fires.
         /// </summary>
-        public event EventHandler<NetMQMonitorEventArgs> EventReceived;
+        public event EventHandler<NetMQMonitorEventArgs>? EventReceived;
 
         /// <summary>
         /// Occurs when a connection is made to a socket.
         /// </summary>
-        public event EventHandler<NetMQMonitorSocketEventArgs> Connected;
+        public event EventHandler<NetMQMonitorSocketEventArgs>? Connected;
 
         /// <summary>
         /// Occurs when a synchronous connection attempt failed, and its completion is being polled for.
         /// </summary>
-        public event EventHandler<NetMQMonitorErrorEventArgs> ConnectDelayed;
+        public event EventHandler<NetMQMonitorErrorEventArgs>? ConnectDelayed;
 
         /// <summary>
         /// Occurs when an asynchronous connect / reconnection attempt is being handled by a reconnect timer.
         /// </summary>
-        public event EventHandler<NetMQMonitorIntervalEventArgs> ConnectRetried;
+        public event EventHandler<NetMQMonitorIntervalEventArgs>? ConnectRetried;
 
         /// <summary>
         /// Occurs when a socket is bound to an address and is ready to accept connections.
         /// </summary>
-        public event EventHandler<NetMQMonitorSocketEventArgs> Listening;
+        public event EventHandler<NetMQMonitorSocketEventArgs>? Listening;
 
         /// <summary>
         /// Occurs when a socket could not bind to an address.
         /// </summary>
-        public event EventHandler<NetMQMonitorErrorEventArgs> BindFailed;
+        public event EventHandler<NetMQMonitorErrorEventArgs>? BindFailed;
 
         /// <summary>
         /// Occurs when a connection from a remote peer has been established with a socket's listen address.
         /// </summary>
-        public event EventHandler<NetMQMonitorSocketEventArgs> Accepted;
+        public event EventHandler<NetMQMonitorSocketEventArgs>? Accepted;
 
         /// <summary>
         /// Occurs when a connection attempt to a socket's bound address fails.
         /// </summary>
-        public event EventHandler<NetMQMonitorErrorEventArgs> AcceptFailed;
+        public event EventHandler<NetMQMonitorErrorEventArgs>? AcceptFailed;
 
         /// <summary>
         /// Occurs when a connection was closed.
         /// </summary>
-        public event EventHandler<NetMQMonitorSocketEventArgs> Closed;
+        public event EventHandler<NetMQMonitorSocketEventArgs>? Closed;
 
         /// <summary>
         /// Occurs when a connection couldn't be closed.
         /// </summary>
-        public event EventHandler<NetMQMonitorErrorEventArgs> CloseFailed;
+        public event EventHandler<NetMQMonitorErrorEventArgs>? CloseFailed;
 
         /// <summary>
         /// Occurs when the stream engine (TCP and IPC specific) detects a corrupted / broken session.
         /// </summary>
-        public event EventHandler<NetMQMonitorSocketEventArgs> Disconnected;
+        public event EventHandler<NetMQMonitorSocketEventArgs>? Disconnected;
 
         #endregion
 
@@ -194,7 +195,7 @@ namespace NetMQ.Monitoring
             }
         }
 
-        private void InvokeEvent<T>(EventHandler<T> handler, T args) where T : NetMQMonitorEventArgs
+        private void InvokeEvent<T>(EventHandler<T>? handler, T args) where T : NetMQMonitorEventArgs
         {
             EventReceived?.Invoke(this, args);
             handler?.Invoke(this, args);

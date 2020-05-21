@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿#nullable enable
+
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -19,7 +20,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="address">an IPAddress that will comprise the 'Address' of the new InterfaceItem</param>
         /// <param name="broadcastAddress">an IPAddress that will comprise the 'BroadcastAddress' of the new InterfaceItem</param>
-        public InterfaceItem([NotNull] IPAddress address, [NotNull] IPAddress broadcastAddress)
+        public InterfaceItem(IPAddress address, IPAddress broadcastAddress)
         {
             Address = address;
             BroadcastAddress = broadcastAddress;
@@ -28,12 +29,12 @@ namespace NetMQ
         /// <summary>
         /// Get the 'address' of this network interface, as an IPAddress.
         /// </summary>
-        [NotNull] public IPAddress Address { get; }
+        public IPAddress Address { get; }
 
         /// <summary>
         /// Get the 'broadcast-address' of this network interface, as an IPAddress.
         /// </summary>
-        [NotNull] public IPAddress BroadcastAddress { get; }
+        public IPAddress BroadcastAddress { get; }
     }
 
     /// <summary>

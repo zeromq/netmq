@@ -1,8 +1,9 @@
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
 using NetMQ.Core;
-using JetBrains.Annotations;
 #if NET40
 using NetMQ.Core.Utils;
 #endif
@@ -119,7 +120,7 @@ namespace NetMQ
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
         /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener encountered an
         /// error during initialisation.</exception>
-        public void Bind([NotNull] string address)
+        public void Bind(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -134,7 +135,7 @@ namespace NetMQ
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
         /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener errored during
         /// initialisation.</exception>
-        public int BindRandomPort([NotNull] string address)
+        public int BindRandomPort(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -149,7 +150,7 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="NetMQException">No IO thread was found.</exception>
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
-        public void Connect([NotNull] string address)
+        public void Connect(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -163,7 +164,7 @@ namespace NetMQ
         /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
-        public void Disconnect([NotNull] string address)
+        public void Disconnect(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -177,7 +178,7 @@ namespace NetMQ
         /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
-        public void Unbind([NotNull] string address)
+        public void Unbind(string address)
         {
             m_socketHandle.CheckDisposed();
 

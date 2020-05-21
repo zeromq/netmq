@@ -1,7 +1,8 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Linq;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Core;
 #if NET40
 using NetMQ.Core.Utils;
@@ -21,12 +22,12 @@ namespace NetMQ
         private readonly NetMQSocketEventArgs m_socketEventArgs;
         private readonly NetMQSelector m_netMqSelector;
 
-        private EventHandler<NetMQSocketEventArgs> m_receiveReady;
-        private EventHandler<NetMQSocketEventArgs> m_sendReady;
+        private EventHandler<NetMQSocketEventArgs>? m_receiveReady;
+        private EventHandler<NetMQSocketEventArgs>? m_sendReady;
         private int m_isClosed;
 
         #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
-        private NetMQRuntime m_runtime;
+        private NetMQRuntime? m_runtime;
         #endif
 
         internal enum DefaultAction
@@ -41,7 +42,7 @@ namespace NetMQ
         /// <param name="socketType">Type of socket to create</param>
         /// <param name="connectionString"></param>
         /// <param name="defaultAction"></param>
-        internal NetMQSocket(ZmqSocketType socketType, string connectionString, DefaultAction defaultAction)
+        internal NetMQSocket(ZmqSocketType socketType, string? connectionString, DefaultAction defaultAction)
         {
             m_socketHandle = NetMQConfig.Context.CreateSocket(socketType);
             m_netMqSelector = new NetMQSelector();
@@ -50,7 +51,7 @@ namespace NetMQ
 
             Options.Linger = NetMQConfig.Linger;
 
-            if (!string.IsNullOrEmpty(connectionString))
+            if (!Strings.IsNullOrEmpty(connectionString))
             {
                 var endpoints = connectionString
                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
@@ -82,7 +83,7 @@ namespace NetMQ
         /// Create a new NetMQSocket with the given <see cref="SocketBase"/>.
         /// </summary>
         /// <param name="socketHandle">a SocketBase object to assign to the new socket</param>
-        internal NetMQSocket([NotNull] SocketBase socketHandle)
+        internal NetMQSocket(SocketBase socketHandle)
         {
             m_netMqSelector = new NetMQSelector();
             m_socketHandle = socketHandle;
@@ -135,7 +136,7 @@ namespace NetMQ
         /// <summary>
         /// Fires when either the <see cref="SendReady"/> or <see cref="ReceiveReady"/> event is set.
         /// </summary>
-        internal event EventHandler<NetMQSocketEventArgs> EventsChanged;
+        internal event EventHandler<NetMQSocketEventArgs>? EventsChanged;
 
         /// <summary>
         /// Raise the <see cref="EventsChanged"/> event.
@@ -181,7 +182,7 @@ namespace NetMQ
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
         /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener encountered an
         /// error during initialisation.</exception>
-        public void Bind([NotNull] string address)
+        public void Bind(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -196,7 +197,7 @@ namespace NetMQ
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
         /// <exception cref="NetMQException">No IO thread was found, or the protocol's listener errored during
         /// initialisation.</exception>
-        public int BindRandomPort([NotNull] string address)
+        public int BindRandomPort(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -211,7 +212,7 @@ namespace NetMQ
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="NetMQException">No IO thread was found.</exception>
         /// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
-        public void Connect([NotNull] string address)
+        public void Connect(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -225,7 +226,7 @@ namespace NetMQ
         /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
-        public void Disconnect([NotNull] string address)
+        public void Disconnect(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -239,7 +240,7 @@ namespace NetMQ
         /// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
-        public void Unbind([NotNull] string address)
+        public void Unbind(string address)
         {
             m_socketHandle.CheckDisposed();
 
@@ -422,7 +423,7 @@ namespace NetMQ
         /// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="endpoint"/> is not supported.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
-        public void Monitor([NotNull] string endpoint, SocketEvents events = SocketEvents.All)
+        public void Monitor(string endpoint, SocketEvents events = SocketEvents.All)
         {
             if (endpoint == null)
                 throw new ArgumentNullException(nameof(endpoint));
@@ -533,7 +534,7 @@ namespace NetMQ
         /// <param name="value">an object that is the value to set that option to</param>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
-        internal void SetSocketOption(ZmqSocketOption option, object value)
+        internal void SetSocketOption(ZmqSocketOption option, object? value)
         {
             m_socketHandle.CheckDisposed();
 

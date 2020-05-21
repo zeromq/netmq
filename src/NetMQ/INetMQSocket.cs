@@ -1,5 +1,6 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿#nullable enable
+
+using System;
 using NetMQ.Core.Utils;
 
 namespace NetMQ
@@ -54,7 +55,7 @@ namespace NetMQ
 		/// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
 		/// <exception cref="NetMQException">No IO thread was found, or the protocol's listener encountered an
 		/// error during initialisation.</exception>
-		void Bind([NotNull] string address);
+		void Bind(string address);
 
 		/// <summary>Binds the specified TCP <paramref name="address"/> to an available port, assigned by the operating system.</summary>
 		/// <returns>the chosen port-number</returns>
@@ -64,7 +65,7 @@ namespace NetMQ
 		/// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
 		/// <exception cref="NetMQException">No IO thread was found, or the protocol's listener errored during
 		/// initialisation.</exception>
-		int BindRandomPort([NotNull] string address);
+		int BindRandomPort(string address);
 
 		/// <summary>
 		/// Connect the socket to <paramref name="address"/>.
@@ -74,7 +75,7 @@ namespace NetMQ
 		/// <exception cref="TerminatingException">The socket has been stopped.</exception>
 		/// <exception cref="NetMQException">No IO thread was found.</exception>
 		/// <exception cref="AddressAlreadyInUseException">The specified address is already in use.</exception>
-		void Connect([NotNull] string address);
+		void Connect(string address);
 
 		/// <summary>
 		/// Disconnect this socket from <paramref name="address"/>.
@@ -83,7 +84,7 @@ namespace NetMQ
 		/// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
 		/// <exception cref="TerminatingException">The socket has been stopped.</exception>
 		/// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
-		void Disconnect([NotNull] string address);
+		void Disconnect(string address);
 
 		/// <summary>
 		/// Unbind this socket from <paramref name="address"/>.
@@ -92,7 +93,7 @@ namespace NetMQ
 		/// <exception cref="ObjectDisposedException">thrown if the socket was already disposed</exception>
 		/// <exception cref="TerminatingException">The socket has been stopped.</exception>
 		/// <exception cref="EndpointNotFoundException">Endpoint was not found and cannot be disconnected.</exception>
-		void Unbind([NotNull] string address);
+		void Unbind(string address);
 
 		/// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="NetMQSocket.Dispose()"/>.</summary>
 		void Close();
@@ -137,6 +138,6 @@ namespace NetMQ
 		/// <exception cref="ProtocolNotSupportedException">The protocol of <paramref name="endpoint"/> is not supported.</exception>
 		/// <exception cref="TerminatingException">The socket has been stopped.</exception>
 		/// <exception cref="NetMQException">Maximum number of sockets reached.</exception>
-		void Monitor([NotNull] string endpoint, SocketEvents events = SocketEvents.All);
+		void Monitor(string endpoint, SocketEvents events = SocketEvents.All);
 	}
 }

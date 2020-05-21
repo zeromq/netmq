@@ -1,6 +1,7 @@
+#nullable enable
+
 using System;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using NetMQ.Utils;
 
 namespace NetMQ
@@ -19,7 +20,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>
-        public static void Send([NotNull] this IThreadSafeOutSocket socket, [NotNull] byte[] data)
+        public static void Send(this IThreadSafeOutSocket socket, byte[] data)
         {
             Send(socket, data, data.Length);
         }
@@ -30,7 +31,7 @@ namespace NetMQ
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
-        public static void Send([NotNull] this IThreadSafeOutSocket socket, [NotNull] byte[] data, int length)
+        public static void Send(this IThreadSafeOutSocket socket, byte[] data, int length)
         {
             var msg = new Msg();
             msg.InitPool(length);
@@ -52,7 +53,7 @@ namespace NetMQ
         /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IThreadSafeOutSocket socket, TimeSpan timeout, [NotNull] byte[] data, int length)
+        public static bool TrySend(this IThreadSafeOutSocket socket, TimeSpan timeout, byte[] data, int length)
         {
             var msg = new Msg();
             msg.InitPool(length);
@@ -75,7 +76,7 @@ namespace NetMQ
         /// <param name="timeout">The maximum period of time to try to send a message.</param>
         /// <param name="data">the byte-array of data to send</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IThreadSafeOutSocket socket, TimeSpan timeout, [NotNull] byte[] data)
+        public static bool TrySend(this IThreadSafeOutSocket socket, TimeSpan timeout, byte[] data)
         {
             return TrySend(socket, timeout, data, data.Length);
         }
@@ -91,7 +92,7 @@ namespace NetMQ
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IThreadSafeOutSocket socket, [NotNull] byte[] data)
+        public static bool TrySend(this IThreadSafeOutSocket socket, byte[] data)
         {
             return TrySend(socket, TimeSpan.Zero, data);
         }
@@ -104,7 +105,7 @@ namespace NetMQ
         /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IThreadSafeOutSocket socket, [NotNull] byte[] data, int length)
+        public static bool TrySend(this IThreadSafeOutSocket socket, byte[] data, int length)
         {
             return TrySend(socket, TimeSpan.Zero, data, length);
         }
@@ -118,7 +119,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>
-        public static ValueTask SendAsync([NotNull] this IThreadSafeOutSocket socket, [NotNull] byte[] data)
+        public static ValueTask SendAsync(this IThreadSafeOutSocket socket, byte[] data)
         {
             if (socket.TrySend(data))
                 return new ValueTask();
@@ -132,7 +133,7 @@ namespace NetMQ
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
-        public static ValueTask SendAsync([NotNull] this IThreadSafeOutSocket socket, [NotNull] byte[] data, int length)
+        public static ValueTask SendAsync(this IThreadSafeOutSocket socket, byte[] data, int length)
         {
             if (socket.TrySend(data, length))
                 return new ValueTask();
@@ -153,7 +154,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="message">the string to send</param>
-        public static void Send([NotNull] this IThreadSafeOutSocket socket,  [NotNull] string message)
+        public static void Send(this IThreadSafeOutSocket socket,  string message)
         {
             var msg = new Msg();
 
@@ -182,7 +183,7 @@ namespace NetMQ
         /// <param name="timeout">The maximum period of time to try to send a message.</param>
         /// <param name="message">the string to send</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IThreadSafeOutSocket socket, TimeSpan timeout, [NotNull] string message)
+        public static bool TrySend(this IThreadSafeOutSocket socket, TimeSpan timeout, string message)
         {
             var msg = new Msg();
 
@@ -216,7 +217,7 @@ namespace NetMQ
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="message">the string to send</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IThreadSafeOutSocket socket, [NotNull] string message)
+        public static bool TrySend(this IThreadSafeOutSocket socket, string message)
         {
             return TrySend(socket, TimeSpan.Zero, message);
         }
@@ -230,7 +231,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="message">the string to send</param>
-        public static ValueTask SendAsync([NotNull] this IThreadSafeOutSocket socket, [NotNull] string message)
+        public static ValueTask SendAsync(this IThreadSafeOutSocket socket, string message)
         {
             if (socket.TrySend(message))
                 return new ValueTask();

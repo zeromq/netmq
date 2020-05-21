@@ -1,11 +1,11 @@
-﻿#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+﻿#nullable enable
+#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
 
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -33,7 +33,7 @@ namespace NetMQ
         /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>The content of the received message.</returns>
         public static async Task<NetMQMessage> ReceiveMultipartMessageAsync(
-            [NotNull] this NetMQSocket socket, 
+            this NetMQSocket socket, 
             int expectedFrameCount = 4,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -63,9 +63,8 @@ namespace NetMQ
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>The content of the received message frame and boolean indicate if another frame of the same message follows.</returns>
-        [NotNull]
         public static Task<(byte[], bool)> ReceiveFrameBytesAsync(
-            [NotNull] this NetMQSocket socket, 
+            this NetMQSocket socket, 
             CancellationToken cancellationToken = default(CancellationToken)
         )
         {
@@ -117,9 +116,8 @@ namespace NetMQ
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>The content of the received message frame as a string and a boolean indicate if another frame of the same message follows.</returns>
-        [NotNull]
         public static Task<(string, bool)> ReceiveFrameStringAsync(
-            [NotNull] this NetMQSocket socket,
+            this NetMQSocket socket,
             CancellationToken cancellationToken = default(CancellationToken)
         )
         {
@@ -134,10 +132,9 @@ namespace NetMQ
         /// <param name="encoding">The encoding used to convert the frame's data to a string.</param>
         /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>The content of the received message frame as a string and boolean indicate if another frame of the same message follows..</returns>
-        [NotNull]
         public static Task<(string, bool)> ReceiveFrameStringAsync(
-            [NotNull] this NetMQSocket socket, 
-            [NotNull] Encoding encoding,
+            this NetMQSocket socket, 
+            Encoding encoding,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (NetMQRuntime.Current == null)
@@ -190,7 +187,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <returns>Boolean indicate if another frame of the same message follows</returns>
-        public static Task<bool> SkipFrameAsync([NotNull] this NetMQSocket socket)
+        public static Task<bool> SkipFrameAsync(this NetMQSocket socket)
         {
             if (NetMQRuntime.Current == null)
                 throw new InvalidOperationException("NetMQRuntime must be created before calling async functions");
@@ -235,7 +232,7 @@ namespace NetMQ
         /// Receive all frames of the next message from <paramref name="socket"/>, asynchronously, then ignore their contents.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
-        public static async Task SkipMultipartMessageAsync([NotNull] this NetMQSocket socket)
+        public static async Task SkipMultipartMessageAsync(this NetMQSocket socket)
         {
             while (true)
             {
@@ -256,7 +253,7 @@ namespace NetMQ
         /// <param name="socket">The socket to receive from.</param>
         /// <returns>The routing key and a boolean indicate if another frame of the same message follows.</returns>
 
-        public static async Task<(RoutingKey, bool)> ReceiveRoutingKeyAsync([NotNull] this NetMQSocket socket)
+        public static async Task<(RoutingKey, bool)> ReceiveRoutingKeyAsync(this NetMQSocket socket)
         {
             var (bytes, more) = await socket.ReceiveFrameBytesAsync();
 

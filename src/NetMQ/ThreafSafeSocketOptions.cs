@@ -1,5 +1,6 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿#nullable enable
+
+using System;
 using NetMQ.Core;
 
 namespace NetMQ
@@ -20,7 +21,7 @@ namespace NetMQ
         /// Create a new SocketOptions that references the given NetMQSocket.
         /// </summary>
         /// <param name="socket">the NetMQSocket for this SocketOptions to hold a reference to</param>
-        internal ThreadSafeSocketOptions([NotNull] SocketBase socket)
+        internal ThreadSafeSocketOptions(SocketBase socket)
         {
             m_socket = socket;
         }
@@ -287,8 +288,7 @@ namespace NetMQ
         /// If the TCP host is ANY, indicated by a *, then the returned address
         /// will be 0.0.0.0 (for IPv4).
         /// </remarks>
-        [CanBeNull]
-        public string LastEndpoint => GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint);
+        public string? LastEndpoint => GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint);
         
         /// <summary>
         /// Get or set the attach-on-connect value.

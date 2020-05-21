@@ -1,5 +1,6 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿#nullable enable
+
+using System;
 
 namespace NetMQ
 {
@@ -15,7 +16,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="buffer">the byte-array to get the short from</param>
         /// <returns></returns>
-        public static short ToInt16([NotNull] byte[] buffer)
+        public static short ToInt16(byte[] buffer)
         {
             var i = buffer[0] << 8 |
                     buffer[1];
@@ -30,7 +31,7 @@ namespace NetMQ
         /// <param name="buffer">the byte-array to get the short from</param>
         /// <param name="offset">Offset to read from</param>
         /// <returns></returns>
-        public static ushort ToUInt16([NotNull] byte[] buffer, int offset)
+        public static ushort ToUInt16(byte[] buffer, int offset)
         {
             var i = buffer[offset] << 8 |
                     buffer[offset + 1];
@@ -58,7 +59,6 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the short to convert</param>
         /// <returns>a 2-byte array containing that short's bits</returns>
-        [NotNull]
         public static byte[] GetBytes(short value)
         {
             var buffer = new byte[2];
@@ -73,7 +73,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the short to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the short's bytes into</param>
-        public static void PutInt16(short value, [NotNull] byte[] buffer)
+        public static void PutInt16(short value, byte[] buffer)
         {
             buffer[0] = (byte)(value >> 8);
             buffer[1] = (byte) value;
@@ -86,7 +86,7 @@ namespace NetMQ
         /// <param name="value">the short to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the short's bytes into</param>
         /// <param name="offset">Offset</param>
-        public static void PutUInt16(ushort value, [NotNull] byte[] buffer, int offset = 0)
+        public static void PutUInt16(ushort value, byte[] buffer, int offset = 0)
         {
             buffer[offset] = (byte)(value >> 8);
             buffer[offset + 1] = (byte) value;
@@ -112,7 +112,7 @@ namespace NetMQ
         /// <param name="buffer">the byte-array to get the integer from</param>
         /// <param name="offset">offset</param>
         /// <returns></returns>
-        public static int ToInt32([NotNull] byte[] buffer, int offset  = 0)
+        public static int ToInt32(byte[] buffer, int offset = 0)
         {
             return 
                 buffer[offset] << 24 |
@@ -141,7 +141,6 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the int to convert</param>
         /// <returns>a 4-byte array containing that integer's bits</returns>
-        [NotNull]
         public static byte[] GetBytes(int value)
         {
             var buffer = new byte[4];
@@ -157,7 +156,7 @@ namespace NetMQ
         /// <param name="value">the integer to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the integer's bytes into</param>
         /// <param name="offset">Offset to write to</param>
-        public static void PutInt32(int value, [NotNull] byte[] buffer, int offset = 0)
+        public static void PutInt32(int value, byte[] buffer, int offset = 0)
         {
             buffer[offset] = (byte)(value >> 24);
             buffer[offset + 1] = (byte)(value >> 16);
@@ -185,7 +184,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="buffer">the byte-array to get the Int64 from</param>
         /// <returns></returns>
-        public static long ToInt64([NotNull] byte[] buffer)
+        public static long ToInt64(byte[] buffer)
         {
             return
                 (long)buffer[0] << 56 |
@@ -222,7 +221,6 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">The <c>long</c> value to convert from.</param>
         /// <returns>The network order presentation of <paramref name="value"/> as an 8-byte array.</returns>
-        [NotNull]
         public static byte[] GetBytes(long value)
         {
             var buffer = new byte[8];
@@ -237,7 +235,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="value">the long value to convert into bytes</param>
         /// <param name="buffer">the byte-array to write the long value's bytes into</param>
-        public static void PutInt64(long value, [NotNull] byte[] buffer)
+        public static void PutInt64(long value, byte[] buffer)
         {
             buffer[0] = (byte)(value >> 56);
             buffer[1] = (byte)(value >> 48);
@@ -311,7 +309,7 @@ namespace NetMQ
         /// <param name="buffer">the byte-array to get the Int64 from</param>
         /// <param name="offset">Offset to read from</param>
         /// <returns></returns>
-        public static ulong ToUInt64([NotNull] byte[] buffer, int offset)
+        public static ulong ToUInt64(byte[] buffer, int offset)
         {
             return
                 (ulong)buffer[offset] << 56 |
