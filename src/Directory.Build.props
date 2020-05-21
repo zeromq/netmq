@@ -1,0 +1,6 @@
+<Project>
+  <!-- Workaround for https://github.com/dotnet/sourcelink/issues/572 -->
+  <ItemGroup>
+    <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
+  </ItemGroup>
+</Project>
