@@ -141,7 +141,7 @@ namespace NetMQ
         /// <inheritdoc />
         public IEnumerator<T> GetEnumerator() => m_queue.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() { yield return GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         #endregion
 
