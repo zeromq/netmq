@@ -8,9 +8,9 @@ namespace NetMQ
     /// Structure to represent a routing key from Router, Peer and Stream sockets.
     /// Implement Equals and GetHashCode and can be used as key for a Dictionary.
     /// </summary>
-    public struct RoutingKey: IEquatable<RoutingKey>, IEquatable<byte[]>
+    public readonly struct RoutingKey : IEquatable<RoutingKey>, IEquatable<byte[]>
     {
-        private byte[] bytes;
+        private readonly byte[] bytes;
 
         private const uint C1 = 0xcc9e2d51;
         private const uint C2 = 0x1b873593;
