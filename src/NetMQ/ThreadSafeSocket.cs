@@ -22,14 +22,15 @@ namespace NetMQ
         /// wait occurs.</param>
         /// <returns><c>true</c> if a message was sent, otherwise <c>false</c>.</returns>
         bool TrySend(ref Msg msg, TimeSpan timeout);
-        
+
         /// <summary>Attempt to receive a message for the specified amount of time.</summary>
         /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message
         /// data should be placed.</param>
         /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
-        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed or cancellation was requested,
         /// otherwise <c>false</c>.</returns>
-        bool TryReceive(ref Msg msg, TimeSpan timeout);
+        bool TryReceive(ref Msg msg, TimeSpan timeout, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
@@ -97,11 +98,12 @@ namespace NetMQ
         /// <param name="msg">A reference to a <see cref="Msg"/> instance into which the received message
         /// data should be placed.</param>
         /// <param name="timeout">The maximum amount of time the call should wait for a message before returning.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns><c>true</c> if a message was received before <paramref name="timeout"/> elapsed,
         /// otherwise <c>false</c>.</returns>
-        public virtual bool TryReceive(ref Msg msg, TimeSpan timeout)
+        public virtual bool TryReceive(ref Msg msg, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
-            return m_socketHandle.TryRecv(ref msg, timeout);
+            return m_socketHandle.TryRecv(ref msg, timeout, cancellationToken);
         }
 
         #endregion

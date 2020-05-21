@@ -241,6 +241,14 @@ namespace NetMQ.Core
         }
 
         /// <summary>
+        /// Socket sends a CancellationRequested command to itself when a CancellationToken has been cancelled 
+        /// </summary>
+        protected void SendCancellationRequested()
+        {
+            SendCommand(new Command(this, CommandType.CancellationRequested, null));
+        }
+
+        /// <summary>
         /// Send the given Command, on that commands Destination thread.
         /// </summary>
         /// <param name="cmd">the Command to send</param>
@@ -323,6 +331,10 @@ namespace NetMQ.Core
 
                 case CommandType.ForceStop:
                     ProcessForceStop();
+                    break;
+                
+                case CommandType.CancellationRequested:
+                    ProcessCancellationRequested();
                     break;
 
                 default:
@@ -468,6 +480,13 @@ namespace NetMQ.Core
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Handler for cancellation requested
+        /// </summary>
+        protected virtual void ProcessCancellationRequested()
+        {
+        }
+        
         #endregion
     }
 }

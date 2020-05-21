@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
+using System.Threading;
 using AsyncIO;
 using JetBrains.Annotations;
 using NetMQ.Core.Patterns;
@@ -982,6 +983,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">the <c>Msg</c> to read the received message into</param>
         /// <param name="timeout">this controls whether the call blocks, and for how long.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns><c>true</c> if successful, <c>false</c> if it timed out</returns>
         /// <remarks>
         /// For <paramref name="timeout"/>, there are three categories of value:
@@ -993,7 +995,7 @@ namespace NetMQ.Core
         /// </remarks>
         /// <exception cref="FaultException">the Msg must already have been uninitialised</exception>
         /// <exception cref="TerminatingException">The socket must not already be stopped.</exception>
-        public bool TryRecv(ref Msg msg, TimeSpan timeout)
+        public bool TryRecv(ref Msg msg, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             Lock();
             try
@@ -1056,7 +1058,10 @@ namespace NetMQ.Core
                 bool block = m_ticks != 0;
                 while (true)
                 {
-                    ProcessCommands(block ? timeoutMillis : 0, false);
+                    if (cancellationToken.IsCancellationRequested)
+                        return false;
+                    
+                    ProcessCommands(block ? timeoutMillis : 0, false, cancellationToken);
 
                     isMessageAvailable = XRecv(ref msg);
                     if (isMessageAvailable)
@@ -1168,15 +1173,21 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="timeout">how much time to allow to wait for a command, before returning (in milliseconds)</param>
         /// <param name="throttle">if true - throttle the rate of command-execution by doing only one per call</param>
+        /// <param name="cancellationToken">allows the caller to cancel the process commands operation</param>
         /// <exception cref="TerminatingException">The Ctx context must not already be terminating.</exception>
-        private void ProcessCommands(int timeout, bool throttle)
+        private void ProcessCommands(int timeout, bool throttle, CancellationToken cancellationToken = default)
         {
             bool found;
             Command command;
             if (timeout != 0)
             {
-                // If we are asked to wait, simply ask mailbox to wait.
-                found = m_mailbox.TryRecv(timeout, out command);
+                if (cancellationToken.CanBeCanceled)
+                {
+                    using var registration = cancellationToken.Register(SendCancellationRequested);
+                    found = m_mailbox.TryRecv(timeout, out command);
+                }
+                else
+                    found = m_mailbox.TryRecv(timeout, out command);
             }
             else
             {

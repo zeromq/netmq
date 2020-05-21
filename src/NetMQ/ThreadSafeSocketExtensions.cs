@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading;
 
 namespace NetMQ
 {
@@ -31,9 +32,15 @@ namespace NetMQ
         /// </remarks>
         /// <param name="socket">Socket to transmit on</param>
         /// <param name="msg">An object to receive the message's data into.</param>
-        public static void Receive(this IThreadSafeSocket socket, ref Msg msg)
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static void Receive(this IThreadSafeSocket socket, ref Msg msg, CancellationToken cancellationToken = default)
         {
-            var result = socket.TryReceive(ref msg, SendReceiveConstants.InfiniteTimeout);
+            var result = socket.TryReceive(ref msg, SendReceiveConstants.InfiniteTimeout, cancellationToken);
+            
+            if (!result)
+                cancellationToken.ThrowIfCancellationRequested();
+            
             Debug.Assert(result);
         }
     }

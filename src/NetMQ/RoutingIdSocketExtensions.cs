@@ -35,7 +35,8 @@ namespace NetMQ
         /// <param name="routingId">Routing id</param>
         /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
-        public static void Send([NotNull] this IRoutingIdSocket socket, uint routingId, [NotNull] byte[] data, int length)
+        public static void Send([NotNull] this IRoutingIdSocket socket, uint routingId, [NotNull] byte[] data,
+            int length)
         {
             var msg = new Msg();
             msg.InitPool(length);
@@ -44,7 +45,7 @@ namespace NetMQ
             socket.Send(ref msg);
             msg.Close();
         }
-        
+
         #endregion
 
         #region Timeout
@@ -59,7 +60,8 @@ namespace NetMQ
         /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, uint routingId, [NotNull] byte[] data, int length)
+        public static bool TrySend([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, uint routingId,
+            [NotNull] byte[] data, int length)
         {
             var msg = new Msg();
             msg.InitPool(length);
@@ -84,7 +86,8 @@ namespace NetMQ
         /// <param name="routingId">Routing id</param>
         /// <param name="data">the byte-array of data to send</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, uint routingId, [NotNull] byte[] data)
+        public static bool TrySend([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, uint routingId,
+            [NotNull] byte[] data)
         {
             return TrySend(socket, timeout, routingId, data, data.Length);
         }
@@ -115,15 +118,16 @@ namespace NetMQ
         /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IRoutingIdSocket socket, uint routingId, [NotNull] byte[] data, int length)
+        public static bool TrySend([NotNull] this IRoutingIdSocket socket, uint routingId, [NotNull] byte[] data,
+            int length)
         {
             return TrySend(socket, TimeSpan.Zero, routingId, data, length);
         }
 
         #endregion
-        
+
         #region Async
-        
+
         /// <summary>
         /// Transmit a byte-array of data over this socket asynchronously.
         /// </summary>
@@ -134,8 +138,9 @@ namespace NetMQ
         {
             if (socket.TrySend(routingId, data))
                 return new ValueTask();
-            
-            return new ValueTask(Task.Factory.StartNew(() => Send(socket, routingId, data), TaskCreationOptions.LongRunning));
+
+            return new ValueTask(Task.Factory.StartNew(() => Send(socket, routingId, data),
+                TaskCreationOptions.LongRunning));
         }
 
         /// <summary>
@@ -145,18 +150,20 @@ namespace NetMQ
         /// <param name="routingId">Routing id</param>
         /// <param name="data">the byte-array of data to send</param>
         /// <param name="length">the number of bytes to send from <paramref name="data"/>.</param>
-        public static ValueTask SendAsync([NotNull] this IRoutingIdSocket socket, uint routingId, [NotNull] byte[] data, int length)
+        public static ValueTask SendAsync([NotNull] this IRoutingIdSocket socket, uint routingId, [NotNull] byte[] data,
+            int length)
         {
             if (socket.TrySend(routingId, data, length))
                 return new ValueTask();
-            
-            return new ValueTask(Task.Factory.StartNew(() => Send(socket, routingId, data, length), TaskCreationOptions.LongRunning));
+
+            return new ValueTask(Task.Factory.StartNew(() => Send(socket, routingId, data, length),
+                TaskCreationOptions.LongRunning));
         }
 
         #endregion
 
         #endregion
-        
+
         #region Sending Strings
 
         #region Blocking
@@ -198,7 +205,8 @@ namespace NetMQ
         /// <param name="routingId">Routing id</param>
         /// <param name="message">the string to send</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TrySend([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, uint routingId, [NotNull] string message)
+        public static bool TrySend([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, uint routingId,
+            [NotNull] string message)
         {
             var msg = new Msg();
 
@@ -240,27 +248,29 @@ namespace NetMQ
         }
 
         #endregion
-        
+
         #region Async
-        
+
         /// <summary>
         /// Transmit a string over this socket asynchronously.
         /// </summary>
         /// <param name="socket">the socket to transmit on</param>
         /// <param name="routingId">Routing id</param>
         /// <param name="message">the string to send</param>
-        public static ValueTask SendAsync([NotNull] this IRoutingIdSocket socket, uint routingId, [NotNull] string message)
+        public static ValueTask SendAsync([NotNull] this IRoutingIdSocket socket, uint routingId,
+            [NotNull] string message)
         {
             if (socket.TrySend(routingId, message))
                 return new ValueTask();
-            
-            return new ValueTask(Task.Factory.StartNew(() => Send(socket, routingId, message), TaskCreationOptions.LongRunning));
+
+            return new ValueTask(Task.Factory.StartNew(() => Send(socket, routingId, message),
+                TaskCreationOptions.LongRunning));
         }
 
         #endregion
 
         #endregion
-        
+
         #region Receiving byte array
 
         #region Blocking
@@ -269,22 +279,29 @@ namespace NetMQ
         /// Receive a bytes from <paramref name="socket"/>, blocking until one arrives.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>Tuple of routing id and received bytes</returns>
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
         [NotNull]
-        public static (uint,byte[]) ReceiveBytes([NotNull] this IRoutingIdSocket socket)
+        public static (uint, byte[]) ReceiveBytes([NotNull] this IRoutingIdSocket socket,
+            CancellationToken cancellationToken = default)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            socket.Receive(ref msg);
-
-            var data = msg.CloneData();
-            var routingId = msg.RoutingId;
-
-            msg.Close();
-            return (routingId, data);
+            try
+            {
+                socket.Receive(ref msg, cancellationToken);
+                var data = msg.CloneData();
+                var routingId = msg.RoutingId;
+                return (routingId, data);
+            }
+            finally
+            {
+                msg.Close();
+            }
         }
-        
+
         #endregion
 
         #region Immediate
@@ -314,13 +331,16 @@ namespace NetMQ
         /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
         /// <param name="routingId">Routing id</param>
         /// <param name="bytes">The content of the received message, or <c>null</c> if no message was available.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TryReceiveBytes([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, out uint routingId, out byte[] bytes)
+        /// <remarks>The method would return false if cancellation has had requested.</remarks>
+        public static bool TryReceiveBytes([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, out uint routingId,
+            out byte[] bytes, CancellationToken cancellationToken = default)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            if (!socket.TryReceive(ref msg, timeout))
+            if (!socket.TryReceive(ref msg, timeout, cancellationToken))
             {
                 msg.Close();
                 bytes = null;
@@ -338,25 +358,29 @@ namespace NetMQ
         #endregion
 
         #region Async
-        
+
         /// <summary>
         /// Receive a bytes from <paramref name="socket"/> asynchronously.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>Tuple of routing id and received bytes</returns>
-        public static ValueTask<(uint, byte[])> ReceiveBytesAsync([NotNull] this IRoutingIdSocket socket)
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static ValueTask<(uint, byte[])> ReceiveBytesAsync([NotNull] this IRoutingIdSocket socket,
+            CancellationToken cancellationToken = default)
         {
             if (TryReceiveBytes(socket, out var routingId, out var bytes))
                 return new ValueTask<(uint, byte[])>((routingId, bytes));
-            
+
             // TODO: this is a hack, eventually we need kind of IO ThreadPool for thread-safe socket to wait on asynchronously
-            return new ValueTask<(uint, byte[])>(Task.Factory.StartNew(socket.ReceiveBytes, TaskCreationOptions.LongRunning));
+            return new ValueTask<(uint, byte[])>(Task.Factory.StartNew(() => socket.ReceiveBytes(cancellationToken),
+                cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default));
         }
-        
+
         #endregion
-        
+
         #endregion
-        
+
         #region Receiving string
 
         #region Blocking
@@ -365,10 +389,13 @@ namespace NetMQ
         /// Receive a string from <paramref name="socket"/>, blocking until one arrives, and decode using <see cref="SendReceiveConstants.DefaultEncoding"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>Tuple of routing id and the content of the received message as a string.</returns>
-        public static (uint, string) ReceiveString([NotNull] this IRoutingIdSocket socket)
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static (uint, string) ReceiveString([NotNull] this IRoutingIdSocket socket, 
+            CancellationToken cancellationToken = default)
         {
-            return socket.ReceiveString(SendReceiveConstants.DefaultEncoding);
+            return socket.ReceiveString(SendReceiveConstants.DefaultEncoding, cancellationToken);
         }
 
         /// <summary>
@@ -376,18 +403,19 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="encoding">The encoding used to convert the data to a string.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>Tuple of routing id and the content of the received message as a string.</returns>
-        public static (uint, string) ReceiveString([NotNull] this IRoutingIdSocket socket, [NotNull] Encoding encoding)
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static (uint, string) ReceiveString([NotNull] this IRoutingIdSocket socket, [NotNull] Encoding encoding,
+            CancellationToken cancellationToken = default)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            socket.Receive(ref msg);
-
-            var routingId = msg.RoutingId;
-
             try
             {
+                socket.Receive(ref msg, cancellationToken);          
+                var routingId = msg.RoutingId;
                 var str = msg.Size > 0
                     ? msg.GetString(encoding)
                     : string.Empty;
@@ -395,10 +423,10 @@ namespace NetMQ
             }
             finally
             {
-                msg.Close();    
+                msg.Close();
             }
         }
-        
+
         #endregion
 
         #region Immediate
@@ -425,7 +453,8 @@ namespace NetMQ
         /// <param name="routingId">Routing id</param>
         /// <param name="str">The content of the received message as a string, or <c>null</c> if no message was available.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TryReceiveString([NotNull] this IRoutingIdSocket socket, [NotNull] Encoding encoding, out uint routingId, out string str)
+        public static bool TryReceiveString([NotNull] this IRoutingIdSocket socket, [NotNull] Encoding encoding,
+            out uint routingId, out string str)
         {
             return socket.TryReceiveString(TimeSpan.Zero, encoding, out routingId, out str);
         }
@@ -442,10 +471,13 @@ namespace NetMQ
         /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
         /// <param name="routingId">Routing id</param>
         /// <param name="str">The content of the received message as a string, or <c>null</c> if no message was available.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TryReceiveString([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, out uint routingId, out string str)
+        /// <remarks>The method would return false if cancellation has had requested.</remarks>
+        public static bool TryReceiveString([NotNull] this IRoutingIdSocket socket, TimeSpan timeout,
+            out uint routingId, out string str, CancellationToken cancellationToken = default)
         {
-            return socket.TryReceiveString(timeout, SendReceiveConstants.DefaultEncoding, out routingId, out str);
+            return socket.TryReceiveString(timeout, SendReceiveConstants.DefaultEncoding, out routingId, out str, cancellationToken);
         }
 
         /// <summary>
@@ -457,13 +489,16 @@ namespace NetMQ
         /// <param name="encoding">The encoding used to convert the data to a string.</param>
         /// <param name="routingId">Routing id</param>
         /// <param name="str">The content of the received message as a string, or <c>null</c> if no message was available.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TryReceiveString([NotNull] this IRoutingIdSocket socket, TimeSpan timeout, [NotNull] Encoding encoding, out uint routingId, out string str)
+        /// <remarks>The method would return false if cancellation has had requested.</remarks>
+        public static bool TryReceiveString([NotNull] this IRoutingIdSocket socket, TimeSpan timeout,
+            [NotNull] Encoding encoding, out uint routingId, out string str, CancellationToken cancellationToken = default)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            if (socket.TryReceive(ref msg, timeout))
+            if (socket.TryReceive(ref msg, timeout, cancellationToken))
             {
                 routingId = msg.RoutingId;
 
@@ -476,7 +511,7 @@ namespace NetMQ
                 }
                 finally
                 {
-                    msg.Close();    
+                    msg.Close();
                 }
             }
 
@@ -487,21 +522,25 @@ namespace NetMQ
         }
 
         #endregion
-        
+
         #region Async
-        
+
         /// <summary>
         /// Receive a string from <paramref name="socket"/> asynchronously.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>Tuple of routing id and a string</returns>
-        public static ValueTask<(uint, string)> ReceiveStringAsync([NotNull] this IRoutingIdSocket socket)
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static ValueTask<(uint, string)> ReceiveStringAsync([NotNull] this IRoutingIdSocket socket,
+            CancellationToken cancellationToken = default)
         {
             if (TryReceiveString(socket, out var routingId, out var msg))
                 return new ValueTask<(uint, string)>((routingId, msg));
-                    
+
             // TODO: this is a hack, eventually we need kind of IO ThreadPool for thread-safe socket to wait on asynchronously
-            return new ValueTask<(uint, string)>(Task.Factory.StartNew(socket.ReceiveString, TaskCreationOptions.LongRunning));
+            return new ValueTask<(uint, string)>(Task.Factory.StartNew(() => socket.ReceiveString(cancellationToken),
+                cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default));
         }
 
         #endregion

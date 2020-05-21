@@ -106,6 +106,11 @@ namespace NetMQ.Core
         /// <summary>
         /// Send to reaper to stop the reaper immediatly
         /// </summary>
-        ForceStop
+        ForceStop,
+        
+        /// <summary>
+        /// Send a cancellation request to the socket from a cancellation token
+        /// </summary>
+        CancellationRequested
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
@@ -18,19 +19,26 @@ namespace NetMQ
         /// Receive a bytes from <paramref name="socket"/>, blocking until one arrives.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>The content of the received message.</returns>
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
         [NotNull]
-        public static byte[] ReceiveBytes([NotNull] this IThreadSafeInSocket socket)
+        public static byte[] ReceiveBytes([NotNull] this IThreadSafeInSocket socket,
+            CancellationToken cancellationToken = default)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            socket.Receive(ref msg);
-
-            var data = msg.CloneData();
-
-            msg.Close();
-            return data;
+            try
+            {
+                socket.Receive(ref msg, cancellationToken);
+                var data = msg.CloneData();
+                return data;
+            }
+            finally
+            {
+                msg.Close();
+            }
         }
 
         #endregion
@@ -60,14 +68,16 @@ namespace NetMQ
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
         /// <param name="bytes">The content of the received message, or <c>null</c> if no message was available.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        /// <remarks>The method would return false if cancellation has had requested.</remarks>
         public static bool TryReceiveBytes([NotNull] this IThreadSafeInSocket socket, TimeSpan timeout,
-            out byte[] bytes)
+            out byte[] bytes, CancellationToken cancellationToken = default)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            if (!socket.TryReceive(ref msg, timeout))
+            if (!socket.TryReceive(ref msg, timeout, cancellationToken))
             {
                 msg.Close();
                 bytes = null;
@@ -88,15 +98,20 @@ namespace NetMQ
         /// Receive a bytes from <paramref name="socket"/> asynchronously.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>The content of the received message.</returns>
-        public static ValueTask<byte[]> ReceiveBytesAsync([NotNull] this IThreadSafeInSocket socket)
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static ValueTask<byte[]> ReceiveBytesAsync([NotNull] this IThreadSafeInSocket socket,
+            CancellationToken cancellationToken = default)
         {
             if (TryReceiveBytes(socket, out var bytes))
                 return new ValueTask<byte[]>(bytes);
 
             // TODO: this is a hack, eventually we need kind of IO ThreadPool for thread-safe socket to wait on asynchronously
             // and probably implement IValueTaskSource
-            return new ValueTask<byte[]>(Task.Factory.StartNew(socket.ReceiveBytes, TaskCreationOptions.LongRunning));
+            // TODO: should we avoid lambda here as it cause heap allocation for the environment?
+            return new ValueTask<byte[]>(Task.Factory.StartNew(() => socket.ReceiveBytes(cancellationToken),
+                cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default));
         }
 
         #endregion
@@ -111,10 +126,13 @@ namespace NetMQ
         /// Receive a string from <paramref name="socket"/>, blocking until one arrives, and decode using <see cref="SendReceiveConstants.DefaultEncoding"/>.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>The content of the received message.</returns>
-        public static string ReceiveString([NotNull] this IThreadSafeInSocket socket)
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static string ReceiveString([NotNull] this IThreadSafeInSocket socket,
+            CancellationToken cancellationToken = default)
         {
-            return socket.ReceiveString(SendReceiveConstants.DefaultEncoding);
+            return socket.ReceiveString(SendReceiveConstants.DefaultEncoding, cancellationToken);
         }
 
         /// <summary>
@@ -122,16 +140,18 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="encoding">The encoding used to convert the data to a string.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>The content of the received message.</returns>
-        public static string ReceiveString([NotNull] this IThreadSafeInSocket socket, [NotNull] Encoding encoding)
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static string ReceiveString([NotNull] this IThreadSafeInSocket socket, [NotNull] Encoding encoding,
+            CancellationToken cancellationToken = default)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            socket.Receive(ref msg);
-
             try
             {
+                socket.Receive(ref msg, cancellationToken);
                 return msg.Size > 0
                     ? msg.GetString(encoding)
                     : string.Empty;
@@ -182,11 +202,14 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
         /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
-        /// <param name="str">The content of the received message, or <c>null</c> if no message was available.</param>
+        /// <param name="str">The conent of the received message, or <c>null</c> if no message was available.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
-        public static bool TryReceiveString([NotNull] this IThreadSafeInSocket socket, TimeSpan timeout, out string str)
+        /// <remarks>The method would return false if cancellation has had requested.</remarks>
+        public static bool TryReceiveString([NotNull] this IThreadSafeInSocket socket, TimeSpan timeout, out string str,
+            CancellationToken cancellationToken = default)
         {
-            return socket.TryReceiveString(timeout, SendReceiveConstants.DefaultEncoding, out str);
+            return socket.TryReceiveString(timeout, SendReceiveConstants.DefaultEncoding, out str, cancellationToken);
         }
 
         /// <summary>
@@ -197,14 +220,16 @@ namespace NetMQ
         /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
         /// <param name="encoding">The encoding used to convert the data to a string.</param>
         /// <param name="str">The content of the received message, or <c>null</c> if no message was available.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        /// <remarks>The method would return false if cancellation has had requested.</remarks>
         public static bool TryReceiveString([NotNull] this IThreadSafeInSocket socket, TimeSpan timeout,
-            [NotNull] Encoding encoding, out string str)
+            [NotNull] Encoding encoding, out string str, CancellationToken cancellationToken = default)
         {
             var msg = new Msg();
             msg.InitEmpty();
 
-            if (socket.TryReceive(ref msg, timeout))
+            if (socket.TryReceive(ref msg, timeout, cancellationToken))
             {
                 try
                 {
@@ -215,7 +240,7 @@ namespace NetMQ
                 }
                 finally
                 {
-                    msg.Close();    
+                    msg.Close();
                 }
             }
 
@@ -232,15 +257,19 @@ namespace NetMQ
         /// Receive a string from <paramref name="socket"/> asynchronously.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns>The content of the received message.</returns>
-        public static ValueTask<string> ReceiveStringAsync([NotNull] this IThreadSafeInSocket socket)
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static ValueTask<string> ReceiveStringAsync([NotNull] this IThreadSafeInSocket socket,
+            CancellationToken cancellationToken = default)
         {
             if (TryReceiveString(socket, out var msg))
                 return new ValueTask<string>(msg);
 
             // TODO: this is a hack, eventually we need kind of IO ThreadPool for thread-safe socket to wait on asynchronously
             // and probably implement IValueTaskSource
-            return new ValueTask<string>(Task.Factory.StartNew(socket.ReceiveString, TaskCreationOptions.LongRunning));
+            return new ValueTask<string>(Task.Factory.StartNew(() => socket.ReceiveString(cancellationToken),
+                cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default));
         }
 
         #endregion
