@@ -53,7 +53,6 @@
   </ItemGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System" />
@@ -61,7 +60,6 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net47" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System" />
