@@ -1,3 +1,5 @@
+#nullable enable
+
 #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
 
 using System;
@@ -10,9 +12,7 @@ namespace NetMQ
     /// <summary>
     /// NetMQRuntime enable using NetMQSocket receive async methods.
     /// You need to create an instance before calling any async methods.
-    /// To continue and process the Tasks call <see>
-    ///     <cref>Run</cref>
-    /// </see>
+    /// To continue and process the Tasks call <see cref="Run(Task[])" /> and <see cref="Run(CancellationToken, Task[])"/>
     /// </summary>
     public class NetMQRuntime : IDisposable
     {
@@ -20,7 +20,7 @@ namespace NetMQ
         private readonly NetMQSynchronizationContext m_synchronizationContext;
         private readonly SynchronizationContext m_oldSynchronizationContext;
         private static readonly ThreadLocal<NetMQRuntime> s_current = new ThreadLocal<NetMQRuntime>();
-        private List<NetMQSocket> m_sockets;
+        private readonly List<NetMQSocket> m_sockets;
 
         /// <summary>
         /// Create a new NetMQRuntime, you can start calling async method after creating a runtime.

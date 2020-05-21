@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿#nullable enable
+
 using NetMQ.Core.Utils;
 using System;
 using System.Threading;
@@ -15,14 +16,13 @@ namespace NetMQ
         /// Take an AtomicCounter from the pool.
         /// </summary>
         /// <returns>an atomic counter</returns>
-        [NotNull]
         AtomicCounter Take();
 
         /// <summary>
         /// Return the given atomic counter to the common pool.
         /// </summary>
         /// <param name="counter">the atomic counter to return to the buffer-pool</param>
-        void Return([NotNull] AtomicCounter counter);
+        void Return(AtomicCounter counter);
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ namespace NetMQ
         /// Set BufferPool to use the specified IAtomicCounterPool implementation to manage the pool.
         /// </summary>
         /// <param name="counterPool">the implementation of <see cref="IAtomicCounterPool"/> to use</param>
-        public static void SetCustomCounterPool([NotNull] IAtomicCounterPool counterPool)
+        public static void SetCustomCounterPool(IAtomicCounterPool counterPool)
         {
             var prior = Interlocked.Exchange(ref s_counterPool, counterPool);
 
@@ -110,7 +110,6 @@ namespace NetMQ
         /// Allocate an atomic counter from the current <see cref="IAtomicCounterPool"/>.
         /// </summary>
         /// <returns>an atomic counter</returns>
-        [NotNull]
         public static AtomicCounter Take()
         {
             return s_counterPool.Take();
@@ -120,7 +119,7 @@ namespace NetMQ
         /// Returns <paramref name="counter"/> to the <see cref="IAtomicCounterPool"/>.
         /// </summary>
         /// <param name="counter">The atomic counter to be returned to the pool.</param>
-        public static void Return([NotNull] AtomicCounter counter)
+        public static void Return(AtomicCounter counter)
         {
             s_counterPool.Return(counter);
         }

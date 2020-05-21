@@ -19,12 +19,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
-using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 
 namespace NetMQ
@@ -90,9 +91,9 @@ namespace NetMQ
     {
         /// <summary>An atomic reference count for knowing when to release a pooled data buffer back to the <see cref="BufferPool"/>.</summary>
         /// <remarks>Will be <c>null</c> unless <see cref="MsgType"/> equals <see cref="NetMQ.MsgType.Pool"/>.</remarks>
-        private AtomicCounter m_refCount;
+        private AtomicCounter? m_refCount;
 
-        private byte[] m_data;
+        private byte[]? m_data;
         private int m_offset;
         private uint m_routingId;
 
@@ -211,7 +212,7 @@ namespace NetMQ
         /// <see cref="NetMQ.MsgType.Empty"/> or <see cref="NetMQ.MsgType.Delimiter"/>.
         /// </remarks>
         [Obsolete("Use implicit casting to Span or Slice instead")]
-        public byte[] Data => m_data;
+        public byte[]? Data => m_data;
         
         /// <summary>
         /// Return the internal buffer as Span
@@ -344,7 +345,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
         /// <param name="size">the number of bytes that are in the data byte-array</param>
-        public void InitGC([NotNull] byte[] data, int size)
+        public void InitGC(byte[] data, int size)
         {
             InitGC(data, 0, size);
         }
@@ -355,7 +356,8 @@ namespace NetMQ
         /// <param name="data">the byte-array of data to assign to the Msg's Data property</param>
         /// <param name="offset">first byte in the data array</param>
         /// <param name="size">the number of bytes that are in the data byte-array</param>
-        public void InitGC([NotNull] byte[] data, int offset, int size) {
+        public void InitGC(byte[] data, int offset, int size)
+        {
             MsgType = MsgType.GC;
             Flags = MsgFlags.None;
             m_data = data;
@@ -388,6 +390,9 @@ namespace NetMQ
 
             if (MsgType == MsgType.Pool)
             {
+                Assumes.NotNull(m_refCount);
+                Assumes.NotNull(m_data);
+
                 // if not shared or reference counter drop to zero
                 if (!IsShared || m_refCount.Decrement() == 0)
                     BufferPool.Return(m_data);
@@ -415,6 +420,8 @@ namespace NetMQ
 
             if (MsgType == MsgType.Pool)
             {
+                Assumes.NotNull(m_refCount);
+
                 if (IsShared)
                 {
                     m_refCount.Increase(amount);
@@ -447,8 +454,12 @@ namespace NetMQ
                 return;
             }
 
+            Assumes.NotNull(m_refCount);
+
             if (m_refCount.Decrement(amount) == 0)
             {
+                Assumes.NotNull(m_data);
+
                 EnsureAtomicCounterNull();
 
                 BufferPool.Return(m_data);
@@ -494,7 +505,7 @@ namespace NetMQ
         /// <param name="src">the source byte-array to copy from</param>
         /// <param name="dstOffset">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([NotNull] byte[] src, int dstOffset, int len)
+        public void Put(byte[]? src, int dstOffset, int len)
         {
             if (len == 0 || src == null)
                 return;
@@ -509,7 +520,7 @@ namespace NetMQ
         /// <param name="srcOffset">first byte in the source byte-array</param>
         /// <param name="dstOffset">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put([NotNull] byte[] src, int srcOffset, int dstOffset, int len) {
+        public void Put(byte[]? src, int srcOffset, int dstOffset, int len) {
             if (len == 0 || src == null)
                 return;
             Buffer.BlockCopy(src, srcOffset, m_data, dstOffset, len);
@@ -521,6 +532,7 @@ namespace NetMQ
         /// <param name="b">the source byte to copy from</param>
         public void Put(byte b)
         {
+            Assumes.NotNull(m_data);
             m_data[m_offset] = b;
         }
 
@@ -531,6 +543,7 @@ namespace NetMQ
         /// <param name="i">index within the internal Data array to copy that byte to</param>
         public void Put(byte b, int i)
         {
+            Assumes.NotNull(m_data);
             m_data[m_offset + i] = b;
         }
 
@@ -561,8 +574,16 @@ namespace NetMQ
         /// <returns></returns>
         public byte this[int index]
         {
-            get => m_data[m_offset + index];
-            set => m_data[m_offset + index] = value;
+            get
+            {
+                Assumes.NotNull(m_data);
+                return m_data[m_offset + index];
+            }
+            set
+            {
+                Assumes.NotNull(m_data);
+                m_data[m_offset + index] = value;
+            }
         }
 
         /// <summary>
@@ -583,6 +604,8 @@ namespace NetMQ
 
             if (src.MsgType == MsgType.Pool)
             {
+                Assumes.NotNull(src.m_refCount);
+                
                 // One reference is added to shared messages. Non-shared messages
                 // are turned into shared messages and reference count is set to 2.
                 if (IsShared)
@@ -606,7 +629,9 @@ namespace NetMQ
         /// <param name="count">Number of bytes to remove from a message</param>
         public void TrimPrefix(int count)
         {
-            if (count > Size || count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count should be between 0 and size");
+            if (count > Size || count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), "Count should be between 0 and size");
+
             m_offset = m_offset + count;
             Size = Size - count;
         }
@@ -657,12 +682,14 @@ namespace NetMQ
         
         internal byte[] UnsafeToArray()
         {
+            Assumes.NotNull(m_data);
+
             if (m_offset == 0 && m_data.Length == Size)
                 return m_data;
             return CloneData();
         }
 
-        internal byte[] UnsafeData => m_data;
+        internal byte[]? UnsafeData => m_data;
         internal int UnsafeOffset => m_offset;
 
         #endregion

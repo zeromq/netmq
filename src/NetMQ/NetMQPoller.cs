@@ -1,11 +1,12 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 #if !NET35
 using System.Threading.Tasks;
@@ -39,8 +40,8 @@ namespace NetMQ
         private readonly NetMQSelector m_netMqSelector = new NetMQSelector();
         private readonly StopSignaler m_stopSignaler = new StopSignaler();
 
-        private NetMQSelector.Item[] m_pollSet;
-        private NetMQSocket[] m_pollact;
+        private NetMQSelector.Item[]? m_pollSet;
+        private NetMQSocket[]? m_pollact;
 
         private volatile bool m_isPollSetDirty = true;
         private int m_disposeState = (int)DisposeState.Undisposed;
@@ -124,7 +125,7 @@ namespace NetMQ
         /// Run an action on the Poller thread
         /// </summary>
         /// <param name="action">The action to run</param>
-        public void Run([NotNull] Action action)
+        public void Run(Action action)
         {
             if (!IsRunning || CanExecuteTaskInline)
                 action();
@@ -155,7 +156,7 @@ namespace NetMQ
                 Debug.Assert(IsRunning);
 
                 // Try to dequeue and execute all pending tasks
-                while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
+                while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero))
                     TryExecuteTask(task);
             };
 
@@ -219,7 +220,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="timer">The timer to add to poller</param>
         /// <exception cref="ArgumentNullException">If timer is null</exception>
-        public void Add([NotNull] NetMQTimer timer)
+        public void Add(NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException(nameof(timer));
@@ -235,7 +236,7 @@ namespace NetMQ
         /// <param name="socket">The socket to poll on</param>
         /// <param name="callback">The callback to invoke when the socket is ready</param>
         /// <exception cref="ArgumentNullException">If callback or socket are null</exception>
-        public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
+        public void Add(Socket socket, Action<Socket> callback)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -322,7 +323,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="timer">The timer to remove</param>
         /// <exception cref="ArgumentNullException">If poller is null</exception>
-        public void Remove([NotNull] NetMQTimer timer)
+        public void Remove(NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException(nameof(timer));
@@ -338,7 +339,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="socket">The socket to remove</param>
         /// <exception cref="ArgumentNullException">If socket is null</exception>
-        public void Remove([NotNull] Socket socket)
+        public void Remove(Socket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -362,7 +363,7 @@ namespace NetMQ
         /// <param name="socket"></param>
         /// <returns>True if the poller contains the socket.</returns>
         /// <exception cref="ArgumentNullException">Thrown if socket is null</exception>
-        public Task<bool> ContainsAsync([NotNull] ISocketPollable socket)
+        public Task<bool> ContainsAsync(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -378,7 +379,7 @@ namespace NetMQ
         /// </summary>
         /// <returns>True if the poller contains the timer.</returns>
         /// <exception cref="ArgumentNullException">Thrown if timer is null</exception>
-        public Task<bool> ContainsAsync([NotNull] NetMQTimer timer)
+        public Task<bool> ContainsAsync(NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException(nameof(timer));
@@ -395,7 +396,7 @@ namespace NetMQ
         /// <param name="socket"></param>
         /// <returns>True if the poller contains the socket.</returns>
         /// <exception cref="ArgumentNullException">Thrown if socket is null</exception>
-        public Task<bool> ContainsAsync([NotNull] Socket socket)
+        public Task<bool> ContainsAsync(Socket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -509,6 +510,9 @@ namespace NetMQ
         /// </summary>
         private void RunPoller()
         {
+            Assumes.NotNull(m_pollSet);
+            Assumes.NotNull(m_pollact);
+
             try
             {
                 // Recalculate all timers now
@@ -614,6 +618,7 @@ namespace NetMQ
                         }
                         else if (item.ResultEvent.HasError() || item.ResultEvent.HasIn())
                         {
+                            Assumes.NotNull(item.FileDescriptor);
                             if (m_pollinSockets.TryGetValue(item.FileDescriptor, out Action<Socket> action))
                                 action(item.FileDescriptor);
                         }
@@ -622,7 +627,7 @@ namespace NetMQ
 
 #if !NET35
                 // Try to dequeue and execute all pending tasks before stopping poller
-                while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
+                while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero))
                     TryExecuteTask(task);
 #endif
             }

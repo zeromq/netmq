@@ -1,5 +1,6 @@
+#nullable enable
+
 using System;
-using JetBrains.Annotations;
 using NetMQ.Monitoring;
 
 namespace NetMQ
@@ -17,13 +18,13 @@ namespace NetMQ
         /// Add a socket to a poller
         /// </summary>
         /// <param name="socket"></param>
-        void Add([NotNull] ISocketPollable socket);
+        void Add(ISocketPollable socket);
         
         /// <summary>
         /// Remove a socket from poller
         /// </summary>
         /// <param name="socket"></param>
-        void Remove([NotNull] ISocketPollable socket);
+        void Remove(ISocketPollable socket);
         
         /// <summary>
         /// Remove a socket and dispose it

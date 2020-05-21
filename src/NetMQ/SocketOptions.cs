@@ -1,5 +1,8 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
 using NetMQ.Core;
 
 namespace NetMQ
@@ -20,7 +23,7 @@ namespace NetMQ
         /// Create a new SocketOptions that references the given NetMQSocket.
         /// </summary>
         /// <param name="socket">the NetMQSocket for this SocketOptions to hold a reference to</param>
-        public SocketOptions([NotNull] NetMQSocket socket)
+        public SocketOptions(NetMQSocket socket)
         {
             m_socket = socket;
         }
@@ -41,11 +44,10 @@ namespace NetMQ
         /// Get or set unique identity of the socket, from a message-queueing router's perspective.
         /// This is a byte-array of at most 255 bytes.
         /// </summary>
-        public byte[] Identity
+        [DisallowNull]
+        public byte[]? Identity
         {
-            [CanBeNull]
             get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.Identity); }
-            [NotNull]
             set { m_socket.SetSocketOption(ZmqSocketOption.Identity, value); }
         }
 
@@ -251,8 +253,7 @@ namespace NetMQ
         /// If the TCP host is ANY, indicated by a *, then the returned address
         /// will be 0.0.0.0 (for IPv4).
         /// </remarks>
-        [CanBeNull]
-        public string LastEndpoint => m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint);
+        public string? LastEndpoint => m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint);
 
         /// <summary>
         /// Set the RouterSocket behavior when an unroutable message is encountered.
