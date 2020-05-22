@@ -9,7 +9,9 @@ jobs:
     - run: dotnet restore src/NetMQ.sln
     - name: build 
       run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
-    - name: test
+    - name: test netcoreapp3.1
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp3.1 src/NetMQ.Tests/NetMQ.Tests.csproj
+    - name: test netcoreapp2.1
       run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp2.1 src/NetMQ.Tests/NetMQ.Tests.csproj
   windows:
     runs-on: windows-latest
@@ -24,6 +26,8 @@ jobs:
       run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
     - name: test netcoreapp2.1
       run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp2.1 src\NetMQ.Tests\NetMQ.Tests.csproj
+    - name: test netcoreapp3.1
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp3.1 src\NetMQ.Tests\NetMQ.Tests.csproj
     - name: test net47
       run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net47 src\NetMQ.Tests\NetMQ.Tests.csproj
     - name: coverage
