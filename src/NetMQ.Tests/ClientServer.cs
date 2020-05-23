@@ -79,7 +79,7 @@ namespace NetMQ.Tests
             
             source.CancelAfter(100);
 
-            await Assert.ThrowsAsync<OperationCanceledException>(async () => await server.ReceiveStringAsync(source.Token));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await server.ReceiveStringAsync(source.Token));
         }
 
 #if NETCOREAPP3_1
