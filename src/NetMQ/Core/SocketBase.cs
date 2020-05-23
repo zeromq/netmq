@@ -211,6 +211,10 @@ namespace NetMQ.Core
                     return new Server(parent, threadId, socketId);
                 case ZmqSocketType.Client:
                     return new Client(parent, threadId, socketId);
+                case ZmqSocketType.Gather:
+                    return new Gather(parent, threadId, socketId);
+                case ZmqSocketType.Scatter:
+                    return new Scatter(parent, threadId, socketId);
                 default:
                     throw new InvalidException("SocketBase.Create called with invalid type of " + type);
             }

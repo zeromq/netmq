@@ -84,6 +84,16 @@ namespace NetMQ
         Client = 13,
         
         /// <summary>
+        /// This denotes an Gather socket.
+        /// </summary>
+        Gather = 16,
+        
+        /// <summary>
+        /// This denotes an Scatter socket.
+        /// </summary>
+        Scatter = 17,
+        
+        /// <summary>
         /// This denotes a Peer socket.
         /// </summary>
         Peer = 19

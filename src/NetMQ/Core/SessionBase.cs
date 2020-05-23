@@ -142,7 +142,9 @@ namespace NetMQ.Core
                 case ZmqSocketType.Stream:
                 case ZmqSocketType.Peer:
                 case ZmqSocketType.Server:
-                case ZmqSocketType.Client:                        
+                case ZmqSocketType.Client: 
+                case ZmqSocketType.Gather:
+                case ZmqSocketType.Scatter:
                     if (options.CanSendHelloMsg && options.HelloMsg != null)
                         return new HelloMsgSession(ioThread, connect, socket, options, addr);
                     else
