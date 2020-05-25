@@ -1,7 +1,9 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -369,6 +371,31 @@ namespace NetMQ
         }
 
         #endregion
+        
+        #region AsyncEnumerable
+
+#if NETSTANDARD2_1
+        
+        /// <summary>
+        /// Provides a consuming IAsyncEnumerable for receiving messages from the socket.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns>An IAsyncEnumerable that receive and returns messages from the socket.</returns>
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static async IAsyncEnumerable<(uint, byte[])> ReceiveBytesAsyncEnumerable(
+            this IRoutingIdSocket socket,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            while (true)
+            {
+                yield return await socket.ReceiveBytesAsync(cancellationToken);
+            }
+        }
+        
+#endif  
+        
+        #endregion
 
         #endregion
 
@@ -535,6 +562,31 @@ namespace NetMQ
                 cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default));
         }
 
+        #endregion
+        
+        #region AsyncEnumerable
+
+#if NETSTANDARD2_1
+        
+        /// <summary>
+        /// Provides a consuming IAsyncEnumerable for receiving messages from the socket.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns>An IAsyncEnumerable that receive and returns messages from the socket.</returns>
+        /// <exception cref="System.OperationCanceledException">The token has had cancellation requested.</exception>
+        public static async IAsyncEnumerable<(uint, string)> ReceiveStringAsyncEnumerable(
+            this IRoutingIdSocket socket,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            while (true)
+            {
+                yield return await socket.ReceiveStringAsync(cancellationToken);
+            }
+        }
+        
+#endif  
+        
         #endregion
 
         #endregion

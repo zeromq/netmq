@@ -23,52 +23,49 @@ namespace NetMQ.Tests
     {
         public ZMTPTests() => NetMQConfig.Cleanup();
 
+        private byte[] ReadRawXBytes(Socket raw, int toRead)
+        {
+            var bytes = new byte[toRead];
+            int read = raw.Receive(bytes);
+
+            while (read < toRead)
+                read += raw.Receive(bytes, read, toRead - read, SocketFlags.None);
+
+            return bytes;
+        }
+        
         [Fact]
         public void V2Test()
         {
-            using (var raw = new StreamSocket())
-            using (var socket = new DealerSocket())
-            {
-                int port = raw.BindRandomPort("tcp://*");
-                socket.Connect($"tcp://localhost:{port}");
+            using var raw = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            using var socket = new DealerSocket();
 
-                var routingId = raw.ReceiveFrameBytes();
-                var preamble = raw.ReceiveFrameBytes();
-                Assert.Equal(10, preamble.Length);
+            int port = socket.BindRandomPort("tcp://*");
+            raw.Connect("127.0.0.1", port);
 
-                raw.SendMoreFrame(routingId).SendFrame(new byte[] {0xff,0,0,0,0,0,0,0,0,0x7f,1,5}); // Signature
-                raw.SendMoreFrame(routingId).SendFrame(new byte[] {0, 0}); // Empty Identity
-                raw.SendMoreFrame(routingId).SendFrame(new byte[] {0, 1, 5}); // One byte message
-                
-                // Receive rest of the greeting
-                raw.SkipFrame(); // RoutingId
-                var signature = raw.ReceiveFrameBytes();
-                
-                if (signature.Length == 2)
-                    Assert.Equal(new byte[] {3, 5}, signature);
-                else if (signature.Length == 1)
-                {
-                    // Receive rest of the greeting
-                    raw.SkipFrame(); // RoutingId
-                    signature = raw.ReceiveFrameBytes();
-                    Assert.Equal(new byte[] {5}, signature);
-                }
-                
-                // Receive the identity
-                raw.SkipFrame(); // RoutingId
-                var identity = raw.ReceiveFrameBytes();
-                Assert.Equal(new byte[] {0, 0}, identity);
-                
-                // Receiving msg send by the raw
-                var msg = socket.ReceiveFrameBytes();
-                Assert.Equal(new byte[] {5}, msg);
-                
-                // Sending msg from socket to raw
-                socket.SendFrame(new byte[]{6});
-                raw.SkipFrame(); // RoutingId
-                msg = raw.ReceiveFrameBytes();
-                Assert.Equal(new byte[]{0,1,6}, msg);
-            }
+            // preamble
+            ReadRawXBytes(raw, 10);
+
+            raw.Send(new byte[] { 0xff, 0, 0, 0, 0, 0, 0, 0, 0, 0x7f, 1, 5 }); // Signature
+            raw.Send(new byte[] { 0, 0 }); // Empty Identity
+            raw.Send(new byte[] { 0, 1, 5 }); // One byte message
+
+            // Receive rest of the greeting
+            var signature = ReadRawXBytes(raw, 2);
+            Assert.Equal(new byte[] { 3, 5 }, signature);
+
+            // Receive the identity
+            var identity = ReadRawXBytes(raw, 2);
+            Assert.Equal(new byte[] { 0, 0 }, identity);
+
+            // Receiving msg send by the raw
+            var msg = socket.ReceiveFrameBytes();
+            Assert.Equal(new byte[] { 5 }, msg);
+
+            // Sending msg from socket to raw
+            socket.SendFrame(new byte[] { 6 });
+            msg = ReadRawXBytes(raw, 3);
+            Assert.Equal(new byte[] { 0, 1, 6 }, msg);
         }
 
         [Fact]
@@ -79,14 +76,14 @@ namespace NetMQ.Tests
             {
                 sub.Options.HeartbeatInterval = TimeSpan.FromMilliseconds(10);
                 sub.Options.HeartbeatTimeout = TimeSpan.FromMilliseconds(1);
-                
+
                 int port = pub.BindRandomPort("tcp://*");
                 sub.Connect($"tcp://localhost:{port}");
-                
+
                 Thread.Sleep(3000);
             }
         }
-        
+
         [Fact]
         public void V3Test()
         {
@@ -104,20 +101,23 @@ namespace NetMQ.Tests
                 raw.SendMoreFrame(routingId).SendFrame(
                     new byte[64]
                     {
-                        0xff,0,0,0,0,0,0,0,0,0x7f,3,0, (byte)'N', (byte)'U', (byte)'L', (byte)'L',
-                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                        0xff, 0, 0, 0, 0, 0, 0, 0, 0, 0x7f, 3, 0, (byte) 'N', (byte) 'U', (byte) 'L', (byte) 'L',
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                     }); // V3 Greeting
                 raw.SendMoreFrame(routingId).SendFrame(
                     new byte[43]
                     {
                         4, 41,
-                        5, (byte)'R', (byte)'E',(byte)'A',(byte)'D',(byte)'Y',
-                        11, (byte)'S',(byte)'o',(byte)'c',(byte)'k',(byte)'e',(byte)'t',(byte)'-',(byte)'T',(byte)'y',(byte)'p',(byte)'e',
-                        0,0,0,6,(byte)'D',(byte)'E',(byte)'A',(byte)'L',(byte)'E',(byte)'R',
-                        8,(byte)'I',(byte)'d',(byte)'e',(byte)'n',(byte)'t',(byte)'i',(byte)'t',(byte)'y',
-                        0,0,0,0
+                        5, (byte) 'R', (byte) 'E', (byte) 'A', (byte) 'D', (byte) 'Y',
+                        11, (byte) 'S', (byte) 'o', (byte) 'c', (byte) 'k', (byte) 'e', (byte) 't', (byte) '-',
+                        (byte) 'T', (byte) 'y', (byte) 'p', (byte) 'e',
+                        0, 0, 0, 6, (byte) 'D', (byte) 'E', (byte) 'A', (byte) 'L', (byte) 'E', (byte) 'R',
+                        8, (byte) 'I', (byte) 'd', (byte) 'e', (byte) 'n', (byte) 't', (byte) 'i', (byte) 't',
+                        (byte) 'y',
+                        0, 0, 0, 0
                     }); // Ready Command
-                
+
                 int read = 0;
                 while (read < 64 + 43 - 10)
                 {
@@ -125,35 +125,38 @@ namespace NetMQ.Tests
                     var bytes = raw.ReceiveFrameBytes();
                     read += bytes.Length;
                 }
-                
-                raw.SendMoreFrame(routingId).SendFrame(new byte[] {0, 1, 5}); // One byte message
-                
+
+                raw.SendMoreFrame(routingId).SendFrame(new byte[] { 0, 1, 5 }); // One byte message
+
                 // Receiving msg send by the raw
                 var msg = socket.ReceiveFrameBytes();
-                Assert.Equal(new byte[] {5}, msg);
-                
+                Assert.Equal(new byte[] { 5 }, msg);
+
                 // Sending msg from socket to raw
-                socket.SendFrame(new byte[]{6});
+                socket.SendFrame(new byte[] { 6 });
                 raw.SkipFrame(); // RoutingId
                 msg = raw.ReceiveFrameBytes();
-                Assert.Equal(new byte[]{0,1,6}, msg);
-                
+                Assert.Equal(new byte[] { 0, 1, 6 }, msg);
+
                 // Sending ping message
-                raw.SendMoreFrame(routingId).SendFrame(new byte[11] {4, 9, 4, (byte)'P', (byte)'I', (byte)'N', (byte)'G', 0, 0,(byte)'H', (byte)'I'});
-                
+                raw.SendMoreFrame(routingId).SendFrame(new byte[11]
+                    { 4, 9, 4, (byte) 'P', (byte) 'I', (byte) 'N', (byte) 'G', 0, 0, (byte) 'H', (byte) 'I' });
+
                 // Receive pong
                 raw.SkipFrame(); // RoutingId
                 var ping = raw.ReceiveFrameBytes();
-                Assert.Equal(new byte[9] {4,7,4,(byte)'P', (byte)'O', (byte)'N', (byte)'G', (byte)'H', (byte)'I'}, ping);
-                
+                Assert.Equal(
+                    new byte[9] { 4, 7, 4, (byte) 'P', (byte) 'O', (byte) 'N', (byte) 'G', (byte) 'H', (byte) 'I' },
+                    ping);
+
                 // We should receive ping now
                 raw.SkipFrame();
                 ping = raw.ReceiveFrameBytes();
-                Assert.Equal(new byte[9] {4,7,4,(byte)'P', (byte)'I', (byte)'N', (byte)'G', 0, 0}, ping);
+                Assert.Equal(new byte[9] { 4, 7, 4, (byte) 'P', (byte) 'I', (byte) 'N', (byte) 'G', 0, 0 }, ping);
             }
         }
 
-        #if NET47
+#if NET47
         [Fact]
         public void WithLibzmq()
         {
@@ -174,6 +177,6 @@ namespace NetMQ.Tests
             }
         }
 
-        #endif
+#endif
     }
 }
