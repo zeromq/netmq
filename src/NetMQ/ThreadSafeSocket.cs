@@ -56,6 +56,20 @@ namespace NetMQ
     }
     
     /// <summary>
+    /// Tag interface to tag sockets that support sending a group message
+    /// </summary>
+    public interface IGroupOutSocket : IThreadSafeSocket
+    {
+    }
+
+    /// <summary>
+    /// Tag interface to tag sockets that support receiving a group message
+    /// </summary>
+    public interface IGroupInSocket : IThreadSafeSocket
+    {
+    }
+    
+    /// <summary>
     /// Abstract base class for NetMQ's different thread-safe socket types.
     /// </summary>
     /// <remarks>
@@ -63,7 +77,7 @@ namespace NetMQ
     /// </remarks>
     public abstract class ThreadSafeSocket: IThreadSafeSocket, IDisposable  
     {
-        private readonly SocketBase m_socketHandle;
+        internal readonly SocketBase m_socketHandle;
         private int m_isClosed;
         
         /// <summary>

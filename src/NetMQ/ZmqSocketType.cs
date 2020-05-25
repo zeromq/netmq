@@ -84,6 +84,16 @@ namespace NetMQ
         Client = 13,
         
         /// <summary>
+        /// This denotes an Radio socket.
+        /// </summary>
+        Radio = 14,
+        
+        /// <summary>
+        /// This denotes an Dish socket.
+        /// </summary>
+        Dish = 15,
+
+        /// <summary>
         /// This denotes an Gather socket.
         /// </summary>
         Gather = 16,

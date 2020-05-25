@@ -211,6 +211,10 @@ namespace NetMQ.Core
                     return new Server(parent, threadId, socketId);
                 case ZmqSocketType.Client:
                     return new Client(parent, threadId, socketId);
+                case ZmqSocketType.Radio:
+                    return new Radio(parent, threadId, socketId);
+                case ZmqSocketType.Dish:
+                    return new Dish(parent, threadId, socketId);
                 case ZmqSocketType.Gather:
                     return new Gather(parent, threadId, socketId);
                 case ZmqSocketType.Scatter:
@@ -447,6 +451,42 @@ namespace NetMQ.Core
                 // If the socket type doesn't support the option, pass it to
                 // the generic option parser.
                 return m_options.GetSocketOption(option);
+            }
+            finally
+            {
+                Unlock();
+            }
+        }
+        
+        /// <summary>
+        /// Join the dish socket to a group
+        /// </summary>
+        /// <param name="group">The group to join</param>
+        public void Join([NotNull] string group)
+        {
+            Lock();
+            
+            try
+            {
+                XJoin(group);
+            }
+            finally
+            {
+                Unlock();
+            }
+        }
+        
+        /// <summary>
+        /// Leave a group for a dish socket
+        /// </summary>
+        /// <param name="group">The group leave</param>
+        public void Leave([NotNull] string group)
+        {
+            Lock();
+            
+            try
+            {
+                XLeave(group);
             }
             finally
             {
@@ -1361,6 +1401,16 @@ namespace NetMQ.Core
         }
 
         protected virtual void XHiccuped([NotNull] Pipe pipe)
+        {
+            throw new NotSupportedException("Must override");
+        }
+        
+        protected virtual void XJoin([NotNull] string group)
+        {
+            throw new NotSupportedException("Must override");
+        }
+        
+        protected virtual void XLeave([NotNull] string group)
         {
             throw new NotSupportedException("Must override");
         }
