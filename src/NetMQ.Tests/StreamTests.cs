@@ -1,4 +1,6 @@
-﻿using Xunit;
+﻿#nullable disable
+
+using Xunit;
 
 using NetMQ.Sockets;
 

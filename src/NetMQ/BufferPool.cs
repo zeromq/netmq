@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 using System.ServiceModel.Channels;
 using System.Threading;

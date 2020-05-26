@@ -1,4 +1,6 @@
-﻿#if !NET35
+﻿#nullable disable
+
+#if !NET35
 using System;
 using System.Diagnostics;
 using NetMQ.Sockets;

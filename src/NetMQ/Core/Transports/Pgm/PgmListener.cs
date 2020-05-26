@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable disable
+
+using System;
 using System.Net.Sockets;
 using AsyncIO;
 using JetBrains.Annotations;

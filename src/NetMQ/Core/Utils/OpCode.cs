@@ -1,4 +1,6 @@
-﻿#if !NETSTANDARD1_6
+﻿#nullable disable
+
+#if !NETSTANDARD1_6
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;

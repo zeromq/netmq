@@ -1,3 +1,5 @@
+#nullable disable
+
 #if !NETCOREAPP1_0
 
 using System.IO;

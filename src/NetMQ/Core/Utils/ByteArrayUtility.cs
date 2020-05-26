@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace NetMQ.Core.Utils
 {
     internal static class ByteArrayUtility

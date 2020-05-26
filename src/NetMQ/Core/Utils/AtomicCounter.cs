@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Threading;
 
 namespace NetMQ.Core.Utils

@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-using System.Text;
+﻿using System.Text;
 using NetMQ.Core;
 
 namespace NetMQ.Sockets

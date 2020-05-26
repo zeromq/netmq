@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿#nullable disable
+
+using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
 using JetBrains.Annotations;
