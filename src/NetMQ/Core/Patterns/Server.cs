@@ -1,9 +1,6 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -20,13 +17,13 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private class Outpipe
         {
-            public Outpipe([NotNull] Pipe pipe, bool active)
+            public Outpipe(Pipe pipe, bool active)
             {
                 Pipe = pipe;
                 Active = active;
             }
 
-            [NotNull] public Pipe Pipe { get; }
+            public Pipe Pipe { get; }
 
             public bool Active;
         }
@@ -53,7 +50,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="parent">the Ctx that will contain this Router</param>
         /// <param name="threadId">the integer thread-id value</param>
         /// <param name="socketId">the integer socket-id value</param>
-        public Server([NotNull] Ctx parent, int threadId, int socketId)
+        public Server(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId, true)
         {
             m_nextRoutingId = (uint) s_random.Next();
@@ -70,7 +67,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
 
             uint routingId = m_nextRoutingId++;
             if (routingId == 0)
@@ -186,7 +183,7 @@ namespace NetMQ.Core.Patterns
             if (!received)
                 return false;
 
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             msg.RoutingId = pipe.RoutingId;
 
             return true;

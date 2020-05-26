@@ -18,10 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System.Net;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
@@ -65,10 +62,10 @@ namespace NetMQ.Core
         /// </summary>
         public interface IZAddress
         {
-            void Resolve([NotNull] string name, bool ip4Only);
+            void Resolve(string name, bool ip4Only);
 
-            [CanBeNull] IPEndPoint Address { get; }
-            [NotNull] string Protocol { get; }
+            IPEndPoint? Address { get; }
+            string Protocol { get; }
         }
 
         /// <summary>
@@ -76,7 +73,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="protocol">the protocol of this Address - as in tcp, ipc, pgm</param>
         /// <param name="address">a text representation of the address</param>
-        public Address([NotNull] string protocol, [NotNull] string address)
+        public Address(string protocol, string address)
         {
             Protocol = protocol;
             AddressString = address;
@@ -87,7 +84,7 @@ namespace NetMQ.Core
         /// Create a new Address instance based upon the given endpoint, assuming a protocol of tcp.
         /// </summary>
         /// <param name="endpoint">the subclass of EndPoint to base this Address upon</param>
-        public Address([NotNull] EndPoint endpoint)
+        public Address(EndPoint endpoint)
         {
             Protocol = TcpProtocol;
 
@@ -126,16 +123,13 @@ namespace NetMQ.Core
                 return Protocol + "://" + AddressString;
             }
 
-            return null; //TODO: REVIEW - Although not explicitly prohibited, returning null from ToString seems sketchy; return string.Empty?
+            return base.ToString();
         }
 
-        [NotNull]
         public string Protocol { get; }
 
-        [NotNull]
         public string AddressString { get; }
 
-        [CanBeNull]
-        public IZAddress Resolved { get; set; }
+        public IZAddress? Resolved { get; set; }
     }
 }

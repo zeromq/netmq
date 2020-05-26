@@ -18,23 +18,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
     internal sealed class Signaler
     {
         // Underlying write & read file descriptor.
-        [NotNull] private readonly Socket m_writeSocket;
-        [NotNull] private readonly Socket m_readSocket;
-        [NotNull] private readonly byte[] m_dummy;
-        [NotNull] private readonly byte[] m_receiveDummy;
+        private readonly Socket m_writeSocket;
+        private readonly Socket m_readSocket;
+        private readonly byte[] m_dummy;
+        private readonly byte[] m_receiveDummy;
 
         public Signaler()
         {
@@ -99,7 +96,6 @@ namespace NetMQ.Core.Utils
         // Creates a pair of file descriptors that will be used
         // to pass the signals.
 
-        [NotNull]
         public Socket Handle => m_readSocket;
 
         public void Send()

@@ -1,7 +1,4 @@
-#nullable disable
-
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -22,7 +19,7 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// Create a new Dealer socket that holds the prefetched message.
         /// </summary>
-        public Client([NotNull] Ctx parent, int threadId, int socketId)
+        public Client(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId, true)
         {
             m_options.SocketType = ZmqSocketType.Client;
@@ -39,7 +36,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_fairQueueing.Attach(pipe);
             m_loadBalancer.Attach(pipe);
         }

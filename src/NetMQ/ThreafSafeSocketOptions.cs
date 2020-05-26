@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using NetMQ.Core;
 
 namespace NetMQ
@@ -68,6 +69,7 @@ namespace NetMQ
         /// <returns>an object of the given type, that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
+        [return: MaybeNull]
         internal T GetSocketOptionX<T>(ZmqSocketOption option)
         {
             m_socket.CheckDisposed();
@@ -349,7 +351,8 @@ namespace NetMQ
         /// This key must have been generated together with the server's secret key.
         /// To generate a public/secret key pair, use <see cref="NetMQCertificate"/>.
         /// </summary>
-        public byte[] CurveServerKey
+        [DisallowNull]
+        public byte[]? CurveServerKey
         {
             get => GetSocketOptionX<byte[]>(ZmqSocketOption.CurveServerKey);
             set => SetSocketOption(ZmqSocketOption.CurveServerKey, value);

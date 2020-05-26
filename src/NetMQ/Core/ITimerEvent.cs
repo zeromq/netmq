@@ -1,6 +1,4 @@
-﻿#nullable disable
-
-namespace NetMQ.Core
+﻿namespace NetMQ.Core
 {
     /// <summary>
     /// The ITimerEvent interface mandates a TimerEvent( int id ) method,

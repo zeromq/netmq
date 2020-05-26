@@ -19,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +27,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 #endif
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -44,13 +41,11 @@ namespace NetMQ.Core.Utils
             /// <summary>
             /// Get the Socket that this PollSet contains.
             /// </summary>
-            [NotNull]
             public Socket Socket { get; }
 
             /// <summary>
             /// Get the IPollEvents object that has methods to signal when ready for reading or writing.
             /// </summary>
-            [NotNull]
             public IPollEvents Handler { get; }
 
             /// <summary>
@@ -63,7 +58,7 @@ namespace NetMQ.Core.Utils
             /// </summary>
             /// <param name="socket">the Socket to contain</param>
             /// <param name="handler">the IPollEvents to signal when ready for reading or writing</param>
-            public PollSet([NotNull] Socket socket, [NotNull] IPollEvents handler)
+            public PollSet(Socket socket, IPollEvents handler)
             {
                 Handler = handler;
                 Socket = socket;
@@ -100,7 +95,7 @@ namespace NetMQ.Core.Utils
         /// <summary>
         /// This is the background-thread that performs the polling-loop.
         /// </summary>
-        private Thread m_workerThread;
+        private Thread? m_workerThread;
 
         /// <summary>
         /// This is the name associated with this Poller.
@@ -126,7 +121,7 @@ namespace NetMQ.Core.Utils
         /// Create a new Poller object with the given name.
         /// </summary>
         /// <param name="name">a name to assign to this Poller</param>
-        public Poller([NotNull] string name)
+        public Poller(string name)
         {
             m_name = name;
         }
@@ -139,6 +134,8 @@ namespace NetMQ.Core.Utils
         {
             if (!m_stopped)
             {
+                Assumes.NotNull(this.m_workerThread);
+
                 try
                 {
                     m_workerThread.Join();
@@ -155,7 +152,7 @@ namespace NetMQ.Core.Utils
         /// </summary>
         /// <param name="handle">the Socket to add</param>
         /// <param name="events">the IPollEvents to include in the new PollSet to add</param>
-        public void AddHandle([NotNull] Socket handle, [NotNull] IPollEvents events)
+        public void AddHandle(Socket handle, IPollEvents events)
         {
             m_addList.Add(new PollSet(handle, events));
 
@@ -168,7 +165,7 @@ namespace NetMQ.Core.Utils
         /// Remove the given Socket from this Poller.
         /// </summary>
         /// <param name="handle">the System.Net.Sockets.Socket to remove</param>
-        public void RemoveHandle([NotNull] Socket handle)
+        public void RemoveHandle(Socket handle)
         {
             PollSet pollSet = m_addList.FirstOrDefault(p => p.Socket == handle);
 

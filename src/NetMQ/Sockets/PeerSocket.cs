@@ -38,7 +38,9 @@ namespace NetMQ.Sockets
         public byte[] ConnectPeer(string address)
         {
             Connect(address);
-            return GetSocketOptionX<byte[]>(ZmqSocketOption.LastPeerRoutingId);
+            byte[]? routingId = GetSocketOptionX<byte[]>(ZmqSocketOption.LastPeerRoutingId);
+            Assumes.NotNull(routingId);
+            return routingId;
         }
     }
 }

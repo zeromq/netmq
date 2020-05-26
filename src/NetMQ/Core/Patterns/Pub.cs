@@ -19,10 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
@@ -37,7 +34,7 @@ namespace NetMQ.Core.Patterns
             base.XAttachPipe(pipe, icanhasall);
         }
 
-        public Pub([NotNull] Ctx parent, int threadId, int socketId)
+        public Pub(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pub;

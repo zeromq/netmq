@@ -19,10 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -44,7 +41,7 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// Create a new Dealer socket that holds the prefetched message.
         /// </summary>
-        public Dealer([NotNull] Ctx parent, int threadId, int socketId)
+        public Dealer(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Dealer;
@@ -61,7 +58,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_fairQueueing.Attach(pipe);
             m_loadBalancer.Attach(pipe);
         }
@@ -82,7 +79,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="msg">the message to transmit</param>
         /// <param name="pipe">the pipe that the message was transmitted on (output)</param>
         /// <returns><c>true</c> if the message was sent successfully</returns>
-        protected bool XSendPipe(ref Msg msg, out Pipe pipe)
+        protected bool XSendPipe(ref Msg msg, out Pipe? pipe)
         {
             return m_loadBalancer.SendPipe(ref msg, out pipe);
         }
@@ -103,7 +100,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="msg">a Msg to receive the message into</param>
         /// <param name="pipe">a specific Pipe to receive on</param>
         /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
-        protected bool XRecvPipe(ref Msg msg, out Pipe pipe)
+        protected bool XRecvPipe(ref Msg msg, out Pipe? pipe)
         {
             return m_fairQueueing.RecvPipe(ref msg, out pipe);
         }

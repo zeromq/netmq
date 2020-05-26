@@ -19,10 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -85,7 +82,7 @@ namespace NetMQ.Core.Patterns
             };
         }
 
-        public XSub([NotNull] Ctx parent, int threadId, int socketId)
+        public XSub(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Xsub;
@@ -114,7 +111,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_fairQueueing.Attach(pipe);
             m_distribution.Attach(pipe);
 
