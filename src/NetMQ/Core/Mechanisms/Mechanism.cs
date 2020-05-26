@@ -33,6 +33,10 @@ namespace NetMQ.Core.Mechanisms
             public const string Peer = "PEER";
             public const string Server = "SERVER";
             public const string Client = "CLIENT";
+            public const string Radio = "RADIO";
+            public const string Dish = "DISH";
+            public const string Gather = "GATHER";
+            public const string Scatter = "SCATTER";
         }
         
         const int NameLengthSize = sizeof(byte);
@@ -125,6 +129,14 @@ namespace NetMQ.Core.Mechanisms
                     return SocketNames.Server;
                 case ZmqSocketType.Client:
                     return SocketNames.Client;
+                case ZmqSocketType.Radio:
+                    return SocketNames.Radio;
+                case ZmqSocketType.Dish:
+                    return SocketNames.Dish;
+                case ZmqSocketType.Gather:
+                    return SocketNames.Gather;
+                case ZmqSocketType.Scatter:
+                    return SocketNames.Scatter;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(socketType), socketType, null);
             }
@@ -312,6 +324,14 @@ namespace NetMQ.Core.Mechanisms
                     return type == SocketNames.Server;
                 case ZmqSocketType.Peer:
                     return type == SocketNames.Peer;
+                case ZmqSocketType.Radio:
+                    return type == SocketNames.Dish;
+                case ZmqSocketType.Dish:
+                    return type == SocketNames.Radio;
+                case ZmqSocketType.Gather:
+                    return type == SocketNames.Scatter;
+                case ZmqSocketType.Scatter:
+                    return type == SocketNames.Gather;
                 default:
                     return false;
             }

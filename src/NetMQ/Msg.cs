@@ -65,6 +65,16 @@ namespace NetMQ
 
         /// <summary>The <see cref="Msg"/> data will be garbage collected when no longer needed.</summary>
         GC = 102,
+        
+        /// <summary>
+        /// Join message for radio-dish
+        /// </summary>
+        Join = 106,
+        
+        /// <summary>
+        /// Leave message for radio_dish
+        /// </summary>
+        Leave = 107,
 
         /// <summary>
         /// The <see cref="Msg"/> data was allocated by <see cref="BufferPool"/>, and must be released back
@@ -89,6 +99,11 @@ namespace NetMQ
     /// </remarks>
     public struct Msg
     {
+        /// <summary>
+        /// The maximum length of a group (Radio/Dish)
+        /// </summary>
+        public const int MaxGroupLength = 255;
+        
         /// <summary>An atomic reference count for knowing when to release a pooled data buffer back to the <see cref="BufferPool"/>.</summary>
         /// <remarks>Will be <c>null</c> unless <see cref="MsgType"/> equals <see cref="NetMQ.MsgType.Pool"/>.</remarks>
         private AtomicCounter? m_refCount;
@@ -96,6 +111,7 @@ namespace NetMQ
         private byte[]? m_data;
         private int m_offset;
         private uint m_routingId;
+        private string m_group;
 
         /// <summary>
         /// Get the number of bytes within the Data property.
@@ -106,6 +122,16 @@ namespace NetMQ
         /// Returns true if msg is empty
         /// </summary>
         public bool IsEmpty => m_data == null || Size == 0;
+
+        /// <summary>
+        /// Returns true if the msg is join message
+        /// </summary>
+        public bool IsJoin => MsgType == MsgType.Join;
+        
+        /// <summary>
+        /// Returns true if the msg is leave message
+        /// </summary>    
+        public bool IsLeave => MsgType == MsgType.Leave;
 
         /// <summary>
         /// Gets the position of the first element in the Data property delimited by the message,
@@ -190,7 +216,7 @@ namespace NetMQ
             set
             {
                 if (value == 0)
-                    throw new InvalidException("RoutingId cannot be zero.");
+                    throw new ArgumentOutOfRangeException("RoutingId cannot be zero.");
                 m_routingId = value;
             }
         }
@@ -201,6 +227,22 @@ namespace NetMQ
         internal void ResetRoutingId()
         {
             m_routingId = 0;
+        }
+
+        /// <summary>
+        /// Set or retrieve the group for RADIO/DISH sockets
+        /// </summary>
+        /// <exception cref="InvalidException">Value is larger than 255.</exception>
+        public string Group
+        {
+            get => m_group;
+            set
+            {
+                if (value.Length > MaxGroupLength)
+                    throw new ArgumentOutOfRangeException("Group maximum length is 255");
+
+                m_group = value;
+            }
         }
 
         /// <summary>
@@ -372,6 +414,18 @@ namespace NetMQ
         public void InitDelimiter()
         {
             MsgType = MsgType.Delimiter;
+            Flags = MsgFlags.None;
+        }
+
+        internal void InitJoin()
+        {
+            MsgType = MsgType.Join;
+            Flags = MsgFlags.None;
+        }
+
+        internal void InitLeave()
+        {
+            MsgType = MsgType.Leave;
             Flags = MsgFlags.None;
         }
 

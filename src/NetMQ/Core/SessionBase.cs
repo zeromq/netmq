@@ -129,6 +129,10 @@ namespace NetMQ.Core
             {
                 case ZmqSocketType.Req:
                     return new Req.ReqSession(ioThread, connect, socket, options, addr);
+                case ZmqSocketType.Radio:
+                    return new Radio.RadioSession(ioThread, connect, socket, options, addr);
+                case ZmqSocketType.Dish:
+                    return new Dish.DishSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Dealer:
                 case ZmqSocketType.Rep:
                 case ZmqSocketType.Router:
@@ -142,7 +146,9 @@ namespace NetMQ.Core
                 case ZmqSocketType.Stream:
                 case ZmqSocketType.Peer:
                 case ZmqSocketType.Server:
-                case ZmqSocketType.Client:                        
+                case ZmqSocketType.Client: 
+                case ZmqSocketType.Gather:
+                case ZmqSocketType.Scatter:
                     if (options.CanSendHelloMsg && options.HelloMsg != null)
                         return new HelloMsgSession(ioThread, connect, socket, options, addr);
                     else
