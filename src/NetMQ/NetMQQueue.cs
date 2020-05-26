@@ -1,5 +1,3 @@
-#nullable enable
-
 #if !NET35
 using System;
 using System.Collections.Concurrent;

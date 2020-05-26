@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace NetMQ.Core.Transports
 {
     internal static class V3Protocol

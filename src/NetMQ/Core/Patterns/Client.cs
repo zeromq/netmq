@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Diagnostics;
 using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;

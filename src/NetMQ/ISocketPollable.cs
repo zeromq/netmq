@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-namespace NetMQ
+﻿namespace NetMQ
 {
     /// <summary>
     /// Implementations provide a <see cref="NetMQSocket"/> via the <see cref="Socket"/> property.

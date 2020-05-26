@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace NetMQ
 {
     internal static class EmptyArray<T>

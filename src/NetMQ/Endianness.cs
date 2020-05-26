@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-namespace NetMQ
+﻿namespace NetMQ
 {
     /// <summary>
     /// This enum-type specifies either big-endian (Big) or little-endian (Little),

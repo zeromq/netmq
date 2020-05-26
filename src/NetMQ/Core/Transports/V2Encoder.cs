@@ -1,3 +1,4 @@
+#nullable disable
 
 namespace NetMQ.Core.Transports
 {

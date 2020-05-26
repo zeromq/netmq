@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-namespace NetMQ
+﻿namespace NetMQ
 {
     /// <summary>
     /// This enum-type is used to specify the basic type of message-queue socket

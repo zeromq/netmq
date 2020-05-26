@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-using NetMQ.Core.Utils;
+﻿using NetMQ.Core.Utils;
 using System;
 using System.Threading;
 

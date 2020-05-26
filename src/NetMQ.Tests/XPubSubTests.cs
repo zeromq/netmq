@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿#nullable disable
+
+using System.Linq;
 using System.Threading;
 using Xunit;
 using NetMQ.Sockets;

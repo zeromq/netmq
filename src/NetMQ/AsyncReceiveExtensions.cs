@@ -1,5 +1,4 @@
-﻿#nullable enable
-#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+﻿#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
 
 using System;
 using System.Collections.Generic;

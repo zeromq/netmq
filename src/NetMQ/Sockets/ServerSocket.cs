@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-namespace NetMQ.Sockets
+﻿namespace NetMQ.Sockets
 {
     /// <summary>
     /// Server socket, thread-safe alternative to <see cref="RouterSocket" /> socket.
