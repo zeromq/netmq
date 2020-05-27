@@ -20,13 +20,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 using NetMQ.Core.Utils;
 
@@ -44,13 +41,12 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private class Outpipe
         {
-            public Outpipe([NotNull] Pipe pipe, bool active)
+            public Outpipe(Pipe pipe, bool active)
             {
                 Pipe = pipe;
                 Active = active;
             }
 
-            [NotNull]
             public Pipe Pipe { get; }
 
             public bool Active;
@@ -80,7 +76,7 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// The pipe we are currently writing to.
         /// </summary>
-        private Pipe m_currentOut;  
+        private Pipe? m_currentOut;  
              
         /// <summary>
         /// State of the recv operation
@@ -104,7 +100,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="parent">the Ctx that will contain this Router</param>
         /// <param name="threadId">the integer thread-id value</param>
         /// <param name="socketId">the integer socket-id value</param>
-        public Peer([NotNull] Ctx parent, int threadId, int socketId)
+        public Peer(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_nextPeerId = (uint) s_random.Next();
@@ -131,7 +127,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
 
             uint routingId = m_nextPeerId;
                         
@@ -177,20 +173,17 @@ namespace NetMQ.Core.Patterns
         /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected override void XWriteActivated(Pipe pipe)
         {
-            Outpipe outpipe = null;
-
             foreach (var it in m_outpipes)
             {
                 if (it.Value.Pipe == pipe)
                 {
                     Debug.Assert(!it.Value.Active);
                     it.Value.Active = true;
-                    outpipe = it.Value;
-                    break;
+                    return;
                 }
             }
 
-            Debug.Assert(outpipe != null);
+            Debug.Fail("Pipe not found");
         }
 
         /// <summary>
@@ -283,7 +276,7 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out Pipe pipe);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out Pipe? pipe);
 
             // Drop any messages with more flag
             while (isMessageAvailable && msg.HasMore)
@@ -299,10 +292,10 @@ namespace NetMQ.Core.Patterns
             }
 
             if (!isMessageAvailable)            
-                return false;            
+                return false;
 
-            Debug.Assert(pipe != null);
-           
+            Assumes.NotNull(pipe);
+
             // We are at the beginning of a message.
             // Keep the message part we have in the prefetch buffer
             // and return the ID of the peer instead.

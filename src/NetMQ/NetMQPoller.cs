@@ -508,9 +508,6 @@ namespace NetMQ
         /// </summary>
         private void RunPoller()
         {
-            Assumes.NotNull(m_pollSet);
-            Assumes.NotNull(m_pollact);
-
             try
             {
                 // Recalculate all timers now
@@ -558,6 +555,8 @@ namespace NetMQ
 
                     var isItemAvailable = false;
 
+                    Assumes.NotNull(m_pollSet);
+
                     if (m_pollSet.Length != 0)
                     {
                         isItemAvailable = m_netMqSelector.Select(m_pollSet, m_pollSet.Length, timeout);
@@ -596,6 +595,8 @@ namespace NetMQ
 
                         if (item.Socket != null)
                         {
+                            Assumes.NotNull(m_pollact);
+
                             NetMQSocket socket = m_pollact[i];
 
                             if (item.ResultEvent.HasError())

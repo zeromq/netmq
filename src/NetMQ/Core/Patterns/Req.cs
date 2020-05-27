@@ -20,11 +20,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
@@ -65,7 +62,7 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// specific pipe that we are expecting the reply to occur on, once we make a request.
         /// </summary>
-        private Pipe m_replyPipe;
+        private Pipe? m_replyPipe;
 
         /// <summary>
         /// Create a new Req (Request) socket with the given parent Ctx, thread and socket id.
@@ -73,7 +70,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="parent">the Ctx to contain this socket</param>
         /// <param name="threadId">an integer thread-id for this socket to execute on</param>
         /// <param name="socketId">the socket-id for this socket</param>
-        public Req([NotNull] Ctx parent, int threadId, int socketId)
+        public Req(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_receivingReply = false;
@@ -249,7 +246,7 @@ namespace NetMQ.Core.Patterns
         {
             while (true)
             {
-                if (!base.XRecvPipe(ref msg, out Pipe pipe)) return false; 
+                if (!base.XRecvPipe(ref msg, out Pipe? pipe)) return false; 
                 if ((m_replyPipe==null) || (pipe == m_replyPipe)) return true;
             }
         }
@@ -276,7 +273,7 @@ namespace NetMQ.Core.Patterns
             return base.XHasOut();
         }
 
-        protected override bool XSetSocketOption(ZmqSocketOption option, [CanBeNull] object optionValue)
+        protected override bool XSetSocketOption(ZmqSocketOption option, object? optionValue)
         {
             // bail if optionValue is a null or not a bool.
             if (optionValue == null || ((optionValue as bool?) == null))
@@ -311,7 +308,7 @@ namespace NetMQ.Core.Patterns
 
             private State m_state;
 
-            public ReqSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+            public ReqSession(IOThread ioThread, bool connect, SocketBase socket, Options options, Address addr)
                 : base(ioThread, connect, socket, options, addr)
             {
                 m_state = State.Bottom;

@@ -18,8 +18,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 
@@ -114,7 +112,7 @@ namespace NetMQ.Core.Utils
 #if NETSTANDARD1_6
             return 0;
 #else
-            return s_rdtscSupported ? (long)Opcode.Rdtsc() : 0;
+            return s_rdtscSupported ? (long?)Opcode.Rdtsc?.Invoke() ?? 0 : 0;
 #endif
         }
     }

@@ -25,7 +25,7 @@ namespace NetMQ.Tests
             Assert.False(msg.IsDelimiter);
             Assert.False(msg.IsIdentity);
             Assert.False(msg.IsInitialised);
-            Assert.Throws<NullReferenceException>(() => msg[0] = 1);
+            Assert.ThrowsAny<Exception>(() => msg[0] = 1);
             Assert.Throws<FaultException>((Action)msg.Close);
         }
 

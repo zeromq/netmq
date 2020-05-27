@@ -20,10 +20,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NetMQ.Core.Patterns.Utils
 {
@@ -100,7 +99,7 @@ namespace NetMQ.Core.Patterns.Utils
             return RecvPipe(ref msg, out Pipe _);
         }
 
-        public bool RecvPipe(ref Msg msg, out Pipe pipe)
+        public bool RecvPipe(ref Msg msg, [NotNullWhen(returnValue: true)] out Pipe? pipe)
         {
             pipe = null;
 

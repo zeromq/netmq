@@ -1,9 +1,6 @@
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 
 namespace NetMQ.Core
@@ -22,7 +19,7 @@ namespace NetMQ.Core
 
 #if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
-        [NotNull] private readonly string m_name;
+        private readonly string m_name;
 #endif
 
         /// <summary>
@@ -30,7 +27,7 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="name">the name to give this new Mailbox</param>
         /// <param name="sync">Synchronize access to the mailbox from receivers and senders</param>
-        public MailboxSafe([NotNull] string name, object sync)
+        public MailboxSafe(string name, object sync)
         {
             m_sync = sync;
 

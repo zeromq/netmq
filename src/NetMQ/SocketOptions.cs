@@ -393,7 +393,7 @@ namespace NetMQ
         /// <summary>
         /// Get the last PEER allocated routing id
         /// </summary>
-        public byte[] LastPeerRoutingId => m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.LastPeerRoutingId);
+        public byte[]? LastPeerRoutingId => m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.LastPeerRoutingId);
 
         /// <summary>
         /// Controls the maximum datagram size for PGM.
@@ -442,7 +442,8 @@ namespace NetMQ
         /// This key must have been generated together with the server's secret key.
         /// To generate a public/secret key pair, use <see cref="NetMQCertificate"/>.
         /// </summary>
-        public byte[] CurveServerKey
+        [DisallowNull]
+        public byte[]? CurveServerKey
         {
             get => m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.CurveServerKey);
             set => m_socket.SetSocketOption(ZmqSocketOption.CurveServerKey, value);

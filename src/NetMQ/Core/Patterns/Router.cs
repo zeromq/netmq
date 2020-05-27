@@ -20,12 +20,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 using NetMQ.Core.Utils;
 
@@ -43,13 +40,12 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private class Outpipe
         {
-            public Outpipe([NotNull] Pipe pipe, bool active)
+            public Outpipe(Pipe pipe, bool active)
             {
                 Pipe = pipe;
                 Active = active;
             }
 
-            [NotNull]
             public Pipe Pipe { get; }
 
             public bool Active;
@@ -99,12 +95,12 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// The pipe we are currently writing to.
         /// </summary>
-        private Pipe m_currentOut;
+        private Pipe? m_currentOut;
 
         /// <summary>
         /// The pipe we are currently reading from.
         /// </summary>
-        private Pipe m_currentIn;
+        private Pipe? m_currentIn;
 
 
         private bool m_closingCurrentIn;
@@ -142,7 +138,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="parent">the Ctx that will contain this Router</param>
         /// <param name="threadId">the integer thread-id value</param>
         /// <param name="socketId">the integer socket-id value</param>
-        public Router([NotNull] Ctx parent, int threadId, int socketId)
+        public Router(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_nextPeerId = s_random.Next();
@@ -172,7 +168,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
 
             bool identityOk = IdentifyPeer(pipe);
             if (identityOk)
@@ -182,12 +178,14 @@ namespace NetMQ.Core.Patterns
         }
 
 
-        protected override bool XSetSocketOption(ZmqSocketOption option, object optval)
+        protected override bool XSetSocketOption(ZmqSocketOption option, object? optval)
         {
+            T Get<T>() => optval is T v ? v : throw new ArgumentException($"Option {option} value must be of type {typeof(T).Name}.");
+
             switch (option)
             {
                 case ZmqSocketOption.RouterRawSocket:
-                    m_rawSocket = (bool)optval;
+                    m_rawSocket = Get<bool>();
                     if (m_rawSocket)
                     {
                         m_options.RecvIdentity = false;
@@ -195,10 +193,10 @@ namespace NetMQ.Core.Patterns
                     }
                     return true;
                 case ZmqSocketOption.RouterMandatory:
-                    m_mandatory = (bool)optval;
+                    m_mandatory = Get<bool>();
                     return true;
                 case ZmqSocketOption.RouterHandover:
-                    m_handover = (bool)optval;
+                    m_handover = Get<bool>();
                     return true;
             }
 
@@ -213,6 +211,7 @@ namespace NetMQ.Core.Patterns
         {
             if (!m_anonymousPipes.Remove(pipe))
             {
+                Assumes.NotNull(pipe.Identity);
 
                 m_outpipes.TryGetValue(pipe.Identity, out Outpipe old);
                 m_outpipes.Remove(pipe.Identity);
@@ -251,20 +250,17 @@ namespace NetMQ.Core.Patterns
         /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected override void XWriteActivated(Pipe pipe)
         {
-            Outpipe outpipe = null;
-
             foreach (var it in m_outpipes)
             {
                 if (it.Value.Pipe == pipe)
                 {
                     Debug.Assert(!it.Value.Active);
                     it.Value.Active = true;
-                    outpipe = it.Value;
-                    break;
+                    return;
                 }
             }
 
-            Debug.Assert(outpipe != null);
+            Debug.Fail("Pipe not found");
         }
 
         /// <summary>
@@ -393,6 +389,7 @@ namespace NetMQ.Core.Patterns
                 {
                     if (m_closingCurrentIn)
                     {
+                        Assumes.NotNull(m_currentIn);
                         m_currentIn.Terminate(true);
                         m_closingCurrentIn = false;
                     }
@@ -402,7 +399,7 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out Pipe pipe);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out Pipe? pipe);
 
             // It's possible that we receive peer's identity. That happens
             // after reconnection. The current implementation assumes that
@@ -415,7 +412,7 @@ namespace NetMQ.Core.Patterns
                 return false;
             }
 
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
 
             // If we are in the middle of reading a message, just return the next part.
             if (m_moreIn)
@@ -426,6 +423,7 @@ namespace NetMQ.Core.Patterns
                 {
                     if (m_closingCurrentIn)
                     {
+                        Assumes.NotNull(m_currentIn);
                         m_currentIn.Terminate(true);
                         m_closingCurrentIn = false;
                     }
@@ -441,6 +439,8 @@ namespace NetMQ.Core.Patterns
 
                 m_prefetched = true;
                 m_currentIn = pipe;
+
+                Assumes.NotNull(pipe.Identity);
 
                 byte[] identity = pipe.Identity;
                 msg.InitPool(identity.Length);
@@ -477,7 +477,7 @@ namespace NetMQ.Core.Patterns
 
             // Try to read the next message.
             // The message, if read, is kept in the pre-fetch buffer.
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref m_prefetchedMsg, out Pipe pipe);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref m_prefetchedMsg, out Pipe? pipe);
 
             // It's possible that we receive peer's identity. That happens
             // after reconnection. The current implementation assumes that
@@ -491,7 +491,8 @@ namespace NetMQ.Core.Patterns
             if (!isMessageAvailable)
                 return false;
 
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
+            Assumes.NotNull(pipe.Identity);
 
             byte[] identity = pipe.Identity;
             m_prefetchedId = new Msg();
@@ -514,7 +515,7 @@ namespace NetMQ.Core.Patterns
             return true;
         }
 
-        private bool IdentifyPeer([NotNull] Pipe pipe)
+        private bool IdentifyPeer(Pipe pipe)
         {
             byte[] identity;
 

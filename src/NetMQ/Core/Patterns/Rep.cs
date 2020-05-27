@@ -19,10 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
-using JetBrains.Annotations;
-
 namespace NetMQ.Core.Patterns
 {
     internal sealed class Rep : Router
@@ -39,7 +35,7 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private bool m_requestBegins;
 
-        public Rep([NotNull] Ctx parent, int threadId, int socketId)
+        public Rep(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_sendingReply = false;

@@ -19,10 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -34,7 +31,7 @@ namespace NetMQ.Core.Patterns
         /// </summary>
         private readonly LoadBalancer m_loadBalancer;
 
-        public Push([NotNull] Ctx parent, int threadId, int socketId)
+        public Push(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Push;
@@ -49,8 +46,8 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
-            
+            Assumes.NotNull(pipe);
+
             // Don't delay pipe termination as there is no one
             // to receive the delimiter.
             pipe.SetNoDelay();

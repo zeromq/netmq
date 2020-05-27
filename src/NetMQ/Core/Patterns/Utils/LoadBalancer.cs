@@ -20,11 +20,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NetMQ.Core.Patterns.Utils
 {
@@ -56,7 +54,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// </summary>
         private bool m_dropping;
 
-        public void Attach([NotNull] Pipe pipe)
+        public void Attach(Pipe pipe)
         {
             m_pipes.Add(pipe);
             Activated(pipe);
@@ -66,7 +64,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
         /// </summary>
         /// <param name="pipe">the pipe that was terminated</param>
-        public void Terminated([NotNull] Pipe pipe)
+        public void Terminated(Pipe pipe)
         {
             int index = m_pipes.IndexOf(pipe);
 
@@ -87,7 +85,7 @@ namespace NetMQ.Core.Patterns.Utils
             m_pipes.Remove(pipe);
         }
 
-        public void Activated([NotNull] Pipe pipe)
+        public void Activated(Pipe pipe)
         {
             // Move the pipe to the list of active pipes.
             m_pipes.Swap(m_pipes.IndexOf(pipe), m_active);
@@ -99,7 +97,7 @@ namespace NetMQ.Core.Patterns.Utils
             return SendPipe(ref msg, out Pipe _);
         }
 
-        public bool SendPipe(ref Msg msg, out Pipe pipe)
+        public bool SendPipe(ref Msg msg, out Pipe? pipe)
         {
             pipe = null;
 
