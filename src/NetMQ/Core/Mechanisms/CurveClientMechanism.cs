@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Security.Cryptography;
@@ -26,8 +24,8 @@ namespace NetMQ.Core.Mechanisms
 
         private byte[] m_cnSecretKey;
         private byte[] m_cnPublicKey;
-        private byte[] m_cnServerKey;
-        private byte[] m_cnCookie;
+        private byte[]? m_cnServerKey;
+        private byte[]? m_cnCookie;
 
         private State m_state;
 
@@ -245,6 +243,8 @@ namespace NetMQ.Core.Mechanisms
             ReadyNoncePrefix.CopyTo(readyNonce);
             msg.Slice(6, 8).CopyTo(readyNonce.Slice(16));
             m_peerNonce = NetworkOrderBitsConverter.ToUInt64(msg, 6);
+
+            Assumes.NotNull(m_box);
 
             bool isDecrypted = m_box.TryDecrypt(readyPlaintext, readyBox, readyNonce);
             if (!isDecrypted)

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -87,7 +85,7 @@ namespace NetMQ.Core.Mechanisms
         /// </summary>
         public abstract MechanismStatus Status { get; }
         
-        public byte[] PeerIdentity { get; set; }
+        public byte[]? PeerIdentity { get; set; }
 
         public SessionBase Session { get; }
         protected Options Options { get; }

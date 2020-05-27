@@ -1,22 +1,19 @@
-﻿#nullable disable
-
-using System;
+﻿using System;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Pgm
 {
     internal class PgmListener : Own, IProactorEvents
     {
-        [NotNull] private readonly SocketBase m_socket;
-        [NotNull] private readonly IOObject m_ioObject;
-        private AsyncSocket m_handle;
-        private PgmSocket m_pgmSocket;
-        private PgmSocket m_acceptedSocket;
-        private PgmAddress m_address;
+        private readonly SocketBase m_socket;
+        private readonly IOObject m_ioObject;
+        private AsyncSocket? m_handle;
+        private PgmSocket? m_pgmSocket;
+        private PgmSocket? m_acceptedSocket;
+        private PgmAddress? m_address;
 
-        public PgmListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
+        public PgmListener(IOThread ioThread, SocketBase socket, Options options)
             : base(ioThread, options)
         {
             m_socket = socket;
@@ -26,7 +23,7 @@ namespace NetMQ.Core.Transports.Pgm
 
         /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
         /// <exception cref="NetMQException">Error establishing underlying socket.</exception>
-        public void Init([NotNull] string network)
+        public void Init(string network)
         {
             m_address = new PgmAddress(network);
 
@@ -34,6 +31,8 @@ namespace NetMQ.Core.Transports.Pgm
             m_pgmSocket.Init();
 
             m_handle = m_pgmSocket.Handle;
+
+            Assumes.NotNull(m_handle);
 
             try
             {
@@ -56,6 +55,8 @@ namespace NetMQ.Core.Transports.Pgm
 
         protected override void ProcessPlug()
         {
+            Assumes.NotNull(m_handle);
+
             // Start polling for incoming connections.
             m_ioObject.SetHandler(this);
             m_ioObject.AddSocket(m_handle);
@@ -69,6 +70,8 @@ namespace NetMQ.Core.Transports.Pgm
         /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
         protected override void ProcessTerm(int linger)
         {
+            Assumes.NotNull(m_handle);
+
             m_ioObject.SetHandler(this);
             m_ioObject.RemoveSocket(m_handle);
             Close();
@@ -79,6 +82,8 @@ namespace NetMQ.Core.Transports.Pgm
         {
             if (m_handle == null)
                 return;
+
+            Assumes.NotNull(m_address);
 
             try
             {
@@ -104,6 +109,10 @@ namespace NetMQ.Core.Transports.Pgm
         /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
+            Assumes.NotNull(m_address);
+            Assumes.NotNull(m_acceptedSocket);
+            Assumes.NotNull(m_acceptedSocket.Handle);
+
             if (socketError != SocketError.Success)
             {
                 m_socket.EventAcceptFailed(m_address.ToString(), socketError.ToErrorCode());
@@ -138,7 +147,10 @@ namespace NetMQ.Core.Transports.Pgm
 
                 var pgmSession = new PgmSession(m_acceptedSocket, m_options);
 
-                IOThread ioThread = ChooseIOThread(m_options.Affinity);
+                IOThread? ioThread = ChooseIOThread(m_options.Affinity);
+
+                Assumes.NotNull(ioThread);
+                Assumes.NotNull(m_handle);
 
                 SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
 
@@ -153,13 +165,17 @@ namespace NetMQ.Core.Transports.Pgm
 
         private void Accept()
         {
+            Assumes.NotNull(m_address);
+
             m_acceptedSocket = new PgmSocket(m_options, PgmSocketType.Receiver, m_address);
             m_acceptedSocket.Init();
-            
-#pragma warning disable 618
+
+            Assumes.NotNull(m_handle);
+
+#pragma warning disable CS0618 // Type or member is obsolete
             // TODO: we must upgrade to GetAcceptedSocket, need to be tested on Windows with MSMQ installed
             m_handle.Accept(m_acceptedSocket.Handle);
-#pragma warning restore 618
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         /// <summary>

@@ -1,11 +1,8 @@
-﻿using JetBrains.Annotations;
-
-namespace NetMQ.SimpleTests
+﻿namespace NetMQ.SimpleTests
 {
     internal interface ITest
     {
-        [NotNull]
-        string TestName { get; }
+        string? TestName { get; }
 
         void RunTest();
     }

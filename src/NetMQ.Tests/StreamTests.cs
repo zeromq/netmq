@@ -1,6 +1,4 @@
-﻿#nullable disable
-
-using Xunit;
+﻿using Xunit;
 
 using NetMQ.Sockets;
 
@@ -19,7 +17,9 @@ namespace NetMQ.Tests
                 var port = server.BindRandomPort("tcp://*");
                 client.Connect("tcp://127.0.0.1:" + port);
 
-                byte[] clientId = client.Options.Identity;
+                byte[]? clientId = client.Options.Identity;
+
+                Assert.NotNull(clientId);
 
                 const string request = "GET /\r\n";
 
@@ -28,7 +28,7 @@ namespace NetMQ.Tests
                         "\r\n" +
                         "Hello, World!";
 
-                client.SendMoreFrame(clientId).SendFrame(request);
+                client.SendMoreFrame(clientId!).SendFrame(request);
 
                 byte[] serverId = server.ReceiveFrameBytes();
                 Assert.Equal(request, server.ReceiveFrameString());

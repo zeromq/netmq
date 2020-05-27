@@ -1,6 +1,4 @@
-﻿#nullable disable
-
-using System;
+﻿using System;
 using System.Diagnostics;
 
 namespace NetMQ.Core.Transports

@@ -1,11 +1,8 @@
-﻿#nullable disable
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Pgm
 {
@@ -19,12 +16,12 @@ namespace NetMQ.Core.Transports.Pgm
         private readonly Options m_options;
         private readonly Address m_addr;
         private readonly bool m_delayedStart;
-        private readonly V1Encoder m_encoder;
+        private readonly V1Encoder? m_encoder;
 
-        private AsyncSocket m_socket;
-        private PgmSocket m_pgmSocket;
+        private AsyncSocket? m_socket;
+        private PgmSocket? m_pgmSocket;
 
-        private ByteArraySegment m_outBuffer;
+        private ByteArraySegment? m_outBuffer;
         private int m_outBufferSize;
 
         private int m_writeSize;
@@ -40,12 +37,12 @@ namespace NetMQ.Core.Transports.Pgm
         }
 
         private State m_state;
-        private PgmAddress m_pgmAddress;
-        private SessionBase m_session;
+        private PgmAddress? m_pgmAddress;
+        private SessionBase? m_session;
         private int m_currentReconnectIvl;
         private bool m_moreFlag;
 
-        public PgmSender([NotNull] IOThread ioThread, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
+        public PgmSender(IOThread ioThread, Options options, Address addr, bool delayedStart)
             : base(ioThread)
         {
             m_options = options;
@@ -62,14 +59,18 @@ namespace NetMQ.Core.Transports.Pgm
             m_state = State.Idle;
         }
 
-        public void Init([NotNull] PgmAddress pgmAddress)
+        public void Init(PgmAddress pgmAddress)
         {
             m_pgmAddress = pgmAddress;
+
+            Assumes.NotNull(m_addr.Resolved);
 
             m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Publisher, (PgmAddress)m_addr.Resolved);
             m_pgmSocket.Init();
 
             m_socket = m_pgmSocket.Handle;
+
+            Assumes.NotNull(m_socket);
 
             var localEndpoint = new IPEndPoint(IPAddress.Any, 0);
 
@@ -93,6 +94,7 @@ namespace NetMQ.Core.Transports.Pgm
             if (pullResult == PullMsgResult.Ok)
                 msg.Close();
 
+            Assumes.NotNull(m_socket);
             AddSocket(m_socket);
 
             if (!m_delayedStart)
@@ -109,6 +111,9 @@ namespace NetMQ.Core.Transports.Pgm
         private void StartConnecting()
         {
             m_state = State.Connecting;
+
+            Assumes.NotNull(m_socket);
+            Assumes.NotNull(m_pgmAddress);
 
             try
             {
@@ -205,16 +210,21 @@ namespace NetMQ.Core.Transports.Pgm
 
         private void BeginSending()
         {
+            Assumes.NotNull(m_outBuffer);
+
             // If write buffer is empty,  try to read new data from the encoder.
             if (m_writeSize == 0)
             {
+                Assumes.NotNull(m_encoder);
+                Assumes.NotNull(m_session);
+
                 // First two bytes (sizeof uint16_t) are used to store message
                 // offset in following steps. Note that by passing our buffer to
                 // the get data function we prevent it from returning its own buffer.
                 ushort offset = 0xffff;
                 var buffer = new ByteArraySegment(m_outBuffer, sizeof(ushort));
                 int bufferSize = m_outBufferSize - sizeof(ushort);
-                
+
                 int bytes = m_encoder.Encode(ref buffer, bufferSize);
                 int lastBytes = bytes;
                 while (bytes < bufferSize)
@@ -226,7 +236,7 @@ namespace NetMQ.Core.Transports.Pgm
                         break;
                     m_moreFlag = msg.HasMore;
                     m_encoder.LoadMsg(ref msg);
-                    buffer = buffer + lastBytes;
+                    buffer = buffer! + lastBytes;
                     lastBytes = m_encoder.Encode(ref buffer, bufferSize - bytes);
                     bytes += lastBytes;
                 }
@@ -244,6 +254,8 @@ namespace NetMQ.Core.Transports.Pgm
                 m_outBuffer.PutUnsignedShort(m_options.Endian, offset, 0);
             }
 
+            Assumes.NotNull(m_socket);
+
             try
             {
                 m_socket.Send((byte[])m_outBuffer, m_outBuffer.Offset, m_writeSize, SocketFlags.None);
@@ -259,7 +271,7 @@ namespace NetMQ.Core.Transports.Pgm
 
         private void Error()
         {
-            Debug.Assert(m_session != null);
+            Assumes.NotNull(m_session);
             m_session.Detach();
             Destroy();
         }
@@ -270,6 +282,9 @@ namespace NetMQ.Core.Transports.Pgm
             {
                 CancelTimer(ReconnectTimerId);
             }
+
+            Assumes.NotNull(m_pgmSocket);
+            Assumes.NotNull(m_socket);
 
             m_pgmSocket.Dispose();
             RemoveSocket(m_socket);

@@ -1,6 +1,4 @@
-﻿#nullable disable
-
-using System;
+﻿using System;
 using Xunit;
 
 namespace NetMQ.Tests
@@ -210,7 +208,7 @@ namespace NetMQ.Tests
             Assert.Equal(MsgType.Pool, msg.MsgType);
             Assert.Equal(MsgFlags.None, msg.Flags);
             Assert.NotNull(msg.UnsafeData);
-            Assert.Equal(100, msg.UnsafeData.Length);
+            Assert.Equal(100, msg.UnsafeData!.Length);
             Assert.False(msg.HasMore);
             Assert.False(msg.IsDelimiter);
             Assert.False(msg.IsIdentity);
