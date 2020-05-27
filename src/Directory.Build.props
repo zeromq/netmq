@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="10.4.0" PrivateAssets="All" />
+  </ItemGroup>
+
   <!-- Workaround for https://github.com/dotnet/sourcelink/issues/572 -->
   <ItemGroup>
     <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
