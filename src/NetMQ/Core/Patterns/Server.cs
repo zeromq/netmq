@@ -67,8 +67,6 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Assumes.NotNull(pipe);
-
             uint routingId = m_nextRoutingId++;
             if (routingId == 0)
                 routingId = m_nextRoutingId++; //  Never use Routing ID zero
