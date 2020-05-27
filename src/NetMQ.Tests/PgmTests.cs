@@ -80,11 +80,7 @@ namespace NetMQ.Tests
         [Fact(Skip = "Requires MSMQ for PGM sockets")]
         public void UseInterface()
         {
-#if NETCOREAPP1_0
-            var hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).Result;
-#else
             var hostEntry = Dns.GetHostEntry(Dns.GetHostName());
-#endif
 
             string ip = hostEntry.AddressList
                 .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork)
