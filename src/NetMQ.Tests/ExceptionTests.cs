@@ -1,7 +1,5 @@
 #nullable disable
 
-#if !NETCOREAPP1_0
-
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using Xunit;
@@ -130,5 +128,3 @@ namespace NetMQ.Tests
         #endregion
     }
 }
-
-#endif
