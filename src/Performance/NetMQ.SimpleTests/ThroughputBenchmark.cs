@@ -134,7 +134,7 @@ namespace NetMQ.SimpleTests
             for (int i = 0; i < MsgCount; i++)
             {
                 msg.InitGC(new byte[messageSize], messageSize);
-                msg.Data[messageSize / 2] = 0x42;
+                msg.Slice()[messageSize / 2] = 0x42;
 
                 socket.Send(ref msg, more: false);
 
@@ -150,8 +150,8 @@ namespace NetMQ.SimpleTests
             for (int i = 0; i < MsgCount; i++)
             {
                 socket.Receive(ref msg);
-                Debug.Assert(msg.Data.Length == messageSize, "Message length was different from expected size.");
-                Debug.Assert(msg.Data[msg.Size/2] == 0x42, "Message did not contain verification data.");
+                Debug.Assert(msg.Slice().Length == messageSize, "Message length was different from expected size.");
+                Debug.Assert(msg.Slice()[msg.Size/2] == 0x42, "Message did not contain verification data.");
             }
         }
     }
