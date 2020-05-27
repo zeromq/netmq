@@ -1,6 +1,4 @@
-﻿#nullable disable
-
-#if !NET35
+﻿#if !NET35
 using System;
 using System.Diagnostics;
 using NetMQ.Sockets;
@@ -44,7 +42,7 @@ namespace NetMQ.Tests
                     var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address,
                         requestMessage, numTries, requestTimeout, progressPublisher);
                     Assert.NotNull(responseMessage);
-                    Assert.Equal(1, responseMessage.FrameCount);
+                    Assert.Equal(1, responseMessage!.FrameCount);
                     var responseString = responseMessage.First.ConvertToString();
                     Assert.Equal("Hi", responseString);
                 }
@@ -125,7 +123,7 @@ namespace NetMQ.Tests
                     var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address,
                         requestMessage, numTries, requestTimeout, progressPublisher);
                     Assert.NotNull(responseMessage);
-                    Assert.Equal(1, responseMessage.FrameCount);
+                    Assert.Equal(1, responseMessage!.FrameCount);
                     var responseString = responseMessage.First.ConvertToString();
                     Assert.Equal("Hi", responseString);
                 }

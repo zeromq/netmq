@@ -19,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 // Helper base class for decoders that know the amount of data to read
 //  in advance at any moment. Knowing the amount in advance is a property
 //  of the protocol used. 0MQ framing protocol is based size-prefixed
@@ -157,6 +155,8 @@ namespace NetMQ.Core.Transports
             int first = m_tmpbuf[0];
 
             m_inProgress.SetFlags((MsgFlags)first & MsgFlags.More);
+
+            Assumes.NotNull(m_inProgress.UnsafeData);
 
             NextStep(new ByteArraySegment(m_inProgress.UnsafeData, m_inProgress.UnsafeOffset),
                 m_inProgress.Size, MessageReadyState);

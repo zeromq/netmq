@@ -1,11 +1,8 @@
-﻿#nullable disable
-
-using System;
+﻿using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using AsyncIO;
-using JetBrains.Annotations;
 #if DEBUG
 using System.Diagnostics;
 #endif
@@ -74,7 +71,7 @@ namespace NetMQ.Core.Transports.Pgm
         private readonly PgmSocketType m_pgmSocketType;
         private readonly PgmAddress m_pgmAddress;
 
-        public PgmSocket([NotNull] Options options, PgmSocketType pgmSocketType, [NotNull] PgmAddress pgmAddress)
+        public PgmSocket(Options options, PgmSocketType pgmSocketType, PgmAddress pgmAddress)
         {
             m_options = options;
             m_pgmSocketType = pgmSocketType;
@@ -136,6 +133,8 @@ namespace NetMQ.Core.Transports.Pgm
 
         internal void InitOptions()
         {
+            Assumes.NotNull(Handle);
+
             // Enable gigabit on the socket
             try
             {
@@ -201,7 +200,7 @@ namespace NetMQ.Core.Transports.Pgm
             }
         }
 
-        public AsyncSocket Handle { get; private set; }
+        public AsyncSocket? Handle { get; private set; }
 
         /// <summary>
         /// Override the ToString method to produce a more descriptive, useful description.
@@ -220,6 +219,8 @@ namespace NetMQ.Core.Transports.Pgm
 
         public void Dispose()
         {
+            Assumes.NotNull(Handle);
+
             Handle.Dispose();
         }
     }

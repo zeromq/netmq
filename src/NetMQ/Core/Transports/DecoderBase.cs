@@ -19,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 
@@ -46,7 +44,7 @@ namespace NetMQ.Core.Transports
         /// <summary>
         /// Where to store the read data.
         /// </summary>
-        private ByteArraySegment m_readPos;
+        private ByteArraySegment? m_readPos;
 
         /// <summary>
         /// How much data to read before taking next step.
@@ -85,6 +83,8 @@ namespace NetMQ.Core.Transports
             // other engines running in the same I/O thread for excessive
             // amounts of time.
 
+            Assumes.NotNull(m_readPos);
+
             if (m_toRead >= m_bufsize)
             {
                 data = m_readPos.Clone();
@@ -104,6 +104,8 @@ namespace NetMQ.Core.Transports
         /// </summary>
         public virtual DecodeResult Decode (ByteArraySegment data, int size, out int bytesUsed)
         {
+            Assumes.NotNull(m_readPos);
+
             bytesUsed = 0;
             
             // In case of zero-copy simply adjust the pointers, no copying
@@ -131,7 +133,7 @@ namespace NetMQ.Core.Transports
                 
                 // Only copy when destination address is different from the
                 // current address in the buffer.
-                data.CopyTo(bytesUsed, m_readPos, 0, toCopy);
+                data!.CopyTo(bytesUsed, m_readPos, 0, toCopy);
                 m_readPos.AdvanceOffset(toCopy);
                 m_toRead -= toCopy;
                 bytesUsed += toCopy;

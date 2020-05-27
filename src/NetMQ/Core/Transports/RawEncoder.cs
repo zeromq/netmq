@@ -1,8 +1,4 @@
-﻿#nullable disable
-
-using JetBrains.Annotations;
-
-namespace NetMQ.Core.Transports
+﻿namespace NetMQ.Core.Transports
 {
     internal class RawEncoder : EncoderBase
     {
@@ -16,6 +12,8 @@ namespace NetMQ.Core.Transports
 
         protected override void Next()
         {
+            Assumes.NotNull(m_inProgress.UnsafeData);
+
             // Write message body into the buffer.
             NextStep(new ByteArraySegment(m_inProgress.UnsafeData, m_inProgress.UnsafeOffset),
                 m_inProgress.Size, RawMessageReadyState, true);

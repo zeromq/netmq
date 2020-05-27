@@ -1,6 +1,4 @@
-﻿#nullable disable
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -122,12 +120,12 @@ namespace NetMQ.Tests
                         Thread.Sleep(100);
                         pubSync.Set();
 
-                        NetMQMessage msg = null;
+                        NetMQMessage? msg = null;
                         Assert.False(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(100), ref msg));
 
                         Assert.True(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(waitTime), ref msg));
                         Assert.NotNull(msg);
-                        Assert.Equal(1, msg.FrameCount);
+                        Assert.Equal(1, msg!.FrameCount);
                         Assert.Equal(300, msg.First.MessageSize);
                         pubSync.Set();
                     }
@@ -752,9 +750,9 @@ namespace NetMQ.Tests
                 {
                     for (int i = 0; i < 2; i++)
                     {
-                        void ThreadMethod(object state)
+                        void ThreadMethod(object? state)
                         {
-                            byte[] routerId = (byte[]) state;
+                            byte[]? routerId = (byte[]?) state;
                             byte[] workerId = Guid.NewGuid().ToByteArray();
                             using (var workerSocket = new DealerSocket())
                             {
@@ -891,7 +889,7 @@ namespace NetMQ.Tests
 
                 Assert.NotNull(sub.Options.LastEndpoint);
 
-                sub.Unbind(sub.Options.LastEndpoint);
+                sub.Unbind(sub.Options.LastEndpoint!);
                 closed.Wait(1000);
 
                 monitor.Stop();

@@ -1,8 +1,5 @@
-﻿#nullable disable
-
-using System;
+﻿using System;
 using System.Text;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports
 {
@@ -12,13 +9,13 @@ namespace NetMQ.Core.Transports
     /// </summary>
     internal sealed class ByteArraySegment
     {
-        [NotNull] private readonly byte[] m_innerBuffer;
+        private readonly byte[] m_innerBuffer;
 
         /// <summary>
         /// Create a new ByteArraySegment containing the given byte-array buffer.
         /// </summary>
         /// <param name="buffer">the byte-array for the new ByteArraySegment to contain</param>
-        public ByteArraySegment([NotNull] byte[] buffer)
+        public ByteArraySegment(byte[] buffer)
         {
             m_innerBuffer = buffer;
             Offset = 0;
@@ -29,7 +26,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         /// <param name="buffer">the byte-array for the new ByteArraySegment to contain</param>
         /// <param name="offset">the value for the Offset property</param>
-        public ByteArraySegment([NotNull] byte[] buffer, int offset)
+        public ByteArraySegment(byte[] buffer, int offset)
         {
             m_innerBuffer = buffer;
             Offset = offset;
@@ -39,7 +36,7 @@ namespace NetMQ.Core.Transports
         /// Create a new ByteArraySegment that is a shallow-copy of the given ByteArraySegment (with a reference to the same buffer).
         /// </summary>
         /// <param name="otherSegment">the source-ByteArraySegment to make a copy of</param>
-        public ByteArraySegment([NotNull] ByteArraySegment otherSegment)
+        public ByteArraySegment(ByteArraySegment otherSegment)
         {
             m_innerBuffer = otherSegment.m_innerBuffer;
             Offset = otherSegment.Offset;
@@ -51,7 +48,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         /// <param name="otherSegment">the source-ByteArraySegment to make a copy of</param>
         /// <param name="offset">a value for the Offset property that is distinct from that of the source ByteArraySegment</param>
-        public ByteArraySegment([NotNull] ByteArraySegment otherSegment, int offset)
+        public ByteArraySegment(ByteArraySegment otherSegment, int offset)
         {
             m_innerBuffer = otherSegment.m_innerBuffer;
             Offset = otherSegment.Offset + offset;
@@ -159,12 +156,12 @@ namespace NetMQ.Core.Transports
         /// <param name="s">the String to write to the buffer</param>
         /// <param name="length">the number of encoded bytes to copy into the buffer</param>
         /// <param name="i">an index-offset, in addition to the Offset property, that marks where in the buffer to start writing bytes to</param>
-        public void PutString([NotNull] string s, int length, int i)
+        public void PutString(string s, int length, int i)
         {
             Buffer.BlockCopy(Encoding.ASCII.GetBytes(s), 0, m_innerBuffer, Offset + i, length);
         }
 
-        public void PutBytes([NotNull] byte[] bytes, int i)
+        public void PutBytes(byte[] bytes, int i)
         {
             Buffer.BlockCopy(bytes, 0, m_innerBuffer, Offset + i, bytes.Length);
         }
@@ -175,7 +172,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         /// <param name="s">the String to write to the buffer</param>
         /// <param name="i">an index-offset, in addition to the Offset property, that marks where in the buffer to start writing bytes to</param>
-        public void PutString([NotNull] string s, int i)
+        public void PutString(string s, int i)
         {
             PutString(s, s.Length, i);
         }
@@ -310,7 +307,6 @@ namespace NetMQ.Core.Transports
         /// <param name="length">the length of the part of the buffer to read</param>
         /// <param name="i">the index position beyond the offset to start reading the bytes</param>
         /// <returns>a String decoded from the bytes of the buffer</returns>
-        [NotNull]
         public string GetString(int length, int i)
         {
             return Encoding.ASCII.GetString(m_innerBuffer, Offset + i, length);
@@ -321,7 +317,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         /// <param name="otherSegment">the destination-ByteArraySegment</param>
         /// <param name="toCopy">the number of bytes to copy</param>
-        public void CopyTo([NotNull] ByteArraySegment otherSegment, int toCopy)
+        public void CopyTo(ByteArraySegment otherSegment, int toCopy)
         {
             CopyTo(0, otherSegment, 0, toCopy);
         }
@@ -338,7 +334,7 @@ namespace NetMQ.Core.Transports
         /// <param name="dest">the destination-ByteArraySegment</param>
         /// <param name="destOffset">an offset within the destination buffer to start copying to</param>
         /// <param name="toCopy">the number of bytes to copy</param>
-        public void CopyTo(int fromOffset, [NotNull] ByteArraySegment dest, int destOffset, int toCopy)
+        public void CopyTo(int fromOffset, ByteArraySegment dest, int destOffset, int toCopy)
         {
             Buffer.BlockCopy(m_innerBuffer, Offset + fromOffset, dest.m_innerBuffer, dest.Offset + destOffset, toCopy);
         }
@@ -347,7 +343,6 @@ namespace NetMQ.Core.Transports
         /// Return a shallow-copy of this ByteArraySegment.
         /// </summary>
         /// <returns>a new ByteArraySegment that is a shallow-copy of this one</returns>
-        [NotNull]
         public ByteArraySegment Clone()
         {
             return new ByteArraySegment(this);
@@ -379,7 +374,7 @@ namespace NetMQ.Core.Transports
         /// <param name="byteArray">the source-ByteArraySegment</param>
         /// <param name="offset">the offset-value to give the new ByteArraySegment</param>
         /// <returns></returns>
-        public static ByteArraySegment operator +([NotNull] ByteArraySegment byteArray, int offset)
+        public static ByteArraySegment operator +(ByteArraySegment byteArray, int offset)
         {
             return new ByteArraySegment(byteArray, offset);
         }
@@ -389,7 +384,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         /// <param name="buffer">the source byte-array buffer</param>
         /// <returns>a new ByteArraySegment that contains the given buffer</returns>
-        public static implicit operator ByteArraySegment([NotNull] byte[] buffer)
+        public static implicit operator ByteArraySegment(byte[] buffer)
         {
             return new ByteArraySegment(buffer);
         }
@@ -399,7 +394,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         /// <param name="buffer">the source-ByteArraySegment</param>
         /// <returns>the byte-array that is the buffer of this ByteArraySegment</returns>
-        public static explicit operator byte[]([NotNull] ByteArraySegment buffer)
+        public static explicit operator byte[](ByteArraySegment buffer)
         {
             return buffer.m_innerBuffer;
         }

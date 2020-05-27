@@ -20,8 +20,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 
 namespace NetMQ.Core.Transports
@@ -31,7 +29,7 @@ namespace NetMQ.Core.Transports
         /// <summary>
         /// Where to get the data to write from.
         /// </summary>
-        private ByteArraySegment m_writePos;
+        private ByteArraySegment? m_writePos;
         
         private bool m_newMsgFlag;
 
@@ -79,7 +77,7 @@ namespace NetMQ.Core.Transports
         /// </summary>
         public Endianness Endian { get; }
         
-        public int Encode(ref ByteArraySegment data, int size)
+        public int Encode(ref ByteArraySegment? data, int size)
         {
             ByteArraySegment buffer = data ?? new ByteArraySegment(m_buffer);
             int bufferSize = data == null ? m_bufferSize : size;
@@ -130,6 +128,8 @@ namespace NetMQ.Core.Transports
 
                 if (toCopy != 0)
                 {
+                    Assumes.NotNull(m_writePos);
+
                     m_writePos.CopyTo(0, buffer, pos, toCopy);
                     pos += toCopy;
                     m_writePos.AdvanceOffset(toCopy);
@@ -153,7 +153,7 @@ namespace NetMQ.Core.Transports
 
         protected abstract void Next();
 
-        protected void NextStep(ByteArraySegment writePos, int toWrite, int state, bool newMsgFlag)
+        protected void NextStep(ByteArraySegment? writePos, int toWrite, int state, bool newMsgFlag)
         {
             m_writePos = writePos;
             m_toWrite = toWrite;

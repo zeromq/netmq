@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Text;
 using NaCl;
@@ -25,7 +23,7 @@ namespace NetMQ.Core.Mechanisms
 
         protected UInt64 m_nonce;
         protected UInt64 m_peerNonce;
-        protected Curve25519XSalsa20Poly1305 m_box;
+        protected Curve25519XSalsa20Poly1305? m_box;
 
         protected CurveMechanismBase(SessionBase session, Options options,
             string encodeNoncePrefix, string decodeNoncePrefix) : base(session, options)
@@ -45,6 +43,8 @@ namespace NetMQ.Core.Mechanisms
 
         public override void Dispose()
         {
+            Assumes.NotNull(m_box);
+
             m_box.Dispose();
         }
 
@@ -67,6 +67,8 @@ namespace NetMQ.Core.Mechanisms
 
             msg.Close();
             msg.InitPool(16 + Curve25519XSalsa20Poly1305.TagLength + plaintext.Size);
+
+            Assumes.NotNull(m_box);
 
             m_box.Encrypt(msg.Slice(16), plaintext, messageNonce);
             plaintext.Close();
@@ -103,6 +105,8 @@ namespace NetMQ.Core.Mechanisms
 
             Msg plain = new Msg();
             plain.InitPool(msg.Size - 16 - Curve25519XSalsa20Poly1305.TagLength);
+
+            Assumes.NotNull(m_box);
 
             var isAuthenticate = m_box.TryDecrypt(plain,msg.Slice(16), messageNonce);
 
