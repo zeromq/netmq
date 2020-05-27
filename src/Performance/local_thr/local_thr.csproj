@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\NetMQ\NetMQ.csproj" />
   </ItemGroup>

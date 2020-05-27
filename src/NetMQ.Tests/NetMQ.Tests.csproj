@@ -11,7 +11,7 @@
     <TargetFrameworks>netcoreapp3.1;netcoreapp2.1;net47</TargetFrameworks>
   </PropertyGroup>
 
-    <PropertyGroup>
+  <PropertyGroup>
     <!-- When compiling .NET SDK 2.0 projects targeting .NET 4.x on Mono using 'dotnet build' you -->
     <!-- have to teachcd MSBuild where the Mono copy of the reference asssemblies is -->
     <TargetIsMono Condition="$(TargetFramework.StartsWith('net4')) and '$(OS)' == 'Unix'">true</TargetIsMono>
@@ -25,7 +25,6 @@
 
     <!-- Add the Facades directory.  Not sure how else to do this. Necessary at least for .NET 4.5 -->
     <AssemblySearchPaths Condition="'$(BaseFrameworkPathOverrideForMono)' != ''">$(FrameworkPathOverride)/Facades;$(AssemblySearchPaths)</AssemblySearchPaths>
-
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">
@@ -42,7 +41,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="10.4.0" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
@@ -51,4 +49,5 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">
     <PackageReference Include="ZeroMQ" Version="4.1.0.31" />
   </ItemGroup>
+
 </Project>

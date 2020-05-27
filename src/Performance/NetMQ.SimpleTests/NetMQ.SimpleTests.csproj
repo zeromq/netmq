@@ -4,14 +4,9 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\NetMQ\NetMQ.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="10.4.0">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <ProjectReference Include="..\..\NetMQ\NetMQ.csproj" />
   </ItemGroup>
 
 </Project>
