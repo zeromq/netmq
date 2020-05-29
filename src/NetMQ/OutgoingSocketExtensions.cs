@@ -424,7 +424,7 @@ namespace NetMQ
         #region Blocking
 
         /// <summary>
-        /// Send multiple message on <paramref name="socket"/>, blocking until all entire message is sent.
+        /// Send the multiple part message on the <paramref name="socket"/>, blocking until the entire message is sent.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
         /// <param name="message">message to transmit</param>
