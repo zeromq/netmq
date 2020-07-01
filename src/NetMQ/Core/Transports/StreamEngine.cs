@@ -1049,7 +1049,8 @@ namespace NetMQ.Core.Transports
                 socketError == SocketError.ConnectionAborted ||
                 socketError == SocketError.TimedOut ||
                 socketError == SocketError.ConnectionReset ||
-                socketError == SocketError.AccessDenied)
+                socketError == SocketError.AccessDenied || 
+                socketError == SocketError.Shutdown)
                 return -1;
 
             throw NetMQException.Create(socketError);
