@@ -25,3 +25,4 @@ Contributors
 * Calin Pirtea &mdash; [@pcalin](https://github.com/pcalin)
 * Osiris Pedroso &mdash; [@opedroso](https://github.com/opedroso)
 * Mike Miller &mdash; [@mikepmiller](https://github.com/mikepmiller)
+* Miguel Labayen &mdash; [@milabtom](https://github.com/milabtom)
