@@ -176,8 +176,8 @@ namespace NetMQ.Core.Patterns
                     else
                     {
                         var unique = sub[0] == 0
-                            ? m_subscriptions.Remove(sub.Slice(1), pipe)
-                            : m_subscriptions.Add(sub.Slice(1), pipe);
+                            ? m_subscriptions.Remove(size == 1 ? new Span<byte>(): sub.Slice(1), pipe)
+                            : m_subscriptions.Add(size == 1 ? new Span<byte>() : sub.Slice(1), pipe);
 
                         // If the subscription is not a duplicate, store it so that it can be
                         // passed to used on next recv call.

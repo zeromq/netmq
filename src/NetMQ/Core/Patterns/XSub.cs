@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Diagnostics;
 using NetMQ.Core.Patterns.Utils;
 
@@ -170,7 +171,7 @@ namespace NetMQ.Core.Patterns
                 if (!m_moreOut && size > 0 && msg[0] == 1)
                 {
                     // Process the subscription.
-                    if (m_subscriptions.Add(msg.Slice(1)))
+                    if (m_subscriptions.Add(size == 1 ? new Span<byte>() : msg.Slice(1)))
                     {
                         m_distribution.SendToAll(ref msg);
                         return true;
@@ -178,7 +179,7 @@ namespace NetMQ.Core.Patterns
                 }
                 else if (!m_moreOut && size > 0 && msg[0] == 0)
                 {
-                    if (m_subscriptions.Remove(msg.Slice(1)))
+                    if (m_subscriptions.Remove(size == 1 ?new Span<byte>() : msg.Slice(1)))
                     {
                         m_distribution.SendToAll(ref msg);
                         return true;
