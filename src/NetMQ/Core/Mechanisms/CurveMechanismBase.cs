@@ -45,7 +45,7 @@ namespace NetMQ.Core.Mechanisms
         {
             Assumes.NotNull(m_box);
 
-            m_box.Dispose();
+            m_box?.Dispose();
         }
 
         public override PullMsgResult Encode(ref Msg msg)
