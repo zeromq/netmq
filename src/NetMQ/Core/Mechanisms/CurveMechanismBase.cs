@@ -43,8 +43,6 @@ namespace NetMQ.Core.Mechanisms
 
         public override void Dispose()
         {
-            Assumes.NotNull(m_box);
-
             m_box?.Dispose();
         }
 
