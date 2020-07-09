@@ -408,7 +408,7 @@ namespace NetMQ
         #endregion
 
         #region Start / Stop
-
+    	
         /// <summary>
         /// Runs the poller in a background thread, returning once the poller has started.
         /// </summary>
@@ -424,7 +424,8 @@ namespace NetMQ
         /// Runs the poller in a background thread, returning once the poller has started.
         /// </summary>
         /// <param name="threadName">The thread name to use.</param>
-        public void RunAsync(string threadName)
+	/// <param name="foregroundPoller">Allow the poller thread to be a foreground thread/background.</param>
+        public void RunAsync(string threadName, bool foregroundPoller=true)
         {
             CheckDisposed();
             if (IsRunning)
@@ -432,7 +433,7 @@ namespace NetMQ
 
             var thread = new Thread(Run) { 
                  Name = threadName,                              
-		         IsBackground = true
+		 IsBackground = !foregroundPoller
             };
             thread.Start();
 
