@@ -430,7 +430,10 @@ namespace NetMQ
             if (IsRunning)
                 throw new InvalidOperationException("NetMQPoller is already running");
 
-            var thread = new Thread(Run) { Name = threadName };
+            var thread = new Thread(Run) { 
+                 Name = threadName,                              
+		         IsBackground = true
+            };
             thread.Start();
 
             m_switch.WaitForOn();
