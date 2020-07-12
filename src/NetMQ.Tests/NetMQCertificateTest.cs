@@ -12,10 +12,10 @@ namespace NetMQ.Tests
             for (int i = 0; i < 1000; i++)
             {
                 var key = new NetMQCertificate();
-                var copy  = new NetMQCertificate(key.SecretKeyX85, key.PublicKeyX85);
+                var copy  = new NetMQCertificate(key.SecretKeyZ85, key.PublicKeyZ85);
 
-                Assert.Equal(key.SecretKeyX85, copy.SecretKeyX85);
-                Assert.Equal(key.PublicKeyX85, copy.PublicKeyX85);
+                Assert.Equal(key.SecretKeyZ85, copy.SecretKeyZ85);
+                Assert.Equal(key.PublicKeyZ85, copy.PublicKeyZ85);
 
                 Assert.Equal(key.SecretKey, copy.SecretKey);
                 Assert.Equal(key.PublicKey, copy.PublicKey);

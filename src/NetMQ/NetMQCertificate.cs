@@ -247,7 +247,7 @@ namespace NetMQ
         /// <summary>
         /// Curve Public key 
         /// </summary>
-        public string SecretKeyX85 => SecretKey != null ? Z85Encode(SecretKey) : null;
+        public string SecretKeyZ85 => SecretKey != null ? Z85Encode(SecretKey) : null;
 
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace NetMQ
         /// <summary>
         /// Curve Public key 
         /// </summary>
-        public string PublicKeyX85 
+        public string PublicKeyZ85 
         {
             get => Z85Encode(PublicKey);
         }
