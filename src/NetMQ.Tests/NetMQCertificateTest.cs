@@ -21,5 +21,31 @@ namespace NetMQ.Tests
                 Assert.Equal(key.PublicKey, copy.PublicKey);
             }
         }
+
+        [Fact]
+        public void FromPublicKey()
+        {
+            var key = new NetMQCertificate();
+            var copy = NetMQCertificate.FromPublicKey(key.PublicKeyZ85);
+
+            Assert.Null(copy.SecretKeyZ85);
+            Assert.Equal(key.PublicKeyZ85, copy.PublicKeyZ85);
+
+            Assert.Null(copy.SecretKey);
+            Assert.Equal(key.PublicKey, copy.PublicKey);
+        }
+
+        [Fact]
+        public void FromSecretKey()
+        {
+            var key = new NetMQCertificate();
+            var copy = new NetMQCertificate().FromSecretKey(key.SecretKeyZ85);
+
+            Assert.Equal(key.SecretKeyZ85, copy.SecretKeyZ85);
+            Assert.Equal(key.PublicKeyZ85, copy.PublicKeyZ85);
+
+            Assert.Equal(key.SecretKey, copy.SecretKey);
+            Assert.Equal(key.PublicKey, copy.PublicKey);
+        }
     }
 }
