@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System;
+using Xunit;
 
 namespace NetMQ.Tests
 {
@@ -46,6 +47,19 @@ namespace NetMQ.Tests
 
             Assert.Equal(key.SecretKey, copy.SecretKey);
             Assert.Equal(key.PublicKey, copy.PublicKey);
+        }
+
+        [Fact]
+        public void InvalidKeyLength()
+        {
+            Assert.Throws<ArgumentException>(() => new NetMQCertificate("hkszCq4i}RDe:<!?NIDbGr0%Nl-CP9I^3h>TLT?", "hhRj/hiV-5CE(W!TLjLA%fGuxYmz9g}OZpJt2]cL"));
+            Assert.Throws<ArgumentException>(() => new NetMQCertificate("hkszCq4i}RDe:<!?NIDbGr0%Nl-CP9I^3h>TLT?)", "hhRj/hiV-5CE(W!TLjLA%fGuxYmz9g}OZpJt2]c"));
+        }
+
+        [Fact]
+        public void InvalidKeyCharacter()
+        {
+            Assert.Throws<ArgumentException>(() => new NetMQCertificate(" kszCq4i}RDe:<!?NIDbGr0%Nl-CP9I^3h>TLT?)", "hhRj/hiV-5CE(W!TLjLA%fGuxYmz9g}OZpJt2]cL"));
         }
     }
 }

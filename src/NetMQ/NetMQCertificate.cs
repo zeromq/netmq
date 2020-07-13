@@ -28,22 +28,17 @@ namespace NetMQ
           0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C,
           0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x4F, 0xFF, 0x50, 0xFF, 0xFF};
 
-        //  --------------------------------------------------------------------------
-        //  Encode a binary frame as a string; destination string MUST be at least
-        //  size * 5 / 4 bytes long plus 1 byte for the null terminator. Returns
-        //  dest. Size must be a multiple of 4.
-        //  Returns NULL for invalid input.
+        /// <summary>
+        /// Encodes Z85 string
+        /// </summary>
+        /// <param name="data">Data</param>
         private string Z85Encode(byte[] data)
         {
-            if (data.Length % 4 != 0) 
-            {
-                return null;
-            }
-
             byte byte_nbr = 0;
             UInt32 value = 0;
             string dest = null;
-            while (byte_nbr<data.Length) {
+            while (byte_nbr<data.Length) 
+            {
                 //  Accumulate value in base 256 (binary)
                 value = value* 256 + data[byte_nbr++];
                 if (byte_nbr % 4 == 0) 
@@ -58,31 +53,27 @@ namespace NetMQ
                     value = 0;
                 }
             }
-
-            dest += char.MinValue;
             return dest;
         }
 
-
-        //  --------------------------------------------------------------------------
-        //  Decode an encoded string into a binary frame; dest must be at least
-        //  strlen (string) * 4 / 5 bytes long. Returns dest. strlen (string)
-        //  must be a multiple of 5.
-        //  Returns NULL for invalid input.
+        /// <summary>
+        /// Decodes Z85 string
+        /// </summary>
+        /// <param name="key">key in Z85 format</param>
+        /// <exception cref="ArgumentException">If key in invalid</exception>
         byte[] Z85Decode(string key)
         {
             UInt32 byte_nbr = 0;
             UInt32 char_nbr = 0;
             UInt32 value = 0;
             var dest_ = new List<byte>();
-            foreach (var cha in key.TakeWhile(c => c != char.MinValue))
+            foreach (var cha in key)
             {
-                
                 //  Accumulate value in base 85
                 if (UInt32.MaxValue / 85 < value)
                 {
                     //  Invalid z85 encoding, represented value exceeds 0xffffffff
-                    return null;
+                    throw new ArgumentException("Invalid key bad encoding");
                 }
                 value *= 85;
                 char_nbr++;
@@ -90,13 +81,13 @@ namespace NetMQ
                 if (index >= Decoder.Length)
                 {
                     //  Invalid z85 encoding, character outside range
-                    return null;
+                    throw new ArgumentException("Invalid key character");
                 }
                 UInt32 summand = Decoder[index];
                 if (summand == 0xFF || summand > (UInt32.MaxValue - value))
                 {
                     //  Invalid z85 encoding, invalid character or represented value exceeds 0xffffffff
-                    return null;
+                    throw new ArgumentException("Invalid key character");
                 }
                 value += summand;
                 if (char_nbr % 5 == 0)
@@ -111,12 +102,7 @@ namespace NetMQ
                     value = 0;
                 }
             }
-            if (char_nbr % 5 != 0)
-            {
-                return null;
-            }
             return dest_.ToArray();
-
         }
 
         /// <summary>
@@ -152,14 +138,14 @@ namespace NetMQ
         /// </summary>
         /// <param name="secretKey">Secret key</param>
         /// <param name="publicKey">Public key</param>
-        /// <exception cref="ArgumentException">If secretKey or publicKey are not 41-chars long</exception>
+        /// <exception cref="ArgumentException">If secretKey or publicKey are not 40-chars long</exception>
         public NetMQCertificate(string secretKey, string publicKey)
         {
-            if (secretKey.Length != 41)
-                throw new ArgumentException("secretKey must be 41 char long");
+            if (secretKey.Length != 40)
+                throw new ArgumentException("secretKey must be 40 char long");
 
-            if (publicKey.Length != 41)
-                throw new ArgumentException("publicKey must be 41 char long");
+            if (publicKey.Length != 40)
+                throw new ArgumentException("publicKey must be 40 char long");
 
             SecretKey = Z85Decode(secretKey);
             PublicKey = Z85Decode(publicKey);
@@ -181,8 +167,8 @@ namespace NetMQ
 
         private NetMQCertificate(string keystr, bool isSecret)
         {
-            if (keystr.Length != 41)
-                throw new ArgumentException("key must be 41 bytes length");
+            if (keystr.Length != 40)
+                throw new ArgumentException("key must be 40 bytes length");
 
             var key = Z85Decode(keystr);
             if (isSecret)
@@ -209,7 +195,7 @@ namespace NetMQ
         /// Create a certificate from secret key, public key is derived from the secret key
         /// </summary>
         /// <param name="secretKey">Secret Key</param>
-        /// <exception cref="ArgumentException">If secret key is not 41-chars long</exception>
+        /// <exception cref="ArgumentException">If secret key is not 40-chars long</exception>
         /// <returns>The newly created certificate</returns>
         public NetMQCertificate FromSecretKey(string secretKey)
         {
@@ -231,7 +217,7 @@ namespace NetMQ
         /// Create a public key only certificate.
         /// </summary>
         /// <param name="publicKey">Public key</param>
-        /// <exception cref="ArgumentException">If public key is not 41-chars long</exception>
+        /// <exception cref="ArgumentException">If public key is not 40-chars long</exception>
         /// <returns>The newly created certificate</returns>
         public static NetMQCertificate FromPublicKey(string publicKey)
         {
