@@ -1027,14 +1027,14 @@ namespace NetMQ.Core.Transports
         {
             FeedAction(Action.ActivateOut, SocketError.Success, 0);
         }
-        
+
         /// <param name="socketError">the SocketError that resulted from the write - which could be Success (no error at all)</param>
         /// <param name="bytesTransferred">this indicates the number of bytes that were transferred in the write</param>
         /// <returns>the number of bytes transferred if successful, -1 otherwise</returns>
         /// <exception cref="NetMQException">If the socketError is not Success then it must be a valid recoverable error or the number of bytes transferred must be zero.</exception>
         /// <remarks>
         /// If socketError is SocketError.Success and bytesTransferred is > 0, then this returns bytesTransferred.
-        /// If bytes is zero, or the socketError is one of NetworkDown, NetworkReset, HostUn, Connection Aborted, TimedOut, or ConnectionReset, - then -1 is returned.
+        /// If bytes is zero, or the socketError is one of NetworkDown, NetworkReset, HostUn, Connection Aborted, TimedOut, ConnectionReset, AccessDenied, or Shutdown, - then -1 is returned.
         /// Otherwise, a NetMQException is thrown.
         /// </remarks>
         private static int EndWrite(SocketError socketError, int bytesTransferred)
@@ -1074,7 +1074,7 @@ namespace NetMQ.Core.Transports
         /// <exception cref="NetMQException">If the socketError is not Success then it must be a valid recoverable error or the number of bytes transferred must be zero.</exception>
         /// <remarks>
         /// If socketError is SocketError.Success and bytesTransferred is > 0, then this returns bytesTransferred.
-        /// If bytes is zero, or the socketError is one of NetworkDown, NetworkReset, HostUn, Connection Aborted, TimedOut, or ConnectionReset, - then -1 is returned.
+        /// If bytes is zero, or the socketError is one of NetworkDown, NetworkReset, HostUn, Connection Aborted, TimedOut, ConnectionReset, AccessDenied, or Shutdown, - then -1 is returned.
         /// Otherwise, a NetMQException is thrown.
         /// </remarks>
         private static int EndRead(SocketError socketError, int bytesTransferred)
@@ -1089,7 +1089,8 @@ namespace NetMQ.Core.Transports
                 socketError == SocketError.ConnectionAborted ||
                 socketError == SocketError.TimedOut ||
                 socketError == SocketError.ConnectionReset ||
-                socketError == SocketError.AccessDenied)
+                socketError == SocketError.AccessDenied ||
+                socketError == SocketError.Shutdown)
                 return -1;
 
             throw NetMQException.Create(socketError);
