@@ -36,7 +36,7 @@
   <ItemGroup>
     <PackageReference Include="AsyncIO" Version="0.1.69" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-    <PackageReference Include="NaCl.Net" Version="0.1.12" />
+    <PackageReference Include="NaCl.Net" Version="0.1.13" />
   </ItemGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
