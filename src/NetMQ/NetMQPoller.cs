@@ -433,9 +433,9 @@ namespace NetMQ
         /// Runs the poller in a specified thread - background/foreground, returning once the poller has started.
         /// </summary>
         /// <param name="threadName">The thread name to use.</param>
-        /// <param name="longRunningPoller">Allow the poller thread to be a long running 
-        /// poller (either foreground thread /background)</param>
-        public void RunAsync(string threadName, bool longRunningPoller)
+        /// <param name="isBackgroundThread">Allow the poller thread to be a long running 
+        /// poller (either foreground thread/background)</param>
+        public void RunAsync(string threadName, bool isBackgroundThread)
         {
             CheckDisposed();
             if (IsRunning)
@@ -444,7 +444,7 @@ namespace NetMQ
             var thread = new Thread(Run)
             {
                 Name = threadName,
-                IsBackground = !longRunningPoller
+                IsBackground = isBackgroundThread
             };
             thread.Start();
 
