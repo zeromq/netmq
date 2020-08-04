@@ -426,7 +426,7 @@ namespace NetMQ
         /// <param name="threadName">The thread name to use.</param>
         public void RunAsync(string threadName)
         {
-            RunAsync(threadName, true);
+            RunAsync(threadName, false);
         }
 
         /// <summary>
