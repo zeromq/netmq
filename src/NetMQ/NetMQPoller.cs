@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -39,9 +39,9 @@ namespace NetMQ
         private readonly StopSignaler m_stopSignaler = new StopSignaler();
 
         private NetMQSelector.Item[]? m_pollSet;
-        private NetMQSocket[]? m_pollact;
+		private NetMQSocket[]? m_pollact;
 
-        private volatile bool m_isPollSetDirty = true;
+		private volatile bool m_isPollSetDirty = true;
         private int m_disposeState = (int)DisposeState.Undisposed;
 
 #if NET35
@@ -354,7 +354,7 @@ namespace NetMQ
 
         #region Contains
 #if !NET35
-        
+
         /// <summary>
         /// Check if poller contains the socket asynchronously.
         /// </summary>
@@ -426,11 +426,26 @@ namespace NetMQ
         /// <param name="threadName">The thread name to use.</param>
         public void RunAsync(string threadName)
         {
+            RunAsync(threadName, false);
+        }
+
+        /// <summary>
+        /// Runs the poller in a specified thread - background/foreground, returning once the poller has started.
+        /// </summary>
+        /// <param name="threadName">The thread name to use.</param>
+        /// <param name="isBackgroundThread">Allow the poller thread to be a long running 
+        /// poller (either foreground thread/background)</param>
+        public void RunAsync(string threadName, bool isBackgroundThread)
+        {
             CheckDisposed();
             if (IsRunning)
                 throw new InvalidOperationException("NetMQPoller is already running");
 
-            var thread = new Thread(Run) { Name = threadName };
+            var thread = new Thread(Run)
+            {
+                Name = threadName,
+                IsBackground = isBackgroundThread
+            };
             thread.Start();
 
             m_switch.WaitForOn();
@@ -473,8 +488,8 @@ namespace NetMQ
         /// Runs the poller on the caller's thread. Only returns when <see cref="Stop" /> or <see cref="StopAsync" /> are called from another thread.
         /// </summary>
         /// <param name="syncContext">The synchronization context that will be used.</param>
-         public void Run(SynchronizationContext syncContext)
-         {
+        public void Run(SynchronizationContext syncContext)
+        {
             if (syncContext == null)
                 throw new ArgumentNullException("Must supply a Synchronization Context");
 
