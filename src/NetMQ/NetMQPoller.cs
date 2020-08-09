@@ -410,7 +410,7 @@ namespace NetMQ
         #region Start / Stop
 
         /// <summary>
-        /// Runs the poller in a background thread, returning once the poller has started.
+        /// Runs the poller in a foreground thread, returning once the poller has started.
         /// </summary>
         /// <remarks>
         /// The created thread is named <c>"NetMQPollerThread"</c>. Use <see cref="RunAsync(string)"/> to specify the thread name.
@@ -421,7 +421,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Runs the poller in a background thread, returning once the poller has started.
+        /// Runs the poller in a foreground thread, returning once the poller has started.
         /// </summary>
         /// <param name="threadName">The thread name to use.</param>
         public void RunAsync(string threadName)
