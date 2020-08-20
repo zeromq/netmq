@@ -186,7 +186,29 @@ namespace NetMQ
         /// <param name="secretKey">Secret Key</param>
         /// <exception cref="ArgumentException">If secret key is not 32-bytes long</exception>
         /// <returns>The newly created certificate</returns>
+        public static NetMQCertificate CreateFromSecretKey(byte[] secretKey)
+        {
+            return new NetMQCertificate(secretKey, true);
+        }
+
+        /// <summary>
+        /// Create a certificate from secret key, public key is derived from the secret key
+        /// </summary>
+        /// <param name="secretKey">Secret Key</param>
+        /// <exception cref="ArgumentException">If secret key is not 32-bytes long</exception>
+        /// <returns>The newly created certificate</returns>
         public NetMQCertificate FromSecretKey(byte[] secretKey)
+        {
+            return new NetMQCertificate(secretKey, true);
+        }
+
+        /// <summary>
+        /// Create a certificate from secret key, public key is derived from the secret key
+        /// </summary>
+        /// <param name="secretKey">Secret Key</param>
+        /// <exception cref="ArgumentException">If secret key is not 40-chars long</exception>
+        /// <returns>The newly created certificate</returns>
+        public static NetMQCertificate CreateFromSecretKey(string secretKey)
         {
             return new NetMQCertificate(secretKey, true);
         }
