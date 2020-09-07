@@ -1138,7 +1138,6 @@ namespace NetMQ.Core.Transports
             if (m_subscriptionRequired)
             {
                 Msg subscription = new Msg();
-                subscription.Close();
                 subscription.InitPool(1);
                 subscription.Put((byte)1);
                 
