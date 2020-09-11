@@ -104,7 +104,7 @@ namespace NetMQ
         {
             var msg = new Msg();
             msg.InitPool(length);
-            data.CopyTo(msg);
+            data.Slice(0, length).CopyTo(msg);
             if (!socket.TrySend(ref msg, timeout, more))
             {
                 msg.Close();

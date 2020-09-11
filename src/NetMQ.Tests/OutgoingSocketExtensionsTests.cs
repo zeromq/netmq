@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace NetMQ.Tests
@@ -321,6 +323,23 @@ namespace NetMQ.Tests
             });
 
             Assert.False(socket.TrySignalOK());
+        }
+
+        [Fact]
+        public void TrySendFrameBiggerBufferThanLength()
+        {
+	        var buffer = new byte[64];
+	        var data = Encoding.ASCII.GetBytes("Hello there");
+	        data.CopyTo(buffer, 0);
+	        var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
+	        {
+		        Assert.Equal(TimeSpan.Zero, timeout);
+		        Assert.True(data.SequenceEqual(msg.ToArray()));
+		        Assert.False(more);
+		        return true;
+	        });
+
+	        Assert.True(socket.TrySendFrame(TimeSpan.Zero, buffer, data.Length));
         }
     }
 }
