@@ -156,7 +156,16 @@ namespace NetMQ.Monitoring
         {
             var monitorEvent = MonitorEvent.Read(m_monitoringSocket.SocketHandle);
 
-            T GetArg<T>() => monitorEvent.Arg is T v ? v : throw new ArgumentException($"Command argument must be of type {typeof(T).Name}.");
+            T GetArg<T>()
+            {
+                if (monitorEvent.Arg is T v)
+                    return v;
+
+                if (monitorEvent.Arg == null && default(T) == null)
+                    return default(T);
+
+                throw new ArgumentException($"Command argument must be of type {typeof(T).Name}.");
+            }
 
             switch (monitorEvent.Event)
             {
